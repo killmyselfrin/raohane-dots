@@ -2,19 +2,6 @@
 
 This suite is used to manage project translation files, automatically extract translatable texts, compare differences between language files, and provide maintenance functions.
 
-## Contextual localization
-
-Use `l10n.py` for current runtime localization work. It audits English fallbacks, creates contextual review batches and validates reviewed translations before applying them.
-
-```bash
-python3 translations/tools/l10n.py audit-all
-python3 translations/tools/l10n.py audit es_AR --strict-terms
-python3 translations/tools/l10n.py extract es_AR /tmp/es_AR-001.json --limit 200
-python3 translations/tools/l10n.py apply /tmp/es_AR-001.json
-```
-
-See `translations/l10n/README.md` for the full workflow. The older automatic translators below are useful only for rough drafts and are not an approval step.
-
 ## Tool Components
 
 ### 1. `translation-manager.py` - Main Translation Manager
@@ -30,11 +17,6 @@ See `translations/l10n/README.md` for the full workflow. The older automatic tra
 - Provides a unified command-line interface
 - Displays translation status
 - Simplifies common operations
-
-### 4. `auto-translate.js` - Bulk Auto-Translation Tool
-- Uses Google Translate to automatically fill empty or missing translations.
-- Processes keys in batches to avoid API limits.
-- **Usage**: `node auto-translate.js <lang_code>` (e.g. `node auto-translate.js es_AR`)
 
 ## Quick Start
 
