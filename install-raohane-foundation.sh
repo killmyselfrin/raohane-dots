@@ -46,7 +46,8 @@ printf '  dependency mode: %s\n\n' "$([[ "$INSTALL_DEPS" == yes ]] && echo full-
 
 [[ -f "$ROOT/shell.qml" ]] || { echo 'FAIL  shell.qml missing from source tree.' >&2; exit 1; }
 [[ -d "$ROOT/modules/ii" ]] || { echo 'FAIL  imported end4-pC foundation is incomplete.' >&2; exit 1; }
-[[ -x "$ROOT/scripts/raohane-deps" || -f "$ROOT/scripts/raohane-deps" ]] || { echo 'FAIL  scripts/raohane-deps missing.' >&2; exit 1; }
+[[ -f "$ROOT/scripts/raohane-deps" ]] || { echo 'FAIL  scripts/raohane-deps missing.' >&2; exit 1; }
+[[ -f "$ROOT/manifests/upstream-package-baseline.tsv" ]] || { echo 'FAIL  generated dependency baseline missing.' >&2; exit 1; }
 
 font_count="$(find "$ROOT" -type f \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) -not -path '*/.git/*' | wc -l)"
 [[ "$font_count" -eq 0 ]] || { printf 'FAIL  source contains %s bundled font binaries.\n' "$font_count" >&2; exit 1; }
@@ -63,6 +64,7 @@ if [[ "$CHECK_ONLY" == yes ]]; then
 fi
 
 command -v rsync >/dev/null 2>&1 || { echo 'FAIL  rsync is required for installation.' >&2; exit 1; }
+command -v systemctl >/dev/null 2>&1 || { echo 'FAIL  systemd user service support is required by this baseline installer.' >&2; exit 1; }
 
 if [[ "$INSTALL_DEPS" == yes ]]; then
   chmod +x "$ROOT/scripts/raohane-deps"
@@ -80,8 +82,9 @@ fi
 
 mkdir -p "$RUNTIME" "$BIN_DIR" "$SYSTEMD_DIR"
 
-# Copy only runtime-relevant foundation content. Vendored system sources, migration
+# Copy runtime-relevant foundation content. Vendored system sources, migration
 # snapshots, CI files and repository metadata stay in the development checkout.
+# Licensing/attribution/pinned-source metadata remain in the installed runtime.
 rsync -a --delete \
   --exclude='.git/' \
   --exclude='.github/' \
@@ -89,8 +92,6 @@ rsync -a --delete \
   --exclude='migration/' \
   --exclude='docs/' \
   --exclude='manifests/' \
-  --exclude='UPSTREAM-BASE.md' \
-  --exclude='SYSTEM-UPSTREAM-BASE.md' \
   --exclude='FOUNDATION-STATUS.md' \
   --exclude='AGENTS.md' \
   --exclude='install-raohane-foundation.sh' \
@@ -108,7 +109,7 @@ rsync -a --delete "$ROOT/upstream/illogical-impulse-system/sdata/dist-arch/" \
   "$RUNTIME/upstream/illogical-impulse-system/sdata/dist-arch/"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
-chmod +x "$RUNTIME/scripts/raohane-deps" "$RUNTIME/scripts/audit-foundation.sh" 2>/dev/null || true
+chmod +x "$RUNTIME/scripts/raohane" "$RUNTIME/scripts/raohane-deps" "$RUNTIME/scripts/audit-foundation.sh" 2>/dev/null || true
 
 cat > "$SYSTEMD_DIR/raohane.service" <<SERVICE
 [Unit]
@@ -137,6 +138,7 @@ printf '\nNo Hyprland config was overwritten.\n'
 printf 'Settings can be opened after startup with: raohane settings\n'
 printf 'Foreground debug: raohane run\n'
 printf 'Logs: raohane logs\n'
+printf 'Runtime audit: raohane foundation-audit\n'
 
 if [[ "$START_AFTER" == yes ]]; then
   systemctl --user restart raohane.service
