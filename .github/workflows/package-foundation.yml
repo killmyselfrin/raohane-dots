@@ -1,0 +1,52 @@
+name: Package Raohane foundation ZIP
+
+on:
+  push:
+    branches:
+      - chatgpt/end4-foundation-migration
+    paths:
+      - .github/workflows/package-foundation.yml
+      - scripts/package-release.sh
+      - VERSION
+      - RELEASE-NOTES-0.11.0-foundation.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+
+      - name: Ensure packaging utilities
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rsync zip unzip
+
+      - name: Build and validate release ZIP
+        run: |
+          set -euo pipefail
+          bash scripts/package-release.sh
+
+      - name: Show release metadata
+        run: |
+          set -euo pipefail
+          cat VERSION
+          cat dist/*.sha256
+          du -h dist/*.zip
+          unzip -Z1 dist/*.zip | wc -l
+
+      - name: Upload validated ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Raohane-0.11.0-foundation
+          path: |
+            dist/Raohane-0.11.0-foundation.zip
+            dist/Raohane-0.11.0-foundation.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
