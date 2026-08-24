@@ -80,6 +80,9 @@ if unzip -Z1 "$ZIP" | grep -Ei '\.(ttf|otf|woff|woff2|eot)$' >/dev/null; then
   exit 1
 fi
 
-sha256sum "$ZIP" | tee "$SHA_FILE"
+(
+  cd "$DIST"
+  sha256sum "$NAME.zip" | tee "$NAME.sha256"
+)
 printf 'PASS  release archive: %s\n' "$ZIP"
 printf 'PASS  release checksum: %s\n' "$SHA_FILE"
