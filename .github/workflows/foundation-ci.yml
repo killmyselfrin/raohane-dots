@@ -24,8 +24,10 @@ jobs:
           bash -n install-raohane-foundation.sh
           bash -n scripts/raohane
           bash -n scripts/raohane-deps
+          bash -n scripts/raohane-doctor
           bash -n scripts/import-end4-foundation.sh
           bash -n scripts/audit-foundation.sh
+          bash -n scripts/audit-runtime-paths.sh
           while IFS= read -r -d '' file; do
             bash -n "$file"
           done < <(find scripts -type f -name '*.sh' -print0)
@@ -43,6 +45,16 @@ jobs:
           python3 scripts/generate-upstream-package-baseline.py
           diff -u /tmp/baseline.tsv manifests/upstream-package-baseline.tsv
           diff -u /tmp/baseline.md manifests/upstream-package-baseline.md
+
+      - name: Standalone runtime path audit
+        run: |
+          set -euo pipefail
+          bash scripts/audit-runtime-paths.sh
+
+      - name: Doctor smoke test
+        run: |
+          set -euo pipefail
+          bash scripts/raohane-doctor --help
 
       - name: Foundation installer dry check
         run: |
