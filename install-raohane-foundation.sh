@@ -3,9 +3,14 @@ set -euo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_NAME="raohane"
-RUNTIME="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/$CONFIG_NAME"
+XDG_CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}"
+RUNTIME="$XDG_CONFIG_ROOT/quickshell/$CONFIG_NAME"
+RAOHANE_CONFIG="$XDG_CONFIG_ROOT/raohane"
+RAOHANE_STATE="$XDG_STATE_ROOT/raohane"
+BACKUP_ROOT="$RAOHANE_STATE/backups"
 BIN_DIR="$HOME/.local/bin"
-SYSTEMD_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+SYSTEMD_DIR="$XDG_CONFIG_ROOT/systemd/user"
 INSTALL_DEPS=no
 START_AFTER=no
 CHECK_ONLY=no
@@ -17,12 +22,15 @@ Usage: ./install-raohane-foundation.sh [options]
 Options:
   --check        inspect prerequisites; do not change the system
   --shell-only   install only the imported Quickshell foundation (default)
-  --with-deps    install full pinned upstream dependency baseline first
+  --with-deps    install full pinned upstream dependency baseline + Raohane diagnostic extras first
   --start        start/restart raohane.service after installation
   -h, --help
 
-This is a migration-baseline installer. It deliberately does not overwrite the
-user's Hyprland configuration and does not install or replace GPU drivers.
+Safety guarantees for this migration build:
+  - does not overwrite the user's Hyprland configuration;
+  - does not install or replace GPU drivers;
+  - backs up an existing Raohane Quickshell runtime before replacing it;
+  - never auto-imports ~/.config/illogical-impulse/config.json.
 EOF
 }
 
@@ -38,19 +46,27 @@ while (($#)); do
   shift
 done
 
-printf 'Raohane foundation installer\n'
+printf 'Raohane standalone foundation installer\n'
 printf '  source: %s\n' "$ROOT"
 printf '  runtime: %s\n' "$RUNTIME"
+printf '  config: %s\n' "$RAOHANE_CONFIG"
+printf '  state: %s\n' "$RAOHANE_STATE"
 printf '  Quickshell config: %s\n' "$CONFIG_NAME"
-printf '  dependency mode: %s\n\n' "$([[ "$INSTALL_DEPS" == yes ]] && echo full-upstream || echo shell-only)"
+printf '  dependency mode: %s\n\n' "$([[ "$INSTALL_DEPS" == yes ]] && echo full-upstream-plus-diagnostics || echo shell-only)"
 
 [[ -f "$ROOT/shell.qml" ]] || { echo 'FAIL  shell.qml missing from source tree.' >&2; exit 1; }
 [[ -d "$ROOT/modules/ii" ]] || { echo 'FAIL  imported end4-pC foundation is incomplete.' >&2; exit 1; }
+[[ -f "$ROOT/scripts/raohane" ]] || { echo 'FAIL  scripts/raohane missing.' >&2; exit 1; }
 [[ -f "$ROOT/scripts/raohane-deps" ]] || { echo 'FAIL  scripts/raohane-deps missing.' >&2; exit 1; }
+[[ -f "$ROOT/scripts/raohane-doctor" ]] || { echo 'FAIL  scripts/raohane-doctor missing.' >&2; exit 1; }
+[[ -f "$ROOT/scripts/audit-runtime-paths.sh" ]] || { echo 'FAIL  runtime path audit missing.' >&2; exit 1; }
 [[ -f "$ROOT/manifests/upstream-package-baseline.tsv" ]] || { echo 'FAIL  generated dependency baseline missing.' >&2; exit 1; }
 
 font_count="$(find "$ROOT" -type f \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) -not -path '*/.git/*' | wc -l)"
 [[ "$font_count" -eq 0 ]] || { printf 'FAIL  source contains %s bundled font binaries.\n' "$font_count" >&2; exit 1; }
+
+# Do not install a runtime that still writes active state into illogical-impulse paths.
+bash "$ROOT/scripts/audit-runtime-paths.sh"
 
 for cmd in rsync systemctl; do
   command -v "$cmd" >/dev/null 2>&1 || printf 'WARN  command unavailable: %s\n' "$cmd"
@@ -58,8 +74,16 @@ done
 command -v qs >/dev/null 2>&1 && echo 'PASS  Quickshell found' || echo 'WARN  Quickshell missing (use --with-deps on supported Arch systems)'
 command -v hyprctl >/dev/null 2>&1 && echo 'PASS  Hyprland CLI found' || echo 'WARN  hyprctl missing/not in PATH'
 
+LEGACY_CONFIG="$XDG_CONFIG_ROOT/illogical-impulse/config.json"
+if [[ -f "$LEGACY_CONFIG" ]]; then
+  printf 'INFO  legacy config detected: %s\n' "$LEGACY_CONFIG"
+  printf '      It will NOT be imported automatically. Raohane uses %s/config.json.\n' "$RAOHANE_CONFIG"
+fi
+
 if [[ "$CHECK_ONLY" == yes ]]; then
   bash "$ROOT/scripts/raohane-deps" summary
+  bash "$ROOT/scripts/raohane-doctor" --help >/dev/null
+  echo 'PASS  installer dry check completed without changes'
   exit 0
 fi
 
@@ -80,7 +104,17 @@ if systemctl --user is-active --quiet raohane.service 2>/dev/null; then
   systemctl --user stop raohane.service
 fi
 
-mkdir -p "$RUNTIME" "$BIN_DIR" "$SYSTEMD_DIR"
+mkdir -p "$RAOHANE_CONFIG" "$RAOHANE_STATE" "$BACKUP_ROOT" "$BIN_DIR" "$SYSTEMD_DIR"
+
+if [[ -d "$RUNTIME" && -n "$(find "$RUNTIME" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  backup="$BACKUP_ROOT/quickshell-$stamp"
+  mkdir -p "$backup"
+  rsync -a "$RUNTIME/" "$backup/"
+  printf 'PASS  previous Raohane runtime backed up: %s\n' "$backup"
+fi
+
+mkdir -p "$RUNTIME"
 
 # Copy runtime-relevant foundation content. Vendored system sources, migration
 # snapshots, CI files and repository metadata stay in the development checkout.
@@ -97,7 +131,7 @@ rsync -a --delete \
   --exclude='install-raohane-foundation.sh' \
   "$ROOT/" "$RUNTIME/"
 
-# The runtime needs the generated baseline for raohane-deps diagnostics.
+# The runtime needs the generated baseline for dependency diagnostics.
 mkdir -p "$RUNTIME/manifests"
 install -m 0644 "$ROOT/manifests/upstream-package-baseline.tsv" "$RUNTIME/manifests/upstream-package-baseline.tsv"
 install -m 0644 "$ROOT/manifests/upstream-package-baseline.md" "$RUNTIME/manifests/upstream-package-baseline.md"
@@ -109,7 +143,12 @@ rsync -a --delete "$ROOT/upstream/illogical-impulse-system/sdata/dist-arch/" \
   "$RUNTIME/upstream/illogical-impulse-system/sdata/dist-arch/"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
-chmod +x "$RUNTIME/scripts/raohane" "$RUNTIME/scripts/raohane-deps" "$RUNTIME/scripts/audit-foundation.sh" 2>/dev/null || true
+chmod +x \
+  "$RUNTIME/scripts/raohane" \
+  "$RUNTIME/scripts/raohane-deps" \
+  "$RUNTIME/scripts/raohane-doctor" \
+  "$RUNTIME/scripts/audit-foundation.sh" \
+  "$RUNTIME/scripts/audit-runtime-paths.sh" 2>/dev/null || true
 
 cat > "$SYSTEMD_DIR/raohane.service" <<SERVICE
 [Unit]
@@ -131,11 +170,14 @@ SERVICE
 systemctl --user daemon-reload
 systemctl --user enable raohane.service >/dev/null
 
-printf '\nPASS  Raohane foundation installed.\n'
+printf '\nPASS  Raohane standalone foundation installed.\n'
 printf 'Runtime: %s\n' "$RUNTIME"
+printf 'Config: %s\n' "$RAOHANE_CONFIG"
 printf 'CLI: %s/raohane\n' "$BIN_DIR"
-printf '\nNo Hyprland config was overwritten.\n'
-printf 'Settings can be opened after startup with: raohane settings\n'
+printf '\nNo Hyprland config was overwritten. No GPU driver was changed.\n'
+printf 'Settings: raohane settings\n'
+printf 'Graphics/refresh diagnostic: raohane doctor graphics\n'
+printf 'Full diagnostic: raohane doctor all\n'
 printf 'Foreground debug: raohane run\n'
 printf 'Logs: raohane logs\n'
 printf 'Runtime audit: raohane foundation-audit\n'
