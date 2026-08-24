@@ -79,7 +79,11 @@ case "$cmd" in
     ;;
   deps)
     require_runtime
-    exec "$RUNTIME/scripts/raohane-deps" "${@:-summary}"
+    if (($#)); then
+      exec "$RUNTIME/scripts/raohane-deps" "$@"
+    else
+      exec "$RUNTIME/scripts/raohane-deps" summary
+    fi
     ;;
   foundation-audit)
     require_runtime
