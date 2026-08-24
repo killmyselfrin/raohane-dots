@@ -1,0 +1,76 @@
+name: Generate Raohane dependency baseline
+
+on:
+  push:
+    branches:
+      - chatgpt/end4-foundation-migration
+    paths:
+      - scripts/generate-upstream-package-baseline.py
+      - .github/workflows/generate-dependency-baseline.yml
+      - upstream/illogical-impulse-system/sdata/dist-arch/**
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: chatgpt/end4-foundation-migration
+
+      - name: Generate static dependency inventory
+        run: |
+          set -euo pipefail
+          python3 scripts/generate-upstream-package-baseline.py
+          test -s manifests/upstream-package-baseline.tsv
+          test -s manifests/upstream-package-baseline.md
+
+      - name: Validate baseline coverage
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import csv
+          from pathlib import Path
+
+          path = Path('manifests/upstream-package-baseline.tsv')
+          rows = list(csv.DictReader(path.open(encoding='utf-8'), delimiter='\t'))
+          assert rows, 'dependency manifest is empty'
+
+          selected = [r for r in rows if r['selected_by_upstream_installer'] == 'yes']
+          runtime = {r['package'] for r in selected if r['dependency_type'] == 'depends'}
+          required = {
+              'coreutils', 'cliphist', 'curl', 'ripgrep', 'jq', 'rsync',
+              'pipewire-pulse', 'wireplumber', 'playerctl',
+              'hyprland', 'hyprsunset', 'wl-clipboard',
+              'xdg-desktop-portal', 'xdg-desktop-portal-hyprland',
+              'networkmanager', 'bluedevil',
+              'brightnessctl', 'ddcutil',
+              'hyprshot', 'slurp', 'swappy', 'wf-recorder',
+              'hypridle', 'hyprlock', 'hyprpicker',
+              'qt6-declarative', 'qt6-wayland', 'qt6-multimedia',
+              'kirigami', 'syntax-highlighting',
+          }
+          missing = sorted(required - runtime)
+          if missing:
+              raise SystemExit('baseline lost expected upstream packages: ' + ', '.join(missing))
+
+          print(f'rows={len(rows)} selected_runtime={len(runtime)}')
+          PY
+
+      - name: Commit generated manifests
+        run: |
+          set -euo pipefail
+          git config user.name 'Raohane Dependency Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add manifests/upstream-package-baseline.tsv manifests/upstream-package-baseline.md
+          if git diff --cached --quiet; then
+            echo 'Generated dependency baseline is unchanged.'
+            exit 0
+          fi
+          git commit -m 'deps: generate upstream package baseline'
+          git push origin HEAD:chatgpt/end4-foundation-migration
