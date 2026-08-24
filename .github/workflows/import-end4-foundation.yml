@@ -1,0 +1,109 @@
+name: Import pinned end4-pC foundation
+
+on:
+  push:
+    branches:
+      - chatgpt/end4-foundation-migration
+    paths:
+      - .github/workflows/import-end4-foundation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import-foundation:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane migration branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: chatgpt/end4-foundation-migration
+
+      - name: Install migration utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync ripgrep
+
+      - name: Fetch pinned end4-pC
+        env:
+          END4_SHA: 369554b62de8d659875de828c779b83b28ae9ada
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none --no-checkout https://github.com/pctrade/end4-pC.git /tmp/end4-pC
+          git -C /tmp/end4-pC fetch --depth=1 origin "$END4_SHA"
+          git -C /tmp/end4-pC checkout --detach "$END4_SHA"
+          test "$(git -C /tmp/end4-pC rev-parse HEAD)" = "$END4_SHA"
+          grep -q 'GNU GENERAL PUBLIC LICENSE' /tmp/end4-pC/LICENSE
+
+      - name: Preserve Raohane migration controls and prototype
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/raohane-control /tmp/legacy-raohane
+          for path in AGENTS.md NOTICE-UPSTREAM.md UPSTREAM-BASE.md scripts/import-end4-foundation.sh scripts/audit-foundation.sh .github/workflows/import-end4-foundation.yml; do
+            if [ -e "$path" ]; then
+              mkdir -p "/tmp/raohane-control/$(dirname "$path")"
+              cp -a "$path" "/tmp/raohane-control/$path"
+            fi
+          done
+          for path in modules/raohane manifests/raohane-dependencies.tsv scripts/raohane scripts/raohane-deps scripts/raohane-display scripts/raohane-net scripts/raohane-audio scripts/raohane-audit.sh install-raohane.sh RAOHANE-CHANGELOG.md; do
+            if [ -e "$path" ]; then
+              mkdir -p "/tmp/legacy-raohane/$(dirname "$path")"
+              cp -a "$path" "/tmp/legacy-raohane/$path"
+            fi
+          done
+
+      - name: Synchronize complete upstream shell foundation
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='*.ttf' \
+            --exclude='*.otf' \
+            --exclude='*.woff' \
+            --exclude='*.woff2' \
+            --exclude='*.eot' \
+            /tmp/end4-pC/ ./
+
+          rsync -a /tmp/raohane-control/ ./
+          mkdir -p migration/legacy-raohane
+          rsync -a /tmp/legacy-raohane/ migration/legacy-raohane/
+          cat > migration/legacy-raohane/README.md <<'EOF'
+          # Pre-foundation Raohane migration snapshot
+
+          Selected files from the pre-reset Raohane prototype are kept here only as
+          migration reference. They are not part of the active end4-pC baseline.
+          EOF
+
+      - name: Verify imported foundation
+        run: |
+          set -euo pipefail
+          chmod +x scripts/import-end4-foundation.sh scripts/audit-foundation.sh
+          ./scripts/audit-foundation.sh
+          test -f shell.qml
+          test -d modules/ii/settings
+          test -d modules/ii/bar
+          test -d modules/ii/background
+          test -d modules/ii/notificationPopup
+          test -d modules/ii/onScreenDisplay
+          test -d services
+          if find . -type f \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) -not -path './.git/*' | grep -q .; then
+            echo 'Bundled font binaries found after import' >&2
+            exit 1
+          fi
+
+      - name: Commit foundation snapshot
+        env:
+          END4_SHA: 369554b62de8d659875de828c779b83b28ae9ada
+        run: |
+          set -euo pipefail
+          git config user.name 'Raohane Migration Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No migration changes to commit.'
+            exit 0
+          fi
+          git commit -m "foundation: import end4-pC ${END4_SHA}"
+          git push origin HEAD:chatgpt/end4-foundation-migration
