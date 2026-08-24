@@ -1,5 +1,16 @@
 # Raohane changelog
 
+## Phase A — dependency and system foundation
+
+
+- Added a machine-readable Arch dependency manifest with capability, diagnostic,
+  service, provenance, session, and hardware metadata.
+- Rebuilt the bootstrap installer around check/minimal/recommended/full profiles,
+  explicit package plans, confirmation, service setup, and runtime verification.
+- Added the canonical `raohane` named-config launcher and subsystem doctor checks.
+- Documented the coverage review, deliberate exclusions, and Phase B limitations.
+
+
 ## dev-0.1
 - Created from Raohane base.
 - Retained full Raohane settings/config architecture.
@@ -37,3 +48,11 @@
 - Remove legacy bar/right-sidebar/overview/left-sidebar primary loaders.
 - Move active helper/service/cache paths to the Raohane namespace.
 - Add visual previews to Bar and Control Center settings.
+# Phase A — dependency and system foundation
+
+- Added a machine-readable Arch dependency manifest with capability, diagnostic,
+  service, provenance, session, and hardware metadata.
+- Rebuilt the bootstrap installer around check/minimal/recommended/full profiles,
+  explicit package plans, confirmation, service setup, and runtime verification.
+- Added the canonical `raohane` named-config launcher and subsystem doctor checks.
+- Documented the coverage review, deliberate exclusions, and Phase B limitations.

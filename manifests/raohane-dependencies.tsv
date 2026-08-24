@@ -1,0 +1,57 @@
+id	group	arch_package	requirement	profiles	feature	capability	diagnostic	service	source	install_notes	session_requirement	hardware_condition
+bash	raohane-core	bash	required	minimal,recommended,full	CLI runtime	Runs Raohane commands	bash --version	-	official	POSIX userland shell	none	all
+coreutils	raohane-core	coreutils	required	minimal,recommended,full	CLI runtime	Core file utilities	install --version	-	official	Required by installer	none	all
+procps-ng	raohane-core	procps-ng	required	minimal,recommended,full	Diagnostics	Process inspection	pgrep --version	-	official	Used by doctor	none	all
+pciutils	raohane-core	pciutils	required	minimal,recommended,full	Hardware detection	PCI GPU discovery	lspci --version	-	official	Required for graphics planning	none	all
+quickshell	raohane-quickshell-qt	quickshell-git	required	minimal,recommended,full	Desktop shell	Named Quickshell runtime	qs --version	-	aur	Install with an AUR helper or build package manually	relogin	all
+qt6-base	raohane-quickshell-qt	qt6-base	required	minimal,recommended,full	QML runtime	Qt base and DBus	qmake6 -v	-	official	Runtime dependency	none	all
+qt6-declarative	raohane-quickshell-qt	qt6-declarative	required	minimal,recommended,full	QML runtime	Qt Quick and QML	qmlscene6 -v	-	official	Provides declarative modules	none	all
+qt6-svg	raohane-quickshell-qt	qt6-svg	required	minimal,recommended,full	Icons	SVG rendering	pacman -Q qt6-svg	-	official	Imported by image surfaces	none	all
+qt6-wayland	raohane-quickshell-qt	qt6-wayland	required	minimal,recommended,full	Wayland	Qt Wayland platform	pacman -Q qt6-wayland	-	official	Required for native Wayland rendering	relogin	all
+qt6-multimedia	raohane-quickshell-qt	qt6-multimedia	optional	recommended,full	Media	QML multimedia	pacman -Q qt6-multimedia	-	official	Used by media surfaces	none	all
+qt6-imageformats	raohane-quickshell-qt	qt6-imageformats	optional	recommended,full	Images	Additional image codecs	pacman -Q qt6-imageformats	-	official	Wallpaper and artwork formats	none	all
+qt6-5compat	raohane-quickshell-qt	qt6-5compat	optional	full	Compatibility	Qt5 compatibility QML APIs	pacman -Q qt6-5compat	-	official	Only compatibility surfaces	none	all
+hyprland	raohane-hyprland-wayland	hyprland	required	minimal,recommended,full	Compositor	Hyprland Wayland session	hyprctl version	-	official	Raohane supports Hyprland only	relogin	all
+wayland-utils	raohane-hyprland-wayland	wayland-utils	required	minimal,recommended,full	Wayland diagnostics	Wayland display information	wayland-info --version	-	official	Diagnostic utility	none	all
+xdg-desktop-portal	raohane-portals	xdg-desktop-portal	required	recommended,full	Desktop portals	Portal broker	/usr/lib/xdg-desktop-portal --version	xdg-desktop-portal.service	official	User service managed by session	relogin	all
+xdg-desktop-portal-hyprland	raohane-portals	xdg-desktop-portal-hyprland	required	recommended,full	Hyprland portals	Screencast and chooser	/usr/lib/xdg-desktop-portal-hyprland --version	xdg-desktop-portal-hyprland.service	official	Hyprland portal backend	relogin	all
+xdg-desktop-portal-gtk	raohane-portals	xdg-desktop-portal-gtk	optional	full	Fallback portals	File chooser fallback	pacman -Q xdg-desktop-portal-gtk	xdg-desktop-portal-gtk.service	official	Avoid conflicting duplicate implementations	relogin	all
+polkit	raohane-polkit-keyring	polkit	required	recommended,full	Authorization	Privileged action framework	pkaction --version	-	official	Requires an authentication agent	relogin	all
+hyprpolkitagent	raohane-polkit-keyring	hyprpolkitagent	required	recommended,full	Authorization UI	Hyprland-native polkit agent	hyprpolkitagent --help	hyprpolkitagent.service	official	Start once per graphical session	relogin	all
+gnome-keyring	raohane-polkit-keyring	gnome-keyring	optional	full	Secrets	Secret Service keyring	gnome-keyring-daemon --version	-	official	Enable PAM integration where desired	relogin	all
+pipewire	raohane-audio-media	pipewire	required	recommended,full	Audio	PipeWire graph	pipewire --version	pipewire.socket	official	User socket activation	relogin	all
+wireplumber	raohane-audio-media	wireplumber	required	recommended,full	Audio policy	PipeWire session manager	wireplumber --version	wireplumber.service	official	User service	relogin	all
+pipewire-pulse	raohane-audio-media	pipewire-pulse	required	recommended,full	Pulse compatibility	PulseAudio protocol on PipeWire	pactl info	pipewire-pulse.socket	official	Conflicts with pulseaudio	relogin	all
+alsa-utils	raohane-audio-media	alsa-utils	required	recommended,full	Audio diagnostics	ALSA mixer inspection	alsamixer --version	-	official	Hardware mixer tools	none	all
+libpulse	raohane-audio-media	libpulse	required	recommended,full	Audio clients	Pulse client library	pacman -Q libpulse	-	official	Client compatibility	none	all
+playerctl	raohane-audio-media	playerctl	required	recommended,full	Media	MPRIS controls	playerctl --version	-	official	Media controls	none	all
+cava	raohane-audio-media	cava	optional	full	Audio visualization	Spectrum data	cava -v	-	official	Optional visualizer	none	all
+pavucontrol	raohane-audio-media	pavucontrol	optional	full	Audio fallback	Advanced mixer UI	pavucontrol --version	-	official	Fallback troubleshooting UI	none	all
+networkmanager	raohane-network	networkmanager	required	recommended,full	Networking	Wi-Fi and connection management	nmcli --version	NetworkManager.service	official	Enable system service	relogin	all
+bluez	raohane-bluetooth	bluez	optional	recommended,full	Bluetooth	Bluetooth daemon	bluetoothd --version	bluetooth.service	official	Only enable when hardware is present	none	bluetooth-adapter
+bluez-utils	raohane-bluetooth	bluez-utils	optional	recommended,full	Bluetooth tools	Adapter control	bluetoothctl --version	bluetooth.service	official	CLI backend	none	bluetooth-adapter
+brightnessctl	raohane-backlight-power	brightnessctl	optional	recommended,full	Backlight	Backlight control	brightnessctl --version	-	official	Relevant to laptops and backlit displays	none	backlight-device
+power-profiles-daemon	raohane-backlight-power	power-profiles-daemon	optional	full	Power profiles	Platform power profiles	powerprofilesctl version	power-profiles-daemon.service	official	Use only on supported hardware	none	power-profile-support
+grim	raohane-capture	grim	required	recommended,full	Screenshot	Wayland image capture	grim --version	-	official	Used with slurp	none	all
+slurp	raohane-capture	slurp	required	recommended,full	Screenshot	Region selection	slurp -h	-	official	Wayland region selector	none	all
+swappy	raohane-capture	swappy	optional	full	Screenshot editing	Image annotation	swappy --version	-	official	Optional editor	none	all
+wf-recorder	raohane-capture	wf-recorder	optional	full	Recording	Wayland screen recording	wf-recorder --version	-	official	Portal recording remains preferred	none	all
+cliphist	raohane-input-clipboard	cliphist	required	recommended,full	Clipboard	Clipboard history	cliphist -version	-	official	Pairs with wl-clipboard	none	all
+wl-clipboard	raohane-input-clipboard	wl-clipboard	required	recommended,full	Clipboard	Wayland clipboard commands	wl-copy --version	-	official	Clipboard backend	none	all
+ydotool	raohane-input-clipboard	ydotool	optional	full	Input automation	Synthetic input	ydotool --version	ydotool.service	official	System service and input permissions may be required	relogin	all
+jq	raohane-widgets-tools	jq	required	recommended,full	Data processing	JSON parsing	jq --version	-	official	Used for Hyprland and IPC data	none	all
+curl	raohane-widgets-tools	curl	optional	recommended,full	Online widgets	HTTP retrieval	curl --version	-	official	Network widgets only	none	all
+python	raohane-widgets-tools	python	required	recommended,full	Helper runtime	Structured helper scripts	python --version	-	official	No global pip installation	none	all
+matugen	raohane-theming	matugen-bin	optional	full	Dynamic colors	Wallpaper color generation	matugen --version	-	aur	Optional wallpaper-aware palette	none	all
+adw-gtk-theme	raohane-theming	adw-gtk-theme	optional	full	GTK theming	Consistent GTK fallback	pacman -Q adw-gtk-theme	-	official	Does not replace Raohane design tokens	relogin	all
+mesa	raohane-graphics-common	mesa	required	recommended,full	Graphics	OpenGL userspace	glxinfo -B	-	official	Driver installation is never automatic	relogin	all
+vulkan-tools	raohane-graphics-common	vulkan-tools	optional	recommended,full	Graphics diagnostics	Vulkan device inspection	vulkaninfo --summary	-	official	Diagnostic only	none	all
+mesa-utils	raohane-graphics-common	mesa-utils	optional	recommended,full	Graphics diagnostics	OpenGL renderer inspection	glxinfo -B	-	official	Diagnostic only	none	all
+nvidia-legacy-dkms	raohane-graphics-nvidia-legacy	nvidia-580xx-dkms	optional	full	NVIDIA legacy graphics	Maxwell Pascal Volta kernel module	modinfo nvidia	-	aur	Plan only; explicitly confirm driver family and matching kernel headers	reboot	nvidia-maxwell-pascal-volta
+nvidia-legacy-utils	raohane-graphics-nvidia-legacy	nvidia-580xx-utils	optional	full	NVIDIA legacy userspace	OpenGL and Vulkan userspace	nvidia-smi	-	aur	Keep userspace and kernel module versions aligned	reboot	nvidia-maxwell-pascal-volta
+nvidia-modern-dkms	raohane-graphics-nvidia-modern	nvidia-open-dkms	optional	full	NVIDIA modern graphics	Turing and newer open kernel module	modinfo nvidia	-	official	Plan only; never silently install	reboot	nvidia-turing-or-newer
+nvidia-modern-utils	raohane-graphics-nvidia-modern	nvidia-utils	optional	full	NVIDIA modern userspace	OpenGL and Vulkan userspace	nvidia-smi	-	official	Keep userspace and kernel module versions aligned	reboot	nvidia-turing-or-newer
+amd-mesa	raohane-graphics-amd	mesa	optional	full	AMD graphics	OpenGL driver	glxinfo -B	-	official	Plan only; normally already installed	relogin	amd-gpu
+amd-vulkan	raohane-graphics-amd	vulkan-radeon	optional	full	AMD graphics	Vulkan driver	vulkaninfo --summary	-	official	Plan only; do not replace working proprietary stacks silently	relogin	amd-gpu
+intel-mesa	raohane-graphics-intel	mesa	optional	full	Intel graphics	OpenGL driver	glxinfo -B	-	official	Plan only; normally already installed	relogin	intel-gpu
+intel-vulkan	raohane-graphics-intel	vulkan-intel	optional	full	Intel graphics	Vulkan driver	vulkaninfo --summary	-	official	Plan only	relogin	intel-gpu

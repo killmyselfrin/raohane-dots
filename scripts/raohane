@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="${RAOHANE_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export RAOHANE_ROOT="$ROOT"
+# shellcheck source=scripts/lib/raohane-system.sh
+source "$ROOT/scripts/lib/raohane-system.sh"
+
+usage() { cat <<'EOF'
+Usage: raohane <command>
+  run|start|stop|restart
+  settings|control|launcher|media-overlay
+  doctor [deps|graphics|display|audio|network|bluetooth|portals|ui]
+  system-info
+EOF
+}
+
+ipc() { qs -c raohane ipc call "$1" toggle; }
+cmd="${1:-help}"; shift || true
+case "$cmd" in
+  run) exec qs -c raohane ;;
+  start|stop|restart) systemctl --user "$cmd" raohane.service ;;
+  settings) ipc settings ;;
+  control) ipc controlCenter ;;
+  launcher) ipc launcher ;;
+  media-overlay) ipc gameMediaOverlay ;;
+  doctor)
+    section="${1:-all}"
+    case "$section" in all) doctor_all;; deps) doctor_deps;; graphics) doctor_graphics;; display) doctor_display;; audio) doctor_audio;; network) doctor_network;; bluetooth) doctor_bluetooth;; portals) doctor_portals;; ui) doctor_ui;; *) usage; exit 2;; esac ;;
+  system-info) printf 'Distro: %s\nKernel: %s\nGPU:\n' "$(detect_distro)" "$(uname -r)"; detect_gpu ;;
+  help|-h|--help) usage ;;
+  *) usage; exit 2 ;;
+esac
