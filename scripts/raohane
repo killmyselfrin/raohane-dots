@@ -4,6 +4,7 @@ set -euo pipefail
 CONFIG_NAME="${RAOHANE_QS_CONFIG:-raohane}"
 RUNTIME="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/$CONFIG_NAME"
 SERVICE="raohane.service"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
   cat <<'EOF'
@@ -21,6 +22,7 @@ UI compatibility:
 System foundation:
   deps <summary|check|plan|install|build-meta>
   doctor [runtime|deps|graphics|all]
+  graphics [detect|plan]    read-only GPU package planning
   foundation-audit
 
 The imported end4-pC internals intentionally keep some upstream identifiers during
@@ -48,6 +50,17 @@ ipc() {
   require_qs
   require_runtime
   qs -c "$CONFIG_NAME" ipc call "$target" "$action"
+}
+
+resolve_runtime_script() {
+  local name="$1"
+  if [[ -x "$RUNTIME/scripts/$name" ]]; then
+    printf '%s\n' "$RUNTIME/scripts/$name"
+  elif [[ -f "$SCRIPT_DIR/$name" ]]; then
+    printf '%s\n' "$SCRIPT_DIR/$name"
+  else
+    return 1
+  fi
 }
 
 cmd="${1:-help}"
@@ -88,12 +101,12 @@ case "$cmd" in
     fi
     ;;
   doctor)
-    if [[ -x "$RUNTIME/scripts/raohane-doctor" ]]; then
-      exec "$RUNTIME/scripts/raohane-doctor" "${1:-all}"
-    fi
-    local_doctor="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/raohane-doctor"
-    [[ -f "$local_doctor" ]] || { echo 'FAIL  raohane-doctor is unavailable' >&2; exit 1; }
-    exec bash "$local_doctor" "${1:-all}"
+    doctor_script="$(resolve_runtime_script raohane-doctor)" || { echo 'FAIL  raohane-doctor is unavailable' >&2; exit 1; }
+    exec bash "$doctor_script" "${1:-all}"
+    ;;
+  graphics)
+    graphics_script="$(resolve_runtime_script raohane-graphics)" || { echo 'FAIL  raohane-graphics is unavailable' >&2; exit 1; }
+    exec bash "$graphics_script" "${1:-plan}"
     ;;
   foundation-audit)
     require_runtime
