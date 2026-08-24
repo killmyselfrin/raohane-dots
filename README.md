@@ -1,120 +1,135 @@
+# Raohane / ラオハネ
 
+Raohane is a Hyprland + Quickshell desktop shell in active migration toward a standalone,
+Raohane-native system. This branch uses the mature `end4-pC` / `illogical-impulse`
+architecture as its working foundation while the visible identity, runtime paths,
+installer, diagnostics and later UI are migrated to Raohane.
 
+> **Build status:** `0.11.0-foundation` is a testable migration build, not the final
+> visual Raohane release. Some internal QML module names and upstream UI are intentionally
+> retained until the foundation is proven stable on a real Hyprland session.
 
+## What is already Raohane-owned
 
-<div align="center">
+- Quickshell config name: `raohane` (`qs -c raohane`)
+- installed runtime: `~/.config/quickshell/raohane`
+- user config: `~/.config/raohane`
+- user state/cache/temp paths use Raohane namespaces
+- user service: `raohane.service`
+- CLI: `raohane`
+- dependency baseline/installer and read-only doctor tools
+- active runtime no longer hardcodes `~/.config/illogical-impulse`
 
-# 💠 end4-pC
+## Foundation sources
 
-**A personal fork of [illogical-impulse](https://github.com/end-4/dots-hyprland) by [@end-4](https://github.com/end-4)**  
-Customized and maintained by **pctrade**
+Raohane currently derives its migration baseline from pinned upstream revisions:
 
-[English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
+- `pctrade/end4-pC` — `369554b62de8d659875de828c779b83b28ae9ada`
+- `end-4/dots-hyprland` — `42d0aae17b744a38cd05c9044c189bfc9b13869a`
 
-</div>
+See `NOTICE-UPSTREAM.md`, `UPSTREAM-BASE.md`, `SYSTEM-UPSTREAM-BASE.md`, `LICENSE`,
+and `docs/upstream/end4-pC-README.md` for provenance and attribution.
 
----
+## Safe first test
 
-## 🎬 Showcase
-
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=o0Vsh7eVchs">
-    <img src="https://img.youtube.com/vi/o0Vsh7eVchs/maxresdefault.jpg" alt="Material 3 Expressive x Linux" width="85%" style="border-radius: 12px; box-shadow: 0px 10px 30px rgba(0,0,0,0.5);"/>
-  </a>
-</p>
-
-</div>
-
----
-
-## 📸 Screenshots
-<div align="center">
-
-| 🎵 Lyrics | 🖼️ Online Wallpapers |
-|:---:|:---:|
-| ![Screenshot 1](screenshots/1.png) | ![Screenshot 2](screenshots/2.png) |
-| 🪟 Desktop Widgets | 🔧 Hyprland Configs |
-| ![Screenshot 5](screenshots/5.png) | ![Screenshot 6](screenshots/6.png) |
-| ⚙️ Configurable Bar | ✨ And More |
-| ![Screenshot 3](screenshots/3.png) | ![Screenshot 4](screenshots/4.png) |
-
-</div>
-
----
-
-## ⚡ Installation
-
-> [!NOTE]
-> This fork manages its own configuration folder independently — it does **not** overwrite or modify any existing setup. However, it does require [illogical-impulse](https://github.com/end-4/dots-hyprland) to be installed and running.
+Run these from the extracted Raohane directory:
 
 ```bash
-cd ~/.config/quickshell/
-git clone https://github.com/pctrade/end4-pC.git
-killall qs 2>/dev/null; qs -c end4-pC > /dev/null 2>&1 & disown
+bash install-raohane-foundation.sh --check
+bash scripts/raohane-deps summary
 ```
 
-### 🔧 Set as your default shell (optional)
-
-If you like it and want it to load by default instead of `ii`, edit:
+On Arch-family systems you can inspect what would be needed without installing anything:
 
 ```bash
-~/.config/hypr/hyprland/variables.lua
+bash scripts/raohane-deps plan
 ```
 
-And change this line:
+The dependency installer intentionally requires an interactive confirmation. Generic
+dependency installation does **not** install or replace GPU drivers.
 
-```lua
-hl.env("qsConfig", "ii")
+## Graphics / 60 Hz diagnostics
+
+Before changing a GPU driver or monitor configuration, run the read-only diagnostics:
+
+```bash
+bash scripts/raohane-doctor graphics
+bash scripts/raohane-graphics plan
 ```
 
-to:
+After Raohane is installed, the equivalent commands are:
 
-```lua
-hl.env("qsConfig", "end4-pC")
+```bash
+raohane doctor graphics
+raohane graphics plan
 ```
 
-> [!TIP]
-> After saving, restart Hyprland or run `hyprctl reload` to apply the change.
+The doctor checks the active kernel graphics driver, NVIDIA DRM/KMS when applicable,
+OpenGL software-rendering fallbacks, Vulkan availability, Hyprland monitor modes and
+the common case where the current mode is around 60 Hz while a higher refresh mode is advertised.
+It never installs a driver and never writes a monitor configuration.
 
----
+## Install the test foundation
 
-### ⚙️ Settings keybind
+If the dry checks look correct and Quickshell is already available:
 
-To open the settings panel, add this to your Hyprland config:
-
-```lua
-hl.bind("SUPER + escape", hl.dsp.global("quickshell:settingsToggle"), {description = "Toggle settings"})
+```bash
+bash install-raohane-foundation.sh --shell-only
+raohane start
 ```
 
-> **Note:** Settings is an overlay panel, not a regular window — `Super + Q` won't close it. Use the same keybind to toggle it or press `Escape`.
+For the full pinned dependency foundation on a supported Arch-family system:
 
----
+```bash
+bash install-raohane-foundation.sh --with-deps
+```
 
-## ❓ FAQ
+Package changes are shown first and require the literal interactive confirmation requested
+by the dependency tool.
 
-### How do I see my keybinds?
+The installer:
 
-Open the launcher (`SUPER`) and type `<` — it'll show you the full list of configured keybinds.
+- does not overwrite `hyprland.conf`;
+- does not replace a GPU driver;
+- backs up an existing Raohane runtime before `rsync --delete`;
+- does not silently import an old `~/.config/illogical-impulse/config.json`;
+- installs the shell as the named Quickshell config `raohane`;
+- installs/enables `raohane.service` but does not start it unless requested.
 
-### Why doesn't Settings have a search bar?
+To install and immediately start after the checks:
 
-It doesn't need one — the launcher already does that job. Open the launcher (`SUPER`) and just type what you're looking for (e.g. `wallpaper`, `bar`, `blur`); it'll match against page names and section keywords and jump you straight to the right Settings page, so there's no need for a separate search inside Settings itself.
+```bash
+bash install-raohane-foundation.sh --shell-only --start
+```
 
----
+## Useful commands
 
-## 🙏 Credits
+```text
+raohane run
+raohane start
+raohane stop
+raohane restart
+raohane status
+raohane logs
+raohane settings
+raohane deps summary
+raohane deps check
+raohane deps plan
+raohane doctor all
+raohane doctor graphics
+raohane graphics detect
+raohane graphics plan
+raohane foundation-audit
+```
 
-Huge thanks to the people who made this possible:
+## Migration rule
 
-- **[@end-4](https://github.com/end-4)** — for creating the original [dots-hyprland](https://github.com/end-4/dots-hyprland) / illogical-impulse shell. An absolute masterpiece of a dotfiles project 🫡
-- **[@gh0stzk](https://github.com/gh0stzk)** — for providing the weather API integration that made the weather widget possible 🙌
-- **[@StarS2112](https://github.com/StarS2112)** — for showcasing this fork 🙌
-- **[@simeulinuxkaliaiwr](https://github.com/simeulinuxkaliaiwr)** — for some shader transitions 🎨
+Do not bulk-rename `modules/ii`, QML singleton identifiers or other internal upstream names
+just to make the tree look branded. The migration order is runtime correctness first,
+then Hyprland-only cleanup, then Raohane design-system/UI replacement. This avoids turning
+a mature working foundation into a visually renamed but broken shell.
 
----
+## License and credits
 
-<div align="center">
-
-Made with ❤️ — feel free to fork and make it your own
-
-</div>
+Raohane keeps the inherited GPL licensing and upstream attribution. The project does not
+bundle font binaries; required fonts/themes are represented through package dependencies.
