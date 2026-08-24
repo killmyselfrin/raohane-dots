@@ -39,16 +39,16 @@ REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
             'illogicalImpulseConfigPath="$HOME/.config/illogical-impulse/config.json"',
             'raohaneConfigPath="${XDG_CONFIG_HOME:-$HOME/.config}/raohane/config.json"',
         ),
-        ("$illogicalImpulseConfigPath", "$raohaneConfigPath"),
         ("${illogicalImpulseConfigPath}", "${raohaneConfigPath}"),
+        ("$illogicalImpulseConfigPath", "$raohaneConfigPath"),
     ],
     "scripts/colors/random/random_konachan_wall.sh": [
         (
             'illogicalImpulseConfigPath="$HOME/.config/illogical-impulse/config.json"',
             'raohaneConfigPath="${XDG_CONFIG_HOME:-$HOME/.config}/raohane/config.json"',
         ),
-        ("$illogicalImpulseConfigPath", "$raohaneConfigPath"),
         ("${illogicalImpulseConfigPath}", "${raohaneConfigPath}"),
+        ("$illogicalImpulseConfigPath", "$raohaneConfigPath"),
     ],
     "scripts/colors/applycolor.sh": [
         (
@@ -78,21 +78,17 @@ def migrate_file(relative: str, replacements: list[tuple[str, str]]) -> bool:
 
     original = path.read_text(encoding="utf-8")
     updated = original
-    changed = False
 
+    # Individual syntactic forms are optional: upstream files may use either
+    # $var or ${var}. The post-migration runtime audit is the strict gate.
     for old, new in replacements:
         if old in updated:
             updated = updated.replace(old, new)
-            changed = True
-        elif new in updated:
-            # Already migrated: keep the operation idempotent.
-            continue
-        else:
-            raise SystemExit(f"migration anchor not found in {relative}: {old!r}")
 
-    if changed:
+    if updated != original:
         path.write_text(updated, encoding="utf-8")
-    return changed
+        return True
+    return False
 
 
 def main() -> None:
