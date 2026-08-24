@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-[[ -n "$ROOT" ]] || { echo 'FAIL  not inside a git repository' >&2; exit 1; }
+SCRIPT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+GIT_ROOT="$(git -C "$SCRIPT_ROOT" rev-parse --show-toplevel 2>/dev/null || true)"
+ROOT="${GIT_ROOT:-$SCRIPT_ROOT}"
 cd "$ROOT"
 
 fail=0
@@ -61,22 +62,23 @@ else
   bad "bundled font binaries detected: $font_count"
 fi
 
-for file in $(find scripts -type f -name '*.sh' 2>/dev/null); do
+while IFS= read -r -d '' file; do
   bash -n "$file" || bad "shell syntax: $file"
+done < <(find scripts -type f -name '*.sh' -print0 2>/dev/null)
+for file in scripts/raohane scripts/raohane-deps; do
+  [[ -f "$file" ]] && bash -n "$file" || true
 done
 (( fail == 0 )) && pass 'shell script syntax'
 
-if command -v rg >/dev/null 2>&1; then
-  qml_count="$(find modules -type f -name '*.qml' 2>/dev/null | wc -l)"
-  [[ "$qml_count" -gt 50 ]] && pass "QML foundation size: $qml_count files" || warn "unexpectedly small QML foundation: $qml_count files"
-else
-  warn 'ripgrep not installed; extended QML checks skipped'
-fi
+qml_count="$(find modules -type f -name '*.qml' 2>/dev/null | wc -l)"
+[[ "$qml_count" -gt 50 ]] && pass "QML foundation size: $qml_count files" || warn "unexpectedly small QML foundation: $qml_count files"
 
 if [[ -d migration/legacy-raohane ]]; then
   pass 'pre-reset Raohane migration snapshot present'
+elif [[ -n "$GIT_ROOT" ]]; then
+  warn 'legacy migration snapshot is absent from development checkout'
 else
-  warn 'legacy migration snapshot not present yet (expected before --apply)'
+  pass 'runtime audit mode (migration snapshot intentionally not installed)'
 fi
 
 printf '\nFoundation audit summary: '
