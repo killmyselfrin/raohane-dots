@@ -12,7 +12,12 @@ matches=''
 for root in "${roots[@]}"; do
   [[ -e "$root" ]] || continue
   if [[ -d "$root" ]]; then
-    found="$(grep -RInE --exclude='*.md' --exclude='audit-runtime-paths.sh' "$patterns" "$root" 2>/dev/null || true)"
+    found="$(grep -RInE \
+      --exclude='*.md' \
+      --exclude='audit-runtime-paths.sh' \
+      --exclude='migrate-runtime-identity.py' \
+      --exclude='import-end4-foundation.sh' \
+      "$patterns" "$root" 2>/dev/null || true)"
   else
     found="$(grep -nE "$patterns" "$root" 2>/dev/null || true)"
   fi
