@@ -25,6 +25,7 @@ jobs:
           bash -n scripts/raohane
           bash -n scripts/raohane-deps
           bash -n scripts/raohane-doctor
+          bash -n scripts/raohane-graphics
           bash -n scripts/import-end4-foundation.sh
           bash -n scripts/audit-foundation.sh
           bash -n scripts/audit-runtime-paths.sh
@@ -36,6 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m py_compile scripts/generate-upstream-package-baseline.py
+          python3 -m py_compile scripts/migrate-runtime-identity.py
 
       - name: Dependency baseline reproducibility
         run: |
@@ -51,10 +53,11 @@ jobs:
           set -euo pipefail
           bash scripts/audit-runtime-paths.sh
 
-      - name: Doctor smoke test
+      - name: Doctor and graphics planner smoke tests
         run: |
           set -euo pipefail
           bash scripts/raohane-doctor --help
+          bash scripts/raohane-graphics --help
 
       - name: Foundation installer dry check
         run: |
