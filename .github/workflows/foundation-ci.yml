@@ -21,6 +21,8 @@ jobs:
       - name: Shell syntax
         run: |
           set -euo pipefail
+          bash -n install-raohane-foundation.sh
+          bash -n scripts/raohane
           bash -n scripts/raohane-deps
           bash -n scripts/import-end4-foundation.sh
           bash -n scripts/audit-foundation.sh
@@ -41,6 +43,11 @@ jobs:
           python3 scripts/generate-upstream-package-baseline.py
           diff -u /tmp/baseline.tsv manifests/upstream-package-baseline.tsv
           diff -u /tmp/baseline.md manifests/upstream-package-baseline.md
+
+      - name: Foundation installer dry check
+        run: |
+          set -euo pipefail
+          bash install-raohane-foundation.sh --check
 
       - name: Foundation audit
         run: |
