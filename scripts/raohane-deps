@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+BASELINE="$ROOT/manifests/upstream-package-baseline.tsv"
+DIST_ARCH="$ROOT/upstream/illogical-impulse-system/sdata/dist-arch"
+
+META_PACKAGES=(
+  illogical-impulse-audio
+  illogical-impulse-backlight
+  illogical-impulse-basic
+  illogical-impulse-fonts-themes
+  illogical-impulse-kde
+  illogical-impulse-portal
+  illogical-impulse-python
+  illogical-impulse-screencapture
+  illogical-impulse-toolkit
+  illogical-impulse-widgets
+  illogical-impulse-hyprland
+  illogical-impulse-microtex-git
+  illogical-impulse-quickshell-git
+  illogical-impulse-bibata-modern-classic-bin
+)
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/raohane-deps <command>
+
+Commands:
+  summary          show pinned upstream dependency coverage
+  check            show installed/missing selected runtime dependencies
+  plan             classify missing packages as repo/AUR/unresolved
+  install          install missing runtime deps and build pinned local meta packages
+  build-meta       only build/install the pinned local meta packages
+
+Safety:
+  - Arch-family only for installation.
+  - No GPU driver package is installed here.
+  - An explicit confirmation is required before package changes.
+  - This uses the pinned vendored end-4/dots-hyprland PKGBUILDs.
+EOF
+}
+
+need_file() {
+  [[ -r "$1" ]] || { printf 'FAIL  required file missing: %s\n' "$1" >&2; exit 1; }
+}
+
+is_arch_family() {
+  command -v pacman >/dev/null 2>&1
+}
+
+runtime_packages() {
+  need_file "$BASELINE"
+  awk -F '\t' '
+    NR > 1 && $2 == "depends" && $5 == "yes" { print $3 }
+  ' "$BASELINE" | sort -u
+}
+
+missing_packages() {
+  local pkg
+  while IFS= read -r pkg; do
+    [[ -z "$pkg" ]] && continue
+    if ! pacman -Q "$pkg" >/dev/null 2>&1; then
+      printf '%s\n' "$pkg"
+    fi
+  done
+}
+
+assert_no_gpu_driver_packages() {
+  local bad
+  bad="$(runtime_packages | grep -E '^(nvidia(|-open|-dkms|-utils)|nvidia-[0-9]+xx|xf86-video-amdgpu|vulkan-radeon|vulkan-intel)$' || true)"
+  if [[ -n "$bad" ]]; then
+    printf 'FAIL  GPU driver packages leaked into generic dependency bootstrap:\n%s\n' "$bad" >&2
+    exit 1
+  fi
+}
+
+summary() {
+  need_file "$BASELINE"
+  local rows runtime build metas
+  rows="$(($(wc -l < "$BASELINE") - 1))"
+  runtime="$(runtime_packages | wc -l)"
+  build="$(awk -F '\t' 'NR>1 && $5=="yes" && ($2=="makedepends" || $2=="checkdepends") {print $3}' "$BASELINE" | sort -u | wc -l)"
+  metas="$(printf '%s\n' "${META_PACKAGES[@]}" | wc -l)"
+  printf 'Raohane pinned dependency baseline\n'
+  printf '  dependency rows: %s\n' "$rows"
+  printf '  selected runtime packages: %s\n' "$runtime"
+  printf '  selected build/check packages: %s\n' "$build"
+  printf '  upstream local meta packages: %s\n' "$metas"
+  printf '  source: end-4/dots-hyprland@42d0aae17b744a38cd05c9044c189bfc9b13869a\n'
+}
+
+check() {
+  is_arch_family || { echo 'FAIL  pacman not found; package checks currently support Arch-family systems.' >&2; exit 1; }
+  assert_no_gpu_driver_packages
+  local total=0 installed=0 missing=0 pkg
+  printf 'Raohane dependency check\n'
+  while IFS= read -r pkg; do
+    [[ -z "$pkg" ]] && continue
+    ((total+=1))
+    if pacman -Q "$pkg" >/dev/null 2>&1; then
+      ((installed+=1))
+      printf 'PASS  %s\n' "$pkg"
+    else
+      ((missing+=1))
+      printf 'MISS  %s\n' "$pkg"
+    fi
+  done < <(runtime_packages)
+  printf '\nSummary: total=%d installed=%d missing=%d\n' "$total" "$installed" "$missing"
+  (( missing == 0 ))
+}
+
+classify_missing() {
+  local pkg
+  while IFS= read -r pkg; do
+    [[ -z "$pkg" ]] && continue
+    if pacman -Si "$pkg" >/dev/null 2>&1; then
+      printf 'repo\t%s\n' "$pkg"
+    elif command -v yay >/dev/null 2>&1 && yay -Si "$pkg" >/dev/null 2>&1; then
+      printf 'aur\t%s\n' "$pkg"
+    else
+      printf 'unresolved\t%s\n' "$pkg"
+    fi
+  done
+}
+
+plan() {
+  is_arch_family || { echo 'FAIL  pacman not found; install planning currently supports Arch-family systems.' >&2; exit 1; }
+  assert_no_gpu_driver_packages
+  local tmp
+  tmp="$(mktemp)"
+  trap 'rm -f "$tmp"' RETURN
+  runtime_packages | missing_packages | classify_missing > "$tmp"
+
+  printf 'Raohane dependency install plan\n'
+  printf 'Source baseline: end-4/dots-hyprland@42d0aae17b744a38cd05c9044c189bfc9b13869a\n\n'
+  for class in repo aur unresolved; do
+    printf '%s:\n' "${class^^}"
+    awk -F '\t' -v c="$class" '$1==c {print "  " $2}' "$tmp"
+  done
+  printf '\nLocal pinned meta packages to build/install:\n'
+  printf '  %s\n' "${META_PACKAGES[@]}"
+  printf '\nGPU drivers: intentionally excluded; use the Raohane graphics planner.\n'
+}
+
+confirm_changes() {
+  [[ -t 0 ]] || { echo 'FAIL  package changes require an interactive terminal.' >&2; exit 1; }
+  printf '\nThis will install packages/build pinned local PKGBUILDs on this system.\n'
+  read -r -p 'Type INSTALL-RAOHANE-DEPS to continue: ' answer
+  [[ "$answer" == 'INSTALL-RAOHANE-DEPS' ]] || { echo 'Cancelled without package changes.'; exit 0; }
+}
+
+install_missing() {
+  local tmp repo_list aur_list unresolved
+  tmp="$(mktemp)"
+  trap 'rm -f "$tmp"' RETURN
+  runtime_packages | missing_packages | classify_missing > "$tmp"
+
+  mapfile -t repo_list < <(awk -F '\t' '$1=="repo" {print $2}' "$tmp")
+  mapfile -t aur_list < <(awk -F '\t' '$1=="aur" {print $2}' "$tmp")
+  unresolved="$(awk -F '\t' '$1=="unresolved" {print $2}' "$tmp")"
+
+  if ((${#repo_list[@]})); then
+    sudo pacman -S --needed -- "${repo_list[@]}"
+  fi
+
+  if ((${#aur_list[@]})); then
+    if ! command -v yay >/dev/null 2>&1; then
+      printf 'FAIL  AUR dependencies are required but yay is not installed.\n' >&2
+      printf '      Install/review an AUR helper first; Raohane will not bootstrap one silently.\n' >&2
+      exit 1
+    fi
+    yay -S --needed --asdeps -- "${aur_list[@]}"
+  fi
+
+  if [[ -n "$unresolved" ]]; then
+    printf 'FAIL  unresolved packages remain after repository/AUR classification:\n%s\n' "$unresolved" >&2
+    exit 1
+  fi
+}
+
+build_meta() {
+  command -v makepkg >/dev/null 2>&1 || { echo 'FAIL  makepkg missing (install base-devel).' >&2; exit 1; }
+  local meta dir
+  for meta in "${META_PACKAGES[@]}"; do
+    dir="$DIST_ARCH/$meta"
+    [[ -f "$dir/PKGBUILD" ]] || { printf 'FAIL  missing pinned PKGBUILD: %s\n' "$dir" >&2; exit 1; }
+    printf '\n==> Building pinned upstream meta package: %s\n' "$meta"
+    (
+      cd "$dir"
+      makepkg -Afs --noconfirm
+      mapfile -t built < <(find . -maxdepth 1 -type f -name '*.pkg.tar.*' ! -name '*.sig' -print | sort)
+      ((${#built[@]})) || { echo "FAIL  no package artifact produced for $meta" >&2; exit 1; }
+      sudo pacman -U --needed --noconfirm -- "${built[@]}"
+    )
+  done
+}
+
+install_all() {
+  is_arch_family || { echo 'FAIL  dependency installation currently supports Arch-family systems.' >&2; exit 1; }
+  assert_no_gpu_driver_packages
+  plan
+  confirm_changes
+  install_missing
+  build_meta
+  printf '\nPASS  Raohane upstream dependency foundation installed.\n'
+}
+
+cmd="${1:-summary}"
+case "$cmd" in
+  summary) summary ;;
+  check) check ;;
+  plan) plan ;;
+  install) install_all ;;
+  build-meta) is_arch_family || exit 1; confirm_changes; build_meta ;;
+  -h|--help|help) usage ;;
+  *) usage >&2; exit 2 ;;
+esac
