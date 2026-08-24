@@ -1,0 +1,94 @@
+name: Vendor pinned illogical-impulse system foundation
+
+on:
+  push:
+    branches:
+      - chatgpt/end4-foundation-migration
+    paths:
+      - .github/workflows/vendor-illogical-system.yml
+
+permissions:
+  contents: write
+
+jobs:
+  vendor-system:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: chatgpt/end4-foundation-migration
+
+      - name: Install utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync
+
+      - name: Fetch pinned system upstream
+        env:
+          SYSTEM_SHA: 42d0aae17b744a38cd05c9044c189bfc9b13869a
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none --no-checkout https://github.com/end-4/dots-hyprland.git /tmp/illogical
+          git -C /tmp/illogical fetch --depth=1 origin "$SYSTEM_SHA"
+          git -C /tmp/illogical checkout --detach "$SYSTEM_SHA"
+          test "$(git -C /tmp/illogical rev-parse HEAD)" = "$SYSTEM_SHA"
+          grep -q 'GNU GENERAL PUBLIC LICENSE' /tmp/illogical/LICENSE
+
+      - name: Vendor system/dependency sources
+        run: |
+          set -euo pipefail
+          dest='upstream/illogical-impulse-system'
+          rm -rf "$dest"
+          mkdir -p "$dest"
+          for path in LICENSE .gitmodules setup diagnose sdata dots dots-extra licenses; do
+            if [ -e "/tmp/illogical/$path" ]; then
+              rsync -a \
+                --exclude='*.ttf' \
+                --exclude='*.otf' \
+                --exclude='*.woff' \
+                --exclude='*.woff2' \
+                --exclude='*.eot' \
+                "/tmp/illogical/$path" "$dest/"
+            fi
+          done
+          cat > "$dest/UPSTREAM-SNAPSHOT.md" <<'EOF'
+          # illogical-impulse system snapshot
+
+          Source: https://github.com/end-4/dots-hyprland
+          Commit: 42d0aae17b744a38cd05c9044c189bfc9b13869a
+
+          This directory is retained as GPL-3.0 migration source for Raohane's
+          dependency/install/Hyprland/system integration work. Font binaries are
+          intentionally excluded and must be represented by package dependencies.
+          EOF
+
+      - name: Verify system snapshot
+        run: |
+          set -euo pipefail
+          test -f upstream/illogical-impulse-system/LICENSE
+          test -e upstream/illogical-impulse-system/setup
+          test -e upstream/illogical-impulse-system/diagnose
+          test -d upstream/illogical-impulse-system/sdata/dist-arch
+          test -d upstream/illogical-impulse-system/dots
+          if find upstream/illogical-impulse-system -type f \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) | grep -q .; then
+            echo 'Font binaries leaked into system snapshot' >&2
+            exit 1
+          fi
+
+      - name: Commit system foundation
+        env:
+          SYSTEM_SHA: 42d0aae17b744a38cd05c9044c189bfc9b13869a
+        run: |
+          set -euo pipefail
+          git config user.name 'Raohane Migration Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add upstream/illogical-impulse-system
+          if git diff --cached --quiet; then
+            echo 'No system snapshot changes to commit.'
+            exit 0
+          fi
+          git commit -m "foundation: vendor illogical system ${SYSTEM_SHA}"
+          git push origin HEAD:chatgpt/end4-foundation-migration
