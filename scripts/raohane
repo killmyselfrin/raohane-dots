@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG_NAME="${RAOHANE_QS_CONFIG:-raohane}"
+RUNTIME="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/$CONFIG_NAME"
+SERVICE="raohane.service"
+
+usage() {
+  cat <<'EOF'
+Usage: raohane <command> [args]
+
+Runtime:
+  run                       run the named Quickshell config in foreground
+  start|stop|restart        control raohane.service
+  status                    show service/process state
+  logs                      follow the user service journal
+
+UI compatibility:
+  settings [toggle|open|close]
+
+System foundation:
+  deps <summary|check|plan|install|build-meta>
+  foundation-audit
+
+The imported end4-pC internals intentionally keep upstream identifiers during
+baseline validation. This CLI provides the stable Raohane-facing namespace.
+EOF
+}
+
+require_runtime() {
+  [[ -f "$RUNTIME/shell.qml" ]] || {
+    printf 'FAIL  Raohane runtime not installed at %s\n' "$RUNTIME" >&2
+    printf '      Run ./install-raohane-foundation.sh first.\n' >&2
+    exit 1
+  }
+}
+
+require_qs() {
+  command -v qs >/dev/null 2>&1 || {
+    echo 'FAIL  Quickshell command `qs` is not available.' >&2
+    exit 1
+  }
+}
+
+ipc() {
+  local target="$1" action="$2"
+  require_qs
+  require_runtime
+  qs -c "$CONFIG_NAME" ipc call "$target" "$action"
+}
+
+cmd="${1:-help}"
+shift || true
+case "$cmd" in
+  run)
+    require_qs
+    require_runtime
+    exec qs -c "$CONFIG_NAME"
+    ;;
+  start|stop|restart)
+    systemctl --user "$cmd" "$SERVICE"
+    ;;
+  status)
+    printf 'Raohane runtime: %s\n' "$RUNTIME"
+    printf 'Quickshell config: %s\n' "$CONFIG_NAME"
+    if systemctl --user is-active --quiet "$SERVICE" 2>/dev/null; then
+      echo 'Service: active'
+    else
+      echo 'Service: inactive'
+    fi
+    pgrep -af "qs.*(-c|--config)[ =]${CONFIG_NAME}" || true
+    ;;
+  logs)
+    exec journalctl --user -u "$SERVICE" -f
+    ;;
+  settings)
+    action="${1:-toggle}"
+    case "$action" in toggle|open|close) ipc settings "$action" ;; *) usage >&2; exit 2 ;; esac
+    ;;
+  deps)
+    require_runtime
+    exec "$RUNTIME/scripts/raohane-deps" "${@:-summary}"
+    ;;
+  foundation-audit)
+    require_runtime
+    exec "$RUNTIME/scripts/audit-foundation.sh"
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac
