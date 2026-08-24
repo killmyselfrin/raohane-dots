@@ -54,7 +54,7 @@ ipc() {
 
 resolve_runtime_script() {
   local name="$1"
-  if [[ -x "$RUNTIME/scripts/$name" ]]; then
+  if [[ -f "$RUNTIME/scripts/$name" ]]; then
     printf '%s\n' "$RUNTIME/scripts/$name"
   elif [[ -f "$SCRIPT_DIR/$name" ]]; then
     printf '%s\n' "$SCRIPT_DIR/$name"
