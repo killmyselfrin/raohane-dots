@@ -1,0 +1,216 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG_NAME="${RAOHANE_QS_CONFIG:-raohane}"
+RUNTIME="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/$CONFIG_NAME"
+CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/raohane"
+fail=0
+warns=0
+
+pass() { printf 'PASS  %s\n' "$*"; }
+warn() { printf 'WARN  %s\n' "$*"; warns=$((warns + 1)); }
+bad()  { printf 'FAIL  %s\n' "$*" >&2; fail=$((fail + 1)); }
+info() { printf 'INFO  %s\n' "$*"; }
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+section() {
+  printf '\n== %s ==\n' "$1"
+}
+
+runtime_doctor() {
+  section 'Raohane runtime'
+  [[ -f "$RUNTIME/shell.qml" ]] && pass "runtime installed: $RUNTIME" || warn "runtime not installed at $RUNTIME"
+  [[ -d "$CONFIG_ROOT" ]] && pass "Raohane config root: $CONFIG_ROOT" || info "config root will be created on first start: $CONFIG_ROOT"
+  have qs && pass 'Quickshell command available' || bad 'Quickshell command `qs` is missing'
+  have hyprctl && pass 'hyprctl available' || warn 'hyprctl missing or this is not a Hyprland environment'
+  have systemctl && pass 'systemctl available' || warn 'systemctl unavailable'
+
+  if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+    pass 'Hyprland session detected'
+  else
+    warn 'HYPRLAND_INSTANCE_SIGNATURE is not set; live compositor checks may be unavailable'
+  fi
+
+  if have systemctl; then
+    if systemctl --user is-active --quiet raohane.service 2>/dev/null; then
+      pass 'raohane.service active'
+    elif systemctl --user cat raohane.service >/dev/null 2>&1; then
+      warn 'raohane.service installed but inactive'
+    else
+      info 'raohane.service not installed yet'
+    fi
+  fi
+}
+
+deps_doctor() {
+  section 'Dependencies'
+  local dep_script=''
+  if [[ -x "$RUNTIME/scripts/raohane-deps" ]]; then
+    dep_script="$RUNTIME/scripts/raohane-deps"
+  elif [[ -f "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/raohane-deps" ]]; then
+    dep_script="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/raohane-deps"
+  fi
+
+  if [[ -z "$dep_script" ]]; then
+    warn 'raohane-deps not found; dependency inventory cannot be checked'
+    return
+  fi
+
+  if ! bash "$dep_script" check; then
+    bad 'dependency baseline is incomplete'
+  fi
+}
+
+print_nvidia_guidance() {
+  local gpu="$1"
+  if grep -Eqi 'GTX[[:space:]]*(9|10)|GP[0-9]{3}|GM[0-9]{3}|GV100|Quadro[[:space:]]+[MP][0-9]|Titan[[:space:]]+X(p)?' <<<"$gpu"; then
+    info 'NVIDIA family looks Maxwell/Pascal/Volta.'
+    info 'Arch baseline (2026-08): use the proprietary 580xx DKMS branch, not nvidia-open.'
+    info 'Expected package family: nvidia-580xx-dkms + nvidia-580xx-utils (+ matching kernel headers).'
+  elif grep -Eqi 'RTX|GTX[[:space:]]*16|TU[0-9]{3}|GA[0-9]{3}|AD[0-9]{3}|GB[0-9]{3}' <<<"$gpu"; then
+    info 'NVIDIA family looks Turing or newer.'
+    info 'Arch baseline (2026-08): nvidia-open / nvidia-open-dkms is the normal supported branch.'
+  else
+    info 'NVIDIA GPU generation could not be classified safely; no driver package recommendation selected.'
+  fi
+  info 'Raohane never installs/replaces NVIDIA drivers from this doctor command.'
+}
+
+graphics_doctor() {
+  section 'Graphics / DRM / refresh rate'
+
+  if ! have lspci; then
+    warn 'lspci missing (install pciutils for GPU/driver diagnostics)'
+  else
+    local gpu_lines
+    gpu_lines="$(lspci -k 2>/dev/null | grep -A3 -E 'VGA compatible controller|3D controller|Display controller' || true)"
+    if [[ -n "$gpu_lines" ]]; then
+      printf '%s\n' "$gpu_lines"
+      local kernel_driver
+      kernel_driver="$(grep -m1 'Kernel driver in use:' <<<"$gpu_lines" | sed 's/.*Kernel driver in use:[[:space:]]*//' || true)"
+      [[ -n "$kernel_driver" ]] && pass "kernel graphics driver: $kernel_driver" || warn 'no active kernel graphics driver reported by lspci'
+
+      if grep -qi 'NVIDIA' <<<"$gpu_lines"; then
+        print_nvidia_guidance "$gpu_lines"
+        if [[ "$kernel_driver" == 'nouveau' ]]; then
+          warn 'NVIDIA GPU is currently using nouveau; verify that this is intentional'
+        elif [[ "$kernel_driver" == nvidia* ]]; then
+          pass 'proprietary/open NVIDIA kernel module is active'
+        fi
+
+        if [[ -r /sys/module/nvidia_drm/parameters/modeset ]]; then
+          local modeset
+          modeset="$(cat /sys/module/nvidia_drm/parameters/modeset 2>/dev/null || true)"
+          [[ "$modeset" == 'Y' || "$modeset" == '1' ]] && pass 'nvidia_drm modeset enabled' || bad "nvidia_drm modeset is not enabled (value: ${modeset:-unknown})"
+        elif [[ "$kernel_driver" == nvidia* ]]; then
+          warn 'nvidia_drm modeset parameter is unavailable; DRM/KMS setup needs review'
+        fi
+      elif grep -Eqi 'AMD|ATI' <<<"$gpu_lines"; then
+        info 'AMD GPU detected; expected userspace baseline includes mesa + vulkan-radeon.'
+      elif grep -Eqi 'Intel' <<<"$gpu_lines"; then
+        info 'Intel GPU detected; expected userspace baseline includes mesa + vulkan-intel.'
+      fi
+    else
+      warn 'no VGA/3D/display controller found in lspci output'
+    fi
+  fi
+
+  if have glxinfo; then
+    local glx
+    glx="$(glxinfo -B 2>/dev/null || true)"
+    if grep -Eqi 'llvmpipe|softpipe|Software Rasterizer' <<<"$glx"; then
+      bad 'OpenGL is using software rendering (llvmpipe/softpipe)'
+    elif [[ -n "$glx" ]]; then
+      pass 'OpenGL renderer is hardware-backed'
+      grep -E 'OpenGL vendor|string|renderer string|direct rendering' <<<"$glx" | head -n 6 || true
+    else
+      warn 'glxinfo exists but could not query the renderer'
+    fi
+  else
+    warn 'glxinfo missing; OpenGL hardware-rendering check skipped'
+  fi
+
+  if have vulkaninfo; then
+    local vk
+    vk="$(vulkaninfo --summary 2>/dev/null || true)"
+    if [[ -n "$vk" ]]; then
+      pass 'Vulkan loader/device query succeeded'
+      grep -E 'deviceName|driverName|driverInfo|GPU[0-9]' <<<"$vk" | head -n 10 || true
+    else
+      warn 'vulkaninfo returned no device summary'
+    fi
+  else
+    warn 'vulkaninfo missing; Vulkan check skipped'
+  fi
+
+  if ! have hyprctl; then
+    warn 'hyprctl unavailable; monitor refresh-rate checks skipped'
+    return
+  fi
+
+  local monitors_json
+  monitors_json="$(hyprctl -j monitors all 2>/dev/null || hyprctl -j monitors 2>/dev/null || true)"
+  if [[ -z "$monitors_json" ]]; then
+    warn 'could not query Hyprland monitors (are you running this inside the target session?)'
+    return
+  fi
+
+  if ! have jq; then
+    warn 'jq missing; monitor JSON obtained but automatic refresh comparison skipped'
+    hyprctl monitors all 2>/dev/null || true
+    return
+  fi
+
+  local rows
+  rows="$(jq -r '.[] | [.name, ((.refreshRate // 0)|tostring), ((.availableModes // [])|join(","))] | @tsv' <<<"$monitors_json" 2>/dev/null || true)"
+  if [[ -z "$rows" ]]; then
+    warn 'Hyprland monitor JSON format was not recognized'
+    hyprctl monitors all 2>/dev/null || true
+    return
+  fi
+
+  while IFS=$'\t' read -r name current modes; do
+    [[ -n "$name" ]] || continue
+    local max_hz
+    max_hz="$(grep -oE '@[0-9]+([.][0-9]+)?' <<<"$modes" | tr -d '@' | sort -nr | head -n1 || true)"
+    info "$name: current ${current:-0} Hz; highest advertised ${max_hz:-unknown} Hz"
+    if [[ -n "$max_hz" ]] && awk -v cur="${current:-0}" -v max="$max_hz" 'BEGIN { exit !((cur <= 60.5) && (max > cur + 1.0)) }'; then
+      bad "$name is running at ~60 Hz while a higher refresh mode (${max_hz} Hz) is advertised"
+      info "Use 'hyprctl monitors all' to confirm the exact mode before changing configuration."
+    else
+      pass "$name refresh-rate selection does not show the 60-Hz fallback pattern"
+    fi
+  done <<<"$rows"
+}
+
+summary() {
+  printf '\nDoctor summary: %d fail(s), %d warning(s)\n' "$fail" "$warns"
+  (( fail == 0 ))
+}
+
+cmd="${1:-all}"
+case "$cmd" in
+  runtime) runtime_doctor ;;
+  deps) deps_doctor ;;
+  graphics) graphics_doctor ;;
+  all)
+    runtime_doctor
+    deps_doctor
+    graphics_doctor
+    ;;
+  -h|--help|help)
+    cat <<'EOF'
+Usage: raohane-doctor [runtime|deps|graphics|all]
+
+Diagnostics are read-only. The graphics doctor never installs or replaces a GPU driver
+and never writes monitor configuration.
+EOF
+    exit 0
+    ;;
+  *)
+    echo 'Usage: raohane-doctor [runtime|deps|graphics|all]' >&2
+    exit 2
+    ;;
+esac
+summary
