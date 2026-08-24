@@ -22,12 +22,20 @@ META_PACKAGES=(
   illogical-impulse-bibata-modern-classic-bin
 )
 
+# Raohane-specific read-only diagnostics. These are intentionally kept outside
+# the generated upstream manifest so upstream parity remains auditable.
+RAOHANE_EXTRA_PACKAGES=(
+  pciutils
+  mesa-utils
+  vulkan-tools
+)
+
 usage() {
   cat <<'EOF'
 Usage: scripts/raohane-deps <command>
 
 Commands:
-  summary          show pinned upstream dependency coverage
+  summary          show pinned upstream dependency coverage + Raohane extras
   check            show installed/missing selected runtime dependencies
   plan             classify missing packages as repo/AUR/unresolved
   install          install missing runtime deps and build pinned local meta packages
@@ -37,7 +45,8 @@ Safety:
   - Arch-family only for installation.
   - No GPU driver package is installed here.
   - An explicit confirmation is required before package changes.
-  - This uses the pinned vendored end-4/dots-hyprland PKGBUILDs.
+  - Upstream dependencies use pinned vendored end-4/dots-hyprland PKGBUILDs.
+  - Raohane adds only small diagnostic tools to that baseline here.
 EOF
 }
 
@@ -49,11 +58,18 @@ is_arch_family() {
   command -v pacman >/dev/null 2>&1
 }
 
-runtime_packages() {
+upstream_runtime_packages() {
   need_file "$BASELINE"
   awk -F '\t' '
     NR > 1 && $2 == "depends" && $5 == "yes" { print $3 }
   ' "$BASELINE" | sort -u
+}
+
+runtime_packages() {
+  {
+    upstream_runtime_packages
+    printf '%s\n' "${RAOHANE_EXTRA_PACKAGES[@]}"
+  } | sort -u
 }
 
 missing_packages() {
@@ -77,14 +93,18 @@ assert_no_gpu_driver_packages() {
 
 summary() {
   need_file "$BASELINE"
-  local rows runtime build metas
+  local rows upstream_runtime total_runtime build metas extras
   rows="$(($(wc -l < "$BASELINE") - 1))"
-  runtime="$(runtime_packages | wc -l)"
+  upstream_runtime="$(upstream_runtime_packages | wc -l)"
+  total_runtime="$(runtime_packages | wc -l)"
   build="$(awk -F '\t' 'NR>1 && $5=="yes" && ($2=="makedepends" || $2=="checkdepends") {print $3}' "$BASELINE" | sort -u | wc -l)"
   metas="$(printf '%s\n' "${META_PACKAGES[@]}" | wc -l)"
+  extras="${#RAOHANE_EXTRA_PACKAGES[@]}"
   printf 'Raohane pinned dependency baseline\n'
   printf '  dependency rows: %s\n' "$rows"
-  printf '  selected runtime packages: %s\n' "$runtime"
+  printf '  upstream selected runtime packages: %s\n' "$upstream_runtime"
+  printf '  Raohane diagnostic extras: %s (%s)\n' "$extras" "${RAOHANE_EXTRA_PACKAGES[*]}"
+  printf '  total runtime package targets: %s\n' "$total_runtime"
   printf '  selected build/check packages: %s\n' "$build"
   printf '  upstream local meta packages: %s\n' "$metas"
   printf '  source: end-4/dots-hyprland@42d0aae17b744a38cd05c9044c189bfc9b13869a\n'
@@ -133,14 +153,15 @@ plan() {
   runtime_packages | missing_packages | classify_missing > "$tmp"
 
   printf 'Raohane dependency install plan\n'
-  printf 'Source baseline: end-4/dots-hyprland@42d0aae17b744a38cd05c9044c189bfc9b13869a\n\n'
+  printf 'Source baseline: end-4/dots-hyprland@42d0aae17b744a38cd05c9044c189bfc9b13869a\n'
+  printf 'Raohane diagnostic extras: %s\n\n' "${RAOHANE_EXTRA_PACKAGES[*]}"
   for class in repo aur unresolved; do
     printf '%s:\n' "${class^^}"
     awk -F '\t' -v c="$class" '$1==c {print "  " $2}' "$tmp"
   done
   printf '\nLocal pinned meta packages to build/install:\n'
   printf '  %s\n' "${META_PACKAGES[@]}"
-  printf '\nGPU drivers: intentionally excluded; use the Raohane graphics planner.\n'
+  printf '\nGPU drivers: intentionally excluded; use `raohane doctor graphics` before changing drivers.\n'
 }
 
 confirm_changes() {
@@ -203,7 +224,7 @@ install_all() {
   confirm_changes
   install_missing
   build_meta
-  printf '\nPASS  Raohane upstream dependency foundation installed.\n'
+  printf '\nPASS  Raohane upstream dependency foundation + diagnostic extras installed.\n'
 }
 
 cmd="${1:-summary}"
