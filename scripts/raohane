@@ -20,9 +20,10 @@ UI compatibility:
 
 System foundation:
   deps <summary|check|plan|install|build-meta>
+  doctor [runtime|deps|graphics|all]
   foundation-audit
 
-The imported end4-pC internals intentionally keep upstream identifiers during
+The imported end4-pC internals intentionally keep some upstream identifiers during
 baseline validation. This CLI provides the stable Raohane-facing namespace.
 EOF
 }
@@ -62,6 +63,7 @@ case "$cmd" in
     ;;
   status)
     printf 'Raohane runtime: %s\n' "$RUNTIME"
+    printf 'Raohane config: %s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/raohane"
     printf 'Quickshell config: %s\n' "$CONFIG_NAME"
     if systemctl --user is-active --quiet "$SERVICE" 2>/dev/null; then
       echo 'Service: active'
@@ -84,6 +86,14 @@ case "$cmd" in
     else
       exec "$RUNTIME/scripts/raohane-deps" summary
     fi
+    ;;
+  doctor)
+    if [[ -x "$RUNTIME/scripts/raohane-doctor" ]]; then
+      exec "$RUNTIME/scripts/raohane-doctor" "${1:-all}"
+    fi
+    local_doctor="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/raohane-doctor"
+    [[ -f "$local_doctor" ]] || { echo 'FAIL  raohane-doctor is unavailable' >&2; exit 1; }
+    exec bash "$local_doctor" "${1:-all}"
     ;;
   foundation-audit)
     require_runtime
