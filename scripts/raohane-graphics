@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+usage() {
+  cat <<'EOF'
+Usage: raohane-graphics <detect|plan>
+
+Read-only GPU/driver planner for Arch-family systems. It never installs packages,
+changes initramfs, writes Hyprland monitor configuration, or replaces a driver.
+EOF
+}
+
+gpu_info() {
+  have lspci || { echo 'FAIL  lspci missing (package: pciutils)' >&2; return 1; }
+  lspci -k 2>/dev/null | grep -A3 -E 'VGA compatible controller|3D controller|Display controller' || true
+}
+
+nvidia_generation() {
+  local text="$1"
+  if grep -Eqi 'GTX[[:space:]]*(9|10)|GP[0-9]{3}|GM[0-9]{3}|GV100|Titan[[:space:]]+X(p)?' <<<"$text"; then
+    echo legacy-580xx
+  elif grep -Eqi 'RTX|GTX[[:space:]]*16|TU[0-9]{3}|GA[0-9]{3}|AD[0-9]{3}|GB[0-9]{3}' <<<"$text"; then
+    echo open
+  else
+    echo unknown
+  fi
+}
+
+kernel_headers() {
+  have pacman || return 0
+  local p
+  for p in linux linux-lts linux-zen linux-hardened; do
+    if pacman -Q "$p" >/dev/null 2>&1; then
+      printf '%s-headers\n' "$p"
+    fi
+  done
+}
+
+detect() {
+  local info
+  info="$(gpu_info)"
+  [[ -n "$info" ]] || { echo 'FAIL  no display GPU detected' >&2; exit 1; }
+  printf '%s\n' "$info"
+  printf '\nKernel: %s\n' "$(uname -r)"
+  if grep -qi NVIDIA <<<"$info"; then
+    printf 'NVIDIA policy family: %s\n' "$(nvidia_generation "$info")"
+  elif grep -Eqi 'AMD|ATI' <<<"$info"; then
+    echo 'GPU policy family: amd'
+  elif grep -qi Intel <<<"$info"; then
+    echo 'GPU policy family: intel'
+  else
+    echo 'GPU policy family: unknown'
+  fi
+}
+
+plan() {
+  local info family
+  info="$(gpu_info)"
+  [[ -n "$info" ]] || { echo 'FAIL  no display GPU detected' >&2; exit 1; }
+  printf 'Raohane graphics package plan (READ ONLY)\n\n'
+  printf '%s\n\n' "$info"
+
+  if grep -qi NVIDIA <<<"$info"; then
+    family="$(nvidia_generation "$info")"
+    mapfile -t headers < <(kernel_headers)
+    case "$family" in
+      legacy-580xx)
+        echo 'Detected NVIDIA Maxwell/Pascal/Volta class.'
+        echo 'Recommended Arch-family package family:'
+        echo '  AUR: nvidia-580xx-dkms nvidia-580xx-utils'
+        ;;
+      open)
+        echo 'Detected NVIDIA Turing-or-newer class.'
+        echo 'Recommended Arch repository package family:'
+        echo '  repo: nvidia-open-dkms nvidia-utils'
+        ;;
+      *)
+        echo 'NVIDIA detected, but generation is not classified safely.'
+        echo 'No kernel-module package recommendation produced.'
+        ;;
+    esac
+    if ((${#headers[@]})); then
+      printf 'Matching installed-kernel headers:\n'
+      printf '  repo: %s\n' "${headers[*]}"
+    else
+      echo 'WARN  no standard Arch kernel package detected; determine matching headers manually.'
+    fi
+    echo 'Optional gaming 32-bit userspace must match the selected NVIDIA branch.'
+  elif grep -Eqi 'AMD|ATI' <<<"$info"; then
+    echo 'Detected AMD GPU.'
+    echo 'Recommended userspace baseline: mesa vulkan-radeon'
+    echo 'Optional gaming 32-bit: lib32-mesa lib32-vulkan-radeon'
+  elif grep -qi Intel <<<"$info"; then
+    echo 'Detected Intel GPU.'
+    echo 'Recommended userspace baseline: mesa vulkan-intel'
+    echo 'Optional gaming 32-bit: lib32-mesa lib32-vulkan-intel'
+  else
+    echo 'WARN  GPU vendor not classified; no package plan generated.'
+  fi
+
+  cat <<'EOF'
+
+No package changes were made.
+After any manual driver change, reboot if required and run:
+  raohane doctor graphics
+Then verify the actual output mode with:
+  hyprctl monitors all
+EOF
+}
+
+case "${1:-plan}" in
+  detect) detect ;;
+  plan) plan ;;
+  help|-h|--help) usage ;;
+  *) usage >&2; exit 2 ;;
+esac
