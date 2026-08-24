@@ -1,0 +1,57 @@
+name: Raohane foundation CI
+
+on:
+  push:
+    branches:
+      - chatgpt/end4-foundation-migration
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Shell syntax
+        run: |
+          set -euo pipefail
+          bash -n scripts/raohane-deps
+          bash -n scripts/import-end4-foundation.sh
+          bash -n scripts/audit-foundation.sh
+          while IFS= read -r -d '' file; do
+            bash -n "$file"
+          done < <(find scripts -type f -name '*.sh' -print0)
+
+      - name: Python syntax
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/generate-upstream-package-baseline.py
+
+      - name: Dependency baseline reproducibility
+        run: |
+          set -euo pipefail
+          cp manifests/upstream-package-baseline.tsv /tmp/baseline.tsv
+          cp manifests/upstream-package-baseline.md /tmp/baseline.md
+          python3 scripts/generate-upstream-package-baseline.py
+          diff -u /tmp/baseline.tsv manifests/upstream-package-baseline.tsv
+          diff -u /tmp/baseline.md manifests/upstream-package-baseline.md
+
+      - name: Foundation audit
+        run: |
+          set -euo pipefail
+          chmod +x scripts/audit-foundation.sh
+          ./scripts/audit-foundation.sh
+
+      - name: No font binaries
+        run: |
+          set -euo pipefail
+          if find . -type f \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) -not -path './.git/*' | grep -q .; then
+            echo 'Bundled font binaries are not allowed' >&2
+            exit 1
+          fi
