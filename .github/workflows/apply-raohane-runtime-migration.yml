@@ -1,0 +1,47 @@
+name: Apply Raohane runtime identity migration
+
+on:
+  push:
+    branches:
+      - chatgpt/end4-foundation-migration
+    paths:
+      - .github/workflows/apply-raohane-runtime-migration.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt/end4-foundation-migration
+
+      - name: Apply idempotent runtime path migration
+        run: |
+          set -euo pipefail
+          python3 scripts/migrate-runtime-identity.py
+          bash scripts/audit-runtime-paths.sh
+
+      - name: Commit migrated runtime paths
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No runtime path changes needed.'
+            exit 0
+          fi
+          git config user.name 'Raohane Migration Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add modules/ii/settings/SettingsContent.qml \
+                  services/LauncherSearch.qml \
+                  scripts/videos/record.sh \
+                  scripts/hyprland/autostart.py \
+                  scripts/colors/random/random_osu_wall.sh \
+                  scripts/colors/random/random_konachan_wall.sh \
+                  scripts/colors/applycolor.sh \
+                  scripts/colors/switchwall.sh \
+                  scripts/presets.sh
+          git commit -m 'refactor: move active runtime paths to Raohane namespace'
+          git push origin HEAD:chatgpt/end4-foundation-migration
