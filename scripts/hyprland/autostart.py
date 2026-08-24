@@ -6,7 +6,8 @@ if os.path.exists(lockfile):
     exit(0)
 open(lockfile, 'w').close()
 
-with open(f"{os.environ['HOME']}/.config/illogical-impulse/config.json") as f:
+config_home = os.environ.get("XDG_CONFIG_HOME", os.path.join(os.environ["HOME"], ".config"))
+with open(os.path.join(config_home, "raohane", "config.json")) as f:
     data = json.load(f)
 
 autostart = data.get('hyprland', {}).get('autostartApps', {})

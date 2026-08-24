@@ -5,7 +5,7 @@
 #   presets.sh --remove <name>
 #   presets.sh --apply <name>
 
-CONFIG_DIR="$HOME/.config/illogical-impulse"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/raohane"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 PRESETS_DIR="$CONFIG_DIR/presets"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
