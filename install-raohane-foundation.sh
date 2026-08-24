@@ -59,7 +59,7 @@ command -v qs >/dev/null 2>&1 && echo 'PASS  Quickshell found' || echo 'WARN  Qu
 command -v hyprctl >/dev/null 2>&1 && echo 'PASS  Hyprland CLI found' || echo 'WARN  hyprctl missing/not in PATH'
 
 if [[ "$CHECK_ONLY" == yes ]]; then
-  "$ROOT/scripts/raohane-deps" summary
+  bash "$ROOT/scripts/raohane-deps" summary
   exit 0
 fi
 
