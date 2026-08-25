@@ -7,7 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
     property alias states: persistentStatesJsonAdapter
-    property string fileDir: Directories.state
+    property string fileDir: Directories.shellState
     property string fileName: "states.json"
     property string filePath: `${root.fileDir}/${root.fileName}`
 

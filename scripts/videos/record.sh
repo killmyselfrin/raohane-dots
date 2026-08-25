@@ -11,7 +11,7 @@ fi
 
 set_recording_state() {
     local state=$1
-    local STATE_FILE="$HOME/.local/state/quickshell/states.json"
+    local STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/raohane/states.json"
     local tmp=$(mktemp)
     jq ".record.enable = $state" "$STATE_FILE" > "$tmp" && mv "$tmp" "$STATE_FILE"
 }
