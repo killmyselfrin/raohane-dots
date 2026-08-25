@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/apply-foundation-once.yml'
+      - 'scripts/sync-end4-foundation.sh'
 
 permissions:
   contents: write
