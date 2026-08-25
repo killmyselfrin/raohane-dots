@@ -11,9 +11,9 @@ usage() {
 Raohane end4-pC foundation synchronizer
 
 Usage:
-  ./scripts/sync-end4-foundation.sh            # preview only
-  ./scripts/sync-end4-foundation.sh --apply    # apply pinned upstream
-  ./scripts/sync-end4-foundation.sh --apply --allow-dirty
+  bash scripts/sync-end4-foundation.sh
+  bash scripts/sync-end4-foundation.sh --apply
+  bash scripts/sync-end4-foundation.sh --apply --allow-dirty
 
 The script imports the mature end4-pC runtime while preserving Raohane-owned
 identity, installer, docs, patches, modules/raohane and Raohane scripts.
@@ -30,7 +30,7 @@ while (($#)); do
   shift
 done
 
-for cmd in git rsync jq mktemp; do
+for cmd in git rsync jq mktemp cmp; do
   command -v "$cmd" >/dev/null 2>&1 || {
     echo "[Raohane] Missing required command: $cmd" >&2
     exit 1
@@ -54,6 +54,8 @@ fi
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 UPSTREAM="$TMP/end4-pC"
+PREVIEW="$TMP/preview"
+mkdir -p "$PREVIEW"
 
 echo "[Raohane] Fetching end4-pC @ $ref"
 git clone --filter=blob:none --no-checkout "$repo" "$UPSTREAM" >/dev/null 2>&1
@@ -72,9 +74,18 @@ fi
 
 sync_dir() {
   local name="$1"; shift
+  local dest="$ROOT/$name"
   [[ -d "$UPSTREAM/$name" ]] || return 0
-  mkdir -p "$ROOT/$name"
-  rsync "${RSYNC[@]}" "$@" "$UPSTREAM/$name/" "$ROOT/$name/"
+
+  if [[ "$MODE" == "dry-run" && ! -d "$dest" ]]; then
+    echo "would create directory: $name/"
+    mkdir -p "$PREVIEW/$name"
+    dest="$PREVIEW/$name"
+  elif [[ "$MODE" == "apply" ]]; then
+    mkdir -p "$dest"
+  fi
+
+  rsync "${RSYNC[@]}" "$@" "$UPSTREAM/$name/" "$dest/"
 }
 
 copy_root_file() {
@@ -99,13 +110,18 @@ if [[ -f "$UPSTREAM/defaults/config.json" ]]; then
   sync_dir defaults --exclude='config.json'
   if [[ "$MODE" == "dry-run" ]]; then
     echo "would merge defaults/config.json (upstream base + Raohane overrides)"
+    echo "would force panelFamily=ii for the foundation runtime"
   else
     if [[ -f "$ROOT/defaults/config.json" ]]; then
-      jq -s '.[0] * .[1]' "$UPSTREAM/defaults/config.json" "$ROOT/defaults/config.json" > "$TMP/config.json"
-      mv "$TMP/config.json" "$ROOT/defaults/config.json"
+      jq -s '.[0] * .[1]' "$UPSTREAM/defaults/config.json" "$ROOT/defaults/config.json" > "$TMP/config-merged.json"
     else
-      cp -a "$UPSTREAM/defaults/config.json" "$ROOT/defaults/config.json"
+      cp -a "$UPSTREAM/defaults/config.json" "$TMP/config-merged.json"
     fi
+
+    # The pinned foundation shell currently registers the `ii` panel family.
+    # Raohane panels are reintroduced progressively after runtime parity is proven.
+    jq '.panelFamily = "ii"' "$TMP/config-merged.json" > "$TMP/config-final.json"
+    mv "$TMP/config-final.json" "$ROOT/defaults/config.json"
   fi
 else
   sync_dir defaults
@@ -121,7 +137,8 @@ sync_dir translations
 sync_dir scripts \
   --exclude='raohane' \
   --exclude='raohane-audit.sh' \
-  --exclude='sync-end4-foundation.sh'
+  --exclude='sync-end4-foundation.sh' \
+  --exclude='install-foundation-deps.sh'
 
 # Core runtime entry points come from the pinned foundation in this phase.
 for file in .qmlformat.ini GlobalStates.qml ReloadPopup.qml killDialog.qml shell.qml welcome.qml; do
@@ -139,7 +156,7 @@ fi
 if [[ "$MODE" == "dry-run" ]]; then
   cat <<'EOF'
 
-[Raohane] Preview complete. Nothing was changed.
+[Raohane] Preview complete. Repository files were not changed.
 Run again with --apply to import the pinned foundation.
 EOF
   exit 0
@@ -147,6 +164,7 @@ fi
 
 bash -n "$ROOT/scripts/sync-end4-foundation.sh"
 [[ -f "$ROOT/scripts/raohane" ]] && bash -n "$ROOT/scripts/raohane"
+[[ -f "$ROOT/scripts/install-foundation-deps.sh" ]] && bash -n "$ROOT/scripts/install-foundation-deps.sh"
 [[ -f "$ROOT/install-raohane.sh" ]] && bash -n "$ROOT/install-raohane.sh"
 
 echo
