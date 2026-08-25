@@ -2,30 +2,36 @@
 set -euo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-RUNTIME="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/raohane"
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+RUNTIME="$CONFIG_HOME/quickshell/raohane"
 BIN_DIR="${HOME}/.local/bin"
-SYSTEMD_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-HYPR_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/hypr"
+SYSTEMD_DIR="$CONFIG_HOME/systemd/user"
+HYPR_DIR="$CONFIG_HOME/hypr"
 HYPR_SNIPPET="$HYPR_DIR/raohane.conf"
 HYPR_AUTOSTART="$HYPR_DIR/raohane-autostart.conf"
-RAOHANE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/raohane"
+RAOHANE_CONFIG="$CONFIG_HOME/raohane"
+RAOHANE_CONFIG_FILE="$RAOHANE_CONFIG/config.json"
+LEGACY_CONFIG_FILE="$CONFIG_HOME/illogical-impulse/config.json"
 
-if ! command -v hyprctl >/dev/null 2>&1; then
-  echo "[Raohane] hyprctl not found. Install/run Hyprland first." >&2
-  exit 1
-fi
-if ! command -v qs >/dev/null 2>&1; then
-  echo "[Raohane] Quickshell command 'qs' not found. Install Quickshell first." >&2
-  exit 1
-fi
+for cmd in hyprctl qs python3; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    case "$cmd" in
+      hyprctl) echo "[Raohane] hyprctl not found. Install/run Hyprland first." >&2 ;;
+      qs) echo "[Raohane] Quickshell command 'qs' not found. Install Quickshell first." >&2 ;;
+      python3) echo "[Raohane] python3 not found. The foundation runtime requires Python 3." >&2 ;;
+    esac
+    exit 1
+  fi
+done
 
-# Do not install the old incomplete prototype graph by accident.
 required_foundation=(
   "scripts/raohane"
   "modules/common"
   "modules/ii"
+  "modules/raohane"
   "services"
-  "panelFamilies"
+  "panelFamilies/IllogicalImpulseFamily.qml"
+  "panelFamilies/RaohaneFamily.qml"
 )
 missing_foundation=()
 for path in "${required_foundation[@]}"; do
@@ -33,17 +39,9 @@ for path in "${required_foundation[@]}"; do
 done
 
 if ((${#missing_foundation[@]})); then
-  echo "[Raohane] Foundation runtime has not been synchronized yet." >&2
+  echo "[Raohane] This checkout is missing committed foundation files." >&2
   printf '  missing: %s\n' "${missing_foundation[@]}" >&2
-  cat >&2 <<'EOF'
-
-Run from the repository root:
-  bash scripts/install-foundation-deps.sh
-  bash scripts/sync-end4-foundation.sh
-  bash scripts/sync-end4-foundation.sh --apply
-
-Then run install-raohane.sh again.
-EOF
+  echo "[Raohane] Update/re-clone raohane-dots before installing." >&2
   exit 1
 fi
 
@@ -54,7 +52,38 @@ systemctl --user stop raohane.service >/dev/null 2>&1 || true
 
 mkdir -p "$RUNTIME" "$BIN_DIR" "$SYSTEMD_DIR" "$HYPR_DIR" "$RAOHANE_CONFIG"
 
-# Keep user data outside the source tree intact where possible; replace runtime code.
+# First-install config migration. Do not overwrite existing Raohane user settings.
+if [[ ! -f "$RAOHANE_CONFIG_FILE" ]]; then
+  if [[ -f "$LEGACY_CONFIG_FILE" ]]; then
+    cp -a "$LEGACY_CONFIG_FILE" "$RAOHANE_CONFIG_FILE"
+    printf '[Raohane] Migrated settings from %s\n' "$LEGACY_CONFIG_FILE"
+  elif [[ -f "$ROOT/defaults/config.json" ]]; then
+    cp -a "$ROOT/defaults/config.json" "$RAOHANE_CONFIG_FILE"
+    printf '[Raohane] Seeded settings from repository defaults.\n'
+  fi
+fi
+
+# Normalize the selected family without discarding the rest of the user's JSON.
+if [[ -f "$RAOHANE_CONFIG_FILE" ]]; then
+  python3 - "$RAOHANE_CONFIG_FILE" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+try:
+    data = json.loads(path.read_text(encoding="utf-8"))
+except (OSError, json.JSONDecodeError) as exc:
+    raise SystemExit(f"[Raohane] Invalid config {path}: {exc}")
+
+data["panelFamily"] = "raohane"
+tmp = path.with_suffix(path.suffix + ".tmp")
+tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+tmp.replace(path)
+PY
+fi
+
+# Replace runtime code. Persistent settings live separately in ~/.config/raohane.
 find "$RUNTIME" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 cp -a "$ROOT"/. "$RUNTIME"/
 rm -f "$RUNTIME/install-raohane.sh"
@@ -120,6 +149,7 @@ fi
 
 printf '\n[Raohane] Installed.\n'
 printf 'Runtime: %s\n' "$RUNTIME"
+printf 'Settings: %s\n' "$RAOHANE_CONFIG_FILE"
 printf 'Launcher: %s\n' "$BIN_DIR/raohane"
 printf 'Hyprland snippet: %s\n' "$HYPR_SNIPPET"
 printf 'Autostart snippet: %s\n\n' "$HYPR_AUTOSTART"
