@@ -6,6 +6,7 @@ on:
       - chatgpt/end4-foundation-migration
     paths:
       - .github/workflows/apply-raohane-runtime-migration.yml
+      - scripts/migrate-runtime-identity.py
 
 permissions:
   contents: write
@@ -34,17 +35,18 @@ jobs:
           fi
           git config user.name 'Raohane Migration Bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add modules/common/Persistent.qml \
+          git add modules/common/Config.qml \
+                  modules/common/Persistent.qml \
                   modules/ii/settings/SettingsContent.qml \
                   services/LauncherSearch.qml \
                   scripts/videos/record.sh \
                   scripts/hyprland/autostart.py \
                   scripts/colors/random/random_osu_wall.sh \
                   scripts/colors/random/random_konachan_wall.sh \
-                  scripts/colors/code/material-code-set-color.sh \
                   scripts/colors/applycolor.sh \
                   scripts/colors/switchwall.sh \
+                  scripts/colors/code/material-code-set-color.sh \
                   scripts/kvantum/materialQT.sh \
                   scripts/presets.sh
-          git commit -m 'refactor: isolate active runtime state under Raohane'
+          git commit -m 'refactor: apply complete Raohane runtime migration'
           git push origin HEAD:chatgpt/end4-foundation-migration
