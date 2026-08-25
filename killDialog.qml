@@ -1,9 +1,10 @@
 //@ pragma UseQApplication
 //@ pragma Env QS_NO_RELOAD_POPUP=1
-//@ pragma Env INIR_STANDALONE_WINDOW=1
 //@ pragma Env QT_QUICK_CONTROLS_STYLE=Basic
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
-// Launcher keeps QT_SCALE_FACTOR=1; shell scaling lives in appearance.typography.sizeScale
+
+// Adjust this to make the app smaller or larger
+//@ pragma Env QT_SCALE_FACTOR=1
 
 import QtQuick
 import QtQuick.Controls
@@ -33,7 +34,6 @@ ApplicationWindow {
     title: Translation.tr("Shell conflicts killer")
 
     Component.onCompleted: {
-        Quickshell.watchFiles = false;
         Config.readWriteDelay = 0;
         Config.blockWrites = true;
         MaterialThemeLoader.reapplyTheme();
@@ -60,7 +60,7 @@ ApplicationWindow {
 
         Process {
             running: true
-            command: ["/usr/bin/pidof", ...conflictGroup.programs]
+            command: ["pidof", ...conflictGroup.programs]
             onExited: (exitCode, exitStatus) => {
                 if (exitCode === 0) {
                     conflictGroup.visible = true
@@ -89,7 +89,7 @@ ApplicationWindow {
                     text: Translation.tr("Always")
                 }
                 onClicked: {
-                    Quickshell.execDetached(["/usr/bin/killall", ...conflictGroup.programs])
+                    Quickshell.execDetached(["killall", ...conflictGroup.programs])
                     conflictGroup.alwaysSelected()
                     conflictGroup.visible = false
                 }
@@ -100,7 +100,7 @@ ApplicationWindow {
                     text: Translation.tr("Yes")
                 }
                 onClicked: {
-                    Quickshell.execDetached(["/usr/bin/killall", ...conflictGroup.programs])
+                    Quickshell.execDetached(["killall", ...conflictGroup.programs])
                     conflictGroup.visible = false
                 }
             }
@@ -179,7 +179,7 @@ ApplicationWindow {
                     Layout.fillHeight: false
                     programs: ["kded6"]
                     description: Translation.tr("Conflicts with the shell's system tray implementation")
-                    onAlwaysSelected: Config.setNestedValue("conflictKiller.autoKillTrays", true)
+                    onAlwaysSelected: Config.options.conflictKiller.autoKillTrays = true
                 }
 
                 ConflictingProgramGroup {
@@ -188,7 +188,7 @@ ApplicationWindow {
                     Layout.fillHeight: false
                     programs: ["mako", "dunst"]
                     description: Translation.tr("Conflicts with the shell's notification implementation")
-                    onAlwaysSelected: Config.setNestedValue("conflictKiller.autoKillNotificationDaemons", true)
+                    onAlwaysSelected: Config.options.conflictKiller.autoKillNotificationDaemons = true
                 }
                 
             }
