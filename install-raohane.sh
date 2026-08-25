@@ -19,6 +19,34 @@ if ! command -v qs >/dev/null 2>&1; then
   exit 1
 fi
 
+# Do not install the old incomplete prototype graph by accident.
+required_foundation=(
+  "scripts/raohane"
+  "modules/common"
+  "modules/ii"
+  "services"
+  "panelFamilies"
+)
+missing_foundation=()
+for path in "${required_foundation[@]}"; do
+  [[ -e "$ROOT/$path" ]] || missing_foundation+=("$path")
+done
+
+if ((${#missing_foundation[@]})); then
+  echo "[Raohane] Foundation runtime has not been synchronized yet." >&2
+  printf '  missing: %s\n' "${missing_foundation[@]}" >&2
+  cat >&2 <<'EOF'
+
+Run from the repository root:
+  bash scripts/install-foundation-deps.sh
+  bash scripts/sync-end4-foundation.sh
+  bash scripts/sync-end4-foundation.sh --apply
+
+Then run install-raohane.sh again.
+EOF
+  exit 1
+fi
+
 printf '[Raohane] Installing Hyprland shell...\n'
 
 # Stop the running shell before replacing its QML graph.
@@ -26,12 +54,11 @@ systemctl --user stop raohane.service >/dev/null 2>&1 || true
 
 mkdir -p "$RUNTIME" "$BIN_DIR" "$SYSTEMD_DIR" "$HYPR_DIR" "$RAOHANE_CONFIG"
 
-# Raohane owns its configuration namespace at ~/.config/raohane.
-
 # Keep user data outside the source tree intact where possible; replace runtime code.
 find "$RUNTIME" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 cp -a "$ROOT"/. "$RUNTIME"/
 rm -f "$RUNTIME/install-raohane.sh"
+rm -rf "$RUNTIME/.git" "$RUNTIME/.github" "$RUNTIME/upstream"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
 
@@ -59,10 +86,8 @@ exec-once = systemctl --user start raohane.service
 
 # Raohane shell controls
 bind = SUPER, R, exec, raohane launcher
-bind = SUPER, slash, exec, raohane hotkeys
 bind = SUPER, escape, exec, raohane settings
 bind = SUPER, C, exec, raohane control
-bind = SUPER SHIFT, M, exec, raohane media-overlay
 HYPR
 
 if [[ ! -f "$HYPR_AUTOSTART" ]]; then
