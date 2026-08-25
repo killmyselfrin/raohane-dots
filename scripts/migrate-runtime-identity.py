@@ -12,6 +12,12 @@ COMMON_QS_PATH_REPLACEMENTS = [
 ]
 
 REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
+    "modules/common/Config.qml": [
+        (
+            '''onLoadFailed: error => {\n            if (error == FileViewError.FileNotFound) {\n                writeAdapter();\n            }\n        }''',
+            '''onLoadFailed: error => {\n            if (error == FileViewError.FileNotFound) {\n                // The JsonAdapter defaults are already valid. Do not keep the\n                // entire panel family disabled while the first config write is\n                // completing; a clean standalone Raohane install has no\n                // pre-existing config file.\n                root.ready = true;\n                writeAdapter();\n            }\n        }''',
+        ),
+    ],
     "modules/ii/settings/SettingsContent.qml": [
         (
             'Qt.openUrlExternally(`${Directories.config}/illogical-impulse/config.json`);',
@@ -26,6 +32,10 @@ REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
         (
             'property string fileDir: Directories.state',
             'property string fileDir: Directories.shellState',
+        ),
+        (
+            '''if (error == FileViewError.FileNotFound) {\n                fileWriteTimer.restart();\n            }''',
+            '''if (error == FileViewError.FileNotFound) {\n                // Defaults are usable immediately on a clean first run.\n                root.ready = true;\n                fileWriteTimer.restart();\n            }''',
         ),
     ],
     "services/LauncherSearch.qml": [
