@@ -5,6 +5,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+COMMON_QS_PATH_REPLACEMENTS = [
+    ('QUICKSHELL_CONFIG_NAME="ii"', 'QUICKSHELL_CONFIG_NAME="raohane"'),
+    ('CACHE_DIR="$XDG_CACHE_HOME/quickshell"', 'CACHE_DIR="$XDG_CACHE_HOME/quickshell/$QUICKSHELL_CONFIG_NAME"'),
+    ('STATE_DIR="$XDG_STATE_HOME/quickshell"', 'STATE_DIR="$XDG_STATE_HOME/quickshell/$QUICKSHELL_CONFIG_NAME"'),
+]
+
 REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
     "modules/ii/settings/SettingsContent.qml": [
         (
@@ -14,6 +20,12 @@ REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
         (
             'Quickshell.clipboardText = CF.FileUtils.trimFileProtocol(`${Directories.config}/illogical-impulse/config.json`);',
             'Quickshell.clipboardText = Directories.shellConfigPath;',
+        ),
+    ],
+    "modules/common/Persistent.qml": [
+        (
+            'property string fileDir: Directories.state',
+            'property string fileDir: Directories.shellState',
         ),
     ],
     "services/LauncherSearch.qml": [
@@ -26,6 +38,10 @@ REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
         (
             'CONFIG_FILE="$HOME/.config/illogical-impulse/config.json"',
             'CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/raohane/config.json"',
+        ),
+        (
+            '$HOME/.local/state/quickshell/states.json',
+            '${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/raohane/states.json',
         ),
     ],
     "scripts/hyprland/autostart.py": [
@@ -41,6 +57,7 @@ REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
         ),
         ("${illogicalImpulseConfigPath}", "${raohaneConfigPath}"),
         ("$illogicalImpulseConfigPath", "$raohaneConfigPath"),
+        *COMMON_QS_PATH_REPLACEMENTS,
     ],
     "scripts/colors/random/random_konachan_wall.sh": [
         (
@@ -49,18 +66,30 @@ REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
         ),
         ("${illogicalImpulseConfigPath}", "${raohaneConfigPath}"),
         ("$illogicalImpulseConfigPath", "$raohaneConfigPath"),
+        *COMMON_QS_PATH_REPLACEMENTS,
     ],
     "scripts/colors/applycolor.sh": [
         (
             'CONFIG_FILE="$XDG_CONFIG_HOME/illogical-impulse/config.json"',
             'CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/raohane/config.json"',
         ),
+        *COMMON_QS_PATH_REPLACEMENTS,
     ],
     "scripts/colors/switchwall.sh": [
         (
             'SHELL_CONFIG_FILE="$XDG_CONFIG_HOME/illogical-impulse/config.json"',
             'SHELL_CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/raohane/config.json"',
         ),
+        *COMMON_QS_PATH_REPLACEMENTS,
+    ],
+    "scripts/colors/code/material-code-set-color.sh": [
+        (
+            '${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/user/generated/color.txt',
+            '${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/raohane/user/generated/color.txt',
+        ),
+    ],
+    "scripts/kvantum/materialQT.sh": [
+        *COMMON_QS_PATH_REPLACEMENTS,
     ],
     "scripts/presets.sh": [
         (
@@ -79,8 +108,9 @@ def migrate_file(relative: str, replacements: list[tuple[str, str]]) -> bool:
     original = path.read_text(encoding="utf-8")
     updated = original
 
-    # Individual syntactic forms are optional: upstream files may use either
-    # $var or ${var}. The post-migration runtime audit is the strict gate.
+    # Individual syntactic forms are optional because upstream changes can
+    # already contain a subset of the Raohane replacements. Runtime audits are
+    # the strict post-condition.
     for old, new in replacements:
         if old in updated:
             updated = updated.replace(old, new)
