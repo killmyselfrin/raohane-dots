@@ -61,7 +61,9 @@ jobs:
             modules/common
             modules/ii
             modules/raohane
+            modules/common/Directories.qml
             panelFamilies/IllogicalImpulseFamily.qml
+            panelFamilies/RaohaneFamily.qml
             services
             translations
             scripts/raohane
@@ -83,6 +85,15 @@ jobs:
             [[ -e "$path" ]] || { echo "Missing foundation path: $path" >&2; exit 1; }
           done
 
+          grep -q 'RaohaneFamily' shell.qml || {
+            echo 'shell.qml no longer routes into RaohaneFamily.' >&2
+            exit 1
+          }
+          grep -q 'config}/raohane' modules/common/Directories.qml || {
+            echo 'Raohane runtime config namespace regressed.' >&2
+            exit 1
+          }
+
           if find . -path './.git' -prune -o -type f \
             \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) \
             -print -quit | grep -q .; then
@@ -91,7 +102,7 @@ jobs:
           fi
 
           panel_family="$(jq -r '.panelFamily // "<unset>"' defaults/config.json)"
-          [[ "$panel_family" == 'ii' || "$panel_family" == 'raohane' ]] || {
+          [[ "$panel_family" == 'ii' || "$panel_family" == 'raohane' || "$panel_family" == 'ii-upstream' ]] || {
             echo "Unsupported panelFamily: $panel_family" >&2
             exit 1
           }
