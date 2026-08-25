@@ -28,6 +28,8 @@ ShellRoot {
         function onReadyChanged() {
             if (!Config.ready) return
 
+            console.log("[Raohane] Config ready; panel family:", Config.options.panelFamily)
+
             if (WM.compositor === "niri") {
                 Config.options.background.lockWall = ""
                 Config.options.overview.enable = false
@@ -52,12 +54,19 @@ ShellRoot {
     }
     
     PanelFamilyLoader {
-        identifier: "ii"
+        identifier: "raohane"
+        compatibilityIdentifiers: ["ii"]
         component: IllogicalImpulseFamily {}
     }
 
     component PanelFamilyLoader: LazyLoader {
         required property string identifier
-        active: Config.ready && Config.options.panelFamily === identifier
+        property list<string> compatibilityIdentifiers: []
+        active: Config.ready && (Config.options.panelFamily === identifier || compatibilityIdentifiers.includes(Config.options.panelFamily))
+
+        onActiveChanged: {
+            if (active)
+                console.log("[Raohane] Loading panel family:", identifier)
+        }
     }
 }
