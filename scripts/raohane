@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+QS_CONFIG="${RAOHANE_QS_CONFIG:-raohane}"
+SERVICE="${RAOHANE_SERVICE:-raohane.service}"
+
+usage() {
+  cat <<'EOF'
+Raohane CLI
+
+Usage: raohane <command> [args]
+
+Shell:
+  run | start | stop | restart | status | logs
+  launcher | control | settings
+
+Diagnostics:
+  doctor [graphics]
+  wifi [status|menu]
+  audio [status]
+EOF
+}
+
+ipc() {
+  qs -c "$QS_CONFIG" ipc call "$@"
+}
+
+case "${1:-help}" in
+  run)
+    exec qs -c "$QS_CONFIG"
+    ;;
+  start)
+    systemctl --user start "$SERVICE"
+    ;;
+  stop)
+    systemctl --user stop "$SERVICE"
+    ;;
+  restart)
+    systemctl --user restart "$SERVICE"
+    ;;
+  status)
+    systemctl --user --no-pager status "$SERVICE"
+    ;;
+  logs)
+    exec journalctl --user -u "$SERVICE" -f
+    ;;
+  launcher)
+    ipc search toggle
+    ;;
+  control)
+    ipc sidebarRight toggle
+    ;;
+  settings)
+    ipc settings toggle
+    ;;
+  doctor)
+    case "${2:-all}" in
+      graphics)
+        echo 'Raohane doctor graphics'
+        if command -v lspci >/dev/null 2>&1; then
+          lspci -nnk | grep -EA3 'VGA|3D|Display' || true
+        else
+          echo 'lspci not found (package: pciutils)'
+        fi
+        echo
+        command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi --query-gpu=name,driver_version --format=csv,noheader || true
+        command -v hyprctl >/dev/null 2>&1 && hyprctl monitors || true
+        ;;
+      all)
+        echo 'Raohane doctor'
+        for cmd in qs hyprctl git rsync jq; do
+          if command -v "$cmd" >/dev/null 2>&1; then
+            printf '  [ok] %-10s %s\n' "$cmd" "$(command -v "$cmd")"
+          else
+            printf '  [!!] %-10s missing\n' "$cmd"
+          fi
+        done
+        echo
+        systemctl --user --no-pager --quiet is-active "$SERVICE" \
+          && echo "  [ok] $SERVICE active" \
+          || echo "  [--] $SERVICE not active"
+        ;;
+      *)
+        echo "Unknown doctor target: ${2:-}" >&2
+        exit 2
+        ;;
+    esac
+    ;;
+  wifi)
+    case "${2:-status}" in
+      status)
+        if command -v nmcli >/dev/null 2>&1; then
+          nmcli -t -f WIFI general 2>/dev/null || true
+          nmcli -t -f ACTIVE,SSID,SIGNAL dev wifi 2>/dev/null | grep '^yes:' || true
+        else
+          echo 'nmcli not found (package: networkmanager)' >&2
+          exit 1
+        fi
+        ;;
+      menu)
+        ipc sidebarRight open
+        ;;
+      *) echo "Unknown wifi command: ${2:-}" >&2; exit 2 ;;
+    esac
+    ;;
+  audio)
+    case "${2:-status}" in
+      status)
+        if command -v wpctl >/dev/null 2>&1; then
+          wpctl get-volume @DEFAULT_AUDIO_SINK@
+          wpctl get-volume @DEFAULT_AUDIO_SOURCE@
+        elif command -v pactl >/dev/null 2>&1; then
+          pactl info | grep -E 'Default Sink|Default Source' || true
+        else
+          echo 'Neither wpctl nor pactl is available.' >&2
+          exit 1
+        fi
+        ;;
+      *) echo "Unknown audio command: ${2:-}" >&2; exit 2 ;;
+    esac
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: ${1:-}" >&2
+    usage >&2
+    exit 2
+    ;;
+esac
