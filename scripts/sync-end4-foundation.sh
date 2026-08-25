@@ -15,8 +15,9 @@ Usage:
   bash scripts/sync-end4-foundation.sh --apply
   bash scripts/sync-end4-foundation.sh --apply --allow-dirty
 
-The script imports the mature end4-pC runtime while preserving Raohane-owned
-identity, installer, docs, patches, modules/raohane and Raohane scripts.
+Developer tool: refresh the pinned end4-pC technical foundation while
+preserving Raohane-owned shell integration, config namespace, installer,
+docs, patches, modules/raohane and Raohane scripts.
 EOF
 }
 
@@ -102,14 +103,13 @@ copy_root_file() {
 
 echo "[Raohane] Sync mode: $MODE"
 
-# Runtime assets. Fonts are intentionally not vendored; install them as packages.
+# Runtime assets. Fonts are intentionally package-managed, never vendored.
 sync_dir assets --exclude='fonts/'
 
-# Import any upstream defaults. Some end4-pC revisions intentionally do not
-# ship defaults/config.json because modules/common/Config.qml contains the
-# JsonAdapter defaults. If an upstream config file exists, merge it with the
-# Raohane file; otherwise preserve the Raohane config and normalize only the
-# foundation-critical panelFamily below.
+# Import upstream defaults. Some end4-pC revisions intentionally do not ship
+# defaults/config.json because modules/common/Config.qml contains JsonAdapter
+# defaults. If a JSON default exists, merge it without changing Raohane's
+# selected panel family or user-facing identity.
 if [[ -f "$UPSTREAM/defaults/config.json" ]]; then
   sync_dir defaults --exclude='config.json'
   if [[ "$MODE" == "dry-run" ]]; then
@@ -126,23 +126,12 @@ else
   sync_dir defaults
 fi
 
-# The pinned foundation shell currently registers the `ii` panel family.
-# Force it even when the pinned upstream has no defaults/config.json.
-# Raohane-native panels are reintroduced progressively after runtime parity.
-if [[ -f "$ROOT/defaults/config.json" ]]; then
-  if [[ "$MODE" == "dry-run" ]]; then
-    current_panel_family="$(jq -r '.panelFamily // "<unset>"' "$ROOT/defaults/config.json")"
-    if [[ "$current_panel_family" != "ii" ]]; then
-      echo "would force defaults/config.json panelFamily: $current_panel_family -> ii"
-    fi
-  else
-    jq '.panelFamily = "ii"' "$ROOT/defaults/config.json" > "$TMP/config-final.json"
-    mv "$TMP/config-final.json" "$ROOT/defaults/config.json"
-  fi
-fi
-
-# Import the complete mature shell graph while keeping Raohane-native surfaces.
-sync_dir modules --exclude='raohane/'
+# Import the complete mature shell graph while preserving Raohane-owned QML.
+# Directories.qml owns the ~/.config/raohane namespace and must not regress to
+# ~/.config/illogical-impulse during an upstream refresh.
+sync_dir modules \
+  --exclude='raohane/' \
+  --exclude='common/Directories.qml'
 sync_dir services
 sync_dir panelFamilies
 sync_dir translations
@@ -154,8 +143,9 @@ sync_dir scripts \
   --exclude='sync-end4-foundation.sh' \
   --exclude='install-foundation-deps.sh'
 
-# Core runtime entry points come from the pinned foundation in this phase.
-for file in .qmlformat.ini GlobalStates.qml ReloadPopup.qml killDialog.qml shell.qml welcome.qml; do
+# Upstream-owned root runtime pieces. shell.qml is deliberately excluded:
+# Raohane owns the panel-family routing and fallback contract there.
+for file in .qmlformat.ini GlobalStates.qml ReloadPopup.qml killDialog.qml welcome.qml; do
   copy_root_file "$file"
 done
 
@@ -171,7 +161,7 @@ if [[ "$MODE" == "dry-run" ]]; then
   cat <<'EOF'
 
 [Raohane] Preview complete. Repository files were not changed.
-Run again with --apply to import the pinned foundation.
+Use --apply only when intentionally refreshing the pinned developer foundation.
 EOF
   exit 0
 fi
@@ -181,8 +171,17 @@ bash -n "$ROOT/scripts/sync-end4-foundation.sh"
 [[ -f "$ROOT/scripts/install-foundation-deps.sh" ]] && bash -n "$ROOT/scripts/install-foundation-deps.sh"
 [[ -f "$ROOT/install-raohane.sh" ]] && bash -n "$ROOT/install-raohane.sh"
 
+if [[ ! -f "$ROOT/panelFamilies/RaohaneFamily.qml" ]]; then
+  echo '[Raohane] Missing RaohaneFamily.qml after refresh.' >&2
+  exit 1
+fi
+if ! grep -q 'config}/raohane' "$ROOT/modules/common/Directories.qml"; then
+  echo '[Raohane] Raohane config namespace was not preserved.' >&2
+  exit 1
+fi
+
 echo
-printf '[Raohane] Foundation synchronized from %s\n' "$ref"
+printf '[Raohane] Foundation refreshed from %s\n' "$ref"
 printf '[Raohane] Review with: git -C %q status --short\n' "$ROOT"
 echo '[Raohane] Runtime test target:'
 echo '  qs -c raohane'
