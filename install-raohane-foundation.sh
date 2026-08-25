@@ -5,9 +5,12 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_NAME="raohane"
 XDG_CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_STATE_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}"
+XDG_CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}"
 RUNTIME="$XDG_CONFIG_ROOT/quickshell/$CONFIG_NAME"
 RAOHANE_CONFIG="$XDG_CONFIG_ROOT/raohane"
 RAOHANE_STATE="$XDG_STATE_ROOT/raohane"
+QS_STATE="$XDG_STATE_ROOT/quickshell/$CONFIG_NAME"
+QS_CACHE="$XDG_CACHE_ROOT/quickshell/$CONFIG_NAME"
 BACKUP_ROOT="$RAOHANE_STATE/backups"
 BIN_DIR="$HOME/.local/bin"
 SYSTEMD_DIR="$XDG_CONFIG_ROOT/systemd/user"
@@ -50,7 +53,7 @@ printf 'Raohane standalone foundation installer\n'
 printf '  source: %s\n' "$ROOT"
 printf '  runtime: %s\n' "$RUNTIME"
 printf '  config: %s\n' "$RAOHANE_CONFIG"
-printf '  state: %s\n' "$RAOHANE_STATE"
+printf '  state: %s\n' "$QS_STATE"
 printf '  Quickshell config: %s\n' "$CONFIG_NAME"
 printf '  dependency mode: %s\n\n' "$([[ "$INSTALL_DEPS" == yes ]] && echo full-upstream-plus-diagnostics || echo shell-only)"
 
@@ -65,7 +68,6 @@ printf '  dependency mode: %s\n\n' "$([[ "$INSTALL_DEPS" == yes ]] && echo full-
 font_count="$(find "$ROOT" -type f \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) -not -path '*/.git/*' | wc -l)"
 [[ "$font_count" -eq 0 ]] || { printf 'FAIL  source contains %s bundled font binaries.\n' "$font_count" >&2; exit 1; }
 
-# Do not install a runtime that still writes active state into illogical-impulse paths.
 bash "$ROOT/scripts/audit-runtime-paths.sh"
 
 for cmd in rsync systemctl; do
@@ -104,7 +106,14 @@ if systemctl --user is-active --quiet raohane.service 2>/dev/null; then
   systemctl --user stop raohane.service
 fi
 
-mkdir -p "$RAOHANE_CONFIG" "$RAOHANE_STATE" "$BACKUP_ROOT" "$BIN_DIR" "$SYSTEMD_DIR"
+mkdir -p \
+  "$RAOHANE_CONFIG/translations" \
+  "$RAOHANE_STATE" \
+  "$QS_STATE/user/generated" \
+  "$QS_CACHE" \
+  "$BACKUP_ROOT" \
+  "$BIN_DIR" \
+  "$SYSTEMD_DIR"
 
 if [[ -d "$RUNTIME" && -n "$(find "$RUNTIME" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -116,9 +125,6 @@ fi
 
 mkdir -p "$RUNTIME"
 
-# Copy runtime-relevant foundation content. Vendored system sources, migration
-# snapshots, CI files and repository metadata stay in the development checkout.
-# Licensing/attribution/pinned-source metadata remain in the installed runtime.
 rsync -a --delete \
   --exclude='.git/' \
   --exclude='.github/' \
@@ -131,13 +137,28 @@ rsync -a --delete \
   --exclude='install-raohane-foundation.sh' \
   "$ROOT/" "$RUNTIME/"
 
-# The runtime needs the generated baseline for dependency diagnostics.
+# Optional generated translation overlays are loaded in addition to bundled
+# translations. Seed them with empty objects so a locale such as ru_RU does not
+# produce a FileView warning before the user ever generates an overlay.
+for base_translation in "$ROOT"/translations/*.json; do
+  [[ -f "$base_translation" ]] || continue
+  locale_file="$(basename -- "$base_translation")"
+  overlay="$RAOHANE_CONFIG/translations/$locale_file"
+  [[ -e "$overlay" ]] || printf '{}\n' > "$overlay"
+done
+
+# MaterialThemeLoader is initialized before the first wallpaper/color generation
+# on a fresh install. Empty JSON preserves the built-in Appearance defaults and
+# gives the loader a valid file until switchwall/matugen writes real colors.
+for theme_file in colors.json colors-lock.json; do
+  target="$QS_STATE/user/generated/$theme_file"
+  [[ -s "$target" ]] || printf '{}\n' > "$target"
+done
+
 mkdir -p "$RUNTIME/manifests"
 install -m 0644 "$ROOT/manifests/upstream-package-baseline.tsv" "$RUNTIME/manifests/upstream-package-baseline.tsv"
 install -m 0644 "$ROOT/manifests/upstream-package-baseline.md" "$RUNTIME/manifests/upstream-package-baseline.md"
 
-# Runtime dependency builds need the pinned local PKGBUILDs. Keep only dist-arch,
-# not the entire vendored system tree.
 mkdir -p "$RUNTIME/upstream/illogical-impulse-system/sdata"
 rsync -a --delete "$ROOT/upstream/illogical-impulse-system/sdata/dist-arch/" \
   "$RUNTIME/upstream/illogical-impulse-system/sdata/dist-arch/"
@@ -147,6 +168,7 @@ chmod +x \
   "$RUNTIME/scripts/raohane" \
   "$RUNTIME/scripts/raohane-deps" \
   "$RUNTIME/scripts/raohane-doctor" \
+  "$RUNTIME/scripts/raohane-graphics" \
   "$RUNTIME/scripts/audit-foundation.sh" \
   "$RUNTIME/scripts/audit-runtime-paths.sh" 2>/dev/null || true
 
@@ -173,6 +195,7 @@ systemctl --user enable raohane.service >/dev/null
 printf '\nPASS  Raohane standalone foundation installed.\n'
 printf 'Runtime: %s\n' "$RUNTIME"
 printf 'Config: %s\n' "$RAOHANE_CONFIG"
+printf 'State: %s\n' "$QS_STATE"
 printf 'CLI: %s/raohane\n' "$BIN_DIR"
 printf '\nNo Hyprland config was overwritten. No GPU driver was changed.\n'
 printf 'Settings: raohane settings\n'
