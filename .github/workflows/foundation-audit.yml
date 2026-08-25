@@ -1,0 +1,52 @@
+name: Foundation audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'upstream/**'
+      - 'install-raohane.sh'
+      - '.github/workflows/foundation-audit.yml'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'upstream/**'
+      - 'install-raohane.sh'
+      - '.github/workflows/foundation-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-and-sync-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Install audit dependencies
+        run: sudo apt-get update && sudo apt-get install -y rsync jq
+
+      - name: Validate shell syntax
+        shell: bash
+        run: |
+          bash -n scripts/raohane
+          bash -n scripts/sync-end4-foundation.sh
+          bash -n scripts/install-foundation-deps.sh
+          bash -n install-raohane.sh
+
+      - name: Validate pinned foundation preview
+        shell: bash
+        run: bash scripts/sync-end4-foundation.sh
+
+      - name: Assert preview is non-mutating
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo 'Foundation preview modified the repository:' >&2
+            git status --short >&2
+            git diff -- >&2
+            exit 1
+          fi
