@@ -71,6 +71,11 @@ Singleton {
         onLoaded: root.ready = true
         onLoadFailed: error => {
             if (error == FileViewError.FileNotFound) {
+                // The JsonAdapter defaults are already valid. Do not keep the
+                // entire panel family disabled while the first config write is
+                // completing; a clean standalone Raohane install has no
+                // pre-existing config file.
+                root.ready = true;
                 writeAdapter();
             }
         }

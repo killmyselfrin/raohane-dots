@@ -49,6 +49,8 @@ Singleton {
         onLoadFailed: error => {
             console.log("Failed to load persistent states file:", error);
             if (error == FileViewError.FileNotFound) {
+                // Defaults are usable immediately on a clean first run.
+                root.ready = true;
                 fileWriteTimer.restart();
             }
         }
