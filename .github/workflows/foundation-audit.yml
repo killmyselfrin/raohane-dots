@@ -4,12 +4,26 @@ on:
   push:
     branches: [main]
     paths:
+      - 'shell.qml'
+      - 'GlobalStates.qml'
+      - 'defaults/**'
+      - 'modules/**'
+      - 'panelFamilies/**'
+      - 'services/**'
+      - 'translations/**'
       - 'scripts/**'
       - 'upstream/**'
       - 'install-raohane.sh'
       - '.github/workflows/foundation-audit.yml'
   pull_request:
     paths:
+      - 'shell.qml'
+      - 'GlobalStates.qml'
+      - 'defaults/**'
+      - 'modules/**'
+      - 'panelFamilies/**'
+      - 'services/**'
+      - 'translations/**'
       - 'scripts/**'
       - 'upstream/**'
       - 'install-raohane.sh'
@@ -20,7 +34,7 @@ permissions:
   contents: read
 
 jobs:
-  static-and-sync-preview:
+  static-and-foundation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Raohane
@@ -36,6 +50,51 @@ jobs:
           bash -n scripts/sync-end4-foundation.sh
           bash -n scripts/install-foundation-deps.sh
           bash -n install-raohane.sh
+
+      - name: Validate committed foundation graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          required_paths=(
+            shell.qml
+            GlobalStates.qml
+            modules/common
+            modules/ii
+            modules/raohane
+            panelFamilies/IllogicalImpulseFamily.qml
+            services
+            translations
+            scripts/raohane
+            modules/ii/bar
+            modules/ii/settings
+            modules/ii/overview
+            modules/ii/notificationPopup
+            modules/ii/onScreenDisplay
+            modules/ii/mediaControls
+            modules/ii/sidebarRight
+            services/Audio.qml
+            services/Network.qml
+            services/BluetoothStatus.qml
+            services/MprisController.qml
+            services/Notifications.qml
+          )
+
+          for path in "${required_paths[@]}"; do
+            [[ -e "$path" ]] || { echo "Missing foundation path: $path" >&2; exit 1; }
+          done
+
+          if find . -path './.git' -prune -o -type f \
+            \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) \
+            -print -quit | grep -q .; then
+            echo 'Vendored font binary detected.' >&2
+            exit 1
+          fi
+
+          panel_family="$(jq -r '.panelFamily // "<unset>"' defaults/config.json)"
+          [[ "$panel_family" == 'ii' || "$panel_family" == 'raohane' ]] || {
+            echo "Unsupported panelFamily: $panel_family" >&2
+            exit 1
+          }
 
       - name: Validate pinned foundation preview
         shell: bash
