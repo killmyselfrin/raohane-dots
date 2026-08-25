@@ -1,0 +1,5 @@
+# Raohane upstream lock
+# Do not track end4-pC by a floating branch during foundation migration.
+repo=https://github.com/pctrade/end4-pC.git
+ref=979ff0ac427c5deff3af527c1108679cf069c635
+captured_at=2026-08-25
