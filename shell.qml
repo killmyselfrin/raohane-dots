@@ -51,16 +51,17 @@ ShellRoot {
         LyricsService.restartLyrics()
     }
 
-    // `ii` remains available as a clean upstream fallback while Raohane is
-    // progressively replacing individual surfaces on the same service graph.
-    PanelFamilyLoader {
-        identifier: "ii"
-        component: IllogicalImpulseFamily {}
+    // Existing end4/legacy configs use "ii". Treat that value as Raohane during
+    // the migration so a fresh Config.qml default still enters our panel family.
+    // "ii-upstream" is retained as an explicit diagnostic/fallback mode.
+    LazyLoader {
+        active: Config.ready && ["raohane", "ii"].includes(Config.options.panelFamily)
+        component: RaohaneFamily {}
     }
 
     PanelFamilyLoader {
-        identifier: "raohane"
-        component: RaohaneFamily {}
+        identifier: "ii-upstream"
+        component: IllogicalImpulseFamily {}
     }
 
     component PanelFamilyLoader: LazyLoader {
