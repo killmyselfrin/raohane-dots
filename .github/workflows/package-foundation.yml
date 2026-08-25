@@ -8,7 +8,7 @@ on:
       - .github/workflows/package-foundation.yml
       - scripts/package-release.sh
       - VERSION
-      - RELEASE-NOTES-0.11.0-foundation.md
+      - RELEASE-NOTES-*.md
   workflow_dispatch:
 
 permissions:
@@ -20,6 +20,14 @@ jobs:
     steps:
       - name: Checkout migration branch
         uses: actions/checkout@v4
+
+      - name: Read release version
+        id: meta
+        run: |
+          set -euo pipefail
+          version="$(tr -d '[:space:]' < VERSION)"
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Ensure packaging utilities
         run: |
@@ -43,10 +51,10 @@ jobs:
       - name: Upload validated ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: Raohane-0.11.0-foundation
+          name: Raohane-${{ steps.meta.outputs.version }}
           path: |
-            dist/Raohane-0.11.0-foundation.zip
-            dist/Raohane-0.11.0-foundation.sha256
+            dist/Raohane-${{ steps.meta.outputs.version }}.zip
+            dist/Raohane-${{ steps.meta.outputs.version }}.sha256
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
