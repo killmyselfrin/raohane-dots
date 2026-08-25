@@ -1,61 +1,40 @@
 # Raohane
 
-**Raohane** is a Hyprland + Quickshell desktop shell focused on floating glass surfaces, a central Context Island, fast system controls and a coherent dark visual language.
+**Raohane** is a Hyprland + Quickshell desktop shell built on a pinned end4-pC technical foundation and progressively replacing its visible surfaces with Raohane-native UI.
 
-> Current development line: **0.9 Context Foundation → end4-pC foundation migration**
+> Current development line: **full foundation → Raohane surface migration**
 
 ## Foundation strategy
 
-Raohane now uses a pinned `pctrade/end4-pC` runtime foundation and the matching `end-4/dots-hyprland` dependency model. The goal is to regain the mature services, settings, widgets, notifications, OSD, media, networking and system integration first, then progressively replace the visible product with Raohane-native surfaces.
+The complete pinned `pctrade/end4-pC` runtime graph is now committed directly in this repository: services, settings, widgets, notifications, OSD, media, networking, Bluetooth and the supporting Quickshell modules are part of `main`.
 
-The upstream revisions are locked under `upstream/` so updates are deliberate instead of following a floating branch.
+Raohane keeps a separate integration layer on top:
 
-## Foundation bootstrap
+- `panelFamilies/RaohaneFamily.qml` is the stable composition point for Raohane surfaces.
+- `modules/raohane/` contains Raohane-native components.
+- Runtime settings live under `~/.config/raohane` rather than the upstream namespace.
+- `ii-upstream` remains an explicit fallback panel family for diagnostics.
+- Upstream revisions are pinned under `upstream/`; updates are deliberate instead of following a floating branch.
 
-On an Arch-based development machine:
+## Install
+
+On an Arch-based machine, install the pinned foundation dependencies once and then install Raohane:
 
 ```bash
-# 1. Install the pinned foundation dependencies.
 bash scripts/install-foundation-deps.sh
-
-# 2. Preview the end4-pC import without changing the tree.
-bash scripts/sync-end4-foundation.sh
-
-# 3. Apply the pinned foundation import.
-bash scripts/sync-end4-foundation.sh --apply
-```
-
-The synchronizer preserves Raohane-owned docs, installer, patches, `modules/raohane` and Raohane scripts. Upstream fonts are not vendored; fonts remain package-managed. GPU drivers are not silently replaced.
-
-After syncing, test in a real Hyprland session:
-
-```bash
-qs -c raohane
-```
-
-Verify Settings, launcher/overview, Control Center/sidebar, OSD, notifications, MPRIS/media, audio, Wi-Fi/network and Bluetooth before continuing the visual migration.
-
-## What is Raohane-native now
-
-- Three-zone floating top bar
-- Context Island with recording, privacy, MPRIS and active-window states
-- Raohane theme primitives
-- Raohane CLI and diagnostics
-- Installer, systemd service and Hyprland integration
-
-The existing Raohane-native QML remains under `modules/raohane/` while the complete foundation is synchronized around it.
-
-## Install / update
-
-```bash
-cd ~/Загрузки/Raohane-Hyprland-0.9
 chmod +x install-raohane.sh
 ./install-raohane.sh
 hyprctl reload
 raohane restart
 ```
 
-Useful commands:
+The installer keeps persistent settings in `~/.config/raohane/config.json`. On the first install, if an older `~/.config/illogical-impulse/config.json` exists, Raohane copies it into its own namespace and selects the `raohane` panel family without discarding the rest of the JSON.
+
+GPU drivers are not silently selected or replaced by the dependency installer. Upstream font binaries are not vendored in this repository; fonts remain package-managed.
+
+## Test
+
+Useful runtime commands:
 
 ```bash
 raohane launcher
@@ -69,6 +48,29 @@ raohane audio status
 raohane logs
 ```
 
+For direct terminal debugging:
+
+```bash
+raohane stop
+raohane run
+```
+
+Verify Settings, launcher/overview, Control Center/sidebar, OSD, notifications, MPRIS/media, audio, Wi-Fi/network and Bluetooth before treating a build as release-ready.
+
+## Developer upstream refresh
+
+Normal users do **not** need to run the foundation synchronizer. It is only for intentionally refreshing the pinned end4-pC source graph:
+
+```bash
+# Preview only; repository remains unchanged.
+bash scripts/sync-end4-foundation.sh
+
+# Developer action: apply the pinned upstream refresh.
+bash scripts/sync-end4-foundation.sh --apply
+```
+
+The synchronizer preserves Raohane-owned `shell.qml`, `modules/common/Directories.qml`, `modules/raohane/`, installer and CLI while refreshing the upstream technical foundation around them.
+
 ## Runtime paths
 
 - Shell: `~/.config/quickshell/raohane`
@@ -76,6 +78,8 @@ raohane logs
 - Hyprland integration: `~/.config/hypr/raohane.conf`
 - User service: `raohane.service`
 
-## Development status
+## Migration model
 
-The previous Raohane 0.9 prototype proved the Context Island and visual direction, but it did not contain the full backend/runtime coverage needed for a complete daily-driver shell. The current migration therefore treats end4-pC as the technical foundation rather than only a visual reference. See `NOTICE-UPSTREAM.md`, `AGENTS.md` and `RAOHANE-CHANGELOG.md`.
+`RaohaneFamily.qml` currently composes the proven foundation panels. From here, the visible shell is replaced one subsystem at a time — bar, launcher, control center, notifications, settings, media and desktop surfaces — while the mature service graph remains operational underneath.
+
+See `NOTICE-UPSTREAM.md`, `AGENTS.md` and `RAOHANE-CHANGELOG.md` for project and upstream notes.
