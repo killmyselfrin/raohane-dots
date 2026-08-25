@@ -50,10 +50,17 @@ ShellRoot {
         Updates.load()
         LyricsService.restartLyrics()
     }
-    
+
+    // `ii` remains available as a clean upstream fallback while Raohane is
+    // progressively replacing individual surfaces on the same service graph.
     PanelFamilyLoader {
         identifier: "ii"
         component: IllogicalImpulseFamily {}
+    }
+
+    PanelFamilyLoader {
+        identifier: "raohane"
+        component: RaohaneFamily {}
     }
 
     component PanelFamilyLoader: LazyLoader {
