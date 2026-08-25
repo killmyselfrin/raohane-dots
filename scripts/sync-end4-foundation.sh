@@ -105,26 +105,40 @@ echo "[Raohane] Sync mode: $MODE"
 # Runtime assets. Fonts are intentionally not vendored; install them as packages.
 sync_dir assets --exclude='fonts/'
 
-# Preserve Raohane config values while gaining any new upstream defaults.
+# Import any upstream defaults. Some end4-pC revisions intentionally do not
+# ship defaults/config.json because modules/common/Config.qml contains the
+# JsonAdapter defaults. If an upstream config file exists, merge it with the
+# Raohane file; otherwise preserve the Raohane config and normalize only the
+# foundation-critical panelFamily below.
 if [[ -f "$UPSTREAM/defaults/config.json" ]]; then
   sync_dir defaults --exclude='config.json'
   if [[ "$MODE" == "dry-run" ]]; then
     echo "would merge defaults/config.json (upstream base + Raohane overrides)"
-    echo "would force panelFamily=ii for the foundation runtime"
   else
     if [[ -f "$ROOT/defaults/config.json" ]]; then
       jq -s '.[0] * .[1]' "$UPSTREAM/defaults/config.json" "$ROOT/defaults/config.json" > "$TMP/config-merged.json"
+      mv "$TMP/config-merged.json" "$ROOT/defaults/config.json"
     else
-      cp -a "$UPSTREAM/defaults/config.json" "$TMP/config-merged.json"
+      cp -a "$UPSTREAM/defaults/config.json" "$ROOT/defaults/config.json"
     fi
-
-    # The pinned foundation shell currently registers the `ii` panel family.
-    # Raohane panels are reintroduced progressively after runtime parity is proven.
-    jq '.panelFamily = "ii"' "$TMP/config-merged.json" > "$TMP/config-final.json"
-    mv "$TMP/config-final.json" "$ROOT/defaults/config.json"
   fi
 else
   sync_dir defaults
+fi
+
+# The pinned foundation shell currently registers the `ii` panel family.
+# Force it even when the pinned upstream has no defaults/config.json.
+# Raohane-native panels are reintroduced progressively after runtime parity.
+if [[ -f "$ROOT/defaults/config.json" ]]; then
+  if [[ "$MODE" == "dry-run" ]]; then
+    current_panel_family="$(jq -r '.panelFamily // "<unset>"' "$ROOT/defaults/config.json")"
+    if [[ "$current_panel_family" != "ii" ]]; then
+      echo "would force defaults/config.json panelFamily: $current_panel_family -> ii"
+    fi
+  else
+    jq '.panelFamily = "ii"' "$ROOT/defaults/config.json" > "$TMP/config-final.json"
+    mv "$TMP/config-final.json" "$ROOT/defaults/config.json"
+  fi
 fi
 
 # Import the complete mature shell graph while keeping Raohane-native surfaces.
