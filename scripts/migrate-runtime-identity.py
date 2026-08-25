@@ -14,6 +14,10 @@ COMMON_QS_PATH_REPLACEMENTS = [
 REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
     "modules/common/Config.qml": [
         (
+            'property string panelFamily: "ii" // "ii", "waffle"',
+            'property string panelFamily: "raohane" // "ii" remains accepted as a temporary compatibility value',
+        ),
+        (
             '''onLoadFailed: error => {\n            if (error == FileViewError.FileNotFound) {\n                writeAdapter();\n            }\n        }''',
             '''onLoadFailed: error => {\n            if (error == FileViewError.FileNotFound) {\n                // The JsonAdapter defaults are already valid. Do not keep the\n                // entire panel family disabled while the first config write is\n                // completing; a clean standalone Raohane install has no\n                // pre-existing config file.\n                root.ready = true;\n                writeAdapter();\n            }\n        }''',
         ),
