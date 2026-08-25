@@ -30,13 +30,17 @@ Singleton {
     property string booruDownloads: FileUtils.trimFileProtocol(Directories.pictures  + "/homework")
     property string booruDownloadsNsfw: FileUtils.trimFileProtocol(Directories.pictures + "/homework/🌶️")
     property string latexOutput: FileUtils.trimFileProtocol(`${Directories.cache}/media/latex`)
-    property string shellConfig: FileUtils.trimFileProtocol(`${Directories.config}/illogical-impulse`)
+
+    // Raohane owns its runtime namespace. The installer performs a one-time
+    // migration from ~/.config/illogical-impulse when that legacy config exists.
+    property string shellConfig: FileUtils.trimFileProtocol(`${Directories.config}/raohane`)
     property string shellConfigName: "config.json"
     property string shellConfigPath: `${Directories.shellConfig}/${Directories.shellConfigName}`
-	property string todoPath: FileUtils.trimFileProtocol(`${Directories.state}/user/todo.json`)
-	property string notesPath: FileUtils.trimFileProtocol(`${Directories.state}/user/notes.txt`)
+
+    property string todoPath: FileUtils.trimFileProtocol(`${Directories.state}/user/todo.json`)
+    property string notesPath: FileUtils.trimFileProtocol(`${Directories.state}/user/notes.txt`)
     property string desktopNotesPath: FileUtils.trimFileProtocol(`${Directories.state}/user/desktopnotes.txt`)
-	property string conflictCachePath: FileUtils.trimFileProtocol(`${Directories.cache}/conflict-killer`)
+    property string conflictCachePath: FileUtils.trimFileProtocol(`${Directories.cache}/conflict-killer`)
     property string notificationsPath: FileUtils.trimFileProtocol(`${Directories.cache}/notifications/notifications.json`)
     property string generatedMaterialThemePath: FileUtils.trimFileProtocol(`${Directories.state}/user/generated/colors.json`)
     property string generatedWallpaperCategoryPath: FileUtils.trimFileProtocol(`${Directories.state}/user/generated/wallpaper/category.txt`)
@@ -55,6 +59,7 @@ Singleton {
     property string userPresetsPath: FileUtils.trimFileProtocol(`${Directories.shellConfig}/presets`)
     property string presetsScriptPath: FileUtils.trimFileProtocol(`${Directories.scriptPath}/presets.sh`)
     property string generatedLockMaterialThemePath: FileUtils.trimFileProtocol(`${Directories.state}/user/generated/colors-lock.json`)
+
     // Cleanup on init
     Component.onCompleted: {
         Quickshell.execDetached(["mkdir", "-p", `${userPresetsPath}`])
