@@ -7,6 +7,7 @@ singleton RaohaneLegacyBridge 1.0 RaohaneLegacyBridge.qml
 RaohaneBackground 1.0 RaohaneBackground.qml
 RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
 RaohaneOverview 1.0 RaohaneOverview.qml
+RaohaneDock 1.0 RaohaneDock.qml
 RaohaneBar 1.0 RaohaneBar.qml
 RaohaneContextIsland 1.0 RaohaneContextIsland.qml
 RaohaneControlCenter 1.0 RaohaneControlCenter.qml
