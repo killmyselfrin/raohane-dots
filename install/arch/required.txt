@@ -1,5 +1,7 @@
 # Raohane required runtime packages for Arch Linux.
-# One official repository package per line. GPU drivers are intentionally absent.
+# One requirement per line. `a|b` means either installed package satisfies it;
+# when neither is installed, the first (official repository) package is used.
+# GPU drivers are intentionally absent.
 
 hyprland
 quickshell
@@ -21,7 +23,7 @@ libnotify
 wl-clipboard
 xdg-utils
 xdg-user-dirs
-ttf-material-symbols-variable
+ttf-material-symbols-variable|ttf-material-symbols-variable-git
 noto-fonts
 noto-fonts-cjk
 ttf-jetbrains-mono-nerd
