@@ -11,6 +11,7 @@ Singleton {
     id: root
 
     property bool syncing: false
+    property bool syncingState: false
     property bool initialized: false
 
     function load(): void {}
@@ -110,6 +111,24 @@ Singleton {
         root.syncing = false
     }
 
+    function pullLegacyWallpaperState(): void {
+        if (root.syncingState)
+            return
+        root.syncingState = true
+        RaohaneState.wallpaperSelectorOpen = GlobalStates.wallpaperSelectorOpen
+        RaohaneState.wallpaperSelectorTarget = GlobalStates.wallpaperSelectorTarget ?? "wallpaper"
+        root.syncingState = false
+    }
+
+    function pushNativeWallpaperState(): void {
+        if (root.syncingState)
+            return
+        root.syncingState = true
+        GlobalStates.wallpaperSelectorOpen = RaohaneState.wallpaperSelectorOpen
+        GlobalStates.wallpaperSelectorTarget = RaohaneState.wallpaperSelectorTarget
+        root.syncingState = false
+    }
+
     Connections {
         target: RaohaneConfig
         function onReloaded(): void { root.seedNativeFromLegacy() }
@@ -122,6 +141,12 @@ Singleton {
         function onColorTemperatureChanged(): void { root.pushNativeToLegacy() }
         function onTaskManagerCommandChanged(): void { root.pushNativeToLegacy() }
         function onChangePasswordCommandChanged(): void { root.pushNativeToLegacy() }
+    }
+
+    Connections {
+        target: RaohaneState
+        function onWallpaperSelectorOpenChanged(): void { root.pushNativeWallpaperState() }
+        function onWallpaperSelectorTargetChanged(): void { root.pushNativeWallpaperState() }
     }
 
     Connections {
@@ -157,5 +182,14 @@ Singleton {
         function onChangePasswordChanged(): void { root.pullLegacyApps() }
     }
 
-    Component.onCompleted: root.seedNativeFromLegacy()
+    Connections {
+        target: GlobalStates
+        function onWallpaperSelectorOpenChanged(): void { root.pullLegacyWallpaperState() }
+        function onWallpaperSelectorTargetChanged(): void { root.pullLegacyWallpaperState() }
+    }
+
+    Component.onCompleted: {
+        root.seedNativeFromLegacy()
+        root.pullLegacyWallpaperState()
+    }
 }
