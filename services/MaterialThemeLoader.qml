@@ -23,10 +23,14 @@ Singleton {
         const json = JSON.parse(fileContent)
         for (const key in json) {
             if (json.hasOwnProperty(key)) {
-                // Convert snake_case to CamelCase
+                // Convert snake_case to CamelCase.
                 const camelCaseKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
                 const m3Key = `m3${camelCaseKey}`
-                Appearance.m3colors[m3Key] = json[key]
+                // Generated palettes may contain terminal/extra roles that are
+                // not declared on the compatibility m3colors object. Ignore
+                // them instead of throwing and aborting the whole palette load.
+                if (m3Key in Appearance.m3colors)
+                    Appearance.m3colors[m3Key] = json[key]
             }
         }
         Appearance.m3colors.darkmode = (Appearance.m3colors.m3background.hslLightness < 0.5)
