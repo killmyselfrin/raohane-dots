@@ -1,2 +1,3 @@
 module qs.modules.raohane.services
 singleton RaohaneMedia 1.0 RaohaneMedia.qml
+singleton RaohaneBluetooth 1.0 RaohaneBluetooth.qml
