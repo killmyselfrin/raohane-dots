@@ -43,6 +43,7 @@ require_service RaohaneWallpapers 'Qt\.labs\.folderlistmodel'
 require_service RaohaneSession 'hyprctl.*dispatch.*exit'
 require_service RaohaneSessionWarnings 'pacman|/var/lib/pacman/db\.lck'
 require_service RaohaneSystemInfo '/etc/os-release'
+require_service RaohaneSearch 'DesktopEntries'
 
 rg -q 'RaohaneMedia\.' modules/raohane/RaohaneContext.qml \
   || fail 'RaohaneContext does not consume RaohaneMedia'
@@ -125,9 +126,18 @@ for service in RaohaneSession.qml RaohaneDisplay.qml RaohaneWallpapers.qml; do
   fi
 done
 
+rg -q 'RaohaneSearch\.' modules/raohane/RaohaneLauncher.qml \
+  || fail 'RaohaneLauncher does not consume RaohaneSearch'
+if rg -n 'LauncherSearch|LauncherSearchResult|AppSearch|qs\.modules\.common\.models' modules/raohane/RaohaneLauncher.qml; then
+  fail 'RaohaneLauncher regressed to the inherited search model'
+fi
+if rg -n 'import qs$|import qs\.services|modules\.common|LauncherSearch|AppSearch|StringUtils|Fuzzy\.' "$MODULE/RaohaneSearch.qml"; then
+  fail 'RaohaneSearch depends on inherited search/common services'
+fi
+
 rg -q 'RaohaneConfig' modules/raohane/RaohaneLegacyBridge.qml \
   || fail 'legacy bridge is not connected to RaohaneConfig'
 rg -q 'RaohaneLegacyBridge\.load' panelFamilies/RaohaneFamily.qml \
   || fail 'RaohaneFamily does not initialize the temporary config bridge'
 
-printf 'raohane-service-audit: core services and the first native config boundary are Raohane-owned\n'
+printf 'raohane-service-audit: core services, native search and native config boundaries are Raohane-owned\n'
