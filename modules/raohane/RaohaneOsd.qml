@@ -6,7 +6,6 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs
-import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.raohane.services
@@ -17,14 +16,14 @@ Scope {
     property string currentIndicator: "volume"
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
-    readonly property var brightnessMonitor: Brightness.getMonitorForScreen(focusedScreen)
+    readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(focusedScreen)
 
     readonly property real value: {
         if (currentIndicator === "brightness")
             return Math.max(0, Math.min(1, brightnessMonitor?.brightness ?? 0.5))
         if (currentIndicator === "gamma") {
-            const lower = (Hyprsunset.gammaLowerLimit ?? 0) / 100
-            const current = (Hyprsunset.gamma ?? 100) / 100
+            const lower = RaohaneDisplay.gammaLowerLimit / 100
+            const current = RaohaneDisplay.gamma / 100
             if (lower >= 1) return current
             return Math.max(0, Math.min(1, (current - lower) / (1 - lower)))
         }
@@ -32,7 +31,7 @@ Scope {
     }
 
     readonly property string icon: currentIndicator === "brightness"
-        ? (Hyprsunset.temperatureActive ? "routine" : "light_mode")
+        ? (RaohaneDisplay.temperatureActive ? "routine" : "light_mode")
         : currentIndicator === "gamma"
             ? "wb_twilight"
             : (RaohaneAudio.muted ? "volume_off" : "volume_up")
@@ -44,7 +43,7 @@ Scope {
             : qsTr("Volume")
 
     readonly property int percent: currentIndicator === "gamma"
-        ? Math.round(Hyprsunset.gamma ?? 100)
+        ? Math.round(RaohaneDisplay.gamma)
         : Math.round(value * 100)
 
     function trigger(indicator: string): void {
@@ -61,13 +60,10 @@ Scope {
     }
 
     Connections {
-        target: Brightness
-        function onBrightnessChanged(): void { root.trigger("brightness") }
-    }
+        target: RaohaneDisplay
 
-    Connections {
-        target: Hyprsunset
-        function onGammaChangeAttempt(): void { root.trigger("gamma") }
+        function onBrightnessChanged(): void { root.trigger("brightness") }
+        function onGammaChanged(): void { root.trigger("gamma") }
     }
 
     Connections {
