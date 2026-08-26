@@ -1,29 +1,33 @@
 # Upstream notice
 
-Raohane is a GPLv3-licensed derivative Hyprland + Quickshell project.
+Raohane currently contains GPLv3-covered derivative/migration code from earlier development stages.
 
-## Current foundation strategy
+## Current migration sources
 
-Raohane now uses the following project as its primary technical foundation:
+During development Raohane has studied and/or retained code from:
 
-- `pctrade/end4-pC` — https://github.com/pctrade/end4-pC
-
-`end4-pC` itself is a modified fork of:
-
-- `end-4/dots-hyprland` / illogical-impulse — https://github.com/end-4/dots-hyprland
-
-Earlier Raohane development also retained backend/service code originating from:
-
+- `pctrade/end4-pC`
+- `end-4/dots-hyprland` / illogical-impulse
 - `snowarch/iNiR`
+
+These projects are **not** intended to remain permanent runtime, installation, update, or development dependencies of Raohane.
+
+## Standalone target
+
+The target Raohane repository owns its UI, service adapters, configuration/common framework, dependency manifest, scripts and release process. Upstream shell repositories become references only and are not required to install or run Raohane.
+
+Migration code under `modules/ii`, inherited services/common code, upstream lock files, the end4 synchronization helper and the illogical-impulse dependency bootstrap are temporary and are scheduled for removal/replacement as defined in `INDEPENDENCE-PLAN.md`.
 
 ## Licensing / attribution
 
-The GNU GPLv3 license remains in `LICENSE` for covered derivative work. Upstream copyright/license notices must remain intact where required, and modified Raohane releases should clearly identify that they contain changes.
+Technical independence does not automatically erase copyright or license obligations for code that was copied or modified from another GPL project. While derivative code remains, the GNU GPLv3 license and applicable upstream notices must remain intact.
 
-Do not remove third-party notices for assets, shaders, helper projects, integrations, icons, themes, or other components that carry separate attribution/license requirements.
+The correct path to reducing this lineage is to replace inherited implementations with independently written Raohane code and then remove code/notices only when they are no longer applicable. Do not remove required third-party notices merely to make the repository appear independent.
 
-## Raohane modifications
+Separate assets, shaders, helper projects, integrations, icons or themes can also carry their own licenses and attribution requirements.
 
-Raohane is being progressively transformed rather than merely renamed. Raohane-specific work includes its product identity, Japanese/minimal dark-glass design direction, Context Island concept, hardware/bootstrap diagnostics, graphics/display planning, installer/doctor workflow, and planned rewrites of primary shell surfaces.
+## Raohane-owned direction
 
-During migration, upstream end4-pC / illogical-impulse modules may remain intact until corresponding Raohane-native replacements are verified in a real Hyprland + Quickshell session.
+Raohane-specific work includes its product identity, Japanese/minimal dark-glass direction, Context Island, native bar/launcher/control/settings/media/OSD/notification/desktop/session surfaces, hardware/bootstrap diagnostics, graphics/display planning and the standalone architecture defined in `INDEPENDENCE-PLAN.md`.
+
+This notice documents current source provenance during migration; it is not a statement that Raohane must remain architecturally tied to those projects.
