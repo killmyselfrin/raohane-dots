@@ -6,46 +6,67 @@
 
 ## Foundation strategy
 
-The complete pinned `pctrade/end4-pC` runtime graph is now committed directly in this repository: services, settings, widgets, notifications, OSD, media, networking, Bluetooth and the supporting Quickshell modules are part of `main`.
+The complete pinned `pctrade/end4-pC` runtime graph is committed in this repository: services, settings, widgets, notifications, OSD, media, networking, Bluetooth and the supporting Quickshell modules are available as the compatibility foundation.
 
-Raohane keeps a separate integration layer on top:
+Raohane keeps a separate product layer on top:
 
-- `panelFamilies/RaohaneFamily.qml` is the stable composition point for Raohane surfaces.
-- `modules/raohane/` contains Raohane-native components.
+- `panelFamilies/RaohaneFamily.qml` is the composition point for Raohane surfaces.
+- `modules/raohane/` contains Raohane-owned components and product state.
 - Runtime settings live under `~/.config/raohane` rather than the upstream namespace.
 - `ii-upstream` remains an explicit fallback panel family for diagnostics.
 - Upstream revisions are pinned under `upstream/`; updates are deliberate instead of following a floating branch.
 
+The active migration branch now has Raohane-native horizontal bar, launcher, Context Island, Control Center shell, Settings shell, game/media overlay, OSD and notification popup while keeping mature providers underneath.
+
 ## Install
 
-On an Arch-based machine, install the pinned foundation dependencies once and then install Raohane:
+On Arch-based systems the normal full bootstrap is:
 
 ```bash
-bash scripts/install-foundation-deps.sh
 chmod +x install-raohane.sh
-./install-raohane.sh
+./install-raohane.sh --deps
 hyprctl reload
 raohane restart
+```
+
+`--deps` runs the pinned illogical-impulse/end4 foundation dependency installer before installing Raohane. If the system already has the required foundation packages, use:
+
+```bash
+./install-raohane.sh
+```
+
+To install without immediately starting the user service:
+
+```bash
+./install-raohane.sh --no-start
 ```
 
 The installer keeps persistent settings in `~/.config/raohane/config.json`. On the first install, if an older `~/.config/illogical-impulse/config.json` exists, Raohane copies it into its own namespace and selects the `raohane` panel family without discarding the rest of the JSON.
 
 GPU drivers are not silently selected or replaced by the dependency installer. Upstream font binaries are not vendored in this repository; fonts remain package-managed.
 
-## Test
+## Batch test workflow
 
-Useful runtime commands:
+The development strategy intentionally allows several surfaces to move together and then collects runtime failures in one Hyprland test pass.
+
+Start with diagnostics:
+
+```bash
+raohane doctor all
+raohane doctor deps
+raohane doctor services
+raohane doctor graphics
+```
+
+Then exercise the main surfaces:
 
 ```bash
 raohane launcher
 raohane control
 raohane settings
-raohane doctor
-raohane doctor graphics
+raohane media
 raohane wifi status
-raohane wifi menu
 raohane audio status
-raohane logs
 ```
 
 For direct terminal debugging:
@@ -55,7 +76,7 @@ raohane stop
 raohane run
 ```
 
-Verify Settings, launcher/overview, Control Center/sidebar, OSD, notifications, MPRIS/media, audio, Wi-Fi/network and Bluetooth before treating a build as release-ready.
+When reporting a batch failure, include `raohane doctor all` plus relevant output from `raohane run` or `raohane logs`. Verify bar/multi-monitor behavior, launcher focus, notifications, OSD, MPRIS/media, Settings, Control Center, audio, Wi-Fi/network, Bluetooth, brightness and capture before treating a build as release-ready.
 
 ## Developer upstream refresh
 
@@ -80,6 +101,6 @@ The synchronizer preserves Raohane-owned `shell.qml`, `modules/common/Directorie
 
 ## Migration model
 
-`RaohaneFamily.qml` currently composes the proven foundation panels. From here, the visible shell is replaced one subsystem at a time — bar, launcher, control center, notifications, settings, media and desktop surfaces — while the mature service graph remains operational underneath.
+Raohane replaces visible shell surfaces in batches while mature system providers remain operational underneath. A native surface is only considered complete after a real Hyprland + Quickshell runtime pass; static CI is a structural gate, not a compositor test.
 
-See `NOTICE-UPSTREAM.md`, `AGENTS.md` and `RAOHANE-CHANGELOG.md` for project and upstream notes.
+See `ARCHITECTURE.md`, `NOTICE-UPSTREAM.md`, `AGENTS.md` and `RAOHANE-CHANGELOG.md` for project and upstream notes.
