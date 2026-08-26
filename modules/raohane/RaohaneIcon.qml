@@ -9,9 +9,6 @@ Text {
     property real fill: 0
     readonly property real resolvedFill: fill >= 0.5 ? 1.0 : 0.0
 
-    implicitWidth: Math.max(iconSize, contentWidth)
-    implicitHeight: Math.max(iconSize, contentHeight)
-
     renderType: Text.NativeRendering
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
