@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -7,53 +8,61 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
-import qs
 import qs.services
-import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Scope {
     id: root
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
+    readonly property string homePath: RaohaneWallpapers.cleanPath(StandardPaths.standardLocations(StandardPaths.HomeLocation)[0] ?? "")
+    readonly property string picturesPath: RaohaneWallpapers.cleanPath(StandardPaths.standardLocations(StandardPaths.PicturesLocation)[0] ?? "")
+
+    function isVideo(path: string): bool {
+        const lower = (path ?? "").toLowerCase()
+        return lower.endsWith(".mp4")
+            || lower.endsWith(".webm")
+            || lower.endsWith(".mkv")
+            || lower.endsWith(".mov")
+            || lower.endsWith(".avi")
+    }
 
     function close(): void {
-        Wallpapers.stopPreview()
-        GlobalStates.wallpaperSelectorOpen = false
+        RaohaneWallpapers.stopPreview()
+        RaohaneState.wallpaperSelectorOpen = false
     }
 
     function toggle(): void {
-        if (Config.options.wallpaperSelector.useSystemFileDialog) {
-            Wallpapers.openFallbackPicker(Appearance.m3colors.darkmode)
-            return
-        }
-        GlobalStates.wallpaperSelectorOpen = !GlobalStates.wallpaperSelectorOpen
+        RaohaneState.wallpaperSelectorOpen = !RaohaneState.wallpaperSelectorOpen
     }
 
     function selectPath(path: string, isDirectory: bool): void {
         if (!path || path.length === 0)
             return
+
         if (isDirectory) {
-            Wallpapers.setDirectory(path)
+            RaohaneWallpapers.setDirectory(path)
             return
         }
 
-        Wallpapers.stopPreview()
-        if (GlobalStates.wallpaperSelectorTarget === "lockWall") {
-            Wallpapers.select(path, Appearance.m3colors.darkmode, finalPath => {
-                Config.options.background.lockWall = finalPath
-                GlobalStates.wallpaperSelectorTarget = "wallpaper"
+        RaohaneWallpapers.stopPreview()
+        if (RaohaneState.wallpaperSelectorTarget === "lockWall") {
+            RaohaneWallpapers.select(path, true, finalPath => {
+                RaohaneConfig.lockWallpaperPath = finalPath
+                RaohaneState.wallpaperSelectorTarget = "wallpaper"
                 root.close()
             })
         } else {
-            Wallpapers.select(path, Appearance.m3colors.darkmode)
+            RaohaneWallpapers.select(path)
             root.close()
         }
     }
 
     Loader {
-        active: GlobalStates.wallpaperSelectorOpen
+        active: RaohaneState.wallpaperSelectorOpen
 
         sourceComponent: PanelWindow {
             id: panelWindow
@@ -74,7 +83,7 @@ Scope {
             }
 
             Component.onCompleted: {
-                Wallpapers.load()
+                RaohaneWallpapers.load()
                 GlobalFocusGrab.addDismissable(panelWindow)
                 searchField.forceActiveFocus()
             }
@@ -116,13 +125,13 @@ Scope {
                         root.close()
                         event.accepted = true
                     } else if ((event.modifiers & Qt.AltModifier) && event.key === Qt.Key_Up) {
-                        Wallpapers.navigateUp()
+                        RaohaneWallpapers.navigateUp()
                         event.accepted = true
                     } else if ((event.modifiers & Qt.AltModifier) && event.key === Qt.Key_Left) {
-                        Wallpapers.navigateBack()
+                        RaohaneWallpapers.navigateBack()
                         event.accepted = true
                     } else if ((event.modifiers & Qt.AltModifier) && event.key === Qt.Key_Right) {
-                        Wallpapers.navigateForward()
+                        RaohaneWallpapers.navigateForward()
                         event.accepted = true
                     } else if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
                         searchField.forceActiveFocus()
@@ -149,9 +158,9 @@ Scope {
                             anchors.rightMargin: 10
                             spacing: 7
 
-                            NavButton { icon: "arrow_back"; onTriggered: Wallpapers.navigateBack() }
-                            NavButton { icon: "arrow_upward"; onTriggered: Wallpapers.navigateUp() }
-                            NavButton { icon: "arrow_forward"; onTriggered: Wallpapers.navigateForward() }
+                            NavButton { icon: "arrow_back"; onTriggered: RaohaneWallpapers.navigateBack() }
+                            NavButton { icon: "arrow_upward"; onTriggered: RaohaneWallpapers.navigateUp() }
+                            NavButton { icon: "arrow_forward"; onTriggered: RaohaneWallpapers.navigateForward() }
 
                             Rectangle {
                                 Layout.fillWidth: true
@@ -182,12 +191,12 @@ Scope {
                                         placeholderTextColor: RaohaneTheme.textMuted
                                         font.pixelSize: 10
                                         selectByMouse: true
-                                        onTextChanged: Wallpapers.searchQuery = text
+                                        onTextChanged: RaohaneWallpapers.searchQuery = text
                                     }
 
                                     Text {
                                         visible: searchField.text.length === 0
-                                        text: Wallpapers.effectiveDirectory
+                                        text: RaohaneWallpapers.effectiveDirectory
                                         color: RaohaneTheme.textMuted
                                         font.pixelSize: 8
                                         elide: Text.ElideMiddle
@@ -200,14 +209,14 @@ Scope {
                                 icon: "casino"
                                 emphasized: true
                                 onTriggered: {
-                                    Wallpapers.stopPreview()
-                                    Wallpapers.randomFromCurrentFolder()
+                                    RaohaneWallpapers.stopPreview()
+                                    RaohaneWallpapers.randomFromCurrentFolder()
                                     root.close()
                                 }
                             }
                             NavButton {
                                 icon: "folder_open"
-                                onTriggered: Wallpapers.openFallbackPicker(Appearance.m3colors.darkmode, Wallpapers.effectiveDirectory)
+                                onTriggered: RaohaneWallpapers.openFallbackPicker(true, RaohaneWallpapers.effectiveDirectory)
                             }
                             NavButton { icon: "close"; onTriggered: root.close() }
                         }
@@ -219,20 +228,24 @@ Scope {
                         spacing: 7
 
                         QuickDir {
+                            visible: root.picturesPath.length > 0
                             icon: "wallpaper"
                             title: qsTr("Wallpapers")
-                            path: Directories.pictures + "/Wallpapers"
+                            path: root.picturesPath + "/Wallpapers"
                         }
                         QuickDir {
+                            visible: root.homePath.length > 0
                             icon: "home"
                             title: qsTr("Home")
-                            path: Directories.home
+                            path: root.homePath
                         }
                         QuickDir {
-                            visible: (Config.options.wallpaperSelector.userPath ?? "").length > 0
+                            visible: RaohaneConfig.wallpaperDirectory.length > 0
+                                && RaohaneConfig.wallpaperDirectory !== root.homePath
+                                && RaohaneConfig.wallpaperDirectory !== root.picturesPath + "/Wallpapers"
                             icon: "folder_special"
-                            title: qsTr("Custom")
-                            path: Config.options.wallpaperSelector.userPath ?? ""
+                            title: qsTr("Current")
+                            path: RaohaneConfig.wallpaperDirectory
                         }
 
                         Item { Layout.fillWidth: true }
@@ -241,7 +254,7 @@ Scope {
                             width: targetText.implicitWidth + 18
                             height: 28
                             radius: 14
-                            color: GlobalStates.wallpaperSelectorTarget === "lockWall"
+                            color: RaohaneState.wallpaperSelectorTarget === "lockWall"
                                 ? RaohaneTheme.accentSoft : "#18ffffff"
                             border.width: 1
                             border.color: RaohaneTheme.border
@@ -249,9 +262,9 @@ Scope {
                             Text {
                                 id: targetText
                                 anchors.centerIn: parent
-                                text: GlobalStates.wallpaperSelectorTarget === "lockWall"
+                                text: RaohaneState.wallpaperSelectorTarget === "lockWall"
                                     ? qsTr("LOCK SCREEN") : qsTr("DESKTOP")
-                                color: GlobalStates.wallpaperSelectorTarget === "lockWall"
+                                color: RaohaneState.wallpaperSelectorTarget === "lockWall"
                                     ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                 font.pixelSize: 8
                                 font.weight: Font.DemiBold
@@ -273,10 +286,10 @@ Scope {
                             id: grid
                             anchors.fill: parent
                             anchors.margins: 8
-                            model: Wallpapers.folderModel
+                            model: RaohaneWallpapers.folderModel
                             clip: true
                             boundsBehavior: Flickable.StopAtBounds
-                            cellWidth: width / Math.max(2, Math.min(5, Config.options.wallpaperSelector.columns || 4))
+                            cellWidth: width / Math.max(2, Math.min(6, RaohaneConfig.wallpaperColumns || 4))
                             cellHeight: cellWidth * 0.72
                             keyNavigationWraps: true
                             focus: true
@@ -291,7 +304,10 @@ Scope {
                                 readonly property bool isDirectory: modelData.fileIsDir ?? false
                                 readonly property string filePath: modelData.filePath ?? ""
                                 readonly property string fileName: modelData.fileName ?? filePath.split("/").pop()
-                                readonly property bool selected: filePath === Config.options.background.wallpaperPath
+                                readonly property bool isVideo: root.isVideo(filePath)
+                                readonly property bool selected: filePath === (RaohaneState.wallpaperSelectorTarget === "lockWall"
+                                    ? RaohaneConfig.lockWallpaperPath
+                                    : RaohaneConfig.wallpaperPath)
 
                                 Rectangle {
                                     anchors.fill: parent
@@ -305,11 +321,27 @@ Scope {
 
                                     Image {
                                         anchors.fill: parent
-                                        visible: !cell.isDirectory
+                                        visible: !cell.isDirectory && !cell.isVideo
                                         source: cell.filePath.length > 0 ? "file://" + cell.filePath : ""
                                         fillMode: Image.PreserveAspectCrop
                                         asynchronous: true
                                         cache: false
+                                    }
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        visible: !cell.isDirectory && cell.isVideo
+                                        gradient: Gradient {
+                                            GradientStop { position: 0.0; color: "#2c231f36" }
+                                            GradientStop { position: 1.0; color: "#b20c0a11" }
+                                        }
+
+                                        MaterialSymbol {
+                                            anchors.centerIn: parent
+                                            text: "movie"
+                                            iconSize: 38
+                                            color: RaohaneTheme.accent
+                                        }
                                     }
 
                                     Rectangle {
@@ -347,7 +379,9 @@ Scope {
                                         spacing: 6
 
                                         MaterialSymbol {
-                                            text: cell.isDirectory ? "folder" : cell.selected ? "check_circle" : "image"
+                                            text: cell.isDirectory ? "folder"
+                                                : cell.selected ? "check_circle"
+                                                : cell.isVideo ? "movie" : "image"
                                             iconSize: 15
                                             color: cell.selected ? RaohaneTheme.accent : RaohaneTheme.text
                                         }
@@ -369,12 +403,12 @@ Scope {
                                         cursorShape: Qt.PointingHandCursor
                                         onEntered: {
                                             grid.currentIndex = cell.index
-                                            if (!cell.isDirectory && Config.options.background.enableWallpaperPreview)
-                                                Wallpapers.startPreview(cell.filePath)
+                                            if (!cell.isDirectory && !cell.isVideo && RaohaneConfig.wallpaperPreview)
+                                                RaohaneWallpapers.startPreview(cell.filePath)
                                         }
                                         onExited: {
-                                            if (!cell.isDirectory && Config.options.background.enableWallpaperPreview)
-                                                Wallpapers.stopPreview()
+                                            if (!cell.isDirectory && RaohaneConfig.wallpaperPreview)
+                                                RaohaneWallpapers.stopPreview()
                                         }
                                         onClicked: root.selectPath(cell.filePath, cell.isDirectory)
                                     }
@@ -388,7 +422,7 @@ Scope {
 
                         Column {
                             anchors.centerIn: parent
-                            visible: Wallpapers.folderModel.count === 0
+                            visible: RaohaneWallpapers.folderModel.count === 0
                             spacing: 7
 
                             MaterialSymbol {
@@ -411,7 +445,7 @@ Scope {
                         Layout.preferredHeight: 28
 
                         Text {
-                            text: qsTr("%1 items").arg(Wallpapers.folderModel.count)
+                            text: qsTr("%1 items").arg(RaohaneWallpapers.folderModel.count)
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 8
                         }
@@ -430,7 +464,7 @@ Scope {
     IpcHandler {
         target: "wallpaperSelector"
         function toggle(): void { root.toggle() }
-        function random(): void { Wallpapers.randomFromCurrentFolder() }
+        function random(): void { RaohaneWallpapers.randomFromCurrentFolder() }
     }
 
     CompositorGlobalShortcut {
@@ -442,7 +476,7 @@ Scope {
     CompositorGlobalShortcut {
         name: "wallpaperSelectorRandom"
         description: "Select random wallpaper in current folder"
-        onPressed: Wallpapers.randomFromCurrentFolder()
+        onPressed: RaohaneWallpapers.randomFromCurrentFolder()
     }
 
     component NavButton: Rectangle {
@@ -504,7 +538,7 @@ Scope {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: Wallpapers.setDirectory(dir.path)
+            onClicked: RaohaneWallpapers.setDirectory(dir.path)
         }
     }
 }
