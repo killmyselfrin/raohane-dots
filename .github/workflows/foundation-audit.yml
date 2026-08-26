@@ -30,6 +30,10 @@ on:
       - '.github/workflows/foundation-audit.yml'
   workflow_dispatch:
 
+concurrency:
+  group: raohane-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
