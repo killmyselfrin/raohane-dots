@@ -3,7 +3,6 @@ import Quickshell
 
 import qs.modules.common
 import qs.modules.raohane
-import qs.modules.ii.background
 import qs.modules.ii.dock
 import qs.modules.ii.lock
 import qs.modules.ii.mediaControls
@@ -23,8 +22,6 @@ import qs.modules.ii.frame
 // temporary while their presentation layers are rewritten under modules/raohane.
 Scope {
     Component.onCompleted: {
-        // Force the temporary config bridge to exist before compatibility
-        // surfaces begin reacting to native settings.
         RaohaneLegacyBridge.load()
 
         if (Config.options?.dock)
@@ -33,8 +30,9 @@ Scope {
             Config.options.sidebar.mediaPlayer = false
     }
 
+    PanelLoader { component: RaohaneBackground {} }
+    PanelLoader { component: RaohaneDesktopCanvas {} }
     PanelLoader { extraCondition: !Config.options.bar.vertical; component: RaohaneBar {} }
-    PanelLoader { component: Background {} }
     PanelLoader { extraCondition: Config.options.dock.enable; component: Dock {} }
     PanelLoader { component: Lock {} }
     PanelLoader { component: MediaControls {} }
