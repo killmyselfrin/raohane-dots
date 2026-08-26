@@ -27,6 +27,7 @@ Singleton {
             RaohaneConfig.lockWallpaperPath = Config.options?.background?.lockWall ?? ""
 
         RaohaneConfig.wallpaperPreview = Config.options?.background?.enableWallpaperPreview ?? RaohaneConfig.wallpaperPreview
+        RaohaneConfig.wallpaperHideWhenFullscreen = Config.options?.background?.hideWhenFullscreen ?? RaohaneConfig.wallpaperHideWhenFullscreen
         RaohaneConfig.wallpaperColumns = Config.options?.wallpaperSelector?.columns ?? RaohaneConfig.wallpaperColumns
         RaohaneConfig.wallpaperChangeInterval = Config.options?.wallpaperSelector?.changeInterval ?? RaohaneConfig.wallpaperChangeInterval
         RaohaneConfig.colorTemperature = Config.options?.light?.night?.colorTemperature ?? RaohaneConfig.colorTemperature
@@ -54,6 +55,7 @@ Singleton {
             Config.options.background.wallpaperPath = RaohaneConfig.wallpaperPath
             Config.options.background.lockWall = RaohaneConfig.lockWallpaperPath
             Config.options.background.enableWallpaperPreview = RaohaneConfig.wallpaperPreview
+            Config.options.background.hideWhenFullscreen = RaohaneConfig.wallpaperHideWhenFullscreen
         }
         if (Config.options?.wallpaperSelector) {
             Config.options.wallpaperSelector.columns = RaohaneConfig.wallpaperColumns
@@ -78,6 +80,7 @@ Singleton {
         RaohaneConfig.wallpaperPath = Config.options?.background?.wallpaperPath ?? ""
         RaohaneConfig.lockWallpaperPath = Config.options?.background?.lockWall ?? ""
         RaohaneConfig.wallpaperPreview = Config.options?.background?.enableWallpaperPreview ?? true
+        RaohaneConfig.wallpaperHideWhenFullscreen = Config.options?.background?.hideWhenFullscreen ?? true
         root.syncing = false
     }
 
@@ -113,6 +116,7 @@ Singleton {
         function onWallpaperPathChanged(): void { root.pushNativeToLegacy() }
         function onLockWallpaperPathChanged(): void { root.pushNativeToLegacy() }
         function onWallpaperPreviewChanged(): void { root.pushNativeToLegacy() }
+        function onWallpaperHideWhenFullscreenChanged(): void { root.pushNativeToLegacy() }
         function onWallpaperColumnsChanged(): void { root.pushNativeToLegacy() }
         function onWallpaperChangeIntervalChanged(): void { root.pushNativeToLegacy() }
         function onColorTemperatureChanged(): void { root.pushNativeToLegacy() }
@@ -133,6 +137,7 @@ Singleton {
         function onWallpaperPathChanged(): void { root.pullLegacyWallpaper() }
         function onLockWallChanged(): void { root.pullLegacyWallpaper() }
         function onEnableWallpaperPreviewChanged(): void { root.pullLegacyWallpaper() }
+        function onHideWhenFullscreenChanged(): void { root.pullLegacyWallpaper() }
     }
 
     Connections {
