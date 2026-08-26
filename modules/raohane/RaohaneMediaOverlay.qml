@@ -23,7 +23,7 @@ Scope {
     PanelWindow {
         id: panelWindow
 
-        visible: GlobalStates.raohaneMediaOverlayOpen
+        visible: RaohaneState.mediaOverlayOpen
         screen: Quickshell.screens.find(candidate => candidate.name === WM.focusedMonitor?.name)
             ?? Quickshell.screens[0]
         exclusiveZone: 0
@@ -128,7 +128,7 @@ Scope {
 
                         ControlButton {
                             icon: "close"
-                            onClicked: GlobalStates.raohaneMediaOverlayOpen = false
+                            onClicked: RaohaneState.mediaOverlayOpen = false
                         }
                     }
 
@@ -200,22 +200,22 @@ Scope {
         target: "raohaneMedia"
 
         function toggle(): void {
-            GlobalStates.raohaneMediaOverlayOpen = !GlobalStates.raohaneMediaOverlayOpen
+            RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
         }
 
         function open(): void {
-            GlobalStates.raohaneMediaOverlayOpen = true
+            RaohaneState.mediaOverlayOpen = true
         }
 
         function close(): void {
-            GlobalStates.raohaneMediaOverlayOpen = false
+            RaohaneState.mediaOverlayOpen = false
         }
     }
 
     CompositorGlobalShortcut {
         name: "raohaneMediaOverlayToggle"
         description: "Toggles the Raohane media overlay"
-        onPressed: GlobalStates.raohaneMediaOverlayOpen = !GlobalStates.raohaneMediaOverlayOpen
+        onPressed: RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
     }
 
     component ControlButton: Rectangle {
