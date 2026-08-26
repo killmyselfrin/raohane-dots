@@ -6,7 +6,6 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 
 import qs.services
-import qs.modules.common.widgets
 import qs.modules.raohane.services
 
 Scope {
@@ -239,7 +238,7 @@ Scope {
 
                                     Component {
                                         id: materialIcon
-                                        MaterialSymbol {
+                                        RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: resultRow.modelData.iconName
                                             iconSize: 22
