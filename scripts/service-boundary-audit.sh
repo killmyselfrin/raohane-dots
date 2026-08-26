@@ -28,6 +28,7 @@ require_service() {
 require_service RaohaneMedia 'Quickshell\.Services\.Mpris'
 require_service RaohaneBluetooth 'Quickshell\.Bluetooth'
 require_service RaohaneAudio 'Quickshell\.Services\.Pipewire'
+require_service RaohaneNetwork '\bnmcli\b'
 
 rg -q 'RaohaneMedia\.' modules/raohane/RaohaneContext.qml \
   || fail 'RaohaneContext does not consume RaohaneMedia'
@@ -51,4 +52,10 @@ if rg -n '\bAudio\.' modules/raohane/RaohaneQuickControls.qml modules/raohane/Ra
   fail 'active Raohane audio surfaces use inherited Audio service'
 fi
 
-printf 'raohane-service-audit: media, Bluetooth and audio boundaries are native\n'
+rg -q 'RaohaneNetwork\.' modules/raohane/RaohaneQuickControls.qml \
+  || fail 'RaohaneQuickControls does not consume RaohaneNetwork'
+if rg -n '\bNetwork\.' modules/raohane/RaohaneQuickControls.qml; then
+  fail 'RaohaneQuickControls use inherited Network service'
+fi
+
+printf 'raohane-service-audit: media, Bluetooth, audio and network boundaries are native\n'
