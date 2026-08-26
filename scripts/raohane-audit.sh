@@ -17,6 +17,7 @@ fail() {
 required_native=(
   modules/raohane/RaohaneTheme.qml
   modules/raohane/RaohaneState.qml
+  modules/raohane/RaohanePrivacy.qml
   modules/raohane/RaohaneContext.qml
   modules/raohane/RaohaneContextIsland.qml
   modules/raohane/RaohaneBar.qml
@@ -57,6 +58,11 @@ for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings R
   rg -q "component: ${surface} \{\}" panelFamilies/RaohaneFamily.qml \
     || fail "RaohaneFamily does not load $surface"
 done
+
+rg -q '^singleton RaohanePrivacy .*RaohanePrivacy.qml$' modules/raohane/qmldir \
+  || fail 'RaohanePrivacy is not registered as a singleton'
+rg -q 'RaohanePrivacy\.(recordingActive|microphoneActive|cameraActive)' modules/raohane/RaohaneContext.qml \
+  || fail 'Context Island is not wired to the privacy provider'
 
 rg -q 'ipc raohaneLauncher toggle' scripts/raohane \
   || fail 'raohane launcher is not routed to the native launcher IPC'
