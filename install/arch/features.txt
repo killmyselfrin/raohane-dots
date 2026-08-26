@@ -1,0 +1,22 @@
+# Raohane feature packages for the full desktop experience.
+# These are still Raohane-owned dependencies; none require another shell repository.
+
+bluez
+bluez-utils
+blueman
+network-manager-applet
+brightnessctl
+ddcutil
+grim
+slurp
+cliphist
+cava
+ffmpeg
+imagemagick
+hypridle
+hyprlock
+hyprpicker
+pciutils
+python-pillow
+curl
+wget
