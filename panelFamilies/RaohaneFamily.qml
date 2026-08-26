@@ -7,7 +7,6 @@ import qs.modules.ii.dock
 import qs.modules.ii.lock
 import qs.modules.ii.mediaControls
 import qs.modules.ii.onScreenKeyboard
-import qs.modules.ii.overview
 import qs.modules.ii.polkit
 import qs.modules.ii.regionSelector
 import qs.modules.ii.screenCorners
@@ -40,7 +39,7 @@ Scope {
     PanelLoader { component: RaohaneOsd {} }
     PanelLoader { component: OnScreenKeyboard {} }
     PanelLoader { component: Overlay {} }
-    PanelLoader { component: Overview {} }
+    PanelLoader { component: RaohaneOverview {} }
     PanelLoader { component: Polkit {} }
     PanelLoader { component: RegionSelector {} }
     PanelLoader { component: ScreenCorners {} }
