@@ -14,21 +14,34 @@ The target release architecture is explicit:
 - Raohane owns its dependency manifest, services, configuration schema, common framework and visible UI.
 - Production runtime has no required `modules/ii` imports and no upstream panel-family fallback.
 - Upstream synchronization scripts and lock files disappear after migration is complete.
-- Third-party license/attribution notices remain only where code/assets still require them.
+- Third-party license/attribution notices remain where code/assets still require them.
 
 See `INDEPENDENCE-PLAN.md` for the removal milestones.
 
-## Current migration state
+## Independence progress
 
-The current branch still contains a compatibility graph inherited from the earlier migration approach. It is temporary. Raohane-native surfaces are replacing it in large batches while equivalent system behavior is kept operational until Raohane-owned services are ready.
+The normal installation path is now standalone: `./install-raohane.sh --deps` uses Raohane-owned Arch manifests from `install/arch/` and does not clone or execute another shell repository. CI likewise validates the local Raohane graph without fetching end4-pC.
 
-Current native surfaces include the horizontal bar, launcher, Context Island, Control Center internals, Settings navigation and Control Deck, game/media overlay, OSD, notification popup/history UI, wallpaper selector, desktop context menu and session/power menu.
+The first Raohane-owned service adapters are also active:
 
-`panelFamilies/RaohaneFamily.qml` is currently the composition boundary, `modules/raohane/` contains Raohane-owned product components/state, and persistent settings already live under `~/.config/raohane`.
+- `RaohaneMedia` → direct Quickshell MPRIS
+- `RaohaneBluetooth` → direct Quickshell Bluetooth
+- `RaohaneAudio` → direct Quickshell PipeWire
+- `RaohanePrivacy` → direct PipeWire capture state
+
+Context Island and Media Overlay use `RaohaneMedia`; Control Center Bluetooth/audio controls use `RaohaneBluetooth` and `RaohaneAudio`; the Raohane volume OSD also uses `RaohaneAudio`.
+
+A compatibility graph is still present for parts that have not yet been rewritten. It is migration material, not the target architecture.
+
+## Current native surfaces
+
+Current Raohane-owned product surfaces include the horizontal bar, launcher, Context Island, Control Center internals, Settings navigation and Control Deck, game/media overlay, OSD, notification popup/history UI, wallpaper selector, desktop context menu and session/power menu.
+
+`panelFamilies/RaohaneFamily.qml` is currently the composition boundary, `modules/raohane/` contains Raohane-owned product components/state/services, and persistent settings already live under `~/.config/raohane`.
 
 ## Install
 
-On Arch-based systems the current migration bootstrap is:
+On Arch-based systems:
 
 ```bash
 chmod +x install-raohane.sh
@@ -37,7 +50,7 @@ hyprctl reload
 raohane restart
 ```
 
-**Important:** `--deps` still invokes the temporary illogical-impulse/end4 dependency bootstrap. Replacing this with a Raohane-owned package manifest is now a required independence milestone, not the final installer design.
+`--deps` installs the Raohane-owned package manifest with `pacman`. It does not use illogical-impulse/end4 setup scripts and it never selects or replaces GPU drivers.
 
 If the required packages are already installed:
 
@@ -51,9 +64,31 @@ To install without immediately starting the user service:
 ./install-raohane.sh --no-start
 ```
 
-The installer keeps persistent settings in `~/.config/raohane/config.json`. During migration it can import an older `~/.config/illogical-impulse/config.json` on first install; this compatibility path will be removed after the Raohane config schema is fully owned.
+New installations seed `~/.config/raohane/config.json` from Raohane defaults. Importing an older illogical-impulse config is explicit and optional:
 
-GPU drivers are not silently selected or replaced by the dependency installer. Font binaries remain package-managed.
+```bash
+./install-raohane.sh --migrate-legacy
+```
+
+Font binaries remain package-managed rather than vendored into the repository.
+
+## Dependency manifests
+
+Raohane owns its current Arch dependency lists:
+
+```text
+install/arch/required.txt
+install/arch/features.txt
+```
+
+Useful checks:
+
+```bash
+bash scripts/install-deps.sh --minimal --check
+bash scripts/install-deps.sh --full --check
+bash scripts/install-deps.sh --full --print
+raohane doctor deps
+```
 
 ## Main controls
 
@@ -101,17 +136,15 @@ When reporting a batch failure, include `raohane doctor all` plus relevant outpu
 
 ## Static validation
 
-Foundation Audit currently validates shell scripts, the migration graph, Raohane module ownership and IPC routes. The branch also parses `shell.qml`, `RaohaneFamily.qml` and all Raohane-owned QML files with Qt6 `qmlformat` so obvious QML syntax failures are caught before a compositor test.
+`Raohane audit` validates shell scripts, Raohane module/service ownership, IPC routes and the current migration graph. It parses `shell.qml`, `RaohaneFamily.qml` and all Raohane-owned QML files with Qt6 `qmlformat` so obvious QML syntax failures are caught before a compositor test.
 
-As migration progresses, CI will stop validating inherited foundation code and eventually validate only the standalone Raohane graph.
+`scripts/service-boundary-audit.sh` specifically prevents active Raohane surfaces from silently regressing to inherited MPRIS, Bluetooth or Audio service adapters after those boundaries have migrated.
 
 This still does not replace a real Hyprland + Quickshell runtime pass: plugin imports, LayerShell behavior, focus, live service properties and compositor-specific interactions must be verified in the target session.
 
-## Temporary upstream refresh tooling
+## Temporary migration tooling
 
-`scripts/sync-end4-foundation.sh` is migration scaffolding only. It is not part of the target architecture and must be removed once active Raohane code no longer depends on the inherited graph.
-
-Normal users should not need this script.
+`scripts/sync-end4-foundation.sh`, the old dependency bootstrap and upstream lock files are migration scaffolding only. They are no longer used by the normal installer, dependency doctor or CI and will be deleted after the remaining inherited runtime code has been replaced.
 
 ## Runtime paths
 
