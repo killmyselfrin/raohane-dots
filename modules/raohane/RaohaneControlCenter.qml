@@ -2,15 +2,11 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 
 import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
-import qs.modules.ii.sidebarRight
-import qs.modules.ii.sidebarRight.quickToggles
-import qs.modules.ii.sidebarRight.notifications
 
 Scope {
     id: root
@@ -44,10 +40,12 @@ Scope {
         }
 
         onVisibleChanged: {
-            if (visible)
+            if (visible) {
+                Notifications.markAllRead()
                 GlobalFocusGrab.addDismissable(panelWindow)
-            else
+            } else {
                 GlobalFocusGrab.removeDismissable(panelWindow)
+            }
         }
 
         Connections {
@@ -87,7 +85,7 @@ Scope {
                 Rectangle {
                     id: hero
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 166
+                    Layout.preferredHeight: 150
                     radius: 20
                     color: "#241f31"
                     clip: true
@@ -114,7 +112,7 @@ Scope {
                             right: parent.right
                             bottom: parent.bottom
                         }
-                        height: 78
+                        height: 72
                         color: "#bb15131d"
                     }
 
@@ -123,7 +121,7 @@ Scope {
                             left: parent.left
                             leftMargin: 16
                             bottom: parent.bottom
-                            bottomMargin: 14
+                            bottomMargin: 13
                         }
                         spacing: 2
 
@@ -191,7 +189,9 @@ Scope {
                             anchors.centerIn: parent
                             spacing: 7
                             Rectangle {
-                                width: 6; height: 6; radius: 3
+                                width: 6
+                                height: 6
+                                radius: 3
                                 anchors.verticalCenter: parent.verticalCenter
                                 color: RaohaneTheme.accent
                             }
@@ -208,71 +208,36 @@ Scope {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: quickPanel.implicitHeight + 12
-                    radius: 18
+                    Layout.preferredHeight: quickControls.implicitHeight + 18
+                    radius: 20
                     color: RaohaneTheme.glass
                     border.width: 1
                     border.color: RaohaneTheme.border
 
-                    ClassicQuickPanel {
-                        id: quickPanel
-                        anchors.centerIn: parent
-                        onOpenWifiDialog: Quickshell.execDetached(["nm-connection-editor"])
-                        onOpenBluetoothDialog: Quickshell.execDetached(["blueman-manager"])
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: sliders.implicitHeight + 10
-                    radius: 18
-                    color: RaohaneTheme.glass
-                    border.width: 1
-                    border.color: RaohaneTheme.border
-
-                    QuickSliders {
-                        id: sliders
+                    RaohaneQuickControls {
+                        id: quickControls
                         anchors {
-                            fill: parent
-                            margins: 5
+                            left: parent.left
+                            right: parent.right
+                            top: parent.top
+                            margins: 9
                         }
+                        screen: panelWindow.screen
                     }
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    Layout.minimumHeight: 150
                     radius: 20
                     color: "#b915131d"
                     border.width: 1
                     border.color: RaohaneTheme.border
 
-                    ColumnLayout {
+                    RaohaneNotificationCenter {
                         anchors.fill: parent
                         anchors.margins: 10
-                        spacing: 8
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Text {
-                                text: "通知  /  NOTIFICATIONS"
-                                color: RaohaneTheme.text
-                                font.pixelSize: 11
-                                font.letterSpacing: 1.0
-                                font.weight: Font.DemiBold
-                            }
-                            Item { Layout.fillWidth: true }
-                            Text {
-                                text: Qt.formatDateTime(new Date(), "ddd, MMM d")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 10
-                            }
-                        }
-
-                        NotificationList {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                        }
                     }
                 }
 
@@ -288,25 +253,44 @@ Scope {
                         color: RaohaneTheme.glass
                         border.width: 1
                         border.color: RaohaneTheme.border
-                        Text {
+
+                        Row {
                             anchors.centerIn: parent
-                            text: "ラオハネ  ·  " + Qt.formatTime(new Date(), "hh:mm")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 10
+                            spacing: 7
+
+                            Rectangle {
+                                width: 5
+                                height: 5
+                                radius: 3
+                                anchors.verticalCenter: parent.verticalCenter
+                                color: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                                    ? RaohaneTheme.critical
+                                    : RaohaneTheme.accent
+                            }
+
+                            Text {
+                                text: "ラオハネ  ·  " + Qt.formatTime(new Date(), "hh:mm")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 10
+                            }
                         }
                     }
 
                     Rectangle {
-                        width: 34; height: 34; radius: 17
+                        width: 34
+                        height: 34
+                        radius: 17
                         color: RaohaneTheme.accentSoft
                         border.width: 1
                         border.color: RaohaneTheme.border
+
                         MaterialSymbol {
                             anchors.centerIn: parent
                             text: "close"
                             iconSize: 17
                             color: RaohaneTheme.text
                         }
+
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
@@ -335,6 +319,7 @@ Scope {
         id: action
         required property string icon
         signal clicked()
+
         width: 34
         height: 34
         radius: 17
@@ -348,6 +333,7 @@ Scope {
             iconSize: 17
             color: RaohaneTheme.text
         }
+
         MouseArea {
             id: mouse
             anchors.fill: parent
