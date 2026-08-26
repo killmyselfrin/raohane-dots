@@ -32,6 +32,9 @@ require_service RaohaneNetwork '\bnmcli\b'
 require_service RaohaneDisplay 'brightnessctl|ddcutil|hyprsunset'
 require_service RaohaneNotifications 'Quickshell\.Services\.Notifications'
 require_service RaohaneWallpapers 'Qt\.labs\.folderlistmodel'
+require_service RaohaneSession 'hyprctl.*dispatch.*exit'
+require_service RaohaneSessionWarnings 'pacman|/var/lib/pacman/db\.lck'
+require_service RaohaneSystemInfo '/etc/os-release'
 
 rg -q 'RaohaneMedia\.' modules/raohane/RaohaneContext.qml \
   || fail 'RaohaneContext does not consume RaohaneMedia'
@@ -92,4 +95,20 @@ rg -q 'property alias folderModel: folderModel' modules/raohane/services/Raohane
 rg -q 'Config\.options\.background\.wallpaperPath' modules/raohane/services/RaohaneWallpapers.qml \
   || fail 'RaohaneWallpapers does not own wallpaper apply state'
 
-printf 'raohane-service-audit: media, Bluetooth, audio, network, display, notifications and wallpapers are Raohane-owned\n'
+rg -q 'RaohaneSession' modules/common/functions/Session.qml \
+  || fail 'compatibility Session API is not routed to RaohaneSession'
+if rg -n -i 'niri|end4-pC|pkill.*Hyprland|HyprlandData' modules/common/functions/Session.qml; then
+  fail 'compatibility Session API still contains inherited compositor/process logic'
+fi
+rg -q 'RaohaneSessionWarnings' services/SessionWarnings.qml \
+  || fail 'compatibility SessionWarnings is not routed to RaohaneSessionWarnings'
+if rg -n 'Process[[:space:]]*\{' services/SessionWarnings.qml; then
+  fail 'compatibility SessionWarnings still owns process probes'
+fi
+rg -q 'RaohaneSystemInfo' services/SystemInfo.qml \
+  || fail 'compatibility SystemInfo is not routed to RaohaneSystemInfo'
+if rg -n 'Process[[:space:]]*\{|FileView[[:space:]]*\{' services/SystemInfo.qml; then
+  fail 'compatibility SystemInfo still owns system probes'
+fi
+
+printf 'raohane-service-audit: core media, hardware, notification, wallpaper and session/system boundaries are Raohane-owned\n'
