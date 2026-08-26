@@ -10,7 +10,6 @@ Singleton {
     id: root
 
     signal brightnessChanged()
-    signal gammaChanged()
 
     readonly property int gammaLowerLimit: 25
     property int gamma: 100
@@ -44,7 +43,6 @@ Singleton {
         root.gamma = Math.round(Math.max(root.gammaLowerLimit, Math.min(100, value)))
         root.ensureHyprsunset()
         Quickshell.execDetached(["hyprctl", "hyprsunset", "gamma", String(root.gamma)])
-        root.gammaChanged()
     }
 
     function ensureHyprsunset(): void {
