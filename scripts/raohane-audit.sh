@@ -169,21 +169,31 @@ if rg -n 'GlobalStates\.raohane[A-Za-z0-9_]+' modules/raohane panelFamilies/Raoh
 fi
 
 # QML type imports are semantic requirements that qmlformat alone cannot catch.
-# Keep these checks broad enough to cover both native code and temporary service
-# facades, because a broken facade can invalidate the whole qs.services module.
+# Check the Raohane-owned graph plus the narrow compatibility facades that are
+# intentionally part of the current product boundary. Do not grep every legacy
+# service: some old files contain dynamic QML strings whose type names would be
+# false positives here.
 while IFS= read -r qml; do
   if rg -q '\bConnections[[:space:]]*\{' "$qml"; then
-    if ! rg -q '^import (QtQuick|QtQml)([[:space:]]|$)' "$qml"; then
+    if ! rg -q '^import (QtQuick|QtQml)([[:space:]]|;|$)' "$qml"; then
       fail "$qml uses Connections without importing QtQuick or QtQml"
     fi
   fi
 
   if rg -q '\b(IpcHandler|Process|StdioCollector|SplitParser)\b' "$qml"; then
-    if ! rg -q '^import Quickshell\.Io([[:space:]]|$)' "$qml"; then
+    if ! rg -q '^import Quickshell\.Io([[:space:]]|;|$)' "$qml"; then
       fail "$qml uses Quickshell.Io types without importing Quickshell.Io"
     fi
   fi
-done < <(find modules/raohane services -type f -name '*.qml' -print)
+done < <(
+  find modules/raohane -type f -name '*.qml' -print
+  printf '%s\n' \
+    services/Notifications.qml \
+    services/Wallpapers.qml \
+    services/SessionWarnings.qml \
+    services/SystemInfo.qml \
+    modules/common/functions/Session.qml
+)
 
 rg -q 'ipc raohaneLauncher toggle' scripts/raohane || fail 'launcher CLI route is missing'
 rg -q 'ipc raohaneMedia toggle' scripts/raohane || fail 'media CLI route is missing'
