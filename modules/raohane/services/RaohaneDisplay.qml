@@ -4,8 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-
-import qs
+import qs.modules.raohane.config
 
 Singleton {
     id: root
@@ -18,7 +17,7 @@ Singleton {
     property bool temperatureActive: false
     property var ddcMonitors: []
 
-    readonly property int colorTemperature: Config.options?.light?.night?.colorTemperature ?? 5000
+    readonly property int colorTemperature: RaohaneConfig.colorTemperature
     readonly property list<BrightnessMonitor> monitors: Quickshell.screens.map(screen => monitorComponent.createObject(root, { screen: screen }))
 
     function getMonitorForScreen(screen: ShellScreen): var {
@@ -106,7 +105,7 @@ Singleton {
     onMonitorsChanged: root.detectDisplays()
 
     Connections {
-        target: Config.options?.light?.night ?? null
+        target: RaohaneConfig
 
         function onColorTemperatureChanged(): void {
             if (root.temperatureActive)
