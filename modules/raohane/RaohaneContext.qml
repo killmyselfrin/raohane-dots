@@ -2,7 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell.Wayland
-import qs.services
+import qs.modules.raohane.services
 
 Item {
     id: root
@@ -14,11 +14,9 @@ Item {
     readonly property bool microphone: RaohanePrivacy.microphoneActive
     readonly property bool camera: RaohanePrivacy.cameraActive
 
-    readonly property var activePlayer: MprisController.activePlayer
-    readonly property var activeTrack: MprisController.activeTrack
-    readonly property bool mediaActive: activePlayer !== null
-    readonly property string mediaTitle: activeTrack?.title ?? ""
-    readonly property string mediaArtist: activeTrack?.artist ?? ""
+    readonly property bool mediaActive: RaohaneMedia.available
+    readonly property string mediaTitle: RaohaneMedia.title
+    readonly property string mediaArtist: RaohaneMedia.artist
 
     readonly property var activeWindow: ToplevelManager.activeToplevel
     readonly property string windowTitle: activeWindow?.title ?? ""
