@@ -4,16 +4,23 @@
 
 - Make the Raohane product runtime explicitly Hyprland-only while keeping `ii-upstream` as a diagnostic fallback family.
 - Add `RaohaneState.qml` so product-only ephemeral state survives end4 foundation refreshes.
-- Wire Context Island to live MPRIS and active-window data.
+- Add `RaohanePrivacy.qml` over Quickshell PipeWire for live microphone, camera and screen-capture context.
+- Wire Context Island to live MPRIS, active-window and privacy data.
 - Activate a Raohane-native horizontal bar while retaining mature workspace, tray and system providers.
 - Add a dedicated Raohane launcher over `LauncherSearch` with keyboard navigation and native IPC.
 - Add a fullscreen-friendly Raohane media overlay over the mature MPRIS backend.
 - Replace the visible volume/brightness/gamma OSD with `RaohaneOsd.qml` while retaining Audio, Brightness and Hyprsunset providers.
 - Replace the visible notification popup with `RaohaneNotificationPopup.qml` while retaining the mature notification server, persistence, timers and actions backend.
-- Keep Control Center and Settings as Raohane shells over mature providers/content during the migration.
-- Expand the `raohane` CLI with `media` and batch diagnostics for dependencies, services and graphics.
+- Add a shared native notification card and notification center used by the Raohane Control Center.
+- Replace compatibility right-sidebar quick controls with `RaohaneQuickControls.qml`, including Wi-Fi, Bluetooth, Night Light, Game Mode, idle inhibition, EasyEffects and native brightness/audio/microphone sliders.
+- Remove the quick-control `jq` probe by parsing Hyprland JSON directly in QML.
+- Replace the top-level Settings compatibility shell with `RaohaneSettingsContent.qml`, a Hyprland-only Raohane navigation layer over the mature configuration pages.
+- Add `RaohaneSettingsHome.qml` as the wallpaper-backed Control Deck landing page with live context/system state.
+- Replace the visible wallpaper selector with `RaohaneWallpaperSelector.qml` while retaining the mature `Wallpapers` service, preview and background transition path.
+- Replace the visible desktop context menu with `RaohaneDesktopMenu.qml` while retaining background click coordinates, DropShelf and wallpaper services.
+- Expand the `raohane` CLI with `media`, `desktop`, `wallpaper`, random-wallpaper control and batch diagnostics for dependencies, services and graphics.
 - Add `./install-raohane.sh --deps` and `--no-start`; dependency installation stays pinned and GPU-driver mutation remains explicit.
-- Expand static CI/audit coverage for native-surface registration, IPC routing, Hyprland product boundaries and upstream-refresh safety.
+- Expand static CI/audit coverage for native-surface registration, desktop/control/settings ownership boundaries, IPC routing, Hyprland product boundaries and upstream-refresh safety.
 - Treat static validation as a structural gate only; the batch still requires a real Hyprland + Quickshell runtime pass before merge/release.
 
 ## dev-0.1
