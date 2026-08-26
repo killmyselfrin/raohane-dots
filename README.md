@@ -9,9 +9,12 @@
 [![Hyprland](https://img.shields.io/badge/Hyprland-target-7c5cff?style=for-the-badge)](https://hypr.land/)
 [![Quickshell](https://img.shields.io/badge/Quickshell-Qt%2FQML-6f8cff?style=for-the-badge)](https://quickshell.org/)
 [![Platform](https://img.shields.io/badge/Linux-Arch%20focused-1793d1?style=for-the-badge&logo=archlinux&logoColor=white)](#installation)
+[![Main](https://img.shields.io/badge/main-live%20integration-f0a040?style=for-the-badge)](#main-development-policy)
 [![License](https://img.shields.io/badge/License-GPLv3-2f2f2f?style=for-the-badge)](LICENSE)
 
 > **Current phase:** Standalone / Independence Migration
+>
+> **`main` is the live integration/testing branch.** It may contain runtime bugs while Raohane is being separated from its migration foundation.
 
 </div>
 
@@ -23,7 +26,7 @@
 
 The project combines Japanese-inspired minimalism with a more reactive desktop: contextual surfaces, dynamic media controls, a living center island, polished system panels and fullscreen-aware overlays.
 
-Raohane originally used a mature existing shell foundation so that important Linux desktop behavior did not have to be rewritten all at once. We are now removing that dependency subsystem-by-subsystem.
+Raohane originally used a mature existing shell foundation so important Linux desktop behavior did not need to be rewritten all at once. That dependency is now being removed subsystem-by-subsystem.
 
 The end goal is explicit:
 
@@ -33,17 +36,9 @@ The end goal is explicit:
 
 ## 🚧 What we are doing right now
 
-Active development is happening in:
+The standalone migration is now integrated directly into **`main`**.
 
-```text
-raohane-context-media-foundation
-```
-
-Tracked by:
-
-```text
-PR #11 · Raohane 0.10 standalone migration batch
-```
+PR #11 was merged so a normal installation from the repository exercises the current Raohane code instead of an older compatibility snapshot. Old foundation PRs #9 and #10 were closed as superseded rather than merged back into the new architecture.
 
 The migration is moving from this:
 
@@ -72,14 +67,31 @@ Raohane-native UI
 1. migrate the wallpaper/background backend into Raohane ownership;
 2. replace inherited session/system-information services;
 3. introduce `RaohaneConfig` and a native common framework;
-4. remove remaining compatibility runtime layers only after feature parity is preserved;
-5. validate the standalone graph on real Hyprland hardware before merging it.
+4. remove compatibility runtime layers only after feature parity is preserved;
+5. install and test `main` on a real Hyprland session, then fix runtime failures in batches.
 
 ---
 
-## ✅ Already separated in the development branch
+## 🧪 Main development policy
 
-| Area | Raohane ownership |
+During the current 0.10 migration, **`main` is intentionally an integration branch**.
+
+That means:
+
+- new Raohane work is integrated into `main` instead of being hidden behind a long-lived development PR;
+- installation from `main` always exercises the newest architecture;
+- runtime bugs found after installation are useful migration data rather than a reason to keep the code isolated indefinitely;
+- fixes should be grouped by subsystem when possible so we can discover several related failures in one real session;
+- static CI still guards syntax and architecture boundaries, but a passing CI run does **not** mean the desktop has been proven on actual hardware;
+- a future tagged release can become the stable reference once the standalone runtime is ready.
+
+This is deliberate: while Raohane is under heavy reconstruction, it is more useful to have **one obvious source of truth** than several partially overlapping branches.
+
+---
+
+## ✅ Raohane-owned boundaries already in `main`
+
+| Area | Current ownership |
 |---|---|
 | Dependency installation | Raohane-owned Arch manifests |
 | MPRIS / media | `RaohaneMedia` |
@@ -102,7 +114,7 @@ Raohane-native UI
 | Session / power screen | Raohane-native presentation |
 | Dependency / architecture CI | Raohane-owned audit pipeline |
 
-### Service boundary already active
+### Active service boundary
 
 ```text
 Quickshell.Services.Mpris
@@ -142,7 +154,7 @@ Quickshell.Services.Notifications
 Popup / Notification Center / compatibility facade
 ```
 
-The development installer also uses Raohane-owned package manifests and no longer runs another shell project's setup process.
+The installer and dependency doctor no longer need to execute another shell repository's setup process.
 
 ---
 
@@ -150,9 +162,9 @@ The development installer also uses Raohane-owned package manifests and no longe
 
 The next major boundary is **wallpapers and the desktop background stack**.
 
-The current selector UI is already Raohane-native, but the actual wallpaper data/apply layer still depends on the inherited `Wallpapers` service and its shared helpers.
+The selector UI is already Raohane-native, but the wallpaper data/apply layer still depends on inherited helpers.
 
-The target split is:
+The target is:
 
 ```text
 filesystem / wallpaper directory
@@ -168,13 +180,21 @@ RaohaneWallpaperSelector
 future Raohane background renderer
 ```
 
-After wallpapers, the next service work is session/system information, followed by the configuration/common-framework boundary.
+After wallpapers:
+
+```text
+Session / SystemInfo
+        ↓
+RaohaneConfig
+        ↓
+Raohane common framework
+        ↓
+compatibility cleanup
+```
 
 ---
 
 ## 🧩 Still being migrated
-
-Some mature subsystems remain temporarily inherited so the desktop stays usable while replacements are developed.
 
 The largest remaining areas are:
 
@@ -200,7 +220,8 @@ These components are migration scaffolding, not the intended final architecture.
 - [x] independent dependency installer
 - [x] dependency doctor
 - [x] stop normal CI from fetching upstream shell repositories
-- [x] make legacy config import explicit instead of automatic
+- [x] explicit legacy-config migration
+- [x] integrate the current standalone batch into `main`
 
 ### Phase 2 — Core services
 
@@ -240,7 +261,7 @@ These components are migration scaffolding, not the intended final architecture.
 - [ ] AMD / Intel validation
 - [ ] fullscreen / game overlay validation
 - [ ] package and dependency audit
-- [ ] standalone Raohane release
+- [ ] standalone tagged Raohane release
 
 ---
 
@@ -267,31 +288,11 @@ Raohane does not pretend to target every compositor. **Hyprland is the product t
 
 ## 📦 Installation
 
-### Stable `main`
-
-`main` still contains the current migration foundation. Until PR #11 is runtime-tested and merged, installation directly from `main` uses the existing foundation bootstrap:
+The current development build is installed directly from **`main`**:
 
 ```bash
 git clone https://github.com/snuskidau/raohane-dots.git
 cd raohane-dots
-
-bash scripts/install-foundation-deps.sh
-chmod +x install-raohane.sh
-./install-raohane.sh
-
-hyprctl reload
-raohane restart
-```
-
-### Current standalone development build
-
-To test the active independence work:
-
-```bash
-git clone https://github.com/snuskidau/raohane-dots.git
-cd raohane-dots
-
-git checkout raohane-context-media-foundation
 
 chmod +x install-raohane.sh
 ./install-raohane.sh --deps
@@ -300,15 +301,33 @@ hyprctl reload
 raohane restart
 ```
 
-The development installer uses Raohane-owned package manifests and does **not** execute another shell repository's setup process.
+`--deps` installs the Raohane-owned Arch package manifests. It does **not** execute another desktop shell's installer.
 
+If the required packages are already installed:
+
+```bash
+./install-raohane.sh
+hyprctl reload
+raohane restart
+```
+
+To update an existing checkout before testing:
+
+```bash
+git checkout main
+git pull --ff-only
+./install-raohane.sh
+hyprctl reload
+raohane restart
+```
+
+> `main` is currently a development integration branch. A broken surface after installation should be reported with diagnostics rather than assumed to be a finished release.
+>
 > GPU drivers are never silently selected or replaced. Font binaries remain package-managed instead of being vendored into the repository.
 
 ---
 
 ## 🎛️ Main controls
-
-Current development commands:
 
 ```bash
 raohane launcher
@@ -347,41 +366,58 @@ raohane logs
 
 ---
 
-## 🧪 Testing a development batch
+## 🔎 Runtime debugging workflow
 
-Passing static QML checks is not enough for a shell release.
+After installing a fresh `main`, do **one broad test pass** before fixing individual issues.
 
-A real Hyprland session should verify:
+Recommended order:
 
-1. startup and restart behavior;
-2. bar behavior on every monitor;
-3. launcher keyboard focus and search;
-4. Control Center toggles and sliders;
-5. audio sink/source volume and mute;
-6. Bluetooth state and toggling;
-7. Wi-Fi / Ethernet state and Wi-Fi toggling;
-8. brightness, DDC and gamma behavior;
-9. night-light state;
-10. notifications, actions and persistent history;
-11. OSD behavior;
-12. MPRIS selection, seek and transport controls;
-13. media overlay behavior over fullscreen applications;
-14. wallpaper preview/apply/random;
-15. desktop context menu;
-16. session, lock, logout, reboot and shutdown actions.
+1. start/restart Raohane;
+2. check bar on every monitor;
+3. open launcher and test keyboard focus/search;
+4. open Control Center;
+5. test volume/microphone and OSD;
+6. test Bluetooth;
+7. test Wi-Fi/Ethernet state and Wi-Fi toggle;
+8. test brightness/DDC/gamma/night light;
+9. send several notifications, use actions, dismiss them and restart Raohane to verify history;
+10. test media selection, play/pause, previous/next and seek;
+11. test media overlay over a fullscreen application/game;
+12. test wallpaper preview/apply/random;
+13. test desktop menu;
+14. test settings pages;
+15. test lock/logout/reboot/shutdown UI without triggering destructive actions unnecessarily.
 
-Useful failure output:
+Collect this first:
 
 ```bash
 raohane doctor all
+```
+
+Then run the shell in the foreground:
+
+```bash
+raohane stop
 raohane run
 ```
 
-or:
+For service-start failures or earlier crashes:
 
 ```bash
 raohane logs
 ```
+
+When reporting failures, the most useful format is:
+
+```text
+1. What I opened / clicked
+2. What I expected
+3. What actually happened
+4. Terminal error from `raohane run`
+5. Relevant section from `raohane doctor all`
+```
+
+This lets us fix several connected problems in one migration batch instead of chasing them one at a time.
 
 ---
 
@@ -414,6 +450,7 @@ raohane-dots/
 
 Current development rules:
 
+- `main` is the current integration source of truth during the migration;
 - no silent GPU-driver replacement;
 - no vendored font binaries;
 - no new Niri-specific product work — Raohane targets Hyprland;
@@ -447,7 +484,7 @@ See:
 
 ### Raohane is being rebuilt into its own shell.
 
-**Architecture first. Feature parity second. Polish without inherited limits after that.**
+**One integration branch. One install path. Real runtime failures become the next work queue.**
 
 `ラオハネ` · Hyprland · Quickshell
 
