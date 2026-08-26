@@ -24,6 +24,8 @@ required_native=(
   modules/raohane/RaohaneControlCenter.qml
   modules/raohane/RaohaneSettings.qml
   modules/raohane/RaohaneMediaOverlay.qml
+  modules/raohane/RaohaneOsd.qml
+  modules/raohane/RaohaneNotificationPopup.qml
 )
 
 for path in "${required_native[@]}"; do
@@ -51,7 +53,7 @@ while IFS= read -r import_line; do
   [[ -d "$module_path" ]] || fail "unresolved local module $import_path"
 done < <(rg -o --no-filename '^import qs\.[A-Za-z0-9_.]+$' shell.qml modules/raohane | sort -u || true)
 
-for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay; do
+for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup; do
   rg -q "component: ${surface} \{\}" panelFamilies/RaohaneFamily.qml \
     || fail "RaohaneFamily does not load $surface"
 done
@@ -65,10 +67,12 @@ if rg -n 'GlobalStates\.raohane[A-Za-z0-9_]+' modules/raohane panelFamilies/Raoh
   fail 'Raohane-owned state leaked back into upstream-refreshed GlobalStates'
 fi
 
-if rg -n -i 'inir|niri|waffle|ricelin' modules/raohane shell.qml; then
-  fail 'primary UI contains a forbidden legacy identity'
+if rg -n -i 'inir|niri|waffle|ricelin' modules/raohane shell.qml panelFamilies/RaohaneFamily.qml; then
+  fail 'Raohane product runtime contains a forbidden legacy/non-target identity'
 fi
 
+rg -q 'import Quickshell.Hyprland' shell.qml \
+  || fail 'Raohane shell no longer declares Hyprland integration'
 rg -q 'config}/raohane' modules/common/Directories.qml \
   || fail 'Raohane config namespace is not active'
 
