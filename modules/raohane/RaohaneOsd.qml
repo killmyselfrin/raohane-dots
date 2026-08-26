@@ -6,8 +6,6 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs
-import qs.modules.common
-import qs.modules.common.widgets
 import qs.modules.raohane.services
 
 Scope {
@@ -135,7 +133,7 @@ Scope {
                         radius: 15
                         color: RaohaneTheme.accentSoft
 
-                        MaterialSymbol {
+                        RaohaneIcon {
                             anchors.centerIn: parent
                             text: root.icon
                             iconSize: 22
@@ -201,13 +199,13 @@ Scope {
         function toggle(): void { GlobalStates.osdVolumeOpen = !GlobalStates.osdVolumeOpen }
     }
 
-    CompositorGlobalShortcut {
+    GlobalShortcut {
         name: "osdVolumeTrigger"
         description: "Triggers Raohane volume OSD"
         onPressed: root.trigger("volume")
     }
 
-    CompositorGlobalShortcut {
+    GlobalShortcut {
         name: "osdVolumeHide"
         description: "Hides Raohane OSD"
         onPressed: GlobalStates.osdVolumeOpen = false
