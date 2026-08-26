@@ -48,6 +48,7 @@ jobs:
         run: |
           bash -n scripts/raohane
           bash -n scripts/raohane-audit.sh
+          bash -n scripts/service-boundary-audit.sh
           bash -n scripts/install-deps.sh
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
@@ -67,7 +68,9 @@ jobs:
 
       - name: Validate Raohane-owned boundaries
         shell: bash
-        run: bash scripts/raohane-audit.sh
+        run: |
+          bash scripts/raohane-audit.sh
+          bash scripts/service-boundary-audit.sh
 
       - name: Validate current migration runtime graph
         shell: bash
@@ -82,6 +85,8 @@ jobs:
             modules/ii
             modules/raohane
             modules/raohane/services/RaohaneMedia.qml
+            modules/raohane/services/RaohaneBluetooth.qml
+            modules/raohane/services/RaohaneAudio.qml
             modules/common/Directories.qml
             panelFamilies/IllogicalImpulseFamily.qml
             panelFamilies/RaohaneFamily.qml
