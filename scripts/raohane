@@ -12,7 +12,7 @@ Usage: raohane <command> [args]
 
 Shell:
   run | start | stop | restart | status | logs
-  launcher | control | settings
+  launcher | control | settings | media
 
 Diagnostics:
   doctor [graphics]
@@ -52,6 +52,9 @@ case "${1:-help}" in
     ;;
   settings)
     ipc settings toggle
+    ;;
+  media)
+    ipc raohaneMedia toggle
     ;;
   doctor)
     case "${2:-all}" in
