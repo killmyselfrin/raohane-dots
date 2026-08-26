@@ -16,6 +16,8 @@ imagemagick
 hypridle
 hyprlock
 hyprpicker
+wf-recorder
+libpulse
 pciutils
 python-pillow
 curl
