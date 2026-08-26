@@ -1,26 +1,34 @@
 # Raohane
 
-**Raohane** is a Hyprland + Quickshell desktop shell built on a pinned end4-pC technical foundation and progressively replacing its visible surfaces with Raohane-native UI.
+**Raohane** is a Hyprland + Quickshell desktop shell being developed toward a fully standalone runtime and codebase.
 
-> Current development line: **full foundation → Raohane surface migration**
+> Current development line: **migration reference → standalone Raohane**
 
-## Foundation strategy
+## Independence target
 
-The complete pinned `pctrade/end4-pC` runtime graph is committed in this repository: services, settings, widgets, media, networking, Bluetooth and the supporting Quickshell modules remain available as the compatibility foundation.
+`end4-pC`, illogical-impulse, iNiR and Serpantinum are development references/migration sources, not permanent Raohane dependencies.
 
-Raohane keeps a separate product layer on top:
+The target release architecture is explicit:
 
-- `panelFamilies/RaohaneFamily.qml` is the composition point for active Raohane surfaces.
-- `modules/raohane/` contains Raohane-owned components and product state.
-- Runtime settings live under `~/.config/raohane` rather than the upstream namespace.
-- `ii-upstream` remains an explicit fallback panel family for diagnostics.
-- Upstream revisions are pinned under `upstream/`; updates are deliberate instead of following a floating branch.
+- Raohane installs without cloning or executing another shell repository.
+- Raohane owns its dependency manifest, services, configuration schema, common framework and visible UI.
+- Production runtime has no required `modules/ii` imports and no upstream panel-family fallback.
+- Upstream synchronization scripts and lock files disappear after migration is complete.
+- Third-party license/attribution notices remain only where code/assets still require them.
 
-The current migration branch has Raohane-native horizontal bar, launcher, Context Island, Control Center internals, Settings navigation and Control Deck, game/media overlay, OSD, notification popup/history UI, wallpaper selector, desktop context menu and session/power menu while keeping mature system providers underneath.
+See `INDEPENDENCE-PLAN.md` for the removal milestones.
+
+## Current migration state
+
+The current branch still contains a compatibility graph inherited from the earlier migration approach. It is temporary. Raohane-native surfaces are replacing it in large batches while equivalent system behavior is kept operational until Raohane-owned services are ready.
+
+Current native surfaces include the horizontal bar, launcher, Context Island, Control Center internals, Settings navigation and Control Deck, game/media overlay, OSD, notification popup/history UI, wallpaper selector, desktop context menu and session/power menu.
+
+`panelFamilies/RaohaneFamily.qml` is currently the composition boundary, `modules/raohane/` contains Raohane-owned product components/state, and persistent settings already live under `~/.config/raohane`.
 
 ## Install
 
-On Arch-based systems the normal full bootstrap is:
+On Arch-based systems the current migration bootstrap is:
 
 ```bash
 chmod +x install-raohane.sh
@@ -29,7 +37,9 @@ hyprctl reload
 raohane restart
 ```
 
-`--deps` runs the pinned illogical-impulse/end4 foundation dependency installer before installing Raohane. If the system already has the required foundation packages, use:
+**Important:** `--deps` still invokes the temporary illogical-impulse/end4 dependency bootstrap. Replacing this with a Raohane-owned package manifest is now a required independence milestone, not the final installer design.
+
+If the required packages are already installed:
 
 ```bash
 ./install-raohane.sh
@@ -41,9 +51,9 @@ To install without immediately starting the user service:
 ./install-raohane.sh --no-start
 ```
 
-The installer keeps persistent settings in `~/.config/raohane/config.json`. On first install, an older `~/.config/illogical-impulse/config.json` is copied into the Raohane namespace if present, then the `raohane` panel family is selected without discarding the rest of the JSON.
+The installer keeps persistent settings in `~/.config/raohane/config.json`. During migration it can import an older `~/.config/illogical-impulse/config.json` on first install; this compatibility path will be removed after the Raohane config schema is fully owned.
 
-GPU drivers are not silently selected or replaced by the dependency installer. Upstream font binaries are not vendored in this repository; fonts remain package-managed.
+GPU drivers are not silently selected or replaced by the dependency installer. Font binaries remain package-managed.
 
 ## Main controls
 
@@ -58,11 +68,11 @@ raohane wallpaper random
 raohane session
 ```
 
-The desktop menu is also opened by the existing desktop right-click path from the mature background renderer.
+The desktop menu is also opened by the existing desktop right-click path from the current background renderer.
 
 ## Batch test workflow
 
-The development strategy intentionally allows several surfaces to move together and then collects runtime failures in one Hyprland test pass.
+Development intentionally moves several surfaces together and collects runtime failures in one Hyprland test pass.
 
 Start with diagnostics:
 
@@ -91,23 +101,17 @@ When reporting a batch failure, include `raohane doctor all` plus relevant outpu
 
 ## Static validation
 
-Foundation Audit validates shell scripts, the committed foundation graph, Raohane module ownership and IPC routes. The migration branch also parses `shell.qml`, `RaohaneFamily.qml` and all Raohane-owned QML files with Qt6 `qmlformat` so obvious QML syntax failures are caught before a compositor test.
+Foundation Audit currently validates shell scripts, the migration graph, Raohane module ownership and IPC routes. The branch also parses `shell.qml`, `RaohaneFamily.qml` and all Raohane-owned QML files with Qt6 `qmlformat` so obvious QML syntax failures are caught before a compositor test.
+
+As migration progresses, CI will stop validating inherited foundation code and eventually validate only the standalone Raohane graph.
 
 This still does not replace a real Hyprland + Quickshell runtime pass: plugin imports, LayerShell behavior, focus, live service properties and compositor-specific interactions must be verified in the target session.
 
-## Developer upstream refresh
+## Temporary upstream refresh tooling
 
-Normal users do **not** need to run the foundation synchronizer. It is only for intentionally refreshing the pinned end4-pC source graph:
+`scripts/sync-end4-foundation.sh` is migration scaffolding only. It is not part of the target architecture and must be removed once active Raohane code no longer depends on the inherited graph.
 
-```bash
-# Preview only; repository remains unchanged.
-bash scripts/sync-end4-foundation.sh
-
-# Developer action: apply the pinned upstream refresh.
-bash scripts/sync-end4-foundation.sh --apply
-```
-
-The synchronizer preserves Raohane-owned `shell.qml`, `modules/common/Directories.qml`, `modules/raohane/`, installer and CLI while refreshing the upstream technical foundation around them.
+Normal users should not need this script.
 
 ## Runtime paths
 
@@ -118,6 +122,6 @@ The synchronizer preserves Raohane-owned `shell.qml`, `modules/common/Directorie
 
 ## Migration model
 
-Raohane replaces visible shell surfaces in batches while mature system providers remain operational underneath. A native surface is only considered complete after a real Hyprland + Quickshell runtime pass; static CI is a structural/parser gate, not a compositor test.
+Raohane is not intended to remain a reskinned end4-pC installation. The migration ends only when Raohane owns its UI, services, config/common framework, dependencies and release path and no longer needs another shell repository to build, install, update or run.
 
-See `ARCHITECTURE.md`, `NOTICE-UPSTREAM.md`, `AGENTS.md` and `RAOHANE-CHANGELOG.md` for project and upstream notes.
+See `INDEPENDENCE-PLAN.md`, `ARCHITECTURE.md`, `NOTICE-UPSTREAM.md`, `AGENTS.md` and `RAOHANE-CHANGELOG.md`.
