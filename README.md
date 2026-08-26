@@ -69,11 +69,11 @@ Raohane-native UI
 
 ### Current focus
 
-1. finish owning core hardware/system services;
-2. remove direct inherited service usage from active Raohane UI;
+1. migrate the wallpaper/background backend into Raohane ownership;
+2. replace inherited session/system-information services;
 3. introduce `RaohaneConfig` and a native common framework;
-4. delete compatibility runtime layers only after feature parity is preserved;
-5. validate the result on real Hyprland hardware before merging the standalone batch.
+4. remove remaining compatibility runtime layers only after feature parity is preserved;
+5. validate the standalone graph on real Hyprland hardware before merging it.
 
 ---
 
@@ -86,6 +86,8 @@ Raohane-native UI
 | Bluetooth | `RaohaneBluetooth` |
 | PipeWire audio | `RaohaneAudio` |
 | NetworkManager | `RaohaneNetwork` |
+| Brightness / DDC / gamma | `RaohaneDisplay` |
+| Notification server / history | `RaohaneNotifications` |
 | Privacy / capture state | `RaohanePrivacy` |
 | Context Island | Raohane-native |
 | Horizontal bar | Raohane-native development surface |
@@ -94,7 +96,7 @@ Raohane-native UI
 | Settings shell / Control Deck | Raohane-native presentation |
 | Media / game overlay | Raohane-native |
 | OSD | Raohane-native |
-| Notification UI | Raohane-native presentation |
+| Notification UI | Raohane-native |
 | Wallpaper selector | Raohane-native presentation |
 | Desktop context menu | Raohane-native |
 | Session / power screen | Raohane-native presentation |
@@ -126,6 +128,18 @@ NetworkManager / nmcli
   RaohaneNetwork
         ↓
    Control Center
+
+brightnessctl + ddcutil + hyprsunset
+        ↓
+  RaohaneDisplay
+        ↓
+Control Center / OSD
+
+Quickshell.Services.Notifications
+        ↓
+ RaohaneNotifications
+        ↓
+Popup / Notification Center / compatibility facade
 ```
 
 The development installer also uses Raohane-owned package manifests and no longer runs another shell project's setup process.
@@ -134,28 +148,27 @@ The development installer also uses Raohane-owned package manifests and no longe
 
 ## 🔧 In progress now
 
-The next service boundary is display control.
+The next major boundary is **wallpapers and the desktop background stack**.
 
-A new `RaohaneDisplay` backend is being introduced around:
+The current selector UI is already Raohane-native, but the actual wallpaper data/apply layer still depends on the inherited `Wallpapers` service and its shared helpers.
 
-```text
-brightnessctl
-     +
-ddcutil
-     +
-hyprsunset
-```
-
-The target behavior is to keep the current combined brightness model:
+The target split is:
 
 ```text
-normal range  → hardware brightness
-very low range → gamma dimming
+filesystem / wallpaper directory
+        +
+thumbnail generation
+        +
+wallpaper apply / random / preview
+        ↓
+ RaohaneWallpapers
+        ↓
+RaohaneWallpaperSelector
+        +
+future Raohane background renderer
 ```
 
-while dropping legacy compositor branches and unrelated inherited presentation logic.
-
-After display control, the next large backends are notifications, wallpapers and session/system information.
+After wallpapers, the next service work is session/system information, followed by the configuration/common-framework boundary.
 
 ---
 
@@ -165,8 +178,6 @@ Some mature subsystems remain temporarily inherited so the desktop stays usable 
 
 The largest remaining areas are:
 
-- display UI cutover for brightness / DDC / gamma / night light;
-- notification backend and history ownership;
 - wallpaper backend and desktop background renderer;
 - system/session information and warnings;
 - application/search providers;
@@ -174,7 +185,8 @@ The largest remaining areas are:
 - lock/capture/region-selection support;
 - remaining shared `modules/common` utilities;
 - the inherited configuration schema;
-- remaining compatibility `modules/ii` surfaces.
+- remaining compatibility `modules/ii` surfaces;
+- compatibility service facades that exist only until old UI is removed.
 
 These components are migration scaffolding, not the intended final architecture.
 
@@ -197,9 +209,9 @@ These components are migration scaffolding, not the intended final architecture.
 - [x] PipeWire audio
 - [x] NetworkManager
 - [x] Privacy / capture state
-- [ ] Brightness / DDC — backend currently being integrated
-- [ ] Night light / gamma — backend currently being integrated
-- [ ] Notifications
+- [x] Brightness / DDC
+- [x] Night light / gamma
+- [x] Notifications / notification history
 - [ ] Wallpapers
 - [ ] Session / system information
 
@@ -215,6 +227,7 @@ These components are migration scaffolding, not the intended final architecture.
 
 - [ ] remove remaining `modules/ii` runtime dependencies
 - [ ] remove inherited service graph
+- [ ] remove compatibility service facades
 - [ ] remove upstream panel-family fallback
 - [ ] remove migration sync/bootstrap scripts
 - [ ] remove obsolete upstream lock files
@@ -349,7 +362,7 @@ A real Hyprland session should verify:
 7. Wi-Fi / Ethernet state and Wi-Fi toggling;
 8. brightness, DDC and gamma behavior;
 9. night-light state;
-10. notifications and notification history;
+10. notifications, actions and persistent history;
 11. OSD behavior;
 12. MPRIS selection, seek and transport controls;
 13. media overlay behavior over fullscreen applications;
@@ -382,7 +395,7 @@ raohane-dots/
 │   │   └── ...              # native UI / state
 │   ├── common/              # shared framework being migrated
 │   └── ii/                  # temporary compatibility UI
-├── services/                # inherited services being replaced
+├── services/                # inherited services / compatibility facades
 ├── panelFamilies/
 │   └── RaohaneFamily.qml    # current composition boundary
 ├── install/
@@ -407,6 +420,7 @@ Current development rules:
 - no Raohane-specific state inside migration-owned `GlobalStates.qml`;
 - new product state belongs in Raohane-owned singletons;
 - migrated UI should consume stable Raohane service APIs instead of inherited adapters;
+- only one subsystem owner should talk directly to each system daemon where duplicate ownership is unsafe;
 - normal install/doctor/CI paths should not execute another shell repository;
 - GPL and attribution obligations remain preserved while derivative code is still present.
 
