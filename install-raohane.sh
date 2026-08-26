@@ -117,6 +117,7 @@ exec-once = systemctl --user start raohane.service
 bind = SUPER, R, exec, raohane launcher
 bind = SUPER, escape, exec, raohane settings
 bind = SUPER, C, exec, raohane control
+bind = SUPER SHIFT, M, exec, raohane media
 HYPR
 
 if [[ ! -f "$HYPR_AUTOSTART" ]]; then
