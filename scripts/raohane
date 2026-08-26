@@ -54,7 +54,7 @@ find_dependency_installer() {
     "$RUNTIME/scripts/install-deps.sh" \
     "$SCRIPT_DIR/install-deps.sh" \
     "$SCRIPT_DIR/../scripts/install-deps.sh"; do
-    if [[ -x "$candidate" ]]; then
+    if [[ -f "$candidate" ]]; then
       printf '%s\n' "$candidate"
       return 0
     fi
@@ -95,7 +95,7 @@ print_dependency_report() {
 
   if installer="$(find_dependency_installer)" && command -v pacman >/dev/null 2>&1; then
     echo 'Raohane package manifest'
-    "$installer" --full --check || failures=$((failures + 1))
+    bash "$installer" --full --check || failures=$((failures + 1))
     echo
   else
     echo 'Raohane package manifest'
