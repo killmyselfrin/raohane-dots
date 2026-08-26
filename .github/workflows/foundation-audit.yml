@@ -91,6 +91,8 @@ jobs:
             modules/raohane/services/RaohaneMedia.qml
             modules/raohane/services/RaohaneBluetooth.qml
             modules/raohane/services/RaohaneAudio.qml
+            modules/raohane/services/RaohaneNetwork.qml
+            modules/raohane/services/RaohaneDisplay.qml
             modules/common/Directories.qml
             panelFamilies/IllogicalImpulseFamily.qml
             panelFamilies/RaohaneFamily.qml
@@ -105,6 +107,8 @@ jobs:
             services/Audio.qml
             services/Network.qml
             services/BluetoothStatus.qml
+            services/Brightness.qml
+            services/Hyprsunset.qml
             services/Notifications.qml
           )
 
