@@ -11,6 +11,7 @@ RaohaneNotificationCard 1.0 RaohaneNotificationCard.qml
 RaohaneNotificationCenter 1.0 RaohaneNotificationCenter.qml
 RaohaneSettings 1.0 RaohaneSettings.qml
 RaohaneSettingsContent 1.0 RaohaneSettingsContent.qml
+RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneMediaOverlay 1.0 RaohaneMediaOverlay.qml
 RaohaneLauncher 1.0 RaohaneLauncher.qml
 RaohaneOsd 1.0 RaohaneOsd.qml
