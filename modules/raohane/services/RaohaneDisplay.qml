@@ -19,7 +19,7 @@ Singleton {
     property var ddcMonitors: []
 
     readonly property int colorTemperature: Config.options?.light?.night?.colorTemperature ?? 5000
-    readonly property list<BrightnessMonitor> monitors: Quickshell.screens.map(screen => monitorComponent.createObject(root, { screen }))
+    readonly property list<BrightnessMonitor> monitors: Quickshell.screens.map(screen => monitorComponent.createObject(root, { screen: screen }))
 
     function getMonitorForScreen(screen: ShellScreen): var {
         return root.monitors.find(monitor => monitor.screen === screen) ?? null
