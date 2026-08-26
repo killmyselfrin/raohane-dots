@@ -23,7 +23,11 @@ required_native=(
   modules/raohane/RaohaneBar.qml
   modules/raohane/RaohaneLauncher.qml
   modules/raohane/RaohaneControlCenter.qml
+  modules/raohane/RaohaneQuickControls.qml
+  modules/raohane/RaohaneNotificationCard.qml
+  modules/raohane/RaohaneNotificationCenter.qml
   modules/raohane/RaohaneSettings.qml
+  modules/raohane/RaohaneSettingsContent.qml
   modules/raohane/RaohaneMediaOverlay.qml
   modules/raohane/RaohaneOsd.qml
   modules/raohane/RaohaneNotificationPopup.qml
@@ -63,6 +67,30 @@ rg -q '^singleton RaohanePrivacy .*RaohanePrivacy.qml$' modules/raohane/qmldir \
   || fail 'RaohanePrivacy is not registered as a singleton'
 rg -q 'RaohanePrivacy\.(recordingActive|microphoneActive|cameraActive)' modules/raohane/RaohaneContext.qml \
   || fail 'Context Island is not wired to the privacy provider'
+
+rg -q 'RaohaneQuickControls' modules/raohane/RaohaneControlCenter.qml \
+  || fail 'Control Center is not using Raohane quick controls'
+rg -q 'RaohaneNotificationCenter' modules/raohane/RaohaneControlCenter.qml \
+  || fail 'Control Center is not using the Raohane notification center'
+if rg -n '^import qs\.modules\.ii\.sidebarRight' modules/raohane/RaohaneControlCenter.qml; then
+  fail 'Control Center regressed to the compatibility sidebar UI'
+fi
+
+rg -q 'RaohaneSettingsContent' modules/raohane/RaohaneSettings.qml \
+  || fail 'Settings is not using the Raohane navigation shell'
+if rg -n '^import qs\.modules\.ii\.settings$' modules/raohane/RaohaneSettings.qml; then
+  fail 'Settings regressed to the compatibility settings shell'
+fi
+rg -q 'Directories\.shellConfigPath' modules/raohane/RaohaneSettingsContent.qml \
+  || fail 'Settings no longer exposes the Raohane config path'
+rg -q 'HyprlandConfig.qml' modules/raohane/RaohaneSettingsContent.qml \
+  || fail 'Hyprland settings page is missing from Raohane settings navigation'
+if rg -n 'NiriConfig.qml' modules/raohane/RaohaneSettingsContent.qml; then
+  fail 'Non-target compositor settings leaked into Raohane settings navigation'
+fi
+if rg -n '\bjq\b' modules/raohane/RaohaneQuickControls.qml; then
+  fail 'Raohane quick controls unexpectedly depend on jq'
+fi
 
 rg -q 'ipc raohaneLauncher toggle' scripts/raohane \
   || fail 'raohane launcher is not routed to the native launcher IPC'
