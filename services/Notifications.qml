@@ -1,5 +1,6 @@
 pragma Singleton
 
+import QtQml
 import QtQuick
 import Quickshell
 import qs.modules.raohane.services
