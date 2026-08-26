@@ -38,6 +38,10 @@ Singleton {
                     ? "signal_wifi_off"
                     : "wifi_find"
 
+    function unescapeNmcli(value): string {
+        return String(value ?? "").replace(/\\:/g, ":")
+    }
+
     function refresh(): void {
         radioProbe.exec(["nmcli", "radio", "wifi"])
         deviceProbe.exec(["nmcli", "-t", "-f", "TYPE,STATE,CONNECTION", "device", "status"])
@@ -81,7 +85,7 @@ Singleton {
                     const parts = line.split(":")
                     const type = parts[0] ?? ""
                     const state = parts[1] ?? ""
-                    const connection = parts.slice(2).join(":").replaceAll("\\:", ":")
+                    const connection = root.unescapeNmcli(parts.slice(2).join(":"))
 
                     if (type === "ethernet" && state.startsWith("connected")) {
                         ethernet = true
@@ -122,7 +126,7 @@ Singleton {
 
                     const parts = line.split(":")
                     strength = Number(parts[1] ?? 0)
-                    ssid = parts.slice(2).join(":").replaceAll("\\:", ":")
+                    ssid = root.unescapeNmcli(parts.slice(2).join(":"))
                     break
                 }
 
