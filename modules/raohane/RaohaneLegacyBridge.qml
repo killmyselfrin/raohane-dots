@@ -47,8 +47,14 @@ Singleton {
             RaohaneConfig.dockPinnedApps = Array.from(Config.options.dock.pinnedApps ?? [])
         }
 
+        RaohaneConfig.barBottom = Config.options?.bar?.bottom ?? RaohaneConfig.barBottom
+        RaohaneConfig.osdTimeout = Config.options?.osd?.timeout ?? RaohaneConfig.osdTimeout
         RaohaneConfig.colorTemperature = Config.options?.light?.night?.colorTemperature ?? RaohaneConfig.colorTemperature
+        RaohaneConfig.nightLightAutomatic = Config.options?.light?.night?.automatic ?? RaohaneConfig.nightLightAutomatic
 
+        RaohaneConfig.networkCommand = Config.options?.apps?.network ?? RaohaneConfig.networkCommand
+        RaohaneConfig.networkEthernetCommand = Config.options?.apps?.networkEthernet ?? RaohaneConfig.networkEthernetCommand
+        RaohaneConfig.bluetoothCommand = Config.options?.apps?.bluetooth ?? RaohaneConfig.bluetoothCommand
         if (RaohaneConfig.taskManagerCommand.length === 0)
             RaohaneConfig.taskManagerCommand = Config.options?.apps?.taskManager ?? ""
         if (RaohaneConfig.changePasswordCommand === "passwd") {
@@ -56,6 +62,10 @@ Singleton {
             if (legacyCommand.length > 0)
                 RaohaneConfig.changePasswordCommand = legacyCommand
         }
+
+        RaohaneConfig.quickSliderBrightness = Config.options?.sidebar?.quickSliders?.showBrightness ?? RaohaneConfig.quickSliderBrightness
+        RaohaneConfig.quickSliderVolume = Config.options?.sidebar?.quickSliders?.showVolume ?? RaohaneConfig.quickSliderVolume
+        RaohaneConfig.quickSliderMic = Config.options?.sidebar?.quickSliders?.showMic ?? RaohaneConfig.quickSliderMic
 
         root.syncing = false
         root.initialized = true
@@ -89,13 +99,27 @@ Singleton {
             Config.options.dock.height = RaohaneConfig.dockHeight
             Config.options.dock.pinnedApps = RaohaneConfig.dockPinnedApps
         }
-        if (Config.options?.light?.night)
+        if (Config.options?.bar)
+            Config.options.bar.bottom = RaohaneConfig.barBottom
+        if (Config.options?.osd)
+            Config.options.osd.timeout = RaohaneConfig.osdTimeout
+        if (Config.options?.light?.night) {
             Config.options.light.night.colorTemperature = RaohaneConfig.colorTemperature
+            Config.options.light.night.automatic = RaohaneConfig.nightLightAutomatic
+        }
         if (Config.options?.apps) {
+            Config.options.apps.network = RaohaneConfig.networkCommand
+            Config.options.apps.networkEthernet = RaohaneConfig.networkEthernetCommand
+            Config.options.apps.bluetooth = RaohaneConfig.bluetoothCommand
             if (RaohaneConfig.taskManagerCommand.length > 0)
                 Config.options.apps.taskManager = RaohaneConfig.taskManagerCommand
             if (RaohaneConfig.changePasswordCommand.length > 0)
                 Config.options.apps.changePassword = RaohaneConfig.changePasswordCommand
+        }
+        if (Config.options?.sidebar?.quickSliders) {
+            Config.options.sidebar.quickSliders.showBrightness = RaohaneConfig.quickSliderBrightness
+            Config.options.sidebar.quickSliders.showVolume = RaohaneConfig.quickSliderVolume
+            Config.options.sidebar.quickSliders.showMic = RaohaneConfig.quickSliderMic
         }
 
         root.syncing = false
@@ -144,11 +168,24 @@ Singleton {
         root.syncing = false
     }
 
+    function pullLegacyShellChrome(): void {
+        if (root.syncing || !RaohaneConfig.ready)
+            return
+        root.syncing = true
+        RaohaneConfig.barBottom = Config.options?.bar?.bottom ?? false
+        RaohaneConfig.osdTimeout = Config.options?.osd?.timeout ?? 1000
+        RaohaneConfig.quickSliderBrightness = Config.options?.sidebar?.quickSliders?.showBrightness ?? true
+        RaohaneConfig.quickSliderVolume = Config.options?.sidebar?.quickSliders?.showVolume ?? true
+        RaohaneConfig.quickSliderMic = Config.options?.sidebar?.quickSliders?.showMic ?? false
+        root.syncing = false
+    }
+
     function pullLegacyDisplay(): void {
         if (root.syncing || !RaohaneConfig.ready)
             return
         root.syncing = true
         RaohaneConfig.colorTemperature = Config.options?.light?.night?.colorTemperature ?? 5000
+        RaohaneConfig.nightLightAutomatic = Config.options?.light?.night?.automatic ?? true
         root.syncing = false
     }
 
@@ -156,6 +193,9 @@ Singleton {
         if (root.syncing || !RaohaneConfig.ready)
             return
         root.syncing = true
+        RaohaneConfig.networkCommand = Config.options?.apps?.network ?? "nm-connection-editor"
+        RaohaneConfig.networkEthernetCommand = Config.options?.apps?.networkEthernet ?? "nm-connection-editor"
+        RaohaneConfig.bluetoothCommand = Config.options?.apps?.bluetooth ?? "blueman-manager"
         RaohaneConfig.taskManagerCommand = Config.options?.apps?.taskManager ?? ""
         RaohaneConfig.changePasswordCommand = Config.options?.apps?.changePassword ?? "passwd"
         root.syncing = false
@@ -197,9 +237,18 @@ Singleton {
         function onDockPinnedChanged(): void { root.pushNativeToLegacy() }
         function onDockHeightChanged(): void { root.pushNativeToLegacy() }
         function onDockPinnedAppsChanged(): void { root.pushNativeToLegacy() }
+        function onBarBottomChanged(): void { root.pushNativeToLegacy() }
+        function onOsdTimeoutChanged(): void { root.pushNativeToLegacy() }
         function onColorTemperatureChanged(): void { root.pushNativeToLegacy() }
+        function onNightLightAutomaticChanged(): void { root.pushNativeToLegacy() }
+        function onNetworkCommandChanged(): void { root.pushNativeToLegacy() }
+        function onNetworkEthernetCommandChanged(): void { root.pushNativeToLegacy() }
+        function onBluetoothCommandChanged(): void { root.pushNativeToLegacy() }
         function onTaskManagerCommandChanged(): void { root.pushNativeToLegacy() }
         function onChangePasswordCommandChanged(): void { root.pushNativeToLegacy() }
+        function onQuickSliderBrightnessChanged(): void { root.pushNativeToLegacy() }
+        function onQuickSliderVolumeChanged(): void { root.pushNativeToLegacy() }
+        function onQuickSliderMicChanged(): void { root.pushNativeToLegacy() }
     }
 
     Connections {
@@ -247,12 +296,33 @@ Singleton {
     }
 
     Connections {
+        target: Config.options?.bar ?? null
+        function onBottomChanged(): void { root.pullLegacyShellChrome() }
+    }
+
+    Connections {
+        target: Config.options?.osd ?? null
+        function onTimeoutChanged(): void { root.pullLegacyShellChrome() }
+    }
+
+    Connections {
+        target: Config.options?.sidebar?.quickSliders ?? null
+        function onShowBrightnessChanged(): void { root.pullLegacyShellChrome() }
+        function onShowVolumeChanged(): void { root.pullLegacyShellChrome() }
+        function onShowMicChanged(): void { root.pullLegacyShellChrome() }
+    }
+
+    Connections {
         target: Config.options?.light?.night ?? null
         function onColorTemperatureChanged(): void { root.pullLegacyDisplay() }
+        function onAutomaticChanged(): void { root.pullLegacyDisplay() }
     }
 
     Connections {
         target: Config.options?.apps ?? null
+        function onNetworkChanged(): void { root.pullLegacyApps() }
+        function onNetworkEthernetChanged(): void { root.pullLegacyApps() }
+        function onBluetoothChanged(): void { root.pullLegacyApps() }
         function onTaskManagerChanged(): void { root.pullLegacyApps() }
         function onChangePasswordChanged(): void { root.pullLegacyApps() }
     }
