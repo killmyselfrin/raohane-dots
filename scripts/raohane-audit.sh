@@ -134,6 +134,16 @@ rg -q '\.close\(\)' modules/raohane/RaohaneDock.qml || fail 'RaohaneDock cannot 
 rg -q 'RaohaneMedia\.' modules/raohane/RaohaneDock.qml || fail 'RaohaneDock media affordance does not use RaohaneMedia'
 rg -q 'RaohaneState\.overviewOpen' modules/raohane/RaohaneDock.qml || fail 'RaohaneDock Spaces button is not connected to native overview state'
 
+if rg -n '^import qs\.modules\.ii\.mediaControls$|component: MediaControls \{\}' panelFamilies/RaohaneFamily.qml; then
+  fail 'RaohaneFamily regressed to inherited MediaControls'
+fi
+for symbol in 'RaohaneMedia\.' 'target: "raohaneMedia"' 'target: "mediaControls"' 'name: "mediaControlsToggle"' 'name: "mediaControlsOpen"' 'name: "mediaControlsClose"'; do
+  rg -q "$symbol" modules/raohane/RaohaneMediaOverlay.qml || fail "RaohaneMediaOverlay lost required media compatibility/native contract: $symbol"
+done
+if rg -n '^import qs$|qs\.modules\.common|MprisController|\bWM\.|\bConfig\.|\bAppearance\.' modules/raohane/RaohaneMediaOverlay.qml; then
+  fail 'RaohaneMediaOverlay regressed to inherited media/common plumbing'
+fi
+
 if rg -n '^import qs\.modules\.ii\.sidebarRight' modules/raohane/RaohaneControlCenter.qml; then
   fail 'Control Center regressed to compatibility sidebar UI'
 fi
@@ -181,4 +191,4 @@ bash -n scripts/install-deps.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native desktop/overview/dock, product graph, installation and config boundaries are valid\n'
+printf 'raohane-audit: native desktop/overview/dock/media, product graph, installation and config boundaries are valid\n'
