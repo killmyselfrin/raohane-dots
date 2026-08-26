@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs
+import qs.modules.raohane.config
 import qs.modules.raohane.services
 
 Scope {
@@ -52,7 +53,7 @@ Scope {
 
     Timer {
         id: hideTimer
-        interval: Config.options.osd?.timeout ?? 1500
+        interval: RaohaneConfig.osdTimeout
         repeat: false
         onTriggered: GlobalStates.osdVolumeOpen = false
     }
@@ -94,8 +95,8 @@ Scope {
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
             anchors {
-                top: !Config.options.bar.bottom
-                bottom: Config.options.bar.bottom
+                top: !RaohaneConfig.barBottom
+                bottom: RaohaneConfig.barBottom
             }
 
             margins {
