@@ -21,7 +21,10 @@ Singleton {
     readonly property string effectiveDirectory: root.cleanPath(folderModel.folder.toString())
     property alias folderModel: folderModel
     property string searchQuery: ""
-    readonly property list<string> extensions: ["jpg", "jpeg", "png", "webp", "avif", "bmp", "svg"]
+    readonly property list<string> extensions: [
+        "jpg", "jpeg", "png", "webp", "avif", "bmp", "svg",
+        "mp4", "webm", "mkv", "mov", "avi"
+    ]
     property list<string> wallpapers: []
     property string previewPath: ""
     property string confirmedPath: RaohaneConfig.wallpaperPath
@@ -242,7 +245,12 @@ Singleton {
         property bool darkMode: true
         title: qsTr("Choose a wallpaper")
         fileMode: FileDialog.OpenFile
-        nameFilters: [qsTr("Images (*.jpg *.jpeg *.png *.webp *.avif *.bmp *.svg)"), qsTr("All files (*)")]
+        nameFilters: [
+            qsTr("Wallpapers (*.jpg *.jpeg *.png *.webp *.avif *.bmp *.svg *.mp4 *.webm *.mkv *.mov *.avi)"),
+            qsTr("Images (*.jpg *.jpeg *.png *.webp *.avif *.bmp *.svg)"),
+            qsTr("Videos (*.mp4 *.webm *.mkv *.mov *.avi)"),
+            qsTr("All files (*)")
+        ]
         onAccepted: root.apply(selectedFile.toString(), darkMode)
     }
 
