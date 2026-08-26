@@ -39,6 +39,7 @@ required_native=(
   modules/raohane/RaohaneDesktopMenu.qml
   modules/raohane/RaohaneSessionScreen.qml
   modules/raohane/services/RaohaneMedia.qml
+  modules/raohane/services/RaohaneBluetooth.qml
 )
 
 for path in "${required_native[@]}"; do
@@ -86,6 +87,16 @@ rg -q 'RaohaneMedia\.' modules/raohane/RaohaneMediaOverlay.qml \
   || fail 'Media overlay is not consuming the Raohane media service'
 if rg -n 'MprisController' modules/raohane/RaohaneContext.qml modules/raohane/RaohaneMediaOverlay.qml; then
   fail 'Active Raohane media surfaces regressed to inherited MprisController'
+fi
+
+rg -q '^singleton RaohaneBluetooth .*RaohaneBluetooth.qml$' modules/raohane/services/qmldir \
+  || fail 'RaohaneBluetooth is not registered as a Raohane service singleton'
+rg -q 'Quickshell\.Bluetooth' modules/raohane/services/RaohaneBluetooth.qml \
+  || fail 'RaohaneBluetooth is not backed directly by Quickshell Bluetooth'
+rg -q 'RaohaneBluetooth\.' modules/raohane/RaohaneQuickControls.qml \
+  || fail 'Control Center is not consuming the Raohane Bluetooth service'
+if rg -n 'BluetoothStatus|Bluetooth\.defaultAdapter' modules/raohane/RaohaneQuickControls.qml; then
+  fail 'Active Raohane controls regressed to inherited/direct Bluetooth plumbing'
 fi
 
 rg -q 'RaohaneQuickControls' modules/raohane/RaohaneControlCenter.qml \
@@ -145,8 +156,7 @@ rg -q 'ipc wallpaperSelector random' scripts/raohane \
 rg -q 'ipc session toggle' scripts/raohane \
   || fail 'raohane session is not routed to the native session IPC'
 
-# Standalone install boundary: the normal installer and doctor may only use
-# Raohane-owned manifests/scripts. Legacy migration is explicit and config-only.
+# Normal installation and diagnostics may only use Raohane-owned manifests.
 rg -q 'scripts/install-deps\.sh' install-raohane.sh \
   || fail 'main installer is not using the Raohane dependency installer'
 if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' install-raohane.sh scripts/install-deps.sh scripts/raohane; then
@@ -159,7 +169,7 @@ rg -q 'raohane/config\.json' scripts/videos/record.sh \
   || fail 'screen recorder is not reading the Raohane config namespace'
 
 if rg -n 'GlobalStates\.raohane[A-Za-z0-9_]+' modules/raohane panelFamilies/RaohaneFamily.qml; then
-  fail 'Raohane-owned state leaked back into upstream-refreshed GlobalStates'
+  fail 'Raohane-owned state leaked back into migration-owned GlobalStates'
 fi
 
 if rg -n -i 'inir|niri|waffle|ricelin' modules/raohane shell.qml panelFamilies/RaohaneFamily.qml; then
@@ -175,8 +185,6 @@ bash -n scripts/raohane
 bash -n scripts/raohane-audit.sh
 bash -n scripts/install-deps.sh
 bash -n scripts/videos/record.sh
-bash -n scripts/sync-end4-foundation.sh
-bash -n scripts/install-foundation-deps.sh
 bash -n install-raohane.sh
 
 printf 'raohane-audit: standalone boundaries and primary QML graph are structurally valid\n'
