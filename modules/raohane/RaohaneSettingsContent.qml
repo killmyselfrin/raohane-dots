@@ -17,6 +17,7 @@ Item {
     readonly property bool compactNav: width < 860
 
     readonly property var pages: [
+        { name: qsTr("Home"), icon: "space_dashboard", source: Qt.resolvedUrl("RaohaneSettingsHome.qml") },
         { name: qsTr("Quick"), icon: "instant_mix", source: Qt.resolvedUrl("../ii/settings/pages/QuickConfig.qml") },
         { name: qsTr("General"), icon: "browse", source: Qt.resolvedUrl("../ii/settings/pages/GeneralConfig.qml") },
         { name: qsTr("Bar"), icon: "toast", source: Qt.resolvedUrl("../ii/settings/pages/BarConfig.qml") },
