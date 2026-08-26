@@ -30,6 +30,7 @@ require_service RaohaneBluetooth 'Quickshell\.Bluetooth'
 require_service RaohaneAudio 'Quickshell\.Services\.Pipewire'
 require_service RaohaneNetwork '\bnmcli\b'
 require_service RaohaneDisplay 'brightnessctl|ddcutil|hyprsunset'
+require_service RaohaneNotifications 'Quickshell\.Services\.Notifications'
 
 rg -q 'RaohaneMedia\.' modules/raohane/RaohaneContext.qml \
   || fail 'RaohaneContext does not consume RaohaneMedia'
@@ -67,4 +68,17 @@ if rg -n '\bBrightness\.|\bHyprsunset\.' modules/raohane/RaohaneQuickControls.qm
   fail 'active Raohane display surfaces use inherited Brightness/Hyprsunset services'
 fi
 
-printf 'raohane-service-audit: media, Bluetooth, audio, network and display boundaries are native\n'
+for surface in RaohaneNotificationCenter.qml RaohaneNotificationPopup.qml RaohaneNotificationCard.qml; do
+  rg -q 'RaohaneNotifications\.' "modules/raohane/$surface" \
+    || fail "$surface does not consume RaohaneNotifications"
+done
+if rg -n '\bNotifications\.' modules/raohane/RaohaneNotificationCenter.qml modules/raohane/RaohaneNotificationPopup.qml modules/raohane/RaohaneNotificationCard.qml; then
+  fail 'active Raohane notification UI uses inherited Notifications service'
+fi
+rg -q 'RaohaneNotifications' services/Notifications.qml \
+  || fail 'compatibility Notifications facade is not routed to RaohaneNotifications'
+if rg -n 'NotificationServer[[:space:]]*\{' services/Notifications.qml; then
+  fail 'compatibility Notifications service owns a second NotificationServer'
+fi
+
+printf 'raohane-service-audit: media, Bluetooth, audio, network, display and notification boundaries are native\n'
