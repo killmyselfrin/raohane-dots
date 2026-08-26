@@ -7,14 +7,16 @@ import QtQuick.Dialogs
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
-
-import qs
+import qs.modules.raohane.config
 
 Singleton {
     id: root
 
     readonly property string picturesPath: root.cleanPath(StandardPaths.standardLocations(StandardPaths.PicturesLocation)[0] ?? "")
-    readonly property string defaultFolderPath: picturesPath.length > 0 ? `${picturesPath}/Wallpapers` : ""
+    readonly property string fallbackFolderPath: picturesPath.length > 0 ? `${picturesPath}/Wallpapers` : ""
+    readonly property string defaultFolderPath: RaohaneConfig.wallpaperDirectory.length > 0
+        ? RaohaneConfig.wallpaperDirectory
+        : root.fallbackFolderPath
     property alias directory: folderModel.folder
     readonly property string effectiveDirectory: root.cleanPath(folderModel.folder.toString())
     property alias folderModel: folderModel
@@ -22,7 +24,7 @@ Singleton {
     readonly property list<string> extensions: ["jpg", "jpeg", "png", "webp", "avif", "bmp", "svg"]
     property list<string> wallpapers: []
     property string previewPath: ""
-    property string confirmedPath: ""
+    property string confirmedPath: RaohaneConfig.wallpaperPath
 
     property list<url> folderHistory: []
     property int currentFolderHistoryIndex: -1
@@ -76,8 +78,7 @@ Singleton {
             return
 
         root.confirmedPath = clean
-        if (Config?.options?.background)
-            Config.options.background.wallpaperPath = clean
+        RaohaneConfig.wallpaperPath = clean
         root.changed()
     }
 
@@ -170,8 +171,10 @@ Singleton {
         id: directoryProbe
         property string pathToCheck: ""
         onExited: (exitCode, exitStatus) => {
-            if (exitCode === 0)
+            if (exitCode === 0) {
                 folderModel.folder = Qt.resolvedUrl(directoryProbe.pathToCheck)
+                RaohaneConfig.wallpaperDirectory = directoryProbe.pathToCheck
+            }
         }
     }
 
@@ -214,6 +217,9 @@ Singleton {
             } else {
                 root.pushHistory(folder)
             }
+            const clean = root.cleanPath(folder.toString())
+            if (clean.length > 0 && clean !== RaohaneConfig.wallpaperDirectory)
+                RaohaneConfig.wallpaperDirectory = clean
         }
 
         onCountChanged: root.rebuildWallpaperList()
@@ -259,6 +265,18 @@ Singleton {
         }
 
         onExited: (exitCode, exitStatus) => root.thumbnailGenerated(thumbnailProcess.directory)
+    }
+
+    Connections {
+        target: RaohaneConfig
+        function onWallpaperPathChanged(): void {
+            root.confirmedPath = RaohaneConfig.wallpaperPath
+        }
+        function onWallpaperDirectoryChanged(): void {
+            const configured = RaohaneConfig.wallpaperDirectory
+            if (configured.length > 0 && root.cleanPath(folderModel.folder.toString()) !== configured)
+                root.setDirectory(configured)
+        }
     }
 
     IpcHandler {
