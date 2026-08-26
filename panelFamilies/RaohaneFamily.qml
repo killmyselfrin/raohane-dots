@@ -3,7 +3,7 @@ import Quickshell
 
 import qs.modules.common
 import qs.modules.raohane
-import qs.modules.ii.dock
+import qs.modules.raohane.config
 import qs.modules.ii.lock
 import qs.modules.ii.mediaControls
 import qs.modules.ii.onScreenKeyboard
@@ -23,8 +23,6 @@ Scope {
     Component.onCompleted: {
         RaohaneLegacyBridge.load()
 
-        if (Config.options?.dock)
-            Config.options.dock.showMedia = false
         if (Config.options?.sidebar)
             Config.options.sidebar.mediaPlayer = false
     }
@@ -32,7 +30,7 @@ Scope {
     PanelLoader { component: RaohaneBackground {} }
     PanelLoader { component: RaohaneDesktopCanvas {} }
     PanelLoader { extraCondition: !Config.options.bar.vertical; component: RaohaneBar {} }
-    PanelLoader { extraCondition: Config.options.dock.enable; component: Dock {} }
+    PanelLoader { extraCondition: RaohaneConfig.dockEnabled; component: RaohaneDock {} }
     PanelLoader { component: Lock {} }
     PanelLoader { component: MediaControls {} }
     PanelLoader { component: RaohaneNotificationPopup {} }
