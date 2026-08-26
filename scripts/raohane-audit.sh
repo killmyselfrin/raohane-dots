@@ -155,7 +155,7 @@ fi
 if rg -n -i 'illogical-impulse|\bniri\b' scripts/videos/record.sh; then
   fail 'screen recorder still contains a legacy shell/compositor dependency'
 fi
-rg -q 'config/raohane/config\.json' scripts/videos/record.sh \
+rg -q 'raohane/config\.json' scripts/videos/record.sh \
   || fail 'screen recorder is not reading the Raohane config namespace'
 
 if rg -n 'GlobalStates\.raohane[A-Za-z0-9_]+' modules/raohane panelFamilies/RaohaneFamily.qml; then
