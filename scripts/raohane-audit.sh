@@ -32,6 +32,8 @@ required_native=(
   modules/raohane/RaohaneMediaOverlay.qml
   modules/raohane/RaohaneOsd.qml
   modules/raohane/RaohaneNotificationPopup.qml
+  modules/raohane/RaohaneWallpaperSelector.qml
+  modules/raohane/RaohaneDesktopMenu.qml
 )
 
 for path in "${required_native[@]}"; do
@@ -59,7 +61,7 @@ while IFS= read -r import_line; do
   [[ -d "$module_path" ]] || fail "unresolved local module $import_path"
 done < <(rg -o --no-filename '^import qs\.[A-Za-z0-9_.]+$' shell.qml modules/raohane | sort -u || true)
 
-for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup; do
+for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup RaohaneWallpaperSelector RaohaneDesktopMenu; do
   rg -q "component: ${surface} \{\}" panelFamilies/RaohaneFamily.qml \
     || fail "RaohaneFamily does not load $surface"
 done
@@ -93,6 +95,18 @@ if rg -n 'NiriConfig.qml' modules/raohane/RaohaneSettingsContent.qml; then
 fi
 if rg -n '\bjq\b' modules/raohane/RaohaneQuickControls.qml; then
   fail 'Raohane quick controls unexpectedly depend on jq'
+fi
+
+rg -q 'target: "wallpaperSelector"' modules/raohane/RaohaneWallpaperSelector.qml \
+  || fail 'Native wallpaper selector did not preserve the wallpaperSelector IPC target'
+rg -q 'Wallpapers\.randomFromCurrentFolder' modules/raohane/RaohaneWallpaperSelector.qml \
+  || fail 'Native wallpaper selector lost random wallpaper support'
+rg -q 'GlobalStates\.wallpaperSelectorTarget' modules/raohane/RaohaneWallpaperSelector.qml \
+  || fail 'Native wallpaper selector lost desktop/lock target handling'
+rg -q 'target: "raohaneDesktop"' modules/raohane/RaohaneDesktopMenu.qml \
+  || fail 'Native desktop menu IPC is missing'
+if rg -n '^import qs\.modules\.ii\.(wallpaperSelector|desktopMenu)' panelFamilies/RaohaneFamily.qml; then
+  fail 'RaohaneFamily regressed to compatibility desktop entry points'
 fi
 
 rg -q 'ipc raohaneLauncher toggle' scripts/raohane \
