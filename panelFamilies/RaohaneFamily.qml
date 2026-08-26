@@ -31,8 +31,8 @@ import qs.modules.ii.frame
 // replaced here one at a time with Raohane-native implementations.
 Scope {
     Component.onCompleted: {
-        // Keep a single canonical media surface. The bottom dock player and
-        // right-sidebar player duplicate the top Context Island/MPRIS state.
+        // Keep the permanent dock/sidebar media widgets disabled. The mature
+        // media backend remains available while Raohane-owned surfaces migrate.
         if (Config.options?.dock)
             Config.options.dock.showMedia = false
         if (Config.options?.sidebar)
@@ -56,9 +56,10 @@ Scope {
     PanelLoader { component: SessionScreen {} }
     PanelLoader { component: SidebarLeft {} }
 
-    // First Raohane-owned daily-driver surfaces.
+    // Raohane-owned daily-driver surfaces.
     PanelLoader { component: RaohaneControlCenter {} }
     PanelLoader { component: RaohaneSettings {} }
+    PanelLoader { component: RaohaneMediaOverlay {} }
 
     PanelLoader { extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
     PanelLoader { component: WallpaperSelector {} }
