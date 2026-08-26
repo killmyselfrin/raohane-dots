@@ -14,6 +14,7 @@ Singleton {
     property bool sidebarLeftOpen: false
     property bool sidebarRightOpen: false
     property bool mediaControlsOpen: false
+    property bool raohaneMediaOverlayOpen: false
     property bool osdBrightnessOpen: false
     property bool settingsOpen: false
     property bool osdVolumeOpen: false
@@ -51,6 +52,7 @@ Singleton {
         { displayName: Translation.tr("Overview Launcher"),               value: "overviewOpen" },
         { displayName: Translation.tr("Wallpaper Selector"),     value: "wallpaperSelectorOpen" },
         { displayName: Translation.tr("Media Controls"),         value: "mediaControlsOpen" },
+        { displayName: "Raohane Media Overlay",                   value: "raohaneMediaOverlayOpen" },
         { displayName: Translation.tr("Overlay"),                value: "overlayOpen" },
         { displayName: Translation.tr("ScreenShot Region"),        value: "regionSelectorOpen" },
         { displayName: Translation.tr("Screen Translator"),      value: "screenTranslatorOpen" },
