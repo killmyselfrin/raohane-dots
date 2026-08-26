@@ -1,8 +1,7 @@
 pragma Singleton
 
 import Quickshell
-
-import qs
+import qs.modules.raohane.config
 
 Singleton {
     id: root
@@ -22,8 +21,7 @@ Singleton {
     }
 
     function changePassword(): void {
-        const command = Config?.options?.apps?.changePassword ?? "passwd"
-        root.runShell(command)
+        root.runShell(RaohaneConfig.changePasswordCommand || "passwd")
     }
 
     function lock(): void {
@@ -39,7 +37,7 @@ Singleton {
     }
 
     function launchTaskManager(): void {
-        const configured = Config?.options?.apps?.taskManager ?? ""
+        const configured = RaohaneConfig.taskManagerCommand
         if (configured.trim().length > 0) {
             root.runShell(configured)
             return
