@@ -149,35 +149,23 @@ Item {
                 ControlSlider {
                     Layout.fillWidth: true
                     visible: Config.options.sidebar.quickSliders.showVolume
-                    icon: Audio.sink?.audio?.muted ? "volume_off" : "volume_up"
+                    icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
                     title: qsTr("Volume")
-                    displayText: Math.round((Audio.sink?.audio?.volume ?? 0) * 100) + "%"
-                    liveValue: Audio.sink?.audio?.volume ?? 0
-                    onValueChangedByUser: value => {
-                        if (Audio.sink?.audio)
-                            Audio.sink.audio.volume = value
-                    }
-                    onIconTriggered: {
-                        if (Audio.sink?.audio)
-                            Audio.sink.audio.muted = !Audio.sink.audio.muted
-                    }
+                    displayText: Math.round(RaohaneAudio.volume * 100) + "%"
+                    liveValue: RaohaneAudio.volume
+                    onValueChangedByUser: value => RaohaneAudio.setVolume(value)
+                    onIconTriggered: RaohaneAudio.toggleMute()
                 }
 
                 ControlSlider {
                     Layout.fillWidth: true
                     visible: Config.options.sidebar.quickSliders.showMic
-                    icon: Audio.source?.audio?.muted ? "mic_off" : "mic"
+                    icon: RaohaneAudio.microphoneMuted ? "mic_off" : "mic"
                     title: qsTr("Microphone")
-                    displayText: Math.round((Audio.source?.audio?.volume ?? 0) * 100) + "%"
-                    liveValue: Audio.source?.audio?.volume ?? 0
-                    onValueChangedByUser: value => {
-                        if (Audio.source?.audio)
-                            Audio.source.audio.volume = value
-                    }
-                    onIconTriggered: {
-                        if (Audio.source?.audio)
-                            Audio.source.audio.muted = !Audio.source.audio.muted
-                    }
+                    displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
+                    liveValue: RaohaneAudio.microphoneVolume
+                    onValueChangedByUser: value => RaohaneAudio.setMicrophoneVolume(value)
+                    onIconTriggered: RaohaneAudio.toggleMicrophoneMute()
                 }
             }
         }
