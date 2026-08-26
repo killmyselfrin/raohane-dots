@@ -12,7 +12,8 @@ Usage: raohane <command> [args]
 
 Shell:
   run | start | stop | restart | status | logs
-  launcher | control | settings | media
+  launcher | control | settings | media | desktop
+  wallpaper [toggle|random]
 
 Diagnostics:
   doctor [all|graphics|deps|services]
@@ -110,6 +111,16 @@ case "${1:-help}" in
     ;;
   media)
     ipc raohaneMedia toggle
+    ;;
+  desktop)
+    ipc raohaneDesktop toggle
+    ;;
+  wallpaper)
+    case "${2:-toggle}" in
+      toggle) ipc wallpaperSelector toggle ;;
+      random) ipc wallpaperSelector random ;;
+      *) echo "Unknown wallpaper command: ${2:-}" >&2; exit 2 ;;
+    esac
     ;;
   doctor)
     case "${2:-all}" in
