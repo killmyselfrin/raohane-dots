@@ -28,6 +28,7 @@ required_native=(
   modules/raohane/RaohaneNotificationCenter.qml
   modules/raohane/RaohaneSettings.qml
   modules/raohane/RaohaneSettingsContent.qml
+  modules/raohane/RaohaneSettingsHome.qml
   modules/raohane/RaohaneMediaOverlay.qml
   modules/raohane/RaohaneOsd.qml
   modules/raohane/RaohaneNotificationPopup.qml
@@ -78,6 +79,8 @@ fi
 
 rg -q 'RaohaneSettingsContent' modules/raohane/RaohaneSettings.qml \
   || fail 'Settings is not using the Raohane navigation shell'
+rg -q 'RaohaneSettingsHome.qml' modules/raohane/RaohaneSettingsContent.qml \
+  || fail 'Settings Control Deck is not the Raohane landing page'
 if rg -n '^import qs\.modules\.ii\.settings$' modules/raohane/RaohaneSettings.qml; then
   fail 'Settings regressed to the compatibility settings shell'
 fi
