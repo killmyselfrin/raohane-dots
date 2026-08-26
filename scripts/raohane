@@ -12,7 +12,7 @@ Usage: raohane <command> [args]
 
 Shell:
   run | start | stop | restart | status | logs
-  launcher | control | settings | media | desktop
+  launcher | control | settings | media | desktop | session
   wallpaper [toggle|random]
 
 Diagnostics:
@@ -114,6 +114,9 @@ case "${1:-help}" in
     ;;
   desktop)
     ipc raohaneDesktop toggle
+    ;;
+  session)
+    ipc session toggle
     ;;
   wallpaper)
     case "${2:-toggle}" in
