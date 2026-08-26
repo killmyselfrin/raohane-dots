@@ -18,9 +18,17 @@ Modes:
   --full      Install required packages plus Raohane desktop features (default).
 
 Actions:
-  --check     Report missing packages without installing anything.
-  --print     Print the resolved package list and exit.
+  --check     Report missing requirements without installing anything.
+  --print     Print the currently resolved provider for each requirement.
   -h, --help  Show this help.
+
+Manifest syntax:
+  package-a
+  package-a|package-b
+
+For an alternative requirement, any already-installed provider satisfies it.
+If none is installed, the first provider is the preferred official-repository
+package installed by Raohane.
 
 This installer uses only Raohane-owned manifests and the distribution package
 manager. It never clones or executes another shell repository and never changes
@@ -65,37 +73,106 @@ read_manifest() {
   sed -E 's/[[:space:]]*#.*$//' "$file" | awk 'NF { print $1 }'
 }
 
-packages=()
-while IFS= read -r package; do packages+=("$package"); done < <(read_manifest "$MANIFEST_DIR/required.txt")
+preferred_provider() {
+  local requirement="$1"
+  printf '%s\n' "${requirement%%|*}"
+}
+
+installed_provider() {
+  local requirement="$1"
+  local provider
+  local -a providers=()
+  IFS='|' read -r -a providers <<< "$requirement"
+
+  for provider in "${providers[@]}"; do
+    if pacman -Qq "$provider" >/dev/null 2>&1; then
+      printf '%s\n' "$provider"
+      return 0
+    fi
+  done
+  return 1
+}
+
+requirement_label() {
+  local requirement="$1"
+  printf '%s\n' "${requirement//|/ or }"
+}
+
+requirements=()
+while IFS= read -r requirement; do requirements+=("$requirement"); done < <(read_manifest "$MANIFEST_DIR/required.txt")
 if [[ "$MODE" == "full" ]]; then
-  while IFS= read -r package; do packages+=("$package"); done < <(read_manifest "$MANIFEST_DIR/features.txt")
+  while IFS= read -r requirement; do requirements+=("$requirement"); done < <(read_manifest "$MANIFEST_DIR/features.txt")
 fi
 
-mapfile -t packages < <(printf '%s\n' "${packages[@]}" | awk '!seen[$0]++')
+mapfile -t requirements < <(printf '%s\n' "${requirements[@]}" | awk '!seen[$0]++')
 
 case "$ACTION" in
   print)
-    printf '%s\n' "${packages[@]}"
+    for requirement in "${requirements[@]}"; do
+      if provider="$(installed_provider "$requirement")"; then
+        printf '%s\n' "$provider"
+      else
+        preferred_provider "$requirement"
+      fi
+    done
     exit 0
     ;;
+
   check)
     missing=()
-    for package in "${packages[@]}"; do
-      pacman -Qq "$package" >/dev/null 2>&1 || missing+=("$package")
+    for requirement in "${requirements[@]}"; do
+      installed_provider "$requirement" >/dev/null || missing+=("$requirement")
     done
+
     if ((${#missing[@]} == 0)); then
-      echo "[Raohane] All $MODE manifest packages are installed."
+      echo "[Raohane] All $MODE dependency requirements are satisfied."
       exit 0
     fi
-    echo "[Raohane] Missing $MODE packages:"
-    printf '  - %s\n' "${missing[@]}"
+
+    echo "[Raohane] Missing $MODE requirements:"
+    for requirement in "${missing[@]}"; do
+      printf '  - %s\n' "$(requirement_label "$requirement")"
+    done
     exit 1
     ;;
+
   install)
-    echo "[Raohane] Installing standalone $MODE dependency set (${#packages[@]} packages)."
+    missing=()
+    install_packages=()
+
+    for requirement in "${requirements[@]}"; do
+      if ! installed_provider "$requirement" >/dev/null; then
+        missing+=("$requirement")
+        install_packages+=("$(preferred_provider "$requirement")")
+      fi
+    done
+
+    echo "[Raohane] Resolving standalone $MODE dependency set (${#requirements[@]} requirements)."
     echo '[Raohane] Source: install/arch/*.txt in this repository.'
+    echo '[Raohane] Existing compatible providers are preserved.'
     echo '[Raohane] GPU drivers are not selected or replaced.'
-    sudo pacman -S --needed -- "${packages[@]}"
+
+    if ((${#install_packages[@]} == 0)); then
+      echo '[Raohane] All dependency requirements are already satisfied.'
+    else
+      echo "[Raohane] Installing ${#install_packages[@]} missing package(s):"
+      printf '  - %s\n' "${install_packages[@]}"
+      sudo pacman -S --needed -- "${install_packages[@]}"
+    fi
+
+    unresolved=()
+    for requirement in "${requirements[@]}"; do
+      installed_provider "$requirement" >/dev/null || unresolved+=("$requirement")
+    done
+
+    if ((${#unresolved[@]} > 0)); then
+      echo '[Raohane] Dependency verification failed for:' >&2
+      for requirement in "${unresolved[@]}"; do
+        printf '  - %s\n' "$(requirement_label "$requirement")" >&2
+      done
+      exit 1
+    fi
+
     echo
     echo '[Raohane] Dependency installation complete.'
     echo '[Raohane] Run: raohane doctor deps'
