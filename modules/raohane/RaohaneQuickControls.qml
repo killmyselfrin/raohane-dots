@@ -6,9 +6,8 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 
-import qs
 import qs.services
-import qs.modules.common.widgets
+import qs.modules.raohane.config
 import qs.modules.raohane.services
 
 Item {
@@ -46,7 +45,7 @@ Item {
                 active: RaohaneNetwork.wifiStatus !== "disabled"
                 onPrimary: RaohaneNetwork.toggleWifi()
                 onSecondary: {
-                    const command = RaohaneNetwork.ethernet ? Config.options.apps.networkEthernet : Config.options.apps.network
+                    const command = RaohaneNetwork.ethernet ? RaohaneConfig.networkEthernetCommand : RaohaneConfig.networkCommand
                     if (command && command.length > 0)
                         Quickshell.execDetached(["bash", "-c", command])
                 }
@@ -64,7 +63,7 @@ Item {
                 active: RaohaneBluetooth.enabled
                 onPrimary: RaohaneBluetooth.toggle()
                 onSecondary: {
-                    const command = Config.options.apps.bluetooth
+                    const command = RaohaneConfig.bluetoothCommand
                     if (command && command.length > 0)
                         Quickshell.execDetached(["bash", "-c", command])
                 }
@@ -72,12 +71,12 @@ Item {
 
             QuickTile {
                 Layout.fillWidth: true
-                icon: Config.options.light.night.automatic ? "night_sight_auto" : "bedtime"
+                icon: RaohaneConfig.nightLightAutomatic ? "night_sight_auto" : "bedtime"
                 title: qsTr("Night Light")
-                subtitle: Config.options.light.night.automatic ? qsTr("Automatic") : qsTr("Manual")
+                subtitle: RaohaneConfig.nightLightAutomatic ? qsTr("Automatic") : qsTr("Manual")
                 active: RaohaneDisplay.temperatureActive
                 onPrimary: RaohaneDisplay.toggleTemperature()
-                onSecondary: Config.options.light.night.automatic = !Config.options.light.night.automatic
+                onSecondary: RaohaneConfig.nightLightAutomatic = !RaohaneConfig.nightLightAutomatic
             }
 
             QuickTile {
@@ -131,7 +130,7 @@ Item {
 
                 ControlSlider {
                     Layout.fillWidth: true
-                    visible: Config.options.sidebar.quickSliders.showBrightness
+                    visible: RaohaneConfig.quickSliderBrightness
                     icon: RaohaneDisplay.gamma === 100 ? "brightness_medium" : "wb_twilight"
                     title: RaohaneDisplay.gamma === 100 ? qsTr("Brightness") : qsTr("Gamma")
                     displayText: RaohaneDisplay.gamma === 100
@@ -143,7 +142,7 @@ Item {
 
                 ControlSlider {
                     Layout.fillWidth: true
-                    visible: Config.options.sidebar.quickSliders.showVolume
+                    visible: RaohaneConfig.quickSliderVolume
                     icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
                     title: qsTr("Volume")
                     displayText: Math.round(RaohaneAudio.volume * 100) + "%"
@@ -154,7 +153,7 @@ Item {
 
                 ControlSlider {
                     Layout.fillWidth: true
-                    visible: Config.options.sidebar.quickSliders.showMic
+                    visible: RaohaneConfig.quickSliderMic
                     icon: RaohaneAudio.microphoneMuted ? "mic_off" : "mic"
                     title: qsTr("Microphone")
                     displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
@@ -223,7 +222,7 @@ Item {
                 radius: 11
                 color: tile.active ? "#30ffffff" : "#18ffffff"
 
-                MaterialSymbol {
+                RaohaneIcon {
                     anchors.centerIn: parent
                     text: tile.icon
                     iconSize: 18
@@ -300,7 +299,7 @@ Item {
                 border.width: 1
                 border.color: iconMouse.containsMouse ? RaohaneTheme.accent : "transparent"
 
-                MaterialSymbol {
+                RaohaneIcon {
                     anchors.centerIn: parent
                     text: control.icon
                     iconSize: 17
