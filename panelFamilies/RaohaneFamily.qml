@@ -57,6 +57,7 @@ Scope {
     PanelLoader { component: SidebarLeft {} }
 
     // Raohane-owned daily-driver surfaces.
+    PanelLoader { component: RaohaneLauncher {} }
     PanelLoader { component: RaohaneControlCenter {} }
     PanelLoader { component: RaohaneSettings {} }
     PanelLoader { component: RaohaneMediaOverlay {} }
