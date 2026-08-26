@@ -4,7 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Services.Pipewire
 
-QtObject {
+Item {
     id: root
 
     readonly property var streamNodes: Pipewire.nodes.values.filter(node => node.isStream)
