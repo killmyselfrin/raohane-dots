@@ -9,3 +9,4 @@ singleton RaohaneWallpapers 1.0 RaohaneWallpapers.qml
 singleton RaohaneSession 1.0 RaohaneSession.qml
 singleton RaohaneSessionWarnings 1.0 RaohaneSessionWarnings.qml
 singleton RaohaneSystemInfo 1.0 RaohaneSystemInfo.qml
+singleton RaohaneSearch 1.0 RaohaneSearch.qml
