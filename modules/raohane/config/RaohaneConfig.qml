@@ -9,7 +9,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 3
+    readonly property int schemaVersion: 4
     readonly property string configDirectory: root.cleanPath(StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0] ?? "") + "/raohane"
     readonly property string filePath: configDirectory + "/native.json"
 
@@ -30,6 +30,15 @@ Singleton {
 
     property int overviewWorkspaceCount: 6
     property int overviewColumns: 3
+
+    property bool dockEnabled: true
+    property bool dockAutoHide: true
+    property bool dockPinned: false
+    property bool dockExclusiveZone: false
+    property int dockHeight: 68
+    property int dockIconSize: 42
+    property int dockBottomMargin: 9
+    property var dockPinnedApps: []
 
     property int colorTemperature: 5000
 
@@ -75,6 +84,16 @@ Singleton {
                 workspaceCount: root.overviewWorkspaceCount,
                 columns: root.overviewColumns
             },
+            dock: {
+                enabled: root.dockEnabled,
+                autoHide: root.dockAutoHide,
+                pinned: root.dockPinned,
+                exclusiveZone: root.dockExclusiveZone,
+                height: root.dockHeight,
+                iconSize: root.dockIconSize,
+                bottomMargin: root.dockBottomMargin,
+                pinnedApps: root.dockPinnedApps
+            },
             display: {
                 colorTemperature: root.colorTemperature
             },
@@ -100,6 +119,7 @@ Singleton {
 
         const wallpaper = document?.wallpaper ?? {}
         const overview = document?.overview ?? {}
+        const dock = document?.dock ?? {}
         const display = document?.display ?? {}
         const apps = document?.apps ?? {}
         const features = document?.features ?? {}
@@ -117,6 +137,15 @@ Singleton {
 
         root.assignIfPresent(overview, "workspaceCount", value => root.overviewWorkspaceCount = Math.max(2, Math.min(12, Number(value) || 6)))
         root.assignIfPresent(overview, "columns", value => root.overviewColumns = Math.max(1, Math.min(4, Number(value) || 3)))
+
+        root.assignIfPresent(dock, "enabled", value => root.dockEnabled = Boolean(value))
+        root.assignIfPresent(dock, "autoHide", value => root.dockAutoHide = Boolean(value))
+        root.assignIfPresent(dock, "pinned", value => root.dockPinned = Boolean(value))
+        root.assignIfPresent(dock, "exclusiveZone", value => root.dockExclusiveZone = Boolean(value))
+        root.assignIfPresent(dock, "height", value => root.dockHeight = Math.max(48, Math.min(120, Number(value) || 68)))
+        root.assignIfPresent(dock, "iconSize", value => root.dockIconSize = Math.max(26, Math.min(72, Number(value) || 42)))
+        root.assignIfPresent(dock, "bottomMargin", value => root.dockBottomMargin = Math.max(0, Math.min(40, Number(value) || 0)))
+        root.assignIfPresent(dock, "pinnedApps", value => root.dockPinnedApps = Array.isArray(value) ? value.map(item => String(item)) : [])
 
         root.assignIfPresent(display, "colorTemperature", value => root.colorTemperature = Math.max(1000, Math.min(10000, Number(value) || 5000)))
 
@@ -170,6 +199,14 @@ Singleton {
     onLockWallpaperDimChanged: scheduleSave()
     onOverviewWorkspaceCountChanged: scheduleSave()
     onOverviewColumnsChanged: scheduleSave()
+    onDockEnabledChanged: scheduleSave()
+    onDockAutoHideChanged: scheduleSave()
+    onDockPinnedChanged: scheduleSave()
+    onDockExclusiveZoneChanged: scheduleSave()
+    onDockHeightChanged: scheduleSave()
+    onDockIconSizeChanged: scheduleSave()
+    onDockBottomMarginChanged: scheduleSave()
+    onDockPinnedAppsChanged: scheduleSave()
     onColorTemperatureChanged: scheduleSave()
     onTaskManagerCommandChanged: scheduleSave()
     onChangePasswordCommandChanged: scheduleSave()
