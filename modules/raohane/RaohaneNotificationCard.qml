@@ -5,8 +5,8 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 
-import qs.services
 import qs.modules.common.widgets
+import qs.modules.raohane.services
 
 Rectangle {
     id: root
@@ -116,7 +116,7 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Notifications.discardNotification(root.notification.notificationId)
+                    onClicked: RaohaneNotifications.discardNotification(root.notification.notificationId)
                 }
             }
         }
@@ -168,7 +168,7 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: Notifications.attemptInvokeAction(
+                        onClicked: RaohaneNotifications.attemptInvokeAction(
                             root.notification.notificationId,
                             actionButton.modelData.identifier
                         )
