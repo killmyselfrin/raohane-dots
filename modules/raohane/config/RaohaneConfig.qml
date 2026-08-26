@@ -9,7 +9,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 1
+    readonly property int schemaVersion: 2
     readonly property string configDirectory: root.cleanPath(StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0] ?? "") + "/raohane"
     readonly property string filePath: configDirectory + "/native.json"
 
@@ -23,6 +23,10 @@ Singleton {
     property bool wallpaperPreview: true
     property int wallpaperColumns: 4
     property int wallpaperChangeInterval: 0
+    property bool wallpaperHideWhenFullscreen: true
+    property int wallpaperTransitionDuration: 650
+    property real wallpaperDim: 0.06
+    property real lockWallpaperDim: 0.28
 
     property int colorTemperature: 5000
 
@@ -58,7 +62,11 @@ Singleton {
                 directory: root.wallpaperDirectory,
                 preview: root.wallpaperPreview,
                 columns: root.wallpaperColumns,
-                changeInterval: root.wallpaperChangeInterval
+                changeInterval: root.wallpaperChangeInterval,
+                hideWhenFullscreen: root.wallpaperHideWhenFullscreen,
+                transitionDuration: root.wallpaperTransitionDuration,
+                dim: root.wallpaperDim,
+                lockDim: root.lockWallpaperDim
             },
             display: {
                 colorTemperature: root.colorTemperature
@@ -94,6 +102,10 @@ Singleton {
         root.assignIfPresent(wallpaper, "preview", value => root.wallpaperPreview = Boolean(value))
         root.assignIfPresent(wallpaper, "columns", value => root.wallpaperColumns = Math.max(2, Math.min(8, Number(value) || 4)))
         root.assignIfPresent(wallpaper, "changeInterval", value => root.wallpaperChangeInterval = Math.max(0, Number(value) || 0))
+        root.assignIfPresent(wallpaper, "hideWhenFullscreen", value => root.wallpaperHideWhenFullscreen = Boolean(value))
+        root.assignIfPresent(wallpaper, "transitionDuration", value => root.wallpaperTransitionDuration = Math.max(0, Math.min(3000, Number(value) || 650)))
+        root.assignIfPresent(wallpaper, "dim", value => root.wallpaperDim = Math.max(0, Math.min(0.8, Number(value) || 0)))
+        root.assignIfPresent(wallpaper, "lockDim", value => root.lockWallpaperDim = Math.max(0, Math.min(0.9, Number(value) || 0)))
 
         root.assignIfPresent(display, "colorTemperature", value => root.colorTemperature = Math.max(1000, Math.min(10000, Number(value) || 5000)))
 
@@ -141,6 +153,10 @@ Singleton {
     onWallpaperPreviewChanged: scheduleSave()
     onWallpaperColumnsChanged: scheduleSave()
     onWallpaperChangeIntervalChanged: scheduleSave()
+    onWallpaperHideWhenFullscreenChanged: scheduleSave()
+    onWallpaperTransitionDurationChanged: scheduleSave()
+    onWallpaperDimChanged: scheduleSave()
+    onLockWallpaperDimChanged: scheduleSave()
     onColorTemperatureChanged: scheduleSave()
     onTaskManagerCommandChanged: scheduleSave()
     onChangePasswordCommandChanged: scheduleSave()
