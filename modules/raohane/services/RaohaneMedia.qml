@@ -2,6 +2,7 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQml
 import QtQml.Models
 import Quickshell
 import Quickshell.Io
@@ -36,9 +37,6 @@ Singleton {
         if (bus.startsWith("org.mpris.MediaPlayer2.playerctld"))
             return false
 
-        // Ignore the non-instance MPD compatibility bus when an instance bus is
-        // available. This prevents a common duplicate without depending on any
-        // external shell configuration.
         if (bus.endsWith(".mpd") && !bus.endsWith("MediaPlayer2.mpd"))
             return false
 
