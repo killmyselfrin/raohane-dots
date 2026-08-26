@@ -1,0 +1,2 @@
+module qs.modules.raohane.services
+singleton RaohaneMedia 1.0 RaohaneMedia.qml
