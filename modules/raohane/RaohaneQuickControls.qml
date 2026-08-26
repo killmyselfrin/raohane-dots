@@ -45,13 +45,13 @@ Item {
 
             QuickTile {
                 Layout.fillWidth: true
-                icon: Network.materialSymbol
+                icon: RaohaneNetwork.materialSymbol
                 title: qsTr("Network")
-                subtitle: Network.networkName || qsTr("Disconnected")
-                active: Network.wifiStatus !== "disabled"
-                onPrimary: Network.toggleWifi()
+                subtitle: RaohaneNetwork.networkName || qsTr("Disconnected")
+                active: RaohaneNetwork.wifiStatus !== "disabled"
+                onPrimary: RaohaneNetwork.toggleWifi()
                 onSecondary: {
-                    const command = Network.ethernet ? Config.options.apps.networkEthernet : Config.options.apps.network
+                    const command = RaohaneNetwork.ethernet ? Config.options.apps.networkEthernet : Config.options.apps.network
                     if (command && command.length > 0)
                         Quickshell.execDetached(["bash", "-c", command])
                 }
