@@ -30,6 +30,8 @@ required_native=(
   modules/raohane/RaohanePrivacy.qml
   modules/raohane/RaohaneContext.qml
   modules/raohane/RaohaneLegacyBridge.qml
+  modules/raohane/RaohaneBackground.qml
+  modules/raohane/RaohaneDesktopCanvas.qml
   modules/raohane/RaohaneContextIsland.qml
   modules/raohane/RaohaneBar.qml
   modules/raohane/RaohaneLauncher.qml
@@ -54,6 +56,7 @@ required_native=(
   modules/raohane/services/RaohaneDisplay.qml
   modules/raohane/services/RaohaneNotifications.qml
   modules/raohane/services/RaohaneWallpapers.qml
+  modules/raohane/services/RaohaneSearch.qml
   modules/raohane/services/RaohaneSession.qml
   modules/raohane/services/RaohaneSessionWarnings.qml
   modules/raohane/services/RaohaneSystemInfo.qml
@@ -86,7 +89,7 @@ while IFS= read -r import_line; do
 done < <(rg -o --no-filename '^import qs\.[A-Za-z0-9_.]+$' shell.qml modules/raohane | sort -u || true)
 
 # Product composition must use the native daily-driver surfaces.
-for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup RaohaneWallpaperSelector RaohaneDesktopMenu RaohaneSessionScreen; do
+for surface in RaohaneBackground RaohaneDesktopCanvas RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup RaohaneWallpaperSelector RaohaneDesktopMenu RaohaneSessionScreen; do
   rg -q "component: ${surface} \{\}" panelFamilies/RaohaneFamily.qml \
     || fail "RaohaneFamily does not load $surface"
 done
@@ -100,6 +103,21 @@ rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' modules/raohane/config/qml
 rg -q 'RaohaneLegacyBridge\.load' panelFamilies/RaohaneFamily.qml \
   || fail 'RaohaneFamily does not initialize the temporary config bridge'
 
+# Background rendering is now a Raohane boundary. The old monolithic II
+# background may remain as migration reference but must never re-enter runtime.
+if rg -n '^import qs\.modules\.ii\.background$|component: Background \{\}' panelFamilies/RaohaneFamily.qml; then
+  fail 'RaohaneFamily regressed to the inherited background renderer'
+fi
+rg -q 'RaohaneWallpapers\.' modules/raohane/RaohaneBackground.qml \
+  || fail 'RaohaneBackground does not consume the native wallpaper service'
+rg -q 'RaohaneConfig\.wallpaper' modules/raohane/RaohaneBackground.qml \
+  || fail 'RaohaneBackground does not consume native wallpaper settings'
+if rg -n '\bConfig\.|\bWallpapers\.|\bAppearance\.' modules/raohane/RaohaneBackground.qml; then
+  fail 'RaohaneBackground consumes inherited wallpaper/theme state'
+fi
+rg -q 'RaohaneContext\.' modules/raohane/RaohaneDesktopCanvas.qml \
+  || fail 'RaohaneDesktopCanvas is not connected to the living context state'
+
 # Native presentation boundaries must not regress to the old visible shells.
 if rg -n '^import qs\.modules\.ii\.sidebarRight' modules/raohane/RaohaneControlCenter.qml; then
   fail 'Control Center regressed to compatibility sidebar UI'
@@ -109,6 +127,13 @@ if rg -n '^import qs\.modules\.ii\.settings$' modules/raohane/RaohaneSettings.qm
 fi
 if rg -n '^import qs\.modules\.ii\.(wallpaperSelector|desktopMenu|sessionScreen)' panelFamilies/RaohaneFamily.qml; then
   fail 'RaohaneFamily regressed to compatibility desktop/session entry points'
+fi
+
+# Launcher search is Raohane-owned.
+rg -q 'RaohaneSearch\.' modules/raohane/RaohaneLauncher.qml \
+  || fail 'Launcher is not consuming RaohaneSearch'
+if rg -n 'LauncherSearch|LauncherSearchResult|AppSearch' modules/raohane/RaohaneLauncher.qml; then
+  fail 'Launcher regressed to inherited search plumbing'
 fi
 
 # Keep Hyprland as the sole product compositor target.
@@ -150,4 +175,4 @@ bash -n scripts/install-deps.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: product graph, installation boundary and native config structure are valid\n'
+printf 'raohane-audit: native desktop, product graph, installation and config boundaries are valid\n'
