@@ -19,12 +19,14 @@ import qs.modules.ii.verticalBar
 import qs.modules.ii.dropover
 import qs.modules.ii.frame
 
-// Raohane's stable Hyprland panel family.
-//
-// Mature services and selected compatibility panels stay underneath while the
-// daily-driver shell surfaces are owned by modules/raohane.
+// Raohane's Hyprland integration composition. Compatibility panels remain
+// temporary while their presentation layers are rewritten under modules/raohane.
 Scope {
     Component.onCompleted: {
+        // Force the temporary config bridge to exist before compatibility
+        // surfaces begin reacting to native settings.
+        RaohaneLegacyBridge.load()
+
         if (Config.options?.dock)
             Config.options.dock.showMedia = false
         if (Config.options?.sidebar)
@@ -47,7 +49,6 @@ Scope {
     PanelLoader { component: ScreenTranslator {} }
     PanelLoader { component: SidebarLeft {} }
 
-    // Raohane-owned daily-driver surfaces.
     PanelLoader { component: RaohaneLauncher {} }
     PanelLoader { component: RaohaneControlCenter {} }
     PanelLoader { component: RaohaneSettings {} }
