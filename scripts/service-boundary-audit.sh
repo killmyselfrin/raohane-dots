@@ -29,6 +29,7 @@ require_service RaohaneMedia 'Quickshell\.Services\.Mpris'
 require_service RaohaneBluetooth 'Quickshell\.Bluetooth'
 require_service RaohaneAudio 'Quickshell\.Services\.Pipewire'
 require_service RaohaneNetwork '\bnmcli\b'
+require_service RaohaneDisplay 'brightnessctl|ddcutil|hyprsunset'
 
 rg -q 'RaohaneMedia\.' modules/raohane/RaohaneContext.qml \
   || fail 'RaohaneContext does not consume RaohaneMedia'
@@ -58,4 +59,12 @@ if rg -n '\bNetwork\.' modules/raohane/RaohaneQuickControls.qml; then
   fail 'RaohaneQuickControls use inherited Network service'
 fi
 
-printf 'raohane-service-audit: media, Bluetooth, audio and network boundaries are native\n'
+rg -q 'RaohaneDisplay\.' modules/raohane/RaohaneQuickControls.qml \
+  || fail 'RaohaneQuickControls does not consume RaohaneDisplay'
+rg -q 'RaohaneDisplay\.' modules/raohane/RaohaneOsd.qml \
+  || fail 'RaohaneOsd does not consume RaohaneDisplay'
+if rg -n '\bBrightness\.|\bHyprsunset\.' modules/raohane/RaohaneQuickControls.qml modules/raohane/RaohaneOsd.qml; then
+  fail 'active Raohane display surfaces use inherited Brightness/Hyprsunset services'
+fi
+
+printf 'raohane-service-audit: media, Bluetooth, audio, network and display boundaries are native\n'
