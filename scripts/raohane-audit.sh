@@ -113,6 +113,12 @@ rg -q 'ipc raohaneLauncher toggle' scripts/raohane \
   || fail 'raohane launcher is not routed to the native launcher IPC'
 rg -q 'ipc raohaneMedia toggle' scripts/raohane \
   || fail 'raohane media is not routed to the native media IPC'
+rg -q 'ipc raohaneDesktop toggle' scripts/raohane \
+  || fail 'raohane desktop is not routed to the native desktop IPC'
+rg -q 'ipc wallpaperSelector toggle' scripts/raohane \
+  || fail 'raohane wallpaper is not routed to the native wallpaper IPC'
+rg -q 'ipc wallpaperSelector random' scripts/raohane \
+  || fail 'raohane wallpaper random is not routed to the wallpaper IPC'
 
 if rg -n 'GlobalStates\.raohane[A-Za-z0-9_]+' modules/raohane panelFamilies/RaohaneFamily.qml; then
   fail 'Raohane-owned state leaked back into upstream-refreshed GlobalStates'
