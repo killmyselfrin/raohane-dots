@@ -168,6 +168,23 @@ if rg -n 'GlobalStates\.raohane[A-Za-z0-9_]+' modules/raohane panelFamilies/Raoh
   fail 'Raohane-owned transient state leaked into GlobalStates'
 fi
 
+# QML type imports are semantic requirements that qmlformat alone cannot catch.
+# Keep these checks broad enough to cover both native code and temporary service
+# facades, because a broken facade can invalidate the whole qs.services module.
+while IFS= read -r qml; do
+  if rg -q '\bConnections[[:space:]]*\{' "$qml"; then
+    if ! rg -q '^import (QtQuick|QtQml)([[:space:]]|$)' "$qml"; then
+      fail "$qml uses Connections without importing QtQuick or QtQml"
+    fi
+  fi
+
+  if rg -q '\b(IpcHandler|Process|StdioCollector|SplitParser)\b' "$qml"; then
+    if ! rg -q '^import Quickshell\.Io([[:space:]]|$)' "$qml"; then
+      fail "$qml uses Quickshell.Io types without importing Quickshell.Io"
+    fi
+  fi
+done < <(find modules/raohane services -type f -name '*.qml' -print)
+
 rg -q 'ipc raohaneLauncher toggle' scripts/raohane || fail 'launcher CLI route is missing'
 rg -q 'ipc raohaneMedia toggle' scripts/raohane || fail 'media CLI route is missing'
 rg -q 'ipc raohaneDesktop toggle' scripts/raohane || fail 'desktop CLI route is missing'
