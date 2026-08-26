@@ -34,6 +34,7 @@ required_native=(
   modules/raohane/RaohaneNotificationPopup.qml
   modules/raohane/RaohaneWallpaperSelector.qml
   modules/raohane/RaohaneDesktopMenu.qml
+  modules/raohane/RaohaneSessionScreen.qml
 )
 
 for path in "${required_native[@]}"; do
@@ -61,7 +62,7 @@ while IFS= read -r import_line; do
   [[ -d "$module_path" ]] || fail "unresolved local module $import_path"
 done < <(rg -o --no-filename '^import qs\.[A-Za-z0-9_.]+$' shell.qml modules/raohane | sort -u || true)
 
-for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup RaohaneWallpaperSelector RaohaneDesktopMenu; do
+for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup RaohaneWallpaperSelector RaohaneDesktopMenu RaohaneSessionScreen; do
   rg -q "component: ${surface} \{\}" panelFamilies/RaohaneFamily.qml \
     || fail "RaohaneFamily does not load $surface"
 done
@@ -105,8 +106,14 @@ rg -q 'GlobalStates\.wallpaperSelectorTarget' modules/raohane/RaohaneWallpaperSe
   || fail 'Native wallpaper selector lost desktop/lock target handling'
 rg -q 'target: "raohaneDesktop"' modules/raohane/RaohaneDesktopMenu.qml \
   || fail 'Native desktop menu IPC is missing'
-if rg -n '^import qs\.modules\.ii\.(wallpaperSelector|desktopMenu)' panelFamilies/RaohaneFamily.qml; then
-  fail 'RaohaneFamily regressed to compatibility desktop entry points'
+rg -q 'target: "session"' modules/raohane/RaohaneSessionScreen.qml \
+  || fail 'Native session screen did not preserve the session IPC target'
+rg -q 'SessionWarnings\.refresh' modules/raohane/RaohaneSessionScreen.qml \
+  || fail 'Native session screen lost package/download warning refresh'
+rg -q 'pendingAction' modules/raohane/RaohaneSessionScreen.qml \
+  || fail 'Native session screen lost destructive-action confirmation state'
+if rg -n '^import qs\.modules\.ii\.(wallpaperSelector|desktopMenu|sessionScreen)' panelFamilies/RaohaneFamily.qml; then
+  fail 'RaohaneFamily regressed to compatibility desktop/session entry points'
 fi
 
 rg -q 'ipc raohaneLauncher toggle' scripts/raohane \
@@ -119,6 +126,8 @@ rg -q 'ipc wallpaperSelector toggle' scripts/raohane \
   || fail 'raohane wallpaper is not routed to the native wallpaper IPC'
 rg -q 'ipc wallpaperSelector random' scripts/raohane \
   || fail 'raohane wallpaper random is not routed to the wallpaper IPC'
+rg -q 'ipc session toggle' scripts/raohane \
+  || fail 'raohane session is not routed to the native session IPC'
 
 if rg -n 'GlobalStates\.raohane[A-Za-z0-9_]+' modules/raohane panelFamilies/RaohaneFamily.qml; then
   fail 'Raohane-owned state leaked back into upstream-refreshed GlobalStates'
