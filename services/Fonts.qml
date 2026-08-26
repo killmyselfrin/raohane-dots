@@ -1,6 +1,7 @@
 pragma Singleton
 
 import QtQuick
+import Quickshell
 
 Singleton {
     // Raohane installs a system Material Symbols provider through the Arch
