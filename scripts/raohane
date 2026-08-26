@@ -15,7 +15,7 @@ Shell:
   launcher | control | settings | media
 
 Diagnostics:
-  doctor [graphics]
+  doctor [all|graphics|deps|services]
   wifi [status|menu]
   audio [status]
 EOF
@@ -23,6 +23,61 @@ EOF
 
 ipc() {
   qs -c "$QS_CONFIG" ipc call "$@"
+}
+
+check_cmd() {
+  local command_name="$1"
+  local package_hint="${2:-}"
+  local level="${3:-required}"
+
+  if command -v "$command_name" >/dev/null 2>&1; then
+    printf '  [ok] %-16s %s\n' "$command_name" "$(command -v "$command_name")"
+    return 0
+  fi
+
+  if [[ "$level" == "optional" ]]; then
+    printf '  [--] %-16s optional%s\n' "$command_name" "${package_hint:+ ($package_hint)}"
+    return 0
+  fi
+
+  printf '  [!!] %-16s missing%s\n' "$command_name" "${package_hint:+ ($package_hint)}"
+  return 1
+}
+
+print_dependency_report() {
+  local failures=0
+
+  echo 'Core'
+  check_cmd qs quickshell || failures=$((failures + 1))
+  check_cmd hyprctl hyprland || failures=$((failures + 1))
+  check_cmd python3 python || failures=$((failures + 1))
+  check_cmd git git || failures=$((failures + 1))
+  check_cmd rsync rsync || failures=$((failures + 1))
+  check_cmd jq jq || failures=$((failures + 1))
+
+  echo
+  echo 'Desktop integration'
+  check_cmd nmcli networkmanager || failures=$((failures + 1))
+  check_cmd wpctl wireplumber || check_cmd pactl libpulse || failures=$((failures + 1))
+  check_cmd bluetoothctl bluez-utils optional
+  check_cmd brightnessctl brightnessctl optional
+  check_cmd ddcutil ddcutil optional
+
+  echo
+  echo 'Capture / media extras'
+  check_cmd grim grim optional
+  check_cmd slurp slurp optional
+  check_cmd wl-copy wl-clipboard optional
+  check_cmd cava cava optional
+  check_cmd ffplay ffmpeg optional
+  check_cmd notify-send libnotify optional
+
+  echo
+  if ((failures > 0)); then
+    printf 'Required dependency failures: %d\n' "$failures"
+    return 1
+  fi
+  echo 'Required command-level dependencies look available.'
 }
 
 case "${1:-help}" in
@@ -45,7 +100,7 @@ case "${1:-help}" in
     exec journalctl --user -u "$SERVICE" -f
     ;;
   launcher)
-    ipc search toggle
+    ipc raohaneLauncher toggle
     ;;
   control)
     ipc sidebarRight toggle
@@ -66,22 +121,57 @@ case "${1:-help}" in
           echo 'lspci not found (package: pciutils)'
         fi
         echo
-        command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi --query-gpu=name,driver_version --format=csv,noheader || true
+        command -v nvidia-smi >/dev/null 2>&1 \
+          && nvidia-smi --query-gpu=name,driver_version --format=csv,noheader \
+          || true
         command -v hyprctl >/dev/null 2>&1 && hyprctl monitors || true
+        ;;
+      deps)
+        echo 'Raohane doctor dependencies'
+        print_dependency_report
+        ;;
+      services)
+        echo 'Raohane doctor services'
+        if systemctl --user --no-pager --quiet is-active "$SERVICE"; then
+          echo "  [ok] $SERVICE active"
+        else
+          echo "  [!!] $SERVICE not active"
+        fi
+
+        for unit in pipewire.service wireplumber.service; do
+          if systemctl --user --no-pager --quiet is-active "$unit" 2>/dev/null; then
+            printf '  [ok] %s active\n' "$unit"
+          else
+            printf '  [--] %s not active/not found\n' "$unit"
+          fi
+        done
+
+        if systemctl --no-pager --quiet is-active NetworkManager.service 2>/dev/null; then
+          echo '  [ok] NetworkManager.service active'
+        else
+          echo '  [--] NetworkManager.service not active/not found'
+        fi
+
+        if systemctl --no-pager --quiet is-active bluetooth.service 2>/dev/null; then
+          echo '  [ok] bluetooth.service active'
+        else
+          echo '  [--] bluetooth.service not active/not found'
+        fi
         ;;
       all)
         echo 'Raohane doctor'
-        for cmd in qs hyprctl git rsync jq; do
-          if command -v "$cmd" >/dev/null 2>&1; then
-            printf '  [ok] %-10s %s\n' "$cmd" "$(command -v "$cmd")"
-          else
-            printf '  [!!] %-10s missing\n' "$cmd"
-          fi
-        done
         echo
+        print_dependency_report || true
+        echo
+        echo 'Shell service'
         systemctl --user --no-pager --quiet is-active "$SERVICE" \
           && echo "  [ok] $SERVICE active" \
           || echo "  [--] $SERVICE not active"
+        echo
+        echo 'Runtime context'
+        printf '  WAYLAND_DISPLAY=%s\n' "${WAYLAND_DISPLAY:-<unset>}"
+        printf '  HYPRLAND_INSTANCE_SIGNATURE=%s\n' "${HYPRLAND_INSTANCE_SIGNATURE:-<unset>}"
+        printf '  XDG_CURRENT_DESKTOP=%s\n' "${XDG_CURRENT_DESKTOP:-<unset>}"
         ;;
       *)
         echo "Unknown doctor target: ${2:-}" >&2
