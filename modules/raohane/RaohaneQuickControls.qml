@@ -16,17 +16,12 @@ Item {
 
     property var screen
     property bool gameModeActive: false
-    readonly property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
-    readonly property real brightnessValue: Hyprsunset.gamma === 100
-        ? 0.3 + (brightnessMonitor?.brightness ?? 0.5) * 0.7
-        : (Hyprsunset.gamma - Hyprsunset.gammaLowerLimit) / (100 - Hyprsunset.gammaLowerLimit) * 0.3
+    readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(screen)
+    readonly property real brightnessValue: RaohaneDisplay.compositeValue(screen)
 
     implicitHeight: content.implicitHeight
 
-    Component.onCompleted: {
-        Hyprsunset.fetchState()
-        EasyEffects.fetchActiveState()
-    }
+    Component.onCompleted: EasyEffects.fetchActiveState()
 
     ColumnLayout {
         id: content
@@ -80,8 +75,8 @@ Item {
                 icon: Config.options.light.night.automatic ? "night_sight_auto" : "bedtime"
                 title: qsTr("Night Light")
                 subtitle: Config.options.light.night.automatic ? qsTr("Automatic") : qsTr("Manual")
-                active: Hyprsunset.temperatureActive
-                onPrimary: Hyprsunset.toggleTemperature()
+                active: RaohaneDisplay.temperatureActive
+                onPrimary: RaohaneDisplay.toggleTemperature()
                 onSecondary: Config.options.light.night.automatic = !Config.options.light.night.automatic
             }
 
@@ -137,13 +132,13 @@ Item {
                 ControlSlider {
                     Layout.fillWidth: true
                     visible: Config.options.sidebar.quickSliders.showBrightness
-                    icon: Hyprsunset.gamma === 100 ? "brightness_medium" : "wb_twilight"
-                    title: Hyprsunset.gamma === 100 ? qsTr("Brightness") : qsTr("Gamma")
-                    displayText: Hyprsunset.gamma === 100
+                    icon: RaohaneDisplay.gamma === 100 ? "brightness_medium" : "wb_twilight"
+                    title: RaohaneDisplay.gamma === 100 ? qsTr("Brightness") : qsTr("Gamma")
+                    displayText: RaohaneDisplay.gamma === 100
                         ? Math.round((root.brightnessMonitor?.brightness ?? 0.5) * 100) + "%"
-                        : Math.round(Hyprsunset.gamma) + "%"
+                        : Math.round(RaohaneDisplay.gamma) + "%"
                     liveValue: root.brightnessValue
-                    onValueChangedByUser: value => root.setBrightnessComposite(value)
+                    onValueChangedByUser: value => RaohaneDisplay.setComposite(root.screen, value)
                 }
 
                 ControlSlider {
@@ -195,22 +190,6 @@ Item {
             ])
         } else {
             Quickshell.execDetached(["hyprctl", "reload"])
-        }
-    }
-
-    function setBrightnessComposite(value: real): void {
-        const monitor = root.brightnessMonitor
-        if (!monitor)
-            return
-
-        if (value >= 0.3) {
-            monitor.setBrightness((value - 0.3) / 0.7)
-            if (Hyprsunset.gamma !== 100)
-                Hyprsunset.setGamma(100)
-        } else {
-            if (monitor.brightness !== 0)
-                monitor.setBrightness(0)
-            Hyprsunset.setGamma(value / 0.3 * (100 - Hyprsunset.gammaLowerLimit) + Hyprsunset.gammaLowerLimit)
         }
     }
 
