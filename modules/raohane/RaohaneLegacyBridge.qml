@@ -6,6 +6,7 @@ import QtQml
 import Quickshell
 
 import qs
+import qs.modules.common
 import qs.modules.raohane.config
 
 Singleton {
