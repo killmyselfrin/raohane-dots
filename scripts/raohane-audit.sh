@@ -19,6 +19,7 @@ required_native=(
   modules/raohane/RaohaneState.qml
   modules/raohane/RaohaneContext.qml
   modules/raohane/RaohaneContextIsland.qml
+  modules/raohane/RaohaneBar.qml
   modules/raohane/RaohaneLauncher.qml
   modules/raohane/RaohaneControlCenter.qml
   modules/raohane/RaohaneSettings.qml
@@ -50,7 +51,7 @@ while IFS= read -r import_line; do
   [[ -d "$module_path" ]] || fail "unresolved local module $import_path"
 done < <(rg -o --no-filename '^import qs\.[A-Za-z0-9_.]+$' shell.qml modules/raohane | sort -u || true)
 
-for surface in RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay; do
+for surface in RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay; do
   rg -q "component: ${surface} \{\}" panelFamilies/RaohaneFamily.qml \
     || fail "RaohaneFamily does not load $surface"
 done
