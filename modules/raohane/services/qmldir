@@ -4,3 +4,4 @@ singleton RaohaneBluetooth 1.0 RaohaneBluetooth.qml
 singleton RaohaneAudio 1.0 RaohaneAudio.qml
 singleton RaohaneNetwork 1.0 RaohaneNetwork.qml
 singleton RaohaneDisplay 1.0 RaohaneDisplay.qml
+singleton RaohaneNotifications 1.0 RaohaneNotifications.qml
