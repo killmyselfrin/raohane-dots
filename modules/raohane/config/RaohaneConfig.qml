@@ -9,7 +9,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 4
+    readonly property int schemaVersion: 5
     readonly property string configDirectory: root.cleanPath(StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0] ?? "") + "/raohane"
     readonly property string filePath: configDirectory + "/native.json"
 
@@ -40,10 +40,21 @@ Singleton {
     property int dockBottomMargin: 9
     property var dockPinnedApps: []
 
-    property int colorTemperature: 5000
+    property bool barBottom: false
+    property int osdTimeout: 1000
 
+    property int colorTemperature: 5000
+    property bool nightLightAutomatic: true
+
+    property string networkCommand: "nm-connection-editor"
+    property string networkEthernetCommand: "nm-connection-editor"
+    property string bluetoothCommand: "blueman-manager"
     property string taskManagerCommand: ""
     property string changePasswordCommand: "passwd"
+
+    property bool quickSliderBrightness: true
+    property bool quickSliderVolume: true
+    property bool quickSliderMic: false
 
     property bool contextIslandEnabled: true
     property bool mediaOverlayEnabled: true
@@ -94,12 +105,27 @@ Singleton {
                 bottomMargin: root.dockBottomMargin,
                 pinnedApps: root.dockPinnedApps
             },
+            bar: {
+                bottom: root.barBottom
+            },
+            osd: {
+                timeout: root.osdTimeout
+            },
             display: {
-                colorTemperature: root.colorTemperature
+                colorTemperature: root.colorTemperature,
+                nightAutomatic: root.nightLightAutomatic
             },
             apps: {
+                network: root.networkCommand,
+                networkEthernet: root.networkEthernetCommand,
+                bluetooth: root.bluetoothCommand,
                 taskManager: root.taskManagerCommand,
                 changePassword: root.changePasswordCommand
+            },
+            quickControls: {
+                showBrightness: root.quickSliderBrightness,
+                showVolume: root.quickSliderVolume,
+                showMic: root.quickSliderMic
             },
             features: {
                 contextIsland: root.contextIslandEnabled,
@@ -120,8 +146,11 @@ Singleton {
         const wallpaper = document?.wallpaper ?? {}
         const overview = document?.overview ?? {}
         const dock = document?.dock ?? {}
+        const bar = document?.bar ?? {}
+        const osd = document?.osd ?? {}
         const display = document?.display ?? {}
         const apps = document?.apps ?? {}
+        const quickControls = document?.quickControls ?? {}
         const features = document?.features ?? {}
 
         root.assignIfPresent(wallpaper, "path", value => root.wallpaperPath = String(value ?? ""))
@@ -147,10 +176,21 @@ Singleton {
         root.assignIfPresent(dock, "bottomMargin", value => root.dockBottomMargin = Math.max(0, Math.min(40, Number(value) || 0)))
         root.assignIfPresent(dock, "pinnedApps", value => root.dockPinnedApps = Array.isArray(value) ? value.map(item => String(item)) : [])
 
-        root.assignIfPresent(display, "colorTemperature", value => root.colorTemperature = Math.max(1000, Math.min(10000, Number(value) || 5000)))
+        root.assignIfPresent(bar, "bottom", value => root.barBottom = Boolean(value))
+        root.assignIfPresent(osd, "timeout", value => root.osdTimeout = Math.max(250, Math.min(10000, Number(value) || 1000)))
 
+        root.assignIfPresent(display, "colorTemperature", value => root.colorTemperature = Math.max(1000, Math.min(10000, Number(value) || 5000)))
+        root.assignIfPresent(display, "nightAutomatic", value => root.nightLightAutomatic = Boolean(value))
+
+        root.assignIfPresent(apps, "network", value => root.networkCommand = String(value ?? ""))
+        root.assignIfPresent(apps, "networkEthernet", value => root.networkEthernetCommand = String(value ?? ""))
+        root.assignIfPresent(apps, "bluetooth", value => root.bluetoothCommand = String(value ?? ""))
         root.assignIfPresent(apps, "taskManager", value => root.taskManagerCommand = String(value ?? ""))
         root.assignIfPresent(apps, "changePassword", value => root.changePasswordCommand = String(value ?? "passwd"))
+
+        root.assignIfPresent(quickControls, "showBrightness", value => root.quickSliderBrightness = Boolean(value))
+        root.assignIfPresent(quickControls, "showVolume", value => root.quickSliderVolume = Boolean(value))
+        root.assignIfPresent(quickControls, "showMic", value => root.quickSliderMic = Boolean(value))
 
         root.assignIfPresent(features, "contextIsland", value => root.contextIslandEnabled = Boolean(value))
         root.assignIfPresent(features, "mediaOverlay", value => root.mediaOverlayEnabled = Boolean(value))
@@ -207,9 +247,18 @@ Singleton {
     onDockIconSizeChanged: scheduleSave()
     onDockBottomMarginChanged: scheduleSave()
     onDockPinnedAppsChanged: scheduleSave()
+    onBarBottomChanged: scheduleSave()
+    onOsdTimeoutChanged: scheduleSave()
     onColorTemperatureChanged: scheduleSave()
+    onNightLightAutomaticChanged: scheduleSave()
+    onNetworkCommandChanged: scheduleSave()
+    onNetworkEthernetCommandChanged: scheduleSave()
+    onBluetoothCommandChanged: scheduleSave()
     onTaskManagerCommandChanged: scheduleSave()
     onChangePasswordCommandChanged: scheduleSave()
+    onQuickSliderBrightnessChanged: scheduleSave()
+    onQuickSliderVolumeChanged: scheduleSave()
+    onQuickSliderMicChanged: scheduleSave()
     onContextIslandEnabledChanged: scheduleSave()
     onMediaOverlayEnabledChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
