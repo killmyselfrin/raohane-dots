@@ -14,15 +14,19 @@ The foundation synchronizer intentionally preserves `modules/raohane/` and `modu
 
 ## Active Raohane-native surfaces
 
-- `RaohaneBar.qml` — active horizontal bar shell. It owns Raohane composition while reusing mature workspace, tray and system providers.
-- `RaohaneContext.qml` — context state model backed by live MPRIS and active-window data plus transient Raohane events/privacy state.
-- `RaohaneContextIsland.qml` — adaptive center surface used by the bar.
-- `RaohaneLauncher.qml` — active launcher UI backed by the mature `LauncherSearch` provider.
-- `RaohaneControlCenter.qml` — control-center shell over mature quick-toggle, notification, audio and system providers.
-- `RaohaneSettings.qml` — Raohane settings shell currently hosting mature settings content during migration.
+- `RaohaneBar.qml` — active horizontal bar shell over mature workspace, tray and system providers.
+- `RaohaneContext.qml` / `RaohaneContextIsland.qml` — adaptive context state and center presentation backed by MPRIS, active-window and PipeWire privacy state.
+- `RaohaneLauncher.qml` — active launcher backed by `LauncherSearch`.
+- `RaohaneControlCenter.qml` — active Raohane control center using `RaohaneQuickControls.qml` and `RaohaneNotificationCenter.qml` instead of the compatibility right sidebar controls.
+- `RaohaneNotificationCard.qml` — shared notification presentation used by both popup and notification center.
+- `RaohaneSettings.qml` / `RaohaneSettingsContent.qml` — Raohane-owned Settings window and Hyprland-only navigation shell.
+- `RaohaneSettingsHome.qml` — Raohane Control Deck landing page. Heavy configuration pages are still loaded from the mature settings page implementations while the top-level UX is Raohane-owned.
 - `RaohaneMediaOverlay.qml` — floating media overlay for games/apps using the shared MPRIS controller.
-- `RaohaneOsd.qml` — active volume, brightness and gamma OSD over mature Audio/Brightness/Hyprsunset providers.
+- `RaohaneOsd.qml` — active volume, brightness and gamma OSD over Audio/Brightness/Hyprsunset.
 - `RaohaneNotificationPopup.qml` — active notification popup over the mature notification server/history/actions backend.
+- `RaohaneWallpaperSelector.qml` — native wallpaper browser over `Wallpapers`, including preview, history, search, random selection and lock-screen target handling.
+- `RaohaneDesktopMenu.qml` — native desktop context menu using the existing desktop click coordinates and DropShelf/background services.
+- `RaohanePrivacy.qml` — PipeWire capture-state provider for microphone, camera and screen capture context.
 - `RaohaneState.qml` — product-owned ephemeral state that must survive upstream foundation refreshes.
 
 ## Compatibility surfaces still active
@@ -31,11 +35,13 @@ The following remain foundation UI until a Raohane replacement reaches equivalen
 
 - vertical bar
 - workspace overview (launcher search itself already has a native Raohane surface)
-- wallpaper/background and desktop widgets
+- background renderer and desktop widget canvas
 - dock and lock screen
-- capture/region selector, screen translator and recording overlay
+- capture/region selector, screen translator and supporting overlay tools
 - session/polkit, on-screen keyboard, left sidebar and supporting panels
 - mature media controls remain loaded as a compatibility surface while the native game/media overlay is runtime-tested
+
+The wallpaper selector and desktop context menu are no longer compatibility UI; only the mature `Wallpapers` service and background renderer remain underneath them.
 
 Compatibility UI can consume the same services as Raohane UI. Replacing a visible surface does not require replacing its proven backend in the same change.
 
@@ -45,7 +51,7 @@ Compatibility UI can consume the same services as Raohane UI. Replacing a visibl
 
 `GlobalStates.qml` remains foundation-owned cross-surface state. Raohane-only state lives in `modules/raohane/RaohaneState.qml` so an upstream foundation refresh cannot erase it.
 
-Persistent settings are serialized into `~/.config/raohane/config.json` through the existing `Config.qml` `FileView`/`JsonAdapter` infrastructure. The configuration schema is still largely inherited; a dedicated Raohane configuration API is a migration target, not a completed boundary yet.
+Persistent settings are serialized into `~/.config/raohane/config.json` through the existing `Config.qml` `FileView`/`JsonAdapter` infrastructure. The configuration schema is still largely inherited; page-by-page schema ownership can migrate independently from the Raohane Settings shell.
 
 ## Data flow
 
@@ -65,7 +71,7 @@ Hyprland / Wayland / D-Bus / PipeWire / MPRIS
                  shell.qml
 ```
 
-Raohane-native components should consume mature services instead of reimplementing hardware/system discovery inside presentation files. Backends can then be replaced separately without redesigning the product UI again.
+Raohane-native components consume mature services instead of reimplementing hardware/system discovery inside presentation files. Backends can then be replaced separately without redesigning the product UI again.
 
 ## Installation and dependencies
 
@@ -73,7 +79,19 @@ The installer writes an isolated `~/.config/hypr/raohane.conf`, exposes the `rao
 
 On Arch-based systems `./install-raohane.sh --deps` invokes the pinned illogical-impulse dependency bootstrap before installing the shell. GPU driver selection remains explicit and is not performed by that helper.
 
-Useful diagnostics are exposed through `raohane doctor all`, `raohane doctor deps`, `raohane doctor services` and `raohane doctor graphics`.
+Useful product commands now include:
+
+```bash
+raohane launcher
+raohane control
+raohane settings
+raohane media
+raohane desktop
+raohane wallpaper
+raohane wallpaper random
+```
+
+Diagnostics are exposed through `raohane doctor all`, `raohane doctor deps`, `raohane doctor services` and `raohane doctor graphics`.
 
 ## Runtime verification boundary
 
@@ -84,10 +102,13 @@ A migration batch is not runtime-complete until tested in a real Hyprland + Quic
 - shell startup and restart behavior
 - multi-monitor bar placement and input regions
 - launcher keyboard focus/execution
+- Control Center toggles/sliders and notification history
 - notification popup rendering/actions/timeouts
 - volume/brightness/gamma OSD triggers
 - media overlay behavior over fullscreen applications
-- Settings and Control Center focus/dismiss behavior
+- Settings navigation and compatibility page loading
+- wallpaper preview/apply/random/history and lock-wall selection
+- desktop right-click menu placement and DropShelf routing
 - audio, network, Bluetooth, brightness and capture regressions
 
 See `NOTICE-UPSTREAM.md` for retained backend provenance and licensing notes.
