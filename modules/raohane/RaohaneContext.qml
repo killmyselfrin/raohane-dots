@@ -1,19 +1,29 @@
 pragma Singleton
 
 import QtQuick
+import Quickshell.Wayland
+import qs.services
 
 Item {
     id: root
 
+    // Ephemeral context signals. Recording/privacy wiring is intentionally kept
+    // separate from the live media/window bindings below so those integrations
+    // can be migrated without destabilising the existing capture stack.
     property bool recording: false
     property bool microphone: false
     property bool camera: false
     property string eventTitle: ""
     property string eventDetail: ""
-    property bool mediaActive: false
-    property string mediaTitle: ""
-    property string mediaArtist: ""
-    property string windowTitle: ""
+
+    readonly property var activePlayer: MprisController.activePlayer
+    readonly property var activeTrack: MprisController.activeTrack
+    readonly property bool mediaActive: activePlayer !== null
+    readonly property string mediaTitle: activeTrack?.title ?? ""
+    readonly property string mediaArtist: activeTrack?.artist ?? ""
+
+    readonly property var activeWindow: ToplevelManager.activeToplevel
+    readonly property string windowTitle: activeWindow?.title ?? ""
 
     readonly property string mode: recording ? "recording"
         : (camera || microphone) ? "privacy"
@@ -34,7 +44,7 @@ Item {
         : camera ? qsTr("Camera in use")
         : microphone ? qsTr("Microphone in use")
         : eventTitle.length > 0 ? eventTitle
-        : mediaActive ? mediaTitle
+        : mediaActive ? (mediaTitle.length > 0 ? mediaTitle : qsTr("Media"))
         : windowTitle.length > 0 ? windowTitle
         : qsTr("Raohane")
 
@@ -59,10 +69,6 @@ Item {
         camera = false
         eventTitle = ""
         eventDetail = ""
-        mediaActive = false
-        mediaTitle = ""
-        mediaArtist = ""
-        windowTitle = ""
         eventTimer.stop()
     }
 
@@ -73,6 +79,9 @@ Item {
             microphone: microphone,
             camera: camera,
             mediaActive: mediaActive,
+            mediaTitle: mediaTitle,
+            mediaArtist: mediaArtist,
+            windowTitle: windowTitle,
             title: title,
             detail: detail
         })
