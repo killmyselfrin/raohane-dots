@@ -11,8 +11,16 @@ fail() {
 
 MODULE=modules/raohane/services
 QMLDIR="$MODULE/qmldir"
+CONFIG_MODULE=modules/raohane/config
 
 [[ -f "$QMLDIR" ]] || fail 'Raohane service qmldir is missing'
+[[ -f "$CONFIG_MODULE/qmldir" ]] || fail 'Raohane config qmldir is missing'
+[[ -f "$CONFIG_MODULE/RaohaneConfig.qml" ]] || fail 'RaohaneConfig is missing'
+rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
+  || fail 'RaohaneConfig is not registered in the native config module'
+if rg -n 'import qs$|modules\.common|JsonAdapter' "$CONFIG_MODULE/RaohaneConfig.qml"; then
+  fail 'RaohaneConfig depends on the inherited config/common framework'
+fi
 
 require_service() {
   local name="$1"
@@ -90,10 +98,8 @@ rg -q 'RaohaneWallpapers' services/Wallpapers.qml \
 if rg -n 'FolderListModel|FolderListModelWithHistory|switchwall\.sh|illogical-impulse' services/Wallpapers.qml; then
   fail 'compatibility Wallpapers service still owns inherited wallpaper plumbing'
 fi
-rg -q 'property alias folderModel: folderModel' modules/raohane/services/RaohaneWallpapers.qml \
-  || fail 'RaohaneWallpapers does not expose its native folder model'
-rg -q 'Config\.options\.background\.wallpaperPath' modules/raohane/services/RaohaneWallpapers.qml \
-  || fail 'RaohaneWallpapers does not own wallpaper apply state'
+rg -q 'RaohaneConfig\.wallpaperPath' modules/raohane/services/RaohaneWallpapers.qml \
+  || fail 'RaohaneWallpapers does not persist through RaohaneConfig'
 
 rg -q 'RaohaneSession' modules/common/functions/Session.qml \
   || fail 'compatibility Session API is not routed to RaohaneSession'
@@ -111,4 +117,17 @@ if rg -n 'Process[[:space:]]*\{|FileView[[:space:]]*\{' services/SystemInfo.qml;
   fail 'compatibility SystemInfo still owns system probes'
 fi
 
-printf 'raohane-service-audit: core media, hardware, notification, wallpaper and session/system boundaries are Raohane-owned\n'
+for service in RaohaneSession.qml RaohaneDisplay.qml RaohaneWallpapers.qml; do
+  rg -q 'qs\.modules\.raohane\.config' "$MODULE/$service" \
+    || fail "$service does not consume the native config module"
+  if rg -n '\bConfig\.' "$MODULE/$service"; then
+    fail "$service still consumes inherited Config"
+  fi
+done
+
+rg -q 'RaohaneConfig' modules/raohane/RaohaneLegacyBridge.qml \
+  || fail 'legacy bridge is not connected to RaohaneConfig'
+rg -q 'RaohaneLegacyBridge\.load' panelFamilies/RaohaneFamily.qml \
+  || fail 'RaohaneFamily does not initialize the temporary config bridge'
+
+printf 'raohane-service-audit: core services and the first native config boundary are Raohane-owned\n'
