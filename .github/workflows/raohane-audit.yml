@@ -1,0 +1,156 @@
+name: Raohane audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'shell.qml'
+      - 'GlobalStates.qml'
+      - 'defaults/**'
+      - 'install/**'
+      - 'modules/**'
+      - 'panelFamilies/**'
+      - 'services/**'
+      - 'translations/**'
+      - 'scripts/**'
+      - 'install-raohane.sh'
+      - '.github/workflows/raohane-audit.yml'
+  pull_request:
+    paths:
+      - 'shell.qml'
+      - 'GlobalStates.qml'
+      - 'defaults/**'
+      - 'install/**'
+      - 'modules/**'
+      - 'panelFamilies/**'
+      - 'services/**'
+      - 'translations/**'
+      - 'scripts/**'
+      - 'install-raohane.sh'
+      - '.github/workflows/raohane-audit.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: raohane-audit-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  static-and-runtime-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Install audit dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq ripgrep qt6-declarative-dev-tools
+
+      - name: Validate shell syntax
+        shell: bash
+        run: |
+          bash -n scripts/raohane
+          bash -n scripts/raohane-audit.sh
+          bash -n scripts/service-boundary-audit.sh
+          bash -n scripts/install-deps.sh
+          bash -n scripts/videos/record.sh
+          bash -n install-raohane.sh
+
+      - name: Parse Raohane QML
+        shell: bash
+        run: |
+          set -euo pipefail
+          QMLFORMAT=/usr/lib/qt6/bin/qmlformat
+          [[ -x "$QMLFORMAT" ]] || { echo "qmlformat not found: $QMLFORMAT" >&2; exit 1; }
+          mapfile -t native_qml < <(find modules/raohane -type f -name '*.qml' -print | sort)
+          files=(
+            shell.qml
+            panelFamilies/RaohaneFamily.qml
+            services/Notifications.qml
+            services/Wallpapers.qml
+            services/SessionWarnings.qml
+            services/SystemInfo.qml
+            modules/common/functions/Session.qml
+            "${native_qml[@]}"
+          )
+          for file in "${files[@]}"; do
+            echo "Parsing $file"
+            "$QMLFORMAT" "$file" >/dev/null
+          done
+
+      - name: Validate Raohane-owned boundaries
+        shell: bash
+        run: |
+          bash scripts/raohane-audit.sh
+          bash scripts/service-boundary-audit.sh
+
+      - name: Validate current integration graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          required_paths=(
+            shell.qml
+            GlobalStates.qml
+            install/arch/required.txt
+            install/arch/features.txt
+            modules/common
+            modules/ii
+            modules/raohane
+            modules/raohane/config/qmldir
+            modules/raohane/config/RaohaneConfig.qml
+            modules/raohane/RaohaneLegacyBridge.qml
+            modules/raohane/services/RaohaneMedia.qml
+            modules/raohane/services/RaohaneBluetooth.qml
+            modules/raohane/services/RaohaneAudio.qml
+            modules/raohane/services/RaohaneNetwork.qml
+            modules/raohane/services/RaohaneDisplay.qml
+            modules/raohane/services/RaohaneNotifications.qml
+            modules/raohane/services/RaohaneWallpapers.qml
+            modules/raohane/services/RaohaneSession.qml
+            modules/raohane/services/RaohaneSessionWarnings.qml
+            modules/raohane/services/RaohaneSystemInfo.qml
+            modules/common/Directories.qml
+            modules/common/functions/Session.qml
+            panelFamilies/RaohaneFamily.qml
+            services
+            translations
+            scripts/raohane
+            scripts/install-deps.sh
+            services/Notifications.qml
+            services/Wallpapers.qml
+            services/SessionWarnings.qml
+            services/SystemInfo.qml
+          )
+
+          for path in "${required_paths[@]}"; do
+            [[ -e "$path" ]] || { echo "Missing integration path: $path" >&2; exit 1; }
+          done
+
+          grep -q 'RaohaneFamily' shell.qml || {
+            echo 'shell.qml no longer routes into RaohaneFamily.' >&2
+            exit 1
+          }
+
+          if find . -path './.git' -prune -o -type f \
+            \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) \
+            -print -quit | grep -q .; then
+            echo 'Vendored font binary detected.' >&2
+            exit 1
+          fi
+
+          panel_family="$(jq -r '.panelFamily // "<unset>"' defaults/config.json)"
+          [[ "$panel_family" == 'ii' || "$panel_family" == 'raohane' || "$panel_family" == 'ii-upstream' ]] || {
+            echo "Unsupported panelFamily: $panel_family" >&2
+            exit 1
+          }
+
+      - name: Assert checkout remains clean
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo 'Audit modified the repository:' >&2
+            git status --short >&2
+            git diff -- >&2
+            exit 1
+          fi
