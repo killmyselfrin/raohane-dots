@@ -5,20 +5,14 @@ import Quickshell.Io
 import Quickshell.Wayland
 
 import qs
-import qs.services
 import qs.modules.common.widgets
+import qs.modules.raohane.services
 
-// Lightweight media surface intended to remain usable over fullscreen games
-// and regular applications. The playback backend stays in MprisController so
-// Raohane does not duplicate MPRIS discovery or player-selection logic.
 Scope {
     id: root
 
-    readonly property var player: MprisController.activePlayer
-    readonly property var track: MprisController.activeTrack
-    readonly property real progress: player && player.length > 0
-        ? Math.max(0, Math.min(1, player.position / player.length))
-        : 0
+    readonly property var player: RaohaneMedia.activePlayer
+    readonly property real progress: RaohaneMedia.progress
 
     PanelWindow {
         id: panelWindow
@@ -79,7 +73,7 @@ Scope {
                     Image {
                         id: coverArt
                         anchors.fill: parent
-                        source: root.player?.trackArtUrl ?? ""
+                        source: RaohaneMedia.artUrl
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         cache: false
@@ -88,7 +82,7 @@ Scope {
 
                     Text {
                         anchors.centerIn: parent
-                        visible: !root.player || coverArt.status !== Image.Ready
+                        visible: !RaohaneMedia.available || coverArt.status !== Image.Ready
                         text: "音"
                         color: RaohaneTheme.accent
                         font.pixelSize: 30
@@ -110,7 +104,9 @@ Scope {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: root.track?.title ?? qsTr("No active player")
+                                text: RaohaneMedia.available && RaohaneMedia.title.length > 0
+                                    ? RaohaneMedia.title
+                                    : qsTr("No active player")
                                 color: RaohaneTheme.text
                                 font.pixelSize: 13
                                 font.weight: Font.DemiBold
@@ -119,7 +115,9 @@ Scope {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: root.track?.artist ?? qsTr("Start music to use the overlay")
+                                text: RaohaneMedia.available && RaohaneMedia.artist.length > 0
+                                    ? RaohaneMedia.artist
+                                    : qsTr("Start music to use the overlay")
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 10
                                 elide: Text.ElideRight
@@ -150,12 +148,9 @@ Scope {
 
                         MouseArea {
                             anchors.fill: parent
-                            enabled: root.player?.canSeek ?? false
+                            enabled: RaohaneMedia.canSeek
                             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            onClicked: mouse => {
-                                if (!root.player || root.player.length <= 0) return
-                                root.player.position = Math.max(0, Math.min(1, mouse.x / width)) * root.player.length
-                            }
+                            onClicked: mouse => RaohaneMedia.seekRatio(mouse.x / width)
                         }
                     }
 
@@ -174,21 +169,21 @@ Scope {
 
                         ControlButton {
                             icon: "skip_previous"
-                            enabled: root.player?.canGoPrevious ?? false
-                            onClicked: MprisController.previous()
+                            enabled: RaohaneMedia.canGoPrevious
+                            onClicked: RaohaneMedia.previous()
                         }
 
                         ControlButton {
-                            icon: root.player?.isPlaying ? "pause" : "play_arrow"
-                            enabled: root.player?.canTogglePlaying ?? false
+                            icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
+                            enabled: RaohaneMedia.canTogglePlaying
                             emphasized: true
-                            onClicked: MprisController.togglePlaying()
+                            onClicked: RaohaneMedia.togglePlaying()
                         }
 
                         ControlButton {
                             icon: "skip_next"
-                            enabled: root.player?.canGoNext ?? false
-                            onClicked: MprisController.next()
+                            enabled: RaohaneMedia.canGoNext
+                            onClicked: RaohaneMedia.next()
                         }
                     }
                 }
