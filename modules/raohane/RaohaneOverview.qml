@@ -50,7 +50,16 @@ Scope {
 
     function activateWorkspace(workspaceId: int): void {
         root.close()
-        Hyprland.dispatch("workspace " + workspaceId)
+        const workspace = root.workspaceForId(workspaceId)
+        if (workspace) {
+            workspace.activate()
+            return
+        }
+
+        if (Hyprland.usingLua)
+            Hyprland.dispatch(`hl.dsp.focus({ workspace = "${workspaceId}" })`)
+        else
+            Hyprland.dispatch("workspace " + workspaceId)
     }
 
     function activateSelected(): void {
