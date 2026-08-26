@@ -9,10 +9,12 @@ QtObject {
     property bool mediaOverlayOpen: false
     property bool wallpaperSelectorOpen: false
     property string wallpaperSelectorTarget: "wallpaper"
+    property bool overviewOpen: false
 
     function closeTransientSurfaces(): void {
         launcherOpen = false
         mediaOverlayOpen = false
         wallpaperSelectorOpen = false
+        overviewOpen = false
     }
 }
