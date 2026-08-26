@@ -9,12 +9,12 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.raohane.services
 
 Scope {
     id: root
 
     property string currentIndicator: "volume"
-    property string protectionMessage: ""
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
     readonly property var brightnessMonitor: Brightness.getMonitorForScreen(focusedScreen)
@@ -28,14 +28,14 @@ Scope {
             if (lower >= 1) return current
             return Math.max(0, Math.min(1, (current - lower) / (1 - lower)))
         }
-        return Math.max(0, Math.min(1, Audio.sink?.audio.volume ?? 0))
+        return Math.max(0, Math.min(1, RaohaneAudio.volume))
     }
 
     readonly property string icon: currentIndicator === "brightness"
         ? (Hyprsunset.temperatureActive ? "routine" : "light_mode")
         : currentIndicator === "gamma"
             ? "wb_twilight"
-            : (Audio.sink?.audio.muted ? "volume_off" : "volume_up")
+            : (RaohaneAudio.muted ? "volume_off" : "volume_up")
 
     readonly property string label: currentIndicator === "brightness"
         ? qsTr("Brightness")
@@ -57,47 +57,28 @@ Scope {
         id: hideTimer
         interval: Config.options.osd?.timeout ?? 1500
         repeat: false
-        onTriggered: {
-            GlobalStates.osdVolumeOpen = false
-            root.protectionMessage = ""
-        }
+        onTriggered: GlobalStates.osdVolumeOpen = false
     }
 
     Connections {
         target: Brightness
-        function onBrightnessChanged(): void {
-            root.protectionMessage = ""
-            root.trigger("brightness")
-        }
+        function onBrightnessChanged(): void { root.trigger("brightness") }
     }
 
     Connections {
         target: Hyprsunset
-        function onGammaChangeAttempt(): void {
-            root.protectionMessage = ""
-            root.trigger("gamma")
-        }
+        function onGammaChangeAttempt(): void { root.trigger("gamma") }
     }
 
     Connections {
-        target: Audio.sink?.audio ?? null
-
+        target: RaohaneAudio
         function onVolumeChanged(): void {
-            if (Audio.ready)
+            if (RaohaneAudio.ready)
                 root.trigger("volume")
         }
-
         function onMutedChanged(): void {
-            if (Audio.ready)
+            if (RaohaneAudio.ready)
                 root.trigger("volume")
-        }
-    }
-
-    Connections {
-        target: Audio
-        function onSinkProtectionTriggered(reason): void {
-            root.protectionMessage = reason
-            root.trigger("volume")
         }
     }
 
@@ -112,7 +93,7 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
             implicitWidth: 390
-            implicitHeight: protectionCard.visible ? 112 : 78
+            implicitHeight: 78
 
             WlrLayershell.namespace: "quickshell:raohane-osd"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -128,123 +109,87 @@ Scope {
                 bottom: 72
             }
 
-            mask: Region { item: content }
+            mask: Region { item: card }
 
-            Column {
-                id: content
+            Rectangle {
+                id: card
+                width: 350
+                height: 72
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 7
+                radius: 24
+                color: RaohaneTheme.glassStrong
+                border.width: 1
+                border.color: RaohaneTheme.border
 
-                Rectangle {
-                    id: card
-                    width: 350
-                    height: 72
-                    radius: 24
-                    color: RaohaneTheme.glassStrong
-                    border.width: 1
-                    border.color: RaohaneTheme.border
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    acceptedButtons: Qt.NoButton
+                    onEntered: GlobalStates.osdVolumeOpen = false
+                }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.NoButton
-                        onEntered: GlobalStates.osdVolumeOpen = false
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 12
+
+                    Rectangle {
+                        width: 42
+                        height: 42
+                        radius: 15
+                        color: RaohaneTheme.accentSoft
+
+                        MaterialSymbol {
+                            anchors.centerIn: parent
+                            text: root.icon
+                            iconSize: 22
+                            color: RaohaneTheme.accent
+                        }
                     }
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 12
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
 
-                        Rectangle {
-                            width: 42
-                            height: 42
-                            radius: 15
-                            color: RaohaneTheme.accentSoft
+                        RowLayout {
+                            Layout.fillWidth: true
 
-                            MaterialSymbol {
-                                anchors.centerIn: parent
-                                text: root.icon
-                                iconSize: 22
-                                color: RaohaneTheme.accent
+                            Text {
+                                text: root.label
+                                color: RaohaneTheme.text
+                                font.pixelSize: 11
+                                font.weight: Font.DemiBold
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            Text {
+                                text: root.percent + "%"
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 10
+                                font.weight: Font.DemiBold
                             }
                         }
 
-                        ColumnLayout {
+                        Rectangle {
                             Layout.fillWidth: true
-                            spacing: 6
-
-                            RowLayout {
-                                Layout.fillWidth: true
-
-                                Text {
-                                    text: root.label
-                                    color: RaohaneTheme.text
-                                    font.pixelSize: 11
-                                    font.weight: Font.DemiBold
-                                }
-
-                                Item { Layout.fillWidth: true }
-
-                                Text {
-                                    text: root.percent + "%"
-                                    color: RaohaneTheme.textMuted
-                                    font.pixelSize: 10
-                                    font.weight: Font.DemiBold
-                                }
-                            }
+                            Layout.preferredHeight: 6
+                            radius: 3
+                            color: "#32ffffff"
 
                             Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 6
-                                radius: 3
-                                color: "#32ffffff"
+                                width: parent.width * root.value
+                                height: parent.height
+                                radius: parent.radius
+                                color: RaohaneTheme.accent
 
-                                Rectangle {
-                                    width: parent.width * root.value
-                                    height: parent.height
-                                    radius: parent.radius
-                                    color: RaohaneTheme.accent
-
-                                    Behavior on width {
-                                        NumberAnimation {
-                                            duration: 120
-                                            easing.type: Easing.OutCubic
-                                        }
+                                Behavior on width {
+                                    NumberAnimation {
+                                        duration: 120
+                                        easing.type: Easing.OutCubic
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    id: protectionCard
-                    width: 350
-                    height: 32
-                    radius: 14
-                    visible: root.protectionMessage.length > 0
-                    color: "#d43a1722"
-                    border.width: 1
-                    border.color: RaohaneTheme.critical
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 7
-
-                        MaterialSymbol {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "warning"
-                            iconSize: 15
-                            color: RaohaneTheme.critical
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: root.protectionMessage
-                            color: RaohaneTheme.text
-                            font.pixelSize: 9
-                            elide: Text.ElideRight
                         }
                     }
                 }
