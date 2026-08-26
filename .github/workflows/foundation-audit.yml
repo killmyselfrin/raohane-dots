@@ -69,6 +69,9 @@ jobs:
             panelFamilies/RaohaneFamily.qml
             services/Notifications.qml
             services/Wallpapers.qml
+            services/SessionWarnings.qml
+            services/SystemInfo.qml
+            modules/common/functions/Session.qml
             "${native_qml[@]}"
           )
           for file in "${files[@]}"; do
@@ -101,7 +104,11 @@ jobs:
             modules/raohane/services/RaohaneDisplay.qml
             modules/raohane/services/RaohaneNotifications.qml
             modules/raohane/services/RaohaneWallpapers.qml
+            modules/raohane/services/RaohaneSession.qml
+            modules/raohane/services/RaohaneSessionWarnings.qml
+            modules/raohane/services/RaohaneSystemInfo.qml
             modules/common/Directories.qml
+            modules/common/functions/Session.qml
             panelFamilies/IllogicalImpulseFamily.qml
             panelFamilies/RaohaneFamily.qml
             services
@@ -119,6 +126,8 @@ jobs:
             services/Hyprsunset.qml
             services/Notifications.qml
             services/Wallpapers.qml
+            services/SessionWarnings.qml
+            services/SystemInfo.qml
           )
 
           for path in "${required_paths[@]}"; do
