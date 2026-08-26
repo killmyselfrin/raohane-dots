@@ -5,17 +5,15 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
 
-import qs
 import qs.services
-import qs.modules.common
-import qs.modules.common.models
 import qs.modules.common.widgets
+import qs.modules.raohane.services
 
 Scope {
     id: root
 
     property int selectedIndex: 0
-    readonly property var results: LauncherSearch.results.slice(0, 9)
+    readonly property var results: RaohaneSearch.results.slice(0, 9)
 
     function close(): void {
         RaohaneState.launcherOpen = false
@@ -23,14 +21,16 @@ Scope {
 
     function reset(): void {
         selectedIndex = 0
-        LauncherSearch.query = ""
+        RaohaneSearch.query = ""
     }
 
     function executeSelected(): void {
-        if (root.results.length === 0) return
+        if (root.results.length === 0)
+            return
         const index = Math.max(0, Math.min(root.selectedIndex, root.results.length - 1))
         const result = root.results[index]
-        if (!result || !result.execute) return
+        if (!result || !result.execute)
+            return
         root.close()
         result.execute()
     }
@@ -136,11 +136,11 @@ Scope {
                         selectedTextColor: RaohaneTheme.text
                         font.pixelSize: 17
                         clip: true
-                        text: LauncherSearch.query
+                        text: RaohaneSearch.query
 
                         onTextChanged: {
-                            if (LauncherSearch.query !== text)
-                                LauncherSearch.query = text
+                            if (RaohaneSearch.query !== text)
+                                RaohaneSearch.query = text
                             root.selectedIndex = 0
                         }
 
@@ -219,11 +219,11 @@ Scope {
                                     Loader {
                                         anchors.fill: parent
                                         sourceComponent: {
-                                            if (resultRow.modelData.iconType === LauncherSearchResult.IconType.System)
+                                            if (resultRow.modelData.iconType === "system")
                                                 return systemIcon
-                                            if (resultRow.modelData.iconType === LauncherSearchResult.IconType.Material)
+                                            if (resultRow.modelData.iconType === "material")
                                                 return materialIcon
-                                            if (resultRow.modelData.iconType === LauncherSearchResult.IconType.Text)
+                                            if (resultRow.modelData.iconType === "text")
                                                 return textIcon
                                             return fallbackIcon
                                         }
@@ -329,7 +329,7 @@ Scope {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: LauncherSearch.query.length === 0
+                            text: RaohaneSearch.query.length === 0
                                 ? qsTr("Start typing")
                                 : qsTr("No results")
                             color: RaohaneTheme.text
@@ -339,7 +339,7 @@ Scope {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: qsTr("Apps, clipboard, symbols, commands and more")
+                            text: qsTr("Apps · / actions · > commands · = math · : clipboard")
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 9
                         }
