@@ -13,6 +13,9 @@ fail() {
 [[ -d modules/raohane ]] || fail 'modules/raohane is missing'
 [[ -f panelFamilies/RaohaneFamily.qml ]] || fail 'RaohaneFamily.qml is missing'
 [[ -f scripts/raohane ]] || fail 'Raohane CLI is missing'
+[[ -f scripts/install-deps.sh ]] || fail 'Raohane dependency installer is missing'
+[[ -f install/arch/required.txt ]] || fail 'Raohane required package manifest is missing'
+[[ -f install/arch/features.txt ]] || fail 'Raohane feature package manifest is missing'
 
 required_native=(
   modules/raohane/RaohaneTheme.qml
@@ -35,10 +38,11 @@ required_native=(
   modules/raohane/RaohaneWallpaperSelector.qml
   modules/raohane/RaohaneDesktopMenu.qml
   modules/raohane/RaohaneSessionScreen.qml
+  modules/raohane/services/RaohaneMedia.qml
 )
 
 for path in "${required_native[@]}"; do
-  [[ -f "$path" ]] || fail "required native surface is missing: $path"
+  [[ -f "$path" ]] || fail "required native surface/service is missing: $path"
 done
 
 while IFS= read -r qmldir; do
@@ -71,6 +75,18 @@ rg -q '^singleton RaohanePrivacy .*RaohanePrivacy.qml$' modules/raohane/qmldir \
   || fail 'RaohanePrivacy is not registered as a singleton'
 rg -q 'RaohanePrivacy\.(recordingActive|microphoneActive|cameraActive)' modules/raohane/RaohaneContext.qml \
   || fail 'Context Island is not wired to the privacy provider'
+
+rg -q '^singleton RaohaneMedia .*RaohaneMedia.qml$' modules/raohane/services/qmldir \
+  || fail 'RaohaneMedia is not registered as a Raohane service singleton'
+rg -q 'Quickshell.Services.Mpris' modules/raohane/services/RaohaneMedia.qml \
+  || fail 'RaohaneMedia is not backed directly by Quickshell MPRIS'
+rg -q 'RaohaneMedia\.' modules/raohane/RaohaneContext.qml \
+  || fail 'Context Island is not consuming the Raohane media service'
+rg -q 'RaohaneMedia\.' modules/raohane/RaohaneMediaOverlay.qml \
+  || fail 'Media overlay is not consuming the Raohane media service'
+if rg -n 'MprisController' modules/raohane/RaohaneContext.qml modules/raohane/RaohaneMediaOverlay.qml; then
+  fail 'Active Raohane media surfaces regressed to inherited MprisController'
+fi
 
 rg -q 'RaohaneQuickControls' modules/raohane/RaohaneControlCenter.qml \
   || fail 'Control Center is not using Raohane quick controls'
@@ -129,6 +145,19 @@ rg -q 'ipc wallpaperSelector random' scripts/raohane \
 rg -q 'ipc session toggle' scripts/raohane \
   || fail 'raohane session is not routed to the native session IPC'
 
+# Standalone install boundary: the normal installer and doctor may only use
+# Raohane-owned manifests/scripts. Legacy migration is explicit and config-only.
+rg -q 'scripts/install-deps\.sh' install-raohane.sh \
+  || fail 'main installer is not using the Raohane dependency installer'
+if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' install-raohane.sh scripts/install-deps.sh scripts/raohane; then
+  fail 'normal install/doctor path still executes upstream shell infrastructure'
+fi
+if rg -n -i 'illogical-impulse|\bniri\b' scripts/videos/record.sh; then
+  fail 'screen recorder still contains a legacy shell/compositor dependency'
+fi
+rg -q 'config/raohane/config\.json' scripts/videos/record.sh \
+  || fail 'screen recorder is not reading the Raohane config namespace'
+
 if rg -n 'GlobalStates\.raohane[A-Za-z0-9_]+' modules/raohane panelFamilies/RaohaneFamily.qml; then
   fail 'Raohane-owned state leaked back into upstream-refreshed GlobalStates'
 fi
@@ -143,8 +172,11 @@ rg -q 'config}/raohane' modules/common/Directories.qml \
   || fail 'Raohane config namespace is not active'
 
 bash -n scripts/raohane
+bash -n scripts/raohane-audit.sh
+bash -n scripts/install-deps.sh
+bash -n scripts/videos/record.sh
 bash -n scripts/sync-end4-foundation.sh
 bash -n scripts/install-foundation-deps.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native surfaces and primary QML graph are structurally valid\n'
+printf 'raohane-audit: standalone boundaries and primary QML graph are structurally valid\n'
