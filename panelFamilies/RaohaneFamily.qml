@@ -26,31 +26,31 @@ Scope {
             Config.options.sidebar.mediaPlayer = false
     }
 
-    PanelLoader { component: RaohaneBackground {} }
-    PanelLoader { component: RaohaneDesktopCanvas {} }
-    PanelLoader { extraCondition: !Config.options.bar.vertical; component: RaohaneBar {} }
-    PanelLoader { extraCondition: RaohaneConfig.dockEnabled; component: RaohaneDock {} }
-    PanelLoader { component: Lock {} }
-    PanelLoader { component: RaohaneNotificationPopup {} }
-    PanelLoader { component: RaohaneOsd {} }
-    PanelLoader { component: OnScreenKeyboard {} }
-    PanelLoader { component: Overlay {} }
-    PanelLoader { component: RaohaneOverview {} }
-    PanelLoader { component: Polkit {} }
-    PanelLoader { component: RegionSelector {} }
-    PanelLoader { component: ScreenCorners {} }
-    PanelLoader { component: ScreenTranslator {} }
-    PanelLoader { component: SidebarLeft {} }
+    RaohanePanelLoader { component: RaohaneBackground {} }
+    RaohanePanelLoader { component: RaohaneDesktopCanvas {} }
+    RaohanePanelLoader { extraCondition: !Config.options.bar.vertical; component: RaohaneBar {} }
+    RaohanePanelLoader { extraCondition: RaohaneConfig.dockEnabled; component: RaohaneDock {} }
+    RaohanePanelLoader { component: Lock {} }
+    RaohanePanelLoader { component: RaohaneNotificationPopup {} }
+    RaohanePanelLoader { component: RaohaneOsd {} }
+    RaohanePanelLoader { component: OnScreenKeyboard {} }
+    RaohanePanelLoader { component: Overlay {} }
+    RaohanePanelLoader { component: RaohaneOverview {} }
+    RaohanePanelLoader { component: Polkit {} }
+    RaohanePanelLoader { component: RegionSelector {} }
+    RaohanePanelLoader { component: ScreenCorners {} }
+    RaohanePanelLoader { component: ScreenTranslator {} }
+    RaohanePanelLoader { component: SidebarLeft {} }
 
-    PanelLoader { component: RaohaneLauncher {} }
-    PanelLoader { component: RaohaneControlCenter {} }
-    PanelLoader { component: RaohaneSettings {} }
-    PanelLoader { component: RaohaneMediaOverlay {} }
-    PanelLoader { component: RaohaneWallpaperSelector {} }
-    PanelLoader { component: RaohaneDesktopMenu {} }
-    PanelLoader { component: RaohaneSessionScreen {} }
+    RaohanePanelLoader { component: RaohaneLauncher {} }
+    RaohanePanelLoader { component: RaohaneControlCenter {} }
+    RaohanePanelLoader { component: RaohaneSettings {} }
+    RaohanePanelLoader { component: RaohaneMediaOverlay {} }
+    RaohanePanelLoader { component: RaohaneWallpaperSelector {} }
+    RaohanePanelLoader { component: RaohaneDesktopMenu {} }
+    RaohanePanelLoader { component: RaohaneSessionScreen {} }
 
-    PanelLoader { extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
-    PanelLoader { component: DropShelfPanel {} }
-    PanelLoader { component: ScreenFrame {} }
+    RaohanePanelLoader { extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
+    RaohanePanelLoader { component: DropShelfPanel {} }
+    RaohanePanelLoader { component: ScreenFrame {} }
 }
