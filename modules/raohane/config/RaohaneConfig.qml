@@ -9,7 +9,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 2
+    readonly property int schemaVersion: 3
     readonly property string configDirectory: root.cleanPath(StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0] ?? "") + "/raohane"
     readonly property string filePath: configDirectory + "/native.json"
 
@@ -27,6 +27,9 @@ Singleton {
     property int wallpaperTransitionDuration: 650
     property real wallpaperDim: 0.06
     property real lockWallpaperDim: 0.28
+
+    property int overviewWorkspaceCount: 6
+    property int overviewColumns: 3
 
     property int colorTemperature: 5000
 
@@ -68,6 +71,10 @@ Singleton {
                 dim: root.wallpaperDim,
                 lockDim: root.lockWallpaperDim
             },
+            overview: {
+                workspaceCount: root.overviewWorkspaceCount,
+                columns: root.overviewColumns
+            },
             display: {
                 colorTemperature: root.colorTemperature
             },
@@ -92,6 +99,7 @@ Singleton {
         root.loading = true
 
         const wallpaper = document?.wallpaper ?? {}
+        const overview = document?.overview ?? {}
         const display = document?.display ?? {}
         const apps = document?.apps ?? {}
         const features = document?.features ?? {}
@@ -106,6 +114,9 @@ Singleton {
         root.assignIfPresent(wallpaper, "transitionDuration", value => root.wallpaperTransitionDuration = Math.max(0, Math.min(3000, Number(value) || 650)))
         root.assignIfPresent(wallpaper, "dim", value => root.wallpaperDim = Math.max(0, Math.min(0.8, Number(value) || 0)))
         root.assignIfPresent(wallpaper, "lockDim", value => root.lockWallpaperDim = Math.max(0, Math.min(0.9, Number(value) || 0)))
+
+        root.assignIfPresent(overview, "workspaceCount", value => root.overviewWorkspaceCount = Math.max(2, Math.min(12, Number(value) || 6)))
+        root.assignIfPresent(overview, "columns", value => root.overviewColumns = Math.max(1, Math.min(4, Number(value) || 3)))
 
         root.assignIfPresent(display, "colorTemperature", value => root.colorTemperature = Math.max(1000, Math.min(10000, Number(value) || 5000)))
 
@@ -157,6 +168,8 @@ Singleton {
     onWallpaperTransitionDurationChanged: scheduleSave()
     onWallpaperDimChanged: scheduleSave()
     onLockWallpaperDimChanged: scheduleSave()
+    onOverviewWorkspaceCountChanged: scheduleSave()
+    onOverviewColumnsChanged: scheduleSave()
     onColorTemperatureChanged: scheduleSave()
     onTaskManagerCommandChanged: scheduleSave()
     onChangePasswordCommandChanged: scheduleSave()
