@@ -1,0 +1,2 @@
+module qs.modules.raohane.config
+singleton RaohaneConfig 1.0 RaohaneConfig.qml
