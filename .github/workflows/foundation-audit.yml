@@ -64,7 +64,13 @@ jobs:
           QMLFORMAT=/usr/lib/qt6/bin/qmlformat
           [[ -x "$QMLFORMAT" ]] || { echo "qmlformat not found: $QMLFORMAT" >&2; exit 1; }
           mapfile -t native_qml < <(find modules/raohane -type f -name '*.qml' -print | sort)
-          files=(shell.qml panelFamilies/RaohaneFamily.qml services/Notifications.qml "${native_qml[@]}")
+          files=(
+            shell.qml
+            panelFamilies/RaohaneFamily.qml
+            services/Notifications.qml
+            services/Wallpapers.qml
+            "${native_qml[@]}"
+          )
           for file in "${files[@]}"; do
             echo "Parsing $file"
             "$QMLFORMAT" "$file" >/dev/null
@@ -94,6 +100,7 @@ jobs:
             modules/raohane/services/RaohaneNetwork.qml
             modules/raohane/services/RaohaneDisplay.qml
             modules/raohane/services/RaohaneNotifications.qml
+            modules/raohane/services/RaohaneWallpapers.qml
             modules/common/Directories.qml
             panelFamilies/IllogicalImpulseFamily.qml
             panelFamilies/RaohaneFamily.qml
@@ -111,6 +118,7 @@ jobs:
             services/Brightness.qml
             services/Hyprsunset.qml
             services/Notifications.qml
+            services/Wallpapers.qml
           )
 
           for path in "${required_paths[@]}"; do
