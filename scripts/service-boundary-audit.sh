@@ -101,6 +101,16 @@ if rg -n 'FolderListModel|FolderListModelWithHistory|switchwall\.sh|illogical-im
 fi
 rg -q 'RaohaneConfig\.wallpaperPath' modules/raohane/services/RaohaneWallpapers.qml \
   || fail 'RaohaneWallpapers does not persist through RaohaneConfig'
+rg -q '"mp4".*"webm".*"mkv"' modules/raohane/services/RaohaneWallpapers.qml \
+  || fail 'RaohaneWallpapers lost native video wallpaper discovery'
+
+for symbol in RaohaneWallpapers RaohaneConfig RaohaneState; do
+  rg -q "${symbol}\." modules/raohane/RaohaneWallpaperSelector.qml \
+    || fail "RaohaneWallpaperSelector does not consume ${symbol}"
+done
+if rg -n '\bConfig\.|\bDirectories\.|\bAppearance\.|\bWallpapers\.|GlobalStates\.wallpaperSelector' modules/raohane/RaohaneWallpaperSelector.qml; then
+  fail 'RaohaneWallpaperSelector regressed to inherited wallpaper state/services'
+fi
 
 rg -q 'RaohaneSession' modules/common/functions/Session.qml \
   || fail 'compatibility Session API is not routed to RaohaneSession'
@@ -140,4 +150,4 @@ rg -q 'RaohaneConfig' modules/raohane/RaohaneLegacyBridge.qml \
 rg -q 'RaohaneLegacyBridge\.load' panelFamilies/RaohaneFamily.qml \
   || fail 'RaohaneFamily does not initialize the temporary config bridge'
 
-printf 'raohane-service-audit: core services, native search and native config boundaries are Raohane-owned\n'
+printf 'raohane-service-audit: core services, wallpaper workflow, native search and config boundaries are Raohane-owned\n'
