@@ -26,6 +26,7 @@ done
 
 required_native=(
   modules/raohane/RaohaneTheme.qml
+  modules/raohane/RaohaneIcon.qml
   modules/raohane/RaohaneState.qml
   modules/raohane/RaohanePrivacy.qml
   modules/raohane/RaohaneContext.qml
@@ -95,6 +96,7 @@ done
 
 rg -q '^singleton RaohanePrivacy .*RaohanePrivacy.qml$' modules/raohane/qmldir || fail 'RaohanePrivacy is not registered'
 rg -q '^singleton RaohaneLegacyBridge .*RaohaneLegacyBridge.qml$' modules/raohane/qmldir || fail 'RaohaneLegacyBridge is not registered'
+rg -q '^RaohaneIcon .*RaohaneIcon.qml$' modules/raohane/qmldir || fail 'RaohaneIcon is not registered'
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' modules/raohane/config/qmldir || fail 'RaohaneConfig is not registered'
 rg -q 'RaohaneLegacyBridge\.load' panelFamilies/RaohaneFamily.qml || fail 'RaohaneFamily does not initialize the temporary config bridge'
 
@@ -158,6 +160,12 @@ rg -q 'RaohaneSearch\.' modules/raohane/RaohaneLauncher.qml || fail 'Launcher is
 if rg -n 'LauncherSearch|LauncherSearchResult|AppSearch' modules/raohane/RaohaneLauncher.qml; then
   fail 'Launcher regressed to inherited search plumbing'
 fi
+if rg -n '^import qs\.modules\.common\.widgets$|\bMaterialSymbol[[:space:]]*\{' modules/raohane/RaohaneBar.qml modules/raohane/RaohaneLauncher.qml; then
+  fail 'Bar/Launcher regressed to inherited MaterialSymbol widget ownership'
+fi
+for surface in modules/raohane/RaohaneBar.qml modules/raohane/RaohaneLauncher.qml; do
+  rg -q '\bRaohaneIcon[[:space:]]*\{' "$surface" || fail "$surface is not consuming RaohaneIcon"
+done
 
 rg -q 'import Quickshell.Hyprland' shell.qml || fail 'shell.qml no longer declares Hyprland integration'
 if rg -n -i 'inir|\bniri\b|waffle|ricelin' modules/raohane shell.qml panelFamilies/RaohaneFamily.qml; then
