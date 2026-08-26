@@ -77,6 +77,10 @@ Item {
         eventTimer.stop()
     }
 
+    function clear(): void {
+        clearTransientEvent()
+    }
+
     function statusJson(): string {
         return JSON.stringify({
             mode: mode,
