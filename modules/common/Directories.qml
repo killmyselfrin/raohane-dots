@@ -1,7 +1,6 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import qs.services
 import qs.modules.common.functions
 import QtCore
 import QtQuick
@@ -19,6 +18,7 @@ Singleton {
     readonly property string pictures: StandardPaths.standardLocations(StandardPaths.PicturesLocation)[0]
     readonly property string music: StandardPaths.standardLocations(StandardPaths.MusicLocation)[0]
     readonly property string videos: StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0]
+    readonly property string username: Quickshell.env("USER") ?? Quickshell.env("LOGNAME") ?? ""
 
     // Other dirs used by the shell, without "file://"
     property string assetsPath: Quickshell.shellPath("assets")
@@ -53,7 +53,7 @@ Singleton {
     property string aiChats: FileUtils.trimFileProtocol(`${Directories.state}/user/ai/chats`)
     property string aiTranslationScriptPath: FileUtils.trimFileProtocol(`${Directories.scriptPath}/ai/gemini-translate.sh`)
     property string recordScriptPath: FileUtils.trimFileProtocol(`${Directories.scriptPath}/videos/record.sh`)
-    property string userAvatarPathAccountsService: FileUtils.trimFileProtocol(`/var/lib/AccountsService/icons/${SystemInfo.username}`)
+    property string userAvatarPathAccountsService: FileUtils.trimFileProtocol(`/var/lib/AccountsService/icons/${Directories.username}`)
     property string userAvatarPathRicersAndWeirdSystems: FileUtils.trimFileProtocol(`${Directories.home}.face`)
     property string userAvatarPathRicersAndWeirdSystems2: FileUtils.trimFileProtocol(`${Directories.home}.face.icon`)
     property string userPresetsPath: FileUtils.trimFileProtocol(`${Directories.shellConfig}/presets`)
