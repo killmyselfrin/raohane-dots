@@ -29,6 +29,43 @@ ipc() {
   qs -c "$QS_CONFIG" ipc call "$@"
 }
 
+service_failure_report() {
+  echo >&2
+  echo "[Raohane] $SERVICE did not stay running." >&2
+  echo '[Raohane] Service status:' >&2
+  systemctl --user --no-pager --full status "$SERVICE" >&2 || true
+  echo >&2
+  echo '[Raohane] Recent runtime log:' >&2
+  journalctl --user -u "$SERVICE" -n 35 --no-pager >&2 || true
+  echo >&2
+  echo '[Raohane] For the clearest QML/runtime error run:' >&2
+  echo '  raohane stop' >&2
+  echo '  raohane run' >&2
+}
+
+service_start() {
+  systemctl --user reset-failed "$SERVICE" >/dev/null 2>&1 || true
+  if ! systemctl --user start "$SERVICE"; then
+    service_failure_report
+    return 1
+  fi
+
+  # systemctl start can return before a short-lived Quickshell process crashes.
+  sleep 1
+  if ! systemctl --user --quiet is-active "$SERVICE"; then
+    service_failure_report
+    return 1
+  fi
+
+  echo "[Raohane] $SERVICE is active."
+}
+
+service_restart() {
+  systemctl --user stop "$SERVICE" >/dev/null 2>&1 || true
+  systemctl --user reset-failed "$SERVICE" >/dev/null 2>&1 || true
+  service_start
+}
+
 check_cmd() {
   local command_name="$1"
   local package_hint="${2:-}"
@@ -118,16 +155,17 @@ case "${1:-help}" in
     exec qs -c "$QS_CONFIG"
     ;;
   start)
-    systemctl --user start "$SERVICE"
+    service_start
     ;;
   stop)
     systemctl --user stop "$SERVICE"
+    systemctl --user reset-failed "$SERVICE" >/dev/null 2>&1 || true
     ;;
   restart)
-    systemctl --user restart "$SERVICE"
+    service_restart
     ;;
   status)
-    systemctl --user --no-pager status "$SERVICE"
+    systemctl --user --no-pager --full status "$SERVICE"
     ;;
   logs)
     exec journalctl --user -u "$SERVICE" -f
@@ -180,8 +218,11 @@ case "${1:-help}" in
         echo 'Raohane doctor services'
         if systemctl --user --no-pager --quiet is-active "$SERVICE"; then
           echo "  [ok] $SERVICE active"
+        elif systemctl --user --quiet is-failed "$SERVICE"; then
+          echo "  [!!] $SERVICE failed"
+          journalctl --user -u "$SERVICE" -n 12 --no-pager || true
         else
-          echo "  [!!] $SERVICE not active"
+          echo "  [--] $SERVICE not active"
         fi
 
         for unit in pipewire.service wireplumber.service; do
@@ -210,9 +251,15 @@ case "${1:-help}" in
         print_dependency_report || true
         echo
         echo 'Shell service'
-        systemctl --user --no-pager --quiet is-active "$SERVICE" \
-          && echo "  [ok] $SERVICE active" \
-          || echo "  [--] $SERVICE not active"
+        if systemctl --user --quiet is-active "$SERVICE"; then
+          echo "  [ok] $SERVICE active"
+        elif systemctl --user --quiet is-failed "$SERVICE"; then
+          echo "  [!!] $SERVICE failed"
+          echo '  Recent log:'
+          journalctl --user -u "$SERVICE" -n 12 --no-pager | sed 's/^/    /' || true
+        else
+          echo "  [--] $SERVICE not active"
+        fi
         echo
         echo 'Runtime context'
         printf '  WAYLAND_DISPLAY=%s\n' "${WAYLAND_DISPLAY:-<unset>}"
