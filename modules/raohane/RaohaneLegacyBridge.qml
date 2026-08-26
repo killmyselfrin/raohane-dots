@@ -31,6 +31,12 @@ Singleton {
         RaohaneConfig.wallpaperHideWhenFullscreen = Config.options?.background?.hideWhenFullscreen ?? RaohaneConfig.wallpaperHideWhenFullscreen
         RaohaneConfig.wallpaperColumns = Config.options?.wallpaperSelector?.columns ?? RaohaneConfig.wallpaperColumns
         RaohaneConfig.wallpaperChangeInterval = Config.options?.wallpaperSelector?.changeInterval ?? RaohaneConfig.wallpaperChangeInterval
+
+        const legacyOverviewColumns = Config.options?.overview?.columns ?? RaohaneConfig.overviewColumns
+        const legacyOverviewRows = Config.options?.overview?.rows ?? Math.ceil(RaohaneConfig.overviewWorkspaceCount / legacyOverviewColumns)
+        RaohaneConfig.overviewColumns = legacyOverviewColumns
+        RaohaneConfig.overviewWorkspaceCount = Math.max(2, legacyOverviewColumns * legacyOverviewRows)
+
         RaohaneConfig.colorTemperature = Config.options?.light?.night?.colorTemperature ?? RaohaneConfig.colorTemperature
 
         if (RaohaneConfig.taskManagerCommand.length === 0)
@@ -61,6 +67,10 @@ Singleton {
         if (Config.options?.wallpaperSelector) {
             Config.options.wallpaperSelector.columns = RaohaneConfig.wallpaperColumns
             Config.options.wallpaperSelector.changeInterval = RaohaneConfig.wallpaperChangeInterval
+        }
+        if (Config.options?.overview) {
+            Config.options.overview.columns = RaohaneConfig.overviewColumns
+            Config.options.overview.rows = Math.ceil(RaohaneConfig.overviewWorkspaceCount / RaohaneConfig.overviewColumns)
         }
         if (Config.options?.light?.night)
             Config.options.light.night.colorTemperature = RaohaneConfig.colorTemperature
@@ -94,6 +104,17 @@ Singleton {
         root.syncing = false
     }
 
+    function pullLegacyOverview(): void {
+        if (root.syncing || !RaohaneConfig.ready)
+            return
+        root.syncing = true
+        const columns = Config.options?.overview?.columns ?? 3
+        const rows = Config.options?.overview?.rows ?? 2
+        RaohaneConfig.overviewColumns = columns
+        RaohaneConfig.overviewWorkspaceCount = Math.max(2, columns * rows)
+        root.syncing = false
+    }
+
     function pullLegacyDisplay(): void {
         if (root.syncing || !RaohaneConfig.ready)
             return
@@ -111,21 +132,23 @@ Singleton {
         root.syncing = false
     }
 
-    function pullLegacyWallpaperState(): void {
+    function pullLegacyTransientState(): void {
         if (root.syncingState)
             return
         root.syncingState = true
         RaohaneState.wallpaperSelectorOpen = GlobalStates.wallpaperSelectorOpen
         RaohaneState.wallpaperSelectorTarget = GlobalStates.wallpaperSelectorTarget ?? "wallpaper"
+        RaohaneState.overviewOpen = GlobalStates.overviewOpen
         root.syncingState = false
     }
 
-    function pushNativeWallpaperState(): void {
+    function pushNativeTransientState(): void {
         if (root.syncingState)
             return
         root.syncingState = true
         GlobalStates.wallpaperSelectorOpen = RaohaneState.wallpaperSelectorOpen
         GlobalStates.wallpaperSelectorTarget = RaohaneState.wallpaperSelectorTarget
+        GlobalStates.overviewOpen = RaohaneState.overviewOpen
         root.syncingState = false
     }
 
@@ -138,6 +161,8 @@ Singleton {
         function onWallpaperHideWhenFullscreenChanged(): void { root.pushNativeToLegacy() }
         function onWallpaperColumnsChanged(): void { root.pushNativeToLegacy() }
         function onWallpaperChangeIntervalChanged(): void { root.pushNativeToLegacy() }
+        function onOverviewWorkspaceCountChanged(): void { root.pushNativeToLegacy() }
+        function onOverviewColumnsChanged(): void { root.pushNativeToLegacy() }
         function onColorTemperatureChanged(): void { root.pushNativeToLegacy() }
         function onTaskManagerCommandChanged(): void { root.pushNativeToLegacy() }
         function onChangePasswordCommandChanged(): void { root.pushNativeToLegacy() }
@@ -145,8 +170,9 @@ Singleton {
 
     Connections {
         target: RaohaneState
-        function onWallpaperSelectorOpenChanged(): void { root.pushNativeWallpaperState() }
-        function onWallpaperSelectorTargetChanged(): void { root.pushNativeWallpaperState() }
+        function onWallpaperSelectorOpenChanged(): void { root.pushNativeTransientState() }
+        function onWallpaperSelectorTargetChanged(): void { root.pushNativeTransientState() }
+        function onOverviewOpenChanged(): void { root.pushNativeTransientState() }
     }
 
     Connections {
@@ -172,6 +198,12 @@ Singleton {
     }
 
     Connections {
+        target: Config.options?.overview ?? null
+        function onColumnsChanged(): void { root.pullLegacyOverview() }
+        function onRowsChanged(): void { root.pullLegacyOverview() }
+    }
+
+    Connections {
         target: Config.options?.light?.night ?? null
         function onColorTemperatureChanged(): void { root.pullLegacyDisplay() }
     }
@@ -184,12 +216,13 @@ Singleton {
 
     Connections {
         target: GlobalStates
-        function onWallpaperSelectorOpenChanged(): void { root.pullLegacyWallpaperState() }
-        function onWallpaperSelectorTargetChanged(): void { root.pullLegacyWallpaperState() }
+        function onWallpaperSelectorOpenChanged(): void { root.pullLegacyTransientState() }
+        function onWallpaperSelectorTargetChanged(): void { root.pullLegacyTransientState() }
+        function onOverviewOpenChanged(): void { root.pullLegacyTransientState() }
     }
 
     Component.onCompleted: {
         root.seedNativeFromLegacy()
-        root.pullLegacyWallpaperState()
+        root.pullLegacyTransientState()
     }
 }
