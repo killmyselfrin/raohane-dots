@@ -33,6 +33,7 @@ required_native=(
   modules/raohane/RaohaneBackground.qml
   modules/raohane/RaohaneDesktopCanvas.qml
   modules/raohane/RaohaneOverview.qml
+  modules/raohane/RaohaneDock.qml
   modules/raohane/RaohaneContextIsland.qml
   modules/raohane/RaohaneBar.qml
   modules/raohane/RaohaneLauncher.qml
@@ -87,7 +88,7 @@ while IFS= read -r import_line; do
   [[ -d "$module_path" ]] || fail "unresolved local module $import_path"
 done < <(rg -o --no-filename '^import qs\.[A-Za-z0-9_.]+$' shell.qml modules/raohane | sort -u || true)
 
-for surface in RaohaneBackground RaohaneDesktopCanvas RaohaneOverview RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup RaohaneWallpaperSelector RaohaneDesktopMenu RaohaneSessionScreen; do
+for surface in RaohaneBackground RaohaneDesktopCanvas RaohaneOverview RaohaneDock RaohaneBar RaohaneLauncher RaohaneControlCenter RaohaneSettings RaohaneMediaOverlay RaohaneOsd RaohaneNotificationPopup RaohaneWallpaperSelector RaohaneDesktopMenu RaohaneSessionScreen; do
   rg -q "component: ${surface} \{\}" panelFamilies/RaohaneFamily.qml \
     || fail "RaohaneFamily does not load $surface"
 done
@@ -118,6 +119,20 @@ if rg -n 'NiriOverview|OverviewWidget|LauncherSearch|GlobalStates\.overviewOpen|
 fi
 rg -q 'name: "overviewWorkspacesToggle"' modules/raohane/RaohaneOverview.qml || fail 'RaohaneOverview lost compatibility workspace shortcut'
 rg -q 'target: "search"' modules/raohane/RaohaneOverview.qml || fail 'RaohaneOverview lost compatibility search IPC target'
+
+if rg -n '^import qs\.modules\.ii\.dock$|component: Dock \{\}' panelFamilies/RaohaneFamily.qml; then
+  fail 'RaohaneFamily regressed to the inherited dock'
+fi
+for symbol in 'ToplevelManager\.toplevels' 'DesktopEntries\.' 'RaohaneConfig\.dock'; do
+  rg -q "$symbol" modules/raohane/RaohaneDock.qml || fail "RaohaneDock lost required native dependency: $symbol"
+done
+if rg -n 'TaskbarApps|AppSearch|MprisController|\bAppearance\.|\bConfig\.|qs\.modules\.ii' modules/raohane/RaohaneDock.qml; then
+  fail 'RaohaneDock regressed to inherited dock/taskbar plumbing'
+fi
+rg -q '\.activate\(\)' modules/raohane/RaohaneDock.qml || fail 'RaohaneDock cannot activate native toplevels'
+rg -q '\.close\(\)' modules/raohane/RaohaneDock.qml || fail 'RaohaneDock cannot close native toplevels'
+rg -q 'RaohaneMedia\.' modules/raohane/RaohaneDock.qml || fail 'RaohaneDock media affordance does not use RaohaneMedia'
+rg -q 'RaohaneState\.overviewOpen' modules/raohane/RaohaneDock.qml || fail 'RaohaneDock Spaces button is not connected to native overview state'
 
 if rg -n '^import qs\.modules\.ii\.sidebarRight' modules/raohane/RaohaneControlCenter.qml; then
   fail 'Control Center regressed to compatibility sidebar UI'
@@ -166,4 +181,4 @@ bash -n scripts/install-deps.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native desktop/overview, product graph, installation and config boundaries are valid\n'
+printf 'raohane-audit: native desktop/overview/dock, product graph, installation and config boundaries are valid\n'
