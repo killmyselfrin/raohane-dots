@@ -31,6 +31,7 @@ require_service RaohaneAudio 'Quickshell\.Services\.Pipewire'
 require_service RaohaneNetwork '\bnmcli\b'
 require_service RaohaneDisplay 'brightnessctl|ddcutil|hyprsunset'
 require_service RaohaneNotifications 'Quickshell\.Services\.Notifications'
+require_service RaohaneWallpapers 'Qt\.labs\.folderlistmodel'
 
 rg -q 'RaohaneMedia\.' modules/raohane/RaohaneContext.qml \
   || fail 'RaohaneContext does not consume RaohaneMedia'
@@ -81,4 +82,14 @@ if rg -n 'NotificationServer[[:space:]]*\{' services/Notifications.qml; then
   fail 'compatibility Notifications service owns a second NotificationServer'
 fi
 
-printf 'raohane-service-audit: media, Bluetooth, audio, network, display and notification boundaries are native\n'
+rg -q 'RaohaneWallpapers' services/Wallpapers.qml \
+  || fail 'compatibility Wallpapers facade is not routed to RaohaneWallpapers'
+if rg -n 'FolderListModel|FolderListModelWithHistory|switchwall\.sh|illogical-impulse' services/Wallpapers.qml; then
+  fail 'compatibility Wallpapers service still owns inherited wallpaper plumbing'
+fi
+rg -q 'property alias folderModel: folderModel' modules/raohane/services/RaohaneWallpapers.qml \
+  || fail 'RaohaneWallpapers does not expose its native folder model'
+rg -q 'Config\.options\.background\.wallpaperPath' modules/raohane/services/RaohaneWallpapers.qml \
+  || fail 'RaohaneWallpapers does not own wallpaper apply state'
+
+printf 'raohane-service-audit: media, Bluetooth, audio, network, display, notifications and wallpapers are Raohane-owned\n'
