@@ -1,5 +1,21 @@
 # Raohane changelog
 
+## 0.10.0-dev — Foundation Migration Batch
+
+- Make the Raohane product runtime explicitly Hyprland-only while keeping `ii-upstream` as a diagnostic fallback family.
+- Add `RaohaneState.qml` so product-only ephemeral state survives end4 foundation refreshes.
+- Wire Context Island to live MPRIS and active-window data.
+- Activate a Raohane-native horizontal bar while retaining mature workspace, tray and system providers.
+- Add a dedicated Raohane launcher over `LauncherSearch` with keyboard navigation and native IPC.
+- Add a fullscreen-friendly Raohane media overlay over the mature MPRIS backend.
+- Replace the visible volume/brightness/gamma OSD with `RaohaneOsd.qml` while retaining Audio, Brightness and Hyprsunset providers.
+- Replace the visible notification popup with `RaohaneNotificationPopup.qml` while retaining the mature notification server, persistence, timers and actions backend.
+- Keep Control Center and Settings as Raohane shells over mature providers/content during the migration.
+- Expand the `raohane` CLI with `media` and batch diagnostics for dependencies, services and graphics.
+- Add `./install-raohane.sh --deps` and `--no-start`; dependency installation stays pinned and GPU-driver mutation remains explicit.
+- Expand static CI/audit coverage for native-surface registration, IPC routing, Hyprland product boundaries and upstream-refresh safety.
+- Treat static validation as a structural gate only; the batch still requires a real Hyprland + Quickshell runtime pass before merge/release.
+
 ## dev-0.1
 - Created from Raohane base.
 - Retained full Raohane settings/config architecture.
