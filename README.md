@@ -1,96 +1,301 @@
-# Raohane
+<div align="center">
 
-**Raohane** is a Hyprland + Quickshell desktop shell being developed toward a fully standalone runtime and codebase.
+# ラオハネ · Raohane
 
-> Current development line: **migration reference → standalone Raohane**
+### A living desktop shell for Hyprland
 
-## Independence target
+**Japanese-inspired · Quickshell-powered · being rebuilt into a standalone shell**
 
-`end4-pC`, illogical-impulse, iNiR and Serpantinum are development references/migration sources, not permanent Raohane dependencies.
+[![Hyprland](https://img.shields.io/badge/Hyprland-target-7c5cff?style=for-the-badge)](https://hypr.land/)
+[![Quickshell](https://img.shields.io/badge/Quickshell-Qt%2FQML-6f8cff?style=for-the-badge)](https://quickshell.org/)
+[![Platform](https://img.shields.io/badge/Linux-Arch%20focused-1793d1?style=for-the-badge&logo=archlinux&logoColor=white)](#installation)
+[![License](https://img.shields.io/badge/License-GPLv3-2f2f2f?style=for-the-badge)](LICENSE)
 
-The target release architecture is explicit:
+> **Current phase:** Standalone / Independence Migration
 
-- Raohane installs without cloning or executing another shell repository.
-- Raohane owns its dependency manifest, services, configuration schema, common framework and visible UI.
-- Production runtime has no required `modules/ii` imports and no upstream panel-family fallback.
-- Upstream synchronization scripts and lock files disappear after migration is complete.
-- Third-party license/attribution notices remain where code/assets still require them.
+</div>
 
-See `INDEPENDENCE-PLAN.md` for the removal milestones.
+---
 
-## Independence progress
+## ✦ What is Raohane?
 
-The normal installation path is now standalone: `./install-raohane.sh --deps` uses Raohane-owned Arch manifests from `install/arch/` and does not clone or execute another shell repository. CI likewise validates the local Raohane graph without fetching end4-pC.
+**Raohane** is a desktop shell for **Hyprland**, written with **Quickshell / Qt QML**.
 
-The first Raohane-owned service adapters are also active:
+The project combines Japanese-inspired minimalism with a more reactive desktop: contextual surfaces, dynamic media controls, a living center island, polished system panels and fullscreen-aware overlays.
 
-- `RaohaneMedia` → direct Quickshell MPRIS
-- `RaohaneBluetooth` → direct Quickshell Bluetooth
-- `RaohaneAudio` → direct Quickshell PipeWire
-- `RaohanePrivacy` → direct PipeWire capture state
+Raohane originally used a mature existing shell foundation so that important Linux desktop behavior did not have to be rewritten all at once. We are now removing that dependency subsystem-by-subsystem.
 
-Context Island and Media Overlay use `RaohaneMedia`; Control Center Bluetooth/audio controls use `RaohaneBluetooth` and `RaohaneAudio`; the Raohane volume OSD also uses `RaohaneAudio`.
+The end goal is explicit:
 
-A compatibility graph is still present for parts that have not yet been rewritten. It is migration material, not the target architecture.
+> **Raohane must be able to install, run, update and evolve without cloning, executing or depending on another desktop-shell repository.**
 
-## Current native surfaces
+---
 
-Current Raohane-owned product surfaces include the horizontal bar, launcher, Context Island, Control Center internals, Settings navigation and Control Deck, game/media overlay, OSD, notification popup/history UI, wallpaper selector, desktop context menu and session/power menu.
+## 🚧 What we are doing right now
 
-`panelFamilies/RaohaneFamily.qml` is currently the composition boundary, `modules/raohane/` contains Raohane-owned product components/state/services, and persistent settings already live under `~/.config/raohane`.
+Active development is happening in:
 
-## Install
+```text
+raohane-context-media-foundation
+```
 
-On Arch-based systems:
+Tracked by:
+
+```text
+PR #11 · Raohane 0.10 standalone migration batch
+```
+
+The migration is moving from this:
+
+```text
+Quickshell
+   ↓
+inherited services / common framework
+   ↓
+Raohane presentation
+```
+
+into this:
+
+```text
+Quickshell + Linux system APIs
+   ↓
+Raohane-owned services
+   ↓
+Raohane-owned config / state / common framework
+   ↓
+Raohane-native UI
+```
+
+### Current focus
+
+1. finish owning core hardware/system services;
+2. remove direct inherited service usage from active Raohane UI;
+3. introduce `RaohaneConfig` and a native common framework;
+4. delete compatibility runtime layers only after feature parity is preserved;
+5. validate the result on real Hyprland hardware before merging the standalone batch.
+
+---
+
+## ✅ Already separated in the development branch
+
+| Area | Raohane ownership |
+|---|---|
+| Dependency installation | Raohane-owned Arch manifests |
+| MPRIS / media | `RaohaneMedia` |
+| Bluetooth | `RaohaneBluetooth` |
+| PipeWire audio | `RaohaneAudio` |
+| NetworkManager | `RaohaneNetwork` |
+| Privacy / capture state | `RaohanePrivacy` |
+| Context Island | Raohane-native |
+| Horizontal bar | Raohane-native development surface |
+| Launcher | Raohane-native development surface |
+| Control Center | Raohane-native presentation |
+| Settings shell / Control Deck | Raohane-native presentation |
+| Media / game overlay | Raohane-native |
+| OSD | Raohane-native |
+| Notification UI | Raohane-native presentation |
+| Wallpaper selector | Raohane-native presentation |
+| Desktop context menu | Raohane-native |
+| Session / power screen | Raohane-native presentation |
+| Dependency / architecture CI | Raohane-owned audit pipeline |
+
+### Service boundary already active
+
+```text
+Quickshell.Services.Mpris
+        ↓
+   RaohaneMedia
+        ↓
+Context Island / Media Overlay
+
+Quickshell.Services.Pipewire
+        ↓
+   RaohaneAudio
+        ↓
+Control Center / OSD
+
+Quickshell.Bluetooth
+        ↓
+ RaohaneBluetooth
+        ↓
+   Control Center
+
+NetworkManager / nmcli
+        ↓
+  RaohaneNetwork
+        ↓
+   Control Center
+```
+
+The development installer also uses Raohane-owned package manifests and no longer runs another shell project's setup process.
+
+---
+
+## 🔧 In progress now
+
+The next service boundary is display control.
+
+A new `RaohaneDisplay` backend is being introduced around:
+
+```text
+brightnessctl
+     +
+ddcutil
+     +
+hyprsunset
+```
+
+The target behavior is to keep the current combined brightness model:
+
+```text
+normal range  → hardware brightness
+very low range → gamma dimming
+```
+
+while dropping legacy compositor branches and unrelated inherited presentation logic.
+
+After display control, the next large backends are notifications, wallpapers and session/system information.
+
+---
+
+## 🧩 Still being migrated
+
+Some mature subsystems remain temporarily inherited so the desktop stays usable while replacements are developed.
+
+The largest remaining areas are:
+
+- display UI cutover for brightness / DDC / gamma / night light;
+- notification backend and history ownership;
+- wallpaper backend and desktop background renderer;
+- system/session information and warnings;
+- application/search providers;
+- remaining desktop widgets;
+- lock/capture/region-selection support;
+- remaining shared `modules/common` utilities;
+- the inherited configuration schema;
+- remaining compatibility `modules/ii` surfaces.
+
+These components are migration scaffolding, not the intended final architecture.
+
+---
+
+## 🗺️ Roadmap to standalone Raohane
+
+### Phase 1 — Installation boundary
+
+- [x] Raohane-owned dependency manifests
+- [x] independent dependency installer
+- [x] dependency doctor
+- [x] stop normal CI from fetching upstream shell repositories
+- [x] make legacy config import explicit instead of automatic
+
+### Phase 2 — Core services
+
+- [x] MPRIS / media
+- [x] Bluetooth
+- [x] PipeWire audio
+- [x] NetworkManager
+- [x] Privacy / capture state
+- [ ] Brightness / DDC — backend currently being integrated
+- [ ] Night light / gamma — backend currently being integrated
+- [ ] Notifications
+- [ ] Wallpapers
+- [ ] Session / system information
+
+### Phase 3 — Core framework
+
+- [ ] `RaohaneConfig`
+- [ ] Raohane-owned directory/path API
+- [ ] Raohane-owned common widgets
+- [ ] Raohane-owned models and utility functions
+- [ ] remove direct active-runtime imports from inherited services
+
+### Phase 4 — Runtime cleanup
+
+- [ ] remove remaining `modules/ii` runtime dependencies
+- [ ] remove inherited service graph
+- [ ] remove upstream panel-family fallback
+- [ ] remove migration sync/bootstrap scripts
+- [ ] remove obsolete upstream lock files
+
+### Phase 5 — Standalone release
+
+- [ ] clean install on a fresh Arch/Hyprland system
+- [ ] multi-monitor validation
+- [ ] NVIDIA validation
+- [ ] AMD / Intel validation
+- [ ] fullscreen / game overlay validation
+- [ ] package and dependency audit
+- [ ] standalone Raohane release
+
+---
+
+## ✨ Product direction
+
+Raohane is not intended to be only another themed status bar.
+
+The shell is being designed around:
+
+- a **Context Island** that reacts to media, active windows, privacy and system events;
+- a media overlay that can appear over fullscreen applications and games;
+- a coherent Control Center for audio, networking, Bluetooth, display and system modes;
+- a native launcher and search experience;
+- a customizable Japanese-inspired visual language;
+- dynamic wallpaper and desktop surfaces;
+- polished notifications and OSD;
+- full settings instead of requiring manual config editing;
+- gaming-aware behavior and low-latency modes;
+- strong **Hyprland-first** integration.
+
+Raohane does not pretend to target every compositor. **Hyprland is the product target.**
+
+---
+
+## 📦 Installation
+
+### Stable `main`
+
+`main` still contains the current migration foundation. Until PR #11 is runtime-tested and merged, installation directly from `main` uses the existing foundation bootstrap:
 
 ```bash
+git clone https://github.com/snuskidau/raohane-dots.git
+cd raohane-dots
+
+bash scripts/install-foundation-deps.sh
 chmod +x install-raohane.sh
-./install-raohane.sh --deps
+./install-raohane.sh
+
 hyprctl reload
 raohane restart
 ```
 
-`--deps` installs the Raohane-owned package manifest with `pacman`. It does not use illogical-impulse/end4 setup scripts and it never selects or replaces GPU drivers.
+### Current standalone development build
 
-If the required packages are already installed:
-
-```bash
-./install-raohane.sh
-```
-
-To install without immediately starting the user service:
+To test the active independence work:
 
 ```bash
-./install-raohane.sh --no-start
+git clone https://github.com/snuskidau/raohane-dots.git
+cd raohane-dots
+
+git checkout raohane-context-media-foundation
+
+chmod +x install-raohane.sh
+./install-raohane.sh --deps
+
+hyprctl reload
+raohane restart
 ```
 
-New installations seed `~/.config/raohane/config.json` from Raohane defaults. Importing an older illogical-impulse config is explicit and optional:
+The development installer uses Raohane-owned package manifests and does **not** execute another shell repository's setup process.
 
-```bash
-./install-raohane.sh --migrate-legacy
-```
+> GPU drivers are never silently selected or replaced. Font binaries remain package-managed instead of being vendored into the repository.
 
-Font binaries remain package-managed rather than vendored into the repository.
+---
 
-## Dependency manifests
+## 🎛️ Main controls
 
-Raohane owns its current Arch dependency lists:
-
-```text
-install/arch/required.txt
-install/arch/features.txt
-```
-
-Useful checks:
-
-```bash
-bash scripts/install-deps.sh --minimal --check
-bash scripts/install-deps.sh --full --check
-bash scripts/install-deps.sh --full --print
-raohane doctor deps
-```
-
-## Main controls
+Current development commands:
 
 ```bash
 raohane launcher
@@ -103,58 +308,133 @@ raohane wallpaper random
 raohane session
 ```
 
-The desktop menu is also opened by the existing desktop right-click path from the current background renderer.
-
-## Batch test workflow
-
-Development intentionally moves several surfaces together and collects runtime failures in one Hyprland test pass.
-
-Start with diagnostics:
+Diagnostics:
 
 ```bash
 raohane doctor all
 raohane doctor deps
 raohane doctor services
 raohane doctor graphics
-```
-
-Then exercise the main surfaces listed above plus:
-
-```bash
 raohane wifi status
 raohane audio status
 ```
 
-For direct terminal debugging:
+Foreground debugging:
 
 ```bash
 raohane stop
 raohane run
 ```
 
-When reporting a batch failure, include `raohane doctor all` plus relevant output from `raohane run` or `raohane logs`. Verify bar/multi-monitor behavior, launcher focus, Control Center toggles/sliders, notifications, OSD, MPRIS/media, Settings page loading, wallpaper preview/apply/random, desktop menu placement, session actions, audio, Wi-Fi/network, Bluetooth, brightness and capture before treating a build as release-ready.
+Logs:
 
-## Static validation
+```bash
+raohane logs
+```
 
-`Raohane audit` validates shell scripts, Raohane module/service ownership, IPC routes and the current migration graph. It parses `shell.qml`, `RaohaneFamily.qml` and all Raohane-owned QML files with Qt6 `qmlformat` so obvious QML syntax failures are caught before a compositor test.
+---
 
-`scripts/service-boundary-audit.sh` specifically prevents active Raohane surfaces from silently regressing to inherited MPRIS, Bluetooth or Audio service adapters after those boundaries have migrated.
+## 🧪 Testing a development batch
 
-This still does not replace a real Hyprland + Quickshell runtime pass: plugin imports, LayerShell behavior, focus, live service properties and compositor-specific interactions must be verified in the target session.
+Passing static QML checks is not enough for a shell release.
 
-## Temporary migration tooling
+A real Hyprland session should verify:
 
-`scripts/sync-end4-foundation.sh`, the old dependency bootstrap and upstream lock files are migration scaffolding only. They are no longer used by the normal installer, dependency doctor or CI and will be deleted after the remaining inherited runtime code has been replaced.
+1. startup and restart behavior;
+2. bar behavior on every monitor;
+3. launcher keyboard focus and search;
+4. Control Center toggles and sliders;
+5. audio sink/source volume and mute;
+6. Bluetooth state and toggling;
+7. Wi-Fi / Ethernet state and Wi-Fi toggling;
+8. brightness, DDC and gamma behavior;
+9. night-light state;
+10. notifications and notification history;
+11. OSD behavior;
+12. MPRIS selection, seek and transport controls;
+13. media overlay behavior over fullscreen applications;
+14. wallpaper preview/apply/random;
+15. desktop context menu;
+16. session, lock, logout, reboot and shutdown actions.
 
-## Runtime paths
+Useful failure output:
 
-- Shell: `~/.config/quickshell/raohane`
-- Settings: `~/.config/raohane/config.json`
-- Hyprland integration: `~/.config/hypr/raohane.conf`
-- User service: `raohane.service`
+```bash
+raohane doctor all
+raohane run
+```
 
-## Migration model
+or:
 
-Raohane is not intended to remain a reskinned end4-pC installation. The migration ends only when Raohane owns its UI, services, config/common framework, dependencies and release path and no longer needs another shell repository to build, install, update or run.
+```bash
+raohane logs
+```
 
-See `INDEPENDENCE-PLAN.md`, `ARCHITECTURE.md`, `NOTICE-UPSTREAM.md`, `AGENTS.md` and `RAOHANE-CHANGELOG.md`.
+---
+
+## 🧱 Repository structure
+
+```text
+raohane-dots/
+├── modules/
+│   ├── raohane/
+│   │   ├── services/        # Raohane-owned backend adapters
+│   │   └── ...              # native UI / state
+│   ├── common/              # shared framework being migrated
+│   └── ii/                  # temporary compatibility UI
+├── services/                # inherited services being replaced
+├── panelFamilies/
+│   └── RaohaneFamily.qml    # current composition boundary
+├── install/
+│   └── arch/                # Raohane dependency manifests
+├── scripts/
+│   ├── raohane              # CLI
+│   └── ...
+├── defaults/
+├── shell.qml
+└── install-raohane.sh
+```
+
+---
+
+## 🔒 Project rules
+
+Current development rules:
+
+- no silent GPU-driver replacement;
+- no vendored font binaries;
+- no new Niri-specific product work — Raohane targets Hyprland;
+- no Raohane-specific state inside migration-owned `GlobalStates.qml`;
+- new product state belongs in Raohane-owned singletons;
+- migrated UI should consume stable Raohane service APIs instead of inherited adapters;
+- normal install/doctor/CI paths should not execute another shell repository;
+- GPL and attribution obligations remain preserved while derivative code is still present.
+
+---
+
+## 📜 Licensing and upstream lineage
+
+Raohane is distributed under **GPLv3**.
+
+The repository currently contains code with upstream lineage from the migration foundation. Relevant notices and attribution remain preserved while that code is still present.
+
+The independence migration means removing permanent build/runtime/development dependency — not erasing authorship or licensing history.
+
+See:
+
+- [`NOTICE-UPSTREAM.md`](NOTICE-UPSTREAM.md)
+- [`INDEPENDENCE-PLAN.md`](INDEPENDENCE-PLAN.md)
+- [`ARCHITECTURE.md`](ARCHITECTURE.md)
+- [`RAOHANE-CHANGELOG.md`](RAOHANE-CHANGELOG.md)
+
+---
+
+<div align="center">
+
+### Raohane is being rebuilt into its own shell.
+
+**Architecture first. Feature parity second. Polish without inherited limits after that.**
+
+`ラオハネ` · Hyprland · Quickshell
+
+</div>
