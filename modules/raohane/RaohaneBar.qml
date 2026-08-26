@@ -255,7 +255,7 @@ Scope {
                                 ? RaohaneTheme.accentSoft
                                 : "transparent"
 
-                            MaterialSymbol {
+                            RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "tune"
                                 iconSize: 17
