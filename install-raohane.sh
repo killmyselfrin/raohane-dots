@@ -15,6 +15,7 @@ LEGACY_CONFIG_FILE="$CONFIG_HOME/illogical-impulse/config.json"
 INSTALL_DEPS=0
 START_AFTER_INSTALL=1
 MIGRATE_LEGACY=0
+START_FAILED=0
 
 usage() {
   cat <<'EOF'
@@ -124,11 +125,10 @@ fi
 printf '[Raohane] Installing Hyprland shell...\n'
 
 systemctl --user stop raohane.service >/dev/null 2>&1 || true
+systemctl --user reset-failed raohane.service >/dev/null 2>&1 || true
 
 mkdir -p "$RUNTIME" "$BIN_DIR" "$SYSTEMD_DIR" "$HYPR_DIR" "$RAOHANE_CONFIG"
 
-# New installs start from Raohane defaults. Importing a legacy shell config is
-# opt-in so ordinary installs have no dependency on another shell namespace.
 if [[ ! -f "$RAOHANE_CONFIG_FILE" ]]; then
   if ((MIGRATE_LEGACY)) && [[ -f "$LEGACY_CONFIG_FILE" ]]; then
     cp -a "$LEGACY_CONFIG_FILE" "$RAOHANE_CONFIG_FILE"
@@ -170,12 +170,14 @@ cat > "$SYSTEMD_DIR/raohane.service" <<SERVICE
 Description=Raohane shell for Hyprland
 PartOf=graphical-session.target
 After=graphical-session.target
+StartLimitIntervalSec=20
+StartLimitBurst=3
 
 [Service]
 Type=simple
 ExecStart=${BIN_DIR}/raohane run
 Restart=on-failure
-RestartSec=1
+RestartSec=2
 Environment=QT_QPA_PLATFORM=wayland
 
 [Install]
@@ -217,9 +219,13 @@ fi
 
 systemctl --user daemon-reload
 systemctl --user enable raohane.service >/dev/null 2>&1 || true
+systemctl --user reset-failed raohane.service >/dev/null 2>&1 || true
 
 if ((START_AFTER_INSTALL)) && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
-  systemctl --user start raohane.service >/dev/null 2>&1 || true
+  printf '[Raohane] Starting shell for runtime validation...\n'
+  if ! "$BIN_DIR/raohane" start; then
+    START_FAILED=1
+  fi
 fi
 
 printf '\n[Raohane] Installed.\n'
@@ -230,8 +236,15 @@ printf 'Hyprland snippet: %s\n' "$HYPR_SNIPPET"
 printf 'Autostart snippet: %s\n\n' "$HYPR_AUTOSTART"
 if ((START_AFTER_INSTALL == 0)); then
   printf 'Start manually with: raohane start\n'
+elif ((START_FAILED)); then
+  printf 'Runtime startup failed; the diagnostic log was printed above.\n'
+  printf 'Foreground debug: raohane stop && raohane run\n'
 else
   printf 'Start/restart with: raohane restart\n'
 fi
 printf 'Batch diagnostics: raohane doctor all\n'
 printf 'Debug in terminal: raohane run\n'
+
+if ((START_FAILED)); then
+  exit 1
+fi
