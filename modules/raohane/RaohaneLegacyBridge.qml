@@ -37,6 +37,14 @@ Singleton {
         RaohaneConfig.overviewColumns = legacyOverviewColumns
         RaohaneConfig.overviewWorkspaceCount = Math.max(2, legacyOverviewColumns * legacyOverviewRows)
 
+        if (Config.options?.dock) {
+            RaohaneConfig.dockEnabled = Config.options.dock.enable ?? RaohaneConfig.dockEnabled
+            RaohaneConfig.dockAutoHide = Config.options.dock.hoverToReveal ?? RaohaneConfig.dockAutoHide
+            RaohaneConfig.dockPinned = Config.options.dock.pinnedOnStartup ?? RaohaneConfig.dockPinned
+            RaohaneConfig.dockHeight = Config.options.dock.height ?? RaohaneConfig.dockHeight
+            RaohaneConfig.dockPinnedApps = Array.from(Config.options.dock.pinnedApps ?? [])
+        }
+
         RaohaneConfig.colorTemperature = Config.options?.light?.night?.colorTemperature ?? RaohaneConfig.colorTemperature
 
         if (RaohaneConfig.taskManagerCommand.length === 0)
@@ -71,6 +79,13 @@ Singleton {
         if (Config.options?.overview) {
             Config.options.overview.columns = RaohaneConfig.overviewColumns
             Config.options.overview.rows = Math.ceil(RaohaneConfig.overviewWorkspaceCount / RaohaneConfig.overviewColumns)
+        }
+        if (Config.options?.dock) {
+            Config.options.dock.enable = RaohaneConfig.dockEnabled
+            Config.options.dock.hoverToReveal = RaohaneConfig.dockAutoHide
+            Config.options.dock.pinnedOnStartup = RaohaneConfig.dockPinned
+            Config.options.dock.height = RaohaneConfig.dockHeight
+            Config.options.dock.pinnedApps = RaohaneConfig.dockPinnedApps
         }
         if (Config.options?.light?.night)
             Config.options.light.night.colorTemperature = RaohaneConfig.colorTemperature
@@ -112,6 +127,18 @@ Singleton {
         const rows = Config.options?.overview?.rows ?? 2
         RaohaneConfig.overviewColumns = columns
         RaohaneConfig.overviewWorkspaceCount = Math.max(2, columns * rows)
+        root.syncing = false
+    }
+
+    function pullLegacyDock(): void {
+        if (root.syncing || !RaohaneConfig.ready)
+            return
+        root.syncing = true
+        RaohaneConfig.dockEnabled = Config.options?.dock?.enable ?? true
+        RaohaneConfig.dockAutoHide = Config.options?.dock?.hoverToReveal ?? true
+        RaohaneConfig.dockPinned = Config.options?.dock?.pinnedOnStartup ?? false
+        RaohaneConfig.dockHeight = Config.options?.dock?.height ?? 68
+        RaohaneConfig.dockPinnedApps = Array.from(Config.options?.dock?.pinnedApps ?? [])
         root.syncing = false
     }
 
@@ -163,6 +190,11 @@ Singleton {
         function onWallpaperChangeIntervalChanged(): void { root.pushNativeToLegacy() }
         function onOverviewWorkspaceCountChanged(): void { root.pushNativeToLegacy() }
         function onOverviewColumnsChanged(): void { root.pushNativeToLegacy() }
+        function onDockEnabledChanged(): void { root.pushNativeToLegacy() }
+        function onDockAutoHideChanged(): void { root.pushNativeToLegacy() }
+        function onDockPinnedChanged(): void { root.pushNativeToLegacy() }
+        function onDockHeightChanged(): void { root.pushNativeToLegacy() }
+        function onDockPinnedAppsChanged(): void { root.pushNativeToLegacy() }
         function onColorTemperatureChanged(): void { root.pushNativeToLegacy() }
         function onTaskManagerCommandChanged(): void { root.pushNativeToLegacy() }
         function onChangePasswordCommandChanged(): void { root.pushNativeToLegacy() }
@@ -201,6 +233,15 @@ Singleton {
         target: Config.options?.overview ?? null
         function onColumnsChanged(): void { root.pullLegacyOverview() }
         function onRowsChanged(): void { root.pullLegacyOverview() }
+    }
+
+    Connections {
+        target: Config.options?.dock ?? null
+        function onEnableChanged(): void { root.pullLegacyDock() }
+        function onHoverToRevealChanged(): void { root.pullLegacyDock() }
+        function onPinnedOnStartupChanged(): void { root.pullLegacyDock() }
+        function onHeightChanged(): void { root.pullLegacyDock() }
+        function onPinnedAppsChanged(): void { root.pullLegacyDock() }
     }
 
     Connections {
