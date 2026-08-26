@@ -1,13 +1,9 @@
 pragma Singleton
 
-import Quickshell
 import QtQuick
 
 Singleton {
-    property string iconMaterialFamily: materialSymbolsLoader.name
-
-    FontLoader {
-        id: materialSymbolsLoader
-        source: Qt.resolvedUrl(`${Quickshell.shellPath("assets/fonts")}/MaterialSymbolsRounded.ttf`)
-    }
+    // Raohane installs a system Material Symbols provider through the Arch
+    // dependency manifest. Do not rely on a vendored font file.
+    property string iconMaterialFamily: "Material Symbols Rounded"
 }
