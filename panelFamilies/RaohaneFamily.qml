@@ -17,19 +17,15 @@ import qs.modules.ii.sessionScreen
 import qs.modules.ii.sidebarLeft
 import qs.modules.ii.overlay
 import qs.modules.ii.verticalBar
-import qs.modules.ii.wallpaperSelector
-import qs.modules.ii.desktopMenu
 import qs.modules.ii.dropover
 import qs.modules.ii.frame
 
 // Raohane's stable Hyprland panel family.
 //
-// The mature foundation stays underneath, while user-facing surfaces are
-// replaced here one at a time with Raohane-native implementations.
+// Mature services and selected compatibility panels stay underneath while the
+// daily-driver shell surfaces are owned by modules/raohane.
 Scope {
     Component.onCompleted: {
-        // Keep the permanent dock/sidebar media widgets disabled. The mature
-        // media backend remains available while Raohane-owned surfaces migrate.
         if (Config.options?.dock)
             Config.options.dock.showMedia = false
         if (Config.options?.sidebar)
@@ -58,10 +54,10 @@ Scope {
     PanelLoader { component: RaohaneControlCenter {} }
     PanelLoader { component: RaohaneSettings {} }
     PanelLoader { component: RaohaneMediaOverlay {} }
+    PanelLoader { component: RaohaneWallpaperSelector {} }
+    PanelLoader { component: RaohaneDesktopMenu {} }
 
     PanelLoader { extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
-    PanelLoader { component: WallpaperSelector {} }
-    PanelLoader { component: DesktopMenu {} }
     PanelLoader { component: DropShelfPanel {} }
     PanelLoader { component: ScreenFrame {} }
 }
