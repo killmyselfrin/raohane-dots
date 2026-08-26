@@ -5,7 +5,6 @@ import qs.modules.common
 import qs.modules.raohane
 import qs.modules.raohane.config
 import qs.modules.ii.lock
-import qs.modules.ii.mediaControls
 import qs.modules.ii.onScreenKeyboard
 import qs.modules.ii.polkit
 import qs.modules.ii.regionSelector
@@ -32,7 +31,6 @@ Scope {
     PanelLoader { extraCondition: !Config.options.bar.vertical; component: RaohaneBar {} }
     PanelLoader { extraCondition: RaohaneConfig.dockEnabled; component: RaohaneDock {} }
     PanelLoader { component: Lock {} }
-    PanelLoader { component: MediaControls {} }
     PanelLoader { component: RaohaneNotificationPopup {} }
     PanelLoader { component: RaohaneOsd {} }
     PanelLoader { component: OnScreenKeyboard {} }
