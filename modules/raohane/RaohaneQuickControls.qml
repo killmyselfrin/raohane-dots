@@ -4,12 +4,12 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Bluetooth
 import Quickshell.Io
 
 import qs
 import qs.services
 import qs.modules.common.widgets
+import qs.modules.raohane.services
 
 Item {
     id: root
@@ -59,17 +59,15 @@ Item {
 
             QuickTile {
                 Layout.fillWidth: true
-                visible: BluetoothStatus.available
-                icon: BluetoothStatus.connected ? "bluetooth_connected"
-                    : BluetoothStatus.enabled ? "bluetooth" : "bluetooth_disabled"
+                visible: RaohaneBluetooth.available
+                icon: RaohaneBluetooth.connected ? "bluetooth_connected"
+                    : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled"
                 title: qsTr("Bluetooth")
-                subtitle: BluetoothStatus.firstActiveDevice?.name
-                    ?? (BluetoothStatus.enabled ? qsTr("On") : qsTr("Off"))
-                active: BluetoothStatus.enabled
-                onPrimary: {
-                    if (Bluetooth.defaultAdapter)
-                        Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
-                }
+                subtitle: RaohaneBluetooth.firstConnectedName.length > 0
+                    ? RaohaneBluetooth.firstConnectedName
+                    : (RaohaneBluetooth.enabled ? qsTr("On") : qsTr("Off"))
+                active: RaohaneBluetooth.enabled
+                onPrimary: RaohaneBluetooth.toggle()
                 onSecondary: {
                     const command = Config.options.apps.bluetooth
                     if (command && command.length > 0)
