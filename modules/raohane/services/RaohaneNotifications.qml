@@ -1,12 +1,11 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
+import QtCore
 import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
-
-import qs.modules.common
 
 Singleton {
     id: root
@@ -20,7 +19,7 @@ Singleton {
 
     readonly property var popupList: root.list.filter(entry => entry.popup)
     readonly property bool popupInhibited: root.silent
-    readonly property string historyPath: `${Directories.shellConfig}/notifications.json`
+    readonly property string historyPath: `${StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0]}/raohane/notifications.json`
     readonly property var latestTimeForApp: root.latestTimesForList(root.list)
     readonly property var groupsByAppName: root.groupsForList(root.list)
     readonly property var popupGroupsByAppName: root.groupsForList(root.popupList)
@@ -155,7 +154,7 @@ Singleton {
 
     function cancelTimeout(id: int): void {
         const entry = root.entryById(id)
-        if (!entry?.timer)
+        if (!entry || !entry.timer)
             return
         entry.timer.stop()
         entry.timer.destroy()
@@ -282,7 +281,7 @@ Singleton {
 
     FileView {
         id: historyFile
-        path: Qt.resolvedUrl(root.historyPath)
+        path: root.historyPath
 
         onLoaded: {
             if (root.historyLoaded)
