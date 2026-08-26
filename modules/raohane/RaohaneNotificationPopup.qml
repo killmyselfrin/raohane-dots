@@ -6,17 +6,17 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 
 import qs
-import qs.services
+import qs.modules.raohane.services
 
 Scope {
     id: root
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
-    readonly property var popupNotifications: Notifications.popupList.slice(-3).reverse()
+    readonly property var popupNotifications: RaohaneNotifications.popupList.slice(-3).reverse()
 
     Loader {
-        active: root.popupNotifications.length > 0
+        active: root.popupNotifications.length > 0 && !GlobalStates.sidebarRightOpen
 
         sourceComponent: PanelWindow {
             id: panelWindow
