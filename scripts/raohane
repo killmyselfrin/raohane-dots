@@ -3,6 +3,9 @@ set -euo pipefail
 
 QS_CONFIG="${RAOHANE_QS_CONFIG:-raohane}"
 SERVICE="${RAOHANE_SERVICE:-raohane.service}"
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+RUNTIME="${RAOHANE_RUNTIME:-$CONFIG_HOME/quickshell/$QS_CONFIG}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
   cat <<'EOF'
@@ -45,40 +48,69 @@ check_cmd() {
   return 1
 }
 
-print_dependency_report() {
+find_dependency_installer() {
+  local candidate
+  for candidate in \
+    "$RUNTIME/scripts/install-deps.sh" \
+    "$SCRIPT_DIR/install-deps.sh" \
+    "$SCRIPT_DIR/../scripts/install-deps.sh"; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+print_command_report() {
   local failures=0
 
-  echo 'Core'
+  echo 'Runtime commands'
   check_cmd qs quickshell || failures=$((failures + 1))
   check_cmd hyprctl hyprland || failures=$((failures + 1))
   check_cmd python3 python || failures=$((failures + 1))
-  check_cmd git git || failures=$((failures + 1))
-  check_cmd rsync rsync || failures=$((failures + 1))
-  check_cmd jq jq || failures=$((failures + 1))
-
-  echo
-  echo 'Desktop integration'
   check_cmd nmcli networkmanager || failures=$((failures + 1))
   check_cmd wpctl wireplumber || check_cmd pactl libpulse || failures=$((failures + 1))
+
+  echo
+  echo 'Feature commands'
   check_cmd bluetoothctl bluez-utils optional
   check_cmd brightnessctl brightnessctl optional
   check_cmd ddcutil ddcutil optional
-
-  echo
-  echo 'Capture / media extras'
   check_cmd grim grim optional
   check_cmd slurp slurp optional
+  check_cmd wf-recorder wf-recorder optional
   check_cmd wl-copy wl-clipboard optional
+  check_cmd cliphist cliphist optional
   check_cmd cava cava optional
   check_cmd ffplay ffmpeg optional
   check_cmd notify-send libnotify optional
 
+  return "$failures"
+}
+
+print_dependency_report() {
+  local failures=0
+  local installer=""
+
+  if installer="$(find_dependency_installer)" && command -v pacman >/dev/null 2>&1; then
+    echo 'Raohane package manifest'
+    "$installer" --full --check || failures=$((failures + 1))
+    echo
+  else
+    echo 'Raohane package manifest'
+    echo '  [--] package-level check unavailable; using command probes only'
+    echo
+  fi
+
+  print_command_report || failures=$((failures + 1))
+
   echo
   if ((failures > 0)); then
-    printf 'Required dependency failures: %d\n' "$failures"
+    echo 'Dependency issues were detected.'
     return 1
   fi
-  echo 'Required command-level dependencies look available.'
+  echo 'Raohane dependency manifest and required runtime commands look available.'
 }
 
 case "${1:-help}" in
