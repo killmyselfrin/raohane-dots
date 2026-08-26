@@ -3,13 +3,13 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 
-import qs.services
 import qs.modules.common.widgets
+import qs.modules.raohane.services
 
 Item {
     id: root
 
-    readonly property var notifications: Notifications.list.slice().reverse()
+    readonly property var notifications: RaohaneNotifications.list.slice().reverse()
 
     implicitHeight: 300
 
@@ -33,15 +33,17 @@ Item {
                 width: unreadLabel.implicitWidth + 14
                 height: 22
                 radius: 11
-                color: Notifications.unread > 0 ? RaohaneTheme.accentSoft : "#18ffffff"
+                color: RaohaneNotifications.unread > 0 ? RaohaneTheme.accentSoft : "#18ffffff"
                 border.width: 1
                 border.color: RaohaneTheme.border
 
                 Text {
                     id: unreadLabel
                     anchors.centerIn: parent
-                    text: Notifications.unread > 0 ? qsTr("%1 new").arg(Notifications.unread) : qsTr("clear")
-                    color: Notifications.unread > 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    text: RaohaneNotifications.unread > 0
+                        ? qsTr("%1 new").arg(RaohaneNotifications.unread)
+                        : qsTr("clear")
+                    color: RaohaneNotifications.unread > 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     font.pixelSize: 9
                     font.weight: Font.DemiBold
                 }
@@ -50,24 +52,26 @@ Item {
             Item { Layout.fillWidth: true }
 
             ActionButton {
-                icon: Notifications.silent ? "notifications_off" : "notifications_active"
-                active: Notifications.silent
-                tooltip: Notifications.silent ? qsTr("Resume notification popups") : qsTr("Pause notification popups")
-                onTriggered: Notifications.silent = !Notifications.silent
+                icon: RaohaneNotifications.silent ? "notifications_off" : "notifications_active"
+                active: RaohaneNotifications.silent
+                tooltip: RaohaneNotifications.silent
+                    ? qsTr("Resume notification popups")
+                    : qsTr("Pause notification popups")
+                onTriggered: RaohaneNotifications.silent = !RaohaneNotifications.silent
             }
 
             ActionButton {
                 icon: "done_all"
                 tooltip: qsTr("Mark all read")
-                enabled: Notifications.unread > 0
-                onTriggered: Notifications.markAllRead()
+                enabled: RaohaneNotifications.unread > 0
+                onTriggered: RaohaneNotifications.markAllRead()
             }
 
             ActionButton {
                 icon: "delete_sweep"
                 tooltip: qsTr("Clear all notifications")
-                enabled: Notifications.list.length > 0
-                onTriggered: Notifications.discardAllNotifications()
+                enabled: RaohaneNotifications.list.length > 0
+                onTriggered: RaohaneNotifications.discardAllNotifications()
             }
         }
 
@@ -94,7 +98,7 @@ Item {
             Column {
                 anchors.centerIn: parent
                 spacing: 8
-                visible: Notifications.list.length === 0
+                visible: RaohaneNotifications.list.length === 0
 
                 Rectangle {
                     width: 54
