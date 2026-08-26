@@ -1,19 +1,25 @@
 pragma Singleton
 
 import QtQuick
+import Quickshell.Wayland
+import qs.modules.raohane.services
 
 Item {
     id: root
 
-    property bool recording: false
-    property bool microphone: false
-    property bool camera: false
     property string eventTitle: ""
     property string eventDetail: ""
-    property bool mediaActive: false
-    property string mediaTitle: ""
-    property string mediaArtist: ""
-    property string windowTitle: ""
+
+    readonly property bool recording: RaohanePrivacy.recordingActive
+    readonly property bool microphone: RaohanePrivacy.microphoneActive
+    readonly property bool camera: RaohanePrivacy.cameraActive
+
+    readonly property bool mediaActive: RaohaneMedia.available
+    readonly property string mediaTitle: RaohaneMedia.title
+    readonly property string mediaArtist: RaohaneMedia.artist
+
+    readonly property var activeWindow: ToplevelManager.activeToplevel
+    readonly property string windowTitle: activeWindow?.title ?? ""
 
     readonly property string mode: recording ? "recording"
         : (camera || microphone) ? "privacy"
@@ -30,22 +36,32 @@ Item {
         : windowTitle.length > 0 ? "◇"
         : "ラ"
 
-    readonly property string title: recording ? qsTr("Recording")
+    readonly property string title: recording ? qsTr("Screen capture")
+        : camera && microphone ? qsTr("Camera and microphone")
         : camera ? qsTr("Camera in use")
         : microphone ? qsTr("Microphone in use")
         : eventTitle.length > 0 ? eventTitle
-        : mediaActive ? mediaTitle
+        : mediaActive ? (mediaTitle.length > 0 ? mediaTitle : qsTr("Media"))
         : windowTitle.length > 0 ? windowTitle
         : qsTr("Raohane")
 
-    readonly property string detail: recording ? qsTr("Privacy indicator")
-        : camera && microphone ? qsTr("Camera and microphone")
-        : camera ? qsTr("Privacy indicator")
-        : microphone ? qsTr("Privacy indicator")
-        : eventTitle.length > 0 ? eventDetail
-        : mediaActive ? mediaArtist
-        : windowTitle.length > 0 ? qsTr("Active window")
-        : "ラオハネ"
+    readonly property string detail: {
+        if (recording)
+            return RaohanePrivacy.recordingApp || qsTr("Screen sharing or recording")
+        if (camera && microphone)
+            return RaohanePrivacy.cameraApp || RaohanePrivacy.microphoneApp || qsTr("Privacy capture active")
+        if (camera)
+            return RaohanePrivacy.cameraApp || qsTr("Privacy capture active")
+        if (microphone)
+            return RaohanePrivacy.microphoneApp || qsTr("Privacy capture active")
+        if (eventTitle.length > 0)
+            return eventDetail
+        if (mediaActive)
+            return mediaArtist
+        if (windowTitle.length > 0)
+            return qsTr("Active window")
+        return "ラオハネ"
+    }
 
     function showEvent(title: string, detail: string): void {
         eventTitle = title
@@ -53,17 +69,14 @@ Item {
         eventTimer.restart()
     }
 
-    function clear(): void {
-        recording = false
-        microphone = false
-        camera = false
+    function clearTransientEvent(): void {
         eventTitle = ""
         eventDetail = ""
-        mediaActive = false
-        mediaTitle = ""
-        mediaArtist = ""
-        windowTitle = ""
         eventTimer.stop()
+    }
+
+    function clear(): void {
+        clearTransientEvent()
     }
 
     function statusJson(): string {
@@ -72,7 +85,11 @@ Item {
             recording: recording,
             microphone: microphone,
             camera: camera,
+            unclassifiedVideoCapture: RaohanePrivacy.unclassifiedVideoCaptureActive,
             mediaActive: mediaActive,
+            mediaTitle: mediaTitle,
+            mediaArtist: mediaArtist,
+            windowTitle: windowTitle,
             title: title,
             detail: detail
         })

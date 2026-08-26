@@ -1,0 +1,27 @@
+# Raohane required runtime packages for Arch Linux.
+# One official repository package per line. GPU drivers are intentionally absent.
+
+hyprland
+quickshell
+qt6-5compat
+qt6-multimedia
+networkmanager
+pipewire
+pipewire-pulse
+wireplumber
+polkit
+xdg-desktop-portal-hyprland
+upower
+python
+git
+rsync
+ripgrep
+jq
+libnotify
+wl-clipboard
+xdg-utils
+xdg-user-dirs
+ttf-material-symbols-variable
+noto-fonts
+noto-fonts-cjk
+ttf-jetbrains-mono-nerd

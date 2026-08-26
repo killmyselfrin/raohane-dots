@@ -28,11 +28,6 @@ ShellRoot {
         function onReadyChanged() {
             if (!Config.ready) return
 
-            if (WM.compositor === "niri") {
-                Config.options.background.lockWall = ""
-                Config.options.overview.enable = false
-            }
-
             if (Config.options.hyprland.autostartApps.enable &&
                 Config.options.hyprland.autostartApps.apps.length > 0) {
                 autostartProc.running = true
@@ -52,8 +47,8 @@ ShellRoot {
     }
 
     // Existing end4/legacy configs use "ii". Treat that value as Raohane during
-    // the migration so a fresh Config.qml default still enters our panel family.
-    // "ii-upstream" is retained as an explicit diagnostic/fallback mode.
+    // migration so inherited JsonAdapter defaults still enter our family.
+    // "ii-upstream" remains an explicit diagnostic/fallback mode.
     LazyLoader {
         active: Config.ready && ["raohane", "ii"].includes(Config.options.panelFamily)
         component: RaohaneFamily {}

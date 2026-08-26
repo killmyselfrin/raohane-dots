@@ -1,0 +1,510 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Wayland
+
+import qs
+import qs.services
+import qs.modules.common
+import qs.modules.common.widgets
+
+Scope {
+    id: root
+
+    readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
+        ?? Quickshell.screens[0]
+
+    function close(): void {
+        Wallpapers.stopPreview()
+        GlobalStates.wallpaperSelectorOpen = false
+    }
+
+    function toggle(): void {
+        if (Config.options.wallpaperSelector.useSystemFileDialog) {
+            Wallpapers.openFallbackPicker(Appearance.m3colors.darkmode)
+            return
+        }
+        GlobalStates.wallpaperSelectorOpen = !GlobalStates.wallpaperSelectorOpen
+    }
+
+    function selectPath(path: string, isDirectory: bool): void {
+        if (!path || path.length === 0)
+            return
+        if (isDirectory) {
+            Wallpapers.setDirectory(path)
+            return
+        }
+
+        Wallpapers.stopPreview()
+        if (GlobalStates.wallpaperSelectorTarget === "lockWall") {
+            Wallpapers.select(path, Appearance.m3colors.darkmode, finalPath => {
+                Config.options.background.lockWall = finalPath
+                GlobalStates.wallpaperSelectorTarget = "wallpaper"
+                root.close()
+            })
+        } else {
+            Wallpapers.select(path, Appearance.m3colors.darkmode)
+            root.close()
+        }
+    }
+
+    Loader {
+        active: GlobalStates.wallpaperSelectorOpen
+
+        sourceComponent: PanelWindow {
+            id: panelWindow
+
+            screen: root.focusedScreen
+            color: "transparent"
+            exclusionMode: ExclusionMode.Ignore
+            exclusiveZone: 0
+            WlrLayershell.namespace: "quickshell:raohane-wallpaper-selector"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+            anchors {
+                top: true
+                bottom: true
+                left: true
+                right: true
+            }
+
+            Component.onCompleted: {
+                Wallpapers.load()
+                GlobalFocusGrab.addDismissable(panelWindow)
+                searchField.forceActiveFocus()
+            }
+            Component.onDestruction: GlobalFocusGrab.removeDismissable(panelWindow)
+
+            Connections {
+                target: GlobalFocusGrab
+                function onDismissed(): void { root.close() }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "#7808070d"
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: root.close()
+                }
+            }
+
+            Rectangle {
+                id: selector
+                width: Math.min(parent.width - 72, 1120)
+                height: Math.min(parent.height - 90, 720)
+                anchors.centerIn: parent
+                radius: 28
+                color: RaohaneTheme.glassStrong
+                border.width: 1
+                border.color: RaohaneTheme.border
+                clip: true
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.AllButtons
+                }
+
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_Escape) {
+                        root.close()
+                        event.accepted = true
+                    } else if ((event.modifiers & Qt.AltModifier) && event.key === Qt.Key_Up) {
+                        Wallpapers.navigateUp()
+                        event.accepted = true
+                    } else if ((event.modifiers & Qt.AltModifier) && event.key === Qt.Key_Left) {
+                        Wallpapers.navigateBack()
+                        event.accepted = true
+                    } else if ((event.modifiers & Qt.AltModifier) && event.key === Qt.Key_Right) {
+                        Wallpapers.navigateForward()
+                        event.accepted = true
+                    } else if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
+                        searchField.forceActiveFocus()
+                        event.accepted = true
+                    }
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 10
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 58
+                        radius: 18
+                        color: "#87171320"
+                        border.width: 1
+                        border.color: RaohaneTheme.border
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 7
+
+                            NavButton { icon: "arrow_back"; onTriggered: Wallpapers.navigateBack() }
+                            NavButton { icon: "arrow_upward"; onTriggered: Wallpapers.navigateUp() }
+                            NavButton { icon: "arrow_forward"; onTriggered: Wallpapers.navigateForward() }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 38
+                                radius: 13
+                                color: "#54100e16"
+                                border.width: 1
+                                border.color: searchField.activeFocus ? RaohaneTheme.accent : RaohaneTheme.border
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 11
+                                    anchors.rightMargin: 10
+                                    spacing: 8
+
+                                    MaterialSymbol {
+                                        text: "search"
+                                        iconSize: 17
+                                        color: RaohaneTheme.textMuted
+                                    }
+
+                                    TextField {
+                                        id: searchField
+                                        Layout.fillWidth: true
+                                        background: null
+                                        color: RaohaneTheme.text
+                                        placeholderText: qsTr("Search wallpapers")
+                                        placeholderTextColor: RaohaneTheme.textMuted
+                                        font.pixelSize: 10
+                                        selectByMouse: true
+                                        onTextChanged: Wallpapers.searchQuery = text
+                                    }
+
+                                    Text {
+                                        visible: searchField.text.length === 0
+                                        text: Wallpapers.effectiveDirectory
+                                        color: RaohaneTheme.textMuted
+                                        font.pixelSize: 8
+                                        elide: Text.ElideMiddle
+                                        Layout.maximumWidth: 290
+                                    }
+                                }
+                            }
+
+                            NavButton {
+                                icon: "casino"
+                                emphasized: true
+                                onTriggered: {
+                                    Wallpapers.stopPreview()
+                                    Wallpapers.randomFromCurrentFolder()
+                                    root.close()
+                                }
+                            }
+                            NavButton {
+                                icon: "folder_open"
+                                onTriggered: Wallpapers.openFallbackPicker(Appearance.m3colors.darkmode, Wallpapers.effectiveDirectory)
+                            }
+                            NavButton { icon: "close"; onTriggered: root.close() }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 38
+                        spacing: 7
+
+                        QuickDir {
+                            icon: "wallpaper"
+                            title: qsTr("Wallpapers")
+                            path: Directories.pictures + "/Wallpapers"
+                        }
+                        QuickDir {
+                            icon: "home"
+                            title: qsTr("Home")
+                            path: Directories.home
+                        }
+                        QuickDir {
+                            visible: (Config.options.wallpaperSelector.userPath ?? "").length > 0
+                            icon: "folder_special"
+                            title: qsTr("Custom")
+                            path: Config.options.wallpaperSelector.userPath ?? ""
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Rectangle {
+                            width: targetText.implicitWidth + 18
+                            height: 28
+                            radius: 14
+                            color: GlobalStates.wallpaperSelectorTarget === "lockWall"
+                                ? RaohaneTheme.accentSoft : "#18ffffff"
+                            border.width: 1
+                            border.color: RaohaneTheme.border
+
+                            Text {
+                                id: targetText
+                                anchors.centerIn: parent
+                                text: GlobalStates.wallpaperSelectorTarget === "lockWall"
+                                    ? qsTr("LOCK SCREEN") : qsTr("DESKTOP")
+                                color: GlobalStates.wallpaperSelectorTarget === "lockWall"
+                                    ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                                font.weight: Font.DemiBold
+                                font.letterSpacing: 0.7
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        radius: 20
+                        color: "#74121019"
+                        border.width: 1
+                        border.color: RaohaneTheme.border
+                        clip: true
+
+                        GridView {
+                            id: grid
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            model: Wallpapers.folderModel
+                            clip: true
+                            boundsBehavior: Flickable.StopAtBounds
+                            cellWidth: width / Math.max(2, Math.min(5, Config.options.wallpaperSelector.columns || 4))
+                            cellHeight: cellWidth * 0.72
+                            keyNavigationWraps: true
+                            focus: true
+
+                            delegate: Item {
+                                id: cell
+                                required property var modelData
+                                required property int index
+
+                                width: grid.cellWidth
+                                height: grid.cellHeight
+                                readonly property bool isDirectory: modelData.fileIsDir ?? false
+                                readonly property string filePath: modelData.filePath ?? ""
+                                readonly property string fileName: modelData.fileName ?? filePath.split("/").pop()
+                                readonly property bool selected: filePath === Config.options.background.wallpaperPath
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.margins: 5
+                                    radius: 16
+                                    color: cell.selected ? RaohaneTheme.accentSoft : "#471a1722"
+                                    border.width: 1
+                                    border.color: cellMouse.containsMouse || cell.selected
+                                        ? RaohaneTheme.accent : RaohaneTheme.border
+                                    clip: true
+
+                                    Image {
+                                        anchors.fill: parent
+                                        visible: !cell.isDirectory
+                                        source: cell.filePath.length > 0 ? "file://" + cell.filePath : ""
+                                        fillMode: Image.PreserveAspectCrop
+                                        asynchronous: true
+                                        cache: false
+                                    }
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        visible: !cell.isDirectory
+                                        gradient: Gradient {
+                                            GradientStop { position: 0.38; color: "#00100e16" }
+                                            GradientStop { position: 1.0; color: "#cf100e16" }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        anchors.centerIn: parent
+                                        visible: cell.isDirectory
+                                        width: 54
+                                        height: 54
+                                        radius: 18
+                                        color: RaohaneTheme.accentSoft
+
+                                        MaterialSymbol {
+                                            anchors.centerIn: parent
+                                            text: "folder"
+                                            iconSize: 28
+                                            color: RaohaneTheme.accent
+                                        }
+                                    }
+
+                                    RowLayout {
+                                        anchors {
+                                            left: parent.left
+                                            right: parent.right
+                                            bottom: parent.bottom
+                                            margins: 10
+                                        }
+                                        spacing: 6
+
+                                        MaterialSymbol {
+                                            text: cell.isDirectory ? "folder" : cell.selected ? "check_circle" : "image"
+                                            iconSize: 15
+                                            color: cell.selected ? RaohaneTheme.accent : RaohaneTheme.text
+                                        }
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: cell.fileName
+                                            color: RaohaneTheme.text
+                                            font.pixelSize: 9
+                                            font.weight: Font.DemiBold
+                                            elide: Text.ElideRight
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        id: cellMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onEntered: {
+                                            grid.currentIndex = cell.index
+                                            if (!cell.isDirectory && Config.options.background.enableWallpaperPreview)
+                                                Wallpapers.startPreview(cell.filePath)
+                                        }
+                                        onExited: {
+                                            if (!cell.isDirectory && Config.options.background.enableWallpaperPreview)
+                                                Wallpapers.stopPreview()
+                                        }
+                                        onClicked: root.selectPath(cell.filePath, cell.isDirectory)
+                                    }
+                                }
+                            }
+
+                            ScrollBar.vertical: ScrollBar {
+                                policy: ScrollBar.AsNeeded
+                            }
+                        }
+
+                        Column {
+                            anchors.centerIn: parent
+                            visible: Wallpapers.folderModel.count === 0
+                            spacing: 7
+
+                            MaterialSymbol {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: "image_not_supported"
+                                iconSize: 34
+                                color: RaohaneTheme.textMuted
+                            }
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: qsTr("No wallpapers found")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 10
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 28
+
+                        Text {
+                            text: qsTr("%1 items").arg(Wallpapers.folderModel.count)
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 8
+                        }
+                        Item { Layout.fillWidth: true }
+                        Text {
+                            text: qsTr("Alt+←/→ history · Alt+↑ parent · Ctrl+F search")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 8
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    IpcHandler {
+        target: "wallpaperSelector"
+        function toggle(): void { root.toggle() }
+        function random(): void { Wallpapers.randomFromCurrentFolder() }
+    }
+
+    CompositorGlobalShortcut {
+        name: "wallpaperSelectorToggle"
+        description: "Toggle Raohane wallpaper selector"
+        onPressed: root.toggle()
+    }
+
+    CompositorGlobalShortcut {
+        name: "wallpaperSelectorRandom"
+        description: "Select random wallpaper in current folder"
+        onPressed: Wallpapers.randomFromCurrentFolder()
+    }
+
+    component NavButton: Rectangle {
+        id: button
+        required property string icon
+        property bool emphasized: false
+        signal triggered()
+
+        width: 36
+        height: 36
+        radius: 12
+        color: emphasized || pointer.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
+        border.width: 1
+        border.color: emphasized || pointer.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+
+        MaterialSymbol {
+            anchors.centerIn: parent
+            text: button.icon
+            iconSize: 18
+            color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+        }
+
+        MouseArea {
+            id: pointer
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: button.triggered()
+        }
+    }
+
+    component QuickDir: Rectangle {
+        id: dir
+        required property string icon
+        required property string title
+        required property string path
+        Layout.preferredWidth: label.implicitWidth + 48
+        Layout.preferredHeight: 30
+        radius: 15
+        color: dirMouse.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
+        border.width: 1
+        border.color: dirMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+
+        Row {
+            anchors.centerIn: parent
+            spacing: 6
+            MaterialSymbol { text: dir.icon; iconSize: 14; color: RaohaneTheme.textMuted }
+            Text {
+                id: label
+                text: dir.title
+                color: RaohaneTheme.text
+                font.pixelSize: 9
+                font.weight: Font.DemiBold
+            }
+        }
+
+        MouseArea {
+            id: dirMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: Wallpapers.setDirectory(dir.path)
+        }
+    }
+}

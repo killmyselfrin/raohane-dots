@@ -3,6 +3,9 @@ set -euo pipefail
 
 QS_CONFIG="${RAOHANE_QS_CONFIG:-raohane}"
 SERVICE="${RAOHANE_SERVICE:-raohane.service}"
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+RUNTIME="${RAOHANE_RUNTIME:-$CONFIG_HOME/quickshell/$QS_CONFIG}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
   cat <<'EOF'
@@ -12,10 +15,11 @@ Usage: raohane <command> [args]
 
 Shell:
   run | start | stop | restart | status | logs
-  launcher | control | settings
+  launcher | control | settings | media | desktop | session
+  wallpaper [toggle|random]
 
 Diagnostics:
-  doctor [graphics]
+  doctor [all|graphics|deps|services]
   wifi [status|menu]
   audio [status]
 EOF
@@ -23,6 +27,90 @@ EOF
 
 ipc() {
   qs -c "$QS_CONFIG" ipc call "$@"
+}
+
+check_cmd() {
+  local command_name="$1"
+  local package_hint="${2:-}"
+  local level="${3:-required}"
+
+  if command -v "$command_name" >/dev/null 2>&1; then
+    printf '  [ok] %-16s %s\n' "$command_name" "$(command -v "$command_name")"
+    return 0
+  fi
+
+  if [[ "$level" == "optional" ]]; then
+    printf '  [--] %-16s optional%s\n' "$command_name" "${package_hint:+ ($package_hint)}"
+    return 0
+  fi
+
+  printf '  [!!] %-16s missing%s\n' "$command_name" "${package_hint:+ ($package_hint)}"
+  return 1
+}
+
+find_dependency_installer() {
+  local candidate
+  for candidate in \
+    "$RUNTIME/scripts/install-deps.sh" \
+    "$SCRIPT_DIR/install-deps.sh" \
+    "$SCRIPT_DIR/../scripts/install-deps.sh"; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+print_command_report() {
+  local failures=0
+
+  echo 'Runtime commands'
+  check_cmd qs quickshell || failures=$((failures + 1))
+  check_cmd hyprctl hyprland || failures=$((failures + 1))
+  check_cmd python3 python || failures=$((failures + 1))
+  check_cmd nmcli networkmanager || failures=$((failures + 1))
+  check_cmd wpctl wireplumber || check_cmd pactl libpulse || failures=$((failures + 1))
+
+  echo
+  echo 'Feature commands'
+  check_cmd bluetoothctl bluez-utils optional
+  check_cmd brightnessctl brightnessctl optional
+  check_cmd ddcutil ddcutil optional
+  check_cmd grim grim optional
+  check_cmd slurp slurp optional
+  check_cmd wf-recorder wf-recorder optional
+  check_cmd wl-copy wl-clipboard optional
+  check_cmd cliphist cliphist optional
+  check_cmd cava cava optional
+  check_cmd ffplay ffmpeg optional
+  check_cmd notify-send libnotify optional
+
+  return "$failures"
+}
+
+print_dependency_report() {
+  local failures=0
+  local installer=""
+
+  if installer="$(find_dependency_installer)" && command -v pacman >/dev/null 2>&1; then
+    echo 'Raohane package manifest'
+    bash "$installer" --full --check || failures=$((failures + 1))
+    echo
+  else
+    echo 'Raohane package manifest'
+    echo '  [--] package-level check unavailable; using command probes only'
+    echo
+  fi
+
+  print_command_report || failures=$((failures + 1))
+
+  echo
+  if ((failures > 0)); then
+    echo 'Dependency issues were detected.'
+    return 1
+  fi
+  echo 'Raohane dependency manifest and required runtime commands look available.'
 }
 
 case "${1:-help}" in
@@ -45,13 +133,29 @@ case "${1:-help}" in
     exec journalctl --user -u "$SERVICE" -f
     ;;
   launcher)
-    ipc search toggle
+    ipc raohaneLauncher toggle
     ;;
   control)
     ipc sidebarRight toggle
     ;;
   settings)
     ipc settings toggle
+    ;;
+  media)
+    ipc raohaneMedia toggle
+    ;;
+  desktop)
+    ipc raohaneDesktop toggle
+    ;;
+  session)
+    ipc session toggle
+    ;;
+  wallpaper)
+    case "${2:-toggle}" in
+      toggle) ipc wallpaperSelector toggle ;;
+      random) ipc wallpaperSelector random ;;
+      *) echo "Unknown wallpaper command: ${2:-}" >&2; exit 2 ;;
+    esac
     ;;
   doctor)
     case "${2:-all}" in
@@ -63,22 +167,57 @@ case "${1:-help}" in
           echo 'lspci not found (package: pciutils)'
         fi
         echo
-        command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi --query-gpu=name,driver_version --format=csv,noheader || true
+        command -v nvidia-smi >/dev/null 2>&1 \
+          && nvidia-smi --query-gpu=name,driver_version --format=csv,noheader \
+          || true
         command -v hyprctl >/dev/null 2>&1 && hyprctl monitors || true
+        ;;
+      deps)
+        echo 'Raohane doctor dependencies'
+        print_dependency_report
+        ;;
+      services)
+        echo 'Raohane doctor services'
+        if systemctl --user --no-pager --quiet is-active "$SERVICE"; then
+          echo "  [ok] $SERVICE active"
+        else
+          echo "  [!!] $SERVICE not active"
+        fi
+
+        for unit in pipewire.service wireplumber.service; do
+          if systemctl --user --no-pager --quiet is-active "$unit" 2>/dev/null; then
+            printf '  [ok] %s active\n' "$unit"
+          else
+            printf '  [--] %s not active/not found\n' "$unit"
+          fi
+        done
+
+        if systemctl --no-pager --quiet is-active NetworkManager.service 2>/dev/null; then
+          echo '  [ok] NetworkManager.service active'
+        else
+          echo '  [--] NetworkManager.service not active/not found'
+        fi
+
+        if systemctl --no-pager --quiet is-active bluetooth.service 2>/dev/null; then
+          echo '  [ok] bluetooth.service active'
+        else
+          echo '  [--] bluetooth.service not active/not found'
+        fi
         ;;
       all)
         echo 'Raohane doctor'
-        for cmd in qs hyprctl git rsync jq; do
-          if command -v "$cmd" >/dev/null 2>&1; then
-            printf '  [ok] %-10s %s\n' "$cmd" "$(command -v "$cmd")"
-          else
-            printf '  [!!] %-10s missing\n' "$cmd"
-          fi
-        done
         echo
+        print_dependency_report || true
+        echo
+        echo 'Shell service'
         systemctl --user --no-pager --quiet is-active "$SERVICE" \
           && echo "  [ok] $SERVICE active" \
           || echo "  [--] $SERVICE not active"
+        echo
+        echo 'Runtime context'
+        printf '  WAYLAND_DISPLAY=%s\n' "${WAYLAND_DISPLAY:-<unset>}"
+        printf '  HYPRLAND_INSTANCE_SIGNATURE=%s\n' "${HYPRLAND_INSTANCE_SIGNATURE:-<unset>}"
+        printf '  XDG_CURRENT_DESKTOP=%s\n' "${XDG_CURRENT_DESKTOP:-<unset>}"
         ;;
       *)
         echo "Unknown doctor target: ${2:-}" >&2

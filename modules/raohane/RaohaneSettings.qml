@@ -6,7 +6,6 @@ import Quickshell.Wayland
 import qs
 import qs.modules.common
 import qs.modules.common.widgets
-import qs.modules.ii.settings
 
 Scope {
     id: root
@@ -48,6 +47,7 @@ Scope {
             color: "#6608070d"
             opacity: GlobalStates.settingsOpen ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 180 } }
+
             MouseArea {
                 anchors.fill: parent
                 onClicked: panelWindow.hide()
@@ -56,8 +56,8 @@ Scope {
 
         Rectangle {
             id: window
-            width: Math.min(parent.width - 90, 1080)
-            height: Math.min(parent.height - 86, 720)
+            width: Math.min(parent.width - 70, 1120)
+            height: Math.min(parent.height - 70, 760)
             anchors.centerIn: parent
             radius: 28
             color: RaohaneTheme.glassStrong
@@ -89,7 +89,6 @@ Scope {
                 }
                 height: 54
                 color: "#d216141f"
-                border.width: 0
 
                 RowLayout {
                     anchors.fill: parent
@@ -117,6 +116,7 @@ Scope {
                     Column {
                         Layout.alignment: Qt.AlignVCenter
                         spacing: -1
+
                         Text {
                             text: "RAOHANE SETTINGS"
                             color: RaohaneTheme.text
@@ -124,8 +124,9 @@ Scope {
                             font.weight: Font.DemiBold
                             font.letterSpacing: 1.2
                         }
+
                         Text {
-                            text: "設定  /  personal shell control"
+                            text: "設定  /  Hyprland shell control"
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 9
                             font.letterSpacing: 0.6
@@ -141,14 +142,19 @@ Scope {
                         color: "#8f201b2b"
                         border.width: 1
                         border.color: RaohaneTheme.border
+
                         Row {
                             anchors.centerIn: parent
                             spacing: 7
+
                             Rectangle {
-                                width: 6; height: 6; radius: 3
+                                width: 6
+                                height: 6
+                                radius: 3
                                 anchors.verticalCenter: parent.verticalCenter
                                 color: RaohaneTheme.accent
                             }
+
                             Text {
                                 id: stateText
                                 text: "LIVE CONFIG"
@@ -173,6 +179,7 @@ Scope {
                             iconSize: 18
                             color: RaohaneTheme.text
                         }
+
                         MouseArea {
                             id: closeMouse
                             anchors.fill: parent
@@ -201,10 +208,9 @@ Scope {
                 border.color: "#25ffffff"
                 clip: true
 
-                SettingsContent {
-                    id: settingsContent
+                RaohaneSettingsContent {
                     anchors.fill: parent
-                    anchors.margins: 2
+                    anchors.margins: 8
                 }
             }
 

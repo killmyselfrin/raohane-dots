@@ -1,7 +1,21 @@
 module qs.modules.raohane
 singleton RaohaneTheme 1.0 RaohaneTheme.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
+singleton RaohaneState 1.0 RaohaneState.qml
+singleton RaohanePrivacy 1.0 RaohanePrivacy.qml
 RaohaneBar 1.0 RaohaneBar.qml
 RaohaneContextIsland 1.0 RaohaneContextIsland.qml
 RaohaneControlCenter 1.0 RaohaneControlCenter.qml
+RaohaneQuickControls 1.0 RaohaneQuickControls.qml
+RaohaneNotificationCard 1.0 RaohaneNotificationCard.qml
+RaohaneNotificationCenter 1.0 RaohaneNotificationCenter.qml
 RaohaneSettings 1.0 RaohaneSettings.qml
+RaohaneSettingsContent 1.0 RaohaneSettingsContent.qml
+RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
+RaohaneMediaOverlay 1.0 RaohaneMediaOverlay.qml
+RaohaneLauncher 1.0 RaohaneLauncher.qml
+RaohaneOsd 1.0 RaohaneOsd.qml
+RaohaneNotificationPopup 1.0 RaohaneNotificationPopup.qml
+RaohaneWallpaperSelector 1.0 RaohaneWallpaperSelector.qml
+RaohaneDesktopMenu 1.0 RaohaneDesktopMenu.qml
+RaohaneSessionScreen 1.0 RaohaneSessionScreen.qml

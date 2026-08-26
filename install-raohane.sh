@@ -12,20 +12,89 @@ HYPR_AUTOSTART="$HYPR_DIR/raohane-autostart.conf"
 RAOHANE_CONFIG="$CONFIG_HOME/raohane"
 RAOHANE_CONFIG_FILE="$RAOHANE_CONFIG/config.json"
 LEGACY_CONFIG_FILE="$CONFIG_HOME/illogical-impulse/config.json"
+INSTALL_DEPS=0
+START_AFTER_INSTALL=1
+MIGRATE_LEGACY=0
 
-for cmd in hyprctl qs python3; do
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    case "$cmd" in
-      hyprctl) echo "[Raohane] hyprctl not found. Install/run Hyprland first." >&2 ;;
-      qs) echo "[Raohane] Quickshell command 'qs' not found. Install Quickshell first." >&2 ;;
-      python3) echo "[Raohane] python3 not found. The foundation runtime requires Python 3." >&2 ;;
-    esac
-    exit 1
-  fi
+usage() {
+  cat <<'EOF'
+Raohane installer
+
+Usage:
+  ./install-raohane.sh [OPTIONS]
+
+Options:
+  --deps            Install the Raohane-owned Arch dependency manifest first.
+                    No other shell repository is cloned or executed.
+  --migrate-legacy  On first install, import an existing illogical-impulse
+                    config if one exists. This is never done implicitly.
+  --no-start        Install files and systemd integration without starting Raohane.
+  -h, --help        Show this help.
+
+Examples:
+  ./install-raohane.sh --deps
+  ./install-raohane.sh --deps --no-start
+EOF
+}
+
+while (($#)); do
+  case "$1" in
+    --deps) INSTALL_DEPS=1 ;;
+    --migrate-legacy) MIGRATE_LEGACY=1 ;;
+    --no-start) START_AFTER_INSTALL=0 ;;
+    -h|--help) usage; exit 0 ;;
+    *)
+      echo "[Raohane] Unknown installer option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
 done
 
-required_foundation=(
+if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
+  echo '[Raohane] Do not run the installer as root.' >&2
+  exit 1
+fi
+
+if ((INSTALL_DEPS)); then
+  [[ -f "$ROOT/scripts/install-deps.sh" ]] || {
+    echo '[Raohane] scripts/install-deps.sh is missing.' >&2
+    exit 1
+  }
+  printf '[Raohane] Installing Raohane dependency manifest...\n\n'
+  bash "$ROOT/scripts/install-deps.sh" --full
+  printf '\n[Raohane] Raohane dependencies installed.\n\n'
+fi
+
+missing_core=()
+for cmd in hyprctl qs python3; do
+  command -v "$cmd" >/dev/null 2>&1 || missing_core+=("$cmd")
+done
+
+if ((${#missing_core[@]})); then
+  echo '[Raohane] Missing required runtime commands:' >&2
+  for cmd in "${missing_core[@]}"; do
+    case "$cmd" in
+      hyprctl) echo '  - hyprctl (Hyprland)' >&2 ;;
+      qs) echo '  - qs (Quickshell)' >&2 ;;
+      python3) echo '  - python3' >&2 ;;
+    esac
+  done
+  if ((INSTALL_DEPS == 0)); then
+    echo >&2
+    echo '[Raohane] On Arch-based systems retry with:' >&2
+    echo '  ./install-raohane.sh --deps' >&2
+  fi
+  exit 1
+fi
+
+required_runtime=(
   "scripts/raohane"
+  "scripts/raohane-audit.sh"
+  "scripts/install-deps.sh"
+  "install/arch/required.txt"
+  "install/arch/features.txt"
   "modules/common"
   "modules/ii"
   "modules/raohane"
@@ -33,37 +102,43 @@ required_foundation=(
   "panelFamilies/IllogicalImpulseFamily.qml"
   "panelFamilies/RaohaneFamily.qml"
 )
-missing_foundation=()
-for path in "${required_foundation[@]}"; do
-  [[ -e "$ROOT/$path" ]] || missing_foundation+=("$path")
+missing_runtime=()
+for path in "${required_runtime[@]}"; do
+  [[ -e "$ROOT/$path" ]] || missing_runtime+=("$path")
 done
 
-if ((${#missing_foundation[@]})); then
-  echo "[Raohane] This checkout is missing committed foundation files." >&2
-  printf '  missing: %s\n' "${missing_foundation[@]}" >&2
-  echo "[Raohane] Update/re-clone raohane-dots before installing." >&2
+if ((${#missing_runtime[@]})); then
+  echo '[Raohane] This checkout is missing required runtime files.' >&2
+  printf '  missing: %s\n' "${missing_runtime[@]}" >&2
+  echo '[Raohane] Update/re-clone raohane-dots before installing.' >&2
   exit 1
+fi
+
+if command -v rg >/dev/null 2>&1; then
+  printf '[Raohane] Running static Raohane audit...\n'
+  bash "$ROOT/scripts/raohane-audit.sh"
+else
+  echo '[Raohane] ripgrep (rg) is unavailable; skipping extended static audit.'
 fi
 
 printf '[Raohane] Installing Hyprland shell...\n'
 
-# Stop the running shell before replacing its QML graph.
 systemctl --user stop raohane.service >/dev/null 2>&1 || true
 
 mkdir -p "$RUNTIME" "$BIN_DIR" "$SYSTEMD_DIR" "$HYPR_DIR" "$RAOHANE_CONFIG"
 
-# First-install config migration. Do not overwrite existing Raohane user settings.
+# New installs start from Raohane defaults. Importing a legacy shell config is
+# opt-in so ordinary installs have no dependency on another shell namespace.
 if [[ ! -f "$RAOHANE_CONFIG_FILE" ]]; then
-  if [[ -f "$LEGACY_CONFIG_FILE" ]]; then
+  if ((MIGRATE_LEGACY)) && [[ -f "$LEGACY_CONFIG_FILE" ]]; then
     cp -a "$LEGACY_CONFIG_FILE" "$RAOHANE_CONFIG_FILE"
-    printf '[Raohane] Migrated settings from %s\n' "$LEGACY_CONFIG_FILE"
+    printf '[Raohane] Imported legacy settings from %s\n' "$LEGACY_CONFIG_FILE"
   elif [[ -f "$ROOT/defaults/config.json" ]]; then
     cp -a "$ROOT/defaults/config.json" "$RAOHANE_CONFIG_FILE"
-    printf '[Raohane] Seeded settings from repository defaults.\n'
+    printf '[Raohane] Seeded settings from Raohane defaults.\n'
   fi
 fi
 
-# Normalize the selected family without discarding the rest of the user's JSON.
 if [[ -f "$RAOHANE_CONFIG_FILE" ]]; then
   python3 - "$RAOHANE_CONFIG_FILE" <<'PY'
 import json
@@ -83,7 +158,6 @@ tmp.replace(path)
 PY
 fi
 
-# Replace runtime code. Persistent settings live separately in ~/.config/raohane.
 find "$RUNTIME" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 cp -a "$ROOT"/. "$RUNTIME"/
 rm -f "$RUNTIME/install-raohane.sh"
@@ -117,6 +191,7 @@ exec-once = systemctl --user start raohane.service
 bind = SUPER, R, exec, raohane launcher
 bind = SUPER, escape, exec, raohane settings
 bind = SUPER, C, exec, raohane control
+bind = SUPER SHIFT, M, exec, raohane media
 HYPR
 
 if [[ ! -f "$HYPR_AUTOSTART" ]]; then
@@ -143,7 +218,7 @@ fi
 systemctl --user daemon-reload
 systemctl --user enable raohane.service >/dev/null 2>&1 || true
 
-if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+if ((START_AFTER_INSTALL)) && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
   systemctl --user start raohane.service >/dev/null 2>&1 || true
 fi
 
@@ -153,5 +228,10 @@ printf 'Settings: %s\n' "$RAOHANE_CONFIG_FILE"
 printf 'Launcher: %s\n' "$BIN_DIR/raohane"
 printf 'Hyprland snippet: %s\n' "$HYPR_SNIPPET"
 printf 'Autostart snippet: %s\n\n' "$HYPR_AUTOSTART"
-printf 'Start now with: raohane start\n'
+if ((START_AFTER_INSTALL == 0)); then
+  printf 'Start manually with: raohane start\n'
+else
+  printf 'Start/restart with: raohane restart\n'
+fi
+printf 'Batch diagnostics: raohane doctor all\n'
 printf 'Debug in terminal: raohane run\n'
