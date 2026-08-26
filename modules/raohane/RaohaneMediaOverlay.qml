@@ -24,6 +24,8 @@ Scope {
         id: panelWindow
 
         visible: GlobalStates.raohaneMediaOverlayOpen
+        screen: Quickshell.screens.find(candidate => candidate.name === WM.focusedMonitor?.name)
+            ?? Quickshell.screens[0]
         exclusiveZone: 0
         implicitWidth: 430
         implicitHeight: 128
@@ -75,6 +77,7 @@ Scope {
                     clip: true
 
                     Image {
+                        id: coverArt
                         anchors.fill: parent
                         source: root.player?.trackArtUrl ?? ""
                         fillMode: Image.PreserveAspectCrop
@@ -85,7 +88,7 @@ Scope {
 
                     Text {
                         anchors.centerIn: parent
-                        visible: !root.player || parent.children[0].status !== Image.Ready
+                        visible: !root.player || coverArt.status !== Image.Ready
                         text: "音"
                         color: RaohaneTheme.accent
                         font.pixelSize: 30
@@ -125,7 +128,6 @@ Scope {
 
                         ControlButton {
                             icon: "close"
-                            enabled: true
                             onClicked: GlobalStates.raohaneMediaOverlayOpen = false
                         }
                     }
@@ -220,16 +222,15 @@ Scope {
         id: control
 
         required property string icon
-        property bool enabled: true
         property bool emphasized: false
         signal clicked()
 
         implicitWidth: 30
         implicitHeight: 30
         radius: 15
-        opacity: enabled ? 1 : 0.35
+        opacity: control.enabled ? 1 : 0.35
         color: emphasized ? RaohaneTheme.accentSoft
-            : mouse.containsMouse && enabled ? "#30ffffff" : "transparent"
+            : mouse.containsMouse && control.enabled ? "#30ffffff" : "transparent"
         border.width: emphasized ? 1 : 0
         border.color: RaohaneTheme.border
 
