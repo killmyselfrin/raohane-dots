@@ -16,7 +16,11 @@ import Quickshell.Hyprland
 ShellRoot {
     id: root
 
-    ReloadPopup {}
+    // Quickshell already suppresses its own reload popup via QS_NO_RELOAD_POPUP.
+    // The inherited ReloadPopup.qml pulled Qt5Compat.GraphicalEffects into the
+    // bootstrap and can prevent the entire shell from loading when that legacy
+    // component is unavailable. Runtime startup must not depend on a cosmetic
+    // reload notification, so Raohane intentionally does not instantiate it.
 
     Process {
         id: autostartProc
