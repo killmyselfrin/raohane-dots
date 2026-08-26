@@ -25,7 +25,7 @@
 
 **Raohane** is a Hyprland desktop shell written with **Quickshell / Qt QML**.
 
-The product direction is a Japanese-inspired, responsive desktop rather than only a themed bar: a contextual center island, system controls, media surfaces, fullscreen overlays, native launcher/search, notifications, wallpaper management and a coherent settings experience.
+The product direction is a Japanese-inspired, responsive desktop rather than only a themed bar: a contextual center island, system controls, living desktop canvas, workspace overview, application dock, fullscreen media overlays, native launcher/search, notifications, wallpaper management and a coherent settings experience.
 
 Raohane began its migration using mature existing shell code so desktop functionality did not have to be reinvented in one unsafe rewrite. That was a migration technique — **not the final architecture**.
 
@@ -37,12 +37,12 @@ The target is explicit:
 
 ## 🚧 Main development policy
 
-We now develop against **`main` directly** for normal integration work.
-
-That means:
+We develop against **`main` directly** for normal integration work.
 
 ```text
 main
+  ↓
+static Raohane audit
   ↓
 install on real Hyprland session
   ↓
@@ -54,8 +54,6 @@ continue migration
 ```
 
 Separate branches/PRs are reserved for experiments dangerous enough to make the shell broadly unbootable.
-
-Older foundation PRs were closed as superseded rather than merged back into the current architecture.
 
 ---
 
@@ -78,8 +76,6 @@ Older foundation PRs were closed as superseded rather than merged back into the 
 | Privacy / capture state | `RaohanePrivacy` |
 | Launcher application search | `RaohaneSearch` |
 
-The active service direction now looks like this:
-
 ```text
 Linux / Hyprland / Quickshell APIs
               │
@@ -97,30 +93,31 @@ Linux / Hyprland / Quickshell APIs
         Raohane-native UI
 ```
 
-Compatibility service names still exist where old UI expects them, but several of them are now **facades**, not backend owners. For example, the compatibility Notifications, Wallpapers, SessionWarnings, SystemInfo and Session APIs route into Raohane services instead of running duplicate implementations.
+Compatibility service names still exist where old UI expects them, but several are now **facades**, not backend owners. Notifications, Wallpapers, SessionWarnings, SystemInfo and Session compatibility APIs route into Raohane services instead of running duplicate implementations.
 
 ---
 
-## ⚙️ Native configuration has started
+## ⚙️ Native configuration
 
-Raohane now has a separate persisted config module:
+Raohane has a separate persisted config module:
 
 ```text
 modules/raohane/config/RaohaneConfig.qml
 ~/.config/raohane/native.json
 ```
 
-The first native settings cover wallpaper state, display temperature, selected app commands and Raohane feature flags.
+The native schema currently owns:
+
+- wallpaper path, directory, preview, slideshow and rendering behavior;
+- native Overview workspace count/layout;
+- native Dock enable/autohide/pin/geometry/pinned apps;
+- display color temperature;
+- selected application commands;
+- Raohane feature flags.
 
 During migration, `RaohaneLegacyBridge` is the **single intentional synchronization boundary** between the new config and the inherited compatibility config. New backend services should not import the old `Config.qml` directly.
 
-Already moved to `RaohaneConfig`:
-
-- `RaohaneWallpapers`
-- `RaohaneDisplay`
-- `RaohaneSession`
-
-The bridge will disappear when the remaining old settings pages/background components have moved to native configuration.
+Already consuming native config directly include `RaohaneWallpapers`, `RaohaneDisplay`, `RaohaneSession`, `RaohaneBackground`, `RaohaneOverview` and `RaohaneDock`.
 
 ---
 
@@ -142,12 +139,87 @@ Desktop applications are read directly from Quickshell `DesktopEntries`.
 
 ---
 
+## 🖼️ Native desktop pipeline
+
+The wallpaper/desktop path is now owned end-to-end by Raohane:
+
+```text
+RaohaneWallpaperSelector
+          │
+          ▼
+RaohaneWallpapers + RaohaneConfig
+          │
+          ▼
+RaohaneBackground
+          │
+          ├── image wallpaper
+          ├── Qt Multimedia video wallpaper
+          ├── preview / random / slideshow
+          └── lock/fullscreen behavior
+          │
+          ▼
+RaohaneDesktopCanvas
+```
+
+`RaohaneBackground` replaced the inherited monolithic background in the active panel family. Desktop context presentation is deliberately separated into `RaohaneDesktopCanvas` instead of being mixed into the wallpaper backend.
+
+---
+
+## 間 Native Spaces / Overview
+
+`RaohaneOverview` is now the active workspace view. It talks directly to Hyprland workspaces/toplevels and no longer mixes workspace navigation with the old launcher/search implementation.
+
+It supports:
+
+- real Hyprland workspaces and window titles;
+- keyboard navigation;
+- click/Enter workspace activation;
+- configurable workspace grouping/columns;
+- preserved compatibility shortcuts and `search` IPC while existing bindings migrate;
+- clipboard shortcut routing into the native Raohane Launcher.
+
+---
+
+## ◇ Native Dock
+
+`RaohaneDock` replaced the inherited Dock in the active runtime.
+
+It is built directly on Quickshell `ToplevelManager` and `DesktopEntries` and supports:
+
+- pinned applications persisted in `RaohaneConfig`;
+- active/running app discovery;
+- multiple windows per app;
+- click-to-focus/cycle windows;
+- middle-click new instance;
+- right-click pin/unpin;
+- autohide and pinned modes;
+- fullscreen-aware reveal behavior;
+- multi-monitor instances;
+- Spaces shortcut into `RaohaneOverview`;
+- a compact entry into the native media overlay.
+
+It does **not** depend on inherited `TaskbarApps`, `AppSearch`, `MprisController` or the old Dock UI.
+
+---
+
+## ♪ Native media surface
+
+`RaohaneMediaOverlay` is now the only media-controls surface loaded by `RaohaneFamily`.
+
+The inherited `modules/ii/mediaControls` implementation is no longer loaded. Existing `mediaControls` IPC plus `mediaControlsToggle`, `mediaControlsOpen` and `mediaControlsClose` shortcuts are absorbed by the native overlay so old bindings can continue working during migration.
+
+---
+
 ## ✨ Raohane-native product surfaces
 
 Current Raohane-owned presentation includes:
 
 - horizontal bar;
 - Context Island;
+- Background renderer;
+- living Desktop Canvas;
+- Spaces / workspace Overview;
+- application Dock;
 - launcher;
 - Control Center internals;
 - Settings navigation + Control Deck;
@@ -164,23 +236,22 @@ The project is **Hyprland-first and Hyprland-only as a product target**. We are 
 
 ## 🧩 What is still temporary
 
-The repository is not fully standalone yet. Important compatibility code still exists while feature parity is preserved.
+The repository is not fully standalone yet. Important compatibility code remains while feature parity is preserved.
 
-Largest remaining areas:
+Largest remaining active areas:
 
-- desktop background renderer and desktop widget canvas;
 - vertical bar;
-- workspace/window Overview;
-- Dock and Lock UI;
+- Lock UI;
 - capture / region selection / screen translation;
 - Polkit / OSK / left sidebar compatibility surfaces;
+- Overlay / DropShelf / ScreenFrame chrome;
 - heavy inherited Settings pages;
 - portions of shared `modules/common` widgets/models/functions;
-- the large inherited config schema used by compatibility UI;
+- the inherited config schema used by remaining compatibility UI;
 - old service files that still support compatibility surfaces;
-- old upstream migration/sync material that can be deleted only after its code is no longer required.
+- upstream migration/sync material that can be deleted only after its code is no longer required.
 
-These are migration scaffolding, not the desired final structure.
+The inherited Background, Overview, Dock and MediaControls code may still exist in the source tree for lineage/reference, but **they are no longer part of the active Raohane panel family**.
 
 ---
 
@@ -213,6 +284,7 @@ These are migration scaffolding, not the desired final structure.
 
 - [x] first standalone `RaohaneConfig`
 - [x] isolated compatibility config bridge
+- [x] native wallpaper/overview/dock schema
 - [ ] expand native config to the complete product schema
 - [ ] Raohane-owned paths/directories API
 - [ ] Raohane-owned common widgets
@@ -221,11 +293,13 @@ These are migration scaffolding, not the desired final structure.
 
 ### Phase 4 — Visible runtime cleanup
 
-- [ ] native Background + desktop canvas
-- [ ] native Overview/workspace UI
-- [ ] native Dock
+- [x] native Background + desktop canvas
+- [x] native Overview/workspace UI
+- [x] native Dock
+- [x] native media controls surface in active runtime
 - [ ] native Lock
 - [ ] native vertical-bar strategy or explicitly horizontal-only product decision
+- [ ] native remaining screen chrome/capture surfaces
 - [ ] migrate remaining Settings pages
 - [ ] remove remaining `modules/ii` runtime imports
 
@@ -338,19 +412,21 @@ raohane run
 
 Then exercise:
 
-1. bar and workspaces;
-2. launcher and its `/`, `>`, `=`, `:` modes;
-3. Control Center network/Bluetooth/audio/display controls;
-4. notifications + actions + history;
-5. volume/brightness OSD;
-6. MPRIS and Media Overlay;
-7. wallpaper preview/apply/random;
-8. desktop context menu;
-9. Settings pages;
-10. lock/session/logout/reboot/shutdown;
-11. microphone/camera/screen-sharing privacy state;
-12. fullscreen game/overlay behavior;
-13. multiple monitors if available.
+1. horizontal bar and workspaces;
+2. Spaces / Overview navigation;
+3. native Dock: running apps, pinned apps, middle/right click and autohide;
+4. launcher and its `/`, `>`, `=`, `:` modes;
+5. Control Center network/Bluetooth/audio/display controls;
+6. notifications + actions + history;
+7. volume/brightness OSD;
+8. MPRIS and Media Overlay, including legacy media-controls shortcut names;
+9. image/video wallpaper preview/apply/random;
+10. Desktop Canvas and desktop context menu;
+11. Settings pages;
+12. lock/session/logout/reboot/shutdown;
+13. microphone/camera/screen-sharing privacy state;
+14. fullscreen game/overlay behavior;
+15. multiple monitors if available.
 
 If something fails, the most useful output is the full terminal section around the error plus `raohane doctor all`.
 
@@ -367,6 +443,10 @@ It validates:
 - module/qmldir integrity;
 - native service ownership;
 - native config ownership;
+- wallpaper/background ownership;
+- Overview ownership;
+- Dock/toplevel ownership;
+- native media overlay ownership and compatibility entrypoints;
 - launcher-search ownership;
 - compatibility facade boundaries;
 - installer/dependency independence;
