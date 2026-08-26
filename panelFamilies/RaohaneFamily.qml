@@ -22,7 +22,7 @@ import qs.modules.ii.desktopMenu
 import qs.modules.ii.dropover
 import qs.modules.ii.frame
 
-// Raohane's stable panel family.
+// Raohane's stable Hyprland panel family.
 //
 // The mature foundation stays underneath, while user-facing surfaces are
 // replaced here one at a time with Raohane-native implementations.
@@ -63,6 +63,5 @@ Scope {
     PanelLoader { component: WallpaperSelector {} }
     PanelLoader { component: DesktopMenu {} }
     PanelLoader { component: DropShelfPanel {} }
-    PanelLoader { component: NiriBackdrop {} }
     PanelLoader { component: ScreenFrame {} }
 }
