@@ -1,11 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Wayland
 
-import qs
-import qs.modules.common.widgets
 import qs.modules.raohane.services
 
 Scope {
@@ -13,13 +11,26 @@ Scope {
 
     readonly property var player: RaohaneMedia.activePlayer
     readonly property real progress: RaohaneMedia.progress
+    readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
+        ?? Quickshell.screens[0]
+
+    function toggle(): void {
+        RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
+    }
+
+    function open(): void {
+        RaohaneState.mediaOverlayOpen = true
+    }
+
+    function close(): void {
+        RaohaneState.mediaOverlayOpen = false
+    }
 
     PanelWindow {
         id: panelWindow
 
         visible: RaohaneState.mediaOverlayOpen
-        screen: Quickshell.screens.find(candidate => candidate.name === WM.focusedMonitor?.name)
-            ?? Quickshell.screens[0]
+        screen: root.focusedScreen
         exclusiveZone: 0
         implicitWidth: 430
         implicitHeight: 128
@@ -125,8 +136,8 @@ Scope {
                         }
 
                         ControlButton {
-                            icon: "close"
-                            onClicked: RaohaneState.mediaOverlayOpen = false
+                            glyph: "×"
+                            onClicked: root.close()
                         }
                     }
 
@@ -168,20 +179,20 @@ Scope {
                         Item { Layout.fillWidth: true }
 
                         ControlButton {
-                            icon: "skip_previous"
+                            glyph: "⏮"
                             enabled: RaohaneMedia.canGoPrevious
                             onClicked: RaohaneMedia.previous()
                         }
 
                         ControlButton {
-                            icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
+                            glyph: RaohaneMedia.isPlaying ? "Ⅱ" : "▶"
                             enabled: RaohaneMedia.canTogglePlaying
                             emphasized: true
                             onClicked: RaohaneMedia.togglePlaying()
                         }
 
                         ControlButton {
-                            icon: "skip_next"
+                            glyph: "⏭"
                             enabled: RaohaneMedia.canGoNext
                             onClicked: RaohaneMedia.next()
                         }
@@ -193,30 +204,47 @@ Scope {
 
     IpcHandler {
         target: "raohaneMedia"
+        function toggle(): void { root.toggle() }
+        function open(): void { root.open() }
+        function close(): void { root.close() }
+    }
 
-        function toggle(): void {
-            RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
-        }
-
-        function open(): void {
-            RaohaneState.mediaOverlayOpen = true
-        }
-
-        function close(): void {
-            RaohaneState.mediaOverlayOpen = false
-        }
+    // Compatibility IPC retained while existing keybind/config snippets migrate.
+    IpcHandler {
+        target: "mediaControls"
+        function toggle(): void { root.toggle() }
+        function open(): void { root.open() }
+        function close(): void { root.close() }
     }
 
     CompositorGlobalShortcut {
         name: "raohaneMediaOverlayToggle"
-        description: "Toggles the Raohane media overlay"
-        onPressed: RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
+        description: "Toggle the Raohane media overlay"
+        onPressed: root.toggle()
+    }
+
+    CompositorGlobalShortcut {
+        name: "mediaControlsToggle"
+        description: "Toggle Raohane media controls"
+        onPressed: root.toggle()
+    }
+
+    CompositorGlobalShortcut {
+        name: "mediaControlsOpen"
+        description: "Open Raohane media controls"
+        onPressed: root.open()
+    }
+
+    CompositorGlobalShortcut {
+        name: "mediaControlsClose"
+        description: "Close Raohane media controls"
+        onPressed: root.close()
     }
 
     component ControlButton: Rectangle {
         id: control
 
-        required property string icon
+        required property string glyph
         property bool emphasized: false
         signal clicked()
 
@@ -229,11 +257,12 @@ Scope {
         border.width: emphasized ? 1 : 0
         border.color: RaohaneTheme.border
 
-        MaterialSymbol {
+        Text {
             anchors.centerIn: parent
-            text: control.icon
-            iconSize: 17
+            text: control.glyph
             color: control.emphasized ? RaohaneTheme.accent : RaohaneTheme.text
+            font.pixelSize: control.emphasized ? 15 : 16
+            font.weight: Font.DemiBold
         }
 
         MouseArea {
