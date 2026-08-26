@@ -5,6 +5,7 @@ singleton RaohaneState 1.0 RaohaneState.qml
 singleton RaohanePrivacy 1.0 RaohanePrivacy.qml
 singleton RaohaneLegacyBridge 1.0 RaohaneLegacyBridge.qml
 RaohaneBackground 1.0 RaohaneBackground.qml
+RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
 RaohaneBar 1.0 RaohaneBar.qml
 RaohaneContextIsland 1.0 RaohaneContextIsland.qml
 RaohaneControlCenter 1.0 RaohaneControlCenter.qml
