@@ -58,12 +58,12 @@ if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
 fi
 
 if ((INSTALL_DEPS)); then
-  [[ -x "$ROOT/scripts/install-deps.sh" ]] || {
-    echo '[Raohane] scripts/install-deps.sh is missing or not executable.' >&2
+  [[ -f "$ROOT/scripts/install-deps.sh" ]] || {
+    echo '[Raohane] scripts/install-deps.sh is missing.' >&2
     exit 1
   }
   printf '[Raohane] Installing Raohane dependency manifest...\n\n'
-  "$ROOT/scripts/install-deps.sh" --full
+  bash "$ROOT/scripts/install-deps.sh" --full
   printf '\n[Raohane] Raohane dependencies installed.\n\n'
 fi
 
@@ -116,7 +116,7 @@ fi
 
 if command -v rg >/dev/null 2>&1; then
   printf '[Raohane] Running static Raohane audit...\n'
-  "$ROOT/scripts/raohane-audit.sh"
+  bash "$ROOT/scripts/raohane-audit.sh"
 else
   echo '[Raohane] ripgrep (rg) is unavailable; skipping extended static audit.'
 fi
