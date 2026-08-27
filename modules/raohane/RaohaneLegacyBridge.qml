@@ -240,6 +240,7 @@ Singleton {
         RaohaneState.overviewOpen = GlobalStates.overviewOpen
         RaohaneState.barOpen = GlobalStates.barOpen
         RaohaneState.controlCenterOpen = GlobalStates.sidebarRightOpen
+        RaohaneState.settingsOpen = GlobalStates.settingsOpen
         RaohaneState.screenLocked = GlobalStates.screenLocked
         RaohaneState.superDown = GlobalStates.superDown
         root.syncingState = false
@@ -254,6 +255,7 @@ Singleton {
         GlobalStates.overviewOpen = RaohaneState.overviewOpen
         GlobalStates.barOpen = RaohaneState.barOpen
         GlobalStates.sidebarRightOpen = RaohaneState.controlCenterOpen
+        GlobalStates.settingsOpen = RaohaneState.settingsOpen
         GlobalStates.screenLocked = RaohaneState.screenLocked
         GlobalStates.superDown = RaohaneState.superDown
         root.syncingState = false
@@ -303,6 +305,7 @@ Singleton {
         function onOverviewOpenChanged(): void { root.pushNativeTransientState() }
         function onBarOpenChanged(): void { root.pushNativeTransientState() }
         function onControlCenterOpenChanged(): void { root.pushNativeTransientState() }
+        function onSettingsOpenChanged(): void { root.pushNativeTransientState() }
         function onScreenLockedChanged(): void { root.pushNativeTransientState() }
         function onSuperDownChanged(): void { root.pushNativeTransientState() }
     }
@@ -402,6 +405,7 @@ Singleton {
         function onOverviewOpenChanged(): void { root.pullLegacyTransientState() }
         function onBarOpenChanged(): void { root.pullLegacyTransientState() }
         function onSidebarRightOpenChanged(): void { root.pullLegacyTransientState() }
+        function onSettingsOpenChanged(): void { root.pullLegacyTransientState() }
         function onScreenLockedChanged(): void { root.pullLegacyTransientState() }
         function onSuperDownChanged(): void { root.pullLegacyTransientState() }
     }
