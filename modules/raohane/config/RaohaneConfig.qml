@@ -1,7 +1,6 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import QtCore
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -9,9 +8,9 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 5
-    readonly property string configDirectory: root.cleanPath(StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0] ?? "") + "/raohane"
-    readonly property string filePath: configDirectory + "/native.json"
+    readonly property int schemaVersion: 6
+    readonly property string configDirectory: RaohanePaths.configDirectory
+    readonly property string filePath: RaohanePaths.nativeConfigFile
 
     property bool ready: false
     property bool loading: false
@@ -40,7 +39,17 @@ Singleton {
     property int dockBottomMargin: 9
     property var dockPinnedApps: []
 
+    // Native horizontal-bar contract. Vertical presentation is still a
+    // compatibility surface, but the product decision/config now belongs here.
     property bool barBottom: false
+    property bool barVertical: false
+    property bool barAutoHide: false
+    property bool barAutoHidePushWindows: true
+    property bool barShowOnSuper: false
+    property int barShowOnSuperDelay: 140
+    property var barScreenList: []
+    property bool barShowDate: true
+
     property int osdTimeout: 1000
 
     property int colorTemperature: 5000
@@ -62,19 +71,6 @@ Singleton {
 
     signal reloaded()
     signal saved()
-
-    function cleanPath(value): string {
-        if (value === null || value === undefined)
-            return ""
-        let path = value.toString()
-        if (path.startsWith("file://"))
-            path = path.substring(7)
-        try {
-            return decodeURIComponent(path)
-        } catch (error) {
-            return path
-        }
-    }
 
     function snapshot(): var {
         return {
@@ -106,7 +102,14 @@ Singleton {
                 pinnedApps: root.dockPinnedApps
             },
             bar: {
-                bottom: root.barBottom
+                bottom: root.barBottom,
+                vertical: root.barVertical,
+                autoHide: root.barAutoHide,
+                autoHidePushWindows: root.barAutoHidePushWindows,
+                showOnSuper: root.barShowOnSuper,
+                showOnSuperDelay: root.barShowOnSuperDelay,
+                screenList: root.barScreenList,
+                showDate: root.barShowDate
             },
             osd: {
                 timeout: root.osdTimeout
@@ -177,6 +180,14 @@ Singleton {
         root.assignIfPresent(dock, "pinnedApps", value => root.dockPinnedApps = Array.isArray(value) ? value.map(item => String(item)) : [])
 
         root.assignIfPresent(bar, "bottom", value => root.barBottom = Boolean(value))
+        root.assignIfPresent(bar, "vertical", value => root.barVertical = Boolean(value))
+        root.assignIfPresent(bar, "autoHide", value => root.barAutoHide = Boolean(value))
+        root.assignIfPresent(bar, "autoHidePushWindows", value => root.barAutoHidePushWindows = Boolean(value))
+        root.assignIfPresent(bar, "showOnSuper", value => root.barShowOnSuper = Boolean(value))
+        root.assignIfPresent(bar, "showOnSuperDelay", value => root.barShowOnSuperDelay = Math.max(0, Math.min(2000, Number(value) || 140)))
+        root.assignIfPresent(bar, "screenList", value => root.barScreenList = Array.isArray(value) ? value.map(item => String(item)) : [])
+        root.assignIfPresent(bar, "showDate", value => root.barShowDate = Boolean(value))
+
         root.assignIfPresent(osd, "timeout", value => root.osdTimeout = Math.max(250, Math.min(10000, Number(value) || 1000)))
 
         root.assignIfPresent(display, "colorTemperature", value => root.colorTemperature = Math.max(1000, Math.min(10000, Number(value) || 5000)))
@@ -248,6 +259,13 @@ Singleton {
     onDockBottomMarginChanged: scheduleSave()
     onDockPinnedAppsChanged: scheduleSave()
     onBarBottomChanged: scheduleSave()
+    onBarVerticalChanged: scheduleSave()
+    onBarAutoHideChanged: scheduleSave()
+    onBarAutoHidePushWindowsChanged: scheduleSave()
+    onBarShowOnSuperChanged: scheduleSave()
+    onBarShowOnSuperDelayChanged: scheduleSave()
+    onBarScreenListChanged: scheduleSave()
+    onBarShowDateChanged: scheduleSave()
     onOsdTimeoutChanged: scheduleSave()
     onColorTemperatureChanged: scheduleSave()
     onNightLightAutomaticChanged: scheduleSave()
