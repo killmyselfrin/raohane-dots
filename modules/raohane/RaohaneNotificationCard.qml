@@ -5,7 +5,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 
-import qs.modules.common.widgets
 import qs.modules.raohane.services
 
 Rectangle {
@@ -65,7 +64,7 @@ Rectangle {
                     visible: source !== ""
                 }
 
-                MaterialSymbol {
+                RaohaneIcon {
                     anchors.centerIn: parent
                     visible: !appIcon.visible
                     text: root.notification.urgency === "critical" ? "warning" : "notifications"
@@ -104,7 +103,7 @@ Rectangle {
                 radius: 10
                 color: closeMouse.containsMouse ? "#28ffffff" : "transparent"
 
-                MaterialSymbol {
+                RaohaneIcon {
                     anchors.centerIn: parent
                     text: "close"
                     iconSize: 16
