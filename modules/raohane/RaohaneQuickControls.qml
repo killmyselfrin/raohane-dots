@@ -341,13 +341,13 @@ Item {
                     from: 0
                     to: 1
                     padding: 0
-                    onMoved: control.valueChangedByUser(value)
+                    live: true
 
                     Binding {
                         target: slider
                         property: "value"
                         value: Math.max(0, Math.min(1, control.liveValue))
-                        when: !slider.pressed
+                        when: !dragArea.pressed
                     }
 
                     background: Rectangle {
@@ -369,7 +369,7 @@ Item {
                     handle: Rectangle {
                         x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
                         y: slider.topPadding + slider.availableHeight / 2 - height / 2
-                        width: slider.pressed ? 14 : 12
+                        width: dragArea.pressed ? 15 : 12
                         height: width
                         radius: width / 2
                         color: RaohaneTheme.text
@@ -377,6 +377,28 @@ Item {
                         border.color: RaohaneTheme.accent
 
                         Behavior on width { NumberAnimation { duration: 90 } }
+                    }
+
+                    MouseArea {
+                        id: dragArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        preventStealing: true
+                        cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
+
+                        function applyPosition(mouseX: real): void {
+                            const usableWidth = Math.max(1, slider.availableWidth)
+                            const localX = Math.max(0, Math.min(usableWidth, mouseX - slider.leftPadding))
+                            const nextValue = slider.from + (localX / usableWidth) * (slider.to - slider.from)
+                            slider.value = Math.max(slider.from, Math.min(slider.to, nextValue))
+                            control.valueChangedByUser(slider.value)
+                        }
+
+                        onPressed: mouse => applyPosition(mouse.x)
+                        onPositionChanged: mouse => {
+                            if (pressed)
+                                applyPosition(mouse.x)
+                        }
                     }
                 }
             }
