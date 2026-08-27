@@ -2,63 +2,131 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell.Services.Pipewire
+import Quickshell
+import Quickshell.Io
 
-Item {
+Singleton {
     id: root
 
-    readonly property var streamNodes: Pipewire.nodes.values.filter(node => node.isStream)
+    property bool microphoneActive: false
+    property bool cameraActive: false
+    property bool recordingActive: false
+    property bool unclassifiedVideoCaptureActive: false
 
-    PwObjectTracker {
-        objects: root.streamNodes
+    property string microphoneApp: ""
+    property string cameraApp: ""
+    property string recordingApp: ""
+
+    function stringProp(props, key): string {
+        return String(props?.[key] ?? "")
     }
 
-    function mediaClass(node): string {
-        return String(node?.type ?? "")
+    function applicationName(props): string {
+        return root.stringProp(props, "application.name")
+            || root.stringProp(props, "node.description")
+            || root.stringProp(props, "node.name")
     }
 
-    function mediaCategory(node): string {
-        return String(node?.properties?.["media.category"] ?? "")
+    function reset(): void {
+        root.microphoneActive = false
+        root.cameraActive = false
+        root.recordingActive = false
+        root.unclassifiedVideoCaptureActive = false
+        root.microphoneApp = ""
+        root.cameraApp = ""
+        root.recordingApp = ""
     }
 
-    function mediaRole(node): string {
-        return String(node?.properties?.["media.role"] ?? "")
+    function applyDump(text): void {
+        let document
+        try {
+            document = JSON.parse(String(text ?? "[]"))
+        } catch (error) {
+            root.reset()
+            return
+        }
+
+        if (!Array.isArray(document)) {
+            root.reset()
+            return
+        }
+
+        let microphoneActive = false
+        let cameraActive = false
+        let recordingActive = false
+        let unclassifiedVideo = false
+        let microphoneApp = ""
+        let cameraApp = ""
+        let recordingApp = ""
+
+        for (const object of document) {
+            if (String(object?.type ?? "") !== "PipeWire:Interface:Node")
+                continue
+
+            const info = object?.info ?? {}
+            if (String(info?.state ?? "").toLowerCase() !== "running")
+                continue
+
+            const props = info?.props ?? {}
+            const mediaClass = root.stringProp(props, "media.class")
+            const mediaCategory = root.stringProp(props, "media.category")
+            const mediaRole = root.stringProp(props, "media.role")
+            const capture = mediaClass.startsWith("Stream/Input/") || mediaCategory === "Capture"
+            if (!capture)
+                continue
+
+            const app = root.applicationName(props)
+            if (mediaClass.includes("Audio")) {
+                microphoneActive = true
+                if (!microphoneApp.length)
+                    microphoneApp = app
+                continue
+            }
+
+            if (!mediaClass.includes("Video"))
+                continue
+
+            if (mediaRole === "Camera") {
+                cameraActive = true
+                if (!cameraApp.length)
+                    cameraApp = app
+            } else if (mediaRole === "Screen" || mediaRole === "Screencast") {
+                recordingActive = true
+                if (!recordingApp.length)
+                    recordingApp = app
+            } else {
+                unclassifiedVideo = true
+            }
+        }
+
+        root.microphoneActive = microphoneActive
+        root.cameraActive = cameraActive
+        root.recordingActive = recordingActive
+        root.unclassifiedVideoCaptureActive = unclassifiedVideo
+        root.microphoneApp = microphoneApp
+        root.cameraApp = cameraApp
+        root.recordingApp = recordingApp
     }
 
-    function isCaptureStream(node): bool {
-        const mediaClassValue = mediaClass(node)
-        return mediaClassValue.startsWith("Stream/Input/") || mediaCategory(node) === "Capture"
+    function refresh(): void {
+        if (!graphProbe.running)
+            graphProbe.exec(["bash", "-lc", "command -v pw-dump >/dev/null 2>&1 && pw-dump || printf '[]'"])
     }
 
-    readonly property var captureStreams: streamNodes.filter(node => isCaptureStream(node))
-    readonly property var microphoneStreams: captureStreams.filter(node => {
-        const mediaClassValue = mediaClass(node)
-        return mediaClassValue.includes("Audio") || node?.audio !== null
-    })
-    readonly property var videoStreams: captureStreams.filter(node => mediaClass(node).includes("Video"))
-    readonly property var cameraStreams: videoStreams.filter(node => mediaRole(node) === "Camera")
-    readonly property var screenStreams: videoStreams.filter(node => mediaRole(node) === "Screen")
-
-    readonly property bool microphoneActive: microphoneStreams.length > 0
-    readonly property bool cameraActive: cameraStreams.length > 0
-    readonly property bool recordingActive: screenStreams.length > 0
-    readonly property bool unclassifiedVideoCaptureActive: videoStreams.length > cameraStreams.length + screenStreams.length
-
-    function applicationName(node): string {
-        return String(node?.properties?.["application.name"]
-            ?? node?.properties?.["node.description"]
-            ?? node?.description
-            ?? node?.name
-            ?? "")
+    Process {
+        id: graphProbe
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        stdout: StdioCollector {
+            onStreamFinished: root.applyDump(text)
+        }
     }
 
-    readonly property string microphoneApp: microphoneStreams.length > 0
-        ? applicationName(microphoneStreams[0])
-        : ""
-    readonly property string cameraApp: cameraStreams.length > 0
-        ? applicationName(cameraStreams[0])
-        : ""
-    readonly property string recordingApp: screenStreams.length > 0
-        ? applicationName(screenStreams[0])
-        : ""
+    Timer {
+        interval: 1200
+        repeat: true
+        running: true
+        onTriggered: root.refresh()
+    }
+
+    Component.onCompleted: root.refresh()
 }
