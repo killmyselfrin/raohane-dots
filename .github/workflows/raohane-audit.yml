@@ -54,6 +54,7 @@ jobs:
           bash -n scripts/raohane-audit.sh
           bash -n scripts/service-boundary-audit.sh
           bash -n scripts/bar-boundary-audit.sh
+          bash -n scripts/core-framework-audit.sh
           bash -n scripts/install-deps.sh
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
@@ -88,6 +89,7 @@ jobs:
           bash scripts/raohane-audit.sh
           bash scripts/service-boundary-audit.sh
           bash scripts/bar-boundary-audit.sh
+          bash scripts/core-framework-audit.sh
 
       - name: Validate current integration graph
         shell: bash
@@ -103,6 +105,7 @@ jobs:
             modules/raohane
             modules/raohane/config/qmldir
             modules/raohane/config/RaohaneConfig.qml
+            modules/raohane/config/RaohanePaths.qml
             modules/raohane/RaohaneLegacyBridge.qml
             modules/raohane/RaohaneWorkspaces.qml
             modules/raohane/RaohaneSysTray.qml
@@ -125,8 +128,7 @@ jobs:
             translations
             scripts/raohane
             scripts/install-deps.sh
-            services/Audio.qml
-            services/BluetoothStatus.qml
+            scripts/core-framework-audit.sh
             services/Notifications.qml
             services/Wallpapers.qml
             services/SessionWarnings.qml
