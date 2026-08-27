@@ -8,18 +8,18 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-import qs
-import qs.modules.common
+import qs.modules.raohane.config
 
-// Raohane-owned shell chrome. Workspaces, tray, status and clock are native;
-// remaining compatibility dependencies are limited to shared config/state.
+// Raohane-owned shell chrome. Workspaces, tray, status, clock, configuration
+// and runtime state are all native; compatibility synchronization is isolated
+// in RaohaneLegacyBridge.
 Scope {
     id: root
 
     Variants {
         model: {
             const screens = Quickshell.screens
-            const configured = Config.options.bar.screenList
+            const configured = RaohaneConfig.barScreenList
             if (!configured || configured.length === 0)
                 return screens
             return screens.filter(screen => configured.includes(screen.name))
@@ -30,19 +30,19 @@ Scope {
             required property ShellScreen modelData
 
             screen: modelData
-            visible: GlobalStates.barOpen && !GlobalStates.screenLocked
+            visible: RaohaneState.barOpen && !RaohaneState.screenLocked
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             implicitHeight: 64
 
             property bool superShow: false
-            readonly property bool autoHide: Config.options.bar.autoHide.enable
+            readonly property bool autoHide: RaohaneConfig.barAutoHide
             readonly property bool mustShow: !autoHide || hoverRegion.containsMouse || superShow
             readonly property var hyprMonitor: Hyprland.monitorFor(barWindow.screen)
             readonly property bool monitorHasFullscreen: hyprMonitor?.activeWorkspace?.hasFullscreen ?? false
             readonly property bool monitorHasSpecialOpen: (hyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
 
-            exclusiveZone: (autoHide && (!mustShow || !Config.options.bar.autoHide.pushWindows))
+            exclusiveZone: (autoHide && (!mustShow || !RaohaneConfig.barAutoHidePushWindows))
                 ? 0
                 : implicitHeight
 
@@ -52,26 +52,26 @@ Scope {
                 : WlrLayer.Top
 
             anchors {
-                top: !Config.options.bar.bottom
-                bottom: Config.options.bar.bottom
+                top: !RaohaneConfig.barBottom
+                bottom: RaohaneConfig.barBottom
                 left: true
                 right: true
             }
 
             Timer {
                 id: superRevealTimer
-                interval: Config.options.bar.autoHide.showWhenPressingSuper.delay ?? 140
+                interval: RaohaneConfig.barShowOnSuperDelay
                 repeat: false
                 onTriggered: barWindow.superShow = true
             }
 
             Connections {
-                target: GlobalStates
+                target: RaohaneState
 
                 function onSuperDownChanged(): void {
-                    if (!Config.options.bar.autoHide.showWhenPressingSuper.enable)
+                    if (!RaohaneConfig.barShowOnSuper)
                         return
-                    if (GlobalStates.superDown) {
+                    if (RaohaneState.superDown) {
                         superRevealTimer.restart()
                     } else {
                         superRevealTimer.stop()
@@ -93,10 +93,10 @@ Scope {
                 height: 54
                 y: {
                     if (barWindow.mustShow)
-                        return Config.options.bar.bottom
+                        return RaohaneConfig.barBottom
                             ? barWindow.height - height - 5
                             : 5
-                    return Config.options.bar.bottom
+                    return RaohaneConfig.barBottom
                         ? barWindow.height + 2
                         : -height - 2
                 }
@@ -153,7 +153,7 @@ Scope {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    GlobalStates.overviewOpen = false
+                                    RaohaneState.overviewOpen = false
                                     RaohaneState.launcherOpen = !RaohaneState.launcherOpen
                                 }
                             }
@@ -184,7 +184,7 @@ Scope {
                             if (RaohaneContext.mode === "media")
                                 RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
                             else
-                                GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen
+                                RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
                         }
                     }
                 }
@@ -219,7 +219,7 @@ Scope {
 
                         RaohaneSystemIcons {
                             Layout.alignment: Qt.AlignVCenter
-                            onActivated: GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen
+                            onActivated: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
                         }
 
                         Rectangle {
@@ -230,7 +230,7 @@ Scope {
 
                         RaohaneClock {
                             Layout.alignment: Qt.AlignVCenter
-                            showDate: Config.options.time.showDate
+                            showDate: RaohaneConfig.barShowDate
                         }
 
                         Rectangle {
@@ -253,7 +253,7 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen
+                                onClicked: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
                             }
                         }
                     }
@@ -266,21 +266,21 @@ Scope {
         target: "bar"
 
         function toggle(): void {
-            GlobalStates.barOpen = !GlobalStates.barOpen
+            RaohaneState.barOpen = !RaohaneState.barOpen
         }
 
         function open(): void {
-            GlobalStates.barOpen = true
+            RaohaneState.barOpen = true
         }
 
         function close(): void {
-            GlobalStates.barOpen = false
+            RaohaneState.barOpen = false
         }
     }
 
     CompositorGlobalShortcut {
         name: "barToggle"
         description: "Toggles the Raohane bar"
-        onPressed: GlobalStates.barOpen = !GlobalStates.barOpen
+        onPressed: RaohaneState.barOpen = !RaohaneState.barOpen
     }
 }
