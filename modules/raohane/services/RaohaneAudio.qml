@@ -14,10 +14,10 @@ Singleton {
     property bool muted: false
     property real microphoneVolume: 0
     property bool microphoneMuted: false
+    property string sinkName: ""
+    property string sourceName: ""
+    property string lastError: ""
 
-    // Keep the existing service surface stable while device/stream enumeration
-    // is migrated separately. Raohane's active UI currently consumes the
-    // default sink/source controls only.
     readonly property var outputStreams: []
     readonly property var inputStreams: []
     readonly property var outputDevices: []
@@ -39,21 +39,37 @@ Singleton {
     }
 
     function applySink(text): void {
-        const parsed = root.parseVolume(text)
+        const value = String(text ?? "").trim()
+        if (value === "UNAVAILABLE") {
+            root.ready = false
+            root.lastError = "No default audio sink"
+            return
+        }
+
+        const parsed = root.parseVolume(value)
         if (!parsed)
             return
+
         const wasReady = root.ready
         root.volume = parsed.volume
         root.muted = parsed.muted
         root.ready = true
+        root.lastError = ""
         if (!wasReady)
             console.debug("[RaohaneAudio] wpctl sink ready")
     }
 
     function applySource(text): void {
-        const parsed = root.parseVolume(text)
+        const value = String(text ?? "").trim()
+        if (value === "UNAVAILABLE") {
+            root.microphoneReady = false
+            return
+        }
+
+        const parsed = root.parseVolume(value)
         if (!parsed)
             return
+
         root.microphoneVolume = parsed.volume
         root.microphoneMuted = parsed.muted
         root.microphoneReady = true
@@ -66,6 +82,10 @@ Singleton {
                 root.applySink(line.slice(5))
             else if (line.startsWith("SOURCE "))
                 root.applySource(line.slice(7))
+            else if (line.startsWith("SINK_NAME "))
+                root.sinkName = line.slice(10).trim()
+            else if (line.startsWith("SOURCE_NAME "))
+                root.sourceName = line.slice(12).trim()
         }
     }
 
@@ -73,21 +93,40 @@ Singleton {
         if (!volumeProbe.running) {
             volumeProbe.exec([
                 "bash", "-lc",
-                "printf 'SINK '; wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null || true; "
-                    + "printf 'SOURCE '; wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null || true"
+                "printf 'SINK '; wpctl get-volume @DEFAULT_SINK@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
+                    + "printf 'SOURCE '; wpctl get-volume @DEFAULT_SOURCE@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
+                    + "printf 'SINK_NAME '; wpctl inspect @DEFAULT_SINK@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1; "
+                    + "printf 'SOURCE_NAME '; wpctl inspect @DEFAULT_SOURCE@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1"
             ])
         }
+    }
+
+    function refreshSoon(): void {
+        refreshTimer.restart()
     }
 
     function setVolume(value: real): void {
         const next = root.clampVolume(value)
         root.volume = next
-        Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", next.toFixed(4)])
+
+        // A user moving the output slider above zero expects audible output.
+        // Keep the operation ordered so a stale mute state cannot win a race.
+        const numeric = next.toFixed(4)
+        Quickshell.execDetached([
+            "bash", "-lc",
+            `wpctl set-volume @DEFAULT_SINK@ ${numeric} && `
+                + (next > 0 ? "wpctl set-mute @DEFAULT_SINK@ 0" : "true")
+        ])
+        if (next > 0)
+            root.muted = false
+        root.refreshSoon()
     }
 
     function setMuted(value: bool): void {
-        root.muted = Boolean(value)
-        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", root.muted ? "1" : "0"])
+        const next = Boolean(value)
+        root.muted = next
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_SINK@", next ? "1" : "0"])
+        root.refreshSoon()
     }
 
     function toggleMute(): void {
@@ -97,12 +136,22 @@ Singleton {
     function setMicrophoneVolume(value: real): void {
         const next = root.clampVolume(value)
         root.microphoneVolume = next
-        Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", next.toFixed(4)])
+        const numeric = next.toFixed(4)
+        Quickshell.execDetached([
+            "bash", "-lc",
+            `wpctl set-volume @DEFAULT_SOURCE@ ${numeric} && `
+                + (next > 0 ? "wpctl set-mute @DEFAULT_SOURCE@ 0" : "true")
+        ])
+        if (next > 0)
+            root.microphoneMuted = false
+        root.refreshSoon()
     }
 
     function setMicrophoneMuted(value: bool): void {
-        root.microphoneMuted = Boolean(value)
-        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", root.microphoneMuted ? "1" : "0"])
+        const next = Boolean(value)
+        root.microphoneMuted = next
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_SOURCE@", next ? "1" : "0"])
+        root.refreshSoon()
     }
 
     function toggleMicrophoneMute(): void {
@@ -110,13 +159,17 @@ Singleton {
     }
 
     function setDefaultSink(node): void {
-        if (node?.id !== undefined && Number(node.id) >= 0)
+        if (node?.id !== undefined && Number(node.id) >= 0) {
             Quickshell.execDetached(["wpctl", "set-default", String(node.id)])
+            root.refreshSoon()
+        }
     }
 
     function setDefaultSource(node): void {
-        if (node?.id !== undefined && Number(node.id) >= 0)
+        if (node?.id !== undefined && Number(node.id) >= 0) {
             Quickshell.execDetached(["wpctl", "set-default", String(node.id)])
+            root.refreshSoon()
+        }
     }
 
     Process {
@@ -125,6 +178,13 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: root.applyProbe(text)
         }
+    }
+
+    Timer {
+        id: refreshTimer
+        interval: 120
+        repeat: false
+        onTriggered: root.refresh()
     }
 
     Timer {
