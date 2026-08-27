@@ -1,37 +1,29 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import Quickshell
-import Quickshell.Bluetooth
-import Quickshell.Io
 import QtQuick
+import Quickshell
 
+import qs.modules.raohane.services
+
+// Compatibility facade. Device discovery/control is owned by RaohaneBluetooth
+// through bluetoothctl so inherited surfaces do not create a second BlueZ
+// object-manager connection.
 Singleton {
     id: root
 
-    readonly property bool available: Bluetooth.adapters.values.length > 0
-    readonly property bool enabled: Bluetooth.defaultAdapter?.enabled ?? false
-    readonly property BluetoothDevice firstActiveDevice: Bluetooth.defaultAdapter?.devices.values.find(device => device.connected) ?? null
-    readonly property int activeDeviceCount: Bluetooth.defaultAdapter?.devices.values.filter(device => device.connected).length ?? 0
-    readonly property bool connected: Bluetooth.devices.values.some(d => d.connected)
+    readonly property bool available: RaohaneBluetooth.available
+    readonly property bool enabled: RaohaneBluetooth.enabled
+    readonly property var firstActiveDevice: RaohaneBluetooth.firstConnectedDevice
+    readonly property int activeDeviceCount: RaohaneBluetooth.connectedCount
+    readonly property bool connected: RaohaneBluetooth.connected
 
-    function sortFunction(a, b) {
-        // Ones with meaningful names before MAC addresses
-        const macRegex = /^([0-9A-Fa-f]{2}-){5}[0-9A-Fa-f]{2}$/;
-        const aIsMac = macRegex.test(a.name);
-        const bIsMac = macRegex.test(b.name);
-        if (aIsMac !== bIsMac)
-            return aIsMac ? 1 : -1;
+    readonly property var connectedDevices: RaohaneBluetooth.connectedDevices
+    readonly property var pairedButNotConnectedDevices: []
+    readonly property var unpairedDevices: []
+    readonly property var friendlyDeviceList: connectedDevices
 
-        // Alphabetical by name
-        return a.name.localeCompare(b.name);
+    function sortFunction(a, b): int {
+        return String(a?.name ?? "").localeCompare(String(b?.name ?? ""))
     }
-    property list<var> connectedDevices: Bluetooth.devices.values.filter(d => d.connected).sort(sortFunction)
-    property list<var> pairedButNotConnectedDevices: Bluetooth.devices.values.filter(d => d.paired && !d.connected).sort(sortFunction)
-    property list<var> unpairedDevices: Bluetooth.devices.values.filter(d => !d.paired && !d.connected).sort(sortFunction)
-    property list<var> friendlyDeviceList: [
-        ...connectedDevices,
-        ...pairedButNotConnectedDevices,
-        ...unpairedDevices
-    ]
 }
