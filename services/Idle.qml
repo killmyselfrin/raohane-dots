@@ -6,7 +6,7 @@ import QtQuick
 import qs.modules.raohane.services
 
 // Temporary compatibility facade for inherited consumers. RaohaneIdle owns
-// the actual Wayland IdleInhibitor; this service only preserves the old API.
+// the actual Wayland inhibition backend; this service only preserves the old API.
 Singleton {
     id: root
 
