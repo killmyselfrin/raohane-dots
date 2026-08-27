@@ -7,10 +7,8 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
-import qs
-import qs.services
-import qs.modules.common
-import qs.modules.common.widgets
+import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Scope {
     id: root
@@ -32,31 +30,31 @@ Scope {
     ]
 
     function close(): void {
-        pendingAction = ""
-        GlobalStates.sessionOpen = false
+        root.pendingAction = ""
+        RaohaneState.sessionOpen = false
     }
 
     function requestAction(actionId: string, dangerous: bool): void {
-        if (dangerous && pendingAction !== actionId) {
-            pendingAction = actionId
+        if (dangerous && root.pendingAction !== actionId) {
+            root.pendingAction = actionId
             confirmTimer.restart()
             return
         }
-        pendingAction = ""
-        executeAction(actionId)
+        root.pendingAction = ""
+        root.executeAction(actionId)
     }
 
     function executeAction(actionId: string): void {
         root.close()
         switch (actionId) {
-        case "lock": Session.lock(); break
-        case "sleep": Session.suspend(); break
-        case "logout": Session.logout(); break
-        case "tasks": Session.launchTaskManager(); break
-        case "hibernate": Session.hibernate(); break
-        case "shutdown": Session.poweroff(); break
-        case "reboot": Session.reboot(); break
-        case "firmware": Session.rebootToFirmware(); break
+        case "lock": RaohaneSession.lock(); break
+        case "sleep": RaohaneSession.suspend(); break
+        case "logout": RaohaneSession.logout(); break
+        case "tasks": RaohaneSession.launchTaskManager(); break
+        case "hibernate": RaohaneSession.hibernate(); break
+        case "shutdown": RaohaneSession.poweroff(); break
+        case "reboot": RaohaneSession.reboot(); break
+        case "firmware": RaohaneSession.rebootToFirmware(); break
         }
     }
 
@@ -68,22 +66,24 @@ Scope {
     }
 
     Connections {
-        target: GlobalStates
+        target: RaohaneState
+
         function onSessionOpenChanged(): void {
-            if (GlobalStates.sessionOpen) {
+            if (RaohaneState.sessionOpen) {
                 root.currentIndex = 0
                 root.pendingAction = ""
-                SessionWarnings.refresh()
+                RaohaneSessionWarnings.refresh()
             }
         }
+
         function onScreenLockedChanged(): void {
-            if (GlobalStates.screenLocked)
+            if (RaohaneState.screenLocked)
                 root.close()
         }
     }
 
     Loader {
-        active: GlobalStates.sessionOpen
+        active: RaohaneState.sessionOpen
 
         sourceComponent: PanelWindow {
             id: panelWindow
@@ -105,7 +105,7 @@ Scope {
 
             Image {
                 anchors.fill: parent
-                source: Config.options.background.wallpaperPath
+                source: RaohaneConfig.wallpaperPath
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: false
@@ -218,7 +218,7 @@ Scope {
                             Text {
                                 id: userText
                                 anchors.centerIn: parent
-                                text: SystemInfo.username + " @ " + SystemInfo.hostname
+                                text: RaohaneSystemInfo.username + " @ " + RaohaneSystemInfo.hostname
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 9
                                 font.weight: Font.DemiBold
@@ -264,7 +264,7 @@ Scope {
                                         radius: 14
                                         color: actionCard.confirming ? "#35ff668c" : "#20ffffff"
 
-                                        MaterialSymbol {
+                                        RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: actionCard.confirming ? "priority_high" : actionCard.modelData.icon
                                             iconSize: 22
@@ -311,12 +311,12 @@ Scope {
                         spacing: 6
 
                         WarningBar {
-                            visible: SessionWarnings.packageManagerRunning
+                            visible: RaohaneSessionWarnings.packageManagerRunning
                             icon: "package_2"
                             text: qsTr("A package manager appears to be running. Avoid shutdown/reboot until it finishes.")
                         }
                         WarningBar {
-                            visible: SessionWarnings.downloadRunning
+                            visible: RaohaneSessionWarnings.downloadRunning
                             icon: "download"
                             text: qsTr("A download may still be in progress. Check Downloads before ending the session.")
                         }
@@ -348,20 +348,20 @@ Scope {
 
     IpcHandler {
         target: "session"
-        function toggle(): void { GlobalStates.sessionOpen = !GlobalStates.sessionOpen }
-        function open(): void { GlobalStates.sessionOpen = true }
+        function toggle(): void { RaohaneState.sessionOpen = !RaohaneState.sessionOpen }
+        function open(): void { RaohaneState.sessionOpen = true }
         function close(): void { root.close() }
     }
 
     CompositorGlobalShortcut {
         name: "sessionToggle"
         description: "Toggle Raohane session screen"
-        onPressed: GlobalStates.sessionOpen = !GlobalStates.sessionOpen
+        onPressed: RaohaneState.sessionOpen = !RaohaneState.sessionOpen
     }
     CompositorGlobalShortcut {
         name: "sessionOpen"
         description: "Open Raohane session screen"
-        onPressed: GlobalStates.sessionOpen = true
+        onPressed: RaohaneState.sessionOpen = true
     }
     CompositorGlobalShortcut {
         name: "sessionClose"
@@ -386,7 +386,13 @@ Scope {
             anchors.leftMargin: 10
             anchors.rightMargin: 10
             spacing: 7
-            MaterialSymbol { text: warning.icon; iconSize: 15; color: RaohaneTheme.critical }
+
+            RaohaneIcon {
+                text: warning.icon
+                iconSize: 15
+                color: RaohaneTheme.critical
+            }
+
             Text {
                 Layout.fillWidth: true
                 text: warning.text
