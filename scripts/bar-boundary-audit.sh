@@ -32,8 +32,12 @@ for component in RaohaneWorkspaces RaohaneSysTray RaohaneSystemIcons RaohaneCloc
   rg -q "${component}[[:space:]]*\\{" "$bar" || fail "RaohaneBar does not consume $component"
 done
 
-if rg -n '^import qs\.services$|^import qs\.modules\.ii\.bar$' "$bar"; then
-  fail 'RaohaneBar regressed to inherited services/ii.bar imports'
+for symbol in 'RaohaneConfig\.' 'RaohaneState\.'; do
+  rg -q "$symbol" "$bar" || fail "RaohaneBar lost native framework dependency: $symbol"
+done
+
+if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.' "$bar"; then
+  fail 'RaohaneBar regressed to inherited config/state/common/ii framework'
 fi
 
 if rg -n '^[[:space:]]*(Workspaces|SysTray|SystemIcons)[[:space:]]*\{|\bDateTime\.|\bHyprlandData\.' "$bar"; then
@@ -74,4 +78,4 @@ if rg -q '^[[:space:]]*Singleton[[:space:]]*\{' services/Fonts.qml; then
     || fail 'services/Fonts.qml uses Singleton without importing Quickshell'
 fi
 
-printf 'bar-boundary-audit: native workspaces, tray, status and clock boundaries are valid\n'
+printf 'bar-boundary-audit: native bar framework, workspaces, tray, status and clock boundaries are valid\n'
