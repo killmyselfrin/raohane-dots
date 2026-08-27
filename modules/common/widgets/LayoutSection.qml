@@ -169,6 +169,10 @@ ContentSubsection {
 
         property bool dropdownOpen: false
 
+        function closeDropdown(): void {
+            dropdownOpen = false
+        }
+
         Behavior on implicitHeight {
             animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this)
         }
@@ -201,9 +205,8 @@ ContentSubsection {
                             list.push(modelData.id)
                             root.onUpdate(list)
                             const keepOpen = ["visualizer", "divisor"]
-                            if (!keepOpen.includes(modelData.id)) {
-                                Qt.callLater(() => { dropdown.dropdownOpen = false })
-                            }
+                            if (!keepOpen.includes(modelData.id))
+                                Qt.callLater(dropdown.closeDropdown)
                         }
                     }
                 }
