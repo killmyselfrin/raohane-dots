@@ -109,10 +109,28 @@ done
 if rg -n 'name:[[:space:]]*"searchToggle(Release|ReleaseInterrupt)?"|\breleaseArmed\b' "$overview"; then
   fail 'RaohaneOverview still exposes inherited bare-Super launcher hooks'
 fi
+
+# Hyprland 0.55+ is Lua-first. Keep the old hyprlang snippet for <=0.54,
+# but require a native Lua override that is loaded last from hyprland.lua.
+for symbol in \
+  'HYPR_LUA_SNIPPET' 'hyprland\.lua' 'require\("raohane"\)' \
+  'hl\.unbind\("SUPER \+ SUPER_L"\)' 'hl\.unbind\("SUPER \+ SUPER_R"\)' \
+  'quickshell:raohaneLauncherToggle' 'quickshell:settingsToggle' \
+  'quickshell:sidebarRightToggle' 'quickshell:raohaneMediaOverlayToggle'; do
+  rg -q "$symbol" "$installer" || fail "installer lost Hyprland Lua integration symbol: $symbol"
+done
+rg -q 'hl\.bind\("SUPER \+ R"' "$installer" \
+  || fail 'Hyprland Lua integration lost SUPER+R Raohane launcher bind'
+rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" \
+  || fail 'Hyprland Lua integration lost SUPER+Escape settings bind'
+
+# Legacy <=0.54 compatibility remains explicit and must also remove both bare Super keys.
 rg -q 'unbind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*Super_L' "$installer" \
-  || fail 'installer does not free the inherited bare-Super launcher binding'
+  || fail 'legacy installer does not free inherited left bare-Super binding'
+rg -q 'unbind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*Super_R' "$installer" \
+  || fail 'legacy installer does not free inherited right bare-Super binding'
 rg -q 'bind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*R,[[:space:]]*exec,[[:space:]]*raohane launcher' "$installer" \
-  || fail 'installer lost the explicit Raohane launcher shortcut'
+  || fail 'legacy installer lost the explicit Raohane launcher shortcut'
 
 rg -q 'RaohanePaths\.defaultAvatarUrl' "$settings_content" \
   || fail 'RaohaneSettingsContent does not use RaohanePaths for its avatar fallback'
@@ -141,4 +159,4 @@ for symbol in \
   rg -q "$symbol" "$bridge" || fail "legacy bridge is missing native synchronization: $symbol"
 done
 
-printf 'core-framework-audit: native paths, config v6, focus helper, settings bridge and bare-Super boundaries are valid\n'
+printf 'core-framework-audit: native paths, config v6, focus helper, settings bridge and Hyprland Lua keybind boundaries are valid\n'
