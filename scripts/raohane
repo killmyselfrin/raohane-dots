@@ -21,7 +21,7 @@ Shell:
 Diagnostics:
   doctor [all|graphics|deps|services]
   wifi [status|menu]
-  audio [status]
+  audio [status|recover [percent]]
 EOF
 }
 
@@ -148,6 +148,69 @@ print_dependency_report() {
     return 1
   fi
   echo 'Raohane dependency manifest and required runtime commands look available.'
+}
+
+print_audio_status() {
+  if command -v wpctl >/dev/null 2>&1; then
+    echo 'Default output'
+    printf '  '
+    wpctl get-volume @DEFAULT_SINK@ 2>/dev/null || echo 'unavailable'
+    wpctl inspect @DEFAULT_SINK@ 2>/dev/null \
+      | sed -n 's/^[[:space:]]*\*\? node.description = "\(.*\)"/  device: \1/p' \
+      | head -1 || true
+
+    echo
+    echo 'Default input'
+    printf '  '
+    wpctl get-volume @DEFAULT_SOURCE@ 2>/dev/null || echo 'unavailable'
+    wpctl inspect @DEFAULT_SOURCE@ 2>/dev/null \
+      | sed -n 's/^[[:space:]]*\*\? node.description = "\(.*\)"/  device: \1/p' \
+      | head -1 || true
+
+    echo
+    echo 'Audio graph'
+    wpctl status -n 2>/dev/null | sed -n '/^Audio$/,/^Video$/p' || true
+  elif command -v pactl >/dev/null 2>&1; then
+    pactl info | grep -E 'Default Sink|Default Source' || true
+  else
+    echo 'Neither wpctl nor pactl is available.' >&2
+    return 1
+  fi
+}
+
+recover_audio() {
+  local percent="${1:-50}"
+
+  if ! command -v wpctl >/dev/null 2>&1; then
+    echo 'wpctl is required for audio recovery (package: wireplumber).' >&2
+    return 1
+  fi
+
+  if [[ ! "$percent" =~ ^[0-9]+$ ]] || ((percent < 1 || percent > 100)); then
+    echo 'Audio recovery percent must be an integer from 1 to 100.' >&2
+    return 2
+  fi
+
+  if ! wpctl inspect @DEFAULT_SINK@ >/dev/null 2>&1; then
+    echo 'No default audio sink is available.' >&2
+    return 1
+  fi
+
+  echo "[Raohane] Restoring default sink to ${percent}% and unmuting it..."
+  wpctl set-volume @DEFAULT_SINK@ "${percent}%"
+  wpctl set-mute @DEFAULT_SINK@ 0
+
+  # EasyEffects commonly owns the application-facing virtual sink. Do not
+  # change routing; only make sure an existing virtual sink is not at zero.
+  local easyeffects_id=""
+  easyeffects_id="$(wpctl status -n 2>/dev/null | sed -n 's/^[^0-9]*\([0-9][0-9]*\)\. easyeffects_sink.*/\1/p' | head -1 || true)"
+  if [[ -n "$easyeffects_id" ]]; then
+    wpctl set-volume "$easyeffects_id" 1.0 >/dev/null 2>&1 || true
+    wpctl set-mute "$easyeffects_id" 0 >/dev/null 2>&1 || true
+  fi
+
+  echo '[Raohane] Audio state after recovery:'
+  wpctl get-volume @DEFAULT_SINK@
 }
 
 case "${1:-help}" in
@@ -292,15 +355,10 @@ case "${1:-help}" in
   audio)
     case "${2:-status}" in
       status)
-        if command -v wpctl >/dev/null 2>&1; then
-          wpctl get-volume @DEFAULT_AUDIO_SINK@
-          wpctl get-volume @DEFAULT_AUDIO_SOURCE@
-        elif command -v pactl >/dev/null 2>&1; then
-          pactl info | grep -E 'Default Sink|Default Source' || true
-        else
-          echo 'Neither wpctl nor pactl is available.' >&2
-          exit 1
-        fi
+        print_audio_status
+        ;;
+      recover)
+        recover_audio "${3:-50}"
         ;;
       *) echo "Unknown audio command: ${2:-}" >&2; exit 2 ;;
     esac
