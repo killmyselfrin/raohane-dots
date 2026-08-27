@@ -5,7 +5,6 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
 
-import qs.services
 import qs.modules.raohane.services
 
 Scope {
@@ -59,15 +58,15 @@ Scope {
         onVisibleChanged: {
             if (visible) {
                 root.reset()
-                GlobalFocusGrab.addDismissable(panelWindow)
+                RaohaneFocusGrab.addDismissable(panelWindow)
                 searchInput.forceActiveFocus()
             } else {
-                GlobalFocusGrab.removeDismissable(panelWindow)
+                RaohaneFocusGrab.removeDismissable(panelWindow)
             }
         }
 
         Connections {
-            target: GlobalFocusGrab
+            target: RaohaneFocusGrab
             function onDismissed(): void {
                 root.close()
             }
