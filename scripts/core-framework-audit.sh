@@ -21,13 +21,14 @@ bar='modules/raohane/RaohaneBar.qml'
 launcher='modules/raohane/RaohaneLauncher.qml'
 overview='modules/raohane/RaohaneOverview.qml'
 control_center='modules/raohane/RaohaneControlCenter.qml'
+osd='modules/raohane/RaohaneOsd.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContent.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
 installer='install-raohane.sh'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$overview" "$control_center" "$settings" "$settings_content" "$family" "$shell" "$installer"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$settings" "$settings_content" "$family" "$shell" "$installer"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -58,7 +59,7 @@ for property_name in \
     || fail "RaohaneConfig missing native bar property: $property_name"
 done
 
-for property_name in barOpen controlCenterOpen settingsOpen sessionOpen screenLocked superDown; do
+for property_name in barOpen controlCenterOpen settingsOpen sessionOpen osdOpen screenLocked superDown; do
   rg -q "property bool ${property_name}:" "$state" \
     || fail "RaohaneState missing runtime property: $property_name"
 done
@@ -96,6 +97,13 @@ for symbol in \
 done
 if rg -n '^import qs$|^import qs\.modules\.common|^import qs\.modules\.common\.widgets|\bConfig\.|\bGlobalStates\.|\bMaterialSymbol[[:space:]]*\{' "$control_center"; then
   fail 'RaohaneControlCenter regressed to inherited common/config/state/widgets'
+fi
+
+for symbol in 'RaohaneState\.osdOpen' 'RaohaneAudio\.' 'RaohaneDisplay\.' 'RaohaneConfig\.osdTimeout'; do
+  rg -q "$symbol" "$osd" || fail "RaohaneOsd lost native framework symbol: $symbol"
+done
+if rg -n '^import qs$|\bGlobalStates\.osdVolumeOpen\b|\bAudio\.|\bBrightness\.|\bHyprsunset\.' "$osd"; then
+  fail 'RaohaneOsd regressed to inherited root/audio/display state'
 fi
 
 rg -q 'RaohaneState\.settingsOpen' "$settings" \
@@ -169,4 +177,4 @@ for symbol in \
   rg -q "$symbol" "$bridge" || fail "legacy bridge is missing native synchronization: $symbol"
 done
 
-printf 'core-framework-audit: native paths, config v6, focus helper, control/settings state and Hyprland Lua keybind boundaries are valid\n'
+printf 'core-framework-audit: native paths, config v6, focus helper, control/settings/OSD state and Hyprland Lua keybind boundaries are valid\n'
