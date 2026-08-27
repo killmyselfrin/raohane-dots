@@ -47,7 +47,17 @@ Singleton {
             RaohaneConfig.dockPinnedApps = Array.from(Config.options.dock.pinnedApps ?? [])
         }
 
-        RaohaneConfig.barBottom = Config.options?.bar?.bottom ?? RaohaneConfig.barBottom
+        if (Config.options?.bar) {
+            RaohaneConfig.barBottom = Config.options.bar.bottom ?? RaohaneConfig.barBottom
+            RaohaneConfig.barVertical = Config.options.bar.vertical ?? RaohaneConfig.barVertical
+            RaohaneConfig.barScreenList = Array.from(Config.options.bar.screenList ?? [])
+            RaohaneConfig.barAutoHide = Config.options.bar.autoHide?.enable ?? RaohaneConfig.barAutoHide
+            RaohaneConfig.barAutoHidePushWindows = Config.options.bar.autoHide?.pushWindows ?? RaohaneConfig.barAutoHidePushWindows
+            RaohaneConfig.barShowOnSuper = Config.options.bar.autoHide?.showWhenPressingSuper?.enable ?? RaohaneConfig.barShowOnSuper
+            RaohaneConfig.barShowOnSuperDelay = Config.options.bar.autoHide?.showWhenPressingSuper?.delay ?? RaohaneConfig.barShowOnSuperDelay
+        }
+        RaohaneConfig.barShowDate = Config.options?.time?.showDate ?? RaohaneConfig.barShowDate
+
         RaohaneConfig.osdTimeout = Config.options?.osd?.timeout ?? RaohaneConfig.osdTimeout
         RaohaneConfig.colorTemperature = Config.options?.light?.night?.colorTemperature ?? RaohaneConfig.colorTemperature
         RaohaneConfig.nightLightAutomatic = Config.options?.light?.night?.automatic ?? RaohaneConfig.nightLightAutomatic
@@ -99,8 +109,21 @@ Singleton {
             Config.options.dock.height = RaohaneConfig.dockHeight
             Config.options.dock.pinnedApps = RaohaneConfig.dockPinnedApps
         }
-        if (Config.options?.bar)
+        if (Config.options?.bar) {
             Config.options.bar.bottom = RaohaneConfig.barBottom
+            Config.options.bar.vertical = RaohaneConfig.barVertical
+            Config.options.bar.screenList = RaohaneConfig.barScreenList
+            if (Config.options.bar.autoHide) {
+                Config.options.bar.autoHide.enable = RaohaneConfig.barAutoHide
+                Config.options.bar.autoHide.pushWindows = RaohaneConfig.barAutoHidePushWindows
+                if (Config.options.bar.autoHide.showWhenPressingSuper) {
+                    Config.options.bar.autoHide.showWhenPressingSuper.enable = RaohaneConfig.barShowOnSuper
+                    Config.options.bar.autoHide.showWhenPressingSuper.delay = RaohaneConfig.barShowOnSuperDelay
+                }
+            }
+        }
+        if (Config.options?.time)
+            Config.options.time.showDate = RaohaneConfig.barShowDate
         if (Config.options?.osd)
             Config.options.osd.timeout = RaohaneConfig.osdTimeout
         if (Config.options?.light?.night) {
@@ -173,6 +196,13 @@ Singleton {
             return
         root.syncing = true
         RaohaneConfig.barBottom = Config.options?.bar?.bottom ?? false
+        RaohaneConfig.barVertical = Config.options?.bar?.vertical ?? false
+        RaohaneConfig.barScreenList = Array.from(Config.options?.bar?.screenList ?? [])
+        RaohaneConfig.barAutoHide = Config.options?.bar?.autoHide?.enable ?? false
+        RaohaneConfig.barAutoHidePushWindows = Config.options?.bar?.autoHide?.pushWindows ?? false
+        RaohaneConfig.barShowOnSuper = Config.options?.bar?.autoHide?.showWhenPressingSuper?.enable ?? true
+        RaohaneConfig.barShowOnSuperDelay = Config.options?.bar?.autoHide?.showWhenPressingSuper?.delay ?? 140
+        RaohaneConfig.barShowDate = Config.options?.time?.showDate ?? true
         RaohaneConfig.osdTimeout = Config.options?.osd?.timeout ?? 1000
         RaohaneConfig.quickSliderBrightness = Config.options?.sidebar?.quickSliders?.showBrightness ?? true
         RaohaneConfig.quickSliderVolume = Config.options?.sidebar?.quickSliders?.showVolume ?? true
@@ -208,6 +238,10 @@ Singleton {
         RaohaneState.wallpaperSelectorOpen = GlobalStates.wallpaperSelectorOpen
         RaohaneState.wallpaperSelectorTarget = GlobalStates.wallpaperSelectorTarget ?? "wallpaper"
         RaohaneState.overviewOpen = GlobalStates.overviewOpen
+        RaohaneState.barOpen = GlobalStates.barOpen
+        RaohaneState.controlCenterOpen = GlobalStates.sidebarRightOpen
+        RaohaneState.screenLocked = GlobalStates.screenLocked
+        RaohaneState.superDown = GlobalStates.superDown
         root.syncingState = false
     }
 
@@ -218,6 +252,10 @@ Singleton {
         GlobalStates.wallpaperSelectorOpen = RaohaneState.wallpaperSelectorOpen
         GlobalStates.wallpaperSelectorTarget = RaohaneState.wallpaperSelectorTarget
         GlobalStates.overviewOpen = RaohaneState.overviewOpen
+        GlobalStates.barOpen = RaohaneState.barOpen
+        GlobalStates.sidebarRightOpen = RaohaneState.controlCenterOpen
+        GlobalStates.screenLocked = RaohaneState.screenLocked
+        GlobalStates.superDown = RaohaneState.superDown
         root.syncingState = false
     }
 
@@ -238,6 +276,13 @@ Singleton {
         function onDockHeightChanged(): void { root.pushNativeToLegacy() }
         function onDockPinnedAppsChanged(): void { root.pushNativeToLegacy() }
         function onBarBottomChanged(): void { root.pushNativeToLegacy() }
+        function onBarVerticalChanged(): void { root.pushNativeToLegacy() }
+        function onBarAutoHideChanged(): void { root.pushNativeToLegacy() }
+        function onBarAutoHidePushWindowsChanged(): void { root.pushNativeToLegacy() }
+        function onBarShowOnSuperChanged(): void { root.pushNativeToLegacy() }
+        function onBarShowOnSuperDelayChanged(): void { root.pushNativeToLegacy() }
+        function onBarScreenListChanged(): void { root.pushNativeToLegacy() }
+        function onBarShowDateChanged(): void { root.pushNativeToLegacy() }
         function onOsdTimeoutChanged(): void { root.pushNativeToLegacy() }
         function onColorTemperatureChanged(): void { root.pushNativeToLegacy() }
         function onNightLightAutomaticChanged(): void { root.pushNativeToLegacy() }
@@ -256,6 +301,10 @@ Singleton {
         function onWallpaperSelectorOpenChanged(): void { root.pushNativeTransientState() }
         function onWallpaperSelectorTargetChanged(): void { root.pushNativeTransientState() }
         function onOverviewOpenChanged(): void { root.pushNativeTransientState() }
+        function onBarOpenChanged(): void { root.pushNativeTransientState() }
+        function onControlCenterOpenChanged(): void { root.pushNativeTransientState() }
+        function onScreenLockedChanged(): void { root.pushNativeTransientState() }
+        function onSuperDownChanged(): void { root.pushNativeTransientState() }
     }
 
     Connections {
@@ -298,6 +347,25 @@ Singleton {
     Connections {
         target: Config.options?.bar ?? null
         function onBottomChanged(): void { root.pullLegacyShellChrome() }
+        function onVerticalChanged(): void { root.pullLegacyShellChrome() }
+        function onScreenListChanged(): void { root.pullLegacyShellChrome() }
+    }
+
+    Connections {
+        target: Config.options?.bar?.autoHide ?? null
+        function onEnableChanged(): void { root.pullLegacyShellChrome() }
+        function onPushWindowsChanged(): void { root.pullLegacyShellChrome() }
+    }
+
+    Connections {
+        target: Config.options?.bar?.autoHide?.showWhenPressingSuper ?? null
+        function onEnableChanged(): void { root.pullLegacyShellChrome() }
+        function onDelayChanged(): void { root.pullLegacyShellChrome() }
+    }
+
+    Connections {
+        target: Config.options?.time ?? null
+        function onShowDateChanged(): void { root.pullLegacyShellChrome() }
     }
 
     Connections {
@@ -332,6 +400,10 @@ Singleton {
         function onWallpaperSelectorOpenChanged(): void { root.pullLegacyTransientState() }
         function onWallpaperSelectorTargetChanged(): void { root.pullLegacyTransientState() }
         function onOverviewOpenChanged(): void { root.pullLegacyTransientState() }
+        function onBarOpenChanged(): void { root.pullLegacyTransientState() }
+        function onSidebarRightOpenChanged(): void { root.pullLegacyTransientState() }
+        function onScreenLockedChanged(): void { root.pullLegacyTransientState() }
+        function onSuperDownChanged(): void { root.pullLegacyTransientState() }
     }
 
     Component.onCompleted: {
