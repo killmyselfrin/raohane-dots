@@ -285,6 +285,10 @@ Item {
         signal valueChangedByUser(real value)
         signal iconTriggered()
 
+        readonly property real clampedLiveValue: Math.max(0, Math.min(1, Number(liveValue) || 0))
+        readonly property real shownValue: dragArea.pressed ? dragValue : clampedLiveValue
+        property real dragValue: clampedLiveValue
+
         implicitHeight: 38
 
         RowLayout {
@@ -335,43 +339,38 @@ Item {
                     }
                 }
 
-                Slider {
-                    id: slider
+                Item {
+                    id: sliderArea
                     Layout.fillWidth: true
-                    from: 0
-                    to: 1
-                    padding: 0
-                    live: true
+                    Layout.preferredHeight: 16
 
-                    Binding {
-                        target: slider
-                        property: "value"
-                        value: Math.max(0, Math.min(1, control.liveValue))
-                        when: !dragArea.pressed
-                    }
-
-                    background: Rectangle {
-                        x: slider.leftPadding
-                        y: slider.topPadding + slider.availableHeight / 2 - height / 2
-                        width: slider.availableWidth
+                    Rectangle {
+                        id: track
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            verticalCenter: parent.verticalCenter
+                        }
                         height: 5
                         radius: 3
                         color: "#2bffffff"
 
                         Rectangle {
-                            width: slider.visualPosition * parent.width
+                            width: Math.max(0, Math.min(parent.width, control.shownValue * parent.width))
                             height: parent.height
                             radius: parent.radius
                             color: RaohaneTheme.accent
                         }
                     }
 
-                    handle: Rectangle {
-                        x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
-                        y: slider.topPadding + slider.availableHeight / 2 - height / 2
+                    Rectangle {
+                        id: handle
                         width: dragArea.pressed ? 15 : 12
                         height: width
                         radius: width / 2
+                        x: Math.max(0, Math.min(sliderArea.width - width,
+                            control.shownValue * Math.max(0, sliderArea.width - width)))
+                        anchors.verticalCenter: parent.verticalCenter
                         color: RaohaneTheme.text
                         border.width: 2
                         border.color: RaohaneTheme.accent
@@ -384,14 +383,18 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         preventStealing: true
+                        acceptedButtons: Qt.LeftButton
                         cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
 
+                        function valueForX(mouseX: real): real {
+                            if (width <= 0)
+                                return control.clampedLiveValue
+                            return Math.max(0, Math.min(1, mouseX / width))
+                        }
+
                         function applyPosition(mouseX: real): void {
-                            const usableWidth = Math.max(1, slider.availableWidth)
-                            const localX = Math.max(0, Math.min(usableWidth, mouseX - slider.leftPadding))
-                            const nextValue = slider.from + (localX / usableWidth) * (slider.to - slider.from)
-                            slider.value = Math.max(slider.from, Math.min(slider.to, nextValue))
-                            control.valueChangedByUser(slider.value)
+                            control.dragValue = valueForX(mouseX)
+                            control.valueChangedByUser(control.dragValue)
                         }
 
                         onPressed: mouse => applyPosition(mouse.x)
@@ -399,6 +402,7 @@ Item {
                             if (pressed)
                                 applyPosition(mouse.x)
                         }
+                        onReleased: mouse => applyPosition(mouse.x)
                     }
                 }
             }
