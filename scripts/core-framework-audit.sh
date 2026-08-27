@@ -20,13 +20,14 @@ bridge='modules/raohane/RaohaneLegacyBridge.qml'
 bar='modules/raohane/RaohaneBar.qml'
 launcher='modules/raohane/RaohaneLauncher.qml'
 overview='modules/raohane/RaohaneOverview.qml'
+control_center='modules/raohane/RaohaneControlCenter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContent.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
 installer='install-raohane.sh'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$overview" "$settings" "$settings_content" "$family" "$shell" "$installer"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$overview" "$control_center" "$settings" "$settings_content" "$family" "$shell" "$installer"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -80,13 +81,22 @@ if rg -n '^import qs$|^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.' "
   fail 'RaohaneBar regressed to inherited config/state/common framework'
 fi
 
-for surface in "$launcher" "$settings"; do
+for surface in "$launcher" "$settings" "$control_center"; do
   rg -q 'RaohaneFocusGrab\.' "$surface" \
     || fail "$surface does not consume RaohaneFocusGrab"
   if rg -n '\bGlobalFocusGrab\.|^import qs\.services$' "$surface"; then
     fail "$surface regressed to inherited GlobalFocusGrab/services"
   fi
 done
+
+for symbol in \
+  'RaohaneState\.controlCenterOpen' 'RaohaneNotifications\.markAllRead' \
+  'RaohaneConfig\.wallpaperPath' 'RaohaneSystemInfo\.' 'RaohaneIcon[[:space:]]*\{'; do
+  rg -q "$symbol" "$control_center" || fail "RaohaneControlCenter lost native framework symbol: $symbol"
+done
+if rg -n '^import qs$|^import qs\.modules\.common|^import qs\.modules\.common\.widgets|\bConfig\.|\bGlobalStates\.|\bMaterialSymbol[[:space:]]*\{' "$control_center"; then
+  fail 'RaohaneControlCenter regressed to inherited common/config/state/widgets'
+fi
 
 rg -q 'RaohaneState\.settingsOpen' "$settings" \
   || fail 'RaohaneSettings does not own its runtime open state'
@@ -159,4 +169,4 @@ for symbol in \
   rg -q "$symbol" "$bridge" || fail "legacy bridge is missing native synchronization: $symbol"
 done
 
-printf 'core-framework-audit: native paths, config v6, focus helper, settings bridge and Hyprland Lua keybind boundaries are valid\n'
+printf 'core-framework-audit: native paths, config v6, focus helper, control/settings state and Hyprland Lua keybind boundaries are valid\n'
