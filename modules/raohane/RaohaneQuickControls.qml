@@ -126,7 +126,7 @@ Item {
                     top: parent.top
                     margins: 9
                 }
-                spacing: 8
+                spacing: 7
 
                 ControlSlider {
                     Layout.fillWidth: true
@@ -287,27 +287,33 @@ Item {
 
         readonly property real clampedLiveValue: Math.max(0, Math.min(1, Number(liveValue) || 0))
         readonly property real shownValue: dragArea.pressed ? dragValue : clampedLiveValue
+        readonly property bool hovered: dragArea.containsMouse || iconMouse.containsMouse
         property real dragValue: clampedLiveValue
 
-        implicitHeight: 38
+        implicitHeight: 42
 
         RowLayout {
             anchors.fill: parent
-            spacing: 8
+            spacing: 9
 
             Rectangle {
-                width: 30
-                height: 30
-                radius: 10
-                color: iconMouse.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
+                width: 32
+                height: 32
+                radius: 11
+                color: control.hovered ? RaohaneTheme.accentSoft : "#18ffffff"
                 border.width: 1
-                border.color: iconMouse.containsMouse ? RaohaneTheme.accent : "transparent"
+                border.color: control.hovered ? "#55ffffff" : "#16ffffff"
+
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on border.color { ColorAnimation { duration: 120 } }
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: control.icon
                     iconSize: 17
-                    color: RaohaneTheme.textMuted
+                    color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                    Behavior on color { ColorAnimation { duration: 120 } }
                 }
 
                 MouseArea {
@@ -321,28 +327,64 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: 3
 
                 RowLayout {
                     Layout.fillWidth: true
+
                     Text {
                         text: control.title
                         color: RaohaneTheme.text
                         font.pixelSize: 9
                         font.weight: Font.DemiBold
                     }
+
                     Item { Layout.fillWidth: true }
-                    Text {
-                        text: control.displayText
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
+
+                    Rectangle {
+                        implicitWidth: valueLabel.implicitWidth + 12
+                        implicitHeight: 17
+                        radius: 8.5
+                        color: control.hovered ? RaohaneTheme.accentSoft : "#14ffffff"
+                        border.width: 1
+                        border.color: control.hovered ? "#38ffffff" : "transparent"
+
+                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                        Text {
+                            id: valueLabel
+                            anchors.centerIn: parent
+                            text: control.displayText
+                            color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                            font.pixelSize: 8
+                            font.weight: Font.DemiBold
+
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                        }
                     }
                 }
 
                 Item {
                     id: sliderArea
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 16
+                    Layout.preferredHeight: 18
+
+                    Rectangle {
+                        id: trackGlow
+                        anchors {
+                            left: parent.left
+                            verticalCenter: parent.verticalCenter
+                        }
+                        width: Math.max(0, Math.min(parent.width, control.shownValue * parent.width))
+                        height: dragArea.pressed ? 13 : 11
+                        radius: height / 2
+                        color: RaohaneTheme.accent
+                        opacity: dragArea.pressed ? 0.18 : (dragArea.containsMouse ? 0.13 : 0.08)
+
+                        Behavior on height { NumberAnimation { duration: 100 } }
+                        Behavior on opacity { NumberAnimation { duration: 100 } }
+                    }
 
                     Rectangle {
                         id: track
@@ -351,9 +393,15 @@ Item {
                             right: parent.right
                             verticalCenter: parent.verticalCenter
                         }
-                        height: 5
-                        radius: 3
-                        color: "#2bffffff"
+                        height: dragArea.pressed ? 7 : 6
+                        radius: height / 2
+                        color: dragArea.containsMouse ? "#35ffffff" : "#28ffffff"
+                        border.width: 1
+                        border.color: dragArea.containsMouse ? "#24ffffff" : "#14ffffff"
+
+                        Behavior on height { NumberAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
 
                         Rectangle {
                             width: Math.max(0, Math.min(parent.width, control.shownValue * parent.width))
@@ -364,18 +412,43 @@ Item {
                     }
 
                     Rectangle {
+                        id: handleHalo
+                        width: dragArea.pressed ? 29 : (dragArea.containsMouse ? 25 : 21)
+                        height: width
+                        radius: width / 2
+                        x: Math.max(-width / 2, Math.min(sliderArea.width - width / 2,
+                            control.shownValue * sliderArea.width - width / 2))
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: RaohaneTheme.accent
+                        opacity: dragArea.pressed ? 0.16 : (dragArea.containsMouse ? 0.10 : 0.04)
+
+                        Behavior on width { NumberAnimation { duration: 110; easing.type: Easing.OutCubic } }
+                        Behavior on opacity { NumberAnimation { duration: 110 } }
+                    }
+
+                    Rectangle {
                         id: handle
-                        width: dragArea.pressed ? 15 : 12
+                        width: dragArea.pressed ? 18 : (dragArea.containsMouse ? 16 : 14)
                         height: width
                         radius: width / 2
                         x: Math.max(0, Math.min(sliderArea.width - width,
-                            control.shownValue * Math.max(0, sliderArea.width - width)))
+                            control.shownValue * sliderArea.width - width / 2))
                         anchors.verticalCenter: parent.verticalCenter
                         color: RaohaneTheme.text
                         border.width: 2
                         border.color: RaohaneTheme.accent
 
-                        Behavior on width { NumberAnimation { duration: 90 } }
+                        Behavior on width { NumberAnimation { duration: 110; easing.type: Easing.OutCubic } }
+
+                        Rectangle {
+                            width: dragArea.pressed ? 6 : 4
+                            height: width
+                            radius: width / 2
+                            anchors.centerIn: parent
+                            color: RaohaneTheme.accent
+
+                            Behavior on width { NumberAnimation { duration: 100 } }
+                        }
                     }
 
                     MouseArea {
