@@ -15,9 +15,11 @@ Singleton {
 
     property bool syncingSink: false
     property bool syncingSource: false
+    property bool sinkInitialized: false
+    property bool sourceInitialized: false
 
     readonly property bool ready: RaohaneAudio.ready
-    readonly property real hardMaxValue: 2.0
+    readonly property real hardMaxValue: 1.0
     readonly property string audioTheme: Config.options?.sounds?.theme ?? "freedesktop"
     readonly property real value: RaohaneAudio.volume
 
@@ -64,6 +66,22 @@ Singleton {
         return next
     }
 
+    function syncSinkFromNative(): void {
+        root.syncingSink = true
+        sinkAudio.volume = RaohaneAudio.volume
+        sinkAudio.muted = RaohaneAudio.muted
+        root.syncingSink = false
+        root.sinkInitialized = RaohaneAudio.ready
+    }
+
+    function syncSourceFromNative(): void {
+        root.syncingSource = true
+        sourceAudio.volume = RaohaneAudio.microphoneVolume
+        sourceAudio.muted = RaohaneAudio.microphoneMuted
+        root.syncingSource = false
+        root.sourceInitialized = RaohaneAudio.microphoneReady
+    }
+
     function toggleMute(): void {
         RaohaneAudio.toggleMute()
     }
@@ -104,7 +122,7 @@ Singleton {
         readonly property bool isStream: false
         readonly property int id: -1
         readonly property string name: "default-audio-sink"
-        readonly property string nickname: "Default Audio Sink"
+        readonly property string nickname: RaohaneAudio.sinkName.length > 0 ? RaohaneAudio.sinkName : "Default Audio Sink"
         readonly property string description: nickname
         readonly property var properties: ({})
         readonly property var audio: sinkAudio
@@ -112,15 +130,17 @@ Singleton {
 
     QtObject {
         id: sinkAudio
-        property real volume: RaohaneAudio.volume
-        property bool muted: RaohaneAudio.muted
+        property real volume: 0
+        property bool muted: false
 
         onVolumeChanged: {
-            if (!root.syncingSink && Math.abs(volume - RaohaneAudio.volume) > 0.0005)
+            if (root.sinkInitialized && !root.syncingSink && RaohaneAudio.ready
+                    && Math.abs(volume - RaohaneAudio.volume) > 0.0005)
                 RaohaneAudio.setVolume(root.protectedVolume(volume))
         }
         onMutedChanged: {
-            if (!root.syncingSink && muted !== RaohaneAudio.muted)
+            if (root.sinkInitialized && !root.syncingSink && RaohaneAudio.ready
+                    && muted !== RaohaneAudio.muted)
                 RaohaneAudio.setMuted(muted)
         }
     }
@@ -132,7 +152,7 @@ Singleton {
         readonly property bool isStream: false
         readonly property int id: -1
         readonly property string name: "default-audio-source"
-        readonly property string nickname: "Default Audio Source"
+        readonly property string nickname: RaohaneAudio.sourceName.length > 0 ? RaohaneAudio.sourceName : "Default Audio Source"
         readonly property string description: nickname
         readonly property var properties: ({})
         readonly property var audio: sourceAudio
@@ -140,15 +160,17 @@ Singleton {
 
     QtObject {
         id: sourceAudio
-        property real volume: RaohaneAudio.microphoneVolume
-        property bool muted: RaohaneAudio.microphoneMuted
+        property real volume: 0
+        property bool muted: false
 
         onVolumeChanged: {
-            if (!root.syncingSource && Math.abs(volume - RaohaneAudio.microphoneVolume) > 0.0005)
+            if (root.sourceInitialized && !root.syncingSource && RaohaneAudio.microphoneReady
+                    && Math.abs(volume - RaohaneAudio.microphoneVolume) > 0.0005)
                 RaohaneAudio.setMicrophoneVolume(volume)
         }
         onMutedChanged: {
-            if (!root.syncingSource && muted !== RaohaneAudio.microphoneMuted)
+            if (root.sourceInitialized && !root.syncingSource && RaohaneAudio.microphoneReady
+                    && muted !== RaohaneAudio.microphoneMuted)
                 RaohaneAudio.setMicrophoneMuted(muted)
         }
     }
@@ -156,25 +178,40 @@ Singleton {
     Connections {
         target: RaohaneAudio
 
+        function onReadyChanged(): void {
+            if (RaohaneAudio.ready)
+                root.syncSinkFromNative()
+            else
+                root.sinkInitialized = false
+        }
+        function onMicrophoneReadyChanged(): void {
+            if (RaohaneAudio.microphoneReady)
+                root.syncSourceFromNative()
+            else
+                root.sourceInitialized = false
+        }
         function onVolumeChanged(): void {
-            root.syncingSink = true
-            sinkAudio.volume = RaohaneAudio.volume
-            root.syncingSink = false
+            if (RaohaneAudio.ready)
+                root.syncSinkFromNative()
         }
         function onMutedChanged(): void {
-            root.syncingSink = true
-            sinkAudio.muted = RaohaneAudio.muted
-            root.syncingSink = false
+            if (RaohaneAudio.ready)
+                root.syncSinkFromNative()
         }
         function onMicrophoneVolumeChanged(): void {
-            root.syncingSource = true
-            sourceAudio.volume = RaohaneAudio.microphoneVolume
-            root.syncingSource = false
+            if (RaohaneAudio.microphoneReady)
+                root.syncSourceFromNative()
         }
         function onMicrophoneMutedChanged(): void {
-            root.syncingSource = true
-            sourceAudio.muted = RaohaneAudio.microphoneMuted
-            root.syncingSource = false
+            if (RaohaneAudio.microphoneReady)
+                root.syncSourceFromNative()
         }
+    }
+
+    Component.onCompleted: {
+        if (RaohaneAudio.ready)
+            root.syncSinkFromNative()
+        if (RaohaneAudio.microphoneReady)
+            root.syncSourceFromNative()
     }
 }
