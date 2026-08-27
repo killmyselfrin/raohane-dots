@@ -5,9 +5,6 @@ import Quickshell.Io
 import Quickshell.Wayland
 
 import qs
-import qs.services
-import qs.modules.common
-import qs.modules.common.widgets
 
 Scope {
     id: root
@@ -34,13 +31,13 @@ Scope {
 
         onVisibleChanged: {
             if (visible)
-                GlobalFocusGrab.addDismissable(panelWindow)
+                RaohaneFocusGrab.addDismissable(panelWindow)
             else
-                GlobalFocusGrab.removeDismissable(panelWindow)
+                RaohaneFocusGrab.removeDismissable(panelWindow)
         }
 
         Connections {
-            target: GlobalFocusGrab
+            target: RaohaneFocusGrab
             function onDismissed() { panelWindow.hide() }
         }
 
@@ -175,7 +172,7 @@ Scope {
                         border.width: 1
                         border.color: closeMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
 
-                        MaterialSymbol {
+                        RaohaneIcon {
                             anchors.centerIn: parent
                             text: "close"
                             iconSize: 18
