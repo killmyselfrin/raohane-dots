@@ -4,25 +4,23 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
-import qs
-import qs.services
-import qs.modules.common
-import qs.modules.common.widgets
+import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Scope {
     id: root
 
-    property int panelWidth: Math.max(390, Math.min(440, Appearance.sizes.sidebarWidth))
+    property int panelWidth: 420
 
     PanelWindow {
         id: panelWindow
-        visible: GlobalStates.sidebarRightOpen
+        visible: RaohaneState.controlCenterOpen
         exclusiveZone: 0
         implicitWidth: root.panelWidth + 28
         color: "transparent"
         WlrLayershell.namespace: "quickshell:raohane-control-center"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: GlobalStates.sidebarRightOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: RaohaneState.controlCenterOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
         anchors {
             top: true
@@ -37,20 +35,20 @@ Scope {
         }
 
         function hide(): void {
-            GlobalStates.sidebarRightOpen = false
+            RaohaneState.controlCenterOpen = false
         }
 
         onVisibleChanged: {
             if (visible) {
-                Notifications.markAllRead()
-                GlobalFocusGrab.addDismissable(panelWindow)
+                RaohaneNotifications.markAllRead()
+                RaohaneFocusGrab.addDismissable(panelWindow)
             } else {
-                GlobalFocusGrab.removeDismissable(panelWindow)
+                RaohaneFocusGrab.removeDismissable(panelWindow)
             }
         }
 
         Connections {
-            target: GlobalFocusGrab
+            target: RaohaneFocusGrab
             function onDismissed() { panelWindow.hide() }
         }
 
@@ -93,9 +91,7 @@ Scope {
 
                     Image {
                         anchors.fill: parent
-                        source: Config.options.sidebar.bannerImage !== ""
-                            ? Config.options.sidebar.bannerImage
-                            : Config.options.background.wallpaperPath
+                        source: RaohaneConfig.wallpaperPath
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         cache: false
@@ -127,16 +123,14 @@ Scope {
                         spacing: 2
 
                         Text {
-                            text: Config.options.profile.displayName === ""
-                                ? SystemInfo.username
-                                : Config.options.profile.displayName
+                            text: RaohaneSystemInfo.username
                             color: RaohaneTheme.text
                             font.pixelSize: 17
                             font.weight: Font.DemiBold
                         }
 
                         Text {
-                            text: SystemInfo.hostname + "  ·  " + DateTime.uptime
+                            text: RaohaneSystemInfo.hostname + "  ·  " + RaohaneSystemInfo.distroName
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 11
                         }
@@ -154,8 +148,8 @@ Scope {
                         ActionPill {
                             icon: "settings"
                             onClicked: {
-                                GlobalStates.sidebarRightOpen = false
-                                GlobalStates.settingsOpen = true
+                                RaohaneState.controlCenterOpen = false
+                                RaohaneState.settingsOpen = true
                             }
                         }
                         ActionPill {
@@ -167,7 +161,10 @@ Scope {
                         }
                         ActionPill {
                             icon: "power_settings_new"
-                            onClicked: GlobalStates.sessionOpen = true
+                            onClicked: {
+                                RaohaneState.controlCenterOpen = false
+                                Quickshell.execDetached(["raohane", "session"])
+                            }
                         }
                     }
 
@@ -285,7 +282,7 @@ Scope {
                         border.width: 1
                         border.color: RaohaneTheme.border
 
-                        MaterialSymbol {
+                        RaohaneIcon {
                             anchors.centerIn: parent
                             text: "close"
                             iconSize: 17
@@ -304,15 +301,15 @@ Scope {
 
         IpcHandler {
             target: "sidebarRight"
-            function toggle(): void { GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen }
-            function open(): void { GlobalStates.sidebarRightOpen = true }
-            function close(): void { GlobalStates.sidebarRightOpen = false }
+            function toggle(): void { RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen }
+            function open(): void { RaohaneState.controlCenterOpen = true }
+            function close(): void { RaohaneState.controlCenterOpen = false }
         }
 
         CompositorGlobalShortcut {
             name: "sidebarRightToggle"
             description: "Toggles Raohane control center"
-            onPressed: GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen
+            onPressed: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
         }
     }
 
@@ -328,7 +325,7 @@ Scope {
         border.width: 1
         border.color: mouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
 
-        MaterialSymbol {
+        RaohaneIcon {
             anchors.centerIn: parent
             text: action.icon
             iconSize: 17
