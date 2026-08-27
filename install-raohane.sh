@@ -205,6 +205,50 @@ bind = SUPER, R, exec, raohane launcher
 bind = SUPER, escape, exec, raohane settings
 bind = SUPER, C, exec, raohane control
 bind = SUPER SHIFT, M, exec, raohane media
+
+# Raohane workspace controls. SUPER + number focuses a workspace;
+# SUPER + SHIFT + number moves the active window there and follows it.
+unbind = SUPER, 1
+unbind = SUPER, 2
+unbind = SUPER, 3
+unbind = SUPER, 4
+unbind = SUPER, 5
+unbind = SUPER, 6
+unbind = SUPER, 7
+unbind = SUPER, 8
+unbind = SUPER, 9
+unbind = SUPER, 0
+unbind = SUPER SHIFT, 1
+unbind = SUPER SHIFT, 2
+unbind = SUPER SHIFT, 3
+unbind = SUPER SHIFT, 4
+unbind = SUPER SHIFT, 5
+unbind = SUPER SHIFT, 6
+unbind = SUPER SHIFT, 7
+unbind = SUPER SHIFT, 8
+unbind = SUPER SHIFT, 9
+unbind = SUPER SHIFT, 0
+
+bind = SUPER, 1, workspace, 1
+bind = SUPER, 2, workspace, 2
+bind = SUPER, 3, workspace, 3
+bind = SUPER, 4, workspace, 4
+bind = SUPER, 5, workspace, 5
+bind = SUPER, 6, workspace, 6
+bind = SUPER, 7, workspace, 7
+bind = SUPER, 8, workspace, 8
+bind = SUPER, 9, workspace, 9
+bind = SUPER, 0, workspace, 10
+bind = SUPER SHIFT, 1, movetoworkspace, 1
+bind = SUPER SHIFT, 2, movetoworkspace, 2
+bind = SUPER SHIFT, 3, movetoworkspace, 3
+bind = SUPER SHIFT, 4, movetoworkspace, 4
+bind = SUPER SHIFT, 5, movetoworkspace, 5
+bind = SUPER SHIFT, 6, movetoworkspace, 6
+bind = SUPER SHIFT, 7, movetoworkspace, 7
+bind = SUPER SHIFT, 8, movetoworkspace, 8
+bind = SUPER SHIFT, 9, movetoworkspace, 9
+bind = SUPER SHIFT, 0, movetoworkspace, 10
 HYPR
 
 # Hyprland 0.55+ native Lua integration. This file is required last from
@@ -232,6 +276,17 @@ hl.bind("SUPER + C", hl.dsp.global("quickshell:sidebarRightToggle"),
     { description = "Raohane: Control Center" })
 hl.bind("SUPER + SHIFT + M", hl.dsp.global("quickshell:raohaneMediaOverlayToggle"),
     { description = "Raohane: Media Overlay" })
+
+-- 0 maps to workspace 10. window.move follows the moved window by default.
+for workspace = 1, 10 do
+    local key = workspace % 10
+    hl.unbind("SUPER + " .. key)
+    hl.unbind("SUPER + SHIFT + " .. key)
+    hl.bind("SUPER + " .. key, hl.dsp.focus({ workspace = workspace }),
+        { description = "Raohane: Workspace " .. workspace })
+    hl.bind("SUPER + SHIFT + " .. key, hl.dsp.window.move({ workspace = workspace }),
+        { description = "Raohane: Move window to workspace " .. workspace })
+end
 LUA
 
 if [[ ! -f "$HYPR_AUTOSTART" ]]; then
