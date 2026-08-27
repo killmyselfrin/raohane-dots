@@ -5,7 +5,6 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-import qs
 import qs.modules.raohane.config
 import qs.modules.raohane.services
 
@@ -47,7 +46,7 @@ Scope {
 
     function trigger(indicator: string): void {
         currentIndicator = indicator
-        GlobalStates.osdVolumeOpen = true
+        RaohaneState.osdOpen = true
         hideTimer.restart()
     }
 
@@ -55,7 +54,7 @@ Scope {
         id: hideTimer
         interval: RaohaneConfig.osdTimeout
         repeat: false
-        onTriggered: GlobalStates.osdVolumeOpen = false
+        onTriggered: RaohaneState.osdOpen = false
     }
 
     Connections {
@@ -78,7 +77,7 @@ Scope {
     }
 
     Loader {
-        active: GlobalStates.osdVolumeOpen
+        active: RaohaneState.osdOpen
 
         sourceComponent: PanelWindow {
             id: panelWindow
@@ -120,7 +119,7 @@ Scope {
                     anchors.fill: parent
                     hoverEnabled: true
                     acceptedButtons: Qt.NoButton
-                    onEntered: GlobalStates.osdVolumeOpen = false
+                    onEntered: RaohaneState.osdOpen = false
                 }
 
                 RowLayout {
@@ -196,8 +195,8 @@ Scope {
         target: "osdVolume"
 
         function trigger(): void { root.trigger("volume") }
-        function hide(): void { GlobalStates.osdVolumeOpen = false }
-        function toggle(): void { GlobalStates.osdVolumeOpen = !GlobalStates.osdVolumeOpen }
+        function hide(): void { RaohaneState.osdOpen = false }
+        function toggle(): void { RaohaneState.osdOpen = !RaohaneState.osdOpen }
     }
 
     GlobalShortcut {
@@ -209,6 +208,6 @@ Scope {
     GlobalShortcut {
         name: "osdVolumeHide"
         description: "Hides Raohane OSD"
-        onPressed: GlobalStates.osdVolumeOpen = false
+        onPressed: RaohaneState.osdOpen = false
     }
 }
