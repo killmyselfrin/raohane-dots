@@ -59,11 +59,24 @@ Singleton {
         root.microphoneReady = true
     }
 
+    function applyProbe(text): void {
+        for (const rawLine of String(text ?? "").split("\n")) {
+            const line = rawLine.trim()
+            if (line.startsWith("SINK "))
+                root.applySink(line.slice(5))
+            else if (line.startsWith("SOURCE "))
+                root.applySource(line.slice(7))
+        }
+    }
+
     function refresh(): void {
-        if (!sinkProbe.running)
-            sinkProbe.exec(["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]) 
-        if (!sourceProbe.running)
-            sourceProbe.exec(["wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@"]) 
+        if (!volumeProbe.running) {
+            volumeProbe.exec([
+                "bash", "-lc",
+                "printf 'SINK '; wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null || true; "
+                    + "printf 'SOURCE '; wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null || true"
+            ])
+        }
     }
 
     function setVolume(value: real): void {
@@ -107,23 +120,15 @@ Singleton {
     }
 
     Process {
-        id: sinkProbe
+        id: volumeProbe
         environment: ({ LANG: "C", LC_ALL: "C" })
         stdout: StdioCollector {
-            onStreamFinished: root.applySink(text)
-        }
-    }
-
-    Process {
-        id: sourceProbe
-        environment: ({ LANG: "C", LC_ALL: "C" })
-        stdout: StdioCollector {
-            onStreamFinished: root.applySource(text)
+            onStreamFinished: root.applyProbe(text)
         }
     }
 
     Timer {
-        interval: 400
+        interval: 750
         repeat: true
         running: true
         onTriggered: root.refresh()
