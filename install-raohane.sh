@@ -7,8 +7,10 @@ RUNTIME="$CONFIG_HOME/quickshell/raohane"
 BIN_DIR="${HOME}/.local/bin"
 SYSTEMD_DIR="$CONFIG_HOME/systemd/user"
 HYPR_DIR="$CONFIG_HOME/hypr"
-HYPR_SNIPPET="$HYPR_DIR/raohane.conf"
+HYPR_LEGACY_SNIPPET="$HYPR_DIR/raohane.conf"
+HYPR_LUA_SNIPPET="$HYPR_DIR/raohane.lua"
 HYPR_AUTOSTART="$HYPR_DIR/raohane-autostart.conf"
+HYPR_INTEGRATION="$HYPR_LEGACY_SNIPPET"
 RAOHANE_CONFIG="$CONFIG_HOME/raohane"
 RAOHANE_CONFIG_FILE="$RAOHANE_CONFIG/config.json"
 LEGACY_CONFIG_FILE="$CONFIG_HOME/illogical-impulse/config.json"
@@ -184,14 +186,19 @@ Environment=QT_QPA_PLATFORM=wayland
 WantedBy=default.target
 SERVICE
 
-cat > "$HYPR_SNIPPET" <<'HYPR'
+# Hyprland 0.54 and older compatibility. Hyprland 0.55+ uses raohane.lua below.
+cat > "$HYPR_LEGACY_SNIPPET" <<'HYPR'
 # Raohane shell integration
 # Managed by install-raohane.sh
 exec-once = systemctl --user start raohane.service
 
-# Bare Super used to be owned by the inherited end4 overview/fallback launcher.
-# Raohane intentionally frees it; the native launcher has an explicit combo.
+# Remove inherited shell launcher/binds before owning these combinations.
 unbind = SUPER, Super_L
+unbind = SUPER, Super_R
+unbind = SUPER, R
+unbind = SUPER, escape
+unbind = SUPER, C
+unbind = SUPER SHIFT, M
 
 # Raohane shell controls
 bind = SUPER, R, exec, raohane launcher
@@ -200,6 +207,33 @@ bind = SUPER, C, exec, raohane control
 bind = SUPER SHIFT, M, exec, raohane media
 HYPR
 
+# Hyprland 0.55+ native Lua integration. This file is required last from
+# hyprland.lua so inherited end4 binds cannot re-register after Raohane.
+cat > "$HYPR_LUA_SNIPPET" <<'LUA'
+-- Raohane shell integration for Hyprland 0.55+
+-- Managed by install-raohane.sh
+
+-- end4 binds bare Super twice: Quickshell search and a fuzzel fallback.
+-- Raohane deliberately owns neither bare Super_L nor bare Super_R.
+hl.unbind("SUPER + SUPER_L")
+hl.unbind("SUPER + SUPER_R")
+
+-- Own Raohane combinations after inherited keybind modules have loaded.
+hl.unbind("SUPER + R")
+hl.unbind("SUPER + Escape")
+hl.unbind("SUPER + C")
+hl.unbind("SUPER + SHIFT + M")
+
+hl.bind("SUPER + R", hl.dsp.global("quickshell:raohaneLauncherToggle"),
+    { description = "Raohane: Launcher" })
+hl.bind("SUPER + Escape", hl.dsp.global("quickshell:settingsToggle"),
+    { description = "Raohane: Settings" })
+hl.bind("SUPER + C", hl.dsp.global("quickshell:sidebarRightToggle"),
+    { description = "Raohane: Control Center" })
+hl.bind("SUPER + SHIFT + M", hl.dsp.global("quickshell:raohaneMediaOverlayToggle"),
+    { description = "Raohane: Media Overlay" })
+LUA
+
 if [[ ! -f "$HYPR_AUTOSTART" ]]; then
   cat > "$HYPR_AUTOSTART" <<'HYPR_AUTOSTART'
 # Raohane autostart
@@ -207,18 +241,48 @@ if [[ ! -f "$HYPR_AUTOSTART" ]]; then
 HYPR_AUTOSTART
 fi
 
-HYPR_MAIN="$HYPR_DIR/hyprland.conf"
+HYPR_LUA_MAIN="$HYPR_DIR/hyprland.lua"
+HYPR_LEGACY_MAIN="$HYPR_DIR/hyprland.conf"
 SOURCE_LINE='source = ~/.config/hypr/raohane.conf'
 AUTOSTART_SOURCE_LINE='source = ~/.config/hypr/raohane-autostart.conf'
-if [[ -f "$HYPR_MAIN" ]]; then
-  if ! grep -Fqx "$SOURCE_LINE" "$HYPR_MAIN"; then
-    printf '\n# Raohane shell\n%s\n' "$SOURCE_LINE" >> "$HYPR_MAIN"
-  fi
-  if ! grep -Fqx "$AUTOSTART_SOURCE_LINE" "$HYPR_MAIN"; then
-    printf '%s\n' "$AUTOSTART_SOURCE_LINE" >> "$HYPR_MAIN"
-  fi
+
+if [[ -f "$HYPR_LUA_MAIN" ]]; then
+  HYPR_INTEGRATION="$HYPR_LUA_SNIPPET"
+  python3 - "$HYPR_LUA_MAIN" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+marker = "-- Raohane shell integration (managed by install-raohane.sh)"
+require_lines = {'require("raohane")', "require('raohane')"}
+lines = path.read_text(encoding="utf-8").splitlines()
+lines = [line for line in lines if line.strip() != marker and line.strip() not in require_lines]
+content = "\n".join(lines).rstrip() + "\n\n" + marker + "\n" + 'require("raohane")' + "\n"
+tmp = path.with_suffix(path.suffix + ".tmp")
+tmp.write_text(content, encoding="utf-8")
+tmp.replace(path)
+PY
+  printf '[Raohane] Hyprland Lua config detected; installed 0.55+ keybind overrides.\n'
 else
-  printf '%s\n%s\n' "$SOURCE_LINE" "$AUTOSTART_SOURCE_LINE" > "$HYPR_MAIN"
+  # Keep the Raohane sources last so older inherited binds cannot override them.
+  if [[ -f "$HYPR_LEGACY_MAIN" ]]; then
+    python3 - "$HYPR_LEGACY_MAIN" "$SOURCE_LINE" "$AUTOSTART_SOURCE_LINE" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+managed = {sys.argv[2], sys.argv[3]}
+lines = path.read_text(encoding="utf-8").splitlines()
+lines = [line for line in lines if line.strip() not in managed]
+content = "\n".join(lines).rstrip() + "\n\n# Raohane shell\n" + sys.argv[2] + "\n" + sys.argv[3] + "\n"
+tmp = path.with_suffix(path.suffix + ".tmp")
+tmp.write_text(content, encoding="utf-8")
+tmp.replace(path)
+PY
+  else
+    printf '%s\n%s\n' "$SOURCE_LINE" "$AUTOSTART_SOURCE_LINE" > "$HYPR_LEGACY_MAIN"
+  fi
+  printf '[Raohane] Legacy Hyprland config detected; installed hyprlang keybind overrides.\n'
 fi
 
 systemctl --user daemon-reload
@@ -236,7 +300,7 @@ printf '\n[Raohane] Installed.\n'
 printf 'Runtime: %s\n' "$RUNTIME"
 printf 'Settings: %s\n' "$RAOHANE_CONFIG_FILE"
 printf 'Launcher: %s\n' "$BIN_DIR/raohane"
-printf 'Hyprland snippet: %s\n' "$HYPR_SNIPPET"
+printf 'Hyprland integration: %s\n' "$HYPR_INTEGRATION"
 printf 'Autostart snippet: %s\n\n' "$HYPR_AUTOSTART"
 if ((START_AFTER_INSTALL == 0)); then
   printf 'Start manually with: raohane start\n'
