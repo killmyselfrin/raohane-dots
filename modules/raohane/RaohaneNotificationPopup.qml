@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
-import qs
+import qs.modules.raohane.config
 import qs.modules.raohane.services
 
 Scope {
@@ -16,7 +16,7 @@ Scope {
     readonly property var popupNotifications: RaohaneNotifications.popupList.slice(-3).reverse()
 
     Loader {
-        active: root.popupNotifications.length > 0 && !GlobalStates.sidebarRightOpen
+        active: root.popupNotifications.length > 0 && !RaohaneState.controlCenterOpen
 
         sourceComponent: PanelWindow {
             id: panelWindow
@@ -38,7 +38,7 @@ Scope {
             }
 
             margins {
-                top: Config.options.bar.bottom ? 14 : 72
+                top: RaohaneConfig.barBottom ? 14 : 72
                 right: 14
             }
 
