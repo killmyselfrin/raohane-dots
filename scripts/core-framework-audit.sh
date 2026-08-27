@@ -22,13 +22,14 @@ launcher='modules/raohane/RaohaneLauncher.qml'
 overview='modules/raohane/RaohaneOverview.qml'
 control_center='modules/raohane/RaohaneControlCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
+session='modules/raohane/RaohaneSessionScreen.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContent.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
 installer='install-raohane.sh'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$settings" "$settings_content" "$family" "$shell" "$installer"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$family" "$shell" "$installer"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -106,6 +107,16 @@ if rg -n '^import qs$|\bGlobalStates\.osdVolumeOpen\b|\bAudio\.|\bBrightness\.|\
   fail 'RaohaneOsd regressed to inherited root/audio/display state'
 fi
 
+for symbol in \
+  'RaohaneState\.sessionOpen' 'RaohaneState\.screenLocked' \
+  'RaohaneSession\.' 'RaohaneSessionWarnings\.' 'RaohaneSystemInfo\.' \
+  'RaohaneConfig\.wallpaperPath' 'RaohaneIcon[[:space:]]*\{'; do
+  rg -q "$symbol" "$session" || fail "RaohaneSessionScreen lost native framework symbol: $symbol"
+done
+if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|\bGlobalStates\.|\bConfig\.|(^|[^A-Za-z])Session\.|(^|[^A-Za-z])SessionWarnings\.|(^|[^A-Za-z])SystemInfo\.|\bMaterialSymbol[[:space:]]*\{' "$session"; then
+  fail 'RaohaneSessionScreen regressed to inherited config/state/services/widgets'
+fi
+
 rg -q 'RaohaneState\.settingsOpen' "$settings" \
   || fail 'RaohaneSettings does not own its runtime open state'
 if rg -n '\bGlobalStates\.settingsOpen\b|^import qs$|^import qs\.modules\.common' "$settings"; then
@@ -141,6 +152,10 @@ rg -q 'hl\.bind\("SUPER \+ R"' "$installer" \
   || fail 'Hyprland Lua integration lost SUPER+R Raohane launcher bind'
 rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" \
   || fail 'Hyprland Lua integration lost SUPER+Escape settings bind'
+rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" \
+  || fail 'Hyprland Lua integration lost numeric workspace focus binds'
+rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" \
+  || fail 'Hyprland Lua integration lost numeric move-window binds'
 
 # Legacy <=0.54 compatibility remains explicit and must also remove both bare Super keys.
 rg -q 'unbind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*Super_L' "$installer" \
@@ -149,6 +164,8 @@ rg -q 'unbind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*Super_R' "$installer" \
   || fail 'legacy installer does not free inherited right bare-Super binding'
 rg -q 'bind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*R,[[:space:]]*exec,[[:space:]]*raohane launcher' "$installer" \
   || fail 'legacy installer lost the explicit Raohane launcher shortcut'
+rg -q 'bind[[:space:]]*=[[:space:]]*SUPER SHIFT,[[:space:]]*0,[[:space:]]*movetoworkspace,[[:space:]]*10' "$installer" \
+  || fail 'legacy installer lost move-window workspace 10 binding'
 
 rg -q 'RaohanePaths\.defaultAvatarUrl' "$settings_content" \
   || fail 'RaohaneSettingsContent does not use RaohanePaths for its avatar fallback'
@@ -177,4 +194,4 @@ for symbol in \
   rg -q "$symbol" "$bridge" || fail "legacy bridge is missing native synchronization: $symbol"
 done
 
-printf 'core-framework-audit: native paths, config v6, focus helper, control/settings/OSD state and Hyprland Lua keybind boundaries are valid\n'
+printf 'core-framework-audit: native paths, config v6, focus helper, control/settings/OSD/session state and Hyprland Lua keybind boundaries are valid\n'
