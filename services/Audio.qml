@@ -1,139 +1,180 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
-import qs.modules.common
+
 import QtQuick
 import Quickshell
-import Quickshell.Services.Pipewire
 
-/**
- * A nice wrapper for default Pipewire audio sink and source.
- */
+import qs.modules.common
+import qs.modules.raohane.services
+
+// Compatibility facade for inherited surfaces. The old service owned a second
+// Quickshell PipeWire backend; all default sink/source control now routes
+// through the Raohane-owned wpctl service instead.
 Singleton {
     id: root
 
-    // Misc props
-    property bool ready: Pipewire.defaultAudioSink?.ready ?? false
-    property PwNode sink: Pipewire.defaultAudioSink
-    property PwNode source: Pipewire.defaultAudioSource
-    readonly property real hardMaxValue: 2.00 // People keep joking about setting volume to 5172% so...
-    property string audioTheme: Config.options.sounds.theme
-    property real value: sink?.audio.volume ?? 0
-    
-    function friendlyDeviceName(node) {
-        return (node.nickname || node.description || Translation.tr("Unknown"));
-    }
-    function appNodeDisplayName(node) {
-        return (node.properties["application.name"] || node.description || node.name)
+    property bool syncingSink: false
+    property bool syncingSource: false
+
+    readonly property bool ready: RaohaneAudio.ready
+    readonly property real hardMaxValue: 2.0
+    readonly property string audioTheme: Config.options?.sounds?.theme ?? "freedesktop"
+    readonly property real value: RaohaneAudio.volume
+
+    readonly property var sink: sinkNode
+    readonly property var source: sourceNode
+    readonly property var outputAppNodes: []
+    readonly property var inputAppNodes: []
+    readonly property var outputDevices: root.ready ? [sinkNode] : []
+    readonly property var inputDevices: RaohaneAudio.microphoneReady ? [sourceNode] : []
+
+    signal sinkProtectionTriggered(string reason)
+
+    function friendlyDeviceName(node): string {
+        return String(node?.nickname || node?.description || node?.name || Translation.tr("Unknown"))
     }
 
-    // Lists
-    function correctType(node, isSink) {
-        return (node.isSink === isSink) && node.audio
-    }
-    function appNodes(isSink) {
-        return Pipewire.nodes.values.filter((node) => { // Should be list<PwNode> but it breaks ScriptModel
-            return root.correctType(node, isSink) && node.isStream
-        })
-    }
-    function devices(isSink) {
-        return Pipewire.nodes.values.filter(node => {
-            return root.correctType(node, isSink) && !node.isStream
-        })
-    }
-    readonly property list<var> outputAppNodes: root.appNodes(true)
-    readonly property list<var> inputAppNodes: root.appNodes(false)
-    readonly property list<var> outputDevices: root.devices(true)
-    readonly property list<var> inputDevices: root.devices(false)
-
-    // Signals
-    signal sinkProtectionTriggered(string reason);
-
-    // Controls
-    function toggleMute() {
-        Audio.sink.audio.muted = !Audio.sink.audio.muted
+    function appNodeDisplayName(node): string {
+        return String(node?.properties?.["application.name"] || node?.description || node?.name || Translation.tr("Unknown"))
     }
 
-    function toggleMicMute() {
-        Audio.source.audio.muted = !Audio.source.audio.muted
+    function correctType(node, isSink): bool {
+        return Boolean(node && node.isSink === isSink && node.audio)
     }
 
-    function incrementVolume() {
-        const currentVolume = Audio.value;
-        const step = currentVolume < 0.1 ? 0.01 : 0.02 || 0.2;
-        Audio.sink.audio.volume = Math.min(1, Audio.sink.audio.volume + step);
-    }
-    
-    function decrementVolume() {
-        const currentVolume = Audio.value;
-        const step = currentVolume < 0.1 ? 0.01 : 0.02 || 0.2;
-        Audio.sink.audio.volume -= step;
+    function appNodes(isSink): var {
+        return []
     }
 
-    function setDefaultSink(node) {
-        Pipewire.preferredDefaultAudioSink = node;
+    function devices(isSink): var {
+        if (isSink)
+            return root.outputDevices
+        return root.inputDevices
     }
 
-    function setDefaultSource(node) {
-        Pipewire.preferredDefaultAudioSource = node;
-    }
-
-    // Internals
-    PwObjectTracker {
-        objects: [sink, source]
-    }
-
-    Connections { // Protection against sudden volume changes
-        target: sink?.audio ?? null
-        property bool lastReady: false
-        property real lastVolume: 0
-        function onVolumeChanged() {
-            if (!Config.options.audio.protection.enable) return;
-            const newVolume = sink.audio.volume;
-            // when resuming from suspend, we should not write volume to avoid pipewire volume reset issues
-            if (isNaN(newVolume) || newVolume === undefined || newVolume === null) {
-                lastReady = false;
-                lastVolume = 0;
-                return;
+    function protectedVolume(value: real): real {
+        let next = Math.max(0, Math.min(1, Number(value) || 0))
+        if (Config.options?.audio?.protection?.enable) {
+            const maxAllowed = Math.max(0, Math.min(1, Number(Config.options.audio.protection.maxAllowed) / 100 || 1))
+            if (next > maxAllowed) {
+                root.sinkProtectionTriggered(Translation.tr("Exceeded max allowed"))
+                next = maxAllowed
             }
-            if (!lastReady) {
-                lastVolume = newVolume;
-                lastReady = true;
-                return;
-            }
-            const maxAllowedIncrease = Config.options.audio.protection.maxAllowedIncrease / 100; 
-            const maxAllowed = Config.options.audio.protection.maxAllowed / 100;
+        }
+        return next
+    }
 
-            if (newVolume - lastVolume > maxAllowedIncrease) {
-                sink.audio.volume = lastVolume;
-                root.sinkProtectionTriggered(Translation.tr("Illegal increment"));
-            } else if (newVolume > maxAllowed || newVolume > root.hardMaxValue) {
-                root.sinkProtectionTriggered(Translation.tr("Exceeded max allowed"));
-                sink.audio.volume = Math.min(lastVolume, maxAllowed);
-            }
-            lastVolume = sink.audio.volume;
+    function toggleMute(): void {
+        RaohaneAudio.toggleMute()
+    }
+
+    function toggleMicMute(): void {
+        RaohaneAudio.toggleMicrophoneMute()
+    }
+
+    function incrementVolume(): void {
+        const step = root.value < 0.1 ? 0.01 : 0.02
+        RaohaneAudio.setVolume(root.protectedVolume(root.value + step))
+    }
+
+    function decrementVolume(): void {
+        const step = root.value < 0.1 ? 0.01 : 0.02
+        RaohaneAudio.setVolume(Math.max(0, root.value - step))
+    }
+
+    function setDefaultSink(node): void {
+        RaohaneAudio.setDefaultSink(node)
+    }
+
+    function setDefaultSource(node): void {
+        RaohaneAudio.setDefaultSource(node)
+    }
+
+    function playSystemSound(soundName): void {
+        const ogaPath = `/usr/share/sounds/${root.audioTheme}/stereo/${soundName}.oga`
+        const oggPath = `/usr/share/sounds/${root.audioTheme}/stereo/${soundName}.ogg`
+        Quickshell.execDetached(["ffplay", "-nodisp", "-autoexit", ogaPath])
+        Quickshell.execDetached(["ffplay", "-nodisp", "-autoexit", oggPath])
+    }
+
+    QtObject {
+        id: sinkNode
+        readonly property bool ready: root.ready
+        readonly property bool isSink: true
+        readonly property bool isStream: false
+        readonly property int id: -1
+        readonly property string name: "default-audio-sink"
+        readonly property string nickname: "Default Audio Sink"
+        readonly property string description: nickname
+        readonly property var properties: ({})
+        readonly property var audio: sinkAudio
+    }
+
+    QtObject {
+        id: sinkAudio
+        property real volume: RaohaneAudio.volume
+        property bool muted: RaohaneAudio.muted
+
+        onVolumeChanged: {
+            if (!root.syncingSink && Math.abs(volume - RaohaneAudio.volume) > 0.0005)
+                RaohaneAudio.setVolume(root.protectedVolume(volume))
+        }
+        onMutedChanged: {
+            if (!root.syncingSink && muted !== RaohaneAudio.muted)
+                RaohaneAudio.setMuted(muted)
         }
     }
 
-    function playSystemSound(soundName) {
-        const ogaPath = `/usr/share/sounds/${root.audioTheme}/stereo/${soundName}.oga`;
-        const oggPath = `/usr/share/sounds/${root.audioTheme}/stereo/${soundName}.ogg`;
+    QtObject {
+        id: sourceNode
+        readonly property bool ready: RaohaneAudio.microphoneReady
+        readonly property bool isSink: false
+        readonly property bool isStream: false
+        readonly property int id: -1
+        readonly property string name: "default-audio-source"
+        readonly property string nickname: "Default Audio Source"
+        readonly property string description: nickname
+        readonly property var properties: ({})
+        readonly property var audio: sourceAudio
+    }
 
-        // Try playing .oga first
-        let command = [
-            "ffplay",
-            "-nodisp",
-            "-autoexit",
-            ogaPath
-        ];
-        Quickshell.execDetached(command);
+    QtObject {
+        id: sourceAudio
+        property real volume: RaohaneAudio.microphoneVolume
+        property bool muted: RaohaneAudio.microphoneMuted
 
-        // Also try playing .ogg (ffplay will just fail silently if file doesn't exist)
-        command = [
-            "ffplay",
-            "-nodisp",
-            "-autoexit",
-            oggPath
-        ];
-        Quickshell.execDetached(command);
+        onVolumeChanged: {
+            if (!root.syncingSource && Math.abs(volume - RaohaneAudio.microphoneVolume) > 0.0005)
+                RaohaneAudio.setMicrophoneVolume(volume)
+        }
+        onMutedChanged: {
+            if (!root.syncingSource && muted !== RaohaneAudio.microphoneMuted)
+                RaohaneAudio.setMicrophoneMuted(muted)
+        }
+    }
+
+    Connections {
+        target: RaohaneAudio
+
+        function onVolumeChanged(): void {
+            root.syncingSink = true
+            sinkAudio.volume = RaohaneAudio.volume
+            root.syncingSink = false
+        }
+        function onMutedChanged(): void {
+            root.syncingSink = true
+            sinkAudio.muted = RaohaneAudio.muted
+            root.syncingSink = false
+        }
+        function onMicrophoneVolumeChanged(): void {
+            root.syncingSource = true
+            sourceAudio.volume = RaohaneAudio.microphoneVolume
+            root.syncingSource = false
+        }
+        function onMicrophoneMutedChanged(): void {
+            root.syncingSource = true
+            sourceAudio.muted = RaohaneAudio.microphoneMuted
+            root.syncingSource = false
+        }
     }
 }
