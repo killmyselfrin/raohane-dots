@@ -71,13 +71,6 @@ Item {
                 border.width: active || urgent ? 1 : 0
                 border.color: urgent ? "#ff7373" : RaohaneTheme.border
 
-                Behavior on Layout.preferredWidth {
-                    NumberAnimation {
-                        duration: RaohaneTheme.animationDuration
-                        easing.type: Easing.OutCubic
-                    }
-                }
-
                 Text {
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: workspaceButton.occupied ? -2 : 0
