@@ -44,6 +44,8 @@ require_service RaohaneSession 'hyprctl.*dispatch.*exit'
 require_service RaohaneSessionWarnings 'pacman|/var/lib/pacman/db\.lck'
 require_service RaohaneSystemInfo '/etc/os-release'
 require_service RaohaneSearch 'DesktopEntries'
+require_service RaohaneIdle 'IdleInhibitor'
+require_service RaohaneEasyEffects 'easyeffects'
 
 rg -q 'RaohaneMedia\.' modules/raohane/RaohaneContext.qml \
   || fail 'RaohaneContext does not consume RaohaneMedia'
@@ -95,6 +97,17 @@ rg -q 'RaohaneDisplay\.' modules/raohane/RaohaneOsd.qml \
   || fail 'RaohaneOsd does not consume RaohaneDisplay'
 if rg -n '\bBrightness\.|\bHyprsunset\.' modules/raohane/RaohaneQuickControls.qml modules/raohane/RaohaneOsd.qml; then
   fail 'active Raohane display surfaces use inherited Brightness/Hyprsunset services'
+fi
+
+for symbol in RaohaneIdle RaohaneEasyEffects; do
+  rg -q "${symbol}\." modules/raohane/RaohaneQuickControls.qml \
+    || fail "RaohaneQuickControls does not consume ${symbol}"
+done
+if rg -n '^import qs\.services$|(^|[^A-Za-z])Idle\.|(^|[^A-Za-z])EasyEffects\.' modules/raohane/RaohaneQuickControls.qml; then
+  fail 'RaohaneQuickControls regressed to inherited Idle/EasyEffects services'
+fi
+if rg -n 'modules\.common|Quickshell\.Services\.Pipewire|PwObjectTracker|\bPipewire\.' "$MODULE/RaohaneIdle.qml" "$MODULE/RaohaneEasyEffects.qml"; then
+  fail 'native quick-control helpers depend on inherited common/PipeWire plumbing'
 fi
 
 for surface in RaohaneNotificationCenter.qml RaohaneNotificationPopup.qml RaohaneNotificationCard.qml; do
@@ -166,4 +179,4 @@ rg -q 'RaohaneConfig' modules/raohane/RaohaneLegacyBridge.qml \
 rg -q 'RaohaneLegacyBridge\.load' panelFamilies/RaohaneFamily.qml \
   || fail 'RaohaneFamily does not initialize the temporary config bridge'
 
-printf 'raohane-service-audit: core services, wallpaper workflow, native search and config boundaries are Raohane-owned\n'
+printf 'raohane-service-audit: core services, quick controls, wallpaper workflow, native search and config boundaries are Raohane-owned\n'
