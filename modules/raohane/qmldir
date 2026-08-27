@@ -12,6 +12,7 @@ RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
 RaohaneOverview 1.0 RaohaneOverview.qml
 RaohaneDock 1.0 RaohaneDock.qml
 RaohaneBar 1.0 RaohaneBar.qml
+RaohaneWorkspaces 1.0 RaohaneWorkspaces.qml
 RaohaneContextIsland 1.0 RaohaneContextIsland.qml
 RaohaneControlCenter 1.0 RaohaneControlCenter.qml
 RaohaneQuickControls 1.0 RaohaneQuickControls.qml
