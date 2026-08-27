@@ -18,9 +18,9 @@ Singleton {
 
     function refresh(): void {
         if (!adapterProbe.running)
-            adapterProbe.exec(["bluetoothctl", "show"])
+            adapterProbe.exec(["bash", "-lc", "command -v bluetoothctl >/dev/null 2>&1 && bluetoothctl show || true"])
         if (!devicesProbe.running)
-            devicesProbe.exec(["bluetoothctl", "devices", "Connected"])
+            devicesProbe.exec(["bash", "-lc", "command -v bluetoothctl >/dev/null 2>&1 && bluetoothctl devices Connected || true"])
     }
 
     function parseAdapter(text): void {
