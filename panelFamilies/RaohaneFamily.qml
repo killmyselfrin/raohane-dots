@@ -28,7 +28,7 @@ Scope {
 
     RaohanePanelLoader { component: RaohaneBackground {} }
     RaohanePanelLoader { component: RaohaneDesktopCanvas {} }
-    RaohanePanelLoader { extraCondition: !Config.options.bar.vertical; component: RaohaneBar {} }
+    RaohanePanelLoader { extraCondition: !RaohaneConfig.barVertical; component: RaohaneBar {} }
     RaohanePanelLoader { extraCondition: RaohaneConfig.dockEnabled; component: RaohaneDock {} }
     RaohanePanelLoader { component: Lock {} }
     RaohanePanelLoader { component: RaohaneNotificationPopup {} }
@@ -50,7 +50,7 @@ Scope {
     RaohanePanelLoader { component: RaohaneDesktopMenu {} }
     RaohanePanelLoader { component: RaohaneSessionScreen {} }
 
-    RaohanePanelLoader { extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
+    RaohanePanelLoader { extraCondition: RaohaneConfig.barVertical; component: VerticalBar {} }
     RaohanePanelLoader { component: DropShelfPanel {} }
     RaohanePanelLoader { component: ScreenFrame {} }
 }
