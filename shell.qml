@@ -5,6 +5,7 @@
 // Remove two slashes below and adjust the value to change the UI scale
 ////@ pragma Env QT_SCALE_FACTOR=1
 import "modules/common"
+import "modules/raohane/config"
 import "services"
 import "panelFamilies"
 import QtQuick
@@ -24,7 +25,7 @@ ShellRoot {
 
     Process {
         id: autostartProc
-        command: ["python3", `${Directories.scriptPath}/hyprland/autostart.py`]
+        command: ["python3", `${RaohanePaths.scriptsPath}/hyprland/autostart.py`]
     }
 
     Connections {
