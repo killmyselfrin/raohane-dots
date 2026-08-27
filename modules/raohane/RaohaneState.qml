@@ -11,10 +11,16 @@ QtObject {
     property string wallpaperSelectorTarget: "wallpaper"
     property bool overviewOpen: false
 
+    property bool barOpen: true
+    property bool controlCenterOpen: false
+    property bool screenLocked: false
+    property bool superDown: false
+
     function closeTransientSurfaces(): void {
         launcherOpen = false
         mediaOverlayOpen = false
         wallpaperSelectorOpen = false
         overviewOpen = false
+        controlCenterOpen = false
     }
 }
