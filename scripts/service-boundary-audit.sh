@@ -77,6 +77,12 @@ if rg -n 'Quickshell\.Services\.Pipewire|PwObjectTracker|\bPipewire\.' "$MODULE/
   fail 'Raohane audio graph regressed to a Quickshell PipeWire event loop'
 fi
 
+rg -q '\bpw-dump\b' modules/raohane/RaohanePrivacy.qml \
+  || fail 'RaohanePrivacy is not inspecting the PipeWire graph through pw-dump'
+if rg -n 'Quickshell\.Services\.Pipewire|PwObjectTracker|\bPipewire\.' modules/raohane/RaohanePrivacy.qml; then
+  fail 'RaohanePrivacy regressed to a Quickshell PipeWire event loop'
+fi
+
 rg -q 'RaohaneNetwork\.' modules/raohane/RaohaneQuickControls.qml \
   || fail 'RaohaneQuickControls does not consume RaohaneNetwork'
 if rg -n '\bNetwork\.' modules/raohane/RaohaneQuickControls.qml; then
