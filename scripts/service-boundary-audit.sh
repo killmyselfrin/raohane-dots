@@ -34,8 +34,8 @@ require_service() {
 }
 
 require_service RaohaneMedia 'Quickshell\.Services\.Mpris'
-require_service RaohaneBluetooth 'Quickshell\.Bluetooth'
-require_service RaohaneAudio 'Quickshell\.Services\.Pipewire'
+require_service RaohaneBluetooth '\bbluetoothctl\b'
+require_service RaohaneAudio '\bwpctl\b'
 require_service RaohaneNetwork '\bnmcli\b'
 require_service RaohaneDisplay 'brightnessctl|ddcutil|hyprsunset'
 require_service RaohaneNotifications 'Quickshell\.Services\.Notifications'
@@ -58,6 +58,9 @@ rg -q 'RaohaneBluetooth\.' modules/raohane/RaohaneQuickControls.qml \
 if rg -n 'BluetoothStatus|Bluetooth\.defaultAdapter' modules/raohane/RaohaneQuickControls.qml; then
   fail 'RaohaneQuickControls use inherited/direct Bluetooth plumbing'
 fi
+if rg -n 'Quickshell\.Bluetooth|Bluetooth\.defaultAdapter' "$MODULE/RaohaneBluetooth.qml"; then
+  fail 'RaohaneBluetooth regressed to the Quickshell BlueZ object-manager backend'
+fi
 
 rg -q 'RaohaneAudio\.' modules/raohane/RaohaneQuickControls.qml \
   || fail 'RaohaneQuickControls does not consume RaohaneAudio'
@@ -65,6 +68,11 @@ rg -q 'RaohaneAudio\.' modules/raohane/RaohaneOsd.qml \
   || fail 'RaohaneOsd does not consume RaohaneAudio'
 if rg -n '\bAudio\.' modules/raohane/RaohaneQuickControls.qml modules/raohane/RaohaneOsd.qml; then
   fail 'active Raohane audio surfaces use inherited Audio service'
+fi
+rg -q 'RaohaneAudio' services/Audio.qml \
+  || fail 'compatibility Audio facade is not routed to RaohaneAudio'
+if rg -n 'Quickshell\.Services\.Pipewire|PwObjectTracker|\bPipewire\.' "$MODULE/RaohaneAudio.qml" services/Audio.qml; then
+  fail 'Raohane audio graph regressed to a Quickshell PipeWire event loop'
 fi
 
 rg -q 'RaohaneNetwork\.' modules/raohane/RaohaneQuickControls.qml \
