@@ -15,6 +15,7 @@ RaohaneBar 1.0 RaohaneBar.qml
 RaohaneWorkspaces 1.0 RaohaneWorkspaces.qml
 RaohaneSystemIcons 1.0 RaohaneSystemIcons.qml
 RaohaneClock 1.0 RaohaneClock.qml
+RaohaneSysTray 1.0 RaohaneSysTray.qml
 RaohaneContextIsland 1.0 RaohaneContextIsland.qml
 RaohaneControlCenter 1.0 RaohaneControlCenter.qml
 RaohaneQuickControls 1.0 RaohaneQuickControls.qml
