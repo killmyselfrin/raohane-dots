@@ -18,8 +18,9 @@ bridge='modules/raohane/RaohaneLegacyBridge.qml'
 bar='modules/raohane/RaohaneBar.qml'
 settings_content='modules/raohane/RaohaneSettingsContent.qml'
 family='panelFamilies/RaohaneFamily.qml'
+shell='shell.qml'
 
-for path in "$config" "$paths" "$qmldir" "$state" "$bridge" "$bar" "$settings_content" "$family"; do
+for path in "$config" "$paths" "$qmldir" "$state" "$bridge" "$bar" "$settings_content" "$family" "$shell"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -69,6 +70,12 @@ rg -q 'RaohanePaths\.compatibilityConfigFile' "$settings_content" \
   || fail 'RaohaneSettingsContent does not use RaohanePaths for the compatibility config path'
 if rg -n '\bDirectories\.' "$settings_content"; then
   fail 'RaohaneSettingsContent regressed to inherited Directories'
+fi
+
+rg -q 'RaohanePaths\.scriptsPath' "$shell" \
+  || fail 'shell bootstrap does not use RaohanePaths for scripts'
+if rg -n 'Directories\.scriptPath' "$shell"; then
+  fail 'shell bootstrap regressed to inherited Directories for scripts'
 fi
 
 rg -q 'RaohaneConfig\.barVertical' "$family" \
