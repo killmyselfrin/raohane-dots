@@ -13,9 +13,8 @@ import qs.services
 import qs.modules.common
 import qs.modules.ii.bar
 
-// Raohane-owned shell chrome using the mature end4-pC workspace, tray and
-// system backends. The presentation lives here while hardware/system behavior
-// remains delegated to tested foundation services during migration.
+// Raohane-owned shell chrome. Workspace ownership is native Hyprland; tray and
+// system icon backends remain delegated to compatibility components for now.
 Scope {
     id: root
 
@@ -168,8 +167,9 @@ Scope {
                             color: RaohaneTheme.border
                         }
 
-                        Workspaces {
+                        RaohaneWorkspaces {
                             Layout.alignment: Qt.AlignVCenter
+                            screen: barWindow.screen
                         }
                     }
                 }
