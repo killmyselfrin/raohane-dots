@@ -13,6 +13,8 @@ QtObject {
 
     property bool barOpen: true
     property bool controlCenterOpen: false
+    property bool settingsOpen: false
+    property bool sessionOpen: false
     property bool screenLocked: false
     property bool superDown: false
 
@@ -22,5 +24,7 @@ QtObject {
         wallpaperSelectorOpen = false
         overviewOpen = false
         controlCenterOpen = false
+        settingsOpen = false
+        sessionOpen = false
     }
 }
