@@ -26,6 +26,14 @@ Singleton {
             stateProbe.running = true
     }
 
+    function launchUi(): void {
+        Quickshell.execDetached([
+            "bash", "-lc",
+            "if command -v easyeffects >/dev/null 2>&1; then easyeffects; "
+                + "elif command -v flatpak >/dev/null 2>&1; then flatpak run com.github.wwmm.easyeffects; fi"
+        ])
+    }
+
     function disable(): void {
         root.active = false
         Quickshell.execDetached([
