@@ -16,9 +16,10 @@ qmldir="$config_module/qmldir"
 state='modules/raohane/RaohaneState.qml'
 bridge='modules/raohane/RaohaneLegacyBridge.qml'
 bar='modules/raohane/RaohaneBar.qml'
+settings_content='modules/raohane/RaohaneSettingsContent.qml'
 family='panelFamilies/RaohaneFamily.qml'
 
-for path in "$config" "$paths" "$qmldir" "$state" "$bridge" "$bar" "$family"; do
+for path in "$config" "$paths" "$qmldir" "$state" "$bridge" "$bar" "$settings_content" "$family"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -60,6 +61,14 @@ for symbol in \
 done
 if rg -n '^import qs$|^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.' "$bar"; then
   fail 'RaohaneBar regressed to inherited config/state/common framework'
+fi
+
+rg -q 'RaohanePaths\.defaultAvatarUrl' "$settings_content" \
+  || fail 'RaohaneSettingsContent does not use RaohanePaths for its avatar fallback'
+rg -q 'RaohanePaths\.compatibilityConfigFile' "$settings_content" \
+  || fail 'RaohaneSettingsContent does not use RaohanePaths for the compatibility config path'
+if rg -n '\bDirectories\.' "$settings_content"; then
+  fail 'RaohaneSettingsContent regressed to inherited Directories'
 fi
 
 rg -q 'RaohaneConfig\.barVertical' "$family" \
