@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 
-import qs.modules.common.widgets
 import qs.modules.raohane.services
 
 Item {
@@ -109,7 +108,7 @@ Item {
                     border.width: 1
                     border.color: RaohaneTheme.border
 
-                    MaterialSymbol {
+                    RaohaneIcon {
                         anchors.centerIn: parent
                         text: "notifications_none"
                         iconSize: 26
@@ -151,7 +150,7 @@ Item {
         border.width: 1
         border.color: active || mouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
 
-        MaterialSymbol {
+        RaohaneIcon {
             anchors.centerIn: parent
             text: action.icon
             iconSize: 15
