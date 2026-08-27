@@ -68,6 +68,8 @@ jobs:
           files=(
             shell.qml
             panelFamilies/RaohaneFamily.qml
+            services/Audio.qml
+            services/BluetoothStatus.qml
             services/Notifications.qml
             services/Wallpapers.qml
             services/SessionWarnings.qml
@@ -123,6 +125,8 @@ jobs:
             translations
             scripts/raohane
             scripts/install-deps.sh
+            services/Audio.qml
+            services/BluetoothStatus.qml
             services/Notifications.qml
             services/Wallpapers.qml
             services/SessionWarnings.qml
