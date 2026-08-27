@@ -4,21 +4,19 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
-import qs
-
 Scope {
     id: root
 
-    Component.onCompleted: GlobalStates.settingsOpen = false
+    Component.onCompleted: RaohaneState.settingsOpen = false
 
     PanelWindow {
         id: panelWindow
-        visible: GlobalStates.settingsOpen
+        visible: RaohaneState.settingsOpen
         exclusiveZone: 0
         color: "transparent"
         WlrLayershell.namespace: "quickshell:raohane-settings"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: GlobalStates.settingsOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: RaohaneState.settingsOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
         anchors {
             top: true
@@ -27,7 +25,7 @@ Scope {
             right: true
         }
 
-        function hide(): void { GlobalStates.settingsOpen = false }
+        function hide(): void { RaohaneState.settingsOpen = false }
 
         onVisibleChanged: {
             if (visible)
@@ -44,7 +42,7 @@ Scope {
         Rectangle {
             anchors.fill: parent
             color: "#6608070d"
-            opacity: GlobalStates.settingsOpen ? 1 : 0
+            opacity: RaohaneState.settingsOpen ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 180 } }
 
             MouseArea {
@@ -63,8 +61,8 @@ Scope {
             border.width: 1
             border.color: RaohaneTheme.border
             clip: true
-            opacity: GlobalStates.settingsOpen ? 1 : 0
-            scale: GlobalStates.settingsOpen ? 1 : 0.965
+            opacity: RaohaneState.settingsOpen ? 1 : 0
+            scale: RaohaneState.settingsOpen ? 1 : 0.965
 
             Behavior on opacity { NumberAnimation { duration: 190; easing.type: Easing.OutCubic } }
             Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
@@ -223,15 +221,15 @@ Scope {
 
         IpcHandler {
             target: "settings"
-            function toggle(): void { GlobalStates.settingsOpen = !GlobalStates.settingsOpen }
-            function open(): void { GlobalStates.settingsOpen = true }
-            function close(): void { GlobalStates.settingsOpen = false }
+            function toggle(): void { RaohaneState.settingsOpen = !RaohaneState.settingsOpen }
+            function open(): void { RaohaneState.settingsOpen = true }
+            function close(): void { RaohaneState.settingsOpen = false }
         }
 
         CompositorGlobalShortcut {
             name: "settingsToggle"
             description: "Toggles Raohane settings"
-            onPressed: GlobalStates.settingsOpen = !GlobalStates.settingsOpen
+            onPressed: RaohaneState.settingsOpen = !RaohaneState.settingsOpen
         }
     }
 }
