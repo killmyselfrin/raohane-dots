@@ -58,8 +58,10 @@ rg -q 'RaohaneBluetooth\.' modules/raohane/RaohaneQuickControls.qml \
 if rg -n 'BluetoothStatus|Bluetooth\.defaultAdapter' modules/raohane/RaohaneQuickControls.qml; then
   fail 'RaohaneQuickControls use inherited/direct Bluetooth plumbing'
 fi
-if rg -n 'Quickshell\.Bluetooth|Bluetooth\.defaultAdapter' "$MODULE/RaohaneBluetooth.qml"; then
-  fail 'RaohaneBluetooth regressed to the Quickshell BlueZ object-manager backend'
+rg -q 'RaohaneBluetooth' services/BluetoothStatus.qml \
+  || fail 'compatibility BluetoothStatus facade is not routed to RaohaneBluetooth'
+if rg -n 'Quickshell\.Bluetooth|Bluetooth\.defaultAdapter' "$MODULE/RaohaneBluetooth.qml" services/BluetoothStatus.qml; then
+  fail 'Raohane bluetooth graph regressed to the Quickshell BlueZ object-manager backend'
 fi
 
 rg -q 'RaohaneAudio\.' modules/raohane/RaohaneQuickControls.qml \
