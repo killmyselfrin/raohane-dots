@@ -8,6 +8,7 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.raohane.config
 
 Item {
     id: root
@@ -112,7 +113,7 @@ Item {
                                 anchors.fill: parent
                                 source: Config.options.profile.avatarPicture !== ""
                                     ? "file://" + Config.options.profile.avatarPicture
-                                    : "file://" + Directories.userAvatarPathRicersAndWeirdSystems
+                                    : RaohanePaths.defaultAvatarUrl
                                 fillMode: Image.PreserveAspectCrop
                                 visible: status === Image.Ready
                             }
@@ -271,10 +272,10 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: mouse => {
                             if (mouse.button === Qt.RightButton) {
-                                Quickshell.clipboardText = Directories.shellConfigPath
+                                Quickshell.clipboardText = RaohanePaths.compatibilityConfigFile
                                 copiedTimer.restart()
                             } else {
-                                Qt.openUrlExternally("file://" + Directories.shellConfigPath)
+                                Qt.openUrlExternally("file://" + RaohanePaths.compatibilityConfigFile)
                             }
                         }
                     }
