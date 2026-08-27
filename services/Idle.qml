@@ -1,51 +1,36 @@
 pragma Singleton
-import qs.modules.common
-import QtQuick
-import Quickshell
-import Quickshell.Wayland
+pragma ComponentBehavior: Bound
 
-/**
- * A nice wrapper for date and time strings.
- */
+import QtQuick
+
+import qs.modules.raohane.services
+
+// Temporary compatibility facade for inherited consumers. RaohaneIdle owns
+// the actual Wayland IdleInhibitor; this service only preserves the old API.
 Singleton {
     id: root
 
-    property alias inhibit: idleInhibitor.enabled
-    inhibit: false
+    property bool inhibit: RaohaneIdle.inhibit
+    property bool syncing: false
+
+    function toggleInhibit(active = null): void {
+        if (active !== null)
+            RaohaneIdle.setInhibit(Boolean(active))
+        else
+            RaohaneIdle.toggleInhibit()
+    }
+
+    onInhibitChanged: {
+        if (!root.syncing && root.inhibit !== RaohaneIdle.inhibit)
+            RaohaneIdle.setInhibit(root.inhibit)
+    }
 
     Connections {
-        target: Persistent
-        function onReadyChanged() {
-            root.inhibit = Persistent.states.idle.inhibit;
-        }
-    }
-
-    function toggleInhibit(active = null) {
-        if (active !== null) {
-            root.inhibit = active;
-        } else {
-            root.inhibit = !root.inhibit;
-        }
-        Persistent.states.idle.inhibit = root.inhibit;
-    }
-
-    IdleInhibitor {
-        id: idleInhibitor
-        window: PanelWindow {
-            // Inhibitor requires a "visible" surface
-            // Actually not lol
-            implicitWidth: 0
-            implicitHeight: 0
-            color: "transparent"
-            // Just in case...
-            anchors {
-                right: true
-                bottom: true
-            }
-            // Make it not interactable
-            mask: Region {
-                item: null
-            }
+        target: RaohaneIdle
+        function onInhibitChanged(): void {
+            root.syncing = true
+            root.inhibit = RaohaneIdle.inhibit
+            root.syncing = false
         }
     }
 }
