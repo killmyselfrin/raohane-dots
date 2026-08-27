@@ -14,7 +14,6 @@ Scope {
     id: root
 
     property int selectedIndex: 0
-    property bool releaseArmed: false
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
@@ -387,18 +386,11 @@ Scope {
         function workspacesToggle(): void { root.toggle() }
         function close(): void { root.close() }
         function open(): void { root.open() }
-        function toggleReleaseInterrupt(): void { root.releaseArmed = false }
         function clipboardToggle(): void {
             root.close()
             RaohaneSearch.query = ":"
             RaohaneState.launcherOpen = true
         }
-    }
-
-    CompositorGlobalShortcut {
-        name: "searchToggle"
-        description: "Toggle Raohane workspace overview"
-        onPressed: root.toggle()
     }
 
     CompositorGlobalShortcut {
@@ -411,23 +403,6 @@ Scope {
         name: "overviewWorkspacesToggle"
         description: "Toggle Raohane workspace overview"
         onPressed: root.toggle()
-    }
-
-    CompositorGlobalShortcut {
-        name: "searchToggleRelease"
-        description: "Toggle Raohane workspace overview on release"
-        onPressed: root.releaseArmed = true
-        onReleased: {
-            if (root.releaseArmed)
-                root.toggle()
-            root.releaseArmed = false
-        }
-    }
-
-    CompositorGlobalShortcut {
-        name: "searchToggleReleaseInterrupt"
-        description: "Cancel pending overview release toggle"
-        onPressed: root.releaseArmed = false
     }
 
     CompositorGlobalShortcut {
