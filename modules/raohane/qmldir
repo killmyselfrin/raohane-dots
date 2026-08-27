@@ -3,6 +3,7 @@ singleton RaohaneTheme 1.0 RaohaneTheme.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneState 1.0 RaohaneState.qml
 singleton RaohanePrivacy 1.0 RaohanePrivacy.qml
+singleton RaohaneFocusGrab 1.0 RaohaneFocusGrab.qml
 singleton RaohaneLegacyBridge 1.0 RaohaneLegacyBridge.qml
 CompositorGlobalShortcut 1.0 CompositorGlobalShortcut.qml
 RaohanePanelLoader 1.0 RaohanePanelLoader.qml
