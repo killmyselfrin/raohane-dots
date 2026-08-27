@@ -28,14 +28,14 @@ Item {
             left: parent.left
             right: parent.right
         }
-        spacing: 9
+        spacing: 11
 
         GridLayout {
             id: toggleGrid
             Layout.fillWidth: true
             columns: 2
-            columnSpacing: 8
-            rowSpacing: 8
+            columnSpacing: 10
+            rowSpacing: 10
 
             QuickTile {
                 Layout.fillWidth: true
@@ -112,11 +112,23 @@ Item {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: sliderColumn.implicitHeight + 18
-            radius: 17
-            color: "#6f17141f"
+            Layout.preferredHeight: sliderColumn.implicitHeight + 22
+            radius: 20
+            color: "#76171420"
             border.width: 1
             border.color: RaohaneTheme.border
+
+            Rectangle {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    leftMargin: 18
+                    rightMargin: 18
+                }
+                height: 1
+                color: "#22ffffff"
+            }
 
             ColumnLayout {
                 id: sliderColumn
@@ -124,7 +136,7 @@ Item {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    margins: 9
+                    margins: 11
                 }
                 spacing: 7
 
@@ -202,37 +214,110 @@ Item {
         signal primary()
         signal secondary()
 
-        Layout.preferredHeight: 58
-        radius: 17
-        color: active ? RaohaneTheme.accentSoft : "#6f17141f"
+        readonly property bool hovered: pointer.containsMouse
+
+        Layout.preferredHeight: 66
+        radius: 20
+        color: active ? "#8b2b203b" : (hovered ? "#841c1826" : "#76171420")
         border.width: 1
-        border.color: active || pointer.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        border.color: active ? RaohaneTheme.accent : (hovered ? "#58ffffff" : RaohaneTheme.border)
+
+        Behavior on color { ColorAnimation { duration: 140 } }
+        Behavior on border.color { ColorAnimation { duration: 140 } }
+
+        Rectangle {
+            anchors {
+                fill: parent
+                margins: 1
+            }
+            radius: tile.radius - 1
+            color: "transparent"
+            border.width: 1
+            border.color: tile.active ? "#1fffffff" : (tile.hovered ? "#12ffffff" : "transparent")
+
+            Behavior on border.color { ColorAnimation { duration: 140 } }
+        }
+
+        Rectangle {
+            visible: tile.active
+            anchors {
+                left: parent.left
+                top: parent.top
+                bottom: parent.bottom
+                leftMargin: 5
+                topMargin: 16
+                bottomMargin: 16
+            }
+            width: 3
+            radius: 2
+            color: RaohaneTheme.accent
+            opacity: 0.9
+        }
+
+        Rectangle {
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+                leftMargin: 18
+                rightMargin: 18
+            }
+            height: 1
+            color: tile.hovered || tile.active ? "#26ffffff" : "#10ffffff"
+
+            Behavior on color { ColorAnimation { duration: 140 } }
+        }
 
         RowLayout {
             anchors {
                 fill: parent
-                leftMargin: 11
-                rightMargin: 10
+                leftMargin: 12
+                rightMargin: 12
             }
-            spacing: 9
+            spacing: 10
 
-            Rectangle {
-                width: 32
-                height: 32
-                radius: 11
-                color: tile.active ? "#30ffffff" : "#18ffffff"
+            Item {
+                Layout.preferredWidth: 40
+                Layout.preferredHeight: 40
 
-                RaohaneIcon {
+                Rectangle {
                     anchors.centerIn: parent
-                    text: tile.icon
-                    iconSize: 18
-                    color: tile.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    width: tile.active ? 40 : (tile.hovered ? 38 : 36)
+                    height: width
+                    radius: 14
+                    color: RaohaneTheme.accent
+                    opacity: tile.active ? 0.13 : (tile.hovered ? 0.08 : 0.03)
+
+                    Behavior on width { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on opacity { NumberAnimation { duration: 140 } }
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 34
+                    height: 34
+                    radius: 12
+                    color: tile.active ? "#2effffff" : (tile.hovered ? "#20ffffff" : "#14ffffff")
+                    border.width: 1
+                    border.color: tile.active ? "#44ffffff" : (tile.hovered ? "#26ffffff" : "#12ffffff")
+
+                    Behavior on color { ColorAnimation { duration: 140 } }
+                    Behavior on border.color { ColorAnimation { duration: 140 } }
+
+                    RaohaneIcon {
+                        anchors.centerIn: parent
+                        text: tile.icon
+                        iconSize: 18
+                        color: tile.active || tile.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                        Behavior on color { ColorAnimation { duration: 140 } }
+                    }
                 }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: -1
+                spacing: 1
 
                 Text {
                     Layout.fillWidth: true
@@ -246,17 +331,41 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: tile.subtitle
-                    color: RaohaneTheme.textMuted
+                    color: tile.active ? "#c8ffffff" : RaohaneTheme.textMuted
                     font.pixelSize: 8
                     elide: Text.ElideRight
+
+                    Behavior on color { ColorAnimation { duration: 140 } }
                 }
             }
 
-            Rectangle {
-                width: 7
-                height: 7
-                radius: 4
-                color: tile.active ? RaohaneTheme.accent : "#4dffffff"
+            Item {
+                Layout.preferredWidth: 22
+                Layout.preferredHeight: 22
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 18
+                    height: 18
+                    radius: 9
+                    color: tile.active ? RaohaneTheme.accentSoft : "#10ffffff"
+                    border.width: 1
+                    border.color: tile.active ? "#66ffffff" : "#18ffffff"
+
+                    Behavior on color { ColorAnimation { duration: 140 } }
+                    Behavior on border.color { ColorAnimation { duration: 140 } }
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: tile.active ? 7 : 5
+                        height: width
+                        radius: width / 2
+                        color: tile.active ? RaohaneTheme.accent : "#5affffff"
+
+                        Behavior on width { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                        Behavior on color { ColorAnimation { duration: 140 } }
+                    }
+                }
             }
         }
 
