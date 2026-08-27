@@ -10,10 +10,9 @@ import Quickshell.Hyprland
 
 import qs
 import qs.modules.common
-import qs.modules.ii.bar
 
-// Raohane-owned shell chrome. Workspaces, status and clock are native; only
-// the system tray remains delegated to the compatibility bar module for now.
+// Raohane-owned shell chrome. Workspaces, tray, status and clock are native;
+// remaining compatibility dependencies are limited to shared config/state.
 Scope {
     id: root
 
@@ -213,8 +212,9 @@ Scope {
                         }
                         spacing: 8
 
-                        SysTray {
+                        RaohaneSysTray {
                             Layout.alignment: Qt.AlignVCenter
+                            parentWindow: barWindow
                         }
 
                         RaohaneSystemIcons {
