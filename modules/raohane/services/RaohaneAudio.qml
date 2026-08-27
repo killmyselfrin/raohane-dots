@@ -3,37 +3,78 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Services.Pipewire
+import Quickshell.Io
 
 Singleton {
     id: root
 
-    readonly property PwNode sink: Pipewire.defaultAudioSink
-    readonly property PwNode source: Pipewire.defaultAudioSource
-    readonly property bool ready: sink?.ready ?? false
+    property bool ready: false
+    property bool microphoneReady: false
+    property real volume: 0
+    property bool muted: false
+    property real microphoneVolume: 0
+    property bool microphoneMuted: false
 
-    readonly property real volume: sink?.audio?.volume ?? 0
-    readonly property bool muted: sink?.audio?.muted ?? false
-    readonly property real microphoneVolume: source?.audio?.volume ?? 0
-    readonly property bool microphoneMuted: source?.audio?.muted ?? false
-
-    readonly property var outputStreams: Pipewire.nodes.values.filter(node => node.isSink && node.isStream && node.audio)
-    readonly property var inputStreams: Pipewire.nodes.values.filter(node => !node.isSink && node.isStream && node.audio)
-    readonly property var outputDevices: Pipewire.nodes.values.filter(node => node.isSink && !node.isStream && node.audio)
-    readonly property var inputDevices: Pipewire.nodes.values.filter(node => !node.isSink && !node.isStream && node.audio)
+    // Keep the existing service surface stable while device/stream enumeration
+    // is migrated separately. Raohane's active UI currently consumes the
+    // default sink/source controls only.
+    readonly property var outputStreams: []
+    readonly property var inputStreams: []
+    readonly property var outputDevices: []
+    readonly property var inputDevices: []
 
     function clampVolume(value: real): real {
-        return Math.max(0, Math.min(1, value))
+        return Math.max(0, Math.min(1, Number(value) || 0))
+    }
+
+    function parseVolume(text): var {
+        const value = String(text ?? "")
+        const match = value.match(/Volume:\s*([0-9]+(?:\.[0-9]+)?)/)
+        if (!match)
+            return null
+        return {
+            volume: root.clampVolume(Number(match[1])),
+            muted: /\[MUTED\]/i.test(value)
+        }
+    }
+
+    function applySink(text): void {
+        const parsed = root.parseVolume(text)
+        if (!parsed)
+            return
+        const wasReady = root.ready
+        root.volume = parsed.volume
+        root.muted = parsed.muted
+        root.ready = true
+        if (!wasReady)
+            console.debug("[RaohaneAudio] wpctl sink ready")
+    }
+
+    function applySource(text): void {
+        const parsed = root.parseVolume(text)
+        if (!parsed)
+            return
+        root.microphoneVolume = parsed.volume
+        root.microphoneMuted = parsed.muted
+        root.microphoneReady = true
+    }
+
+    function refresh(): void {
+        if (!sinkProbe.running)
+            sinkProbe.exec(["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]) 
+        if (!sourceProbe.running)
+            sourceProbe.exec(["wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@"]) 
     }
 
     function setVolume(value: real): void {
-        if (root.sink?.audio)
-            root.sink.audio.volume = root.clampVolume(value)
+        const next = root.clampVolume(value)
+        root.volume = next
+        Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", next.toFixed(4)])
     }
 
     function setMuted(value: bool): void {
-        if (root.sink?.audio)
-            root.sink.audio.muted = value
+        root.muted = Boolean(value)
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", root.muted ? "1" : "0"])
     }
 
     function toggleMute(): void {
@@ -41,13 +82,14 @@ Singleton {
     }
 
     function setMicrophoneVolume(value: real): void {
-        if (root.source?.audio)
-            root.source.audio.volume = root.clampVolume(value)
+        const next = root.clampVolume(value)
+        root.microphoneVolume = next
+        Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", next.toFixed(4)])
     }
 
     function setMicrophoneMuted(value: bool): void {
-        if (root.source?.audio)
-            root.source.audio.muted = value
+        root.microphoneMuted = Boolean(value)
+        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", root.microphoneMuted ? "1" : "0"])
     }
 
     function toggleMicrophoneMute(): void {
@@ -55,16 +97,37 @@ Singleton {
     }
 
     function setDefaultSink(node): void {
-        if (node)
-            Pipewire.preferredDefaultAudioSink = node
+        if (node?.id !== undefined && Number(node.id) >= 0)
+            Quickshell.execDetached(["wpctl", "set-default", String(node.id)])
     }
 
     function setDefaultSource(node): void {
-        if (node)
-            Pipewire.preferredDefaultAudioSource = node
+        if (node?.id !== undefined && Number(node.id) >= 0)
+            Quickshell.execDetached(["wpctl", "set-default", String(node.id)])
     }
 
-    PwObjectTracker {
-        objects: [root.sink, root.source]
+    Process {
+        id: sinkProbe
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        stdout: StdioCollector {
+            onStreamFinished: root.applySink(text)
+        }
     }
+
+    Process {
+        id: sourceProbe
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        stdout: StdioCollector {
+            onStreamFinished: root.applySource(text)
+        }
+    }
+
+    Timer {
+        interval: 400
+        repeat: true
+        running: true
+        onTriggered: root.refresh()
+    }
+
+    Component.onCompleted: root.refresh()
 }
