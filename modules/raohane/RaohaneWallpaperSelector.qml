@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 
-import QtCore
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -9,8 +8,6 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
-import qs.services
-import qs.modules.common.widgets
 import qs.modules.raohane.config
 import qs.modules.raohane.services
 
@@ -19,8 +16,8 @@ Scope {
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
-    readonly property string homePath: RaohaneWallpapers.cleanPath(StandardPaths.standardLocations(StandardPaths.HomeLocation)[0] ?? "")
-    readonly property string picturesPath: RaohaneWallpapers.cleanPath(StandardPaths.standardLocations(StandardPaths.PicturesLocation)[0] ?? "")
+    readonly property string homePath: RaohanePaths.home
+    readonly property string picturesPath: RaohanePaths.pictures
 
     function isVideo(path: string): bool {
         const lower = (path ?? "").toLowerCase()
@@ -85,13 +82,13 @@ Scope {
 
             Component.onCompleted: {
                 RaohaneWallpapers.load()
-                GlobalFocusGrab.addDismissable(panelWindow)
+                RaohaneFocusGrab.addDismissable(panelWindow)
                 searchField.forceActiveFocus()
             }
-            Component.onDestruction: GlobalFocusGrab.removeDismissable(panelWindow)
+            Component.onDestruction: RaohaneFocusGrab.removeDismissable(panelWindow)
 
             Connections {
-                target: GlobalFocusGrab
+                target: RaohaneFocusGrab
                 function onDismissed(): void { root.close() }
             }
 
@@ -177,7 +174,7 @@ Scope {
                                     anchors.rightMargin: 10
                                     spacing: 8
 
-                                    MaterialSymbol {
+                                    RaohaneIcon {
                                         text: "search"
                                         iconSize: 17
                                         color: RaohaneTheme.textMuted
@@ -337,7 +334,7 @@ Scope {
                                             GradientStop { position: 1.0; color: "#b20c0a11" }
                                         }
 
-                                        MaterialSymbol {
+                                        RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: "movie"
                                             iconSize: 38
@@ -362,7 +359,7 @@ Scope {
                                         radius: 18
                                         color: RaohaneTheme.accentSoft
 
-                                        MaterialSymbol {
+                                        RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: "folder"
                                             iconSize: 28
@@ -379,7 +376,7 @@ Scope {
                                         }
                                         spacing: 6
 
-                                        MaterialSymbol {
+                                        RaohaneIcon {
                                             text: cell.isDirectory ? "folder"
                                                 : cell.selected ? "check_circle"
                                                 : cell.isVideo ? "movie" : "image"
@@ -426,7 +423,7 @@ Scope {
                             visible: RaohaneWallpapers.folderModel.count === 0
                             spacing: 7
 
-                            MaterialSymbol {
+                            RaohaneIcon {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: "image_not_supported"
                                 iconSize: 34
@@ -493,7 +490,7 @@ Scope {
         border.width: 1
         border.color: emphasized || pointer.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
 
-        MaterialSymbol {
+        RaohaneIcon {
             anchors.centerIn: parent
             text: button.icon
             iconSize: 18
@@ -524,7 +521,7 @@ Scope {
         Row {
             anchors.centerIn: parent
             spacing: 6
-            MaterialSymbol { text: dir.icon; iconSize: 14; color: RaohaneTheme.textMuted }
+            RaohaneIcon { text: dir.icon; iconSize: 14; color: RaohaneTheme.textMuted }
             Text {
                 id: label
                 text: dir.title
