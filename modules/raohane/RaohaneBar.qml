@@ -9,12 +9,11 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs
-import qs.services
 import qs.modules.common
 import qs.modules.ii.bar
 
-// Raohane-owned shell chrome. Workspace ownership is native Hyprland; tray and
-// system icon backends remain delegated to compatibility components for now.
+// Raohane-owned shell chrome. Workspaces, status and clock are native; only
+// the system tray remains delegated to the compatibility bar module for now.
 Scope {
     id: root
 
@@ -40,9 +39,9 @@ Scope {
             property bool superShow: false
             readonly property bool autoHide: Config.options.bar.autoHide.enable
             readonly property bool mustShow: !autoHide || hoverRegion.containsMouse || superShow
-            readonly property var monitorData: HyprlandData.monitors.find(m => m.name === barWindow.screen?.name)
-            readonly property bool monitorHasFullscreen: HyprlandData.workspaceById[monitorData?.activeWorkspace?.id]?.hasfullscreen ?? false
-            readonly property bool monitorHasSpecialOpen: (monitorData?.specialWorkspace?.name ?? "") !== ""
+            readonly property var hyprMonitor: Hyprland.monitorFor(barWindow.screen)
+            readonly property bool monitorHasFullscreen: hyprMonitor?.activeWorkspace?.hasFullscreen ?? false
+            readonly property bool monitorHasSpecialOpen: (hyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
 
             exclusiveZone: (autoHide && (!mustShow || !Config.options.bar.autoHide.pushWindows))
                 ? 0
@@ -218,8 +217,9 @@ Scope {
                             Layout.alignment: Qt.AlignVCenter
                         }
 
-                        SystemIcons {
+                        RaohaneSystemIcons {
                             Layout.alignment: Qt.AlignVCenter
+                            onActivated: GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen
                         }
 
                         Rectangle {
@@ -228,23 +228,9 @@ Scope {
                             color: RaohaneTheme.border
                         }
 
-                        ColumnLayout {
+                        RaohaneClock {
                             Layout.alignment: Qt.AlignVCenter
-                            spacing: -2
-
-                            Text {
-                                text: DateTime.time
-                                color: RaohaneTheme.text
-                                font.pixelSize: 12
-                                font.weight: Font.DemiBold
-                            }
-
-                            Text {
-                                visible: Config.options.time.showDate
-                                text: DateTime.shortDate
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 8
-                            }
+                            showDate: Config.options.time.showDate
                         }
 
                         Rectangle {
