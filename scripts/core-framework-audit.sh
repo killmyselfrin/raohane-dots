@@ -19,12 +19,14 @@ focus='modules/raohane/RaohaneFocusGrab.qml'
 bridge='modules/raohane/RaohaneLegacyBridge.qml'
 bar='modules/raohane/RaohaneBar.qml'
 launcher='modules/raohane/RaohaneLauncher.qml'
+overview='modules/raohane/RaohaneOverview.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContent.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
+installer='install-raohane.sh'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$settings" "$settings_content" "$family" "$shell"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$overview" "$settings" "$settings_content" "$family" "$shell" "$installer"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -91,9 +93,26 @@ rg -q 'RaohaneState\.settingsOpen' "$settings" \
 if rg -n '\bGlobalStates\.settingsOpen\b|^import qs$|^import qs\.modules\.common' "$settings"; then
   fail 'RaohaneSettings regressed to inherited root/common state'
 fi
+if rg -n 'Component\.onCompleted:[[:space:]]*RaohaneState\.settingsOpen[[:space:]]*=[[:space:]]*false' "$settings"; then
+  fail 'RaohaneSettings resets a valid open request during component startup'
+fi
 if rg -n '\bMaterialSymbol[[:space:]]*\{' "$settings"; then
   fail 'RaohaneSettings regressed to inherited MaterialSymbol'
 fi
+
+for symbol in 'RaohaneState\.settingsOpen' 'GlobalStates\.settingsOpen' 'onSettingsOpenChanged'; do
+  rg -q "$symbol" "$bridge" || fail "legacy bridge is missing settings synchronization: $symbol"
+done
+
+# Bare Super belongs to no launcher in Raohane. The old end4 searchToggle*
+# contract is intentionally removed; the native launcher remains SUPER+R.
+if rg -n 'name:[[:space:]]*"searchToggle(Release|ReleaseInterrupt)?"|\breleaseArmed\b' "$overview"; then
+  fail 'RaohaneOverview still exposes inherited bare-Super launcher hooks'
+fi
+rg -q 'unbind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*Super_L' "$installer" \
+  || fail 'installer does not free the inherited bare-Super launcher binding'
+rg -q 'bind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*R,[[:space:]]*exec,[[:space:]]*raohane launcher' "$installer" \
+  || fail 'installer lost the explicit Raohane launcher shortcut'
 
 rg -q 'RaohanePaths\.defaultAvatarUrl' "$settings_content" \
   || fail 'RaohaneSettingsContent does not use RaohanePaths for its avatar fallback'
@@ -118,8 +137,8 @@ fi
 for symbol in \
   'RaohaneConfig\.barVertical' 'RaohaneConfig\.barAutoHide' \
   'RaohaneConfig\.barScreenList' 'RaohaneState\.barOpen' \
-  'RaohaneState\.controlCenterOpen'; do
+  'RaohaneState\.controlCenterOpen' 'RaohaneState\.settingsOpen'; do
   rg -q "$symbol" "$bridge" || fail "legacy bridge is missing native synchronization: $symbol"
 done
 
-printf 'core-framework-audit: native paths, config v6, focus helper and bar/settings state boundaries are valid\n'
+printf 'core-framework-audit: native paths, config v6, focus helper, settings bridge and bare-Super boundaries are valid\n'
