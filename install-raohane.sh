@@ -189,6 +189,10 @@ cat > "$HYPR_SNIPPET" <<'HYPR'
 # Managed by install-raohane.sh
 exec-once = systemctl --user start raohane.service
 
+# Bare Super used to be owned by the inherited end4 overview/fallback launcher.
+# Raohane intentionally frees it; the native launcher has an explicit combo.
+unbind = SUPER, Super_L
+
 # Raohane shell controls
 bind = SUPER, R, exec, raohane launcher
 bind = SUPER, escape, exec, raohane settings
