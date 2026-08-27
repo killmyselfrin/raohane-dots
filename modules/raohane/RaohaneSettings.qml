@@ -7,8 +7,6 @@ import Quickshell.Wayland
 Scope {
     id: root
 
-    Component.onCompleted: RaohaneState.settingsOpen = false
-
     PanelWindow {
         id: panelWindow
         visible: RaohaneState.settingsOpen
