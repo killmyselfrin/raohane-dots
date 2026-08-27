@@ -1,12 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 
-import qs.services
 import qs.modules.raohane.config
 import qs.modules.raohane.services
 
@@ -19,8 +17,6 @@ Item {
     readonly property real brightnessValue: RaohaneDisplay.compositeValue(screen)
 
     implicitHeight: content.implicitHeight
-
-    Component.onCompleted: EasyEffects.fetchActiveState()
 
     ColumnLayout {
         id: content
@@ -93,20 +89,20 @@ Item {
                 Layout.fillWidth: true
                 icon: "coffee"
                 title: qsTr("Keep Awake")
-                subtitle: Idle.inhibit ? qsTr("Sleep blocked") : qsTr("Normal idle")
-                active: Idle.inhibit
-                onPrimary: Idle.toggleInhibit()
+                subtitle: RaohaneIdle.inhibit ? qsTr("Sleep blocked") : qsTr("Normal idle")
+                active: RaohaneIdle.inhibit
+                onPrimary: RaohaneIdle.toggleInhibit()
             }
 
             QuickTile {
                 Layout.fillWidth: true
-                visible: EasyEffects.available
+                visible: RaohaneEasyEffects.available
                 icon: "instant_mix"
                 title: qsTr("EasyEffects")
-                subtitle: EasyEffects.active ? qsTr("Processing") : qsTr("Bypassed")
-                active: EasyEffects.active
-                onPrimary: EasyEffects.toggle()
-                onSecondary: Quickshell.execDetached(["bash", "-c", "flatpak run com.github.wwmm.easyeffects || easyeffects"])
+                subtitle: RaohaneEasyEffects.active ? qsTr("Processing") : qsTr("Bypassed")
+                active: RaohaneEasyEffects.active
+                onPrimary: RaohaneEasyEffects.toggle()
+                onSecondary: RaohaneEasyEffects.launchUi()
             }
         }
 
