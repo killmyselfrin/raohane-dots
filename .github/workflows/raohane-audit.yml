@@ -55,6 +55,7 @@ jobs:
           bash -n scripts/service-boundary-audit.sh
           bash -n scripts/bar-boundary-audit.sh
           bash -n scripts/core-framework-audit.sh
+          bash -n scripts/wallpaper-boundary-audit.sh
           bash -n scripts/install-deps.sh
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
@@ -90,6 +91,7 @@ jobs:
           bash scripts/service-boundary-audit.sh
           bash scripts/bar-boundary-audit.sh
           bash scripts/core-framework-audit.sh
+          bash scripts/wallpaper-boundary-audit.sh
 
       - name: Validate current integration graph
         shell: bash
@@ -111,6 +113,7 @@ jobs:
             modules/raohane/RaohaneSysTray.qml
             modules/raohane/RaohaneSystemIcons.qml
             modules/raohane/RaohaneClock.qml
+            modules/raohane/RaohaneWallpaperSelector.qml
             modules/raohane/services/RaohaneMedia.qml
             modules/raohane/services/RaohaneBluetooth.qml
             modules/raohane/services/RaohaneAudio.qml
@@ -121,6 +124,8 @@ jobs:
             modules/raohane/services/RaohaneSession.qml
             modules/raohane/services/RaohaneSessionWarnings.qml
             modules/raohane/services/RaohaneSystemInfo.qml
+            modules/raohane/services/RaohaneIdle.qml
+            modules/raohane/services/RaohaneEasyEffects.qml
             modules/common/Directories.qml
             modules/common/functions/Session.qml
             panelFamilies/RaohaneFamily.qml
@@ -129,6 +134,7 @@ jobs:
             scripts/raohane
             scripts/install-deps.sh
             scripts/core-framework-audit.sh
+            scripts/wallpaper-boundary-audit.sh
             services/Notifications.qml
             services/Wallpapers.qml
             services/SessionWarnings.qml
