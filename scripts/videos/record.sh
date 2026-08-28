@@ -1,40 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-CONFIG_FILE="$CONFIG_HOME/raohane/config.json"
-
 notify() {
   if command -v notify-send >/dev/null 2>&1; then
     notify-send "$1" "${2:-}" -a 'Raohane Recorder' >/dev/null 2>&1 || true
   fi
 }
 
-config_recording_dir() {
-  python3 - "$CONFIG_FILE" <<'PY'
-import json
-import pathlib
-import sys
-
-path = pathlib.Path(sys.argv[1])
-if not path.is_file():
-    raise SystemExit(0)
-try:
-    data = json.loads(path.read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError):
-    raise SystemExit(0)
-value = data.get("screenRecord", {}).get("savePath", "")
-if isinstance(value, str) and value.strip():
-    print(value.strip())
-PY
-}
-
-recording_dir="$(config_recording_dir || true)"
+recording_dir="${RAOHANE_RECORDING_DIR:-}"
 if [[ -z "$recording_dir" ]]; then
   if command -v xdg-user-dir >/dev/null 2>&1; then
     recording_dir="$(xdg-user-dir VIDEOS 2>/dev/null || true)"
   fi
   recording_dir="${recording_dir:-$HOME/Videos}"
+fi
+
+# Keep paths deterministic and user-local. A relative override is interpreted
+# from the user's home rather than from whichever process launched Quickshell.
+if [[ "$recording_dir" != /* ]]; then
+  recording_dir="$HOME/$recording_dir"
 fi
 
 focused_monitor() {
@@ -94,6 +78,10 @@ Raohane screen recorder
 
 Usage:
   record.sh [--fullscreen] [--sound] [--region 'x,y WxH']
+
+Environment:
+  RAOHANE_RECORDING_DIR  Override the output directory. Relative values are
+                         resolved below $HOME.
 
 Run the command again while wf-recorder is active to stop recording cleanly.
 EOF
