@@ -102,6 +102,7 @@ required_runtime=(
   "scripts/raohane-audit.sh"
   "scripts/install-deps.sh"
   "scripts/migrate-legacy-config.py"
+  "scripts/prune-runtime.sh"
   "defaults/native.json"
   "install/arch/required.txt"
   "install/arch/features.txt"
@@ -190,8 +191,12 @@ fi
 
 find "$RUNTIME" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 cp -a "$ROOT"/. "$RUNTIME"/
+
+# The git checkout may still retain inherited trees temporarily as migration
+# reference/rollback material. The installed product does not: prune them before
+# the shell is started, including for --no-start installations.
+bash "$ROOT/scripts/prune-runtime.sh" "$RUNTIME"
 rm -f "$RUNTIME/install-raohane.sh"
-rm -rf "$RUNTIME/.git" "$RUNTIME/.github" "$RUNTIME/upstream"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
 
