@@ -16,7 +16,6 @@ config_qmldir="$config_module/qmldir"
 raohane_qmldir='modules/raohane/qmldir'
 state='modules/raohane/RaohaneState.qml'
 focus='modules/raohane/RaohaneFocusGrab.qml'
-bridge='modules/raohane/RaohaneLegacyBridge.qml'
 bar='modules/raohane/RaohaneBar.qml'
 launcher='modules/raohane/RaohaneLauncher.qml'
 overview='modules/raohane/RaohaneOverview.qml'
@@ -28,8 +27,9 @@ settings_content='modules/raohane/RaohaneSettingsContent.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
 installer='install-raohane.sh'
+root_qmldir='qmldir'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bridge" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$family" "$shell" "$installer"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$family" "$shell" "$installer" "$root_qmldir"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -38,10 +38,17 @@ for registration in \
   '^singleton RaohaneConfig .*RaohaneConfig.qml$'; do
   rg -q "$registration" "$config_qmldir" || fail "missing native config registration: $registration"
 done
-rg -q '^singleton RaohaneFocusGrab .*RaohaneFocusGrab.qml$' "$raohane_qmldir" \
-  || fail 'RaohaneFocusGrab is not registered'
-rg -q '^singleton RaohaneState .*RaohaneState.qml$' "$raohane_qmldir" \
-  || fail 'RaohaneState is not registered'
+for registration in \
+  '^singleton RaohaneFocusGrab .*RaohaneFocusGrab.qml$' \
+  '^singleton RaohaneState .*RaohaneState.qml$'; do
+  rg -q "$registration" "$raohane_qmldir" || fail "missing native module registration: $registration"
+done
+
+[[ "$(tr -d '\r' < "$root_qmldir")" == 'module qs' ]] \
+  || fail 'root qs module exports legacy types'
+if rg -n 'GlobalStates|RaohaneLegacyBridge' "$root_qmldir" "$raohane_qmldir"; then
+  fail 'legacy root/bridge singleton is registered in active modules'
+fi
 
 for symbol in 'StandardPaths\.standardLocations' 'Quickshell\.shellPath' 'configDirectory' 'nativeConfigFile' 'notificationsFile' 'defaultAvatarUrl'; do
   rg -q "$symbol" "$paths" || fail "RaohanePaths lost contract: $symbol"
@@ -64,7 +71,9 @@ for property_name in \
   hotCornersEnabled hotCornerValueScroll hotCornerClickless \
   hotCornerRegionWidth hotCornerRegionHeight hotCornerBottomLeftAction \
   hotCornerBottomRightAction hotCornerVisualize hotCornerClicklessEnd \
-  hotCornerVerticalOffset profileDisplayName profileAvatarPath; do
+  hotCornerVerticalOffset profileDisplayName profileAvatarPath \
+  quickSliderBrightness quickSliderVolume quickSliderMic \
+  contextIslandEnabled mediaOverlayEnabled integrationMode; do
   rg -q "property .* ${property_name}:" "$config" \
     || fail "RaohaneConfig missing product property: $property_name"
 done
@@ -80,13 +89,10 @@ for property_name in settingsPage wallpaperSelectorTarget; do
   rg -q "property string ${property_name}:" "$state" \
     || fail "RaohaneState missing routing property: $property_name"
 done
-rg -q 'function toggleAction\(name: string\)' "$state" \
-  || fail 'RaohaneState missing action router'
+rg -q 'function toggleAction\(name: string\)' "$state" || fail 'RaohaneState missing action router'
 
-rg -q '^import Quickshell\.Hyprland$' "$focus" \
-  || fail 'RaohaneFocusGrab is not bound to Hyprland'
-rg -q '\bHyprlandFocusGrab[[:space:]]*\{' "$focus" \
-  || fail 'RaohaneFocusGrab does not own HyprlandFocusGrab'
+rg -q '^import Quickshell\.Hyprland$' "$focus" || fail 'RaohaneFocusGrab is not bound to Hyprland'
+rg -q '\bHyprlandFocusGrab[[:space:]]*\{' "$focus" || fail 'RaohaneFocusGrab does not own HyprlandFocusGrab'
 if rg -n '^import qs\.|\bWM\.' "$focus"; then
   fail 'RaohaneFocusGrab depends on inherited compositor plumbing'
 fi
@@ -139,43 +145,30 @@ if rg -n '\bGlobalStates\.settingsOpen\b|^import qs$|^import qs\.modules\.common
   fail 'RaohaneSettings regressed to inherited root/common/widgets'
 fi
 
-for symbol in 'RaohanePaths\.defaultAvatarUrl' 'RaohanePaths\.compatibilityConfigFile' \
-  'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath'; do
+for symbol in \
+  'RaohanePaths\.defaultAvatarUrl' 'RaohanePaths\.nativeConfigFile' \
+  'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath' \
+  'nativeSectionPage' 'sectionEntries' 'RaohaneConfig\['; do
   rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost native contract: $symbol"
 done
-if rg -n '^import qs$|\bDirectories\.|\bConfig\.|\bGlobalStates\.' "$settings_content"; then
-  fail 'RaohaneSettingsContent regressed to inherited root/config/state/path framework'
+if rg -n '^import qs$|\bDirectories\.|\bConfig\.|\bGlobalStates\.|\.\./ii/settings/pages|modules/ii/settings/pages|compatibilityConfigFile' "$settings_content"; then
+  fail 'RaohaneSettingsContent regressed to inherited settings/config/path framework'
 fi
 
-# The compatibility bridge is retained only for lazy legacy settings pages.
-# It may mirror native state when explicitly used, but must never be part of
-# RaohaneFamily startup.
-rg -q 'RaohaneConfig' "$bridge" || fail 'compatibility bridge is disconnected from RaohaneConfig'
-if rg -n '\bRaohaneLegacyBridge\.load\b' "$family"; then
-  fail 'RaohaneFamily initializes compatibility bridge at boot'
-fi
-
-rg -q 'RaohaneConfig\.barVertical' "$family" \
-  || fail 'RaohaneFamily does not route bar orientation through native config'
-if rg -n '^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.' "$family"; then
+rg -q 'RaohaneConfig\.barVertical' "$family" || fail 'RaohaneFamily does not route bar orientation through native config'
+if rg -n '^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|\bRaohaneLegacyBridge\b' "$family"; then
   fail 'RaohaneFamily composition root depends on inherited framework'
 fi
 
-rg -q '^import "modules/raohane/config"$' "$shell" \
-  || fail 'shell bootstrap does not import native config'
-rg -q 'active:[[:space:]]*RaohaneConfig\.ready' "$shell" \
-  || fail 'shell bootstrap is not gated by native config readiness'
-rg -q 'component:[[:space:]]*RaohaneFamily[[:space:]]*\{' "$shell" \
-  || fail 'shell bootstrap does not load RaohaneFamily'
-if rg -n '^import "modules/common"|^import "services"|\bConfig\.|\bIllogicalImpulseFamily\b|\bRaohaneLegacyBridge\b' "$shell"; then
+rg -q '^import "modules/raohane/config"$' "$shell" || fail 'shell bootstrap does not import native config'
+rg -q 'active:[[:space:]]*RaohaneConfig\.ready' "$shell" || fail 'shell bootstrap is not gated by native config readiness'
+rg -q 'component:[[:space:]]*RaohaneFamily[[:space:]]*\{' "$shell" || fail 'shell bootstrap does not load RaohaneFamily'
+if rg -n '^import "modules/common"|^import "services"|\bConfig\.|\bGlobalStates\.|\bIllogicalImpulseFamily\b|\bRaohaneLegacyBridge\b' "$shell"; then
   fail 'shell bootstrap resolves inherited framework/family/bridge'
 fi
 
-# Hyprland integration belongs in native surface modules, not shell bootstrap.
-rg -q '^import Quickshell\.Hyprland$' "$bar" \
-  || fail 'RaohaneBar lost direct Hyprland integration'
+rg -q '^import Quickshell\.Hyprland$' "$bar" || fail 'RaohaneBar lost direct Hyprland integration'
 
-# Hyprland 0.55+ Lua override remains installation-owned.
 for symbol in \
   'HYPR_LUA_SNIPPET' 'hyprland\.lua' 'require\("raohane"\)' \
   'hl\.unbind\("SUPER \+ SUPER_L"\)' 'hl\.unbind\("SUPER \+ SUPER_R"\)' \
@@ -188,4 +181,4 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+E
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost move-window workspace binds'
 
-printf 'core-framework-audit: native paths/config/state/focus/composition and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus/settings/composition and boot boundaries are valid\n'
