@@ -15,6 +15,7 @@ qmldir='modules/raohane/qmldir'
 services_qmldir='modules/raohane/services/qmldir'
 required='install/arch/required.txt'
 features='install/arch/features.txt'
+translator_backend='scripts/screen-translate.sh'
 
 native_surfaces=(
   modules/raohane/RaohaneOverlay.qml
@@ -57,7 +58,7 @@ active_roots=(
   modules/raohane/RaohaneScreenFrame.qml
 )
 
-for path in "$shell" "$family" "$qmldir" "$services_qmldir" "$required" "$features" "${native_surfaces[@]}" "${active_roots[@]}"; do
+for path in "$shell" "$family" "$qmldir" "$services_qmldir" "$required" "$features" "$translator_backend" "${native_surfaces[@]}" "${active_roots[@]}"; do
   [[ -f "$path" ]] || fail "missing native runtime surface path: $path"
 done
 
@@ -142,6 +143,28 @@ for tool in grim slurp wf-recorder; do
   rg -q "^${tool}$" "$features" || fail "feature package manifest lost ${tool}"
 done
 rg -q '^wl-clipboard$' "$required" || fail 'required package manifest lost wl-clipboard'
+
+# Screen translation is now Raohane-owned end-to-end: native surface -> local
+# capture/OCR backend -> translate-shell. Keep both the UI contract and package
+# manifest under CI so cleanup work cannot silently regress it to a placeholder.
+for package in tesseract tesseract-data-eng tesseract-data-rus translate-shell; do
+  rg -q "^${package}$" "$features" || fail "screen translation package manifest lost ${package}"
+done
+for command in slurp grim tesseract trans python3; do
+  rg -q "command -v \"\$command\"" "$translator_backend" \
+    || fail "screen translation backend lost command probe: ${command}"
+done
+for contract in \
+  'scripts/screen-translate\.sh' \
+  'function startTranslation\(\)' \
+  'target:[[:space:]]*"screenTranslator"' \
+  'function translate\(\)' \
+  'name:[[:space:]]*"screenTranslate"' \
+  'Quickshell\.clipboardText'; do
+  rg -q "$contract" modules/raohane/RaohaneScreenTranslator.qml \
+    || fail "native screen translator lost contract: $contract"
+done
+bash -n "$translator_backend"
 
 for contract in \
   'RaohaneDropShelf\.addItems' \
