@@ -11,8 +11,7 @@ import Quickshell.Hyprland
 import qs.modules.raohane.config
 
 // Raohane-owned shell chrome. Workspaces, tray, status, clock, configuration
-// and runtime state are all native; compatibility synchronization is isolated
-// in RaohaneLegacyBridge.
+// and runtime state are all native and resolve only Raohane-owned contracts.
 Scope {
     id: root
 
