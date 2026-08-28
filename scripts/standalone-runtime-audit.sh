@@ -73,6 +73,8 @@ cp panelFamilies/RaohaneFamily.qml "$tmp_runtime/panelFamilies/"
 mkdir -p "$tmp_runtime/modules/common" "$tmp_runtime/modules/ii"
 touch \
   "$tmp_runtime/GlobalStates.qml" \
+  "$tmp_runtime/ReloadPopup.qml" \
+  "$tmp_runtime/AnotherInheritedRoot.qml" \
   "$tmp_runtime/defaults/config.json" \
   "$tmp_runtime/panelFamilies/IllogicalImpulseFamily.qml" \
   "$tmp_runtime/panelFamilies/ReferenceFamily.qml" \
@@ -85,6 +87,8 @@ for retired in \
   "$tmp_runtime/modules/ii" \
   "$tmp_runtime/services" \
   "$tmp_runtime/GlobalStates.qml" \
+  "$tmp_runtime/ReloadPopup.qml" \
+  "$tmp_runtime/AnotherInheritedRoot.qml" \
   "$tmp_runtime/defaults/config.json" \
   "$tmp_runtime/panelFamilies/IllogicalImpulseFamily.qml" \
   "$tmp_runtime/panelFamilies/ReferenceFamily.qml"; do
@@ -92,7 +96,10 @@ for retired in \
 done
 
 [[ -d "$tmp_runtime/modules/raohane" ]] || fail 'pruner removed native modules/raohane'
+[[ -f "$tmp_runtime/shell.qml" ]] || fail 'pruner removed shell.qml'
 [[ -f "$tmp_runtime/panelFamilies/RaohaneFamily.qml" ]] || fail 'pruner removed RaohaneFamily'
 [[ "$(tr -d '\r\n' < "$tmp_runtime/qmldir")" == 'module qs' ]] || fail 'pruner damaged root qmldir'
+root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
+[[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
 printf 'standalone-runtime-audit: native QML is legacy-independent; installer and launcher enforce native-only installed runtime\n'
