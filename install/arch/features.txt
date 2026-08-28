@@ -16,8 +16,10 @@ imagemagick
 hypridle
 hyprlock
 hyprpicker
+hyprsunset
 wf-recorder
 ydotool
+easyeffects
 libpulse
 pciutils
 python-pillow
