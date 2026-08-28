@@ -26,6 +26,8 @@ required_root=(
   scripts/runtime-surface-boundary-audit.sh
   scripts/install-deps.sh
   scripts/screen-translate.sh
+  scripts/region-ocr.sh
+  scripts/region-search.sh
   install-raohane.sh
   install/arch/required.txt
   install/arch/features.txt
@@ -48,8 +50,6 @@ while IFS= read -r module_dir; do
   done < "$module_dir"
 done < <(find . -name qmldir -not -path './.git/*' -print)
 
-# shell.qml lives in the root qs module, so every singleton exported from the
-# root qmldir can be resolved before the native family is instantiated.
 rg -q '^module[[:space:]]+qs$' qmldir \
   || fail 'root qmldir no longer declares module qs'
 if rg -n '^[[:space:]]*(singleton[[:space:]]+)?GlobalStates\b' qmldir; then
@@ -76,9 +76,6 @@ if rg -n '^import qs\.modules\.ii(\.|$)|\bRaohaneLegacyBridge\b|\bIllogicalImpul
   fail 'RaohaneFamily resolves a legacy presentation/bootstrap path'
 fi
 
-# The bridge was required only while inherited settings pages were reachable.
-# Settings and services are now native, so dead compatibility code must stay
-# physically removed rather than silently returning to the runtime tree.
 if [[ -e modules/raohane/RaohaneLegacyBridge.qml ]]; then
   fail 'retired RaohaneLegacyBridge returned to the runtime tree'
 fi
@@ -162,7 +159,8 @@ for route in \
   'ipc raohaneMedia toggle' \
   'ipc raohaneDesktop toggle' \
   'ipc wallpaperSelector toggle' \
-  'ipc session toggle'; do
+  'ipc session toggle' \
+  'ipc screenTranslator translate'; do
   rg -q "$route" scripts/raohane || fail "CLI route missing: $route"
 done
 
@@ -177,7 +175,9 @@ bash -n scripts/raohane-audit.sh
 bash -n scripts/runtime-surface-boundary-audit.sh
 bash -n scripts/install-deps.sh
 bash -n scripts/screen-translate.sh
+bash -n scripts/region-ocr.sh
+bash -n scripts/region-search.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native bootstrap, retired bridge, root/native singleton registration, active surface graph, installation and config boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, capture backends, retired bridge, root/native singleton registration, active surface graph and installation boundaries are valid\n'
