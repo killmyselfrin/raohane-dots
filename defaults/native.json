@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 10,
+  "wallpaper": {
+    "path": "",
+    "lockPath": "",
+    "directory": "",
+    "preview": true,
+    "columns": 4,
+    "changeInterval": 0,
+    "hideWhenFullscreen": true,
+    "transitionDuration": 650,
+    "dim": 0.06,
+    "lockDim": 0.28
+  },
+  "overview": {
+    "workspaceCount": 6,
+    "columns": 3
+  },
+  "dock": {
+    "enabled": true,
+    "autoHide": true,
+    "pinned": false,
+    "exclusiveZone": false,
+    "height": 68,
+    "iconSize": 42,
+    "bottomMargin": 9,
+    "pinnedApps": []
+  },
+  "bar": {
+    "bottom": false,
+    "vertical": false,
+    "autoHide": false,
+    "autoHidePushWindows": true,
+    "showOnSuper": false,
+    "showOnSuperDelay": 140,
+    "screenList": [],
+    "showDate": true
+  },
+  "frame": {
+    "enabled": false,
+    "thickness": 4,
+    "color": "#000000",
+    "barSideVisible": true
+  },
+  "corners": {
+    "roundingMode": 0,
+    "radius": 22,
+    "deadPixelWorkaround": false,
+    "enabled": true,
+    "valueScroll": true,
+    "clickless": false,
+    "regionWidth": 250,
+    "regionHeight": 5,
+    "bottomLeftAction": "sidebarLeftOpen",
+    "bottomRightAction": "sidebarRightOpen",
+    "visualize": false,
+    "clicklessEnd": true,
+    "verticalOffset": 1
+  },
+  "osk": {
+    "pinned": false,
+    "layout": "English (US)"
+  },
+  "osd": {
+    "timeout": 1000
+  },
+  "display": {
+    "colorTemperature": 5000,
+    "nightAutomatic": true
+  },
+  "apps": {
+    "network": "nm-connection-editor",
+    "networkEthernet": "nm-connection-editor",
+    "bluetooth": "blueman-manager",
+    "taskManager": "",
+    "changePassword": "passwd"
+  },
+  "profile": {
+    "displayName": "",
+    "avatarPath": ""
+  },
+  "quickControls": {
+    "showBrightness": true,
+    "showVolume": true,
+    "showMic": false
+  },
+  "features": {
+    "contextIsland": true,
+    "mediaOverlay": true,
+    "integrationMode": true
+  }
+}
