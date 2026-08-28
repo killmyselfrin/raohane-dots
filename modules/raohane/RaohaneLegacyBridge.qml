@@ -241,6 +241,7 @@ Singleton {
         RaohaneState.barOpen = GlobalStates.barOpen
         RaohaneState.controlCenterOpen = GlobalStates.sidebarRightOpen
         RaohaneState.settingsOpen = GlobalStates.settingsOpen
+        RaohaneState.settingsPage = GlobalStates.settingsPage ?? ""
         RaohaneState.sessionOpen = GlobalStates.sessionOpen
         RaohaneState.screenLocked = GlobalStates.screenLocked
         RaohaneState.superDown = GlobalStates.superDown
@@ -257,6 +258,7 @@ Singleton {
         GlobalStates.barOpen = RaohaneState.barOpen
         GlobalStates.sidebarRightOpen = RaohaneState.controlCenterOpen
         GlobalStates.settingsOpen = RaohaneState.settingsOpen
+        GlobalStates.settingsPage = RaohaneState.settingsPage
         GlobalStates.sessionOpen = RaohaneState.sessionOpen
         GlobalStates.screenLocked = RaohaneState.screenLocked
         GlobalStates.superDown = RaohaneState.superDown
@@ -308,6 +310,7 @@ Singleton {
         function onBarOpenChanged(): void { root.pushNativeTransientState() }
         function onControlCenterOpenChanged(): void { root.pushNativeTransientState() }
         function onSettingsOpenChanged(): void { root.pushNativeTransientState() }
+        function onSettingsPageChanged(): void { root.pushNativeTransientState() }
         function onSessionOpenChanged(): void { root.pushNativeTransientState() }
         function onScreenLockedChanged(): void { root.pushNativeTransientState() }
         function onSuperDownChanged(): void { root.pushNativeTransientState() }
@@ -409,6 +412,7 @@ Singleton {
         function onBarOpenChanged(): void { root.pullLegacyTransientState() }
         function onSidebarRightOpenChanged(): void { root.pullLegacyTransientState() }
         function onSettingsOpenChanged(): void { root.pullLegacyTransientState() }
+        function onSettingsPageChanged(): void { root.pullLegacyTransientState() }
         function onSessionOpenChanged(): void { root.pullLegacyTransientState() }
         function onScreenLockedChanged(): void { root.pullLegacyTransientState() }
         function onSuperDownChanged(): void { root.pullLegacyTransientState() }

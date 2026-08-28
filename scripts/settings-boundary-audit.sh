@@ -13,9 +13,10 @@ content='modules/raohane/RaohaneSettingsContent.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 state='modules/raohane/RaohaneState.qml'
+bridge='modules/raohane/RaohaneLegacyBridge.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$content" "$home" "$about" "$state" "$qmldir"; do
+for path in "$content" "$home" "$about" "$state" "$bridge" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
 done
 
@@ -25,6 +26,10 @@ rg -q 'Qt\.resolvedUrl\("RaohaneSettingsAbout\.qml"\)' "$content" \
   || fail 'Settings navigation does not load the native About page'
 rg -q 'property string settingsPage:' "$state" \
   || fail 'RaohaneState does not own Settings page navigation state'
+
+for symbol in 'RaohaneState\.settingsPage = GlobalStates\.settingsPage' 'GlobalStates\.settingsPage = RaohaneState\.settingsPage' 'onSettingsPageChanged'; do
+  rg -q "$symbol" "$bridge" || fail "legacy bridge lost Settings page synchronization: $symbol"
+done
 
 for symbol in 'RaohaneIcon[[:space:]]*\{' 'RaohaneSystemInfo\.' 'RaohanePaths\.compatibilityConfigFile' 'RaohaneState\.settingsPage'; do
   rg -q "$symbol" "$content" || fail "Settings navigation lost native dependency: $symbol"
@@ -47,4 +52,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: Settings chrome/Home use native state, widgets and services; About is standalone\n'
+printf 'settings-boundary-audit: native Settings state/Home/About are isolated; legacy page routing stays inside the bridge\n'
