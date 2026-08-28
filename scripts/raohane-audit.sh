@@ -18,6 +18,7 @@ required_root=(
   modules/raohane/RaohaneState.qml
   modules/raohane/RaohaneTheme.qml
   modules/raohane/RaohaneIcon.qml
+  modules/raohane/RaohaneLegacyBridge.qml
   modules/raohane/config/RaohaneConfig.qml
   modules/raohane/config/RaohanePaths.qml
   scripts/raohane
@@ -32,8 +33,6 @@ for path in "${required_root[@]}"; do
   [[ -e "$path" ]] || fail "required project path is missing: $path"
 done
 
-# Check every qmldir points to files that actually exist. This catches broken
-# registrations without forcing legacy modules to be instantiated at runtime.
 while IFS= read -r qmldir; do
   directory="$(dirname -- "$qmldir")"
   while read -r first second third rest; do
@@ -48,9 +47,6 @@ while IFS= read -r qmldir; do
   done < "$qmldir"
 done < <(find . -name qmldir -not -path './.git/*' -print)
 
-# Native-only bootstrap. A legacy type referenced in a component expression is
-# resolved by QML even when the corresponding loader is inactive, so startup
-# must not contain fallback family or inherited service references at all.
 rg -q '^import "modules/raohane/config"$' shell.qml \
   || fail 'shell.qml does not import native Raohane config'
 rg -q '^import "panelFamilies"$' shell.qml \
@@ -69,6 +65,15 @@ fi
 family='panelFamilies/RaohaneFamily.qml'
 if rg -n '^import qs\.modules\.ii(\.|$)|\bRaohaneLegacyBridge\.load\b|\bIllogicalImpulseFamily\b' "$family"; then
   fail 'RaohaneFamily resolves a legacy presentation/bootstrap path'
+fi
+
+# QML modules resolve registered singleton types while importing the module.
+# Keeping the compatibility bridge in the primary Raohane qmldir therefore
+# pulls GlobalStates and the inherited service graph into native startup even
+# when no code calls RaohaneLegacyBridge.load(). The file may remain as
+# migration/reference code, but it must not be a registered native type.
+if rg -n '^singleton[[:space:]]+RaohaneLegacyBridge\b|^[[:space:]]*RaohaneLegacyBridge[[:space:]]' modules/raohane/qmldir; then
+  fail 'RaohaneLegacyBridge is registered in the native module and can poison boot-time singleton resolution'
 fi
 
 active_surfaces=(
@@ -105,8 +110,6 @@ for surface in "${active_surfaces[@]}"; do
     || fail "$surface is not registered in native qmldir"
 done
 
-# Active root components must not directly resolve the inherited widget or ii
-# modules. Deeper feature-specific contracts are checked by dedicated audits.
 active_root_files=()
 for surface in "${active_surfaces[@]}"; do
   active_root_files+=("modules/raohane/${surface}.qml")
@@ -127,14 +130,12 @@ rg -q '^RaohaneIcon .*RaohaneIcon.qml$' modules/raohane/qmldir \
 rg -q '^singleton RaohaneDropShelf .*RaohaneDropShelf.qml$' modules/raohane/services/qmldir \
   || fail 'RaohaneDropShelf is not registered'
 
-# Product identity and target compositor remain Hyprland-only in native code.
 if rg -n -i 'inir|\bniri\b|waffle|ricelin' modules/raohane shell.qml "$family"; then
   fail 'Raohane product runtime contains a non-target/legacy identity'
 fi
 rg -q '^import Quickshell\.Hyprland$' modules/raohane/RaohaneBar.qml \
   || fail 'native bar lost Hyprland integration'
 
-# QML semantic import requirements that qmlformat alone does not catch.
 while IFS= read -r qml; do
   if rg -q '\bConnections[[:space:]]*\{' "$qml"; then
     rg -q '^import (QtQuick|QtQml)([[:space:]]|;|$)' "$qml" \
@@ -146,7 +147,6 @@ while IFS= read -r qml; do
   fi
 done < <(find modules/raohane -type f -name '*.qml' -print)
 
-# CLI and installation routes must point to Raohane-owned runtime entry points.
 for route in \
   'ipc raohaneLauncher toggle' \
   'ipc raohaneMedia toggle' \
@@ -169,4 +169,4 @@ bash -n scripts/install-deps.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native bootstrap, active surface graph, installation and config boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, singleton registration, active surface graph, installation and config boundaries are valid\n'
