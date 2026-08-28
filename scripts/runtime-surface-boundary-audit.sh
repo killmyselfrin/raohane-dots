@@ -16,6 +16,8 @@ services_qmldir='modules/raohane/services/qmldir'
 required='install/arch/required.txt'
 features='install/arch/features.txt'
 translator_backend='scripts/screen-translate.sh'
+region_ocr_backend='scripts/region-ocr.sh'
+region_search_backend='scripts/region-search.sh'
 
 native_surfaces=(
   modules/raohane/RaohaneOverlay.qml
@@ -58,13 +60,10 @@ active_roots=(
   modules/raohane/RaohaneScreenFrame.qml
 )
 
-for path in "$shell" "$family" "$qmldir" "$services_qmldir" "$required" "$features" "$translator_backend" "${native_surfaces[@]}" "${active_roots[@]}"; do
+for path in "$shell" "$family" "$qmldir" "$services_qmldir" "$required" "$features" "$translator_backend" "$region_ocr_backend" "$region_search_backend" "${native_surfaces[@]}" "${active_roots[@]}"; do
   [[ -f "$path" ]] || fail "missing native runtime surface path: $path"
 done
 
-# Bootstrap must resolve only the Raohane config and family. Merely mentioning a
-# legacy QML type in a component expression makes the engine resolve that type
-# at parse time even when its loader is inactive.
 rg -q 'active:[[:space:]]*RaohaneConfig\.ready' "$shell" \
   || fail 'shell.qml is not gated by native RaohaneConfig readiness'
 rg -q 'component:[[:space:]]*RaohaneFamily[[:space:]]*\{' "$shell" \
@@ -133,23 +132,48 @@ done
 for contract in \
   'target:[[:space:]]*"region"' \
   'name:[[:space:]]*"regionScreenshot"' \
+  'name:[[:space:]]*"regionSearch"' \
+  'name:[[:space:]]*"regionOcr"' \
   'name:[[:space:]]*"regionRecord"' \
+  'region-search\.sh' \
+  'region-ocr\.sh' \
   'RaohanePaths.*videos/record\.sh'; do
   rg -q "$contract" modules/raohane/RaohaneRegionSelector.qml \
     || fail "native region capture lost contract: $contract"
 done
+if rg -n 'OCR is still being migrated|Native OCR is still being migrated' modules/raohane/RaohaneRegionSelector.qml; then
+  fail 'native region OCR regressed to a migration placeholder'
+fi
 
 for tool in grim slurp wf-recorder; do
   rg -q "^${tool}$" "$features" || fail "feature package manifest lost ${tool}"
 done
 rg -q '^wl-clipboard$' "$required" || fail 'required package manifest lost wl-clipboard'
+rg -q '^xdg-utils$' "$required" || fail 'required package manifest lost xdg-utils for image-search handoff'
 
-# Screen translation is now Raohane-owned end-to-end: native surface -> local
-# capture/OCR backend -> translate-shell. Keep both the UI contract and package
-# manifest under CI so cleanup work cannot silently regress it to a placeholder.
 for package in tesseract tesseract-data-eng tesseract-data-rus translate-shell; do
-  rg -q "^${package}$" "$features" || fail "screen translation package manifest lost ${package}"
+  rg -q "^${package}$" "$features" || fail "screen translation/OCR package manifest lost ${package}"
 done
+
+for command in slurp grim tesseract wl-copy; do
+  rg -q "for command in .*${command}" "$region_ocr_backend" \
+    || rg -q "${command}" "$region_ocr_backend" \
+    || fail "region OCR backend lost command contract: ${command}"
+done
+rg -q 'wl-copy --type text/plain' "$region_ocr_backend" \
+  || fail 'region OCR backend no longer copies recognized text'
+rg -q 'tesseract .* -l eng\+rus' "$region_ocr_backend" \
+  || fail 'region OCR backend lost English/Russian OCR languages'
+
+for command in slurp grim wl-copy xdg-open; do
+  rg -q "${command}" "$region_search_backend" \
+    || fail "region image-search backend lost command contract: ${command}"
+done
+rg -q 'https://lens\.google\.com/' "$region_search_backend" \
+  || fail 'region image-search backend lost Lens handoff'
+rg -q 'wl-copy --type image/png' "$region_search_backend" \
+  || fail 'region image-search backend no longer places capture in clipboard'
+
 rg -q 'for command in slurp grim tesseract trans python3; do' "$translator_backend" \
   || fail 'screen translation backend lost required command list'
 rg -q 'command -v "\$command"' "$translator_backend" \
@@ -164,6 +188,9 @@ for contract in \
   rg -q "$contract" modules/raohane/RaohaneScreenTranslator.qml \
     || fail "native screen translator lost contract: $contract"
 done
+
+bash -n "$region_ocr_backend"
+bash -n "$region_search_backend"
 bash -n "$translator_backend"
 
 for contract in \
@@ -187,4 +214,4 @@ for contract in \
     || fail "native desktop menu lost contract: $contract"
 done
 
-printf 'runtime-surface-boundary-audit: shell bootstrap and active family resolve only native Raohane runtime surfaces\n'
+printf 'runtime-surface-boundary-audit: native bootstrap, capture/OCR/search and active family boundaries are valid\n'
