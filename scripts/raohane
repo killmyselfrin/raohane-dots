@@ -29,6 +29,34 @@ ipc() {
   qs -c "$QS_CONFIG" ipc call "$@"
 }
 
+prune_runtime_if_needed() {
+  local pruner="$RUNTIME/scripts/prune-runtime.sh"
+  local retired=0
+
+  for path in \
+    "$RUNTIME/modules/common" \
+    "$RUNTIME/modules/ii" \
+    "$RUNTIME/services" \
+    "$RUNTIME/GlobalStates.qml" \
+    "$RUNTIME/panelFamilies/IllogicalImpulseFamily.qml"; do
+    if [[ -e "$path" ]]; then
+      retired=1
+      break
+    fi
+  done
+
+  ((retired)) || return 0
+
+  if [[ ! -f "$pruner" ]]; then
+    echo "[Raohane] Installed runtime still contains retired QML trees, but $pruner is missing." >&2
+    echo '[Raohane] Run ./install-raohane.sh from an up-to-date checkout.' >&2
+    return 1
+  fi
+
+  echo '[Raohane] Removing retired compatibility trees from installed runtime...'
+  bash "$pruner" "$RUNTIME"
+}
+
 service_failure_report() {
   echo >&2
   echo "[Raohane] $SERVICE did not stay running." >&2
@@ -258,6 +286,7 @@ recover_audio() {
 
 case "${1:-help}" in
   run)
+    prune_runtime_if_needed
     exec qs -c "$QS_CONFIG"
     ;;
   start)
