@@ -10,17 +10,19 @@ fail() {
 }
 
 bar='modules/raohane/RaohaneBar.qml'
+vertical='modules/raohane/RaohaneVerticalBar.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 tray='modules/raohane/RaohaneSysTray.qml'
 status='modules/raohane/RaohaneSystemIcons.qml'
 clock='modules/raohane/RaohaneClock.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$bar" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
+for path in "$bar" "$vertical" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing native bar path: $path"
 done
 
 for registration in \
+  'RaohaneVerticalBar .*RaohaneVerticalBar.qml' \
   'RaohaneWorkspaces .*RaohaneWorkspaces.qml' \
   'RaohaneSysTray .*RaohaneSysTray.qml' \
   'RaohaneSystemIcons .*RaohaneSystemIcons.qml' \
@@ -71,6 +73,26 @@ if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
 
+# Vertical presentation is a first-class native bar, not a boot-only fallback.
+for symbol in \
+  'RaohaneConfig\.barAutoHide' \
+  'RaohaneConfig\.barAutoHidePushWindows' \
+  'RaohaneConfig\.barShowOnSuper' \
+  'RaohaneState\.superDown' \
+  'Behavior on x' \
+  'Hyprland\.monitorFor' \
+  'RaohaneNetwork\.' \
+  'RaohaneBluetooth\.' \
+  'RaohaneNotifications\.' \
+  'RaohanePrivacy\.' \
+  'RaohaneAudio\.' \
+  'RaohaneContext\.'; do
+  rg -q "$symbol" "$vertical" || fail "native vertical bar lost parity contract: $symbol"
+done
+if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|Minimal native vertical|richer parity can evolve' "$vertical"; then
+  fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
+fi
+
 # services/Fonts.qml remains a narrow compatibility singleton while old pages
 # still exist. Singleton is a Quickshell QML type, so this import is mandatory.
 if rg -q '^[[:space:]]*Singleton[[:space:]]*\{' services/Fonts.qml; then
@@ -78,4 +100,4 @@ if rg -q '^[[:space:]]*Singleton[[:space:]]*\{' services/Fonts.qml; then
     || fail 'services/Fonts.qml uses Singleton without importing Quickshell'
 fi
 
-printf 'bar-boundary-audit: native bar framework, workspaces, tray, status and clock boundaries are valid\n'
+printf 'bar-boundary-audit: horizontal and vertical native bar contracts, workspaces, tray, status and clock boundaries are valid\n'
