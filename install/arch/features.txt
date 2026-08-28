@@ -22,6 +22,7 @@ ydotool
 easyeffects
 fprintd
 libpulse
+libqalculate
 pciutils
 python-pillow
 curl
