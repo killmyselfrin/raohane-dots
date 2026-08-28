@@ -150,10 +150,10 @@ rg -q '^wl-clipboard$' "$required" || fail 'required package manifest lost wl-cl
 for package in tesseract tesseract-data-eng tesseract-data-rus translate-shell; do
   rg -q "^${package}$" "$features" || fail "screen translation package manifest lost ${package}"
 done
-for command in slurp grim tesseract trans python3; do
-  rg -q "command -v \"\$command\"" "$translator_backend" \
-    || fail "screen translation backend lost command probe: ${command}"
-done
+rg -q 'for command in slurp grim tesseract trans python3; do' "$translator_backend" \
+  || fail 'screen translation backend lost required command list'
+rg -q 'command -v "\$command"' "$translator_backend" \
+  || fail 'screen translation backend lost generic command probe'
 for contract in \
   'scripts/screen-translate\.sh' \
   'function startTranslation\(\)' \
