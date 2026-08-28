@@ -12,6 +12,7 @@ fail() {
 required=(
   shell.qml
   qmldir
+  install-raohane.sh
   panelFamilies/RaohaneFamily.qml
   modules/raohane
   modules/raohane/config
@@ -41,8 +42,12 @@ if rg -n \
   fail 'family composition can still instantiate an inherited presentation type'
 fi
 
-# The launcher must enforce pruning before handing control to Quickshell. This
-# lets an upgraded CLI clean an older installed runtime on its first launch.
+# Installation and launch both enforce pruning. Installer coverage makes
+# --no-start native-only; launcher coverage self-heals older installed copies.
+rg -q '"scripts/prune-runtime\.sh"' install-raohane.sh \
+  || fail 'installer does not require the runtime pruner'
+rg -q 'bash "\$ROOT/scripts/prune-runtime\.sh" "\$RUNTIME"' install-raohane.sh \
+  || fail 'installer does not prune the copied runtime before startup'
 rg -q '^prune_runtime_if_needed\(\)' scripts/raohane \
   || fail 'Raohane CLI does not define installed-runtime pruning'
 rg -q '^[[:space:]]*prune_runtime_if_needed$' scripts/raohane \
@@ -90,4 +95,4 @@ done
 [[ -f "$tmp_runtime/panelFamilies/RaohaneFamily.qml" ]] || fail 'pruner removed RaohaneFamily'
 [[ "$(tr -d '\r\n' < "$tmp_runtime/qmldir")" == 'module qs' ]] || fail 'pruner damaged root qmldir'
 
-printf 'standalone-runtime-audit: native QML is legacy-independent and installed-runtime pruning is valid\n'
+printf 'standalone-runtime-audit: native QML is legacy-independent; installer and launcher enforce native-only installed runtime\n'
