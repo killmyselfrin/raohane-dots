@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+set -euo pipefail
 
-source $(eval echo $ILLOGICAL_IMPULSE_VIRTUAL_ENV)/bin/activate
-GIO_USE_VFS=local "$SCRIPT_DIR/thumbgen.py" "$@"
-THUMBGEN_EXIT_CODE=$?
-deactivate
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-exit $THUMBGEN_EXIT_CODE
+command -v python3 >/dev/null 2>&1 || {
+  echo '[Raohane] python3 is required for thumbnail generation.' >&2
+  exit 1
+}
+
+exec python3 "$SCRIPT_DIR/thumbgen.py" "$@"
