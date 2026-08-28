@@ -13,12 +13,13 @@ MODULE=modules/raohane/services
 QMLDIR="$MODULE/qmldir"
 CONFIG_MODULE=modules/raohane/config
 FAMILY=panelFamilies/RaohaneFamily.qml
+SEARCH="$MODULE/RaohaneSearch.qml"
 AUTOSTART_SCRIPT=scripts/autostart.sh
 RECORDER=scripts/videos/record.sh
 FEATURES=install/arch/features.txt
 REQUIRED=install/arch/required.txt
 
-for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$AUTOSTART_SCRIPT" "$RECORDER" "$FEATURES" "$REQUIRED"; do
+for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$AUTOSTART_SCRIPT" "$RECORDER" "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
 done
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
@@ -55,12 +56,9 @@ require_service RaohaneYdotool 'ydotool'
 require_service RaohaneDropShelf 'wl-copy --type text/uri-list'
 require_service RaohaneAutostart 'scripts/autostart\.sh'
 
-# Every external backend owned by a native service must have an installable Arch
-# package in the full feature manifest. Keep this close to the service audit so
-# adding a command cannot silently make fresh installs incomplete.
-for package in bluez-utils brightnessctl ddcutil hyprsunset easyeffects ydotool; do
+for package in bluez-utils brightnessctl ddcutil hyprsunset easyeffects ydotool libqalculate; do
   rg -q "^${package}$" "$FEATURES" \
-    || fail "native service backend package missing from feature manifest: $package"
+    || fail "native service/backend package missing from feature manifest: $package"
 done
 
 for pair in \
@@ -98,9 +96,23 @@ fi
 if rg -n 'LauncherSearch|LauncherSearchResult|AppSearch|qs\.modules\.common\.models' modules/raohane/RaohaneLauncher.qml; then
   fail 'RaohaneLauncher regressed to inherited search model'
 fi
-if rg -n '^import qs$|^import qs\.services|modules\.common|LauncherSearch|AppSearch|StringUtils|Fuzzy\.' "$MODULE/RaohaneSearch.qml"; then
+if rg -n '^import qs$|^import qs\.services|modules\.common|LauncherSearch|AppSearch|StringUtils|Fuzzy\.' "$SEARCH"; then
   fail 'RaohaneSearch depends on inherited search/common services'
 fi
+
+# Launcher modes advertised by the UI must have real native backends.
+rg -q 'calculator\.command = \["qalc", "-t", expression\]' "$SEARCH" \
+  || fail 'launcher calculator no longer uses qalc backend'
+rg -q '"libqalculate"|^libqalculate$' "$FEATURES" \
+  || fail 'launcher calculator backend package is missing'
+rg -q '\["qs", "-c", "raohane", "ipc", "call", "lock", "activate"\]' "$SEARCH" \
+  || fail 'launcher lock action does not route to native Raohane lock IPC'
+if rg -n 'loginctl[" ,]+lock-session' "$SEARCH"; then
+  fail 'launcher lock action regressed to logind instead of native WlSessionLock'
+fi
+for contract in '\bcliphist list\b' '\bcliphist decode\b' '\bwl-copy\b'; do
+  rg -q "$contract" "$SEARCH" || fail "launcher clipboard mode lost backend contract: $contract"
+done
 
 for service in RaohaneSession.qml RaohaneDisplay.qml RaohaneWallpapers.qml; do
   rg -q 'qs\.modules\.raohane\.config' "$MODULE/$service" \
@@ -124,9 +136,6 @@ rg -q '^import qs\.modules\.raohane\.services$' "$FAMILY" \
   || fail 'RaohaneFamily does not import native services for autostart'
 bash -n "$AUTOSTART_SCRIPT"
 
-# Screen recording is part of the native region surface. It must not read the
-# retired inherited config document, and every external command used for the
-# full recording path must be represented by the install manifests.
 if rg -n 'illogical-impulse|raohane/config\.json|CONFIG_FILE=.*/config\.json' "$RECORDER"; then
   fail 'native recorder still reads a retired compatibility config'
 fi
@@ -155,4 +164,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, backend packages, recorder and session-safe autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, launcher modes, backend packages, recorder and autostart contracts are valid\n'
