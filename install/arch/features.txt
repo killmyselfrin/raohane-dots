@@ -20,6 +20,7 @@ hyprsunset
 wf-recorder
 ydotool
 easyeffects
+fprintd
 libpulse
 pciutils
 python-pillow
