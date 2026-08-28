@@ -34,6 +34,13 @@ for path in "${retired_source[@]}"; do
   [[ ! -e "$path" ]] || fail "retired upstream bootstrap/sync path returned: $path"
 done
 
+retired_script_dirs=(ai cava colors hyprland images keyring kvantum lyrics)
+for name in "${retired_script_dirs[@]}"; do
+  if rg -n "scripts/${name}(/|\\\")" shell.qml panelFamilies/RaohaneFamily.qml modules/raohane; then
+    fail "native runtime references retired script tree: scripts/${name}"
+  fi
+done
+
 # Everything copied into the standalone product graph must resolve without the
 # inherited common/ii/service namespaces. This intentionally scans every native
 # QML file, not only the top-level family surfaces.
@@ -78,7 +85,7 @@ rg -q 'native\.json.*schema v10|schemaVersion.*10' scripts/raohane \
 
 # Exercise the pruner against a disposable runtime graph. This proves the
 # source checkout can keep rollback/reference trees while installed Raohane
-# contains only the native QML graph.
+# contains only the native QML/script graph.
 tmp_runtime="$(mktemp -d /tmp/raohane-standalone-audit.XXXXXX)"
 cleanup() { rm -rf -- "$tmp_runtime"; }
 trap cleanup EXIT
@@ -87,11 +94,16 @@ mkdir -p \
   "$tmp_runtime/modules" \
   "$tmp_runtime/panelFamilies" \
   "$tmp_runtime/defaults" \
-  "$tmp_runtime/services"
+  "$tmp_runtime/services" \
+  "$tmp_runtime/scripts"
 cp shell.qml qmldir "$tmp_runtime/"
 cp -a modules/raohane "$tmp_runtime/modules/"
 cp panelFamilies/RaohaneFamily.qml "$tmp_runtime/panelFamilies/"
 mkdir -p "$tmp_runtime/modules/common" "$tmp_runtime/modules/ii"
+for name in "${retired_script_dirs[@]}"; do
+  mkdir -p "$tmp_runtime/scripts/$name"
+  touch "$tmp_runtime/scripts/$name/legacy-helper"
+done
 touch \
   "$tmp_runtime/GlobalStates.qml" \
   "$tmp_runtime/ReloadPopup.qml" \
@@ -115,6 +127,9 @@ for retired in \
   "$tmp_runtime/panelFamilies/ReferenceFamily.qml"; do
   [[ ! -e "$retired" ]] || fail "pruner left retired installed path: $retired"
 done
+for name in "${retired_script_dirs[@]}"; do
+  [[ ! -e "$tmp_runtime/scripts/$name" ]] || fail "pruner left retired installed script tree: scripts/$name"
+done
 
 [[ -d "$tmp_runtime/modules/raohane" ]] || fail 'pruner removed native modules/raohane'
 [[ -f "$tmp_runtime/shell.qml" ]] || fail 'pruner removed shell.qml'
@@ -123,4 +138,4 @@ done
 root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
-printf 'standalone-runtime-audit: native QML is legacy-independent; upstream sync/bootstrap is retired and install/launch pruning is enforced\n'
+printf 'standalone-runtime-audit: native QML/script graph is legacy-independent; upstream sync/bootstrap and retired helper trees are excluded\n'
