@@ -34,12 +34,15 @@ for path in "${retired_source[@]}"; do
   [[ ! -e "$path" ]] || fail "retired upstream bootstrap/sync path returned: $path"
 done
 
-retired_script_dirs=(ai cava colors hyprland images keyring kvantum lyrics)
+retired_script_dirs=(ai cava colors hyprland images keyring kvantum lyrics musicRecognition theming)
 for name in "${retired_script_dirs[@]}"; do
   if rg -n "scripts/${name}(/|\\\")" shell.qml panelFamilies/RaohaneFamily.qml modules/raohane; then
     fail "native runtime references retired script tree: scripts/${name}"
   fi
 done
+if rg -n 'scripts/presets\.sh|illogical-impulse/config\.json' shell.qml panelFamilies/RaohaneFamily.qml modules/raohane; then
+  fail 'native runtime references retired preset/config tooling'
+fi
 
 # Everything copied into the standalone product graph must resolve without the
 # inherited common/ii/service namespaces. This intentionally scans every native
@@ -111,7 +114,8 @@ touch \
   "$tmp_runtime/defaults/config.json" \
   "$tmp_runtime/panelFamilies/IllogicalImpulseFamily.qml" \
   "$tmp_runtime/panelFamilies/ReferenceFamily.qml" \
-  "$tmp_runtime/services/Idle.qml"
+  "$tmp_runtime/services/Idle.qml" \
+  "$tmp_runtime/scripts/presets.sh"
 
 bash scripts/prune-runtime.sh "$tmp_runtime" >/dev/null
 
@@ -124,7 +128,8 @@ for retired in \
   "$tmp_runtime/AnotherInheritedRoot.qml" \
   "$tmp_runtime/defaults/config.json" \
   "$tmp_runtime/panelFamilies/IllogicalImpulseFamily.qml" \
-  "$tmp_runtime/panelFamilies/ReferenceFamily.qml"; do
+  "$tmp_runtime/panelFamilies/ReferenceFamily.qml" \
+  "$tmp_runtime/scripts/presets.sh"; do
   [[ ! -e "$retired" ]] || fail "pruner left retired installed path: $retired"
 done
 for name in "${retired_script_dirs[@]}"; do
@@ -138,4 +143,4 @@ done
 root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
-printf 'standalone-runtime-audit: native QML/script graph is legacy-independent; upstream sync/bootstrap and retired helper trees are excluded\n'
+printf 'standalone-runtime-audit: native QML/script graph is legacy-independent; upstream bootstrap and retired helper/preset tooling are excluded\n'
