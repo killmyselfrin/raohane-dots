@@ -23,3 +23,7 @@ pciutils
 python-pillow
 curl
 wget
+tesseract
+tesseract-data-eng
+tesseract-data-rus
+translate-shell
