@@ -165,7 +165,7 @@ Singleton {
         root.thumbnailGenerationProgress = 0
         thumbnailProcess.command = [
             "bash", "-c",
-            `\"${root.thumbgenScriptPath}\" --size ${size} --machine_progress -d \"${root.effectiveDirectory}\" || \"${root.magickThumbnailScriptPath}\" --size ${size} -d \"${root.effectiveDirectory}\"`
+            `bash \"${root.thumbgenScriptPath}\" --size ${size} --machine_progress -d \"${root.effectiveDirectory}\" || \"${root.magickThumbnailScriptPath}\" --size ${size} -d \"${root.effectiveDirectory}\"`
         ]
         thumbnailProcess.running = true
     }
