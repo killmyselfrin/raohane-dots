@@ -13,10 +13,12 @@ MODULE=modules/raohane/services
 QMLDIR="$MODULE/qmldir"
 CONFIG_MODULE=modules/raohane/config
 FAMILY=panelFamilies/RaohaneFamily.qml
+AUTOSTART_SCRIPT=scripts/autostart.sh
 
 [[ -f "$QMLDIR" ]] || fail 'Raohane service qmldir is missing'
 [[ -f "$CONFIG_MODULE/qmldir" ]] || fail 'Raohane config qmldir is missing'
 [[ -f "$CONFIG_MODULE/RaohaneConfig.qml" ]] || fail 'RaohaneConfig is missing'
+[[ -f "$AUTOSTART_SCRIPT" ]] || fail 'native autostart backend is missing'
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
   || fail 'RaohaneConfig is not registered in the native config module'
 if rg -n '^import qs$|modules\.common|JsonAdapter|\bConfig\.' "$CONFIG_MODULE/RaohaneConfig.qml"; then
@@ -49,6 +51,7 @@ require_service RaohaneIdle 'IdleInhibitor'
 require_service RaohaneEasyEffects 'easyeffects'
 require_service RaohaneYdotool 'ydotool'
 require_service RaohaneDropShelf 'wl-copy --type text/uri-list'
+require_service RaohaneAutostart 'scripts/autostart\.sh'
 
 for pair in \
   'modules/raohane/RaohaneContext.qml:RaohaneMedia\.' \
@@ -97,8 +100,20 @@ for service in RaohaneSession.qml RaohaneDisplay.qml RaohaneWallpapers.qml; do
   fi
 done
 
-# The migration bridge has no remaining active consumer. Phase 5 now treats a
-# reintroduced bridge as a regression instead of keeping it around as dead code.
+for contract in \
+  'HYPRLAND_INSTANCE_SIGNATURE' \
+  'raohane-autostart-' \
+  'setsid bash -lc' \
+  'run|rerun|reset|status|config'; do
+  rg -q "$contract" "$AUTOSTART_SCRIPT" \
+    || fail "native autostart backend lost session contract: $contract"
+done
+rg -q 'RaohaneAutostart\.runOnce\(\)' "$FAMILY" \
+  || fail 'RaohaneFamily no longer starts the native autostart service'
+rg -q '^import qs\.modules\.raohane\.services$' "$FAMILY" \
+  || fail 'RaohaneFamily does not import native services for autostart'
+bash -n "$AUTOSTART_SCRIPT"
+
 if [[ -e modules/raohane/RaohaneLegacyBridge.qml ]]; then
   fail 'retired compatibility bridge returned to the native runtime tree'
 fi
@@ -106,4 +121,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services and active consumers are Raohane-owned; compatibility bridge is removed\n'
+printf 'raohane-service-audit: native services, session-safe autostart and active consumers are Raohane-owned\n'
