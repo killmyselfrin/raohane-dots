@@ -19,7 +19,7 @@ Shell:
   wallpaper [toggle|random]
 
 Diagnostics:
-  doctor [all|graphics|deps|services]
+  doctor [all|graphics|deps|services|runtime]
   wifi [status|menu]
   audio [status|recover [percent]]
 EOF
@@ -223,6 +223,92 @@ print_dependency_report() {
   echo 'Raohane dependency manifest and required runtime commands look available.'
 }
 
+print_runtime_integrity() {
+  local failures=0
+  local config_file="$CONFIG_HOME/raohane/native.json"
+  local root_qml_count=0
+  local family_qml_count=0
+
+  echo 'Installed runtime integrity'
+  printf '  path: %s\n' "$RUNTIME"
+
+  for path in \
+    "$RUNTIME/shell.qml" \
+    "$RUNTIME/qmldir" \
+    "$RUNTIME/modules/raohane" \
+    "$RUNTIME/panelFamilies/RaohaneFamily.qml" \
+    "$RUNTIME/scripts/prune-runtime.sh"; do
+    if [[ -e "$path" ]]; then
+      printf '  [ok] %s\n' "${path#$RUNTIME/}"
+    else
+      printf '  [!!] missing %s\n' "${path#$RUNTIME/}"
+      failures=$((failures + 1))
+    fi
+  done
+
+  for path in \
+    "$RUNTIME/modules/common" \
+    "$RUNTIME/modules/ii" \
+    "$RUNTIME/services" \
+    "$RUNTIME/GlobalStates.qml" \
+    "$RUNTIME/ReloadPopup.qml" \
+    "$RUNTIME/panelFamilies/IllogicalImpulseFamily.qml"; do
+    if [[ -e "$path" ]]; then
+      printf '  [!!] retired path present: %s\n' "${path#$RUNTIME/}"
+      failures=$((failures + 1))
+    fi
+  done
+
+  if [[ -d "$RUNTIME" ]]; then
+    root_qml_count="$(find "$RUNTIME" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' 2>/dev/null | wc -c)"
+    if [[ "$root_qml_count" -eq 1 && -f "$RUNTIME/shell.qml" ]]; then
+      echo '  [ok] shell.qml is the only root QML component'
+    else
+      printf '  [!!] root QML count=%s (expected only shell.qml)\n' "$root_qml_count"
+      failures=$((failures + 1))
+    fi
+  fi
+
+  if [[ -d "$RUNTIME/panelFamilies" ]]; then
+    family_qml_count="$(find "$RUNTIME/panelFamilies" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' 2>/dev/null | wc -c)"
+    if [[ "$family_qml_count" -eq 1 && -f "$RUNTIME/panelFamilies/RaohaneFamily.qml" ]]; then
+      echo '  [ok] RaohaneFamily is the only installed panel family'
+    else
+      printf '  [!!] panel family QML count=%s (expected only RaohaneFamily)\n' "$family_qml_count"
+      failures=$((failures + 1))
+    fi
+  fi
+
+  if [[ -f "$config_file" ]]; then
+    if python3 - "$config_file" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+try:
+    data = json.loads(path.read_text(encoding="utf-8"))
+except (OSError, json.JSONDecodeError):
+    raise SystemExit(1)
+raise SystemExit(0 if data.get("schemaVersion") == 10 else 1)
+PY
+    then
+      echo '  [ok] ~/.config/raohane/native.json schema v10'
+    else
+      echo '  [!!] ~/.config/raohane/native.json is missing/invalid schema v10'
+      failures=$((failures + 1))
+    fi
+  else
+    echo '  [!!] ~/.config/raohane/native.json is missing'
+    failures=$((failures + 1))
+  fi
+
+  if ((failures == 0)); then
+    echo '  [ok] installed runtime is standalone Raohane'
+  fi
+  return "$failures"
+}
+
 print_audio_status() {
   if command -v wpctl >/dev/null 2>&1; then
     echo 'Default output'
@@ -352,6 +438,10 @@ case "${1:-help}" in
         echo 'Raohane doctor dependencies'
         print_dependency_report
         ;;
+      runtime)
+        echo 'Raohane doctor runtime'
+        print_runtime_integrity
+        ;;
       services)
         echo 'Raohane doctor services'
         if ! print_shell_runtime_status; then
@@ -384,6 +474,8 @@ case "${1:-help}" in
         echo 'Raohane doctor'
         echo
         print_dependency_report || true
+        echo
+        print_runtime_integrity || true
         echo
         echo 'Shell runtime'
         if ! print_shell_runtime_status; then
