@@ -5,7 +5,6 @@ import qs.modules.raohane
 import qs.modules.raohane.config
 import qs.modules.ii.onScreenKeyboard
 import qs.modules.ii.regionSelector
-import qs.modules.ii.screenCorners
 import qs.modules.ii.screenTranslator
 import qs.modules.ii.sidebarLeft
 import qs.modules.ii.overlay
@@ -29,7 +28,7 @@ Scope {
     RaohanePanelLoader { component: RaohaneOverview {} }
     RaohanePanelLoader { component: RaohanePolkit {} }
     RaohanePanelLoader { component: RegionSelector {} }
-    RaohanePanelLoader { component: ScreenCorners {} }
+    RaohanePanelLoader { component: RaohaneScreenCorners {} }
     RaohanePanelLoader { component: ScreenTranslator {} }
     RaohanePanelLoader { component: SidebarLeft {} }
 

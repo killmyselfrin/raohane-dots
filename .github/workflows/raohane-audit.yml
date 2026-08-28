@@ -62,6 +62,7 @@ jobs:
           bash -n scripts/settings-boundary-audit.sh
           bash -n scripts/polkit-boundary-audit.sh
           bash -n scripts/frame-boundary-audit.sh
+          bash -n scripts/screen-corners-boundary-audit.sh
           bash -n scripts/install-deps.sh
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
@@ -106,6 +107,7 @@ jobs:
           bash scripts/settings-boundary-audit.sh
           bash scripts/polkit-boundary-audit.sh
           bash scripts/frame-boundary-audit.sh
+          bash scripts/screen-corners-boundary-audit.sh
 
       - name: Validate current integration graph
         shell: bash
@@ -136,6 +138,8 @@ jobs:
             modules/raohane/RaohaneLockSurface.qml
             modules/raohane/RaohanePolkit.qml
             modules/raohane/RaohaneScreenFrame.qml
+            modules/raohane/RaohaneRoundCorner.qml
+            modules/raohane/RaohaneScreenCorners.qml
             modules/raohane/RaohaneSettingsAbout.qml
             modules/raohane/services/RaohaneMedia.qml
             modules/raohane/services/RaohaneBluetooth.qml
@@ -166,6 +170,7 @@ jobs:
             scripts/settings-boundary-audit.sh
             scripts/polkit-boundary-audit.sh
             scripts/frame-boundary-audit.sh
+            scripts/screen-corners-boundary-audit.sh
             services/Notifications.qml
             services/Wallpapers.qml
             services/SessionWarnings.qml

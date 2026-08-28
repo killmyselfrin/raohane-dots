@@ -44,8 +44,9 @@ for property_name in frameEnabled frameThickness frameColor frameBarSideVisible;
   rg -q "property .* ${property_name}:" "$config" \
     || fail "RaohaneConfig missing frame property: $property_name"
 done
-rg -q 'schemaVersion:[[:space:]]*8' "$config" \
-  || fail 'native config schema is not v8'
+schema_version="$(sed -nE 's/.*schemaVersion:[[:space:]]*([0-9]+).*/\1/p' "$config" | head -1)"
+[[ "$schema_version" =~ ^[0-9]+$ ]] || fail 'could not read native config schema version'
+(( schema_version >= 8 )) || fail 'native config schema is older than v8'
 rg -q 'frame:[[:space:]]*\{' "$config" \
   || fail 'native config snapshot does not persist the frame object'
 

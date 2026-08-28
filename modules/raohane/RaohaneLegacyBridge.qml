@@ -34,6 +34,31 @@ Singleton {
         return left.length === 0 && right.length === 0
     }
 
+    function pullLegacyCorners(): void {
+        if (root.syncing || !RaohaneConfig.ready)
+            return
+
+        root.syncing = true
+        RaohaneConfig.screenRoundingMode = Config.options?.appearance?.fakeScreenRounding ?? 0
+        RaohaneConfig.screenCornerRadius = Appearance.rounding?.screenRounding ?? 22
+        RaohaneConfig.deadPixelWorkaround = Config.options?.interactions?.deadPixelWorkaround?.enable ?? false
+
+        const corners = Config.options?.sidebar?.cornerOpen
+        if (corners) {
+            RaohaneConfig.hotCornersEnabled = corners.enable ?? true
+            RaohaneConfig.hotCornerValueScroll = corners.valueScroll ?? true
+            RaohaneConfig.hotCornerClickless = corners.clickless ?? false
+            RaohaneConfig.hotCornerRegionWidth = corners.cornerRegionWidth ?? 250
+            RaohaneConfig.hotCornerRegionHeight = corners.cornerRegionHeight ?? 5
+            RaohaneConfig.hotCornerBottomLeftAction = corners.bottomLeftAction ?? "sidebarLeftOpen"
+            RaohaneConfig.hotCornerBottomRightAction = corners.bottomRightAction ?? "sidebarRightOpen"
+            RaohaneConfig.hotCornerVisualize = corners.visualize ?? false
+            RaohaneConfig.hotCornerClicklessEnd = corners.clicklessCornerEnd ?? true
+            RaohaneConfig.hotCornerVerticalOffset = corners.clicklessCornerVerticalOffset ?? 1
+        }
+        root.syncing = false
+    }
+
     function seedNativeFromLegacy(): void {
         if (!RaohaneConfig.ready || !Config.ready || root.initialized)
             return
@@ -77,6 +102,23 @@ Singleton {
             RaohaneConfig.frameBarSideVisible = root.legacyFrameBarSideVisible()
         }
         RaohaneConfig.barShowDate = Config.options?.time?.showDate ?? RaohaneConfig.barShowDate
+
+        RaohaneConfig.screenRoundingMode = Config.options?.appearance?.fakeScreenRounding ?? RaohaneConfig.screenRoundingMode
+        RaohaneConfig.screenCornerRadius = Appearance.rounding?.screenRounding ?? RaohaneConfig.screenCornerRadius
+        RaohaneConfig.deadPixelWorkaround = Config.options?.interactions?.deadPixelWorkaround?.enable ?? RaohaneConfig.deadPixelWorkaround
+        const corners = Config.options?.sidebar?.cornerOpen
+        if (corners) {
+            RaohaneConfig.hotCornersEnabled = corners.enable ?? RaohaneConfig.hotCornersEnabled
+            RaohaneConfig.hotCornerValueScroll = corners.valueScroll ?? RaohaneConfig.hotCornerValueScroll
+            RaohaneConfig.hotCornerClickless = corners.clickless ?? RaohaneConfig.hotCornerClickless
+            RaohaneConfig.hotCornerRegionWidth = corners.cornerRegionWidth ?? RaohaneConfig.hotCornerRegionWidth
+            RaohaneConfig.hotCornerRegionHeight = corners.cornerRegionHeight ?? RaohaneConfig.hotCornerRegionHeight
+            RaohaneConfig.hotCornerBottomLeftAction = corners.bottomLeftAction ?? RaohaneConfig.hotCornerBottomLeftAction
+            RaohaneConfig.hotCornerBottomRightAction = corners.bottomRightAction ?? RaohaneConfig.hotCornerBottomRightAction
+            RaohaneConfig.hotCornerVisualize = corners.visualize ?? RaohaneConfig.hotCornerVisualize
+            RaohaneConfig.hotCornerClicklessEnd = corners.clicklessCornerEnd ?? RaohaneConfig.hotCornerClicklessEnd
+            RaohaneConfig.hotCornerVerticalOffset = corners.clicklessCornerVerticalOffset ?? RaohaneConfig.hotCornerVerticalOffset
+        }
 
         RaohaneConfig.osdTimeout = Config.options?.osd?.timeout ?? RaohaneConfig.osdTimeout
         RaohaneConfig.colorTemperature = Config.options?.light?.night?.colorTemperature ?? RaohaneConfig.colorTemperature
@@ -151,6 +193,23 @@ Singleton {
                     Config.options.bar.autoHide.showWhenPressingSuper.delay = RaohaneConfig.barShowOnSuperDelay
                 }
             }
+        }
+        if (Config.options?.appearance)
+            Config.options.appearance.fakeScreenRounding = RaohaneConfig.screenRoundingMode
+        if (Config.options?.interactions?.deadPixelWorkaround)
+            Config.options.interactions.deadPixelWorkaround.enable = RaohaneConfig.deadPixelWorkaround
+        if (Config.options?.sidebar?.cornerOpen) {
+            const corners = Config.options.sidebar.cornerOpen
+            corners.enable = RaohaneConfig.hotCornersEnabled
+            corners.valueScroll = RaohaneConfig.hotCornerValueScroll
+            corners.clickless = RaohaneConfig.hotCornerClickless
+            corners.cornerRegionWidth = RaohaneConfig.hotCornerRegionWidth
+            corners.cornerRegionHeight = RaohaneConfig.hotCornerRegionHeight
+            corners.bottomLeftAction = RaohaneConfig.hotCornerBottomLeftAction
+            corners.bottomRightAction = RaohaneConfig.hotCornerBottomRightAction
+            corners.visualize = RaohaneConfig.hotCornerVisualize
+            corners.clicklessCornerEnd = RaohaneConfig.hotCornerClicklessEnd
+            corners.clicklessCornerVerticalOffset = RaohaneConfig.hotCornerVerticalOffset
         }
         if (Config.options?.time)
             Config.options.time.showDate = RaohaneConfig.barShowDate
@@ -290,6 +349,12 @@ Singleton {
         RaohaneState.overviewOpen = GlobalStates.overviewOpen
         RaohaneState.barOpen = GlobalStates.barOpen
         RaohaneState.controlCenterOpen = GlobalStates.sidebarRightOpen
+        RaohaneState.leftSidebarOpen = GlobalStates.sidebarLeftOpen
+        RaohaneState.mediaOverlayOpen = GlobalStates.mediaControlsOpen
+        RaohaneState.overlayOpen = GlobalStates.overlayOpen
+        RaohaneState.regionSelectorOpen = GlobalStates.regionSelectorOpen
+        RaohaneState.screenTranslatorOpen = GlobalStates.screenTranslatorOpen
+        RaohaneState.oskOpen = GlobalStates.oskOpen
         RaohaneState.settingsOpen = GlobalStates.settingsOpen
         RaohaneState.settingsPage = GlobalStates.settingsPage ?? ""
         RaohaneState.sessionOpen = GlobalStates.sessionOpen
@@ -307,6 +372,12 @@ Singleton {
         GlobalStates.overviewOpen = RaohaneState.overviewOpen
         GlobalStates.barOpen = RaohaneState.barOpen
         GlobalStates.sidebarRightOpen = RaohaneState.controlCenterOpen
+        GlobalStates.sidebarLeftOpen = RaohaneState.leftSidebarOpen
+        GlobalStates.mediaControlsOpen = RaohaneState.mediaOverlayOpen
+        GlobalStates.overlayOpen = RaohaneState.overlayOpen
+        GlobalStates.regionSelectorOpen = RaohaneState.regionSelectorOpen
+        GlobalStates.screenTranslatorOpen = RaohaneState.screenTranslatorOpen
+        GlobalStates.oskOpen = RaohaneState.oskOpen
         GlobalStates.settingsOpen = RaohaneState.settingsOpen
         GlobalStates.settingsPage = RaohaneState.settingsPage
         GlobalStates.sessionOpen = RaohaneState.sessionOpen
@@ -343,6 +414,19 @@ Singleton {
         function onFrameThicknessChanged(): void { root.pushNativeToLegacy() }
         function onFrameColorChanged(): void { root.pushNativeToLegacy() }
         function onFrameBarSideVisibleChanged(): void { root.pushNativeToLegacy() }
+        function onScreenRoundingModeChanged(): void { root.pushNativeToLegacy() }
+        function onScreenCornerRadiusChanged(): void { root.pushNativeToLegacy() }
+        function onDeadPixelWorkaroundChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornersEnabledChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerValueScrollChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerClicklessChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerRegionWidthChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerRegionHeightChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerBottomLeftActionChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerBottomRightActionChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerVisualizeChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerClicklessEndChanged(): void { root.pushNativeToLegacy() }
+        function onHotCornerVerticalOffsetChanged(): void { root.pushNativeToLegacy() }
         function onOsdTimeoutChanged(): void { root.pushNativeToLegacy() }
         function onColorTemperatureChanged(): void { root.pushNativeToLegacy() }
         function onNightLightAutomaticChanged(): void { root.pushNativeToLegacy() }
@@ -365,6 +449,12 @@ Singleton {
         function onOverviewOpenChanged(): void { root.pushNativeTransientState() }
         function onBarOpenChanged(): void { root.pushNativeTransientState() }
         function onControlCenterOpenChanged(): void { root.pushNativeTransientState() }
+        function onLeftSidebarOpenChanged(): void { root.pushNativeTransientState() }
+        function onMediaOverlayOpenChanged(): void { root.pushNativeTransientState() }
+        function onOverlayOpenChanged(): void { root.pushNativeTransientState() }
+        function onRegionSelectorOpenChanged(): void { root.pushNativeTransientState() }
+        function onScreenTranslatorOpenChanged(): void { root.pushNativeTransientState() }
+        function onOskOpenChanged(): void { root.pushNativeTransientState() }
         function onSettingsOpenChanged(): void { root.pushNativeTransientState() }
         function onSettingsPageChanged(): void { root.pushNativeTransientState() }
         function onSessionOpenChanged(): void { root.pushNativeTransientState() }
@@ -439,6 +529,30 @@ Singleton {
     }
 
     Connections {
+        target: Config.options?.appearance ?? null
+        function onFakeScreenRoundingChanged(): void { root.pullLegacyCorners() }
+    }
+
+    Connections {
+        target: Config.options?.interactions?.deadPixelWorkaround ?? null
+        function onEnableChanged(): void { root.pullLegacyCorners() }
+    }
+
+    Connections {
+        target: Config.options?.sidebar?.cornerOpen ?? null
+        function onEnableChanged(): void { root.pullLegacyCorners() }
+        function onValueScrollChanged(): void { root.pullLegacyCorners() }
+        function onClicklessChanged(): void { root.pullLegacyCorners() }
+        function onCornerRegionWidthChanged(): void { root.pullLegacyCorners() }
+        function onCornerRegionHeightChanged(): void { root.pullLegacyCorners() }
+        function onBottomLeftActionChanged(): void { root.pullLegacyCorners() }
+        function onBottomRightActionChanged(): void { root.pullLegacyCorners() }
+        function onVisualizeChanged(): void { root.pullLegacyCorners() }
+        function onClicklessCornerEndChanged(): void { root.pullLegacyCorners() }
+        function onClicklessCornerVerticalOffsetChanged(): void { root.pullLegacyCorners() }
+    }
+
+    Connections {
         target: Config.options?.time ?? null
         function onShowDateChanged(): void { root.pullLegacyShellChrome() }
     }
@@ -483,6 +597,12 @@ Singleton {
         function onOverviewOpenChanged(): void { root.pullLegacyTransientState() }
         function onBarOpenChanged(): void { root.pullLegacyTransientState() }
         function onSidebarRightOpenChanged(): void { root.pullLegacyTransientState() }
+        function onSidebarLeftOpenChanged(): void { root.pullLegacyTransientState() }
+        function onMediaControlsOpenChanged(): void { root.pullLegacyTransientState() }
+        function onOverlayOpenChanged(): void { root.pullLegacyTransientState() }
+        function onRegionSelectorOpenChanged(): void { root.pullLegacyTransientState() }
+        function onScreenTranslatorOpenChanged(): void { root.pullLegacyTransientState() }
+        function onOskOpenChanged(): void { root.pullLegacyTransientState() }
         function onSettingsOpenChanged(): void { root.pullLegacyTransientState() }
         function onSettingsPageChanged(): void { root.pullLegacyTransientState() }
         function onSessionOpenChanged(): void { root.pullLegacyTransientState() }
