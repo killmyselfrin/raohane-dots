@@ -91,7 +91,7 @@ fi
 
 for service in RaohaneSession.qml RaohaneDisplay.qml RaohaneWallpapers.qml; do
   rg -q 'qs\.modules\.raohane\.config' "$MODULE/$service" \
-    || fail "$service does not consume native config'
+    || fail "$service does not consume native config"
   if rg -n '\bConfig\.' "$MODULE/$service"; then
     fail "$service still consumes inherited Config"
   fi
