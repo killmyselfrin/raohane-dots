@@ -41,24 +41,20 @@ Singleton {
     readonly property string videos: root.cleanPath(StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0] ?? "")
     readonly property string username: String(Quickshell.env("USER") ?? Quickshell.env("LOGNAME") ?? "")
 
-    // Repository/runtime-owned roots.
     readonly property string assetsUrl: Quickshell.shellPath("assets")
     readonly property string scriptsPath: root.cleanPath(Quickshell.shellPath("scripts"))
     readonly property string defaultsPath: root.cleanPath(Quickshell.shellPath("defaults"))
 
-    // Persistent Raohane namespaces. Native code must prefer these over the
-    // inherited modules/common/Directories singleton.
     readonly property string configDirectory: root.join(root.configRoot, "raohane")
     readonly property string nativeConfigFile: root.join(root.configDirectory, "native.json")
     readonly property string compatibilityConfigFile: root.join(root.configDirectory, "config.json")
+    readonly property string autostartFile: root.join(root.configDirectory, "autostart.conf")
     readonly property string notificationsFile: root.join(root.configDirectory, "notifications.json")
     readonly property string stateDirectory: root.join(root.stateRoot, "raohane")
     readonly property string cacheDirectory: root.join(root.cacheRoot, "raohane")
     readonly property string coverArtDirectory: root.join(root.cacheDirectory, "media/coverart")
     readonly property string screenshotTempDirectory: "/tmp/raohane/screenshot"
 
-    // Built-in assets are URLs because they are consumed directly by QML image
-    // sources and must continue to work when the shell is installed elsewhere.
     readonly property string defaultAvatarUrl: Quickshell.shellPath("assets/images/default_avatar.svg")
     readonly property string defaultWallpaperUrl: Quickshell.shellPath("assets/images/default_wallpaper.png")
     readonly property string iconsUrl: Quickshell.shellPath("assets/icons")
