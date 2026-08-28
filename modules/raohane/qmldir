@@ -40,3 +40,6 @@ RaohanePolkit 1.0 RaohanePolkit.qml
 RaohaneScreenFrame 1.0 RaohaneScreenFrame.qml
 RaohaneRoundCorner 1.0 RaohaneRoundCorner.qml
 RaohaneScreenCorners 1.0 RaohaneScreenCorners.qml
+RaohaneOskKey 1.0 RaohaneOskKey.qml
+RaohaneOskContent 1.0 RaohaneOskContent.qml
+RaohaneOnScreenKeyboard 1.0 RaohaneOnScreenKeyboard.qml

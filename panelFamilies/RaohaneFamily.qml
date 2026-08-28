@@ -3,7 +3,6 @@ import Quickshell
 
 import qs.modules.raohane
 import qs.modules.raohane.config
-import qs.modules.ii.onScreenKeyboard
 import qs.modules.ii.regionSelector
 import qs.modules.ii.screenTranslator
 import qs.modules.ii.sidebarLeft
@@ -23,7 +22,7 @@ Scope {
     RaohanePanelLoader { component: RaohaneLock {} }
     RaohanePanelLoader { component: RaohaneNotificationPopup {} }
     RaohanePanelLoader { component: RaohaneOsd {} }
-    RaohanePanelLoader { component: OnScreenKeyboard {} }
+    RaohanePanelLoader { component: RaohaneOnScreenKeyboard {} }
     RaohanePanelLoader { component: Overlay {} }
     RaohanePanelLoader { component: RaohaneOverview {} }
     RaohanePanelLoader { component: RaohanePolkit {} }

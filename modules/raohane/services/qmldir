@@ -12,3 +12,4 @@ singleton RaohaneSystemInfo 1.0 RaohaneSystemInfo.qml
 singleton RaohaneSearch 1.0 RaohaneSearch.qml
 singleton RaohaneIdle 1.0 RaohaneIdle.qml
 singleton RaohaneEasyEffects 1.0 RaohaneEasyEffects.qml
+singleton RaohaneYdotool 1.0 RaohaneYdotool.qml

@@ -17,6 +17,7 @@ hypridle
 hyprlock
 hyprpicker
 wf-recorder
+ydotool
 libpulse
 pciutils
 python-pillow
