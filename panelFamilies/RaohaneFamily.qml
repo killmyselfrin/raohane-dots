@@ -3,11 +3,13 @@ import Quickshell
 
 import qs.modules.raohane
 import qs.modules.raohane.config
+import qs.modules.raohane.services
 
-// Raohane's Hyprland integration composition. Inherited sources may remain in
-// the repository as migration/reference material, but the active family only
-// resolves Raohane-owned presentation types at shell startup.
+// Raohane's Hyprland integration composition. The active family resolves only
+// Raohane-owned presentation and service types at shell startup.
 Scope {
+    Component.onCompleted: RaohaneAutostart.runOnce()
+
     RaohanePanelLoader { component: RaohaneBackground {} }
     RaohanePanelLoader { component: RaohaneDesktopCanvas {} }
     RaohanePanelLoader { extraCondition: !RaohaneConfig.barVertical; component: RaohaneBar {} }
