@@ -39,6 +39,18 @@ rm -rf -- \
   "$TARGET/.git" \
   "$TARGET/.github"
 
+# Retired upstream helper families are not part of the native product runtime.
+# Native Raohane uses its own capture/translation/autostart/thumbnail scripts.
+rm -rf -- \
+  "$TARGET/scripts/ai" \
+  "$TARGET/scripts/cava" \
+  "$TARGET/scripts/colors" \
+  "$TARGET/scripts/hyprland" \
+  "$TARGET/scripts/images" \
+  "$TARGET/scripts/keyring" \
+  "$TARGET/scripts/kvantum" \
+  "$TARGET/scripts/lyrics"
+
 rm -f -- "$TARGET/defaults/config.json"
 
 # shell.qml is the complete root bootstrap. Any other root-level QML file comes
@@ -75,7 +87,15 @@ for retired in \
   "$TARGET/services" \
   "$TARGET/GlobalStates.qml" \
   "$TARGET/ReloadPopup.qml" \
-  "$TARGET/panelFamilies/IllogicalImpulseFamily.qml"; do
+  "$TARGET/panelFamilies/IllogicalImpulseFamily.qml" \
+  "$TARGET/scripts/ai" \
+  "$TARGET/scripts/cava" \
+  "$TARGET/scripts/colors" \
+  "$TARGET/scripts/hyprland" \
+  "$TARGET/scripts/images" \
+  "$TARGET/scripts/keyring" \
+  "$TARGET/scripts/kvantum" \
+  "$TARGET/scripts/lyrics"; do
   [[ ! -e "$retired" ]] || {
     echo "Legacy runtime path survived pruning: $retired" >&2
     exit 1
@@ -88,4 +108,4 @@ root_qml_count="$(find "$TARGET" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -
   exit 1
 }
 
-printf 'Raohane installed runtime pruned to native QML graph: %s\n' "$TARGET"
+printf 'Raohane installed runtime pruned to native QML/script graph: %s\n' "$TARGET"
