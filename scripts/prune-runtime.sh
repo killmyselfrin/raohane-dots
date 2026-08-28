@@ -49,9 +49,13 @@ rm -rf -- \
   "$TARGET/scripts/images" \
   "$TARGET/scripts/keyring" \
   "$TARGET/scripts/kvantum" \
-  "$TARGET/scripts/lyrics"
+  "$TARGET/scripts/lyrics" \
+  "$TARGET/scripts/musicRecognition" \
+  "$TARGET/scripts/theming"
 
-rm -f -- "$TARGET/defaults/config.json"
+rm -f -- \
+  "$TARGET/defaults/config.json" \
+  "$TARGET/scripts/presets.sh"
 
 # shell.qml is the complete root bootstrap. Any other root-level QML file comes
 # from the inherited source tree and must not be discoverable in the installed
@@ -95,7 +99,10 @@ for retired in \
   "$TARGET/scripts/images" \
   "$TARGET/scripts/keyring" \
   "$TARGET/scripts/kvantum" \
-  "$TARGET/scripts/lyrics"; do
+  "$TARGET/scripts/lyrics" \
+  "$TARGET/scripts/musicRecognition" \
+  "$TARGET/scripts/theming" \
+  "$TARGET/scripts/presets.sh"; do
   [[ ! -e "$retired" ]] || {
     echo "Legacy runtime path survived pruning: $retired" >&2
     exit 1
