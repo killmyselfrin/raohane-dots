@@ -15,8 +15,9 @@ lock='modules/raohane/RaohaneLock.qml'
 context='modules/raohane/RaohaneLockContext.qml'
 surface='modules/raohane/RaohaneLockSurface.qml'
 session='modules/raohane/services/RaohaneSession.qml'
+features='install/arch/features.txt'
 
-for path in "$family" "$qmldir" "$lock" "$context" "$surface" "$session"; do
+for path in "$family" "$qmldir" "$lock" "$context" "$surface" "$session" "$features"; do
   [[ -f "$path" ]] || fail "missing native lock path: $path"
 done
 
@@ -46,6 +47,8 @@ rg -q '\bPamContext[[:space:]]*\{' "$context" \
   || fail 'RaohaneLockContext does not own a PAM transaction'
 rg -q 'fprintd-list' "$context" \
   || fail 'RaohaneLockContext lost optional fingerprint discovery'
+rg -q '^fprintd$' "$features" \
+  || fail 'fingerprint-capable native lock is missing fprintd from the feature manifest'
 
 for symbol in 'RaohaneConfig\.lockWallpaperPath' 'RaohanePaths\.defaultWallpaperUrl' 'RaohaneSession\.suspend' 'RaohaneSession\.poweroff'; do
   rg -q "$symbol" "$surface" || fail "RaohaneLockSurface lost native dependency: $symbol"
@@ -57,4 +60,4 @@ if rg -n 'loginctl.*lock-session' "$session"; then
   fail 'RaohaneSession.lock still uses the old logind-only lock path'
 fi
 
-printf 'lock-boundary-audit: native WlSessionLock/PAM runtime is active and inherited Lock is detached\n'
+printf 'lock-boundary-audit: native WlSessionLock/PAM/fprintd runtime is active and inherited Lock is detached\n'
