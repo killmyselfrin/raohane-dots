@@ -69,6 +69,13 @@ done
 
 bash -n "$thumb_wrapper"
 bash -n "$magick_generator"
-python3 -m py_compile "$thumb_generator"
+python3 - "$thumb_generator" <<'PY'
+import ast
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+PY
 
 printf 'wallpaper-boundary-audit: selector and standalone Pillow/ffmpeg/ImageMagick thumbnail pipeline are Raohane-owned\n'
