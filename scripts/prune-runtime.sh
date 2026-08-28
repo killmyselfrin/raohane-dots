@@ -55,7 +55,14 @@ rm -rf -- \
 
 rm -f -- \
   "$TARGET/defaults/config.json" \
-  "$TARGET/scripts/presets.sh"
+  "$TARGET/scripts/presets.sh" \
+  "$TARGET/scripts/migrate-legacy-config.py" \
+  "$TARGET/scripts/raohane" \
+  "$TARGET/scripts/raohane-audit.sh" \
+  "$TARGET/scripts/standalone-runtime-audit.sh"
+
+# Boundary audits are source/CI tooling, not runtime backends.
+find "$TARGET/scripts" -mindepth 1 -maxdepth 1 -type f -name '*-boundary-audit.sh' -delete
 
 # shell.qml is the complete root bootstrap. Any other root-level QML file comes
 # from the inherited source tree and must not be discoverable in the installed
@@ -84,6 +91,18 @@ fi
   echo 'Pruning removed the native Raohane family unexpectedly.' >&2
   exit 1
 }
+[[ -f "$TARGET/scripts/install-deps.sh" ]] || {
+  echo 'Pruning removed runtime dependency diagnostics unexpectedly.' >&2
+  exit 1
+}
+[[ -f "$TARGET/scripts/prune-runtime.sh" ]] || {
+  echo 'Pruning removed the self-healing runtime pruner unexpectedly.' >&2
+  exit 1
+}
+[[ -f "$TARGET/scripts/autostart.sh" ]] || {
+  echo 'Pruning removed native autostart backend unexpectedly.' >&2
+  exit 1
+}
 
 for retired in \
   "$TARGET/modules/common" \
@@ -102,12 +121,21 @@ for retired in \
   "$TARGET/scripts/lyrics" \
   "$TARGET/scripts/musicRecognition" \
   "$TARGET/scripts/theming" \
-  "$TARGET/scripts/presets.sh"; do
+  "$TARGET/scripts/presets.sh" \
+  "$TARGET/scripts/migrate-legacy-config.py" \
+  "$TARGET/scripts/raohane" \
+  "$TARGET/scripts/raohane-audit.sh" \
+  "$TARGET/scripts/standalone-runtime-audit.sh"; do
   [[ ! -e "$retired" ]] || {
-    echo "Legacy runtime path survived pruning: $retired" >&2
+    echo "Legacy/source-only runtime path survived pruning: $retired" >&2
     exit 1
   }
 done
+
+if find "$TARGET/scripts" -mindepth 1 -maxdepth 1 -type f -name '*-boundary-audit.sh' -print -quit | grep -q .; then
+  echo 'Source-only boundary audit survived installed-runtime pruning.' >&2
+  exit 1
+fi
 
 root_qml_count="$(find "$TARGET" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || {
@@ -115,4 +143,4 @@ root_qml_count="$(find "$TARGET" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -
   exit 1
 }
 
-printf 'Raohane installed runtime pruned to native QML/script graph: %s\n' "$TARGET"
+printf 'Raohane installed runtime pruned to native QML/backend graph: %s\n' "$TARGET"
