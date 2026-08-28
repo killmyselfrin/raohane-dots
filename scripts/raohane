@@ -15,7 +15,7 @@ Usage: raohane <command> [args]
 
 Shell:
   run | start | stop | restart | status | logs
-  launcher | control | settings | media | desktop | session
+  launcher | control | settings | media | desktop | session | translate
   wallpaper [toggle|random]
 
 Diagnostics:
@@ -50,7 +50,6 @@ service_start() {
     return 1
   fi
 
-  # systemctl start can return before a short-lived Quickshell process crashes.
   sleep 1
   if ! systemctl --user --quiet is-active "$SERVICE"; then
     service_failure_report
@@ -166,6 +165,8 @@ print_command_report() {
   check_cmd cava cava optional
   check_cmd ffplay ffmpeg optional
   check_cmd notify-send libnotify optional
+  check_cmd tesseract tesseract optional
+  check_cmd trans translate-shell optional
 
   return "$failures"
 }
@@ -244,8 +245,6 @@ recover_audio() {
   wpctl set-volume @DEFAULT_SINK@ "${percent}%"
   wpctl set-mute @DEFAULT_SINK@ 0
 
-  # EasyEffects commonly owns the application-facing virtual sink. Do not
-  # change routing; only make sure an existing virtual sink is not at zero.
   local easyeffects_id=""
   easyeffects_id="$(wpctl status -n 2>/dev/null | sed -n 's/^[^0-9]*\([0-9][0-9]*\)\. easyeffects_sink.*/\1/p' | head -1 || true)"
   if [[ -n "$easyeffects_id" ]]; then
@@ -294,6 +293,9 @@ case "${1:-help}" in
     ;;
   session)
     ipc session toggle
+    ;;
+  translate)
+    ipc screenTranslator translate
     ;;
   wallpaper)
     case "${2:-toggle}" in
