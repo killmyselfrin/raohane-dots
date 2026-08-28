@@ -24,6 +24,16 @@ for path in "${required[@]}"; do
   [[ -e "$path" ]] || fail "missing native runtime path: $path"
 done
 
+retired_source=(
+  scripts/sync-end4-foundation.sh
+  scripts/install-foundation-deps.sh
+  upstream/end4-pC.lock
+  upstream/illogical-impulse.lock
+)
+for path in "${retired_source[@]}"; do
+  [[ ! -e "$path" ]] || fail "retired upstream bootstrap/sync path returned: $path"
+done
+
 # Everything copied into the standalone product graph must resolve without the
 # inherited common/ii/service namespaces. This intentionally scans every native
 # QML file, not only the top-level family surfaces.
@@ -113,4 +123,4 @@ done
 root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
-printf 'standalone-runtime-audit: native QML is legacy-independent; install/launch pruning and live runtime diagnostics are enforced\n'
+printf 'standalone-runtime-audit: native QML is legacy-independent; upstream sync/bootstrap is retired and install/launch pruning is enforced\n'
