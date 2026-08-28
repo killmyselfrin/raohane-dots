@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 
 import qs.modules.raohane.config
 import qs.modules.raohane.services
@@ -115,7 +116,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
+            spacing: 8
 
             Text {
                 text: qsTr("Configure Raohane")
@@ -132,21 +133,16 @@ Item {
 
             Item { Layout.fillWidth: true }
 
-            Rectangle {
-                width: configPath.implicitWidth + 18
-                height: 26
-                radius: 13
-                color: "#18ffffff"
-                border.width: 1
-                border.color: RaohaneTheme.border
+            PathChip {
+                label: "native.json"
+                path: RaohanePaths.nativeConfigFile
+                icon: "tune"
+            }
 
-                Text {
-                    id: configPath
-                    anchors.centerIn: parent
-                    text: "~/.config/raohane/config.json"
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
-                }
+            PathChip {
+                label: "autostart.conf"
+                path: RaohanePaths.autostartFile
+                icon: "rocket_launch"
             }
         }
 
@@ -207,8 +203,55 @@ Item {
                 Layout.fillHeight: true
                 icon: "settings"
                 title: qsTr("Services")
-                detail: qsTr("System integrations and background helpers")
+                detail: qsTr("System integrations, autostart and background helpers")
                 page: "Services"
+            }
+        }
+    }
+
+    component PathChip: Rectangle {
+        id: pathChip
+
+        required property string label
+        required property string path
+        required property string icon
+
+        width: pathRow.implicitWidth + 18
+        height: 28
+        radius: 14
+        color: pathMouse.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
+        border.width: 1
+        border.color: pathMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+
+        Row {
+            id: pathRow
+            anchors.centerIn: parent
+            spacing: 5
+
+            RaohaneIcon {
+                text: pathChip.icon
+                iconSize: 13
+                color: pathMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+
+            Text {
+                text: pathChip.label
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 8
+            }
+        }
+
+        MouseArea {
+            id: pathMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            cursorShape: Qt.PointingHandCursor
+            onClicked: mouse => {
+                if (mouse.button === Qt.RightButton)
+                    Quickshell.clipboardText = pathChip.path
+                else
+                    Qt.openUrlExternally("file://" + pathChip.path)
             }
         }
     }
