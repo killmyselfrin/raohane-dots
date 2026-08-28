@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 9
+    readonly property int schemaVersion: 10
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -39,8 +39,6 @@ Singleton {
     property int dockBottomMargin: 9
     property var dockPinnedApps: []
 
-    // Native horizontal-bar contract. Vertical presentation is still a
-    // compatibility surface, but the product decision/config now belongs here.
     property bool barBottom: false
     property bool barVertical: false
     property bool barAutoHide: false
@@ -50,15 +48,11 @@ Singleton {
     property var barScreenList: []
     property bool barShowDate: true
 
-    // Screen chrome is owned by Raohane even while legacy settings pages are
-    // still able to mirror these values through RaohaneLegacyBridge.
     property bool frameEnabled: false
     property int frameThickness: 4
     property string frameColor: "#000000"
     property bool frameBarSideVisible: true
 
-    // Native fake-screen rounding and hot-corner interaction contract.
-    // roundingMode: 0 = off, 1 = always, 2 = hide on fullscreen.
     property int screenRoundingMode: 0
     property int screenCornerRadius: 22
     property bool deadPixelWorkaround: false
@@ -72,6 +66,9 @@ Singleton {
     property bool hotCornerVisualize: false
     property bool hotCornerClicklessEnd: true
     property int hotCornerVerticalOffset: 1
+
+    property bool oskPinned: false
+    property string oskLayout: "English (US)"
 
     property int osdTimeout: 1000
 
@@ -158,6 +155,10 @@ Singleton {
                 clicklessEnd: root.hotCornerClicklessEnd,
                 verticalOffset: root.hotCornerVerticalOffset
             },
+            osk: {
+                pinned: root.oskPinned,
+                layout: root.oskLayout
+            },
             osd: {
                 timeout: root.osdTimeout
             },
@@ -203,6 +204,7 @@ Singleton {
         const bar = document?.bar ?? {}
         const frame = document?.frame ?? {}
         const corners = document?.corners ?? {}
+        const osk = document?.osk ?? {}
         const osd = document?.osd ?? {}
         const display = document?.display ?? {}
         const apps = document?.apps ?? {}
@@ -260,6 +262,9 @@ Singleton {
         root.assignIfPresent(corners, "visualize", value => root.hotCornerVisualize = Boolean(value))
         root.assignIfPresent(corners, "clicklessEnd", value => root.hotCornerClicklessEnd = Boolean(value))
         root.assignIfPresent(corners, "verticalOffset", value => root.hotCornerVerticalOffset = Math.max(0, Math.min(40, Number(value) || 0)))
+
+        root.assignIfPresent(osk, "pinned", value => root.oskPinned = Boolean(value))
+        root.assignIfPresent(osk, "layout", value => root.oskLayout = String(value || "English (US)"))
 
         root.assignIfPresent(osd, "timeout", value => root.osdTimeout = Math.max(250, Math.min(10000, Number(value) || 1000)))
 
@@ -359,6 +364,8 @@ Singleton {
     onHotCornerVisualizeChanged: scheduleSave()
     onHotCornerClicklessEndChanged: scheduleSave()
     onHotCornerVerticalOffsetChanged: scheduleSave()
+    onOskPinnedChanged: scheduleSave()
+    onOskLayoutChanged: scheduleSave()
     onOsdTimeoutChanged: scheduleSave()
     onColorTemperatureChanged: scheduleSave()
     onNightLightAutomaticChanged: scheduleSave()
