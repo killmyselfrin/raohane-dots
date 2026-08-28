@@ -68,6 +68,8 @@ jobs:
           bash -n scripts/osk-boundary-audit.sh
           bash -n scripts/runtime-surface-boundary-audit.sh
           bash -n scripts/screen-translate.sh
+          bash -n scripts/region-ocr.sh
+          bash -n scripts/region-search.sh
           bash -n scripts/install-deps.sh
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
@@ -82,15 +84,6 @@ jobs:
           files=(
             shell.qml
             panelFamilies/RaohaneFamily.qml
-            services/Audio.qml
-            services/BluetoothStatus.qml
-            services/EasyEffects.qml
-            services/Idle.qml
-            services/Notifications.qml
-            services/Wallpapers.qml
-            services/SessionWarnings.qml
-            services/SystemInfo.qml
-            modules/common/functions/Session.qml
             "${native_qml[@]}"
           )
           for file in "${files[@]}"; do
@@ -123,15 +116,14 @@ jobs:
           required_paths=(
             shell.qml
             qmldir
-            GlobalStates.qml
+            defaults/config.json
             install/arch/required.txt
             install/arch/features.txt
-            modules/common
-            modules/ii
             modules/raohane
             modules/raohane/config/qmldir
             modules/raohane/config/RaohaneConfig.qml
             modules/raohane/config/RaohanePaths.qml
+            modules/raohane/RaohaneState.qml
             modules/raohane/RaohaneWorkspaces.qml
             modules/raohane/RaohaneSysTray.qml
             modules/raohane/RaohaneSystemIcons.qml
@@ -172,15 +164,13 @@ jobs:
             modules/raohane/services/RaohaneEasyEffects.qml
             modules/raohane/services/RaohaneYdotool.qml
             modules/raohane/services/RaohaneDropShelf.qml
-            modules/common/Directories.qml
-            modules/common/functions/Session.qml
+            modules/raohane/services/RaohaneAutostart.qml
             panelFamilies/RaohaneFamily.qml
-            services
-            services/Idle.qml
-            services/EasyEffects.qml
             translations
             scripts/raohane
             scripts/screen-translate.sh
+            scripts/region-ocr.sh
+            scripts/region-search.sh
             scripts/install-deps.sh
             scripts/core-framework-audit.sh
             scripts/wallpaper-boundary-audit.sh
@@ -193,10 +183,6 @@ jobs:
             scripts/screen-corners-boundary-audit.sh
             scripts/osk-boundary-audit.sh
             scripts/runtime-surface-boundary-audit.sh
-            services/Notifications.qml
-            services/Wallpapers.qml
-            services/SessionWarnings.qml
-            services/SystemInfo.qml
           )
 
           for path in "${required_paths[@]}"; do
@@ -221,8 +207,8 @@ jobs:
           fi
 
           panel_family="$(jq -r '.panelFamily // "<unset>"' defaults/config.json)"
-          [[ "$panel_family" == 'ii' || "$panel_family" == 'raohane' || "$panel_family" == 'ii-upstream' ]] || {
-            echo "Unsupported panelFamily: $panel_family" >&2
+          [[ "$panel_family" == 'raohane' ]] || {
+            echo "defaults/config.json must select only Raohane; got: $panel_family" >&2
             exit 1
           }
 
