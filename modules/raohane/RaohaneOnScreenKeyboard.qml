@@ -6,13 +6,14 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
+import qs.modules.raohane.config
 import qs.modules.raohane.services
 
 Scope {
     id: root
 
-    property bool pinned: false
-    property string layoutName: "English (US)"
+    readonly property bool pinned: RaohaneConfig.oskPinned
+    readonly property string layoutName: RaohaneConfig.oskLayout
 
     function close(): void {
         RaohaneState.oskOpen = false
@@ -96,7 +97,7 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.pinned = !root.pinned
+                                onClicked: RaohaneConfig.oskPinned = !RaohaneConfig.oskPinned
                             }
                         }
 
@@ -123,7 +124,7 @@ Scope {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     oskContent.cycleLayout()
-                                    root.layoutName = oskContent.layoutName
+                                    RaohaneConfig.oskLayout = oskContent.layoutName
                                 }
                             }
                         }
