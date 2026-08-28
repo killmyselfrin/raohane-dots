@@ -58,7 +58,6 @@ jobs:
           bash -n scripts/bar-boundary-audit.sh
           bash -n scripts/core-framework-audit.sh
           bash -n scripts/wallpaper-boundary-audit.sh
-          bash -n scripts/compat-service-audit.sh
           bash -n scripts/notification-boundary-audit.sh
           bash -n scripts/lock-boundary-audit.sh
           bash -n scripts/settings-boundary-audit.sh
@@ -73,6 +72,7 @@ jobs:
           bash -n scripts/install-deps.sh
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
+          python3 scripts/migrate-legacy-config.py --help >/dev/null
 
       - name: Parse Raohane QML
         shell: bash
@@ -99,7 +99,6 @@ jobs:
           bash scripts/bar-boundary-audit.sh
           bash scripts/core-framework-audit.sh
           bash scripts/wallpaper-boundary-audit.sh
-          bash scripts/compat-service-audit.sh
           bash scripts/notification-boundary-audit.sh
           bash scripts/lock-boundary-audit.sh
           bash scripts/settings-boundary-audit.sh
@@ -171,10 +170,10 @@ jobs:
             scripts/screen-translate.sh
             scripts/region-ocr.sh
             scripts/region-search.sh
+            scripts/migrate-legacy-config.py
             scripts/install-deps.sh
             scripts/core-framework-audit.sh
             scripts/wallpaper-boundary-audit.sh
-            scripts/compat-service-audit.sh
             scripts/notification-boundary-audit.sh
             scripts/lock-boundary-audit.sh
             scripts/settings-boundary-audit.sh
