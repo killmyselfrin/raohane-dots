@@ -33,7 +33,7 @@ Singleton {
     property int currentFolderHistoryIndex: -1
     property bool historyNavigationLock: false
 
-    readonly property string thumbgenScriptPath: Quickshell.shellPath("scripts/thumbnails/thumbgen-venv.sh")
+    readonly property string thumbgenScriptPath: Quickshell.shellPath("scripts/thumbnails/thumbgen.sh")
     readonly property string magickThumbnailScriptPath: Quickshell.shellPath("scripts/thumbnails/generate-thumbnails-magick.sh")
     readonly property bool thumbnailGenerationRunning: thumbnailProcess.running
     property real thumbnailGenerationProgress: 0
