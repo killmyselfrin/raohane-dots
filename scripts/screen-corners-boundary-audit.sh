@@ -15,10 +15,9 @@ config='modules/raohane/config/RaohaneConfig.qml'
 state='modules/raohane/RaohaneState.qml'
 family='panelFamilies/RaohaneFamily.qml'
 qmldir='modules/raohane/qmldir'
-legacy='modules/ii/screenCorners/ScreenCorners.qml'
 
-for path in "$corners" "$round_corner" "$config" "$state" "$family" "$qmldir" "$legacy"; do
-  [[ -f "$path" ]] || fail "missing screen-corner migration path: $path"
+for path in "$corners" "$round_corner" "$config" "$state" "$family" "$qmldir"; do
+  [[ -f "$path" ]] || fail "missing native screen-corner path: $path"
 done
 
 [[ ! -e modules/raohane/RaohaneLegacyBridge.qml ]] \
@@ -43,7 +42,7 @@ for symbol in \
   rg -q "$symbol" "$corners" || fail "native ScreenCorners lost required contract: $symbol"
 done
 
-if rg -n '^import qs$|^import qs\.services|^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.|\bAppearance\.|\bBrightness\.|(^|[^A-Za-z])Audio\.|\bRoundCorner[[:space:]]*\{' "$corners"; then
+if rg -n '^import qs$|^import qs\.services|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|\bAppearance\.|\bBrightness\.|(^|[^A-Za-z])Audio\.|\bRoundCorner[[:space:]]*\{' "$corners"; then
   fail 'native ScreenCorners regressed to inherited framework/services/widgets'
 fi
 
@@ -77,7 +76,7 @@ rg -q 'function toggleAction\(name: string\)' "$state" \
 rg -q 'component:[[:space:]]*RaohaneScreenCorners[[:space:]]*\{' "$family" \
   || fail 'RaohaneFamily does not load native ScreenCorners'
 if rg -n '^import qs\.modules\.ii\.screenCorners$|component:[[:space:]]*ScreenCorners[[:space:]]*\{' "$family"; then
-  fail 'legacy ScreenCorners is still active in RaohaneFamily'
+  fail 'legacy ScreenCorners is active in RaohaneFamily'
 fi
 
-printf 'screen-corners-boundary-audit: native rounding, hot-corner actions and transient state boundaries are valid; bridge migration is retired\n'
+printf 'screen-corners-boundary-audit: native rounding, actions and transient state have no legacy reference requirement\n'
