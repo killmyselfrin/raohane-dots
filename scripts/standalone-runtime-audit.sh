@@ -55,6 +55,17 @@ rg -q '^[[:space:]]*prune_runtime_if_needed$' scripts/raohane \
 rg -q 'bash "\$pruner" "\$RUNTIME"' scripts/raohane \
   || fail 'Raohane CLI does not route pruning through the dedicated script'
 
+# Live validation needs a deterministic way to distinguish source/CI state from
+# what is actually installed on the user's machine.
+rg -q 'doctor \[all\|graphics\|deps\|services\|runtime\]' scripts/raohane \
+  || fail 'CLI usage does not expose doctor runtime'
+rg -q '^print_runtime_integrity\(\)' scripts/raohane \
+  || fail 'CLI lost installed-runtime integrity diagnostics'
+rg -q '^[[:space:]]*runtime\)' scripts/raohane \
+  || fail 'doctor runtime route is missing'
+rg -q 'native\.json.*schema v10|schemaVersion.*10' scripts/raohane \
+  || fail 'doctor runtime no longer validates native config schema v10'
+
 # Exercise the pruner against a disposable runtime graph. This proves the
 # source checkout can keep rollback/reference trees while installed Raohane
 # contains only the native QML graph.
@@ -102,4 +113,4 @@ done
 root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
-printf 'standalone-runtime-audit: native QML is legacy-independent; installer and launcher enforce native-only installed runtime\n'
+printf 'standalone-runtime-audit: native QML is legacy-independent; install/launch pruning and live runtime diagnostics are enforced\n'
