@@ -1,119 +1,201 @@
 #!/usr/bin/env python3
+"""Raohane Freedesktop thumbnail generator.
 
-# From https://github.com/difference-engine/thumbnail-generator-ubuntu (MIT License)
-# Since the script is small and the maintainers seem inactive to accept my PR (#11) I decided to just copy it over.
-# When it gets merged and the python package gets updated we can just use it
+Uses only the Python standard library plus Pillow. Video frames are extracted
+with ffmpeg when available. The output follows the common
+~/.cache/thumbnails/<size>/<md5(file-uri)>.png layout and embeds URI/mtime PNG
+metadata so desktop consumers can validate the cache entry.
+"""
 
+from __future__ import annotations
+
+import argparse
+import hashlib
 import os
+import shutil
+import subprocess
 import sys
-from multiprocessing import Pool
+import tempfile
 from pathlib import Path
-from typing import List, Union
+from typing import Iterable
+from urllib.parse import quote
 
-import click
-import gi
-from loguru import logger
-from tqdm import tqdm
+try:
+    from PIL import Image, PngImagePlugin
+except ImportError as exc:
+    raise SystemExit(
+        "Pillow is required for Raohane thumbnails (Arch package: python-pillow)."
+    ) from exc
 
-gi.require_version("GnomeDesktop", "4.0")
-from gi.repository import Gio, GnomeDesktop  # isort:skip
 
-thumbnail_size_map = {
-    "normal": GnomeDesktop.DesktopThumbnailSize.NORMAL,
-    "large": GnomeDesktop.DesktopThumbnailSize.LARGE,
-    "x-large": GnomeDesktop.DesktopThumbnailSize.XLARGE,
-    "xx-large": GnomeDesktop.DesktopThumbnailSize.XXLARGE,
+SIZE_MAP = {
+    "normal": 128,
+    "large": 256,
+    "x-large": 512,
+    "xx-large": 1024,
 }
 
-factory = None
-logger.remove()
-logger.add(sys.stdout, level="INFO")
-logger.add("/tmp/thumbgen.log", level="DEBUG", rotation="100 MB")
+IMAGE_SUFFIXES = {
+    ".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp", ".gif", ".tif", ".tiff"
+}
+VIDEO_SUFFIXES = {".mp4", ".webm", ".mkv", ".mov", ".avi", ".m4v"}
 
-def make_thumbnail(fpath: str) -> bool:
-    mtime = os.path.getmtime(fpath)
-    # Use Gio to determine the URI and mime type
-    f = Gio.file_new_for_path(str(fpath))
-    uri = f.get_uri()
-    info = f.query_info("standard::content-type", Gio.FileQueryInfoFlags.NONE, None)
-    mime_type = info.get_content_type()
 
-    if factory.lookup(uri, mtime) is not None:
-        logger.debug("FRESH       {}".format(uri))
+def file_uri(path: Path) -> str:
+    return "file://" + quote(str(path.resolve()), safe="/")
+
+
+def thumbnail_path(path: Path, size_name: str) -> Path:
+    uri = file_uri(path)
+    digest = hashlib.md5(uri.encode("utf-8"), usedforsecurity=False).hexdigest()
+    cache_root = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
+    return cache_root / "thumbnails" / size_name / f"{digest}.png"
+
+
+def cache_is_fresh(source: Path, target: Path) -> bool:
+    try:
+        return target.is_file() and target.stat().st_mtime >= source.stat().st_mtime
+    except OSError:
         return False
 
-    if not factory.can_thumbnail(uri, mime_type, mtime):
-        logger.debug("UNSUPPORTED {}".format(uri))
+
+def save_thumbnail(image: Image.Image, source: Path, target: Path, size: int) -> None:
+    image = image.convert("RGBA") if image.mode not in {"RGB", "RGBA"} else image.copy()
+    image.thumbnail((size, size), Image.Resampling.LANCZOS)
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    pnginfo = PngImagePlugin.PngInfo()
+    pnginfo.add_text("Thumb::URI", file_uri(source))
+    pnginfo.add_text("Thumb::MTime", str(int(source.stat().st_mtime)))
+    pnginfo.add_text("Software", "Raohane")
+
+    temporary = target.with_suffix(".png.tmp")
+    with temporary.open("wb") as handle:
+        image.save(handle, format="PNG", pnginfo=pnginfo, optimize=True)
+    os.replace(temporary, target)
+
+
+def image_thumbnail(source: Path, target: Path, size: int) -> bool:
+    try:
+        with Image.open(source) as image:
+            # Animated images use their first frame. This mirrors the lightweight
+            # preview behavior expected by the wallpaper picker.
+            try:
+                image.seek(0)
+            except EOFError:
+                pass
+            save_thumbnail(image, source, target, size)
+        return True
+    except (OSError, ValueError):
         return False
 
-    thumbnail = factory.generate_thumbnail(uri, mime_type)
-    if thumbnail is None:
-        logger.debug("ERROR       {}".format(uri))
+
+def video_thumbnail(source: Path, target: Path, size: int) -> bool:
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
         return False
 
-    logger.debug("OK          {}".format(uri))
-    factory.save_thumbnail(thumbnail, uri, mtime)
-    return True
+    fd, temp_name = tempfile.mkstemp(prefix="raohane-thumb-", suffix=".png")
+    os.close(fd)
+    temp = Path(temp_name)
+    try:
+        # Select a frame shortly after the beginning, preserving aspect ratio.
+        command = [
+            ffmpeg,
+            "-loglevel", "error",
+            "-y",
+            "-ss", "1",
+            "-i", str(source),
+            "-frames:v", "1",
+            "-vf", f"scale='min({size},iw)':-2",
+            str(temp),
+        ]
+        completed = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if completed.returncode != 0 or not temp.is_file() or temp.stat().st_size == 0:
+            # Very short clips may not have a frame at one second.
+            command[5:7] = ["-ss", "0"]
+            completed = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if completed.returncode != 0 or not temp.is_file() or temp.stat().st_size == 0:
+            return False
+        with Image.open(temp) as image:
+            save_thumbnail(image, source, target, size)
+        return True
+    except (OSError, ValueError):
+        return False
+    finally:
+        temp.unlink(missing_ok=True)
 
 
-@logger.catch()
-def thumbnail_folder(*, dir_path: Path, workers: int, only_images: bool, recursive: bool, machine_progress: bool = False) -> None:
-    all_files = get_all_files(dir_path=dir_path, recursive=recursive)
-    if only_images:
-        all_files = get_all_images(all_files=all_files)
-    all_files = [str(fpath) for fpath in all_files]
-    if machine_progress:
-        completed = 0
-        total = len(all_files)
-        with Pool(processes=workers) as p:
-            for result in p.imap(make_thumbnail, all_files):
-                completed += 1
-                print(f"PROGRESS {completed}/{total} FILE {all_files[completed-1]}")
-                sys.stdout.flush()
-    else:
-        with Pool(processes=workers) as p:
-            list(tqdm(p.imap(make_thumbnail, all_files), total=len(all_files)))
+def generate(source: Path, size_name: str, size: int, only_images: bool) -> bool:
+    if not source.is_file():
+        return False
+
+    target = thumbnail_path(source, size_name)
+    if cache_is_fresh(source, target):
+        return True
+
+    suffix = source.suffix.lower()
+    if suffix in IMAGE_SUFFIXES:
+        return image_thumbnail(source, target, size)
+    if not only_images and suffix in VIDEO_SUFFIXES:
+        return video_thumbnail(source, target, size)
+    return False
 
 
-def get_all_images(*, all_files: List[Path]) -> List[Path]:
-    img_suffixes = [".jpg", ".jpeg", ".png", ".gif"]
-    all_images = [fpath for fpath in all_files if fpath.suffix in img_suffixes]
-    print("Found {} images".format(len(all_images)))
-    return all_images
+def iter_files(directories: Iterable[Path], recursive: bool) -> list[Path]:
+    files: list[Path] = []
+    for directory in directories:
+        if not directory.is_dir():
+            raise ValueError(f"{directory} is not a directory")
+        iterator = directory.rglob("*") if recursive else directory.glob("*")
+        files.extend(path for path in iterator if path.is_file())
+    return files
 
 
-def get_all_files(*, dir_path: Path, recursive: bool) -> List[Path]:
-    if not (dir_path.exists() and dir_path.is_dir()):
-        raise ValueError("{} doesn't exist or isn't a valid directory!".format(dir_path.resolve()))
-    if recursive:
-        all_files = dir_path.rglob("*")
-    else:
-        all_files = dir_path.glob("*")
-    all_files = [fpath for fpath in all_files if fpath.is_file()]
-    print("Found {} files in the directory: {}".format(len(all_files), dir_path.resolve()))
-    return all_files
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Generate Raohane/Freedesktop thumbnails")
+    parser.add_argument(
+        "-d", "--img_dirs", "--directory",
+        dest="directories",
+        action="append",
+        required=True,
+        help="Directory to scan. May be supplied more than once.",
+    )
+    parser.add_argument("-s", "--size", choices=SIZE_MAP, default="normal")
+    parser.add_argument("-w", "--workers", type=int, default=1, help="Accepted for compatibility; generation is deterministic and sequential")
+    parser.add_argument("-i", "--only_images", action="store_true")
+    parser.add_argument("-r", "--recursive", action="store_true")
+    parser.add_argument("--machine_progress", action="store_true")
+    return parser.parse_args()
 
-@click.command()
-@click.option(
-    "-d", "--img_dirs", required=True, help='directories to generate thumbnails seperated by space, eg: "dir1/dir2 dir3"'
-)
-@click.option(
-    "-s", "--size", default="normal", type=click.Choice(["normal", "large", "x-large", "xx-large"]), help="Thumbnail size: normal, large, x-large, xx-large"
-)
-@click.option("-w", "--workers", default=1, help="no of cpus to use for processing")
-@click.option(
-    "-i", "--only_images", is_flag=True, default=False, help="Whether to only look for images to be thumbnailed"
-)
-@click.option("-r", "--recursive", is_flag=True, default=False, help="Whether to recursively look for files")
-@click.option("--machine_progress", is_flag=True, default=False, help="Print machine-readable progress lines instead of a progress bar")
-def main(img_dirs: str, size: str, workers: str, only_images: bool, recursive: bool, machine_progress: bool) -> None:
-    img_dirs = [Path(img_dir) for img_dir in img_dirs.split()]
-    global factory
-    factory = GnomeDesktop.DesktopThumbnailFactory.new(thumbnail_size_map[size])
-    for img_dir in img_dirs:
-        thumbnail_folder(dir_path=img_dir, workers=workers, only_images=only_images, recursive=recursive, machine_progress=machine_progress)
-    print("Thumbnail Generation Completed!")
+
+def main() -> int:
+    args = parse_args()
+    size = SIZE_MAP[args.size]
+    directories = [Path(value).expanduser() for value in args.directories]
+
+    try:
+        files = iter_files(directories, args.recursive)
+    except ValueError as exc:
+        print(f"[Raohane] {exc}", file=sys.stderr)
+        return 2
+
+    total = len(files)
+    failures = 0
+    for index, source in enumerate(files, start=1):
+        ok = generate(source, args.size, size, args.only_images)
+        if not ok and source.suffix.lower() in IMAGE_SUFFIXES | VIDEO_SUFFIXES:
+            failures += 1
+        if args.machine_progress:
+            print(f"PROGRESS {index}/{total} FILE {source}", flush=True)
+
+    if not args.machine_progress:
+        print(f"Raohane thumbnails: {total - failures}/{total} processed")
+
+    # Return non-zero when supported files could not be generated so the
+    # ImageMagick fallback can attempt formats Pillow/ffmpeg did not handle.
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
