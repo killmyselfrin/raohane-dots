@@ -47,7 +47,7 @@ if rg -n '^import qs\.|\bDirectories\.' "$paths"; then
   fail 'RaohanePaths depends on the inherited framework'
 fi
 
-rg -q 'schemaVersion:[[:space:]]*8' "$config" || fail 'RaohaneConfig schema was not advanced to v8'
+rg -q 'schemaVersion:[[:space:]]*9' "$config" || fail 'RaohaneConfig schema was not advanced to v9'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig does not use the native paths API'
 if rg -n '\bStandardPaths\.|\bDirectories\.|^import qs$|^import qs\.modules\.common' "$config"; then
   fail 'RaohaneConfig owns paths/config through an inherited framework dependency'
@@ -57,17 +57,25 @@ for property_name in \
   barBottom barVertical barAutoHide barAutoHidePushWindows \
   barShowOnSuper barShowOnSuperDelay barScreenList barShowDate \
   frameEnabled frameThickness frameColor frameBarSideVisible \
-  profileDisplayName profileAvatarPath; do
+  screenRoundingMode screenCornerRadius deadPixelWorkaround \
+  hotCornersEnabled hotCornerValueScroll hotCornerClickless \
+  hotCornerRegionWidth hotCornerRegionHeight hotCornerBottomLeftAction \
+  hotCornerBottomRightAction hotCornerVisualize hotCornerClicklessEnd \
+  hotCornerVerticalOffset profileDisplayName profileAvatarPath; do
   rg -q "property .* ${property_name}:" "$config" \
     || fail "RaohaneConfig missing native product property: $property_name"
 done
 
-for property_name in barOpen controlCenterOpen settingsOpen sessionOpen osdOpen screenLocked superDown; do
+for property_name in \
+  barOpen controlCenterOpen leftSidebarOpen overlayOpen regionSelectorOpen \
+  screenTranslatorOpen oskOpen settingsOpen sessionOpen osdOpen screenLocked superDown; do
   rg -q "property bool ${property_name}:" "$state" \
     || fail "RaohaneState missing runtime property: $property_name"
 done
 rg -q 'property string settingsPage:' "$state" \
   || fail 'RaohaneState missing native Settings page routing state'
+rg -q 'function toggleAction\(name: string\)' "$state" \
+  || fail 'RaohaneState missing native transient action router'
 
 rg -q '^import Quickshell\.Hyprland$' "$focus" \
   || fail 'RaohaneFocusGrab is not bound directly to Hyprland'
@@ -199,4 +207,4 @@ for symbol in \
   rg -q "$symbol" "$bridge" || fail "legacy bridge is missing native synchronization: $symbol"
 done
 
-printf 'core-framework-audit: native paths, config v8, frame/profile/state routing, focus helper and active composition boundaries are valid\n'
+printf 'core-framework-audit: native paths, config v9, frame/corner/profile/state routing, focus helper and active composition boundaries are valid\n'

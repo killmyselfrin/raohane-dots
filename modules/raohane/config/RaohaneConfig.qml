@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 8
+    readonly property int schemaVersion: 9
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -56,6 +56,22 @@ Singleton {
     property int frameThickness: 4
     property string frameColor: "#000000"
     property bool frameBarSideVisible: true
+
+    // Native fake-screen rounding and hot-corner interaction contract.
+    // roundingMode: 0 = off, 1 = always, 2 = hide on fullscreen.
+    property int screenRoundingMode: 0
+    property int screenCornerRadius: 22
+    property bool deadPixelWorkaround: false
+    property bool hotCornersEnabled: true
+    property bool hotCornerValueScroll: true
+    property bool hotCornerClickless: false
+    property int hotCornerRegionWidth: 250
+    property int hotCornerRegionHeight: 5
+    property string hotCornerBottomLeftAction: "sidebarLeftOpen"
+    property string hotCornerBottomRightAction: "sidebarRightOpen"
+    property bool hotCornerVisualize: false
+    property bool hotCornerClicklessEnd: true
+    property int hotCornerVerticalOffset: 1
 
     property int osdTimeout: 1000
 
@@ -127,6 +143,21 @@ Singleton {
                 color: root.frameColor,
                 barSideVisible: root.frameBarSideVisible
             },
+            corners: {
+                roundingMode: root.screenRoundingMode,
+                radius: root.screenCornerRadius,
+                deadPixelWorkaround: root.deadPixelWorkaround,
+                enabled: root.hotCornersEnabled,
+                valueScroll: root.hotCornerValueScroll,
+                clickless: root.hotCornerClickless,
+                regionWidth: root.hotCornerRegionWidth,
+                regionHeight: root.hotCornerRegionHeight,
+                bottomLeftAction: root.hotCornerBottomLeftAction,
+                bottomRightAction: root.hotCornerBottomRightAction,
+                visualize: root.hotCornerVisualize,
+                clicklessEnd: root.hotCornerClicklessEnd,
+                verticalOffset: root.hotCornerVerticalOffset
+            },
             osd: {
                 timeout: root.osdTimeout
             },
@@ -171,6 +202,7 @@ Singleton {
         const dock = document?.dock ?? {}
         const bar = document?.bar ?? {}
         const frame = document?.frame ?? {}
+        const corners = document?.corners ?? {}
         const osd = document?.osd ?? {}
         const display = document?.display ?? {}
         const apps = document?.apps ?? {}
@@ -214,6 +246,20 @@ Singleton {
         root.assignIfPresent(frame, "thickness", value => root.frameThickness = Math.max(1, Math.min(24, Number(value) || 4)))
         root.assignIfPresent(frame, "color", value => root.frameColor = String(value || "#000000"))
         root.assignIfPresent(frame, "barSideVisible", value => root.frameBarSideVisible = Boolean(value))
+
+        root.assignIfPresent(corners, "roundingMode", value => root.screenRoundingMode = Math.max(0, Math.min(2, Number(value) || 0)))
+        root.assignIfPresent(corners, "radius", value => root.screenCornerRadius = Math.max(6, Math.min(96, Number(value) || 22)))
+        root.assignIfPresent(corners, "deadPixelWorkaround", value => root.deadPixelWorkaround = Boolean(value))
+        root.assignIfPresent(corners, "enabled", value => root.hotCornersEnabled = Boolean(value))
+        root.assignIfPresent(corners, "valueScroll", value => root.hotCornerValueScroll = Boolean(value))
+        root.assignIfPresent(corners, "clickless", value => root.hotCornerClickless = Boolean(value))
+        root.assignIfPresent(corners, "regionWidth", value => root.hotCornerRegionWidth = Math.max(12, Math.min(600, Number(value) || 250)))
+        root.assignIfPresent(corners, "regionHeight", value => root.hotCornerRegionHeight = Math.max(2, Math.min(80, Number(value) || 5)))
+        root.assignIfPresent(corners, "bottomLeftAction", value => root.hotCornerBottomLeftAction = String(value ?? "sidebarLeftOpen"))
+        root.assignIfPresent(corners, "bottomRightAction", value => root.hotCornerBottomRightAction = String(value ?? "sidebarRightOpen"))
+        root.assignIfPresent(corners, "visualize", value => root.hotCornerVisualize = Boolean(value))
+        root.assignIfPresent(corners, "clicklessEnd", value => root.hotCornerClicklessEnd = Boolean(value))
+        root.assignIfPresent(corners, "verticalOffset", value => root.hotCornerVerticalOffset = Math.max(0, Math.min(40, Number(value) || 0)))
 
         root.assignIfPresent(osd, "timeout", value => root.osdTimeout = Math.max(250, Math.min(10000, Number(value) || 1000)))
 
@@ -300,6 +346,19 @@ Singleton {
     onFrameThicknessChanged: scheduleSave()
     onFrameColorChanged: scheduleSave()
     onFrameBarSideVisibleChanged: scheduleSave()
+    onScreenRoundingModeChanged: scheduleSave()
+    onScreenCornerRadiusChanged: scheduleSave()
+    onDeadPixelWorkaroundChanged: scheduleSave()
+    onHotCornersEnabledChanged: scheduleSave()
+    onHotCornerValueScrollChanged: scheduleSave()
+    onHotCornerClicklessChanged: scheduleSave()
+    onHotCornerRegionWidthChanged: scheduleSave()
+    onHotCornerRegionHeightChanged: scheduleSave()
+    onHotCornerBottomLeftActionChanged: scheduleSave()
+    onHotCornerBottomRightActionChanged: scheduleSave()
+    onHotCornerVisualizeChanged: scheduleSave()
+    onHotCornerClicklessEndChanged: scheduleSave()
+    onHotCornerVerticalOffsetChanged: scheduleSave()
     onOsdTimeoutChanged: scheduleSave()
     onColorTemperatureChanged: scheduleSave()
     onNightLightAutomaticChanged: scheduleSave()
