@@ -60,6 +60,7 @@ jobs:
           bash -n scripts/notification-boundary-audit.sh
           bash -n scripts/lock-boundary-audit.sh
           bash -n scripts/settings-boundary-audit.sh
+          bash -n scripts/polkit-boundary-audit.sh
           bash -n scripts/install-deps.sh
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
@@ -102,6 +103,7 @@ jobs:
           bash scripts/notification-boundary-audit.sh
           bash scripts/lock-boundary-audit.sh
           bash scripts/settings-boundary-audit.sh
+          bash scripts/polkit-boundary-audit.sh
 
       - name: Validate current integration graph
         shell: bash
@@ -130,6 +132,7 @@ jobs:
             modules/raohane/RaohaneLock.qml
             modules/raohane/RaohaneLockContext.qml
             modules/raohane/RaohaneLockSurface.qml
+            modules/raohane/RaohanePolkit.qml
             modules/raohane/RaohaneSettingsAbout.qml
             modules/raohane/services/RaohaneMedia.qml
             modules/raohane/services/RaohaneBluetooth.qml
@@ -158,6 +161,7 @@ jobs:
             scripts/notification-boundary-audit.sh
             scripts/lock-boundary-audit.sh
             scripts/settings-boundary-audit.sh
+            scripts/polkit-boundary-audit.sh
             services/Notifications.qml
             services/Wallpapers.qml
             services/SessionWarnings.qml

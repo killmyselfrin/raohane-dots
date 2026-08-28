@@ -4,7 +4,6 @@ import Quickshell
 import qs.modules.raohane
 import qs.modules.raohane.config
 import qs.modules.ii.onScreenKeyboard
-import qs.modules.ii.polkit
 import qs.modules.ii.regionSelector
 import qs.modules.ii.screenCorners
 import qs.modules.ii.screenTranslator
@@ -29,7 +28,7 @@ Scope {
     RaohanePanelLoader { component: OnScreenKeyboard {} }
     RaohanePanelLoader { component: Overlay {} }
     RaohanePanelLoader { component: RaohaneOverview {} }
-    RaohanePanelLoader { component: Polkit {} }
+    RaohanePanelLoader { component: RaohanePolkit {} }
     RaohanePanelLoader { component: RegionSelector {} }
     RaohanePanelLoader { component: ScreenCorners {} }
     RaohanePanelLoader { component: ScreenTranslator {} }
