@@ -104,7 +104,7 @@ fi
 for surface in "$launcher" "$settings" "$control_center"; do
   rg -q 'RaohaneFocusGrab\.' "$surface" || fail "$surface does not consume RaohaneFocusGrab"
   if rg -n '\bGlobalFocusGrab\.|^import qs\.services$' "$surface"; then
-    fail "$surface regressed to inherited focus/services'
+    fail "$surface regressed to inherited focus/services"
   fi
 done
 
