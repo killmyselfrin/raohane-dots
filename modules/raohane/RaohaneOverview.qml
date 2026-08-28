@@ -61,6 +61,13 @@ Scope {
             Hyprland.dispatch("workspace " + workspaceId)
     }
 
+    function activateWindow(toplevel): void {
+        if (!toplevel?.wayland)
+            return
+        root.close()
+        toplevel.wayland.activate()
+    }
+
     function activateSelected(): void {
         const index = Math.max(0, Math.min(root.selectedIndex, root.workspaceIds.length - 1))
         root.activateWorkspace(root.workspaceIds[index])
@@ -186,7 +193,7 @@ Scope {
                             font.weight: Font.DemiBold
                         }
                         Text {
-                            text: qsTr("Hyprland workspaces · arrows / Enter / Esc")
+                            text: qsTr("Hyprland workspaces · arrows / Enter / Esc · click a window to focus")
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 9
                         }
@@ -241,7 +248,7 @@ Scope {
                             color: active
                                 ? "#35c879ff"
                                 : selected || workspaceMouse.containsMouse ? RaohaneTheme.accentSoft : "#5413101b"
-                            border.width: active || selected ? 1 : 1
+                            border.width: 1
                             border.color: active ? RaohaneTheme.accent
                                 : selected || workspaceMouse.containsMouse ? "#72c879ff" : RaohaneTheme.border
 
@@ -296,24 +303,38 @@ Scope {
                                         model: workspaceCard.windows.slice(0, 4)
 
                                         delegate: RowLayout {
+                                            id: windowRow
                                             required property var modelData
                                             Layout.fillWidth: true
                                             spacing: 7
+                                            opacity: modelData?.wayland ? 1 : 0.65
 
                                             Rectangle {
                                                 width: 6
                                                 height: 6
                                                 radius: 3
-                                                color: RaohaneTheme.accent
-                                                opacity: 0.75
+                                                color: windowRow.modelData?.urgent
+                                                    ? "#ff6b7f"
+                                                    : windowRow.modelData?.activated ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                             }
 
                                             Text {
                                                 Layout.fillWidth: true
-                                                text: modelData?.title ?? qsTr("Window")
-                                                color: RaohaneTheme.text
+                                                text: windowRow.modelData?.title ?? qsTr("Window")
+                                                color: windowRow.modelData?.activated ? RaohaneTheme.accent : RaohaneTheme.text
                                                 font.pixelSize: 9
+                                                font.weight: windowRow.modelData?.activated ? Font.DemiBold : Font.Normal
                                                 elide: Text.ElideRight
+                                            }
+
+                                            TapHandler {
+                                                enabled: !!windowRow.modelData?.wayland
+                                                onTapped: root.activateWindow(windowRow.modelData)
+                                            }
+
+                                            HoverHandler {
+                                                enabled: !!windowRow.modelData?.wayland
+                                                cursorShape: Qt.PointingHandCursor
                                             }
                                         }
                                     }
@@ -352,6 +373,7 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                acceptedButtons: Qt.LeftButton
                                 onEntered: root.selectedIndex = workspaceCard.index
                                 onClicked: root.activateWorkspace(workspaceCard.workspaceId)
                             }
