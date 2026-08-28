@@ -11,6 +11,7 @@ fail() {
 
 required_root=(
   shell.qml
+  qmldir
   panelFamilies/RaohaneFamily.qml
   modules/raohane/qmldir
   modules/raohane/config/qmldir
@@ -33,8 +34,8 @@ for path in "${required_root[@]}"; do
   [[ -e "$path" ]] || fail "required project path is missing: $path"
 done
 
-while IFS= read -r qmldir; do
-  directory="$(dirname -- "$qmldir")"
+while IFS= read -r module_dir; do
+  directory="$(dirname -- "$module_dir")"
   while read -r first second third rest; do
     [[ -z "${first:-}" || "$first" == module || "$first" == plugin || "$first" == classname || "$first" == depends || "$first" == optional || "$first" == prefer || "$first" == typeinfo || "$first" == internal ]] && continue
     if [[ "$first" == singleton ]]; then
@@ -43,9 +44,19 @@ while IFS= read -r qmldir; do
       file="${third:-}"
     fi
     [[ -z "$file" || "$file" == *.so ]] && continue
-    [[ -f "$directory/$file" ]] || fail "$qmldir references missing file $directory/$file"
-  done < "$qmldir"
+    [[ -f "$directory/$file" ]] || fail "$module_dir references missing file $directory/$file"
+  done < "$module_dir"
 done < <(find . -name qmldir -not -path './.git/*' -print)
+
+# shell.qml lives in the root qs module, so every singleton exported from the
+# root qmldir can be resolved before the native family is instantiated. Keep
+# legacy GlobalStates physically available for migration/reference only; it
+# must not be exported by the boot module.
+rg -q '^module[[:space:]]+qs$' qmldir \
+  || fail 'root qmldir no longer declares module qs'
+if rg -n '^[[:space:]]*(singleton[[:space:]]+)?GlobalStates\b' qmldir; then
+  fail 'root qmldir exports GlobalStates and can pull the inherited service graph into shell bootstrap'
+fi
 
 rg -q '^import "modules/raohane/config"$' shell.qml \
   || fail 'shell.qml does not import native Raohane config'
@@ -169,4 +180,4 @@ bash -n scripts/install-deps.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native bootstrap, singleton registration, active surface graph, installation and config boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, root/native singleton registration, active surface graph, installation and config boundaries are valid\n'
