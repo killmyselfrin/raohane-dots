@@ -19,13 +19,13 @@ required_root=(
   modules/raohane/RaohaneState.qml
   modules/raohane/RaohaneTheme.qml
   modules/raohane/RaohaneIcon.qml
-  modules/raohane/RaohaneLegacyBridge.qml
   modules/raohane/config/RaohaneConfig.qml
   modules/raohane/config/RaohanePaths.qml
   scripts/raohane
   scripts/raohane-audit.sh
   scripts/runtime-surface-boundary-audit.sh
   scripts/install-deps.sh
+  scripts/screen-translate.sh
   install-raohane.sh
   install/arch/required.txt
   install/arch/features.txt
@@ -49,9 +49,7 @@ while IFS= read -r module_dir; do
 done < <(find . -name qmldir -not -path './.git/*' -print)
 
 # shell.qml lives in the root qs module, so every singleton exported from the
-# root qmldir can be resolved before the native family is instantiated. Keep
-# legacy GlobalStates physically available for migration/reference only; it
-# must not be exported by the boot module.
+# root qmldir can be resolved before the native family is instantiated.
 rg -q '^module[[:space:]]+qs$' qmldir \
   || fail 'root qmldir no longer declares module qs'
 if rg -n '^[[:space:]]*(singleton[[:space:]]+)?GlobalStates\b' qmldir; then
@@ -74,17 +72,18 @@ if rg -n \
 fi
 
 family='panelFamilies/RaohaneFamily.qml'
-if rg -n '^import qs\.modules\.ii(\.|$)|\bRaohaneLegacyBridge\.load\b|\bIllogicalImpulseFamily\b' "$family"; then
+if rg -n '^import qs\.modules\.ii(\.|$)|\bRaohaneLegacyBridge\b|\bIllogicalImpulseFamily\b' "$family"; then
   fail 'RaohaneFamily resolves a legacy presentation/bootstrap path'
 fi
 
-# QML modules resolve registered singleton types while importing the module.
-# Keeping the compatibility bridge in the primary Raohane qmldir therefore
-# pulls GlobalStates and the inherited service graph into native startup even
-# when no code calls RaohaneLegacyBridge.load(). The file may remain as
-# migration/reference code, but it must not be a registered native type.
-if rg -n '^singleton[[:space:]]+RaohaneLegacyBridge\b|^[[:space:]]*RaohaneLegacyBridge[[:space:]]' modules/raohane/qmldir; then
-  fail 'RaohaneLegacyBridge is registered in the native module and can poison boot-time singleton resolution'
+# The bridge was required only while inherited settings pages were reachable.
+# Settings and services are now native, so dead compatibility code must stay
+# physically removed rather than silently returning to the runtime tree.
+if [[ -e modules/raohane/RaohaneLegacyBridge.qml ]]; then
+  fail 'retired RaohaneLegacyBridge returned to the runtime tree'
+fi
+if rg -n '\bRaohaneLegacyBridge\b' modules/raohane/qmldir; then
+  fail 'native qmldir exports the retired compatibility bridge'
 fi
 
 active_surfaces=(
@@ -177,7 +176,8 @@ bash -n scripts/raohane
 bash -n scripts/raohane-audit.sh
 bash -n scripts/runtime-surface-boundary-audit.sh
 bash -n scripts/install-deps.sh
+bash -n scripts/screen-translate.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native bootstrap, root/native singleton registration, active surface graph, installation and config boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, retired bridge, root/native singleton registration, active surface graph, installation and config boundaries are valid\n'
