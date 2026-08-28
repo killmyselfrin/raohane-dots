@@ -2,70 +2,19 @@
 //@ pragma Env QS_NO_RELOAD_POPUP=1
 //@ pragma Env QT_QUICK_CONTROLS_STYLE=Basic
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
-// Remove two slashes below and adjust the value to change the UI scale
 ////@ pragma Env QT_SCALE_FACTOR=1
-import "modules/common"
+
 import "modules/raohane/config"
-import "services"
 import "panelFamilies"
 import QtQuick
-import QtQuick.Window
 import Quickshell
-import Quickshell.Io
-import Quickshell.Hyprland
 
+// Raohane is now the only startup family. Legacy panel families and services
+// may remain in the repository while migration is in progress, but they must
+// not be resolved by the QML engine during shell bootstrap.
 ShellRoot {
-    id: root
-
-    // Quickshell already suppresses its own reload popup via QS_NO_RELOAD_POPUP.
-    // The inherited ReloadPopup.qml pulled Qt5Compat.GraphicalEffects into the
-    // bootstrap and can prevent the entire shell from loading when that legacy
-    // component is unavailable. Runtime startup must not depend on a cosmetic
-    // reload notification, so Raohane intentionally does not instantiate it.
-
-    Process {
-        id: autostartProc
-        command: ["python3", `${RaohanePaths.scriptsPath}/hyprland/autostart.py`]
-    }
-
-    Connections {
-        target: Config
-        function onReadyChanged() {
-            if (!Config.ready) return
-
-            if (Config.options.hyprland.autostartApps.enable &&
-                Config.options.hyprland.autostartApps.apps.length > 0) {
-                autostartProc.running = true
-            }
-        }
-    }
-
-    Component.onCompleted: {
-        MaterialThemeLoader.reapplyTheme()
-        Hyprsunset.load()
-        FirstRunExperience.load()
-        ConflictKiller.load()
-        Cliphist.refresh()
-        Wallpapers.load()
-        Updates.load()
-        LyricsService.restartLyrics()
-    }
-
-    // Existing end4/legacy configs use "ii". Treat that value as Raohane during
-    // migration so inherited JsonAdapter defaults still enter our family.
-    // "ii-upstream" remains an explicit diagnostic/fallback mode.
     LazyLoader {
-        active: Config.ready && ["raohane", "ii"].includes(Config.options.panelFamily)
+        active: RaohaneConfig.ready
         component: RaohaneFamily {}
-    }
-
-    PanelFamilyLoader {
-        identifier: "ii-upstream"
-        component: IllogicalImpulseFamily {}
-    }
-
-    component PanelFamilyLoader: LazyLoader {
-        required property string identifier
-        active: Config.ready && Config.options.panelFamily === identifier
     }
 }
