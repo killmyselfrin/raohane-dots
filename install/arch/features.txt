@@ -1,5 +1,5 @@
 # Raohane feature packages for the full desktop experience.
-# These are still Raohane-owned dependencies; none require another shell repository.
+# These are Raohane-owned runtime dependencies; none require another shell.
 
 bluez
 bluez-utils
@@ -10,12 +10,8 @@ ddcutil
 grim
 slurp
 cliphist
-cava
 ffmpeg
 imagemagick
-hypridle
-hyprlock
-hyprpicker
 hyprsunset
 wf-recorder
 ydotool
@@ -25,8 +21,6 @@ libpulse
 libqalculate
 pciutils
 python-pillow
-curl
-wget
 tesseract
 tesseract-data-eng
 tesseract-data-rus
