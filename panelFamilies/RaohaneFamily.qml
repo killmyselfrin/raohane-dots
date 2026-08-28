@@ -3,33 +3,29 @@ import Quickshell
 
 import qs.modules.raohane
 import qs.modules.raohane.config
-import qs.modules.ii.regionSelector
-import qs.modules.ii.screenTranslator
-import qs.modules.ii.sidebarLeft
-import qs.modules.ii.overlay
-import qs.modules.ii.verticalBar
-import qs.modules.ii.dropover
 
-// Raohane's Hyprland integration composition. Compatibility panels remain
-// temporary while their presentation layers are rewritten under modules/raohane.
+// Raohane's Hyprland integration composition. Inherited modules/ii sources may
+// remain in the repository as migration/reference material, but the active
+// family resolves only Raohane-owned presentation types at shell startup.
 Scope {
     Component.onCompleted: RaohaneLegacyBridge.load()
 
     RaohanePanelLoader { component: RaohaneBackground {} }
     RaohanePanelLoader { component: RaohaneDesktopCanvas {} }
     RaohanePanelLoader { extraCondition: !RaohaneConfig.barVertical; component: RaohaneBar {} }
+    RaohanePanelLoader { extraCondition: RaohaneConfig.barVertical; component: RaohaneVerticalBar {} }
     RaohanePanelLoader { extraCondition: RaohaneConfig.dockEnabled; component: RaohaneDock {} }
     RaohanePanelLoader { component: RaohaneLock {} }
     RaohanePanelLoader { component: RaohaneNotificationPopup {} }
     RaohanePanelLoader { component: RaohaneOsd {} }
     RaohanePanelLoader { component: RaohaneOnScreenKeyboard {} }
-    RaohanePanelLoader { component: Overlay {} }
+    RaohanePanelLoader { component: RaohaneOverlay {} }
     RaohanePanelLoader { component: RaohaneOverview {} }
     RaohanePanelLoader { component: RaohanePolkit {} }
-    RaohanePanelLoader { component: RegionSelector {} }
+    RaohanePanelLoader { component: RaohaneRegionSelector {} }
     RaohanePanelLoader { component: RaohaneScreenCorners {} }
-    RaohanePanelLoader { component: ScreenTranslator {} }
-    RaohanePanelLoader { component: SidebarLeft {} }
+    RaohanePanelLoader { component: RaohaneScreenTranslator {} }
+    RaohanePanelLoader { component: RaohaneSidebarLeft {} }
 
     RaohanePanelLoader { component: RaohaneLauncher {} }
     RaohanePanelLoader { component: RaohaneControlCenter {} }
@@ -39,7 +35,6 @@ Scope {
     RaohanePanelLoader { component: RaohaneDesktopMenu {} }
     RaohanePanelLoader { component: RaohaneSessionScreen {} }
 
-    RaohanePanelLoader { extraCondition: RaohaneConfig.barVertical; component: VerticalBar {} }
-    RaohanePanelLoader { component: DropShelfPanel {} }
+    RaohanePanelLoader { component: RaohaneDropShelfPanel {} }
     RaohanePanelLoader { component: RaohaneScreenFrame {} }
 }

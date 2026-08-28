@@ -13,6 +13,7 @@ RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
 RaohaneOverview 1.0 RaohaneOverview.qml
 RaohaneDock 1.0 RaohaneDock.qml
 RaohaneBar 1.0 RaohaneBar.qml
+RaohaneVerticalBar 1.0 RaohaneVerticalBar.qml
 RaohaneWorkspaces 1.0 RaohaneWorkspaces.qml
 RaohaneSystemIcons 1.0 RaohaneSystemIcons.qml
 RaohaneClock 1.0 RaohaneClock.qml
@@ -27,6 +28,11 @@ RaohaneSettingsContent 1.0 RaohaneSettingsContent.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneSettingsAbout 1.0 RaohaneSettingsAbout.qml
 RaohaneMediaOverlay 1.0 RaohaneMediaOverlay.qml
+RaohaneOverlay 1.0 RaohaneOverlay.qml
+RaohaneSidebarLeft 1.0 RaohaneSidebarLeft.qml
+RaohaneRegionSelector 1.0 RaohaneRegionSelector.qml
+RaohaneScreenTranslator 1.0 RaohaneScreenTranslator.qml
+RaohaneDropShelfPanel 1.0 RaohaneDropShelfPanel.qml
 RaohaneLauncher 1.0 RaohaneLauncher.qml
 RaohaneOsd 1.0 RaohaneOsd.qml
 RaohaneNotificationPopup 1.0 RaohaneNotificationPopup.qml

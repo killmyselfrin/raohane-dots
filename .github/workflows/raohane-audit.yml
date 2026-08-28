@@ -64,6 +64,7 @@ jobs:
           bash -n scripts/frame-boundary-audit.sh
           bash -n scripts/screen-corners-boundary-audit.sh
           bash -n scripts/osk-boundary-audit.sh
+          bash -n scripts/runtime-surface-boundary-audit.sh
           bash -n scripts/install-deps.sh
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
@@ -110,6 +111,7 @@ jobs:
           bash scripts/frame-boundary-audit.sh
           bash scripts/screen-corners-boundary-audit.sh
           bash scripts/osk-boundary-audit.sh
+          bash scripts/runtime-surface-boundary-audit.sh
 
       - name: Validate current integration graph
         shell: bash
@@ -146,6 +148,12 @@ jobs:
             modules/raohane/RaohaneOskContent.qml
             modules/raohane/RaohaneOskKey.qml
             modules/raohane/osk/layouts.js
+            modules/raohane/RaohaneOverlay.qml
+            modules/raohane/RaohaneSidebarLeft.qml
+            modules/raohane/RaohaneRegionSelector.qml
+            modules/raohane/RaohaneScreenTranslator.qml
+            modules/raohane/RaohaneVerticalBar.qml
+            modules/raohane/RaohaneDropShelfPanel.qml
             modules/raohane/RaohaneSettingsAbout.qml
             modules/raohane/services/RaohaneMedia.qml
             modules/raohane/services/RaohaneBluetooth.qml
@@ -160,6 +168,7 @@ jobs:
             modules/raohane/services/RaohaneIdle.qml
             modules/raohane/services/RaohaneEasyEffects.qml
             modules/raohane/services/RaohaneYdotool.qml
+            modules/raohane/services/RaohaneDropShelf.qml
             modules/common/Directories.qml
             modules/common/functions/Session.qml
             panelFamilies/RaohaneFamily.qml
@@ -179,6 +188,7 @@ jobs:
             scripts/frame-boundary-audit.sh
             scripts/screen-corners-boundary-audit.sh
             scripts/osk-boundary-audit.sh
+            scripts/runtime-surface-boundary-audit.sh
             services/Notifications.qml
             services/Wallpapers.qml
             services/SessionWarnings.qml
