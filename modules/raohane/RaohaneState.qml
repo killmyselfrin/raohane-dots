@@ -14,6 +14,7 @@ QtObject {
     property bool barOpen: true
     property bool controlCenterOpen: false
     property bool settingsOpen: false
+    property string settingsPage: ""
     property bool sessionOpen: false
     property bool osdOpen: false
     property bool screenLocked: false

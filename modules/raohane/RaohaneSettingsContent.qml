@@ -37,13 +37,13 @@ Item {
     }
 
     Connections {
-        target: GlobalStates
+        target: RaohaneState
 
         function onSettingsPageChanged(): void {
-            if (GlobalStates.settingsPage === "")
+            if (RaohaneState.settingsPage === "")
                 return
 
-            const parts = GlobalStates.settingsPage.split(":")
+            const parts = RaohaneState.settingsPage.split(":")
             const requested = parts[0]
             root.pendingSearch = parts.length > 1 ? parts.slice(1).join(":") : ""
 
@@ -53,7 +53,7 @@ Item {
                 Qt.callLater(root.dispatchPendingSearch)
             }
 
-            GlobalStates.settingsPage = ""
+            RaohaneState.settingsPage = ""
         }
     }
 

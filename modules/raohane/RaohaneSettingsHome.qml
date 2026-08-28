@@ -2,18 +2,15 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 
-import qs
-import qs.services
-import qs.modules.common
-import qs.modules.common.widgets
+import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Item {
     id: root
 
     function openPage(page: string): void {
-        GlobalStates.settingsPage = page
+        RaohaneState.settingsPage = page
     }
 
     ColumnLayout {
@@ -31,7 +28,7 @@ Item {
 
             Image {
                 anchors.fill: parent
-                source: Config.options.background.wallpaperPath
+                source: RaohaneConfig.wallpaperPath
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: false
@@ -91,15 +88,15 @@ Item {
                 spacing: 6
 
                 StatusChip {
-                    icon: Network.materialSymbol
-                    text: Network.networkName || qsTr("Offline")
-                    active: Network.wifiStatus !== "disabled"
+                    icon: RaohaneNetwork.materialSymbol
+                    text: RaohaneNetwork.networkName || qsTr("Offline")
+                    active: RaohaneNetwork.wifiStatus !== "disabled"
                 }
 
                 StatusChip {
-                    icon: "volume_up"
-                    text: qsTr("Volume %1%").arg(Math.round((Audio.sink?.audio?.volume ?? 0) * 100))
-                    active: !(Audio.sink?.audio?.muted ?? false)
+                    icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
+                    text: qsTr("Volume %1%").arg(Math.round(RaohaneAudio.volume * 100))
+                    active: RaohaneAudio.ready && !RaohaneAudio.muted
                 }
 
                 StatusChip {
@@ -244,7 +241,7 @@ Item {
                     radius: 12
                     color: cardMouse.containsMouse ? "#28ffffff" : RaohaneTheme.accentSoft
 
-                    MaterialSymbol {
+                    RaohaneIcon {
                         anchors.centerIn: parent
                         text: card.icon
                         iconSize: 19
@@ -254,7 +251,7 @@ Item {
 
                 Item { Layout.fillWidth: true }
 
-                MaterialSymbol {
+                RaohaneIcon {
                     text: "arrow_forward"
                     iconSize: 16
                     color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -309,7 +306,7 @@ Item {
             anchors.centerIn: parent
             spacing: 6
 
-            MaterialSymbol {
+            RaohaneIcon {
                 text: chip.icon
                 iconSize: 14
                 color: chip.critical ? RaohaneTheme.critical : chip.active ? RaohaneTheme.accent : RaohaneTheme.textMuted

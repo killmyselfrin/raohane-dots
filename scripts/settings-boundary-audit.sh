@@ -10,10 +10,12 @@ fail() {
 }
 
 content='modules/raohane/RaohaneSettingsContent.qml'
+home='modules/raohane/RaohaneSettingsHome.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
+state='modules/raohane/RaohaneState.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$content" "$about" "$qmldir"; do
+for path in "$content" "$home" "$about" "$state" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
 done
 
@@ -21,12 +23,21 @@ rg -q '^RaohaneSettingsAbout .*RaohaneSettingsAbout.qml$' "$qmldir" \
   || fail 'RaohaneSettingsAbout is not registered'
 rg -q 'Qt\.resolvedUrl\("RaohaneSettingsAbout\.qml"\)' "$content" \
   || fail 'Settings navigation does not load the native About page'
+rg -q 'property string settingsPage:' "$state" \
+  || fail 'RaohaneState does not own Settings page navigation state'
 
-for symbol in 'RaohaneIcon[[:space:]]*\{' 'RaohaneSystemInfo\.' 'RaohanePaths\.compatibilityConfigFile'; do
+for symbol in 'RaohaneIcon[[:space:]]*\{' 'RaohaneSystemInfo\.' 'RaohanePaths\.compatibilityConfigFile' 'RaohaneState\.settingsPage'; do
   rg -q "$symbol" "$content" || fail "Settings navigation lost native dependency: $symbol"
 done
-if rg -n '^import qs\.services$|^import qs\.modules\.common|\bMaterialSymbol[[:space:]]*\{|\bSystemInfo\.|\bUpdates\.' "$content"; then
-  fail 'Settings navigation regressed to inherited common widgets/system services'
+if rg -n '^import qs\.services$|^import qs\.modules\.common|\bMaterialSymbol[[:space:]]*\{|\bSystemInfo\.|\bUpdates\.|\bGlobalStates\.' "$content"; then
+  fail 'Settings navigation regressed to inherited common/widgets/system/state services'
+fi
+
+for symbol in 'RaohaneConfig\.wallpaperPath' 'RaohaneNetwork\.' 'RaohaneAudio\.' 'RaohanePrivacy\.' 'RaohaneState\.settingsPage' 'RaohaneIcon[[:space:]]*\{'; do
+  rg -q "$symbol" "$home" || fail "Settings Home lost native dependency: $symbol"
+done
+if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|\bConfig\.|\bNetwork\.|\bAudio\.|\bGlobalStates\.|\bMaterialSymbol[[:space:]]*\{' "$home"; then
+  fail 'Settings Home regressed to inherited config/services/state/common widgets'
 fi
 
 for symbol in 'RaohaneSystemInfo\.' 'RaohaneIcon[[:space:]]*\{' 'Quickshell\.shellPath\("VERSION"\)' 'raohane doctor all'; do
@@ -36,4 +47,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: Settings chrome uses native widgets/system info and About is standalone\n'
+printf 'settings-boundary-audit: Settings chrome/Home use native state, widgets and services; About is standalone\n'
