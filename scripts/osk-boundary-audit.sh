@@ -20,10 +20,9 @@ state='modules/raohane/RaohaneState.qml'
 qmldir='modules/raohane/qmldir'
 services_qmldir='modules/raohane/services/qmldir'
 features='install/arch/features.txt'
-legacy='modules/ii/onScreenKeyboard/OnScreenKeyboard.qml'
 
-for path in "$osk" "$content" "$key" "$layout" "$ydotool" "$config" "$family" "$state" "$qmldir" "$services_qmldir" "$features" "$legacy"; do
-  [[ -f "$path" ]] || fail "missing OSK migration path: $path"
+for path in "$osk" "$content" "$key" "$layout" "$ydotool" "$config" "$family" "$state" "$qmldir" "$services_qmldir" "$features"; do
+  [[ -f "$path" ]] || fail "missing native OSK path: $path"
 done
 
 for registration in \
@@ -57,7 +56,7 @@ for config_symbol in \
 done
 
 for file in "$osk" "$content" "$key" "$ydotool"; do
-  if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.|\bAppearance\.|\bYdotool\.' "$file"; then
+  if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|\bAppearance\.|\bYdotool\.' "$file"; then
     fail "$file regressed to inherited OSK framework/services"
   fi
 done
@@ -74,7 +73,7 @@ rg -q 'property bool oskOpen:' "$state" || fail 'RaohaneState does not own OSK o
 rg -q 'component:[[:space:]]*RaohaneOnScreenKeyboard[[:space:]]*\{' "$family" \
   || fail 'RaohaneFamily does not load native OSK'
 if rg -n '^import qs\.modules\.ii\.onScreenKeyboard$|component:[[:space:]]*OnScreenKeyboard[[:space:]]*\{' "$family"; then
-  fail 'legacy OnScreenKeyboard is still active in RaohaneFamily'
+  fail 'legacy OnScreenKeyboard is active in RaohaneFamily'
 fi
 
-printf 'osk-boundary-audit: native keyboard UI, persisted preferences, ydotool service, layout data and package boundary are valid\n'
+printf 'osk-boundary-audit: native keyboard UI, persisted preferences, ydotool service and layout data have no legacy reference requirement\n'
