@@ -21,10 +21,12 @@ required_root=(
   modules/raohane/RaohaneIcon.qml
   modules/raohane/config/RaohaneConfig.qml
   modules/raohane/config/RaohanePaths.qml
+  defaults/native.json
   scripts/raohane
   scripts/raohane-audit.sh
   scripts/runtime-surface-boundary-audit.sh
   scripts/install-deps.sh
+  scripts/migrate-legacy-config.py
   scripts/screen-translate.sh
   scripts/region-ocr.sh
   scripts/region-search.sh
@@ -136,6 +138,8 @@ rg -q '^RaohaneIcon .*RaohaneIcon.qml$' modules/raohane/qmldir \
   || fail 'RaohaneIcon is not registered'
 rg -q '^singleton RaohaneDropShelf .*RaohaneDropShelf.qml$' modules/raohane/services/qmldir \
   || fail 'RaohaneDropShelf is not registered'
+rg -q '^singleton RaohaneAutostart .*RaohaneAutostart.qml$' modules/raohane/services/qmldir \
+  || fail 'RaohaneAutostart is not registered'
 
 if rg -n -i 'inir|\bniri\b|waffle|ricelin' modules/raohane shell.qml "$family"; then
   fail 'Raohane product runtime contains a non-target/legacy identity'
@@ -164,11 +168,32 @@ for route in \
   rg -q "$route" scripts/raohane || fail "CLI route missing: $route"
 done
 
+# Release/install boundary must be native even while legacy source trees remain
+# in the checkout for the final migration passes.
+rg -q 'RAOHANE_CONFIG_FILE="\$RAOHANE_CONFIG/native\.json"' install-raohane.sh \
+  || fail 'installer does not use native.json as the authoritative config'
+rg -q 'RAOHANE_AUTOSTART_FILE="\$RAOHANE_CONFIG/autostart\.conf"' install-raohane.sh \
+  || fail 'installer does not use native Raohane autostart'
+rg -q 'defaults/native\.json' install-raohane.sh \
+  || fail 'installer does not seed native schema defaults'
+rg -q 'migrate-legacy-config\.py' install-raohane.sh \
+  || fail 'installer lost safe legacy conversion'
 rg -q 'scripts/install-deps\.sh' install-raohane.sh \
   || fail 'main installer is not using the Raohane dependency installer'
+
+if rg -n '^[[:space:]]+"(modules/common|modules/ii|services|panelFamilies/IllogicalImpulseFamily\.qml)"' install-raohane.sh; then
+  fail 'installer still requires inherited runtime trees'
+fi
+if rg -n '\bAUTOSTART_SOURCE_LINE\b' install-raohane.sh; then
+  fail 'installer can still source the retired Hyprland autostart path'
+fi
 if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' install-raohane.sh scripts/install-deps.sh scripts/raohane; then
   fail 'normal install/doctor path executes upstream shell infrastructure'
 fi
+
+rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*10' defaults/native.json \
+  || fail 'native defaults are not schema v10'
+python3 scripts/migrate-legacy-config.py --help >/dev/null
 
 bash -n scripts/raohane
 bash -n scripts/raohane-audit.sh
@@ -180,4 +205,4 @@ bash -n scripts/region-search.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native bootstrap, capture backends, retired bridge, root/native singleton registration, active surface graph and installation boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, capture backends, retired bridge, native config/autostart release boundary and installation graph are valid\n'
