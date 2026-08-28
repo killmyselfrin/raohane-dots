@@ -4,13 +4,25 @@ import Quickshell.Io
 
 import qs.modules.raohane.config
 
-// Native capture entry point. The rich inherited region UI is intentionally
-// not loaded at shell startup; screenshots and recording remain functional
-// through Raohane-owned external-tool contracts.
+// Raohane-owned capture entry point. Selection stays external-tool based so it
+// remains lightweight on Wayland while screenshot, OCR, image-search handoff
+// and recording are all available without inherited modules/ii surfaces.
 Scope {
     id: root
 
     property bool busy: false
+
+    function runBackend(scriptName: string): void {
+        if (root.busy)
+            return
+        root.busy = true
+        RaohaneState.regionSelectorOpen = false
+        Quickshell.execDetached([
+            "bash",
+            Quickshell.shellPath("scripts/" + scriptName)
+        ])
+        busyReset.restart()
+    }
 
     function screenshot(): void {
         if (root.busy)
@@ -28,37 +40,24 @@ Scope {
     }
 
     function search(): void {
-        if (root.busy)
-            return
-        root.busy = true
-        RaohaneState.regionSelectorOpen = false
-        Quickshell.execDetached([
-            "bash", "-lc",
-            "tmp=\"$(mktemp --suffix=.png /tmp/raohane-search-XXXXXX)\"; "
-                + "geometry=\"$(slurp 2>/dev/null)\" || { rm -f \"$tmp\"; exit 0; }; "
-                + "[ -n \"$geometry\" ] || { rm -f \"$tmp\"; exit 0; }; "
-                + "grim -g \"$geometry\" \"$tmp\" || { rm -f \"$tmp\"; exit 1; }; "
-                + "xdg-open \"$tmp\" >/dev/null 2>&1 || true"
-        ])
-        busyReset.restart()
+        root.runBackend("region-search.sh")
     }
 
     function ocr(): void {
-        RaohaneState.regionSelectorOpen = false
-        Quickshell.execDetached([
-            "notify-send",
-            "Raohane Capture",
-            "Native OCR is still being migrated; screenshot and recording are available now."
-        ])
+        root.runBackend("region-ocr.sh")
     }
 
     function record(sound: bool): void {
+        if (root.busy)
+            return
+        root.busy = true
         RaohaneState.regionSelectorOpen = false
         const script = RaohanePaths.join(RaohanePaths.scriptsPath, "videos/record.sh")
         if (sound)
             Quickshell.execDetached([script, "--sound"])
         else
             Quickshell.execDetached([script])
+        busyReset.restart()
     }
 
     Timer {
@@ -93,7 +92,7 @@ Scope {
 
     CompositorGlobalShortcut {
         name: "regionSearch"
-        description: "Capture a selected region for search"
+        description: "Capture a selected region for image search"
         onPressed: root.search()
     }
 
