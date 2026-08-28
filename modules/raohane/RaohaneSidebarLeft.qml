@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -6,20 +8,27 @@ import Quickshell.Wayland
 
 import qs.modules.raohane.services
 
-// Native compact left sidebar used while the old large sidebar is retired from
-// the active runtime. It deliberately depends only on Raohane services/state.
 Scope {
     id: root
+
+    property date now: new Date()
 
     function open(): void { RaohaneState.leftSidebarOpen = true }
     function close(): void { RaohaneState.leftSidebarOpen = false }
     function toggle(): void { RaohaneState.leftSidebarOpen = !RaohaneState.leftSidebarOpen }
 
+    Timer {
+        interval: 1000
+        repeat: true
+        running: true
+        onTriggered: root.now = new Date()
+    }
+
     PanelWindow {
         id: sidebarWindow
 
         visible: RaohaneState.leftSidebarOpen
-        implicitWidth: 360
+        implicitWidth: 380
         color: "transparent"
         exclusiveZone: 0
         exclusionMode: ExclusionMode.Ignore
@@ -50,7 +59,7 @@ Scope {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 18
-                spacing: 14
+                spacing: 12
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -58,6 +67,7 @@ Scope {
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 1
+
                         Text {
                             text: "RAOHANE / SIDE"
                             color: RaohaneTheme.accent
@@ -65,11 +75,29 @@ Scope {
                             font.bold: true
                             font.letterSpacing: 1.2
                         }
+
                         Text {
                             text: qsTr("Quick glance")
                             color: RaohaneTheme.text
                             font.pixelSize: 20
                             font.weight: Font.DemiBold
+                        }
+                    }
+
+                    ColumnLayout {
+                        spacing: 0
+                        Text {
+                            Layout.alignment: Qt.AlignRight
+                            text: Qt.formatTime(root.now, "HH:mm")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 12
+                            font.weight: Font.DemiBold
+                        }
+                        Text {
+                            Layout.alignment: Qt.AlignRight
+                            text: Qt.formatDate(root.now, "ddd, d MMM")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 9
                         }
                     }
 
@@ -100,15 +128,16 @@ Scope {
                             clip: true
 
                             Image {
+                                id: mediaArt
                                 anchors.fill: parent
                                 source: RaohaneMedia.artUrl
                                 fillMode: Image.PreserveAspectCrop
                                 asynchronous: true
-                                visible: status === Image.Ready
                             }
 
                             Text {
                                 anchors.centerIn: parent
+                                visible: mediaArt.status !== Image.Ready
                                 text: "音"
                                 color: RaohaneTheme.accent
                                 font.pixelSize: 24
@@ -161,6 +190,7 @@ Scope {
                                 Item { Layout.fillWidth: true }
                                 SmallButton {
                                     glyph: "↗"
+                                    enabled: RaohaneMedia.available
                                     onTriggered: {
                                         root.close()
                                         RaohaneState.mediaOverlayOpen = true
@@ -209,7 +239,6 @@ Scope {
                         }
 
                         Rectangle {
-                            id: volumeTrack
                             Layout.fillWidth: true
                             Layout.preferredHeight: 7
                             radius: height / 2
@@ -236,9 +265,88 @@ Scope {
                     }
                 }
 
-                RowLayout {
+                Text {
+                    text: qsTr("SYSTEM")
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 9
+                    font.bold: true
+                    font.letterSpacing: 1.2
+                }
+
+                Rectangle {
                     Layout.fillWidth: true
-                    spacing: 8
+                    Layout.preferredHeight: 156
+                    radius: 18
+                    color: "#10ffffff"
+                    border.width: 1
+                    border.color: RaohaneTheme.border
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 9
+                        spacing: 3
+
+                        StatusRow {
+                            icon: RaohaneNetwork.materialSymbol
+                            title: RaohaneNetwork.ethernet ? qsTr("Ethernet") : qsTr("Network")
+                            detail: RaohaneNetwork.networkName.length > 0
+                                ? RaohaneNetwork.networkName
+                                : (RaohaneNetwork.wifiEnabled ? qsTr("Not connected") : qsTr("Wi-Fi off"))
+                            active: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
+                            onTriggered: {
+                                root.close()
+                                RaohaneState.controlCenterOpen = true
+                            }
+                        }
+
+                        StatusRow {
+                            icon: RaohaneBluetooth.connected ? "bluetooth_connected" : (RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
+                            title: qsTr("Bluetooth")
+                            detail: RaohaneBluetooth.connected
+                                ? RaohaneBluetooth.firstConnectedName
+                                : (RaohaneBluetooth.enabled ? qsTr("Ready") : qsTr("Off"))
+                            active: RaohaneBluetooth.connected
+                            onTriggered: RaohaneBluetooth.toggle()
+                        }
+
+                        StatusRow {
+                            icon: RaohaneNotifications.silent ? "notifications_off" : "notifications"
+                            title: qsTr("Notifications")
+                            detail: RaohaneNotifications.unread > 0
+                                ? qsTr("%1 unread").arg(RaohaneNotifications.unread)
+                                : qsTr("All caught up")
+                            active: RaohaneNotifications.unread > 0
+                            onTriggered: {
+                                root.close()
+                                RaohaneState.controlCenterOpen = true
+                            }
+                        }
+
+                        StatusRow {
+                            icon: RaohanePrivacy.recordingActive ? "screen_record"
+                                : RaohanePrivacy.cameraActive ? "videocam"
+                                : RaohanePrivacy.microphoneActive ? "mic"
+                                : "shield"
+                            title: qsTr("Privacy")
+                            detail: RaohanePrivacy.recordingActive ? qsTr("Screen capture active")
+                                : RaohanePrivacy.cameraActive && RaohanePrivacy.microphoneActive ? qsTr("Camera and microphone active")
+                                : RaohanePrivacy.cameraActive ? qsTr("Camera active")
+                                : RaohanePrivacy.microphoneActive ? qsTr("Microphone active")
+                                : qsTr("No capture devices active")
+                            active: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                            onTriggered: {
+                                root.close()
+                                RaohaneState.controlCenterOpen = true
+                            }
+                        }
+                    }
+                }
+
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: 2
+                    rowSpacing: 8
+                    columnSpacing: 8
 
                     ActionButton {
                         glyph: "⌕"
@@ -256,12 +364,22 @@ Scope {
                             RaohaneState.controlCenterOpen = true
                         }
                     }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
+                    ActionButton {
+                        glyph: "▧"
+                        title: qsTr("Wallpaper")
+                        onTriggered: {
+                            root.close()
+                            RaohaneState.wallpaperSelectorOpen = true
+                        }
+                    }
+                    ActionButton {
+                        glyph: "文"
+                        title: qsTr("Translate")
+                        onTriggered: {
+                            root.close()
+                            RaohaneState.screenTranslatorOpen = true
+                        }
+                    }
                     ActionButton {
                         glyph: "⚙"
                         title: qsTr("Settings")
@@ -281,14 +399,6 @@ Scope {
                 }
 
                 Item { Layout.fillHeight: true }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: qsTr("This native sidebar replaces the inherited startup dependency graph. More widgets will move here during the next migration passes.")
-                    wrapMode: Text.WordWrap
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 10
-                }
             }
         }
     }
@@ -304,6 +414,58 @@ Scope {
         name: "sidebarLeftToggle"
         description: "Toggle the Raohane left sidebar"
         onPressed: root.toggle()
+    }
+
+    component StatusRow: Rectangle {
+        id: statusRow
+        required property string icon
+        required property string title
+        required property string detail
+        property bool active: false
+        signal triggered()
+
+        Layout.fillWidth: true
+        Layout.preferredHeight: 31
+        radius: 11
+        color: statusMouse.containsMouse ? "#20ffffff" : "transparent"
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 7
+            anchors.rightMargin: 7
+            spacing: 8
+
+            RaohaneIcon {
+                text: statusRow.icon
+                iconSize: 15
+                color: statusRow.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+
+            Text {
+                text: statusRow.title
+                color: RaohaneTheme.text
+                font.pixelSize: 10
+                font.weight: Font.DemiBold
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Text {
+                Layout.maximumWidth: 170
+                text: statusRow.detail
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 9
+                elide: Text.ElideRight
+            }
+        }
+
+        MouseArea {
+            id: statusMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: statusRow.triggered()
+        }
     }
 
     component SmallButton: Rectangle {
@@ -346,7 +508,7 @@ Scope {
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 54
+        Layout.preferredHeight: 48
         radius: 16
         color: actionMouse.containsMouse ? "#24ffffff" : "#10ffffff"
         border.width: 1
@@ -358,12 +520,12 @@ Scope {
             Text {
                 text: action.glyph
                 color: RaohaneTheme.accent
-                font.pixelSize: 16
+                font.pixelSize: 15
             }
             Text {
                 text: action.title
                 color: RaohaneTheme.text
-                font.pixelSize: 11
+                font.pixelSize: 10
                 font.weight: Font.DemiBold
             }
         }
