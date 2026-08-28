@@ -11,14 +11,16 @@ fail() {
 
 frame='modules/raohane/RaohaneScreenFrame.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
-bridge='modules/raohane/RaohaneLegacyBridge.qml'
 family='panelFamilies/RaohaneFamily.qml'
 qmldir='modules/raohane/qmldir'
 legacy='modules/ii/frame/ScreenFrame.qml'
 
-for path in "$frame" "$config" "$bridge" "$family" "$qmldir" "$legacy"; do
+for path in "$frame" "$config" "$family" "$qmldir" "$legacy"; do
   [[ -f "$path" ]] || fail "missing frame migration path: $path"
 done
+
+[[ ! -e modules/raohane/RaohaneLegacyBridge.qml ]] \
+  || fail 'retired compatibility bridge returned to frame runtime boundary'
 
 rg -q '^RaohaneScreenFrame .*RaohaneScreenFrame.qml$' "$qmldir" \
   || fail 'RaohaneScreenFrame is not registered in the native module'
@@ -50,22 +52,10 @@ schema_version="$(sed -nE 's/.*schemaVersion:[[:space:]]*([0-9]+).*/\1/p' "$conf
 rg -q 'frame:[[:space:]]*\{' "$config" \
   || fail 'native config snapshot does not persist the frame object'
 
-for symbol in \
-  'Config\.options\.bar\.showFrame' \
-  'Config\.options\.bar\.frameThickness' \
-  'Config\.options\.bar\.frameColor' \
-  'RaohaneConfig\.frameEnabled' \
-  'RaohaneConfig\.frameThickness' \
-  'RaohaneConfig\.frameColor' \
-  'RaohaneConfig\.frameBarSideVisible' \
-  'legacyFrameBarSideVisible'; do
-  rg -q "$symbol" "$bridge" || fail "legacy bridge lost frame migration symbol: $symbol"
-done
-
 rg -q 'component:[[:space:]]*RaohaneScreenFrame[[:space:]]*\{' "$family" \
   || fail 'RaohaneFamily does not load the native frame'
 if rg -n '^import qs\.modules\.ii\.frame$|component:[[:space:]]*ScreenFrame[[:space:]]*\{' "$family"; then
   fail 'legacy ScreenFrame is still active in RaohaneFamily'
 fi
 
-printf 'frame-boundary-audit: native screen frame owns rendering/config while legacy frame remains migration-only\n'
+printf 'frame-boundary-audit: native screen frame owns rendering and persisted config; bridge migration is retired\n'
