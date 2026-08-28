@@ -116,7 +116,7 @@ jobs:
           required_paths=(
             shell.qml
             qmldir
-            defaults/config.json
+            defaults/native.json
             install/arch/required.txt
             install/arch/features.txt
             modules/raohane
@@ -189,6 +189,11 @@ jobs:
             [[ -e "$path" ]] || { echo "Missing integration path: $path" >&2; exit 1; }
           done
 
+          jq -e '.schemaVersion == 10' defaults/native.json >/dev/null || {
+            echo 'defaults/native.json is not Raohane schema v10.' >&2
+            exit 1
+          }
+
           [[ ! -e modules/raohane/RaohaneLegacyBridge.qml ]] || {
             echo 'Retired RaohaneLegacyBridge returned to the integration graph.' >&2
             exit 1
@@ -205,12 +210,6 @@ jobs:
             echo 'Vendored font binary detected.' >&2
             exit 1
           fi
-
-          panel_family="$(jq -r '.panelFamily // "<unset>"' defaults/config.json)"
-          [[ "$panel_family" == 'raohane' ]] || {
-            echo "defaults/config.json must select only Raohane; got: $panel_family" >&2
-            exit 1
-          }
 
       - name: Assert checkout remains clean
         shell: bash
