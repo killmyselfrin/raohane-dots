@@ -4,7 +4,6 @@ import Quickshell
 import qs.modules.common
 import qs.modules.raohane
 import qs.modules.raohane.config
-import qs.modules.ii.lock
 import qs.modules.ii.onScreenKeyboard
 import qs.modules.ii.polkit
 import qs.modules.ii.regionSelector
@@ -30,7 +29,7 @@ Scope {
     RaohanePanelLoader { component: RaohaneDesktopCanvas {} }
     RaohanePanelLoader { extraCondition: !RaohaneConfig.barVertical; component: RaohaneBar {} }
     RaohanePanelLoader { extraCondition: RaohaneConfig.dockEnabled; component: RaohaneDock {} }
-    RaohanePanelLoader { component: Lock {} }
+    RaohanePanelLoader { component: RaohaneLock {} }
     RaohanePanelLoader { component: RaohaneNotificationPopup {} }
     RaohanePanelLoader { component: RaohaneOsd {} }
     RaohanePanelLoader { component: OnScreenKeyboard {} }

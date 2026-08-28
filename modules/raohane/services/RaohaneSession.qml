@@ -25,7 +25,9 @@ Singleton {
     }
 
     function lock(): void {
-        root.run(["loginctl", "lock-session"])
+        const configured = String(Quickshell.env("RAOHANE_QS_CONFIG") ?? "raohane")
+        const configName = configured.trim().length > 0 ? configured.trim() : "raohane"
+        root.run(["qs", "-c", configName, "ipc", "call", "lock", "activate"])
     }
 
     function suspend(): void {

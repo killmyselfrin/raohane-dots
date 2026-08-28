@@ -32,3 +32,6 @@ RaohaneNotificationPopup 1.0 RaohaneNotificationPopup.qml
 RaohaneWallpaperSelector 1.0 RaohaneWallpaperSelector.qml
 RaohaneDesktopMenu 1.0 RaohaneDesktopMenu.qml
 RaohaneSessionScreen 1.0 RaohaneSessionScreen.qml
+RaohaneLockContext 1.0 RaohaneLockContext.qml
+RaohaneLockSurface 1.0 RaohaneLockSurface.qml
+RaohaneLock 1.0 RaohaneLock.qml
