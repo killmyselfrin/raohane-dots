@@ -14,11 +14,13 @@ QMLDIR="$MODULE/qmldir"
 CONFIG_MODULE=modules/raohane/config
 FAMILY=panelFamilies/RaohaneFamily.qml
 AUTOSTART_SCRIPT=scripts/autostart.sh
+FEATURES=install/arch/features.txt
 
 [[ -f "$QMLDIR" ]] || fail 'Raohane service qmldir is missing'
 [[ -f "$CONFIG_MODULE/qmldir" ]] || fail 'Raohane config qmldir is missing'
 [[ -f "$CONFIG_MODULE/RaohaneConfig.qml" ]] || fail 'RaohaneConfig is missing'
 [[ -f "$AUTOSTART_SCRIPT" ]] || fail 'native autostart backend is missing'
+[[ -f "$FEATURES" ]] || fail 'Arch feature manifest is missing'
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
   || fail 'RaohaneConfig is not registered in the native config module'
 if rg -n '^import qs$|modules\.common|JsonAdapter|\bConfig\.' "$CONFIG_MODULE/RaohaneConfig.qml"; then
@@ -52,6 +54,14 @@ require_service RaohaneEasyEffects 'easyeffects'
 require_service RaohaneYdotool 'ydotool'
 require_service RaohaneDropShelf 'wl-copy --type text/uri-list'
 require_service RaohaneAutostart 'scripts/autostart\.sh'
+
+# Every external backend owned by a native service must have an installable Arch
+# package in the full feature manifest. Keep this close to the service audit so
+# adding a command cannot silently make fresh installs incomplete.
+for package in bluez-utils brightnessctl ddcutil hyprsunset easyeffects ydotool; do
+  rg -q "^${package}$" "$FEATURES" \
+    || fail "native service backend package missing from feature manifest: $package"
+done
 
 for pair in \
   'modules/raohane/RaohaneContext.qml:RaohaneMedia\.' \
@@ -121,4 +131,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, session-safe autostart and active consumers are Raohane-owned\n'
+printf 'raohane-service-audit: native services, Arch backend packages, session-safe autostart and active consumers are Raohane-owned\n'
