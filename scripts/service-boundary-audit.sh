@@ -14,13 +14,13 @@ QMLDIR="$MODULE/qmldir"
 CONFIG_MODULE=modules/raohane/config
 FAMILY=panelFamilies/RaohaneFamily.qml
 AUTOSTART_SCRIPT=scripts/autostart.sh
+RECORDER=scripts/videos/record.sh
 FEATURES=install/arch/features.txt
+REQUIRED=install/arch/required.txt
 
-[[ -f "$QMLDIR" ]] || fail 'Raohane service qmldir is missing'
-[[ -f "$CONFIG_MODULE/qmldir" ]] || fail 'Raohane config qmldir is missing'
-[[ -f "$CONFIG_MODULE/RaohaneConfig.qml" ]] || fail 'RaohaneConfig is missing'
-[[ -f "$AUTOSTART_SCRIPT" ]] || fail 'native autostart backend is missing'
-[[ -f "$FEATURES" ]] || fail 'Arch feature manifest is missing'
+for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$AUTOSTART_SCRIPT" "$RECORDER" "$FEATURES" "$REQUIRED"; do
+  [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
+done
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
   || fail 'RaohaneConfig is not registered in the native config module'
 if rg -n '^import qs$|modules\.common|JsonAdapter|\bConfig\.' "$CONFIG_MODULE/RaohaneConfig.qml"; then
@@ -124,6 +124,30 @@ rg -q '^import qs\.modules\.raohane\.services$' "$FAMILY" \
   || fail 'RaohaneFamily does not import native services for autostart'
 bash -n "$AUTOSTART_SCRIPT"
 
+# Screen recording is part of the native region surface. It must not read the
+# retired inherited config document, and every external command used for the
+# full recording path must be represented by the install manifests.
+if rg -n 'illogical-impulse|raohane/config\.json|CONFIG_FILE=.*/config\.json' "$RECORDER"; then
+  fail 'native recorder still reads a retired compatibility config'
+fi
+for contract in \
+  'RAOHANE_RECORDING_DIR' \
+  'xdg-user-dir VIDEOS' \
+  '\bwf-recorder\b' \
+  '\bslurp\b' \
+  '\bhyprctl\b' \
+  '\bpactl\b'; do
+  rg -q "$contract" "$RECORDER" \
+    || fail "native recorder lost runtime contract: $contract"
+done
+for package in wf-recorder slurp libpulse; do
+  rg -q "^${package}$" "$FEATURES" \
+    || fail "recorder backend package missing from feature manifest: $package"
+done
+rg -q '^xdg-user-dirs$' "$REQUIRED" \
+  || fail 'recorder XDG Videos fallback requires xdg-user-dirs'
+bash -n "$RECORDER"
+
 if [[ -e modules/raohane/RaohaneLegacyBridge.qml ]]; then
   fail 'retired compatibility bridge returned to the native runtime tree'
 fi
@@ -131,4 +155,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, Arch backend packages, session-safe autostart and active consumers are Raohane-owned\n'
+printf 'raohane-service-audit: native services, backend packages, recorder and session-safe autostart contracts are valid\n'
