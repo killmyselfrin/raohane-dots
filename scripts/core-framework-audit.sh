@@ -57,7 +57,7 @@ if rg -n '^import qs\.|\bDirectories\.' "$paths"; then
   fail 'RaohanePaths depends on inherited path framework'
 fi
 
-rg -q 'schemaVersion:[[:space:]]*9' "$config" || fail 'RaohaneConfig schema is not v9'
+rg -q 'schemaVersion:[[:space:]]*10' "$config" || fail 'RaohaneConfig schema is not v10'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig does not use RaohanePaths'
 if rg -n '\bStandardPaths\.|\bDirectories\.|^import qs$|^import qs\.modules\.common|\bConfig\.' "$config"; then
   fail 'RaohaneConfig depends on inherited config/path framework'
@@ -71,7 +71,8 @@ for property_name in \
   hotCornersEnabled hotCornerValueScroll hotCornerClickless \
   hotCornerRegionWidth hotCornerRegionHeight hotCornerBottomLeftAction \
   hotCornerBottomRightAction hotCornerVisualize hotCornerClicklessEnd \
-  hotCornerVerticalOffset profileDisplayName profileAvatarPath \
+  hotCornerVerticalOffset oskPinned oskLayout \
+  profileDisplayName profileAvatarPath \
   quickSliderBrightness quickSliderVolume quickSliderMic \
   contextIslandEnabled mediaOverlayEnabled integrationMode; do
   rg -q "property .* ${property_name}:" "$config" \
