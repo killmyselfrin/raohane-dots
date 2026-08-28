@@ -36,7 +36,7 @@ SIZE_MAP = {
 }
 
 IMAGE_SUFFIXES = {
-    ".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp", ".gif", ".tif", ".tiff"
+    ".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp", ".gif", ".tif", ".tiff", ".svg"
 }
 VIDEO_SUFFIXES = {".mp4", ".webm", ".mkv", ".mov", ".avi", ".m4v"}
 
@@ -78,8 +78,6 @@ def save_thumbnail(image: Image.Image, source: Path, target: Path, size: int) ->
 def image_thumbnail(source: Path, target: Path, size: int) -> bool:
     try:
         with Image.open(source) as image:
-            # Animated images use their first frame. This mirrors the lightweight
-            # preview behavior expected by the wallpaper picker.
             try:
                 image.seek(0)
             except EOFError:
@@ -90,6 +88,21 @@ def image_thumbnail(source: Path, target: Path, size: int) -> bool:
         return False
 
 
+def extract_video_frame(ffmpeg: str, source: Path, destination: Path, seek_seconds: str, size: int) -> bool:
+    command = [
+        ffmpeg,
+        "-loglevel", "error",
+        "-y",
+        "-ss", seek_seconds,
+        "-i", str(source),
+        "-frames:v", "1",
+        "-vf", f"scale='min({size},iw)':-2",
+        str(destination),
+    ]
+    completed = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return completed.returncode == 0 and destination.is_file() and destination.stat().st_size > 0
+
+
 def video_thumbnail(source: Path, target: Path, size: int) -> bool:
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -98,25 +111,12 @@ def video_thumbnail(source: Path, target: Path, size: int) -> bool:
     fd, temp_name = tempfile.mkstemp(prefix="raohane-thumb-", suffix=".png")
     os.close(fd)
     temp = Path(temp_name)
+    temp.unlink(missing_ok=True)
     try:
-        # Select a frame shortly after the beginning, preserving aspect ratio.
-        command = [
-            ffmpeg,
-            "-loglevel", "error",
-            "-y",
-            "-ss", "1",
-            "-i", str(source),
-            "-frames:v", "1",
-            "-vf", f"scale='min({size},iw)':-2",
-            str(temp),
-        ]
-        completed = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        if completed.returncode != 0 or not temp.is_file() or temp.stat().st_size == 0:
-            # Very short clips may not have a frame at one second.
-            command[5:7] = ["-ss", "0"]
-            completed = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        if completed.returncode != 0 or not temp.is_file() or temp.stat().st_size == 0:
-            return False
+        if not extract_video_frame(ffmpeg, source, temp, "1", size):
+            temp.unlink(missing_ok=True)
+            if not extract_video_frame(ffmpeg, source, temp, "0", size):
+                return False
         with Image.open(temp) as image:
             save_thumbnail(image, source, target, size)
         return True
@@ -182,9 +182,10 @@ def main() -> int:
 
     total = len(files)
     failures = 0
+    supported = IMAGE_SUFFIXES | VIDEO_SUFFIXES
     for index, source in enumerate(files, start=1):
         ok = generate(source, args.size, size, args.only_images)
-        if not ok and source.suffix.lower() in IMAGE_SUFFIXES | VIDEO_SUFFIXES:
+        if not ok and source.suffix.lower() in supported:
             failures += 1
         if args.machine_progress:
             print(f"PROGRESS {index}/{total} FILE {source}", flush=True)
@@ -192,8 +193,6 @@ def main() -> int:
     if not args.machine_progress:
         print(f"Raohane thumbnails: {total - failures}/{total} processed")
 
-    # Return non-zero when supported files could not be generated so the
-    # ImageMagick fallback can attempt formats Pillow/ffmpeg did not handle.
     return 1 if failures else 0
 
 
