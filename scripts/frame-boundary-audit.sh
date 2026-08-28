@@ -13,10 +13,9 @@ frame='modules/raohane/RaohaneScreenFrame.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 family='panelFamilies/RaohaneFamily.qml'
 qmldir='modules/raohane/qmldir'
-legacy='modules/ii/frame/ScreenFrame.qml'
 
-for path in "$frame" "$config" "$family" "$qmldir" "$legacy"; do
-  [[ -f "$path" ]] || fail "missing frame migration path: $path"
+for path in "$frame" "$config" "$family" "$qmldir"; do
+  [[ -f "$path" ]] || fail "missing native frame path: $path"
 done
 
 [[ ! -e modules/raohane/RaohaneLegacyBridge.qml ]] \
@@ -38,7 +37,7 @@ for symbol in \
   rg -q "$symbol" "$frame" || fail "native frame lost required contract: $symbol"
 done
 
-if rg -n '^import qs$|^import qs\.services|^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.|\bAppearance\.|\bRoundCorner[[:space:]]*\{' "$frame"; then
+if rg -n '^import qs$|^import qs\.services|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|\bAppearance\.|\bRoundCorner[[:space:]]*\{' "$frame"; then
   fail 'native frame regressed to inherited framework/widgets'
 fi
 
@@ -55,7 +54,7 @@ rg -q 'frame:[[:space:]]*\{' "$config" \
 rg -q 'component:[[:space:]]*RaohaneScreenFrame[[:space:]]*\{' "$family" \
   || fail 'RaohaneFamily does not load the native frame'
 if rg -n '^import qs\.modules\.ii\.frame$|component:[[:space:]]*ScreenFrame[[:space:]]*\{' "$family"; then
-  fail 'legacy ScreenFrame is still active in RaohaneFamily'
+  fail 'legacy ScreenFrame is active in RaohaneFamily'
 fi
 
-printf 'frame-boundary-audit: native screen frame owns rendering and persisted config; bridge migration is retired\n'
+printf 'frame-boundary-audit: native screen frame owns rendering and persisted config with no legacy reference requirement\n'
