@@ -5,10 +5,8 @@ import QtQuick.Layouts
 import Quickshell
 
 import qs
-import qs.services
-import qs.modules.common
-import qs.modules.common.widgets
 import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Item {
     id: root
@@ -27,18 +25,15 @@ Item {
         { name: qsTr("Services"), icon: "settings", source: Qt.resolvedUrl("../ii/settings/pages/ServicesConfig.qml") },
         { name: qsTr("Hyprland"), icon: "select_window_2", source: Qt.resolvedUrl("../ii/settings/pages/HyprlandConfig.qml") },
         { name: qsTr("Profile"), icon: "account_circle", source: Qt.resolvedUrl("../ii/settings/pages/Profile.qml") },
-        { name: qsTr("About"), icon: "info", source: Qt.resolvedUrl("../ii/settings/pages/About.qml") }
+        { name: qsTr("About"), icon: "info", source: Qt.resolvedUrl("RaohaneSettingsAbout.qml") }
     ]
 
     Component.onCompleted: Config.readWriteDelay = 0
 
     onCurrentPageChanged: {
         const page = pages[currentPage]
-        if (page?.name === qsTr("About")) {
-            if (SystemInfo.cpu === "")
-                SystemInfo.refresh()
-            Updates.refresh()
-        }
+        if (page?.name === qsTr("About") && RaohaneSystemInfo.cpu === "")
+            RaohaneSystemInfo.refresh()
     }
 
     Connections {
@@ -118,7 +113,7 @@ Item {
                                 visible: status === Image.Ready
                             }
 
-                            MaterialSymbol {
+                            RaohaneIcon {
                                 anchors.centerIn: parent
                                 visible: !avatar.visible
                                 text: "account_circle"
@@ -134,7 +129,7 @@ Item {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: Config.options.profile.displayName === "" ? SystemInfo.username : Config.options.profile.displayName
+                                text: Config.options.profile.displayName === "" ? RaohaneSystemInfo.username : Config.options.profile.displayName
                                 color: RaohaneTheme.text
                                 font.pixelSize: 10
                                 font.weight: Font.DemiBold
@@ -143,7 +138,7 @@ Item {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: SystemInfo.distroName || qsTr("Hyprland system")
+                                text: RaohaneSystemInfo.distroName || qsTr("Hyprland system")
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 8
                                 elide: Text.ElideRight
@@ -196,7 +191,7 @@ Item {
                             anchors.rightMargin: 9
                             spacing: 9
 
-                            MaterialSymbol {
+                            RaohaneIcon {
                                 text: navItem.modelData.icon
                                 iconSize: 17
                                 color: root.currentPage === navItem.index ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -248,7 +243,7 @@ Item {
                         anchors.rightMargin: 9
                         spacing: 9
 
-                        MaterialSymbol {
+                        RaohaneIcon {
                             text: "description"
                             iconSize: 17
                             color: RaohaneTheme.textMuted
@@ -318,7 +313,7 @@ Item {
                             radius: 10
                             color: RaohaneTheme.accentSoft
 
-                            MaterialSymbol {
+                            RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: root.pages[root.currentPage]?.icon ?? "settings"
                                 iconSize: 17
