@@ -13,7 +13,8 @@ selector='modules/raohane/RaohaneWallpaperSelector.qml'
 service='modules/raohane/services/RaohaneWallpapers.qml'
 paths='modules/raohane/config/RaohanePaths.qml'
 focus='modules/raohane/RaohaneFocusGrab.qml'
-thumb_wrapper='scripts/thumbnails/thumbgen-venv.sh'
+thumb_wrapper='scripts/thumbnails/thumbgen.sh'
+retired_wrapper='scripts/thumbnails/thumbgen-venv.sh'
 thumb_generator='scripts/thumbnails/thumbgen.py'
 magick_generator='scripts/thumbnails/generate-thumbnails-magick.sh'
 features='install/arch/features.txt'
@@ -21,6 +22,7 @@ features='install/arch/features.txt'
 for file in "$selector" "$service" "$paths" "$focus" "$thumb_wrapper" "$thumb_generator" "$magick_generator" "$features"; do
   [[ -f "$file" ]] || fail "missing required file: $file"
 done
+[[ ! -e "$retired_wrapper" ]] || fail 'retired thumbnail venv wrapper returned'
 
 for symbol in \
   'RaohaneWallpapers\.' \
@@ -40,12 +42,15 @@ if rg -n \
 fi
 
 for contract in \
-  'scripts/thumbnails/thumbgen-venv\.sh' \
+  'scripts/thumbnails/thumbgen\.sh' \
   'scripts/thumbnails/generate-thumbnails-magick\.sh' \
   'RaohaneConfig\.wallpaperDirectory' \
   'thumbnailGenerationProgress'; do
   rg -q "$contract" "$service" || fail "wallpaper service lost thumbnail contract: $contract"
 done
+if rg -n 'thumbgen-venv\.sh|ILLOGICAL_IMPULSE' "$service"; then
+  fail 'wallpaper service references retired thumbnail/upstream state'
+fi
 
 rg -q 'exec python3 "\$SCRIPT_DIR/thumbgen\.py" "\$@"' "$thumb_wrapper" \
   || fail 'thumbnail wrapper does not execute the Raohane Python generator directly'
