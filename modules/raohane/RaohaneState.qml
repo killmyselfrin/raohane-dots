@@ -25,6 +25,11 @@ QtObject {
     property bool screenLocked: false
     property bool superDown: false
 
+    property bool desktopMenuOpen: false
+    property var desktopMenuScreen: null
+    property real desktopMenuX: 0
+    property real desktopMenuY: 0
+
     function toggleAction(name: string): void {
         if (!name || name === "none")
             return
@@ -60,6 +65,9 @@ QtObject {
         case "sessionOpen":
             sessionOpen = !sessionOpen
             break
+        case "desktopMenuOpen":
+            desktopMenuOpen = !desktopMenuOpen
+            break
         default:
             console.warn("[RaohaneState] Unknown transient action:", name)
             break
@@ -80,5 +88,6 @@ QtObject {
         settingsOpen = false
         sessionOpen = false
         osdOpen = false
+        desktopMenuOpen = false
     }
 }

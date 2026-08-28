@@ -6,7 +6,6 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
-import qs
 import qs.modules.raohane.config
 import qs.modules.raohane.services
 
@@ -54,11 +53,11 @@ Variants {
             && workspace.toplevels.values.some(window => window.wayland?.fullscreen)
         ) ?? null
         readonly property bool hiddenForFullscreen: RaohaneConfig.wallpaperHideWhenFullscreen
-            && !GlobalStates.screenLocked
+            && !RaohaneState.screenLocked
             && activeFullscreenWorkspace !== null
 
         readonly property string requestedPath: {
-            if (GlobalStates.screenLocked && RaohaneConfig.lockWallpaperPath.length > 0)
+            if (RaohaneState.screenLocked && RaohaneConfig.lockWallpaperPath.length > 0)
                 return RaohaneConfig.lockWallpaperPath
             if (RaohaneConfig.wallpaperPreview && RaohaneWallpapers.previewPath.length > 0)
                 return RaohaneWallpapers.previewPath
@@ -189,7 +188,7 @@ Variants {
             Rectangle {
                 anchors.fill: parent
                 color: "#000000"
-                opacity: GlobalStates.screenLocked
+                opacity: RaohaneState.screenLocked
                     ? RaohaneConfig.lockWallpaperDim
                     : RaohaneConfig.wallpaperDim
 

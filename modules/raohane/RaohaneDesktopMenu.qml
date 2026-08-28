@@ -7,38 +7,40 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
-import qs
-import qs.services
-import qs.modules.common
-import qs.modules.common.widgets
+import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Scope {
     id: root
 
     function openCentered(shouldOpen: bool): void {
         if (!shouldOpen) {
-            GlobalStates.desktopMenuOpen = false
+            RaohaneState.desktopMenuOpen = false
             return
         }
+
         const focusedName = Hyprland.focusedMonitor?.name
         const screen = Quickshell.screens.find(item => item.name === focusedName) ?? Quickshell.screens[0]
-        GlobalStates.desktopMenuScreen = screen
-        GlobalStates.desktopMenuX = screen.width / 2
-        GlobalStates.desktopMenuY = screen.height / 2
-        GlobalStates.desktopMenuOpen = true
+        if (!screen)
+            return
+
+        RaohaneState.desktopMenuScreen = screen
+        RaohaneState.desktopMenuX = screen.width / 2
+        RaohaneState.desktopMenuY = screen.height / 2
+        RaohaneState.desktopMenuOpen = true
     }
 
     function close(): void {
-        GlobalStates.desktopMenuOpen = false
+        RaohaneState.desktopMenuOpen = false
     }
 
     Loader {
-        active: GlobalStates.desktopMenuOpen
+        active: RaohaneState.desktopMenuOpen
 
         sourceComponent: PanelWindow {
             id: menuWindow
 
-            screen: GlobalStates.desktopMenuScreen ?? Quickshell.screens[0]
+            screen: RaohaneState.desktopMenuScreen ?? Quickshell.screens[0]
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
@@ -61,20 +63,25 @@ Scope {
 
             Rectangle {
                 id: menuCard
+
                 width: 356
                 implicitHeight: menuContent.implicitHeight + 20
-                x: Math.min(Math.max(GlobalStates.desktopMenuX - width / 2, 10), menuWindow.width - width - 10)
-                y: Math.min(Math.max(GlobalStates.desktopMenuY - implicitHeight / 2, 10), menuWindow.height - implicitHeight - 10)
+                x: Math.min(Math.max(RaohaneState.desktopMenuX - width / 2, 10), menuWindow.width - width - 10)
+                y: Math.min(Math.max(RaohaneState.desktopMenuY - implicitHeight / 2, 10), menuWindow.height - implicitHeight - 10)
                 radius: 24
                 color: RaohaneTheme.glassStrong
                 border.width: 1
                 border.color: RaohaneTheme.border
                 clip: true
+                scale: RaohaneState.desktopMenuOpen ? 1 : 0.94
+                opacity: RaohaneState.desktopMenuOpen ? 1 : 0
 
-                scale: GlobalStates.desktopMenuOpen ? 1 : 0.94
-                opacity: GlobalStates.desktopMenuOpen ? 1 : 0
-                Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutBack } }
-                Behavior on opacity { NumberAnimation { duration: 130 } }
+                Behavior on scale {
+                    NumberAnimation { duration: 160; easing.type: Easing.OutBack }
+                }
+                Behavior on opacity {
+                    NumberAnimation { duration: 130 }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -100,7 +107,7 @@ Scope {
 
                         Image {
                             anchors.fill: parent
-                            source: Config.options.background.wallpaperPath
+                            source: RaohaneConfig.wallpaperPath.length > 0 ? "file://" + RaohaneConfig.wallpaperPath : ""
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
                             cache: false
@@ -150,7 +157,7 @@ Scope {
 
                             Text {
                                 width: parent.width
-                                text: Config.options.background.wallpaperPath.split("/").pop() || qsTr("Wallpaper")
+                                text: RaohaneConfig.wallpaperPath.split("/").pop() || qsTr("Wallpaper")
                                 color: RaohaneTheme.text
                                 font.pixelSize: 11
                                 font.weight: Font.DemiBold
@@ -158,7 +165,7 @@ Scope {
                             }
                             Text {
                                 width: parent.width
-                                text: qsTr("Right-click workspace controls")
+                                text: qsTr("Workspace controls")
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 8
                                 elide: Text.ElideRight
@@ -173,8 +180,8 @@ Scope {
                         accent: true
                         onTriggered: {
                             root.close()
-                            GlobalStates.wallpaperSelectorTarget = "wallpaper"
-                            GlobalStates.wallpaperSelectorOpen = true
+                            RaohaneState.wallpaperSelectorTarget = "wallpaper"
+                            RaohaneState.wallpaperSelectorOpen = true
                         }
                     }
 
@@ -187,19 +194,17 @@ Scope {
                             icon: "casino"
                             title: qsTr("Random")
                             onTriggered: {
-                                Wallpapers.randomFromCurrentFolder()
+                                RaohaneWallpapers.randomFromCurrentFolder()
                                 root.close()
                             }
                         }
+
                         CompactAction {
                             Layout.fillWidth: true
                             icon: "video_template"
-                            title: qsTr("Live")
+                            title: qsTr("Choose")
                             onTriggered: {
-                                Wallpapers.openFallbackPicker(
-                                    Appearance.m3colors.darkmode,
-                                    Config.options.wallpaperSelector.liveWallpapersPath ?? ""
-                                )
+                                RaohaneWallpapers.openFallbackPicker(true, RaohaneConfig.wallpaperDirectory)
                                 root.close()
                             }
                         }
@@ -214,16 +219,14 @@ Scope {
                     MenuAction {
                         icon: "stacks"
                         title: qsTr("DropShelf")
-                        detail: DropShelf.items.length > 0
-                            ? qsTr("%1 items ready").arg(DropShelf.items.length)
+                        detail: RaohaneDropShelf.items.length > 0
+                            ? qsTr("%1 items ready").arg(RaohaneDropShelf.items.length)
                             : qsTr("Temporary files and drops")
                         onTriggered: {
-                            const pointX = GlobalStates.desktopMenuX
-                            const pointY = GlobalStates.desktopMenuY
+                            const pointX = RaohaneState.desktopMenuX
+                            const pointY = RaohaneState.desktopMenuY
                             root.close()
-                            GlobalStates.dropShelfX = pointX
-                            GlobalStates.dropShelfY = pointY
-                            GlobalStates.dropShelfOpen = true
+                            RaohaneDropShelf.show([], pointX, pointY)
                         }
                     }
 
@@ -233,8 +236,8 @@ Scope {
                         detail: qsTr("Open desktop configuration")
                         onTriggered: {
                             root.close()
-                            GlobalStates.settingsPage = "Desktop"
-                            GlobalStates.settingsOpen = true
+                            RaohaneState.settingsPage = "Desktop"
+                            RaohaneState.settingsOpen = true
                         }
                     }
 
@@ -244,7 +247,7 @@ Scope {
                         detail: qsTr("Network, audio, privacy and notifications")
                         onTriggered: {
                             root.close()
-                            GlobalStates.sidebarRightOpen = true
+                            RaohaneState.controlCenterOpen = true
                         }
                     }
 
@@ -254,7 +257,7 @@ Scope {
                         detail: qsTr("Configure Raohane")
                         onTriggered: {
                             root.close()
-                            GlobalStates.settingsOpen = true
+                            RaohaneState.settingsOpen = true
                         }
                     }
 
@@ -273,13 +276,14 @@ Scope {
                                 Quickshell.reload(true)
                             }
                         }
+
                         CompactAction {
                             Layout.fillWidth: true
                             icon: "power_settings_new"
                             title: qsTr("Session")
                             onTriggered: {
                                 root.close()
-                                GlobalStates.sessionOpen = true
+                                RaohaneState.sessionOpen = true
                             }
                         }
                     }
@@ -297,13 +301,14 @@ Scope {
 
     IpcHandler {
         target: "raohaneDesktop"
-        function toggle(): void { root.openCentered(!GlobalStates.desktopMenuOpen) }
+        function toggle(): void { root.openCentered(!RaohaneState.desktopMenuOpen) }
         function open(): void { root.openCentered(true) }
         function close(): void { root.close() }
     }
 
     component MenuAction: Rectangle {
         id: action
+
         required property string icon
         required property string title
         property string detail: ""
@@ -329,7 +334,7 @@ Scope {
                 radius: 11
                 color: "#20ffffff"
 
-                MaterialSymbol {
+                RaohaneIcon {
                     anchors.centerIn: parent
                     text: action.icon
                     iconSize: 18
@@ -358,7 +363,7 @@ Scope {
                 }
             }
 
-            MaterialSymbol {
+            RaohaneIcon {
                 text: "chevron_right"
                 iconSize: 16
                 color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -376,6 +381,7 @@ Scope {
 
     component CompactAction: Rectangle {
         id: compact
+
         required property string icon
         required property string title
         signal triggered()
@@ -389,7 +395,13 @@ Scope {
         Row {
             anchors.centerIn: parent
             spacing: 7
-            MaterialSymbol { text: compact.icon; iconSize: 15; color: RaohaneTheme.textMuted }
+
+            RaohaneIcon {
+                text: compact.icon
+                iconSize: 15
+                color: RaohaneTheme.textMuted
+            }
+
             Text {
                 text: compact.title
                 color: RaohaneTheme.text

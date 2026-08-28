@@ -6,7 +6,6 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
-import qs
 import qs.modules.raohane.config
 
 Variants {
@@ -36,7 +35,7 @@ Variants {
             workspace.active
             && workspace.toplevels.values.some(window => window.wayland?.fullscreen)
         )
-        readonly property bool canvasVisible: !GlobalStates.screenLocked
+        readonly property bool canvasVisible: !RaohaneState.screenLocked
             && !(RaohaneConfig.wallpaperHideWhenFullscreen && fullscreenActive)
 
         screen: modelData
