@@ -11,7 +11,6 @@ import qs.modules.ii.sidebarLeft
 import qs.modules.ii.overlay
 import qs.modules.ii.verticalBar
 import qs.modules.ii.dropover
-import qs.modules.ii.frame
 
 // Raohane's Hyprland integration composition. Compatibility panels remain
 // temporary while their presentation layers are rewritten under modules/raohane.
@@ -44,5 +43,5 @@ Scope {
 
     RaohanePanelLoader { extraCondition: RaohaneConfig.barVertical; component: VerticalBar {} }
     RaohanePanelLoader { component: DropShelfPanel {} }
-    RaohanePanelLoader { component: ScreenFrame {} }
+    RaohanePanelLoader { component: RaohaneScreenFrame {} }
 }

@@ -22,6 +22,18 @@ Singleton {
             Config.options.sidebar.mediaPlayer = false
     }
 
+    function legacyFrameBarSideVisible(): bool {
+        const bar = Config.options?.bar
+        if (!bar)
+            return true
+        if ((bar.cornerStyle ?? 0) !== 0)
+            return true
+
+        const left = bar.layouts?.leftLayout ?? []
+        const right = bar.layouts?.rightLayout ?? []
+        return left.length === 0 && right.length === 0
+    }
+
     function seedNativeFromLegacy(): void {
         if (!RaohaneConfig.ready || !Config.ready || root.initialized)
             return
@@ -59,6 +71,10 @@ Singleton {
             RaohaneConfig.barAutoHidePushWindows = Config.options.bar.autoHide?.pushWindows ?? RaohaneConfig.barAutoHidePushWindows
             RaohaneConfig.barShowOnSuper = Config.options.bar.autoHide?.showWhenPressingSuper?.enable ?? RaohaneConfig.barShowOnSuper
             RaohaneConfig.barShowOnSuperDelay = Config.options.bar.autoHide?.showWhenPressingSuper?.delay ?? RaohaneConfig.barShowOnSuperDelay
+            RaohaneConfig.frameEnabled = Config.options.bar.showFrame ?? RaohaneConfig.frameEnabled
+            RaohaneConfig.frameThickness = Config.options.bar.frameThickness ?? RaohaneConfig.frameThickness
+            RaohaneConfig.frameColor = String(Config.options.bar.frameColor ?? RaohaneConfig.frameColor)
+            RaohaneConfig.frameBarSideVisible = root.legacyFrameBarSideVisible()
         }
         RaohaneConfig.barShowDate = Config.options?.time?.showDate ?? RaohaneConfig.barShowDate
 
@@ -124,6 +140,9 @@ Singleton {
             Config.options.bar.bottom = RaohaneConfig.barBottom
             Config.options.bar.vertical = RaohaneConfig.barVertical
             Config.options.bar.screenList = RaohaneConfig.barScreenList
+            Config.options.bar.showFrame = RaohaneConfig.frameEnabled
+            Config.options.bar.frameThickness = RaohaneConfig.frameThickness
+            Config.options.bar.frameColor = RaohaneConfig.frameColor
             if (Config.options.bar.autoHide) {
                 Config.options.bar.autoHide.enable = RaohaneConfig.barAutoHide
                 Config.options.bar.autoHide.pushWindows = RaohaneConfig.barAutoHidePushWindows
@@ -221,6 +240,10 @@ Singleton {
         RaohaneConfig.barShowOnSuper = Config.options?.bar?.autoHide?.showWhenPressingSuper?.enable ?? true
         RaohaneConfig.barShowOnSuperDelay = Config.options?.bar?.autoHide?.showWhenPressingSuper?.delay ?? 140
         RaohaneConfig.barShowDate = Config.options?.time?.showDate ?? true
+        RaohaneConfig.frameEnabled = Config.options?.bar?.showFrame ?? false
+        RaohaneConfig.frameThickness = Config.options?.bar?.frameThickness ?? 4
+        RaohaneConfig.frameColor = String(Config.options?.bar?.frameColor ?? "#000000")
+        RaohaneConfig.frameBarSideVisible = root.legacyFrameBarSideVisible()
         RaohaneConfig.osdTimeout = Config.options?.osd?.timeout ?? 1000
         RaohaneConfig.quickSliderBrightness = Config.options?.sidebar?.quickSliders?.showBrightness ?? true
         RaohaneConfig.quickSliderVolume = Config.options?.sidebar?.quickSliders?.showVolume ?? true
@@ -316,6 +339,10 @@ Singleton {
         function onBarShowOnSuperDelayChanged(): void { root.pushNativeToLegacy() }
         function onBarScreenListChanged(): void { root.pushNativeToLegacy() }
         function onBarShowDateChanged(): void { root.pushNativeToLegacy() }
+        function onFrameEnabledChanged(): void { root.pushNativeToLegacy() }
+        function onFrameThicknessChanged(): void { root.pushNativeToLegacy() }
+        function onFrameColorChanged(): void { root.pushNativeToLegacy() }
+        function onFrameBarSideVisibleChanged(): void { root.pushNativeToLegacy() }
         function onOsdTimeoutChanged(): void { root.pushNativeToLegacy() }
         function onColorTemperatureChanged(): void { root.pushNativeToLegacy() }
         function onNightLightAutomaticChanged(): void { root.pushNativeToLegacy() }
@@ -387,6 +414,16 @@ Singleton {
         function onBottomChanged(): void { root.pullLegacyShellChrome() }
         function onVerticalChanged(): void { root.pullLegacyShellChrome() }
         function onScreenListChanged(): void { root.pullLegacyShellChrome() }
+        function onShowFrameChanged(): void { root.pullLegacyShellChrome() }
+        function onFrameThicknessChanged(): void { root.pullLegacyShellChrome() }
+        function onFrameColorChanged(): void { root.pullLegacyShellChrome() }
+        function onCornerStyleChanged(): void { root.pullLegacyShellChrome() }
+    }
+
+    Connections {
+        target: Config.options?.bar?.layouts ?? null
+        function onLeftLayoutChanged(): void { root.pullLegacyShellChrome() }
+        function onRightLayoutChanged(): void { root.pullLegacyShellChrome() }
     }
 
     Connections {
