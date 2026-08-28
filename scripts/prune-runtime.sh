@@ -39,10 +39,13 @@ rm -rf -- \
   "$TARGET/.git" \
   "$TARGET/.github"
 
-rm -f -- \
-  "$TARGET/GlobalStates.qml" \
-  "$TARGET/defaults/config.json" \
-  "$TARGET/panelFamilies/IllogicalImpulseFamily.qml"
+rm -f -- "$TARGET/defaults/config.json"
+
+# shell.qml is the complete root bootstrap. Any other root-level QML file comes
+# from the inherited source tree and must not be discoverable in the installed
+# qs module (for example GlobalStates.qml or ReloadPopup.qml).
+find "$TARGET" -mindepth 1 -maxdepth 1 -type f -name '*.qml' \
+  ! -name 'shell.qml' -delete
 
 # Directory imports discover every QML file in panelFamilies. Keep the installed
 # directory intentionally single-family even if source/reference families still
@@ -57,6 +60,10 @@ fi
   echo 'Installed root qmldir is not the native qs module.' >&2
   exit 1
 }
+[[ -f "$TARGET/shell.qml" ]] || {
+  echo 'Pruning removed shell.qml unexpectedly.' >&2
+  exit 1
+}
 [[ -f "$TARGET/panelFamilies/RaohaneFamily.qml" ]] || {
   echo 'Pruning removed the native Raohane family unexpectedly.' >&2
   exit 1
@@ -67,11 +74,18 @@ for retired in \
   "$TARGET/modules/ii" \
   "$TARGET/services" \
   "$TARGET/GlobalStates.qml" \
+  "$TARGET/ReloadPopup.qml" \
   "$TARGET/panelFamilies/IllogicalImpulseFamily.qml"; do
   [[ ! -e "$retired" ]] || {
     echo "Legacy runtime path survived pruning: $retired" >&2
     exit 1
   }
 done
+
+root_qml_count="$(find "$TARGET" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
+[[ "$root_qml_count" -eq 1 ]] || {
+  echo "Installed runtime has unexpected root QML files: $root_qml_count" >&2
+  exit 1
+}
 
 printf 'Raohane installed runtime pruned to native QML graph: %s\n' "$TARGET"
