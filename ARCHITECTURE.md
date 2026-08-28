@@ -1,103 +1,142 @@
 # Raohane architecture
 
-Raohane is a Hyprland + Quickshell shell migrating toward a fully standalone architecture. end4-pC / illogical-impulse and other shell projects are temporary migration/reference sources, not permanent Raohane dependencies.
+Raohane is a Hyprland + Quickshell shell with a Raohane-owned production runtime. Historical end4-pC / illogical-impulse code may still remain in the source checkout as temporary rollback/reference material, but it is not part of the installed QML graph.
 
-## Target architecture
-
-The final production graph is intended to be Raohane-owned end to end:
+## Production graph
 
 ```text
-Hyprland / Wayland / D-Bus / PipeWire / MPRIS
-                    ↓
-            Raohane services/
-                    ↓
-        Raohane Config + runtime state
-                    ↓
-          Raohane common framework
-                    ↓
-            Raohane product UI
-                    ↓
-               shell.qml
+Hyprland / Wayland / D-Bus / PipeWire / MPRIS / PAM / Polkit
+                         ↓
+                modules/raohane/services
+                         ↓
+          RaohaneConfig + RaohaneState + paths
+                         ↓
+                 modules/raohane UI
+                         ↓
+             panelFamilies/RaohaneFamily.qml
+                         ↓
+                    shell.qml
 ```
 
-No other shell repository should be required at runtime, install time, update time or normal development time.
+Production code must not import `modules/common`, `modules/ii`, root `services/`, `GlobalStates`, inherited `Config`, or another shell namespace.
 
-See `INDEPENDENCE-PLAN.md` for the removal criteria.
+## Bootstrap and module boundary
 
-## Current migration boundary
+`shell.qml` is intentionally small. It imports the native Raohane config module, waits for `RaohaneConfig.ready`, then instantiates only `RaohaneFamily`.
 
-- `modules/raohane/` — Raohane-owned product UI and product-specific runtime state.
-- `services/` — currently contains inherited/migration service implementations; these are scheduled to be replaced behind stable Raohane service interfaces.
-- `modules/common/` — currently contains shared inherited configuration/widgets/models/utilities; this layer is also scheduled for ownership migration.
-- `modules/ii/` — compatibility UI only. Production Raohane must eventually have zero active imports from this namespace.
-- `panelFamilies/RaohaneFamily.qml` — current composition boundary during migration.
+The root `qmldir` exports only:
 
-The current foundation synchronizer exists only as migration scaffolding. It must disappear after active Raohane code no longer relies on inherited graph updates.
+```text
+module qs
+```
 
-## Active Raohane-native surfaces
+`modules/raohane/qmldir` contains Raohane UI/state types. `modules/raohane/services/qmldir` contains native service singletons. `modules/raohane/config/qmldir` owns paths and persistent configuration.
 
-- `RaohaneBar.qml` — active horizontal bar shell over current workspace, tray and system providers.
-- `RaohaneContext.qml` / `RaohaneContextIsland.qml` — adaptive context state and center presentation backed by MPRIS, active-window and PipeWire privacy state.
-- `RaohaneLauncher.qml` — active launcher over the current search provider.
-- `RaohaneControlCenter.qml` — active control center using Raohane-owned quick controls and notification center.
-- `RaohaneNotificationCard.qml` — shared notification presentation used by popup and notification center.
-- `RaohaneSettings.qml` / `RaohaneSettingsContent.qml` — Raohane-owned Settings window/navigation shell.
-- `RaohaneSettingsHome.qml` — Raohane Control Deck landing page.
-- `RaohaneMediaOverlay.qml` — floating media overlay for games/apps.
-- `RaohaneOsd.qml` — active volume, brightness and gamma OSD.
-- `RaohaneNotificationPopup.qml` — active notification popup.
-- `RaohaneWallpaperSelector.qml` — native wallpaper browser with preview, history, search, random selection and lock-screen target handling.
-- `RaohaneDesktopMenu.qml` — native desktop context menu.
-- `RaohaneSession.qml` — native session/power menu over current system action providers.
-- `RaohanePrivacy.qml` — PipeWire capture-state provider for microphone, camera and screen capture context.
-- `RaohaneState.qml` — Raohane-owned ephemeral state.
+## Persistent state
 
-## Compatibility surfaces still active
+Raohane owns schema v10 in:
 
-The following still rely on inherited UI or infrastructure and are migration targets:
+```text
+~/.config/raohane/native.json
+```
 
-- vertical bar
-- workspace overview/window presentation
-- background renderer and desktop widget canvas
-- dock and lock screen
-- capture/region selector, screen translator and supporting overlay tools
-- polkit, on-screen keyboard, left sidebar and supporting panels
-- compatibility media controls while the native overlay is runtime-tested
-- heavy Settings page implementations
+`RaohaneConfig.qml` owns serialization, reload and validation boundaries. The installer seeds `defaults/native.json` and can migrate the directly supported subset of an older configuration through `scripts/migrate-legacy-config.py`.
 
-The wallpaper selector, desktop context menu and session screen are no longer compatibility UI; only their current service/backend dependencies remain to be replaced.
+Ephemeral UI state belongs to `RaohaneState.qml` and is never stored in the old `GlobalStates.qml` runtime.
 
-## Service ownership rule
+User autostart commands live in:
 
-Raohane UI should depend on stable Raohane-facing service contracts, never directly on an upstream shell module. During migration an inherited implementation may temporarily sit behind that contract. The implementation can then be rewritten without another UI redesign.
+```text
+~/.config/raohane/autostart.conf
+```
 
-Priority service migrations:
+`RaohaneAutostart` runs them once per Hyprland session, not on every shell restart.
 
-1. compositor/workspace/window state;
-2. MPRIS/media;
-3. audio/PipeWire;
-4. network/Bluetooth;
-5. brightness/gamma;
-6. notifications;
-7. wallpapers/thumbnails;
-8. session/idle/system info;
-9. clipboard/capture/translation and optional online services.
+## Native product surfaces
 
-## Runtime
+The active family currently owns:
 
-`shell.qml` is the root Quickshell configuration. Raohane's product runtime is Hyprland-only.
+- background and desktop canvas;
+- horizontal and vertical bars, workspaces, tray, system state and clock;
+- dock and overview;
+- launcher and control center;
+- Settings and native Settings pages;
+- media overlay;
+- OSD and notifications;
+- wallpaper selector and thumbnail generation;
+- desktop context menu;
+- session/power screen;
+- WlSessionLock + PAM/fingerprint lock UI;
+- Polkit agent UI;
+- region capture, OCR, image-search handoff and recording;
+- screen translator;
+- on-screen keyboard;
+- left sidebar, overlay, DropShelf and screen frame/corners.
 
-`GlobalStates.qml` is currently inherited cross-surface state; Raohane-only state already lives in `modules/raohane/RaohaneState.qml`. A standalone Raohane state store is a required later migration.
+These surfaces are parsed and boundary-tested as `modules/raohane` code only.
 
-Persistent settings are already written under `~/.config/raohane/config.json`, but the schema/serialization implementation is still largely inherited. Raohane must eventually own the schema and migration logic itself.
+## Native services
 
-## Installation and dependencies
+Current service contracts include:
 
-The installer writes an isolated `~/.config/hypr/raohane.conf`, exposes the `raohane` CLI and installs the `raohane.service` user service.
+- `RaohaneMedia` — Quickshell MPRIS;
+- `RaohaneAudio` — PipeWire/WirePlumber via `wpctl`;
+- `RaohaneNetwork` — NetworkManager via `nmcli`;
+- `RaohaneBluetooth` — BlueZ via `bluetoothctl`;
+- `RaohaneDisplay` — `brightnessctl`, `ddcutil`, `hyprsunset`;
+- `RaohaneNotifications` — Quickshell notification service;
+- `RaohaneWallpapers` — native folder model + Raohane thumbnail pipeline;
+- `RaohaneSession` / `RaohaneSessionWarnings` — session and power safety;
+- `RaohaneIdle` — native idle inhibitor;
+- `RaohaneEasyEffects` — EasyEffects integration;
+- `RaohaneYdotool` — OSK input backend;
+- `RaohaneDropShelf` — clipboard/file transfer;
+- `RaohaneAutostart` — once-per-session startup commands;
+- `RaohaneSystemInfo` and `RaohaneSearch` — system metadata and desktop entries.
 
-The current `./install-raohane.sh --deps` path still uses the illogical-impulse dependency bootstrap. This is explicitly temporary. The target installer uses a Raohane-owned dependency manifest grouped into required, feature-specific and optional packages, with `raohane doctor deps` reporting capability gaps.
+Privacy state is derived directly from the PipeWire graph in `RaohanePrivacy.qml`.
 
-Useful product commands include:
+## Capture and translation
+
+Raohane-owned scripts provide:
+
+- screenshots and region selection with `grim` / `slurp`;
+- region OCR with Tesseract (`eng+rus`) and clipboard output;
+- image-search handoff through PNG clipboard + Google Lens;
+- recording with `wf-recorder`;
+- screen translation with Tesseract + `translate-shell`;
+- wallpaper thumbnails with system Python/Pillow, ffmpeg and ImageMagick fallback.
+
+No thumbnail virtualenv or `ILLOGICAL_IMPULSE_*` environment is part of the production design.
+
+## Lock and authentication
+
+The lock uses `WlSessionLock` and Quickshell PAM directly. Fingerprint discovery uses `fprintd-list`; the fingerprint PAM transaction owns its profile at:
+
+```text
+modules/raohane/pam/fprintd.conf
+```
+
+Polkit uses Quickshell's native Polkit agent API and Raohane-owned presentation.
+
+## Installation
+
+`install-raohane.sh` uses only this repository and the Raohane Arch manifests:
+
+```text
+install/arch/required.txt
+install/arch/features.txt
+```
+
+It does not clone end4-pC or illogical-impulse. The retired upstream synchronizer, inherited dependency bootstrap and upstream source lock files have been removed.
+
+The installer copies the checkout to the Quickshell runtime and immediately runs `scripts/prune-runtime.sh`. The installed QML graph therefore excludes source-only rollback/reference trees such as `modules/common`, `modules/ii`, root `services`, old root QML and non-Raohane panel families.
+
+`raohane run` repeats this integrity guard before starting Quickshell so an older installed copy can self-heal after an upgrade.
+
+## Diagnostics
+
+Useful commands include:
 
 ```bash
 raohane launcher
@@ -108,26 +147,27 @@ raohane desktop
 raohane wallpaper
 raohane wallpaper random
 raohane session
+raohane translate
+
+raohane doctor all
+raohane doctor deps
+raohane doctor services
+raohane doctor graphics
+raohane doctor runtime
 ```
 
-Diagnostics are exposed through `raohane doctor all`, `raohane doctor deps`, `raohane doctor services` and `raohane doctor graphics`.
+`raohane doctor runtime` is the live boundary check for the user's installed copy. It is distinct from CI and verifies that the installed tree is native-only and that `native.json` is schema v10.
 
-## Removal gates
+## Source cleanup boundary
 
-A migration component can be removed only after its Raohane replacement passes a real Hyprland + Quickshell runtime test. Final standalone cleanup includes:
+The installed runtime is already pruned to the standalone graph. Some historical inherited source trees remain in Git only as temporary rollback/reference material until the current native runtime passes another complete live validation cycle.
 
-- no active `modules/ii` imports;
-- no `ii-upstream` fallback;
-- no end4 synchronization script;
-- no upstream source lock files used for runtime development;
-- no illogical-impulse dependency bootstrap;
-- no inherited Config/common/service implementation still required by production runtime;
-- CI validating only Raohane-owned graph.
+After that validation, the remaining source copies of `modules/common`, `modules/ii`, old root `services`, inherited root QML and obsolete panel families can be removed physically. Required copyright/license notices remain where derivative code or assets still require them.
 
 ## Runtime verification boundary
 
-Static CI validates shell scripts, QML parsing, module registration/import structure and product boundaries. It cannot prove compositor behavior.
+Static CI verifies shell syntax, native QML parsing, registrations, package contracts, persistence boundaries, installed-runtime pruning and regression guards. It cannot prove compositor/device behavior.
 
-A migration batch is not runtime-complete until tested in a real Hyprland + Quickshell session for shell startup, multi-monitor behavior, focus/input, launcher execution, notification actions, OSD triggers, media/fullscreen behavior, settings, wallpaper operations, desktop menu placement, session actions and system-service regressions.
+Release-level validation still requires a real Hyprland + Quickshell session for startup, multi-monitor behavior, fullscreen/game overlay behavior, focus/input, launcher execution, notifications, audio/display controls, networking/Bluetooth, media, Settings, wallpapers/thumbnails, capture/OCR/translation, OSK/ydotool, lock/PAM/fingerprint, Polkit, session actions and NVIDIA/AMD/Intel hardware paths.
 
-See `NOTICE-UPSTREAM.md` for retained code provenance/licensing notes and `INDEPENDENCE-PLAN.md` for the standalone migration plan.
+See `NOTICE-UPSTREAM.md` for provenance/licensing notes and `INDEPENDENCE-PLAN.md` for the remaining source-removal/release gates.
