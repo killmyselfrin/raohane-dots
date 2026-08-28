@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 
-import qs.modules.common
 import qs.modules.raohane
 import qs.modules.raohane.config
 import qs.modules.ii.onScreenKeyboard
@@ -18,12 +17,7 @@ import qs.modules.ii.frame
 // Raohane's Hyprland integration composition. Compatibility panels remain
 // temporary while their presentation layers are rewritten under modules/raohane.
 Scope {
-    Component.onCompleted: {
-        RaohaneLegacyBridge.load()
-
-        if (Config.options?.sidebar)
-            Config.options.sidebar.mediaPlayer = false
-    }
+    Component.onCompleted: RaohaneLegacyBridge.load()
 
     RaohanePanelLoader { component: RaohaneBackground {} }
     RaohanePanelLoader { component: RaohaneDesktopCanvas {} }

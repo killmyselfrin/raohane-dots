@@ -16,7 +16,11 @@ Singleton {
     property bool syncingState: false
     property bool initialized: false
 
-    function load(): void {}
+    function load(): void {
+        Config.readWriteDelay = 0
+        if (Config.options?.sidebar)
+            Config.options.sidebar.mediaPlayer = false
+    }
 
     function seedNativeFromLegacy(): void {
         if (!RaohaneConfig.ready || !Config.ready || root.initialized)
@@ -71,6 +75,13 @@ Singleton {
             const legacyCommand = Config.options?.apps?.changePassword ?? ""
             if (legacyCommand.length > 0)
                 RaohaneConfig.changePasswordCommand = legacyCommand
+        }
+
+        if (Config.options?.profile) {
+            if (RaohaneConfig.profileDisplayName.length === 0)
+                RaohaneConfig.profileDisplayName = Config.options.profile.displayName ?? ""
+            if (RaohaneConfig.profileAvatarPath.length === 0)
+                RaohaneConfig.profileAvatarPath = Config.options.profile.avatarPicture ?? ""
         }
 
         RaohaneConfig.quickSliderBrightness = Config.options?.sidebar?.quickSliders?.showBrightness ?? RaohaneConfig.quickSliderBrightness
@@ -139,10 +150,17 @@ Singleton {
             if (RaohaneConfig.changePasswordCommand.length > 0)
                 Config.options.apps.changePassword = RaohaneConfig.changePasswordCommand
         }
-        if (Config.options?.sidebar?.quickSliders) {
-            Config.options.sidebar.quickSliders.showBrightness = RaohaneConfig.quickSliderBrightness
-            Config.options.sidebar.quickSliders.showVolume = RaohaneConfig.quickSliderVolume
-            Config.options.sidebar.quickSliders.showMic = RaohaneConfig.quickSliderMic
+        if (Config.options?.profile) {
+            Config.options.profile.displayName = RaohaneConfig.profileDisplayName
+            Config.options.profile.avatarPicture = RaohaneConfig.profileAvatarPath
+        }
+        if (Config.options?.sidebar) {
+            Config.options.sidebar.mediaPlayer = false
+            if (Config.options.sidebar.quickSliders) {
+                Config.options.sidebar.quickSliders.showBrightness = RaohaneConfig.quickSliderBrightness
+                Config.options.sidebar.quickSliders.showVolume = RaohaneConfig.quickSliderVolume
+                Config.options.sidebar.quickSliders.showMic = RaohaneConfig.quickSliderMic
+            }
         }
 
         root.syncing = false
@@ -231,6 +249,15 @@ Singleton {
         root.syncing = false
     }
 
+    function pullLegacyProfile(): void {
+        if (root.syncing || !RaohaneConfig.ready)
+            return
+        root.syncing = true
+        RaohaneConfig.profileDisplayName = Config.options?.profile?.displayName ?? ""
+        RaohaneConfig.profileAvatarPath = Config.options?.profile?.avatarPicture ?? ""
+        root.syncing = false
+    }
+
     function pullLegacyTransientState(): void {
         if (root.syncingState)
             return
@@ -297,6 +324,8 @@ Singleton {
         function onBluetoothCommandChanged(): void { root.pushNativeToLegacy() }
         function onTaskManagerCommandChanged(): void { root.pushNativeToLegacy() }
         function onChangePasswordCommandChanged(): void { root.pushNativeToLegacy() }
+        function onProfileDisplayNameChanged(): void { root.pushNativeToLegacy() }
+        function onProfileAvatarPathChanged(): void { root.pushNativeToLegacy() }
         function onQuickSliderBrightnessChanged(): void { root.pushNativeToLegacy() }
         function onQuickSliderVolumeChanged(): void { root.pushNativeToLegacy() }
         function onQuickSliderMicChanged(): void { root.pushNativeToLegacy() }
@@ -405,6 +434,12 @@ Singleton {
     }
 
     Connections {
+        target: Config.options?.profile ?? null
+        function onDisplayNameChanged(): void { root.pullLegacyProfile() }
+        function onAvatarPictureChanged(): void { root.pullLegacyProfile() }
+    }
+
+    Connections {
         target: GlobalStates
         function onWallpaperSelectorOpenChanged(): void { root.pullLegacyTransientState() }
         function onWallpaperSelectorTargetChanged(): void { root.pullLegacyTransientState() }
@@ -419,6 +454,7 @@ Singleton {
     }
 
     Component.onCompleted: {
+        root.load()
         root.seedNativeFromLegacy()
         root.pullLegacyTransientState()
     }

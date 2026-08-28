@@ -4,7 +4,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 
-import qs
 import qs.modules.raohane.config
 import qs.modules.raohane.services
 
@@ -27,8 +26,6 @@ Item {
         { name: qsTr("Profile"), icon: "account_circle", source: Qt.resolvedUrl("../ii/settings/pages/Profile.qml") },
         { name: qsTr("About"), icon: "info", source: Qt.resolvedUrl("RaohaneSettingsAbout.qml") }
     ]
-
-    Component.onCompleted: Config.readWriteDelay = 0
 
     onCurrentPageChanged: {
         const page = pages[currentPage]
@@ -106,8 +103,8 @@ Item {
                             Image {
                                 id: avatar
                                 anchors.fill: parent
-                                source: Config.options.profile.avatarPicture !== ""
-                                    ? "file://" + Config.options.profile.avatarPicture
+                                source: RaohaneConfig.profileAvatarPath !== ""
+                                    ? "file://" + RaohaneConfig.profileAvatarPath
                                     : RaohanePaths.defaultAvatarUrl
                                 fillMode: Image.PreserveAspectCrop
                                 visible: status === Image.Ready
@@ -129,7 +126,7 @@ Item {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: Config.options.profile.displayName === "" ? RaohaneSystemInfo.username : Config.options.profile.displayName
+                                text: RaohaneConfig.profileDisplayName === "" ? RaohaneSystemInfo.username : RaohaneConfig.profileDisplayName
                                 color: RaohaneTheme.text
                                 font.pixelSize: 10
                                 font.weight: Font.DemiBold

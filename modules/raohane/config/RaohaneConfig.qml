@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 6
+    readonly property int schemaVersion: 7
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -60,6 +60,9 @@ Singleton {
     property string bluetoothCommand: "blueman-manager"
     property string taskManagerCommand: ""
     property string changePasswordCommand: "passwd"
+
+    property string profileDisplayName: ""
+    property string profileAvatarPath: ""
 
     property bool quickSliderBrightness: true
     property bool quickSliderVolume: true
@@ -125,6 +128,10 @@ Singleton {
                 taskManager: root.taskManagerCommand,
                 changePassword: root.changePasswordCommand
             },
+            profile: {
+                displayName: root.profileDisplayName,
+                avatarPath: root.profileAvatarPath
+            },
             quickControls: {
                 showBrightness: root.quickSliderBrightness,
                 showVolume: root.quickSliderVolume,
@@ -153,6 +160,7 @@ Singleton {
         const osd = document?.osd ?? {}
         const display = document?.display ?? {}
         const apps = document?.apps ?? {}
+        const profile = document?.profile ?? {}
         const quickControls = document?.quickControls ?? {}
         const features = document?.features ?? {}
 
@@ -198,6 +206,9 @@ Singleton {
         root.assignIfPresent(apps, "bluetooth", value => root.bluetoothCommand = String(value ?? ""))
         root.assignIfPresent(apps, "taskManager", value => root.taskManagerCommand = String(value ?? ""))
         root.assignIfPresent(apps, "changePassword", value => root.changePasswordCommand = String(value ?? "passwd"))
+
+        root.assignIfPresent(profile, "displayName", value => root.profileDisplayName = String(value ?? ""))
+        root.assignIfPresent(profile, "avatarPath", value => root.profileAvatarPath = String(value ?? ""))
 
         root.assignIfPresent(quickControls, "showBrightness", value => root.quickSliderBrightness = Boolean(value))
         root.assignIfPresent(quickControls, "showVolume", value => root.quickSliderVolume = Boolean(value))
@@ -274,6 +285,8 @@ Singleton {
     onBluetoothCommandChanged: scheduleSave()
     onTaskManagerCommandChanged: scheduleSave()
     onChangePasswordCommandChanged: scheduleSave()
+    onProfileDisplayNameChanged: scheduleSave()
+    onProfileAvatarPathChanged: scheduleSave()
     onQuickSliderBrightnessChanged: scheduleSave()
     onQuickSliderVolumeChanged: scheduleSave()
     onQuickSliderMicChanged: scheduleSave()

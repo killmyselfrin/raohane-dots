@@ -47,7 +47,7 @@ if rg -n '^import qs\.|\bDirectories\.' "$paths"; then
   fail 'RaohanePaths depends on the inherited framework'
 fi
 
-rg -q 'schemaVersion:[[:space:]]*6' "$config" || fail 'RaohaneConfig schema was not advanced to v6'
+rg -q 'schemaVersion:[[:space:]]*7' "$config" || fail 'RaohaneConfig schema was not advanced to v7'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig does not use the native paths API'
 if rg -n '\bStandardPaths\.|\bDirectories\.|^import qs$|^import qs\.modules\.common' "$config"; then
   fail 'RaohaneConfig owns paths/config through an inherited framework dependency'
@@ -55,15 +55,18 @@ fi
 
 for property_name in \
   barBottom barVertical barAutoHide barAutoHidePushWindows \
-  barShowOnSuper barShowOnSuperDelay barScreenList barShowDate; do
+  barShowOnSuper barShowOnSuperDelay barScreenList barShowDate \
+  profileDisplayName profileAvatarPath; do
   rg -q "property .* ${property_name}:" "$config" \
-    || fail "RaohaneConfig missing native bar property: $property_name"
+    || fail "RaohaneConfig missing native product property: $property_name"
 done
 
 for property_name in barOpen controlCenterOpen settingsOpen sessionOpen osdOpen screenLocked superDown; do
   rg -q "property bool ${property_name}:" "$state" \
     || fail "RaohaneState missing runtime property: $property_name"
 done
+rg -q 'property string settingsPage:' "$state" \
+  || fail 'RaohaneState missing native Settings page routing state'
 
 rg -q '^import Quickshell\.Hyprland$' "$focus" \
   || fail 'RaohaneFocusGrab is not bound directly to Hyprland'
@@ -129,8 +132,9 @@ if rg -n '\bMaterialSymbol[[:space:]]*\{' "$settings"; then
   fail 'RaohaneSettings regressed to inherited MaterialSymbol'
 fi
 
-for symbol in 'RaohaneState\.settingsOpen' 'GlobalStates\.settingsOpen' 'onSettingsOpenChanged'; do
-  rg -q "$symbol" "$bridge" || fail "legacy bridge is missing settings synchronization: $symbol"
+for symbol in 'RaohaneState\.settingsOpen' 'GlobalStates\.settingsOpen' 'onSettingsOpenChanged' \
+  'RaohaneConfig\.profileDisplayName' 'Config\.options\.profile\.displayName'; do
+  rg -q "$symbol" "$bridge" || fail "legacy bridge is missing settings/profile synchronization: $symbol"
 done
 
 # Bare Super belongs to no launcher in Raohane. The old end4 searchToggle*
@@ -167,12 +171,12 @@ rg -q 'bind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*R,[[:space:]]*exec,[[:spac
 rg -q 'bind[[:space:]]*=[[:space:]]*SUPER SHIFT,[[:space:]]*0,[[:space:]]*movetoworkspace,[[:space:]]*10' "$installer" \
   || fail 'legacy installer lost move-window workspace 10 binding'
 
-rg -q 'RaohanePaths\.defaultAvatarUrl' "$settings_content" \
-  || fail 'RaohaneSettingsContent does not use RaohanePaths for its avatar fallback'
-rg -q 'RaohanePaths\.compatibilityConfigFile' "$settings_content" \
-  || fail 'RaohaneSettingsContent does not use RaohanePaths for the compatibility config path'
-if rg -n '\bDirectories\.' "$settings_content"; then
-  fail 'RaohaneSettingsContent regressed to inherited Directories'
+for symbol in 'RaohanePaths\.defaultAvatarUrl' 'RaohanePaths\.compatibilityConfigFile' \
+  'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath'; do
+  rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost native contract: $symbol"
+done
+if rg -n '^import qs$|\bDirectories\.|\bConfig\.|\bGlobalStates\.' "$settings_content"; then
+  fail 'RaohaneSettingsContent regressed to inherited root/config/state/path framework'
 fi
 
 rg -q 'RaohanePaths\.scriptsPath' "$shell" \
@@ -183,8 +187,8 @@ fi
 
 rg -q 'RaohaneConfig\.barVertical' "$family" \
   || fail 'RaohaneFamily does not route bar orientation through native config'
-if rg -n 'Config\.options\.bar\.vertical' "$family"; then
-  fail 'RaohaneFamily still routes bar orientation through inherited Config'
+if rg -n '^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.' "$family"; then
+  fail 'RaohaneFamily composition root still depends directly on inherited common/config/state framework'
 fi
 
 for symbol in \
@@ -194,4 +198,4 @@ for symbol in \
   rg -q "$symbol" "$bridge" || fail "legacy bridge is missing native synchronization: $symbol"
 done
 
-printf 'core-framework-audit: native paths, config v6, focus helper, control/settings/OSD/session state and Hyprland Lua keybind boundaries are valid\n'
+printf 'core-framework-audit: native paths, config v7, profile/state routing, focus helper and active composition boundaries are valid\n'
