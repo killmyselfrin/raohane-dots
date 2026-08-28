@@ -10,6 +10,7 @@ fail() {
 }
 
 selector='modules/raohane/RaohaneWallpaperSelector.qml'
+background='modules/raohane/RaohaneBackground.qml'
 service='modules/raohane/services/RaohaneWallpapers.qml'
 paths='modules/raohane/config/RaohanePaths.qml'
 focus='modules/raohane/RaohaneFocusGrab.qml'
@@ -19,7 +20,7 @@ thumb_generator='scripts/thumbnails/thumbgen.py'
 magick_generator='scripts/thumbnails/generate-thumbnails-magick.sh'
 features='install/arch/features.txt'
 
-for file in "$selector" "$service" "$paths" "$focus" "$thumb_wrapper" "$thumb_generator" "$magick_generator" "$features"; do
+for file in "$selector" "$background" "$service" "$paths" "$focus" "$thumb_wrapper" "$thumb_generator" "$magick_generator" "$features"; do
   [[ -f "$file" ]] || fail "missing required file: $file"
 done
 [[ ! -e "$retired_wrapper" ]] || fail 'retired thumbnail venv wrapper returned'
@@ -48,9 +49,22 @@ for contract in \
   'thumbnailGenerationProgress'; do
   rg -q "$contract" "$service" || fail "wallpaper service lost thumbnail contract: $contract"
 done
+rg -q 'bash \\"\$\{root\.thumbgenScriptPath\}\\"' "$service" \
+  || fail 'wallpaper service does not invoke thumbnail wrapper through bash'
 if rg -n 'thumbgen-venv\.sh|ILLOGICAL_IMPULSE' "$service"; then
   fail 'wallpaper service references retired thumbnail/upstream state'
 fi
+
+# Video wallpapers must stop decoding while fullscreen hiding is enabled. Merely
+# fading the background to zero keeps MediaPlayer active and wastes GPU/CPU time.
+for contract in \
+  'property bool hiddenForFullscreen|readonly property bool hiddenForFullscreen' \
+  'RaohaneConfig\.wallpaperHideWhenFullscreen' \
+  'backgroundWindow\.currentIsVideo' \
+  '!backgroundWindow\.hiddenForFullscreen' \
+  'MediaPlayer[[:space:]]*\{'; do
+  rg -q "$contract" "$background" || fail "background lost fullscreen/video contract: $contract"
+done
 
 rg -q 'exec python3 "\$SCRIPT_DIR/thumbgen\.py" "\$@"' "$thumb_wrapper" \
   || fail 'thumbnail wrapper does not execute the Raohane Python generator directly'
@@ -83,4 +97,4 @@ path = pathlib.Path(sys.argv[1])
 ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 PY
 
-printf 'wallpaper-boundary-audit: selector and standalone Pillow/ffmpeg/ImageMagick thumbnail pipeline are Raohane-owned\n'
+printf 'wallpaper-boundary-audit: selector, fullscreen-aware video background and standalone thumbnails are Raohane-owned\n'
