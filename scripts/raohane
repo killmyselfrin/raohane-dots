@@ -66,6 +66,50 @@ service_restart() {
   service_start
 }
 
+foreground_shell_pid() {
+  local pid=""
+  local i=0
+  local -a argv=()
+
+  while IFS= read -r pid; do
+    [[ -r "/proc/$pid/cmdline" ]] || continue
+    argv=()
+    mapfile -d '' -t argv < "/proc/$pid/cmdline" 2>/dev/null || continue
+    [[ "${argv[0]##*/}" == "qs" ]] || continue
+
+    for ((i = 1; i + 1 < ${#argv[@]}; i++)); do
+      if [[ "${argv[$i]}" == "-c" && "${argv[$((i + 1))]}" == "$QS_CONFIG" ]]; then
+        printf '%s\n' "$pid"
+        return 0
+      fi
+    done
+  done < <(pgrep -u "$(id -u)" -x qs 2>/dev/null || true)
+
+  return 1
+}
+
+print_shell_runtime_status() {
+  local pid=""
+
+  if systemctl --user --quiet is-active "$SERVICE"; then
+    echo "  [ok] $SERVICE active"
+    return 0
+  fi
+
+  if pid="$(foreground_shell_pid)"; then
+    echo "  [ok] foreground Raohane runtime active (pid $pid; $SERVICE inactive)"
+    return 0
+  fi
+
+  if systemctl --user --quiet is-failed "$SERVICE"; then
+    echo "  [!!] $SERVICE failed and no foreground Raohane runtime was detected"
+    return 1
+  fi
+
+  echo "  [--] no Raohane runtime active ($SERVICE inactive)"
+  return 1
+}
+
 check_cmd() {
   local command_name="$1"
   local package_hint="${2:-}"
@@ -279,13 +323,10 @@ case "${1:-help}" in
         ;;
       services)
         echo 'Raohane doctor services'
-        if systemctl --user --no-pager --quiet is-active "$SERVICE"; then
-          echo "  [ok] $SERVICE active"
-        elif systemctl --user --quiet is-failed "$SERVICE"; then
-          echo "  [!!] $SERVICE failed"
-          journalctl --user -u "$SERVICE" -n 12 --no-pager || true
-        else
-          echo "  [--] $SERVICE not active"
+        if ! print_shell_runtime_status; then
+          if systemctl --user --quiet is-failed "$SERVICE"; then
+            journalctl --user -u "$SERVICE" -n 12 --no-pager || true
+          fi
         fi
 
         for unit in pipewire.service wireplumber.service; do
@@ -313,15 +354,12 @@ case "${1:-help}" in
         echo
         print_dependency_report || true
         echo
-        echo 'Shell service'
-        if systemctl --user --quiet is-active "$SERVICE"; then
-          echo "  [ok] $SERVICE active"
-        elif systemctl --user --quiet is-failed "$SERVICE"; then
-          echo "  [!!] $SERVICE failed"
-          echo '  Recent log:'
-          journalctl --user -u "$SERVICE" -n 12 --no-pager | sed 's/^/    /' || true
-        else
-          echo "  [--] $SERVICE not active"
+        echo 'Shell runtime'
+        if ! print_shell_runtime_status; then
+          if systemctl --user --quiet is-failed "$SERVICE"; then
+            echo '  Recent service log:'
+            journalctl --user -u "$SERVICE" -n 12 --no-pager | sed 's/^/    /' || true
+          fi
         fi
         echo
         echo 'Runtime context'
