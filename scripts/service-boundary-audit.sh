@@ -97,14 +97,13 @@ for service in RaohaneSession.qml RaohaneDisplay.qml RaohaneWallpapers.qml; do
   fi
 done
 
-# Compatibility facades may remain for not-yet-migrated settings pages, but the
-# active family must not initialize or resolve the bridge during shell startup.
-[[ -f modules/raohane/RaohaneLegacyBridge.qml ]] \
-  || fail 'compatibility bridge file disappeared before migration is complete'
-rg -q 'RaohaneConfig' modules/raohane/RaohaneLegacyBridge.qml \
-  || fail 'compatibility bridge is no longer connected to native config'
-if rg -n '\bRaohaneLegacyBridge\.load\b' "$FAMILY"; then
-  fail 'active RaohaneFamily initializes the compatibility bridge during boot'
+# The migration bridge has no remaining active consumer. Phase 5 now treats a
+# reintroduced bridge as a regression instead of keeping it around as dead code.
+if [[ -e modules/raohane/RaohaneLegacyBridge.qml ]]; then
+  fail 'retired compatibility bridge returned to the native runtime tree'
+fi
+if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
+  fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services and active consumers are Raohane-owned; compatibility bridge is boot-inactive\n'
+printf 'raohane-service-audit: native services and active consumers are Raohane-owned; compatibility bridge is removed\n'
