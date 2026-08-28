@@ -47,7 +47,7 @@ if rg -n '^import qs\.|\bDirectories\.' "$paths"; then
   fail 'RaohanePaths depends on the inherited framework'
 fi
 
-rg -q 'schemaVersion:[[:space:]]*7' "$config" || fail 'RaohaneConfig schema was not advanced to v7'
+rg -q 'schemaVersion:[[:space:]]*8' "$config" || fail 'RaohaneConfig schema was not advanced to v8'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig does not use the native paths API'
 if rg -n '\bStandardPaths\.|\bDirectories\.|^import qs$|^import qs\.modules\.common' "$config"; then
   fail 'RaohaneConfig owns paths/config through an inherited framework dependency'
@@ -56,6 +56,7 @@ fi
 for property_name in \
   barBottom barVertical barAutoHide barAutoHidePushWindows \
   barShowOnSuper barShowOnSuperDelay barScreenList barShowDate \
+  frameEnabled frameThickness frameColor frameBarSideVisible \
   profileDisplayName profileAvatarPath; do
   rg -q "property .* ${property_name}:" "$config" \
     || fail "RaohaneConfig missing native product property: $property_name"
@@ -159,7 +160,7 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" \
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" \
   || fail 'Hyprland Lua integration lost numeric workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" \
-  || fail 'Hyprland Lua integration lost numeric move-window binds'
+  || fail 'Hyprland Lua integration lost numeric move-window workspace binds'
 
 # Legacy <=0.54 compatibility remains explicit and must also remove both bare Super keys.
 rg -q 'unbind[[:space:]]*=[[:space:]]*SUPER,[[:space:]]*Super_L' "$installer" \
@@ -198,4 +199,4 @@ for symbol in \
   rg -q "$symbol" "$bridge" || fail "legacy bridge is missing native synchronization: $symbol"
 done
 
-printf 'core-framework-audit: native paths, config v7, profile/state routing, focus helper and active composition boundaries are valid\n'
+printf 'core-framework-audit: native paths, config v8, frame/profile/state routing, focus helper and active composition boundaries are valid\n'

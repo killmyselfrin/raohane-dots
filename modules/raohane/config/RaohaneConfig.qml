@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 7
+    readonly property int schemaVersion: 8
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -49,6 +49,13 @@ Singleton {
     property int barShowOnSuperDelay: 140
     property var barScreenList: []
     property bool barShowDate: true
+
+    // Screen chrome is owned by Raohane even while legacy settings pages are
+    // still able to mirror these values through RaohaneLegacyBridge.
+    property bool frameEnabled: false
+    property int frameThickness: 4
+    property string frameColor: "#000000"
+    property bool frameBarSideVisible: true
 
     property int osdTimeout: 1000
 
@@ -114,6 +121,12 @@ Singleton {
                 screenList: root.barScreenList,
                 showDate: root.barShowDate
             },
+            frame: {
+                enabled: root.frameEnabled,
+                thickness: root.frameThickness,
+                color: root.frameColor,
+                barSideVisible: root.frameBarSideVisible
+            },
             osd: {
                 timeout: root.osdTimeout
             },
@@ -157,6 +170,7 @@ Singleton {
         const overview = document?.overview ?? {}
         const dock = document?.dock ?? {}
         const bar = document?.bar ?? {}
+        const frame = document?.frame ?? {}
         const osd = document?.osd ?? {}
         const display = document?.display ?? {}
         const apps = document?.apps ?? {}
@@ -195,6 +209,11 @@ Singleton {
         root.assignIfPresent(bar, "showOnSuperDelay", value => root.barShowOnSuperDelay = Math.max(0, Math.min(2000, Number(value) || 140)))
         root.assignIfPresent(bar, "screenList", value => root.barScreenList = Array.isArray(value) ? value.map(item => String(item)) : [])
         root.assignIfPresent(bar, "showDate", value => root.barShowDate = Boolean(value))
+
+        root.assignIfPresent(frame, "enabled", value => root.frameEnabled = Boolean(value))
+        root.assignIfPresent(frame, "thickness", value => root.frameThickness = Math.max(1, Math.min(24, Number(value) || 4)))
+        root.assignIfPresent(frame, "color", value => root.frameColor = String(value || "#000000"))
+        root.assignIfPresent(frame, "barSideVisible", value => root.frameBarSideVisible = Boolean(value))
 
         root.assignIfPresent(osd, "timeout", value => root.osdTimeout = Math.max(250, Math.min(10000, Number(value) || 1000)))
 
@@ -277,6 +296,10 @@ Singleton {
     onBarShowOnSuperDelayChanged: scheduleSave()
     onBarScreenListChanged: scheduleSave()
     onBarShowDateChanged: scheduleSave()
+    onFrameEnabledChanged: scheduleSave()
+    onFrameThicknessChanged: scheduleSave()
+    onFrameColorChanged: scheduleSave()
+    onFrameBarSideVisibleChanged: scheduleSave()
     onOsdTimeoutChanged: scheduleSave()
     onColorTemperatureChanged: scheduleSave()
     onNightLightAutomaticChanged: scheduleSave()
