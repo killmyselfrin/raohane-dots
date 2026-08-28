@@ -155,7 +155,12 @@ Variants {
             Loader {
                 id: currentVideoLoader
                 anchors.fill: parent
-                active: backgroundWindow.currentPath.length > 0 && backgroundWindow.currentIsVideo
+                // Destroy the player while a fullscreen client hides the background.
+                // Keeping an invisible MediaPlayer alive still decodes frames and wastes
+                // GPU/CPU time in games, which defeats wallpaperHideWhenFullscreen.
+                active: backgroundWindow.currentPath.length > 0
+                    && backgroundWindow.currentIsVideo
+                    && !backgroundWindow.hiddenForFullscreen
                 opacity: backgroundWindow.transitionProgress
 
                 sourceComponent: Item {
