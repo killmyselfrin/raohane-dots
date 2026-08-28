@@ -210,36 +210,10 @@ Scope {
         function close(): void { root.close() }
     }
 
-    // Compatibility IPC retained while existing keybind/config snippets migrate.
-    IpcHandler {
-        target: "mediaControls"
-        function toggle(): void { root.toggle() }
-        function open(): void { root.open() }
-        function close(): void { root.close() }
-    }
-
     CompositorGlobalShortcut {
         name: "raohaneMediaOverlayToggle"
         description: "Toggle the Raohane media overlay"
         onPressed: root.toggle()
-    }
-
-    CompositorGlobalShortcut {
-        name: "mediaControlsToggle"
-        description: "Toggle Raohane media controls"
-        onPressed: root.toggle()
-    }
-
-    CompositorGlobalShortcut {
-        name: "mediaControlsOpen"
-        description: "Open Raohane media controls"
-        onPressed: root.open()
-    }
-
-    CompositorGlobalShortcut {
-        name: "mediaControlsClose"
-        description: "Close Raohane media controls"
-        onPressed: root.close()
     }
 
     component ControlButton: Rectangle {
