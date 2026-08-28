@@ -9,6 +9,7 @@ fail() {
   exit 1
 }
 
+shell='shell.qml'
 family='panelFamilies/RaohaneFamily.qml'
 qmldir='modules/raohane/qmldir'
 services_qmldir='modules/raohane/services/qmldir'
@@ -56,9 +57,27 @@ active_roots=(
   modules/raohane/RaohaneScreenFrame.qml
 )
 
-for path in "$family" "$qmldir" "$services_qmldir" "$required" "$features" "${native_surfaces[@]}" "${active_roots[@]}"; do
+for path in "$shell" "$family" "$qmldir" "$services_qmldir" "$required" "$features" "${native_surfaces[@]}" "${active_roots[@]}"; do
   [[ -f "$path" ]] || fail "missing native runtime surface path: $path"
 done
+
+# Bootstrap must resolve only the Raohane config and family. Merely mentioning a
+# legacy QML type in a component expression makes the engine resolve that type
+# at parse time even when its loader is inactive.
+rg -q 'active:[[:space:]]*RaohaneConfig\.ready' "$shell" \
+  || fail 'shell.qml is not gated by native RaohaneConfig readiness'
+rg -q 'component:[[:space:]]*RaohaneFamily[[:space:]]*\{' "$shell" \
+  || fail 'shell.qml no longer resolves RaohaneFamily'
+
+if rg -n \
+  '^import "modules/common"|^import "services"|\bIllogicalImpulseFamily\b|\bPanelFamilyLoader\b|\bConfig\.|\bMaterialThemeLoader\b|\bHyprsunset\b|\bFirstRunExperience\b|\bConflictKiller\b|\bCliphist\b|\bUpdates\b|\bLyricsService\b|\bWallpapers\.load\b' \
+  "$shell"; then
+  fail 'shell.qml can resolve inherited bootstrap framework/services'
+fi
+
+if rg -n '\bRaohaneLegacyBridge\b' "$family"; then
+  fail 'RaohaneFamily still resolves the legacy bridge during startup'
+fi
 
 if rg -n '^import qs\.modules\.ii(\.|$)' "$family"; then
   fail 'RaohaneFamily still imports inherited modules/ii presentation code'
@@ -145,4 +164,4 @@ for contract in \
     || fail "native desktop menu lost contract: $contract"
 done
 
-printf 'runtime-surface-boundary-audit: active family no longer resolves inherited ii/common widget surfaces at boot\n'
+printf 'runtime-surface-boundary-audit: shell bootstrap and active family resolve only native Raohane runtime surfaces\n'
