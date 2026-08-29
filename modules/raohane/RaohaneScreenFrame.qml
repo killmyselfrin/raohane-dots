@@ -13,11 +13,11 @@ import qs.modules.raohane.config
 Scope {
     id: root
 
-    readonly property string barPosition: {
-        if (RaohaneConfig.barVertical)
-            return RaohaneConfig.barBottom ? "right" : "left"
-        return RaohaneConfig.barBottom ? "bottom" : "top"
-    }
+    // The current vertical product strategy is left-only. barBottom remains a
+    // horizontal-bar placement setting and must not be reinterpreted as right.
+    readonly property string barPosition: RaohaneConfig.barVertical
+        ? "left"
+        : (RaohaneConfig.barBottom ? "bottom" : "top")
 
     function frameVisibleFor(side: string): bool {
         if (!RaohaneConfig.frameEnabled)
