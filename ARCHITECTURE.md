@@ -9,7 +9,9 @@ Hyprland / Wayland / D-Bus / PipeWire / MPRIS / PAM / Polkit
                          ↓
                 modules/raohane/services
                          ↓
-          RaohaneConfig + RaohaneState + paths
+          RaohaneConfig + RaohaneState + RaohanePaths
+                         ↓
+      widgets + models + helpers (Raohane-owned)
                          ↓
                  modules/raohane UI
                          ↓
@@ -30,9 +32,21 @@ The root `qmldir` exports only:
 module qs
 ```
 
-`modules/` contains only `modules/raohane`. `panelFamilies/` contains only `RaohaneFamily.qml`. `modules/raohane/qmldir` contains Raohane UI/state types, `modules/raohane/services/qmldir` contains native service singletons, and `modules/raohane/config/qmldir` owns paths and persistent configuration.
+`modules/` contains only `modules/raohane`. `panelFamilies/` contains only `RaohaneFamily.qml`.
 
-## Persistent state
+Raohane's framework modules are split by responsibility:
+
+```text
+modules/raohane/qmldir          UI/state/common widget types
+modules/raohane/config/qmldir   persistent config + path API
+modules/raohane/services/qmldir backend service singletons
+modules/raohane/helpers/qmldir  reusable pure helpers
+modules/raohane/models/qmldir   reusable product/UI models
+```
+
+The first common primitives are `RaohaneSurface`, `RaohaneDivider` and `RaohaneIconButton`. `RaohaneSelectionModel` and `RaohaneUtils` establish a separate model/helper layer; the active Launcher consumes that chain, so these APIs are part of the production graph rather than dormant abstractions.
+
+## Persistent state and product schema
 
 Raohane owns schema v10 in:
 
@@ -40,7 +54,9 @@ Raohane owns schema v10 in:
 ~/.config/raohane/native.json
 ```
 
-`RaohaneConfig.qml` owns runtime serialization and reload behavior. The installer seeds `defaults/native.json`. During upgrades, `scripts/prune-runtime.sh` deep-merges an older native document with current defaults before Quickshell starts, preserving existing values and forward-compatible unknown keys while moving the schema to v10.
+`RaohaneConfig.qml` owns runtime serialization and reload behavior. The current persisted product contract covers wallpaper/lock wallpaper, Overview, Dock, horizontal/vertical Bar, screen frame/corners, OSK, OSD, display/night light, helper application commands, profile identity, Quick Controls and current feature flags. Every Settings control resolves directly into a `RaohaneConfig` property.
+
+The installer seeds `defaults/native.json`. During upgrades, `scripts/prune-runtime.sh` deep-merges an older native document with current defaults before Quickshell starts, preserving existing values and forward-compatible unknown keys while moving the schema to v10.
 
 The optional `scripts/migrate-legacy-config.py` exists only as an install-time importer for users explicitly migrating supported values from an older shell configuration; it is removed from the installed runtime and is not a runtime dependency.
 
@@ -53,6 +69,35 @@ User autostart commands live in:
 ```
 
 `RaohaneAutostart` runs them once per Hyprland session, not on every shell restart.
+
+## Paths and directories
+
+`RaohanePaths.qml` is the single path-resolution contract for active product code. It owns XDG config/state/cache roots, Raohane runtime directories, capture temporary data, wallpaper thumbnails, cover art, screenshots, recordings, assets, scripts and defaults.
+
+Active services should consume `RaohanePaths` rather than reconstructing XDG paths locally. For example, notification history persists through `RaohanePaths.notificationsFile`.
+
+The retired compatibility config path is not exposed by the production path API.
+
+## Phase 3 core-framework boundary
+
+Phase 3 is considered closed only while this required CI gate succeeds:
+
+```text
+scripts/core-framework-phase3-audit.sh
+```
+
+It verifies:
+
+- the complete current persisted product-property set and save handlers;
+- Settings control keys map into `RaohaneConfig`;
+- native schema sections and schema version;
+- the Raohane-owned path/directory API;
+- registered common widgets and an active widget consumer;
+- registered model/helper modules and the active Launcher → SelectionModel → Utils chain;
+- absence of compatibility/common/service trees;
+- absence of compatibility imports or bridge resolution from active UI/startup code.
+
+This gate is mandatory in `.github/workflows/raohane-audit.yml`.
 
 ## Native product surfaces
 
