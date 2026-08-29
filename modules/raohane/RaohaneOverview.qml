@@ -253,6 +253,7 @@ Scope {
                                 : selected || workspaceMouse.containsMouse ? "#72c879ff" : RaohaneTheme.border
 
                             ColumnLayout {
+                                z: 1
                                 anchors.fill: parent
                                 anchors.margins: 12
                                 spacing: 7
