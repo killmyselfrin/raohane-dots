@@ -325,14 +325,16 @@ Scope {
                                                 elide: Text.ElideRight
                                             }
 
-                                            TapHandler {
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                z: 2
                                                 enabled: !!windowRow.modelData?.wayland
-                                                onTapped: root.activateWindow(windowRow.modelData)
-                                            }
-
-                                            HoverHandler {
-                                                enabled: !!windowRow.modelData?.wayland
-                                                cursorShape: Qt.PointingHandCursor
+                                                hoverEnabled: true
+                                                preventStealing: true
+                                                acceptedButtons: Qt.LeftButton
+                                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                                onEntered: root.selectedIndex = workspaceCard.index
+                                                onClicked: root.activateWindow(windowRow.modelData)
                                             }
                                         }
                                     }
