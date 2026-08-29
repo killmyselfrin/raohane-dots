@@ -36,9 +36,11 @@ rg -q '^singleton RaohaneYdotool .*RaohaneYdotool.qml$' "$services_qmldir" \
 
 for symbol in \
   'RaohaneState\.oskOpen' \
+  'RaohaneState\.screenLocked' \
   'RaohaneConfig\.oskPinned' \
   'RaohaneConfig\.oskLayout' \
   'RaohaneYdotool\.releaseAllKeys' \
+  'onScreenLockedChanged' \
   'IpcHandler[[:space:]]*\{' \
   'target:[[:space:]]*"osk"' \
   'name:[[:space:]]*"oskToggle"' \
@@ -70,10 +72,11 @@ rg -q '"ydotool"' "$ydotool" || fail 'RaohaneYdotool lost executable contract'
 rg -q '^ydotool$' "$features" || fail 'Arch feature dependencies do not include ydotool'
 
 rg -q 'property bool oskOpen:' "$state" || fail 'RaohaneState does not own OSK open state'
+rg -q 'property bool screenLocked:' "$state" || fail 'RaohaneState does not expose lock state to native OSK'
 rg -q 'component:[[:space:]]*RaohaneOnScreenKeyboard[[:space:]]*\{' "$family" \
   || fail 'RaohaneFamily does not load native OSK'
 if rg -n '^import qs\.modules\.ii\.onScreenKeyboard$|component:[[:space:]]*OnScreenKeyboard[[:space:]]*\{' "$family"; then
   fail 'legacy OnScreenKeyboard is active in RaohaneFamily'
 fi
 
-printf 'osk-boundary-audit: native keyboard UI, persisted preferences, ydotool service and layout data have no legacy reference requirement\n'
+printf 'osk-boundary-audit: native keyboard UI, persisted preferences, lock-time key release, ydotool service and layout data have no legacy reference requirement\n'
