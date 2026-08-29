@@ -13,6 +13,7 @@ focused_surfaces=(
   modules/raohane/RaohaneLauncher.qml
   modules/raohane/RaohaneControlCenter.qml
   modules/raohane/RaohaneSettings.qml
+  modules/raohane/RaohaneSidebarLeft.qml
   modules/raohane/RaohaneMediaOverlay.qml
   modules/raohane/RaohaneOverview.qml
   modules/raohane/RaohaneWallpaperSelector.qml
@@ -33,6 +34,17 @@ for file in "${focused_surfaces[@]}"; do
     || fail "$file PanelWindow is not bound to the focused screen"
 done
 
+# Desktop menu keeps the concrete invocation screen in RaohaneState because its
+# popup position is tied to a pointer/desktop coordinate rather than only focus.
+desktop_menu='modules/raohane/RaohaneDesktopMenu.qml'
+[[ -f "$desktop_menu" ]] || fail "missing desktop menu: $desktop_menu"
+rg -q 'Hyprland\.focusedMonitor\?\.name' "$desktop_menu" \
+  || fail 'desktop menu no longer resolves its invocation monitor'
+rg -q 'RaohaneState\.desktopMenuScreen[[:space:]]*=[[:space:]]*screen' "$desktop_menu" \
+  || fail 'desktop menu no longer stores its invocation screen'
+rg -q 'screen:[[:space:]]*RaohaneState\.desktopMenuScreen' "$desktop_menu" \
+  || fail 'desktop menu window is not pinned to its invocation screen'
+
 # Per-monitor surfaces use Variants/monitor models instead of a focused-screen
 # overlay. Do not force the focused-screen contract onto those families.
 for file in \
@@ -43,4 +55,4 @@ for file in \
   [[ -f "$file" ]] || fail "missing per-monitor surface: $file"
 done
 
-printf 'multimonitor-boundary-audit: focused overlays are pinned to Hyprland focused monitor\n'
+printf 'multimonitor-boundary-audit: focused overlays and desktop menu are pinned to the intended Hyprland monitor\n'
