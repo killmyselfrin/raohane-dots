@@ -36,6 +36,7 @@ required=(
   scripts/autostart.sh
   scripts/install-deps.sh
   scripts/prune-runtime.sh
+  scripts/validate-runtime-payload.sh
   scripts/phase4-live-check.sh
   scripts/region-ocr.sh
   scripts/region-search.sh
