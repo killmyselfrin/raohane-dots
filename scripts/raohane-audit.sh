@@ -32,6 +32,7 @@ required_root=(
   scripts/multimonitor-boundary-audit.sh
   scripts/fullscreen-boundary-audit.sh
   scripts/primary-surface-boundary-audit.sh
+  scripts/overview-pointer-boundary-audit.sh
   scripts/privacy-performance-audit.sh
   scripts/sidebar-performance-audit.sh
   scripts/bluetooth-performance-audit.sh
@@ -217,6 +218,7 @@ bash -n scripts/phase4-live-check.sh
 bash -n scripts/multimonitor-boundary-audit.sh
 bash -n scripts/fullscreen-boundary-audit.sh
 bash -n scripts/primary-surface-boundary-audit.sh
+bash -n scripts/overview-pointer-boundary-audit.sh
 bash -n scripts/privacy-performance-audit.sh
 bash -n scripts/sidebar-performance-audit.sh
 bash -n scripts/bluetooth-performance-audit.sh
@@ -232,9 +234,10 @@ bash scripts/phase4-visible-runtime-audit.sh
 bash scripts/multimonitor-boundary-audit.sh
 bash scripts/fullscreen-boundary-audit.sh
 bash scripts/primary-surface-boundary-audit.sh
+bash scripts/overview-pointer-boundary-audit.sh
 bash scripts/privacy-performance-audit.sh
 bash scripts/sidebar-performance-audit.sh
 bash scripts/bluetooth-performance-audit.sh
 bash scripts/keyboard-layout-boundary-audit.sh
 
-printf 'raohane-audit: native bootstrap, Phase 4 runtime contract, coordinated surfaces, multi-monitor/fullscreen behavior, event-driven privacy/Bluetooth, idle sidebar timing, EN/RU input switching, capture backends and native release boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, Phase 4 runtime contract, coordinated surfaces, overview pointer routing, multi-monitor/fullscreen behavior, event-driven privacy/Bluetooth, idle sidebar timing, EN/RU input switching, capture backends and native release boundaries are valid\n'
