@@ -15,17 +15,9 @@ Scope {
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
 
-    function toggle(): void {
-        RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
-    }
-
-    function open(): void {
-        RaohaneState.mediaOverlayOpen = true
-    }
-
-    function close(): void {
-        RaohaneState.mediaOverlayOpen = false
-    }
+    function toggle(): void { RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen }
+    function open(): void { RaohaneState.mediaOverlayOpen = true }
+    function close(): void { RaohaneState.mediaOverlayOpen = false }
 
     PanelWindow {
         id: panelWindow
@@ -33,8 +25,8 @@ Scope {
         visible: RaohaneState.mediaOverlayOpen
         screen: root.focusedScreen
         exclusiveZone: 0
-        implicitWidth: 430
-        implicitHeight: 128
+        implicitWidth: 404
+        implicitHeight: 116
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-media-overlay"
@@ -45,41 +37,29 @@ Scope {
             top: true
             right: true
         }
-
         margins {
-            top: 18
-            right: 18
+            top: 16
+            right: 16
         }
 
         Rectangle {
-            id: card
             anchors.fill: parent
-            radius: 24
-            color: RaohaneTheme.glassStrong
+            radius: RaohaneTheme.radiusLarge
+            color: RaohaneTheme.surfaceRaised
             border.width: 1
             border.color: RaohaneTheme.border
             clip: true
 
-            Rectangle {
-                width: 3
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    bottom: parent.bottom
-                }
-                color: RaohaneTheme.accent
-            }
-
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 12
-                spacing: 12
+                anchors.margins: 10
+                spacing: 11
 
                 Rectangle {
-                    Layout.preferredWidth: 96
-                    Layout.preferredHeight: 96
-                    radius: 18
-                    color: RaohaneTheme.accentSoft
+                    Layout.preferredWidth: 88
+                    Layout.preferredHeight: 88
+                    radius: 14
+                    color: "#16ffffff"
                     clip: true
 
                     Image {
@@ -97,7 +77,7 @@ Scope {
                         visible: !RaohaneMedia.available || coverArt.status !== Image.Ready
                         text: "音"
                         color: RaohaneTheme.accent
-                        font.pixelSize: 30
+                        font.pixelSize: 25
                         font.weight: Font.Bold
                     }
                 }
@@ -105,14 +85,15 @@ Scope {
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    spacing: 4
+                    spacing: 3
 
                     RowLayout {
                         Layout.fillWidth: true
+                        spacing: 8
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 0
+                            spacing: -1
 
                             Text {
                                 Layout.fillWidth: true
@@ -120,7 +101,7 @@ Scope {
                                     ? RaohaneMedia.title
                                     : qsTr("No active player")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 13
+                                font.pixelSize: 12
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
@@ -129,9 +110,9 @@ Scope {
                                 Layout.fillWidth: true
                                 text: RaohaneMedia.available && RaohaneMedia.artist.length > 0
                                     ? RaohaneMedia.artist
-                                    : qsTr("Start music to use the overlay")
+                                    : qsTr("Start music to use media controls")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 10
+                                font.pixelSize: 9
                                 elide: Text.ElideRight
                             }
                         }
@@ -145,11 +126,10 @@ Scope {
                     Item { Layout.fillHeight: true }
 
                     Rectangle {
-                        id: progressTrack
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 5
-                        radius: height / 2
-                        color: "#35ffffff"
+                        Layout.preferredHeight: 3
+                        radius: 2
+                        color: "#24ffffff"
 
                         Rectangle {
                             width: parent.width * root.progress
@@ -168,13 +148,13 @@ Scope {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 8
+                        spacing: 5
 
                         Text {
-                            text: "RAOHANE / MEDIA"
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
-                            font.letterSpacing: 0.9
+                            text: "音 / RAOHANE"
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
+                            font.letterSpacing: 0.6
                         }
 
                         Item { Layout.fillWidth: true }
@@ -184,14 +164,12 @@ Scope {
                             enabled: RaohaneMedia.canGoPrevious
                             onClicked: RaohaneMedia.previous()
                         }
-
                         ControlButton {
                             glyph: RaohaneMedia.isPlaying ? "Ⅱ" : "▶"
                             enabled: RaohaneMedia.canTogglePlaying
                             emphasized: true
                             onClicked: RaohaneMedia.togglePlaying()
                         }
-
                         ControlButton {
                             glyph: "⏭"
                             enabled: RaohaneMedia.canGoNext
@@ -223,20 +201,21 @@ Scope {
         property bool emphasized: false
         signal clicked()
 
-        implicitWidth: 30
-        implicitHeight: 30
-        radius: 15
-        opacity: control.enabled ? 1 : 0.35
-        color: emphasized ? RaohaneTheme.accentSoft
-            : mouse.containsMouse && control.enabled ? "#30ffffff" : "transparent"
-        border.width: emphasized ? 1 : 0
-        border.color: RaohaneTheme.border
+        implicitWidth: 28
+        implicitHeight: 28
+        radius: 10
+        opacity: control.enabled ? 1 : 0.32
+        color: control.emphasized
+            ? RaohaneTheme.accentSoft
+            : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: control.emphasized ? 1 : 0
+        border.color: control.emphasized ? "#35b88cff" : "transparent"
 
         Text {
             anchors.centerIn: parent
             text: control.glyph
-            color: control.emphasized ? RaohaneTheme.accent : RaohaneTheme.text
-            font.pixelSize: control.emphasized ? 15 : 16
+            color: control.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            font.pixelSize: control.emphasized ? 13 : 14
             font.weight: Font.DemiBold
         }
 
