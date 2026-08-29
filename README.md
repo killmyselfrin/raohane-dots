@@ -4,7 +4,7 @@
 
 ### A living desktop shell for Hyprland
 
-**Japanese-inspired · Quickshell-powered · moving toward a fully standalone shell**
+**Japanese-inspired · Quickshell-powered · standalone core framework**
 
 [![Hyprland](https://img.shields.io/badge/Hyprland-target-7c5cff?style=for-the-badge)](https://hypr.land/)
 [![Quickshell](https://img.shields.io/badge/Quickshell-Qt%2FQML-6f8cff?style=for-the-badge)](https://quickshell.org/)
@@ -13,7 +13,7 @@
 [![Audit](https://img.shields.io/badge/CI-Raohane%20audit-36b37e?style=for-the-badge)](.github/workflows/raohane-audit.yml)
 [![License](https://img.shields.io/badge/License-GPLv3-2f2f2f?style=for-the-badge)](LICENSE)
 
-> **Current phase:** Standalone / Independence Migration
+> **Current phase:** Phase 3 complete · Phase 4 runtime/product parity
 >
 > **`main` is the live integration/testing branch.** We intentionally install and test the current integration graph there so real Hyprland runtime errors are found early.
 
@@ -50,7 +50,7 @@ collect runtime errors as one batch
   ↓
 fix architecture + runtime together
   ↓
-continue migration
+continue product work
 ```
 
 Separate branches/PRs are reserved for experiments dangerous enough to make the shell broadly unbootable.
@@ -93,31 +93,55 @@ Linux / Hyprland / Quickshell APIs
         Raohane-native UI
 ```
 
-Compatibility service names still exist where old UI expects them, but several are now **facades**, not backend owners. Notifications, Wallpapers, SessionWarnings, SystemInfo and Session compatibility APIs route into Raohane services instead of running duplicate implementations.
+The active service graph is Raohane-owned. The old root compatibility-service tree is no longer part of the source or installed runtime graph.
 
 ---
 
-## ⚙️ Native configuration
+## ⚙️ Native core framework
 
-Raohane has a separate persisted config module:
+Raohane owns its persisted configuration and directory APIs:
 
 ```text
 modules/raohane/config/RaohaneConfig.qml
+modules/raohane/config/RaohanePaths.qml
 ~/.config/raohane/native.json
 ```
 
-The native schema currently owns:
+The current schema v10 owns the product settings used by the active shell, including:
 
-- wallpaper path, directory, preview, slideshow and rendering behavior;
-- native Overview workspace count/layout;
-- native Dock enable/autohide/pin/geometry/pinned apps;
-- display color temperature;
-- selected application commands;
-- Raohane feature flags.
+- wallpaper and lock-wallpaper paths, browsing, slideshow, dimming, transitions and fullscreen behavior;
+- Overview workspace count/layout;
+- Dock enable/autohide/pinning/geometry/pinned apps;
+- horizontal/vertical Bar behavior, monitor targeting, date and Super reveal;
+- Screen Frame and screen-corner/hot-corner behavior;
+- OSK preferences and OSD timeout;
+- display/night-light state;
+- application helper commands;
+- local profile identity;
+- Quick Controls visibility;
+- Context Island/media/integration feature flags.
 
-During migration, `RaohaneLegacyBridge` is the **single intentional synchronization boundary** between the new config and the inherited compatibility config. New backend services should not import the old `Config.qml` directly.
+`RaohanePaths` is the single Raohane directory contract for config, state, cache, runtime capture data, thumbnails, cover art, screenshots, recordings, assets, scripts and defaults. Active services such as notifications persist through this API rather than rebuilding XDG paths independently.
 
-Already consuming native config directly include `RaohaneWallpapers`, `RaohaneDisplay`, `RaohaneSession`, `RaohaneBackground`, `RaohaneOverview` and `RaohaneDock`.
+The temporary config bridge was isolated during migration and has now been retired. `RaohaneLegacyBridge.qml`, the inherited config framework and the old compatibility trees are not part of the active source/runtime graph.
+
+Raohane also owns reusable framework primitives and utility modules:
+
+```text
+modules/raohane/RaohaneSurface.qml
+modules/raohane/RaohaneDivider.qml
+modules/raohane/RaohaneIconButton.qml
+modules/raohane/helpers/RaohaneUtils.qml
+modules/raohane/models/RaohaneSelectionModel.qml
+```
+
+The Launcher is an active consumer of the shared surface/model/helper chain, so these are product framework APIs rather than unused migration scaffolding.
+
+Phase 3 completion is enforced by:
+
+```text
+scripts/core-framework-phase3-audit.sh
+```
 
 ---
 
@@ -135,13 +159,13 @@ firefox        application search
 : clipboard    clipboard history through cliphist
 ```
 
-Desktop applications are read directly from Quickshell `DesktopEntries`.
+Desktop applications are read directly from Quickshell `DesktopEntries`. Keyboard selection is owned by the native `RaohaneSelectionModel` framework model.
 
 ---
 
 ## 🖼️ Native desktop pipeline
 
-The wallpaper/desktop path is now owned end-to-end by Raohane:
+The wallpaper/desktop path is owned end-to-end by Raohane:
 
 ```text
 RaohaneWallpaperSelector
@@ -161,30 +185,28 @@ RaohaneBackground
 RaohaneDesktopCanvas
 ```
 
-`RaohaneBackground` replaced the inherited monolithic background in the active panel family. Desktop context presentation is deliberately separated into `RaohaneDesktopCanvas` instead of being mixed into the wallpaper backend.
+Desktop context presentation is deliberately separated into `RaohaneDesktopCanvas` instead of being mixed into the wallpaper backend.
 
 ---
 
 ## 間 Native Spaces / Overview
 
-`RaohaneOverview` is now the active workspace view. It talks directly to Hyprland workspaces/toplevels and no longer mixes workspace navigation with the old launcher/search implementation.
+`RaohaneOverview` is the active workspace view. It talks directly to Hyprland workspaces/toplevels and no longer mixes workspace navigation with an inherited launcher/search implementation.
 
 It supports:
 
 - real Hyprland workspaces and window titles;
 - keyboard navigation;
 - click/Enter workspace activation;
+- direct activation of individual toplevel windows;
 - configurable workspace grouping/columns;
-- preserved compatibility shortcuts and `search` IPC while existing bindings migrate;
 - clipboard shortcut routing into the native Raohane Launcher.
 
 ---
 
 ## ◇ Native Dock
 
-`RaohaneDock` replaced the inherited Dock in the active runtime.
-
-It is built directly on Quickshell `ToplevelManager` and `DesktopEntries` and supports:
+`RaohaneDock` is built directly on Quickshell `ToplevelManager` and `DesktopEntries` and supports:
 
 - pinned applications persisted in `RaohaneConfig`;
 - active/running app discovery;
@@ -198,15 +220,13 @@ It is built directly on Quickshell `ToplevelManager` and `DesktopEntries` and su
 - Spaces shortcut into `RaohaneOverview`;
 - a compact entry into the native media overlay.
 
-It does **not** depend on inherited `TaskbarApps`, `AppSearch`, `MprisController` or the old Dock UI.
+It does **not** depend on inherited taskbar/search/media models.
 
 ---
 
 ## ♪ Native media surface
 
-`RaohaneMediaOverlay` is now the only media-controls surface loaded by `RaohaneFamily`.
-
-The inherited `modules/ii/mediaControls` implementation is no longer loaded. Existing `mediaControls` IPC plus `mediaControlsToggle`, `mediaControlsOpen` and `mediaControlsClose` shortcuts are absorbed by the native overlay so old bindings can continue working during migration.
+`RaohaneMediaOverlay` is the media-controls surface loaded by `RaohaneFamily` and talks to the Raohane-owned MPRIS service.
 
 ---
 
@@ -214,44 +234,44 @@ The inherited `modules/ii/mediaControls` implementation is no longer loaded. Exi
 
 Current Raohane-owned presentation includes:
 
-- horizontal bar;
+- horizontal and vertical bars;
 - Context Island;
 - Background renderer;
 - living Desktop Canvas;
 - Spaces / workspace Overview;
 - application Dock;
 - launcher;
-- Control Center internals;
-- Settings navigation + Control Deck;
+- Control Center;
+- Settings;
 - media/game overlay;
 - OSD;
 - notification popup + notification center;
 - wallpaper selector;
 - desktop context menu;
-- session/power screen.
+- session/power screen;
+- native Lock/PAM/fingerprint surface;
+- Polkit authentication;
+- OSK;
+- capture/OCR/search/recording;
+- screen translation;
+- DropShelf, side panel, screen frame and corners.
 
 The project is **Hyprland-first and Hyprland-only as a product target**. We are not adding parallel Niri product architecture.
 
 ---
 
-## 🧩 What is still temporary
+## 🧩 What remains after the core framework
 
-The repository is not fully standalone yet. Important compatibility code remains while feature parity is preserved.
+Phase 3 no longer has a compatibility/common-framework dependency to remove. Remaining work is product/runtime completion rather than framework extraction:
 
-Largest remaining active areas:
+- continue UI/UX parity and polish across all native surfaces;
+- exercise Lock, fingerprint, Polkit, OSK, capture and translation in real sessions;
+- validate vertical/horizontal bar behavior and fullscreen/game interaction;
+- validate multi-monitor placement and focus behavior;
+- complete fresh-install and hardware validation across NVIDIA/AMD/Intel;
+- finish release packaging/versioning and the final source-lineage/license audit.
 
-- vertical bar;
-- Lock UI;
-- capture / region selection / screen translation;
-- Polkit / OSK / left sidebar compatibility surfaces;
-- Overlay / DropShelf / ScreenFrame chrome;
-- heavy inherited Settings pages;
-- portions of shared `modules/common` widgets/models/functions;
-- the inherited config schema used by remaining compatibility UI;
-- old service files that still support compatibility surfaces;
-- upstream migration/sync material that can be deleted only after its code is no longer required.
-
-The inherited Background, Overview, Dock and MediaControls code may still exist in the source tree for lineage/reference, but **they are no longer part of the active Raohane panel family**.
+Static CI proves the source/integration boundaries; real Wayland/PAM/GPU behavior still requires live validation.
 
 ---
 
@@ -283,13 +303,15 @@ The inherited Background, Overview, Dock and MediaControls code may still exist 
 ### Phase 3 — Core framework
 
 - [x] first standalone `RaohaneConfig`
-- [x] isolated compatibility config bridge
+- [x] isolated compatibility config bridge (retired after migration)
 - [x] native wallpaper/overview/dock schema
-- [ ] expand native config to the complete product schema
-- [ ] Raohane-owned paths/directories API
-- [ ] Raohane-owned common widgets
-- [ ] Raohane-owned models/helpers
-- [ ] remove active UI dependence on compatibility services/common framework
+- [x] expand native config to the complete current product schema
+- [x] Raohane-owned paths/directories API
+- [x] Raohane-owned common widgets
+- [x] Raohane-owned models/helpers
+- [x] remove active UI dependence on compatibility services/common framework
+
+Phase 3 is guarded by `scripts/core-framework-phase3-audit.sh` in the required GitHub Actions workflow.
 
 ### Phase 4 — Visible runtime cleanup
 
@@ -297,19 +319,19 @@ The inherited Background, Overview, Dock and MediaControls code may still exist 
 - [x] native Overview/workspace UI
 - [x] native Dock
 - [x] native media controls surface in active runtime
-- [ ] native Lock
-- [ ] native vertical-bar strategy or explicitly horizontal-only product decision
-- [ ] native remaining screen chrome/capture surfaces
-- [ ] migrate remaining Settings pages
-- [ ] remove remaining `modules/ii` runtime imports
+- [ ] native Lock runtime validation
+- [ ] vertical-bar runtime/product validation
+- [ ] native remaining screen chrome/capture runtime validation
+- [ ] final Settings UX/parity pass
+- [x] remove `modules/ii` runtime imports/source tree
 
 ### Phase 5 — Remove migration scaffolding
 
-- [ ] delete inherited service graph after all consumers migrate
-- [ ] delete compatibility config bridge
-- [ ] delete upstream panel-family fallback
-- [ ] delete obsolete upstream sync/bootstrap scripts
-- [ ] delete obsolete upstream lock files
+- [x] delete inherited service graph after all consumers migrate
+- [x] delete compatibility config bridge
+- [x] delete upstream panel-family fallback
+- [x] delete obsolete upstream sync/bootstrap scripts
+- [x] delete obsolete upstream lock files
 - [ ] final source-lineage/license audit
 
 ### Phase 6 — Standalone release validation
@@ -319,7 +341,7 @@ The inherited Background, Overview, Dock and MediaControls code may still exist 
 - [ ] AMD / Intel validation
 - [ ] multi-monitor validation
 - [ ] fullscreen/game overlay validation
-- [ ] package/dependency audit
+- [x] package/dependency static audit
 - [ ] release packaging/versioning
 
 ---
@@ -329,7 +351,7 @@ The inherited Background, Overview, Dock and MediaControls code may still exist 
 ### Fresh installation from `main`
 
 ```bash
-git clone https://github.com/snuskidau/raohane-dots.git
+git clone https://github.com/killmyselfrin/raohane-dots.git
 cd raohane-dots
 
 chmod +x install-raohane.sh
@@ -368,12 +390,14 @@ raohane desktop
 raohane wallpaper
 raohane wallpaper random
 raohane session
+raohane translate
 ```
 
 Diagnostics:
 
 ```bash
 raohane doctor all
+raohane doctor runtime
 raohane doctor deps
 raohane doctor services
 raohane doctor graphics
@@ -412,21 +436,24 @@ raohane run
 
 Then exercise:
 
-1. horizontal bar and workspaces;
-2. Spaces / Overview navigation;
+1. horizontal/vertical bar and workspaces;
+2. Spaces / Overview navigation and toplevel focus;
 3. native Dock: running apps, pinned apps, middle/right click and autohide;
 4. launcher and its `/`, `>`, `=`, `:` modes;
 5. Control Center network/Bluetooth/audio/display controls;
 6. notifications + actions + history;
 7. volume/brightness OSD;
-8. MPRIS and Media Overlay, including legacy media-controls shortcut names;
+8. MPRIS and Media Overlay;
 9. image/video wallpaper preview/apply/random;
 10. Desktop Canvas and desktop context menu;
 11. Settings pages;
 12. lock/session/logout/reboot/shutdown;
-13. microphone/camera/screen-sharing privacy state;
-14. fullscreen game/overlay behavior;
-15. multiple monitors if available.
+13. fingerprint/PAM and Polkit;
+14. OSK/ydotool key release;
+15. capture/OCR/translation/recording;
+16. microphone/camera/screen-sharing privacy state;
+17. fullscreen game/overlay behavior;
+18. multiple monitors if available.
 
 If something fails, the most useful output is the full terminal section around the error plus `raohane doctor all`.
 
@@ -442,24 +469,28 @@ It validates:
 - QML parsing for all Raohane-owned QML;
 - module/qmldir integrity;
 - native service ownership;
-- native config ownership;
+- complete current product-config persistence contract;
+- Raohane-owned paths/directories;
+- reusable widgets/models/helpers and active consumers;
+- compatibility-free active startup/UI graph;
 - wallpaper/background ownership;
-- Overview ownership;
-- Dock/toplevel ownership;
-- native media overlay ownership and compatibility entrypoints;
+- Overview and Dock/toplevel ownership;
+- native media ownership;
 - launcher-search ownership;
-- compatibility facade boundaries;
+- lock/PAM/fingerprint, Polkit and OSK boundaries;
+- capture/translation runtime-surface boundaries;
 - installer/dependency independence;
 - integration graph completeness;
 - clean checkout after validation.
 
-Service/config regressions are additionally guarded by:
+Core-framework regressions are explicitly guarded by:
 
 ```text
-scripts/service-boundary-audit.sh
+scripts/core-framework-audit.sh
+scripts/core-framework-phase3-audit.sh
 ```
 
-This prevents migrated components from silently drifting back to old backend implementations.
+This prevents native components from silently drifting back toward a compatibility/common framework.
 
 ---
 
@@ -468,13 +499,13 @@ This prevents migrated components from silently drifting back to old backend imp
 ```text
 raohane-dots/
 ├── modules/
-│   ├── raohane/
-│   │   ├── config/          # standalone Raohane persisted config
-│   │   ├── services/        # Raohane-owned backend services
-│   │   └── *.qml            # native product surfaces/state
-│   ├── common/              # compatibility framework being reduced
-│   └── ii/                  # compatibility UI being replaced
-├── services/                # remaining services/facades during migration
+│   └── raohane/
+│       ├── config/          # standalone persisted config + path API
+│       ├── helpers/         # Raohane-owned utility helpers
+│       ├── models/          # reusable product models
+│       ├── services/        # Raohane-owned backend services
+│       ├── osk/             # native keyboard data
+│       └── *.qml            # native framework + product surfaces/state
 ├── panelFamilies/
 │   └── RaohaneFamily.qml
 ├── install/
@@ -482,8 +513,10 @@ raohane-dots/
 ├── scripts/
 │   ├── raohane
 │   ├── raohane-audit.sh
-│   └── service-boundary-audit.sh
+│   ├── core-framework-phase3-audit.sh
+│   └── *-boundary-audit.sh
 ├── defaults/
+│   └── native.json
 ├── shell.qml
 └── install-raohane.sh
 ```
@@ -495,9 +528,10 @@ raohane-dots/
 - Hyprland is the product compositor target.
 - No silent GPU-driver replacement.
 - No vendored font binaries.
-- New backend code should use Raohane-owned APIs.
+- New backend code uses Raohane-owned APIs.
 - New persisted product settings belong in `RaohaneConfig`.
-- Compatibility synchronization belongs in `RaohaneLegacyBridge`, not scattered through services.
+- New filesystem/config/cache/runtime paths belong in `RaohanePaths`.
+- Reusable native UI belongs in Raohane-owned framework primitives rather than ad-hoc compatibility widgets.
 - Normal install/doctor/CI paths must not execute another shell repository.
 - Do not remove legally required attribution while derived code remains.
 
@@ -507,9 +541,7 @@ raohane-dots/
 
 Raohane is distributed under **GPLv3**.
 
-The current repository still contains code with upstream lineage from the migration period. Relevant licensing and attribution must remain while that derivative code remains in the tree.
-
-Independence means removing permanent technical dependence — not rewriting authorship history.
+The repository retains attribution for code with upstream lineage from the migration period. Technical independence does not erase authorship or licensing history.
 
 See:
 
@@ -522,9 +554,9 @@ See:
 
 <div align="center">
 
-### Raohane is becoming its own shell.
+### Raohane now owns its core framework.
 
-**Own the services. Own the state. Own the UI. Then remove the scaffolding.**
+**Own the services. Own the state. Own the UI. Validate the product.**
 
 `ラオハネ` · Hyprland · Quickshell
 
