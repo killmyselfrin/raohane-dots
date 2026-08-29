@@ -17,13 +17,14 @@ SEARCH="$MODULE/RaohaneSearch.qml"
 SESSION="$MODULE/RaohaneSession.qml"
 EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
 CONTROL_CENTER=modules/raohane/RaohaneControlCenter.qml
+QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
 AUTOSTART_SCRIPT=scripts/autostart.sh
 RECORDER=scripts/videos/record.sh
 CLI=scripts/raohane
 FEATURES=install/arch/features.txt
 REQUIRED=install/arch/required.txt
 
-for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$SESSION" "$EASY_EFFECTS" "$CONTROL_CENTER" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" "$FEATURES" "$REQUIRED"; do
+for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$SESSION" "$EASY_EFFECTS" "$CONTROL_CENTER" "$QUICK_CONTROLS" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
 done
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
@@ -89,6 +90,20 @@ rg -q 'RaohaneEasyEffects\.refresh\(\)' "$CONTROL_CENTER" \
   || fail 'Control Center no longer refreshes EasyEffects state on demand'
 rg -q 'refreshTimer\.restart\(\)' "$EASY_EFFECTS" \
   || fail 'EasyEffects actions lost their one-shot post-action state refresh'
+
+# Game Mode is compositor state, so a shell-start snapshot becomes stale after
+# external hyprctl/reload changes. Refresh only when Control Center is surfaced.
+rg -q 'function refreshGameMode\(\): void' "$QUICK_CONTROLS" \
+  || fail 'Quick Controls lost on-demand Game Mode refresh'
+rg -q 'if \(!gameModeProbe\.running\)' "$QUICK_CONTROLS" \
+  || fail 'Game Mode refresh no longer guards duplicate hyprctl probes'
+rg -q 'quickControls\.refreshGameMode\(\)' "$CONTROL_CENTER" \
+  || fail 'Control Center no longer refreshes Game Mode when opened'
+rg -q 'onSecondary:[[:space:]]*root\.setGameMode\(false\)' "$QUICK_CONTROLS" \
+  || fail 'Game Mode reset bypasses local state synchronization'
+if rg -n '^[[:space:]]*running:[[:space:]]*true[[:space:]]*$' "$QUICK_CONTROLS"; then
+  fail 'Quick Controls contains an unconditional background Process/Timer'
+fi
 
 for pair in \
   'modules/raohane/RaohaneContext.qml:RaohaneMedia\.' \
@@ -222,4 +237,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, task-manager terminal fallback, on-demand EasyEffects state, launcher modes, doctor probes, backend packages, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, task-manager terminal fallback, on-demand EasyEffects/Game Mode state, launcher modes, doctor probes, backend packages, recorder and autostart contracts are valid\n'
