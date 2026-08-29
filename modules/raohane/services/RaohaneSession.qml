@@ -44,7 +44,21 @@ Singleton {
             root.runShell(configured)
             return
         }
-        root.runShell("command -v btop >/dev/null && btop || command -v htop >/dev/null && htop || top")
+
+        root.runShell(
+            "monitor='if command -v btop >/dev/null 2>&1; then exec btop; "
+                + "elif command -v htop >/dev/null 2>&1; then exec htop; else exec top; fi'; "
+                + "if command -v xdg-terminal-exec >/dev/null 2>&1; then exec xdg-terminal-exec bash -lc \"$monitor\"; "
+                + "elif command -v foot >/dev/null 2>&1; then exec foot -e bash -lc \"$monitor\"; "
+                + "elif command -v kitty >/dev/null 2>&1; then exec kitty bash -lc \"$monitor\"; "
+                + "elif command -v alacritty >/dev/null 2>&1; then exec alacritty -e bash -lc \"$monitor\"; "
+                + "elif command -v wezterm >/dev/null 2>&1; then exec wezterm start --always-new-process -- bash -lc \"$monitor\"; "
+                + "elif command -v ghostty >/dev/null 2>&1; then exec ghostty -e bash -lc \"$monitor\"; "
+                + "elif command -v konsole >/dev/null 2>&1; then exec konsole -e bash -lc \"$monitor\"; "
+                + "elif command -v gnome-terminal >/dev/null 2>&1; then exec gnome-terminal -- bash -lc \"$monitor\"; "
+                + "elif command -v xterm >/dev/null 2>&1; then exec xterm -e bash -lc \"$monitor\"; "
+                + "elif command -v notify-send >/dev/null 2>&1; then notify-send 'Raohane Task Manager' 'No supported terminal emulator was found.'; fi"
+        )
     }
 
     function hibernate(): void {
