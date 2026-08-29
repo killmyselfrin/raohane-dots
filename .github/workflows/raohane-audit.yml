@@ -58,6 +58,7 @@ jobs:
           bash -n scripts/phase4-live-check.sh
           bash -n scripts/multimonitor-boundary-audit.sh
           bash -n scripts/fullscreen-boundary-audit.sh
+          bash -n scripts/primary-surface-boundary-audit.sh
           bash -n scripts/wallpaper-boundary-audit.sh
           bash -n scripts/notification-boundary-audit.sh
           bash -n scripts/lock-boundary-audit.sh
@@ -105,6 +106,7 @@ jobs:
           bash scripts/phase4-visible-runtime-audit.sh
           bash scripts/multimonitor-boundary-audit.sh
           bash scripts/fullscreen-boundary-audit.sh
+          bash scripts/primary-surface-boundary-audit.sh
           bash scripts/wallpaper-boundary-audit.sh
           bash scripts/notification-boundary-audit.sh
           bash scripts/lock-boundary-audit.sh
@@ -191,6 +193,7 @@ jobs:
             scripts/phase4-live-check.sh
             scripts/multimonitor-boundary-audit.sh
             scripts/fullscreen-boundary-audit.sh
+            scripts/primary-surface-boundary-audit.sh
             scripts/screen-translate.sh
             scripts/region-ocr.sh
             scripts/region-search.sh
