@@ -1,8 +1,8 @@
 import Quickshell
 
-// Product-local lazy loader. RaohaneFamily itself is instantiated only after
-// the compatibility Config is ready, so individual native surfaces do not need
-// to re-import Config/Appearance just to decide whether they may be created.
+// Product-local lazy loader. RaohaneFamily is instantiated only after the
+// native RaohaneConfig is ready, so individual surfaces can stay focused on
+// their own visibility/runtime conditions.
 LazyLoader {
     property bool extraCondition: true
     active: extraCondition
