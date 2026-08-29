@@ -106,6 +106,7 @@ required_runtime=(
   "scripts/install-deps.sh"
   "scripts/migrate-legacy-config.py"
   "scripts/prune-runtime.sh"
+  "scripts/validate-runtime-payload.sh"
   "defaults/native.json"
   "install/arch/required.txt"
   "install/arch/features.txt"
@@ -210,6 +211,7 @@ cp -a "$ROOT/scripts" "$RUNTIME/"
 # Keep the pruner as an upgrade/self-heal boundary for users coming from older
 # installations. On a fresh staged runtime it mainly removes source-only audits.
 bash "$ROOT/scripts/prune-runtime.sh" "$RUNTIME"
+bash "$ROOT/scripts/validate-runtime-payload.sh" "$RUNTIME"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
 
