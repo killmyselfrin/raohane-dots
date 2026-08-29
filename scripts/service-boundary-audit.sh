@@ -15,6 +15,7 @@ CONFIG_MODULE=modules/raohane/config
 FAMILY=panelFamilies/RaohaneFamily.qml
 SEARCH="$MODULE/RaohaneSearch.qml"
 SESSION="$MODULE/RaohaneSession.qml"
+AUDIO="$MODULE/RaohaneAudio.qml"
 EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
 CONTROL_CENTER=modules/raohane/RaohaneControlCenter.qml
 QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
@@ -24,7 +25,7 @@ CLI=scripts/raohane
 FEATURES=install/arch/features.txt
 REQUIRED=install/arch/required.txt
 
-for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$SESSION" "$EASY_EFFECTS" "$CONTROL_CENTER" "$QUICK_CONTROLS" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" "$FEATURES" "$REQUIRED"; do
+for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$SESSION" "$AUDIO" "$EASY_EFFECTS" "$CONTROL_CENTER" "$QUICK_CONTROLS" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
 done
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
@@ -80,6 +81,22 @@ done
 if rg -n 'runShell\("command -v btop[^\n]*&& btop' "$SESSION"; then
   fail 'session task manager regressed to launching a TUI without a terminal'
 fi
+
+# Audio must react to PipeWire changes without repeatedly spawning wpctl/sed
+# subprocesses throughout the desktop session.
+rg -Fq 'command: ["pw-mon", "--color=never"]' "$AUDIO" \
+  || fail 'audio service lost its PipeWire event monitor'
+rg -q 'id:[[:space:]]*audioGraphDebounce' "$AUDIO" \
+  || fail 'audio service lost graph-change debounce'
+rg -q 'id:[[:space:]]*audioMonitorRestart' "$AUDIO" \
+  || fail 'audio service lost PipeWire monitor restart handling'
+rg -q 'interval:[[:space:]]*15000' "$AUDIO" \
+  || fail 'audio service lost its slow health fallback'
+if rg -n 'interval:[[:space:]]*750' "$AUDIO"; then
+  fail 'audio service regressed to subsecond wpctl polling'
+fi
+rg -q '^pipewire$' "$REQUIRED" \
+  || fail 'audio event monitor requires pipewire in the required manifest'
 
 # EasyEffects state is only needed when its controls are surfaced. Avoid a
 # permanent pgrep/flatpak polling loop when Control Center is closed.
@@ -237,4 +254,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, task-manager terminal fallback, on-demand EasyEffects/Game Mode state, launcher modes, doctor probes, backend packages, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, event-driven audio, task-manager terminal fallback, on-demand EasyEffects/Game Mode state, launcher modes, doctor probes, backend packages, recorder and autostart contracts are valid\n'
