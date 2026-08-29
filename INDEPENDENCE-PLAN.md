@@ -1,68 +1,77 @@
 # Raohane independence plan
 
-Raohane's target state is a standalone Hyprland + Quickshell shell that does not require end4-pC, illogical-impulse, iNiR, Serpantinum or any other shell repository at runtime, install time, update time, or development time.
+Raohane's standalone migration goal is a Hyprland + Quickshell shell that does not require end4-pC, illogical-impulse, iNiR, Serpantinum or another shell repository at runtime, install time, update time or normal development time.
 
-Upstream projects may be studied as references during development, but the final Raohane repository must own its runtime architecture, dependency manifest, configuration schema, services, UI, scripts, documentation and release process.
+As of the current native source boundary, that architectural migration is complete. Upstream projects remain references/provenance only; Raohane owns its runtime graph, dependency manifest, configuration schema, services, UI, scripts and installer.
 
-## Definition of independent
+## Independence status
 
-Raohane is considered independent when all of the following are true:
+The following gates are complete:
 
 - installation does not clone or execute another shell repository;
-- no runtime module imports `modules/ii` or another upstream shell namespace;
-- no production code depends on an upstream sync script or pinned upstream lock file;
-- Raohane has its own package/dependency manifest and installer;
-- Raohane owns its Config schema and persistent-state contract;
-- Raohane owns system-service adapters for audio, media, network, Bluetooth, brightness, notifications, wallpapers and compositor data;
-- Raohane owns all visible surfaces, including bar, overview, background/widgets, dock, lock, capture tools, session/polkit and settings;
-- CI validates only Raohane-owned runtime code;
-- upstream code retained for migration is removed after equivalent Raohane-native code is verified;
-- required third-party license/attribution notices remain for any code/assets that are still derivative or redistributed.
+- active QML imports only Raohane-owned runtime modules;
+- `modules/common`, `modules/ii` and root inherited `services/` are physically removed;
+- inherited root QML and obsolete panel families are physically removed;
+- upstream synchronizer/bootstrap scripts and source lock files are removed;
+- retired helper script families and the inherited default config are removed;
+- Raohane owns its Arch dependency manifests and dependency installer;
+- Raohane owns persistent schema v10 and native state/path contracts;
+- older native schema documents are upgraded before shell startup without discarding user values;
+- Raohane owns audio, media, network, Bluetooth, display, notifications, wallpaper, session, idle, search, autostart, OSK and DropShelf service boundaries;
+- all active visible surfaces are Raohane-owned;
+- installed runtime pruning prevents stale legacy trees from surviving upgrades;
+- CI parses and audits the standalone Raohane graph;
+- required provenance/license notices remain where derivative lineage still matters.
 
-## Migration phases
+## Completed migration phases
 
-### Phase A — Product surfaces
+### Phase A — Product surfaces — complete
 
-Replace active compatibility UI while keeping proven backend behavior temporarily. This phase includes bar, launcher, control center, settings shell, media overlay, OSD, notifications, wallpaper selector, desktop menu, session menu, overview, dock, lock, capture and desktop widgets.
+The active family is composed entirely from `modules/raohane` surfaces: bars, launcher, control center, Settings, media overlay, OSD, notifications, wallpaper selector, desktop menu, overview, dock, background, desktop canvas, lock, Polkit, capture/translation, OSK, sidebars, overlay, DropShelf, screen frame/corners and session UI.
 
-### Phase B — Service ownership
+### Phase B — Service ownership — complete
 
-Replace inherited service implementations with Raohane-owned adapters behind stable interfaces. Priority order:
+Active product code uses Raohane-owned service interfaces and direct system/Quickshell backends instead of inherited service namespaces.
 
-1. compositor/workspace/window state;
-2. MPRIS/media;
-3. audio/PipeWire;
-4. network and Bluetooth;
-5. brightness/gamma;
-6. notifications;
-7. wallpapers/thumbnails;
-8. session/idle/system information;
-9. clipboard/capture/translation/optional online services.
+### Phase C — Config/common ownership — complete
 
-UI must talk to Raohane service interfaces so a backend rewrite does not require another UI rewrite.
+Raohane owns `RaohaneConfig`, `RaohaneState`, `RaohanePaths`, theme/widgets/helpers and persistent `~/.config/raohane/native.json`. The inherited common/config/state framework is no longer present in the source graph.
 
-### Phase C — Config/common ownership
+### Phase D — Dependency independence — complete
 
-Replace inherited Config, Appearance, models, utility widgets and common helpers with Raohane-owned equivalents. Move persistent paths to Raohane namespaces and remove assumptions about illogical-impulse/end4 configuration.
+`install/arch/required.txt` and `install/arch/features.txt` define the supported Arch dependency set. `scripts/install-deps.sh` resolves those manifests without invoking another shell project. `raohane doctor deps` reports package and command availability.
 
-### Phase D — Dependency independence
+### Phase E — Migration scaffolding removal — complete
 
-Replace the illogical-impulse dependency bootstrap with a Raohane package manifest. Dependencies should be grouped as required, feature-specific and optional. `raohane doctor deps` must report missing features without forcing unrelated packages.
+The inherited source trees, upstream sync/bootstrap tooling, obsolete panel families, old root QML, retired helper script families and legacy default config have been removed. Defensive runtime pruning remains only to clean stale files from users upgrading an older installed copy.
 
-### Phase E — Remove migration scaffolding
+## Remaining release gates
 
-After runtime parity is verified:
+Architectural independence is not the same as release completeness. The remaining work is validation and product parity rather than dependency migration:
 
-- remove active `modules/ii` imports;
-- remove `ii-upstream` fallback;
-- remove `scripts/sync-end4-foundation.sh`;
-- remove upstream lock files used only for source synchronization;
-- remove the illogical-impulse dependency installer;
-- remove unneeded inherited assets/scripts/modules;
-- reduce CI to the standalone Raohane graph.
+- repeated real Hyprland startup/restart testing;
+- multi-monitor placement and focus/input behavior;
+- fullscreen/game overlay behavior and GPU load;
+- NVIDIA, AMD and Intel graphics validation;
+- horizontal/vertical bar parity and dock behavior;
+- overview window activation/interaction;
+- Settings persistence and all exposed controls;
+- wallpaper image/video transitions and thumbnail generation;
+- launcher apps/actions/commands/calculator/clipboard modes;
+- notifications and action handling;
+- audio, brightness, gamma, networking and Bluetooth controls;
+- MPRIS/media behavior;
+- screenshot, recording, OCR and translation backends;
+- OSK + ydotool permissions/input;
+- WlSessionLock + PAM + fingerprint authentication;
+- Polkit authentication;
+- suspend/reboot/poweroff/logout flows;
+- clean-install packaging/versioning and upgrade tests.
+
+Static CI must continue to guard the native-only graph, but compositor/device behavior must be tested in a real session.
 
 ## Licensing boundary
 
-Technical independence does not automatically erase source-code lineage. While GPL-derived code remains in the repository, the applicable GPL and upstream notices must be preserved. The way to reduce that dependency is to replace inherited code with independently written Raohane implementations, not simply remove attribution from copied code.
+Technical independence does not automatically erase source-code lineage. Applicable upstream notices must remain for derivative code/assets that are still redistributed. Replacing inherited implementation with independently written Raohane code reduces technical coupling; attribution should only be removed when licensing/provenance actually allows it.
 
-This document is a product/engineering target, not legal advice.
+This document is an engineering status/roadmap, not legal advice.
