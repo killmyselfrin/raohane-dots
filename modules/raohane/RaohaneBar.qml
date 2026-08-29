@@ -260,6 +260,7 @@ Scope {
         function toggle(): void { RaohaneState.barOpen = !RaohaneState.barOpen }
         function open(): void { RaohaneState.barOpen = true }
         function close(): void { RaohaneState.barOpen = false }
+        function mode(): string { return "horizontal" }
     }
 
     CompositorGlobalShortcut {
