@@ -21,8 +21,8 @@ rg -q 'if \(RaohaneState\.leftSidebarOpen\)' "$sidebar" \
 rg -q 'root\.now = new Date\(\)' "$sidebar" \
   || fail 'sidebar no longer updates its displayed clock'
 
-if rg -n 'Timer[[:space:]]*\{([^}]|\n)*running:[[:space:]]*true' "$sidebar" >/dev/null 2>&1; then
-  fail 'sidebar contains an unconditional always-running timer'
+if rg -n 'running:[[:space:]]*true' "$sidebar"; then
+  fail 'sidebar contains an unconditional always-running timer/process'
 fi
 
 printf 'sidebar-performance-audit: clock updates only while the sidebar is visible\n'
