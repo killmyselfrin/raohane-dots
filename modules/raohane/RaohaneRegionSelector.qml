@@ -6,7 +6,7 @@ import qs.modules.raohane.config
 
 // Raohane-owned capture entry point. Selection stays external-tool based so it
 // remains lightweight on Wayland while screenshot, OCR, image-search handoff
-// and recording are all available without inherited modules/ii surfaces.
+// and recording stay available through Raohane-owned backend scripts.
 Scope {
     id: root
 
