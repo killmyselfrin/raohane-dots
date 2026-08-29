@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Wayland
 
 import qs.modules.raohane.config
@@ -10,6 +11,8 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
+    readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
+        ?? Quickshell.screens[0]
     property int panelWidth: 390
     property date now: new Date()
 
@@ -32,6 +35,7 @@ Scope {
         id: panelWindow
 
         visible: RaohaneState.controlCenterOpen
+        screen: root.focusedScreen
         exclusiveZone: 0
         implicitWidth: root.panelWidth + 24
         color: "transparent"
