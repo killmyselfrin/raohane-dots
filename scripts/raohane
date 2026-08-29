@@ -171,6 +171,20 @@ find_dependency_installer() {
   return 1
 }
 
+find_runtime_payload_validator() {
+  local candidate
+  for candidate in \
+    "$RUNTIME/scripts/validate-runtime-payload.sh" \
+    "$SCRIPT_DIR/validate-runtime-payload.sh" \
+    "$SCRIPT_DIR/../scripts/validate-runtime-payload.sh"; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
 find_phase4_validator() {
   local candidate
   for candidate in \
@@ -261,6 +275,7 @@ print_runtime_integrity() {
   local config_file="$CONFIG_HOME/raohane/native.json"
   local root_qml_count=0
   local family_qml_count=0
+  local payload_validator=""
 
   echo 'Installed runtime integrity'
   printf '  path: %s\n' "$RUNTIME"
@@ -333,6 +348,20 @@ PY
     fi
   else
     echo '  [!!] ~/.config/raohane/native.json is missing'
+    failures=$((failures + 1))
+  fi
+
+  echo
+  echo 'Strict runtime payload'
+  if payload_validator="$(find_runtime_payload_validator)"; then
+    if bash "$payload_validator" "$RUNTIME"; then
+      echo '  [ok] runtime payload validator passed'
+    else
+      echo '  [!!] runtime payload validator failed'
+      failures=$((failures + 1))
+    fi
+  else
+    echo '  [!!] validate-runtime-payload.sh is missing'
     failures=$((failures + 1))
   fi
 
