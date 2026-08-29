@@ -31,7 +31,7 @@ Scope {
 
     function close(): void {
         root.pendingAction = ""
-        RaohaneState.sessionOpen = false
+        RaohaneState.setPrimaryOpen("session", false)
     }
 
     function requestAction(actionId: string, dangerous: bool): void {
@@ -348,20 +348,20 @@ Scope {
 
     IpcHandler {
         target: "session"
-        function toggle(): void { RaohaneState.sessionOpen = !RaohaneState.sessionOpen }
-        function open(): void { RaohaneState.sessionOpen = true }
+        function toggle(): void { RaohaneState.togglePrimary("session") }
+        function open(): void { RaohaneState.setPrimaryOpen("session", true) }
         function close(): void { root.close() }
     }
 
     CompositorGlobalShortcut {
         name: "sessionToggle"
         description: "Toggle Raohane session screen"
-        onPressed: RaohaneState.sessionOpen = !RaohaneState.sessionOpen
+        onPressed: RaohaneState.togglePrimary("session")
     }
     CompositorGlobalShortcut {
         name: "sessionOpen"
         description: "Open Raohane session screen"
-        onPressed: RaohaneState.sessionOpen = true
+        onPressed: RaohaneState.setPrimaryOpen("session", true)
     }
     CompositorGlobalShortcut {
         name: "sessionClose"
