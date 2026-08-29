@@ -138,10 +138,7 @@ Scope {
                             icon: "apps"
                             emphasized: true
                             tooltip: qsTr("Launcher")
-                            onTriggered: {
-                                RaohaneState.overviewOpen = false
-                                RaohaneState.launcherOpen = !RaohaneState.launcherOpen
-                            }
+                            onTriggered: RaohaneState.togglePrimary("launcher")
                         }
 
                         Rectangle {
@@ -228,7 +225,7 @@ Scope {
                                 if (RaohaneContext.mode === "media")
                                     RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
                                 else
-                                    RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
+                                    RaohaneState.togglePrimary("controlCenter")
                             }
                         }
 
@@ -236,7 +233,7 @@ Scope {
                             icon: RaohaneNetwork.materialSymbol
                             emphasized: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
                             tooltip: RaohaneNetwork.networkName.length > 0 ? RaohaneNetwork.networkName : qsTr("Network")
-                            onTriggered: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
+                            onTriggered: RaohaneState.togglePrimary("controlCenter")
                         }
 
                         IconButton {
@@ -288,7 +285,7 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
+                                onClicked: RaohaneState.togglePrimary("controlCenter")
                             }
                         }
 
@@ -341,13 +338,13 @@ Scope {
                         IconButton {
                             icon: "tune"
                             tooltip: qsTr("Control Center")
-                            onTriggered: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
+                            onTriggered: RaohaneState.togglePrimary("controlCenter")
                         }
 
                         IconButton {
                             icon: "power_settings_new"
                             tooltip: qsTr("Session")
-                            onTriggered: RaohaneState.sessionOpen = true
+                            onTriggered: RaohaneState.setPrimaryOpen("session", true)
                         }
                     }
                 }
