@@ -217,6 +217,7 @@ print_command_report() {
   check_cmd python3 python || failures=$((failures + 1))
   check_cmd nmcli networkmanager || failures=$((failures + 1))
   check_cmd wpctl wireplumber || check_cmd pactl libpulse || failures=$((failures + 1))
+  check_cmd pw-mon pipewire || failures=$((failures + 1))
 
   echo
   echo 'Native feature backends'
