@@ -1,11 +1,12 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import QtCore
 import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+
+import qs.modules.raohane.config
 
 Singleton {
     id: root
@@ -19,7 +20,7 @@ Singleton {
 
     readonly property var popupList: root.list.filter(entry => entry.popup)
     readonly property bool popupInhibited: root.silent
-    readonly property string historyPath: `${StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0]}/raohane/notifications.json`
+    readonly property string historyPath: RaohanePaths.notificationsFile
     readonly property var latestTimeForApp: root.latestTimesForList(root.list)
     readonly property var groupsByAppName: root.groupsForList(root.list)
     readonly property var popupGroupsByAppName: root.groupsForList(root.popupList)
