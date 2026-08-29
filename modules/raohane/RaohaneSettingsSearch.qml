@@ -112,48 +112,52 @@ Item {
                 color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
-            TextInput {
-                id: searchInput
+            Item {
                 Layout.fillWidth: true
-                verticalAlignment: TextInput.AlignVCenter
-                color: RaohaneTheme.text
-                selectionColor: RaohaneTheme.accentSoft
-                selectedTextColor: RaohaneTheme.text
-                font.pixelSize: 9
-                clip: true
-                text: root.query
+                Layout.fillHeight: true
 
-                onTextChanged: {
-                    if (root.query !== text)
-                        root.query = text
-                    root.currentIndex = 0
-                }
+                TextInput {
+                    id: searchInput
+                    anchors.fill: parent
+                    verticalAlignment: TextInput.AlignVCenter
+                    color: RaohaneTheme.text
+                    selectionColor: RaohaneTheme.accentSoft
+                    selectedTextColor: RaohaneTheme.text
+                    font.pixelSize: 9
+                    clip: true
+                    text: root.query
 
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Down && root.filteredEntries.length > 0) {
-                        root.currentIndex = Math.min(root.filteredEntries.length - 1, root.currentIndex + 1)
-                        event.accepted = true
-                    } else if (event.key === Qt.Key_Up && root.filteredEntries.length > 0) {
-                        root.currentIndex = Math.max(0, root.currentIndex - 1)
-                        event.accepted = true
-                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        root.activate(root.currentIndex)
-                        event.accepted = true
-                    } else if (event.key === Qt.Key_Escape) {
-                        root.clear()
-                        focus = false
-                        event.accepted = true
+                    onTextChanged: {
+                        if (root.query !== text)
+                            root.query = text
+                        root.currentIndex = 0
+                    }
+
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Down && root.filteredEntries.length > 0) {
+                            root.currentIndex = Math.min(root.filteredEntries.length - 1, root.currentIndex + 1)
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_Up && root.filteredEntries.length > 0) {
+                            root.currentIndex = Math.max(0, root.currentIndex - 1)
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            root.activate(root.currentIndex)
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_Escape) {
+                            root.clear()
+                            focus = false
+                            event.accepted = true
+                        }
                     }
                 }
-            }
 
-            Text {
-                visible: root.query.length === 0
-                text: qsTr("Search settings")
-                color: RaohaneTheme.textFaint
-                font.pixelSize: 9
-                Layout.fillWidth: true
-                elide: Text.ElideRight
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.query.length === 0 && !searchInput.activeFocus
+                    text: qsTr("Search settings")
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 9
+                }
             }
 
             Text {
