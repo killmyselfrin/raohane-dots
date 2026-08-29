@@ -1,0 +1,2 @@
+module qs.modules.raohane.helpers
+singleton RaohaneUtils 1.0 RaohaneUtils.qml
