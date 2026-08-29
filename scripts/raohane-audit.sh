@@ -19,12 +19,16 @@ required_root=(
   modules/raohane/RaohaneState.qml
   modules/raohane/RaohaneTheme.qml
   modules/raohane/RaohaneIcon.qml
+  modules/raohane/RaohaneRuntimeProbe.qml
+  modules/raohane/RaohaneSettingsSearch.qml
   modules/raohane/config/RaohaneConfig.qml
   modules/raohane/config/RaohanePaths.qml
   defaults/native.json
   scripts/raohane
   scripts/raohane-audit.sh
   scripts/runtime-surface-boundary-audit.sh
+  scripts/phase4-visible-runtime-audit.sh
+  scripts/phase4-live-check.sh
   scripts/install-deps.sh
   scripts/migrate-legacy-config.py
   scripts/screen-translate.sh
@@ -119,6 +123,11 @@ for surface in "${active_surfaces[@]}"; do
     || fail "$surface is not registered in native qmldir"
 done
 
+rg -q '^RaohaneRuntimeProbe .*RaohaneRuntimeProbe.qml$' modules/raohane/qmldir \
+  || fail 'RaohaneRuntimeProbe is not registered'
+rg -q 'component:[[:space:]]*RaohaneRuntimeProbe[[:space:]]*\{' "$family" \
+  || fail 'RaohaneFamily does not load the runtime probe'
+
 active_root_files=()
 for surface in "${active_surfaces[@]}"; do
   active_root_files+=("modules/raohane/${surface}.qml")
@@ -168,8 +177,6 @@ for route in \
   rg -q "$route" scripts/raohane || fail "CLI route missing: $route"
 done
 
-# Release/install boundary must be native even while legacy source trees remain
-# in the checkout for the final migration passes.
 rg -q 'RAOHANE_CONFIG_FILE="\$RAOHANE_CONFIG/native\.json"' install-raohane.sh \
   || fail 'installer does not use native.json as the authoritative config'
 rg -q 'RAOHANE_AUTOSTART_FILE="\$RAOHANE_CONFIG/autostart\.conf"' install-raohane.sh \
@@ -198,6 +205,8 @@ python3 scripts/migrate-legacy-config.py --help >/dev/null
 bash -n scripts/raohane
 bash -n scripts/raohane-audit.sh
 bash -n scripts/runtime-surface-boundary-audit.sh
+bash -n scripts/phase4-visible-runtime-audit.sh
+bash -n scripts/phase4-live-check.sh
 bash -n scripts/install-deps.sh
 bash -n scripts/screen-translate.sh
 bash -n scripts/region-ocr.sh
@@ -205,4 +214,6 @@ bash -n scripts/region-search.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
-printf 'raohane-audit: native bootstrap, capture backends, retired bridge, native config/autostart release boundary and installation graph are valid\n'
+bash scripts/phase4-visible-runtime-audit.sh
+
+printf 'raohane-audit: native bootstrap, Phase 4 runtime contract, capture backends, native config/autostart release boundary and installation graph are valid\n'
