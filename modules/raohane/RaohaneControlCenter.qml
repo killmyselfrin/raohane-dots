@@ -29,6 +29,7 @@ Scope {
             if (RaohaneState.controlCenterOpen) {
                 root.now = new Date()
                 RaohaneEasyEffects.refresh()
+                quickControls.refreshGameMode()
             }
         }
     }
