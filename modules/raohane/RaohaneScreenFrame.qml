@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 
 import qs.modules.raohane.config
@@ -32,8 +33,13 @@ Scope {
         required property var targetScreen
         required property string side
 
+        readonly property var monitor: Hyprland.monitorFor(targetScreen)
+        readonly property bool monitorHasFullscreen: monitor?.activeWorkspace?.hasFullscreen ?? false
+        readonly property bool monitorHasSpecialOpen: (monitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
+        readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
+
         screen: targetScreen
-        visible: root.frameVisibleFor(side)
+        visible: root.frameVisibleFor(side) && !effectiveFullscreen
         exclusionMode: ExclusionMode.Normal
         exclusiveZone: visible ? RaohaneConfig.frameThickness : 0
         color: "transparent"
