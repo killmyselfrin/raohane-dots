@@ -21,11 +21,11 @@ Scope {
         ?? Quickshell.screens[0]
 
     function open(): void {
-        RaohaneState.screenTranslatorOpen = true
+        RaohaneState.setPrimaryOpen("screenTranslator", true)
     }
 
     function close(): void {
-        RaohaneState.screenTranslatorOpen = false
+        RaohaneState.setPrimaryOpen("screenTranslator", false)
     }
 
     function startTranslation(): void {
