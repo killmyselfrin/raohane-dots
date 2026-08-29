@@ -7,9 +7,7 @@ import Quickshell.Wayland
 
 import qs.modules.raohane.services
 
-// Raohane-owned full-screen command overlay. This intentionally keeps the
-// first native version compact: it owns the runtime/IPC boundary without
-// pulling the inherited WidgetCanvas/common widget graph into shell startup.
+// Raohane-owned full-screen command overlay.
 Scope {
     id: root
 
@@ -18,6 +16,7 @@ Scope {
         ?? Quickshell.screens[0]
 
     function open(): void {
+        root.now = new Date()
         RaohaneState.overlayOpen = true
     }
 
@@ -26,7 +25,10 @@ Scope {
     }
 
     function toggle(): void {
-        RaohaneState.overlayOpen = !RaohaneState.overlayOpen
+        if (RaohaneState.overlayOpen)
+            root.close()
+        else
+            root.open()
     }
 
     function openSurface(name: string): void {
@@ -56,7 +58,7 @@ Scope {
     Timer {
         interval: 1000
         repeat: true
-        running: true
+        running: RaohaneState.overlayOpen
         onTriggered: root.now = new Date()
     }
 
