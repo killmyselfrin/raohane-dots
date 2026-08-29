@@ -10,7 +10,7 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
-    property int panelWidth: 420
+    property int panelWidth: 390
     property date now: new Date()
 
     Timer {
@@ -30,9 +30,10 @@ Scope {
 
     PanelWindow {
         id: panelWindow
+
         visible: RaohaneState.controlCenterOpen
         exclusiveZone: 0
-        implicitWidth: root.panelWidth + 28
+        implicitWidth: root.panelWidth + 24
         color: "transparent"
         WlrLayershell.namespace: "quickshell:raohane-control-center"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -43,16 +44,13 @@ Scope {
             right: true
             bottom: true
         }
-
         margins {
-            top: 10
-            right: 10
-            bottom: 10
+            top: 12
+            right: 12
+            bottom: 12
         }
 
-        function hide(): void {
-            RaohaneState.controlCenterOpen = false
-        }
+        function hide(): void { RaohaneState.controlCenterOpen = false }
 
         onVisibleChanged: {
             if (visible) {
@@ -69,152 +67,91 @@ Scope {
         }
 
         Rectangle {
-            id: shell
             width: root.panelWidth
             anchors {
                 top: parent.top
                 right: parent.right
                 bottom: parent.bottom
             }
-            radius: 26
-            color: RaohaneTheme.glassStrong
+            radius: RaohaneTheme.radiusLarge
+            color: RaohaneTheme.surfaceRaised
             border.width: 1
             border.color: RaohaneTheme.border
             clip: true
 
-            Rectangle {
-                width: 3
-                height: parent.height * 0.42
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                radius: 2
-                color: RaohaneTheme.accent
-                opacity: 0.9
-            }
-
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 12
-                spacing: 10
+                anchors.margins: 11
+                spacing: 9
 
-                Rectangle {
-                    id: hero
+                Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 150
-                    radius: 20
-                    color: "#241f31"
-                    clip: true
+                    Layout.preferredHeight: 68
 
-                    Image {
+                    RowLayout {
                         anchors.fill: parent
-                        source: RaohaneConfig.wallpaperPath
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        cache: false
-                        opacity: status === Image.Ready ? 0.78 : 0
-                    }
+                        anchors.leftMargin: 5
+                        anchors.rightMargin: 3
+                        spacing: 10
 
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "#540a0910"
-                    }
+                        Rectangle {
+                            Layout.preferredWidth: 34
+                            Layout.preferredHeight: 34
+                            radius: 11
+                            color: RaohaneTheme.accentSoft
 
-                    Rectangle {
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            bottom: parent.bottom
-                        }
-                        height: 72
-                        color: "#bb15131d"
-                    }
-
-                    Column {
-                        anchors {
-                            left: parent.left
-                            leftMargin: 16
-                            bottom: parent.bottom
-                            bottomMargin: 13
-                        }
-                        spacing: 2
-
-                        Text {
-                            text: RaohaneSystemInfo.username
-                            color: RaohaneTheme.text
-                            font.pixelSize: 17
-                            font.weight: Font.DemiBold
+                            Text {
+                                anchors.centerIn: parent
+                                text: "ラ"
+                                color: RaohaneTheme.accent
+                                font.pixelSize: 14
+                                font.weight: Font.Bold
+                            }
                         }
 
-                        Text {
-                            text: RaohaneSystemInfo.hostname + "  ·  " + RaohaneSystemInfo.distroName
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 11
-                        }
-                    }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: -1
 
-                    Row {
-                        anchors {
-                            right: parent.right
-                            rightMargin: 12
-                            bottom: parent.bottom
-                            bottomMargin: 12
-                        }
-                        spacing: 7
+                            Text {
+                                Layout.fillWidth: true
+                                text: RaohaneConfig.profileDisplayName !== ""
+                                    ? RaohaneConfig.profileDisplayName
+                                    : RaohaneSystemInfo.username
+                                color: RaohaneTheme.text
+                                font.pixelSize: 12
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideRight
+                            }
 
-                        ActionPill {
+                            Text {
+                                Layout.fillWidth: true
+                                text: RaohaneSystemInfo.hostname + " · " + RaohaneSystemInfo.distroName
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        ActionButton {
                             icon: "settings"
                             onClicked: {
-                                RaohaneState.controlCenterOpen = false
+                                panelWindow.hide()
                                 RaohaneState.settingsOpen = true
                             }
                         }
-                        ActionPill {
+                        ActionButton {
                             icon: "restart_alt"
                             onClicked: {
                                 Quickshell.execDetached(["hyprctl", "reload"])
                                 Quickshell.reload(true)
                             }
                         }
-                        ActionPill {
+                        ActionButton {
                             icon: "power_settings_new"
                             onClicked: {
-                                RaohaneState.controlCenterOpen = false
-                                Quickshell.execDetached(["raohane", "session"])
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        anchors {
-                            top: parent.top
-                            left: parent.left
-                            topMargin: 12
-                            leftMargin: 12
-                        }
-                        width: titleRow.implicitWidth + 18
-                        height: 28
-                        radius: 14
-                        color: "#c9161320"
-                        border.width: 1
-                        border.color: RaohaneTheme.border
-
-                        Row {
-                            id: titleRow
-                            anchors.centerIn: parent
-                            spacing: 7
-                            Rectangle {
-                                width: 6
-                                height: 6
-                                radius: 3
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: RaohaneTheme.accent
-                            }
-                            Text {
-                                text: "RAOHANE / CONTROL"
-                                color: RaohaneTheme.text
-                                font.pixelSize: 10
-                                font.letterSpacing: 1.2
-                                font.weight: Font.DemiBold
+                                panelWindow.hide()
+                                RaohaneState.sessionOpen = true
                             }
                         }
                     }
@@ -223,10 +160,10 @@ Scope {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: quickControls.implicitHeight + 18
-                    radius: 20
-                    color: RaohaneTheme.glass
+                    radius: 16
+                    color: "#10ffffff"
                     border.width: 1
-                    border.color: RaohaneTheme.border
+                    border.color: "#14ffffff"
 
                     RaohaneQuickControls {
                         id: quickControls
@@ -243,71 +180,55 @@ Scope {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.minimumHeight: 150
-                    radius: 20
-                    color: "#b915131d"
+                    Layout.minimumHeight: 160
+                    radius: 16
+                    color: "#0cffffff"
                     border.width: 1
-                    border.color: RaohaneTheme.border
+                    border.color: "#14ffffff"
 
                     RaohaneNotificationCenter {
                         anchors.fill: parent
-                        anchors.margins: 10
+                        anchors.margins: 9
                     }
                 }
 
-                RowLayout {
+                Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 34
-                    spacing: 8
 
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        radius: 17
-                        color: RaohaneTheme.glass
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 5
+                        anchors.rightMargin: 2
+                        spacing: 8
 
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 7
-
-                            Rectangle {
-                                width: 5
-                                height: 5
-                                radius: 3
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
-                                    ? RaohaneTheme.critical
-                                    : RaohaneTheme.accent
-                            }
-
-                            Text {
-                                text: "ラオハネ  ·  " + Qt.formatTime(root.now, "hh:mm")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 10
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        width: 34
-                        height: 34
-                        radius: 17
-                        color: RaohaneTheme.accentSoft
-                        border.width: 1
-                        border.color: RaohaneTheme.border
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "close"
-                            iconSize: 17
-                            color: RaohaneTheme.text
+                        Rectangle {
+                            width: 6
+                            height: 6
+                            radius: 3
+                            color: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                                ? RaohaneTheme.critical
+                                : RaohaneTheme.accent
                         }
 
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
+                        Text {
+                            text: Qt.formatTime(root.now, "HH:mm")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 9
+                            font.weight: Font.Medium
+                        }
+
+                        Text {
+                            text: "RAOHANE"
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
+                            font.letterSpacing: 1.0
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        ActionButton {
+                            icon: "close"
                             onClicked: panelWindow.hide()
                         }
                     }
@@ -329,27 +250,26 @@ Scope {
         }
     }
 
-    component ActionPill: Rectangle {
+    component ActionButton: Rectangle {
         id: action
+
         required property string icon
         signal clicked()
 
-        width: 34
-        height: 34
-        radius: 17
-        color: mouse.containsMouse ? RaohaneTheme.accentSoft : "#c51c1925"
-        border.width: 1
-        border.color: mouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        Layout.preferredWidth: 30
+        Layout.preferredHeight: 30
+        radius: 10
+        color: pointer.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
 
         RaohaneIcon {
             anchors.centerIn: parent
             text: action.icon
-            iconSize: 17
-            color: RaohaneTheme.text
+            iconSize: 16
+            color: pointer.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
         }
 
         MouseArea {
-            id: mouse
+            id: pointer
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
