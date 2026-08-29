@@ -73,6 +73,21 @@ if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
 
+for file in "$bar" "$vertical"; do
+  for symbol in \
+    'Hyprland\.monitorFor' \
+    'monitorHasFullscreen' \
+    'monitorHasSpecialOpen' \
+    'effectiveFullscreen' \
+    'fullscreenSuppressed' \
+    '&& !fullscreenSuppressed' \
+    'fullscreenSuppressed' \
+    'monitorHasSpecialOpen \|\| superShow' \
+    'WlrLayer\.Overlay'; do
+    rg -q "$symbol" "$file" || fail "$file lost fullscreen game contract: $symbol"
+  done
+done
+
 for symbol in \
   'RaohaneConfig\.barAutoHide' \
   'RaohaneConfig\.barAutoHidePushWindows' \
@@ -80,7 +95,6 @@ for symbol in \
   'RaohaneState\.superDown' \
   'running:[[:space:]]*RaohaneConfig\.barVertical && RaohaneState\.barOpen && !RaohaneState\.screenLocked' \
   'Behavior on x' \
-  'Hyprland\.monitorFor' \
   'RaohaneNetwork\.' \
   'RaohaneBluetooth\.' \
   'RaohaneNotifications\.' \
@@ -93,4 +107,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: horizontal and vertical native bar contracts, idle-safe vertical clock, workspaces, tray, status and clock boundaries are valid\n'
+printf 'bar-boundary-audit: native bars stay out of fullscreen games, support Super reveal, and preserve workspaces/tray/status/clock contracts\n'
