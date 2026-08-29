@@ -14,13 +14,16 @@ QMLDIR="$MODULE/qmldir"
 CONFIG_MODULE=modules/raohane/config
 FAMILY=panelFamilies/RaohaneFamily.qml
 SEARCH="$MODULE/RaohaneSearch.qml"
+SESSION="$MODULE/RaohaneSession.qml"
+EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
+CONTROL_CENTER=modules/raohane/RaohaneControlCenter.qml
 AUTOSTART_SCRIPT=scripts/autostart.sh
 RECORDER=scripts/videos/record.sh
 CLI=scripts/raohane
 FEATURES=install/arch/features.txt
 REQUIRED=install/arch/required.txt
 
-for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" "$FEATURES" "$REQUIRED"; do
+for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$SESSION" "$EASY_EFFECTS" "$CONTROL_CENTER" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
 done
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
@@ -57,10 +60,35 @@ require_service RaohaneYdotool 'ydotool'
 require_service RaohaneDropShelf 'wl-copy --type text/uri-list'
 require_service RaohaneAutostart 'scripts/autostart\.sh'
 
-for package in bluez-utils brightnessctl ddcutil hyprsunset easyeffects ydotool libqalculate; do
+for package in bluez-utils brightnessctl btop ddcutil hyprsunset easyeffects ydotool libqalculate; do
   rg -q "^${package}$" "$FEATURES" \
     || fail "native service/backend package missing from feature manifest: $package"
 done
+
+# The current task-manager fallback is terminal UI until the native Raohane
+# manager lands. It must create a visible terminal instead of detaching btop/top
+# directly from Quickshell with no TTY.
+rg -q 'command -v btop' "$SESSION" \
+  || fail 'session task-manager fallback no longer prefers btop'
+rg -q 'xdg-terminal-exec' "$SESSION" \
+  || fail 'session task-manager fallback lost the standard terminal launcher path'
+for terminal in foot kitty alacritty wezterm ghostty konsole gnome-terminal xterm; do
+  rg -q "command -v ${terminal}" "$SESSION" \
+    || fail "session task-manager fallback lost terminal backend: $terminal"
+done
+if rg -n 'runShell\("command -v btop[^\n]*&& btop' "$SESSION"; then
+  fail 'session task manager regressed to launching a TUI without a terminal'
+fi
+
+# EasyEffects state is only needed when its controls are surfaced. Avoid a
+# permanent pgrep/flatpak polling loop when Control Center is closed.
+if rg -n 'interval:[[:space:]]*5000|running:[[:space:]]*root\.available' "$EASY_EFFECTS"; then
+  fail 'EasyEffects service regressed to permanent background state polling'
+fi
+rg -q 'RaohaneEasyEffects\.refresh\(\)' "$CONTROL_CENTER" \
+  || fail 'Control Center no longer refreshes EasyEffects state on demand'
+rg -q 'refreshTimer\.restart\(\)' "$EASY_EFFECTS" \
+  || fail 'EasyEffects actions lost their one-shot post-action state refresh'
 
 for pair in \
   'modules/raohane/RaohaneContext.qml:RaohaneMedia\.' \
@@ -194,4 +222,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, launcher modes, doctor probes, backend packages, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, task-manager terminal fallback, on-demand EasyEffects state, launcher modes, doctor probes, backend packages, recorder and autostart contracts are valid\n'
