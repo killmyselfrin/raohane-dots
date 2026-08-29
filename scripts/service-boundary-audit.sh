@@ -16,10 +16,11 @@ FAMILY=panelFamilies/RaohaneFamily.qml
 SEARCH="$MODULE/RaohaneSearch.qml"
 AUTOSTART_SCRIPT=scripts/autostart.sh
 RECORDER=scripts/videos/record.sh
+CLI=scripts/raohane
 FEATURES=install/arch/features.txt
 REQUIRED=install/arch/required.txt
 
-for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$AUTOSTART_SCRIPT" "$RECORDER" "$FEATURES" "$REQUIRED"; do
+for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
 done
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
@@ -114,6 +115,35 @@ for contract in '\bcliphist list\b' '\bcliphist decode\b' '\bwl-copy\b'; do
   rg -q "$contract" "$SEARCH" || fail "launcher clipboard mode lost backend contract: $contract"
 done
 
+# Doctor must report the same native feature backends that the product invokes.
+for probe in \
+  'check_cmd bluetoothctl bluez-utils optional' \
+  'check_cmd blueman-manager blueman optional' \
+  'check_cmd nm-connection-editor network-manager-applet optional' \
+  'check_cmd brightnessctl brightnessctl optional' \
+  'check_cmd ddcutil ddcutil optional' \
+  'check_cmd hyprsunset hyprsunset optional' \
+  'check_cmd grim grim optional' \
+  'check_cmd slurp slurp optional' \
+  'check_cmd wf-recorder wf-recorder optional' \
+  'check_cmd wl-copy wl-clipboard optional' \
+  'check_cmd cliphist cliphist optional' \
+  'check_cmd ffmpeg ffmpeg optional' \
+  'check_cmd magick imagemagick optional' \
+  'check_cmd notify-send libnotify optional' \
+  'check_cmd tesseract tesseract optional' \
+  'check_cmd trans translate-shell optional' \
+  'check_cmd ydotool ydotool optional' \
+  'check_cmd ydotoold ydotool optional' \
+  'check_cmd qalc libqalculate optional' \
+  'check_cmd easyeffects easyeffects optional' \
+  'check_cmd fprintd-list fprintd optional'; do
+  rg -Fq "$probe" "$CLI" || fail "doctor deps lost native backend probe: $probe"
+done
+if rg -n 'check_cmd (cava|ffplay)\b' "$CLI"; then
+  fail 'doctor deps still advertises retired/non-runtime cava or ffplay probes'
+fi
+
 for service in RaohaneSession.qml RaohaneDisplay.qml RaohaneWallpapers.qml; do
   rg -q 'qs\.modules\.raohane\.config' "$MODULE/$service" \
     || fail "$service does not consume native config"
@@ -164,4 +194,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, launcher modes, backend packages, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, launcher modes, doctor probes, backend packages, recorder and autostart contracts are valid\n'
