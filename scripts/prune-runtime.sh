@@ -81,8 +81,7 @@ print(f"[Raohane] Upgraded native config schema v{current_schema} -> v{target_sc
 PY
 fi
 
-# Retired QML/runtime trees. They may remain in the source checkout until live
-# validation is complete, but they must not be present in an installed Raohane.
+# Retired runtime trees from pre-standalone installs.
 rm -rf -- \
   "$TARGET/modules/common" \
   "$TARGET/modules/ii" \
@@ -110,27 +109,28 @@ rm -f -- \
   "$TARGET/scripts/presets.sh" \
   "$TARGET/scripts/migrate-legacy-config.py" \
   "$TARGET/scripts/raohane" \
-  "$TARGET/scripts/raohane-audit.sh" \
-  "$TARGET/scripts/standalone-runtime-audit.sh"
+  "$TARGET/scripts/raohane-audit.sh"
 
-# Boundary audits are source/CI tooling, not runtime backends.
-find "$TARGET/scripts" -mindepth 1 -maxdepth 1 -type f -name '*-boundary-audit.sh' -delete
+# Static source/CI audits do not belong in the installed product runtime. The
+# interactive phase4-live-check.sh intentionally does not match this pattern
+# and remains available to `raohane doctor/validate phase4`.
+find "$TARGET/scripts" -mindepth 1 -maxdepth 1 -type f -name '*-audit.sh' -delete
 
 # shell.qml is the complete root bootstrap. Any other root-level QML file comes
-# from the inherited source tree and must not be discoverable in the installed
-# qs module (for example GlobalStates.qml or ReloadPopup.qml).
+# from an older source tree and must not be discoverable in the installed qs
+# module (for example GlobalStates.qml or ReloadPopup.qml).
 find "$TARGET" -mindepth 1 -maxdepth 1 -type f -name '*.qml' \
   ! -name 'shell.qml' -delete
 
 # Directory imports discover every QML file in panelFamilies. Keep the installed
-# directory intentionally single-family even if source/reference families still
-# live in the repository during migration.
+# directory intentionally single-family.
 if [[ -d "$TARGET/panelFamilies" ]]; then
   find "$TARGET/panelFamilies" -mindepth 1 -maxdepth 1 -type f \
     ! -name 'RaohaneFamily.qml' -delete
 fi
 
-# A standalone installed runtime must retain its root module and native family.
+# A standalone installed runtime must retain its root module, native family and
+# product-side maintenance/validation helpers.
 [[ "$(tr -d '\r\n' < "$TARGET/qmldir")" == 'module qs' ]] || {
   echo 'Installed root qmldir is not the native qs module.' >&2
   exit 1
@@ -155,6 +155,10 @@ fi
   echo 'Pruning removed native autostart backend unexpectedly.' >&2
   exit 1
 }
+[[ -f "$TARGET/scripts/phase4-live-check.sh" ]] || {
+  echo 'Pruning removed the Phase 4 live validator unexpectedly.' >&2
+  exit 1
+}
 
 for retired in \
   "$TARGET/modules/common" \
@@ -176,16 +180,15 @@ for retired in \
   "$TARGET/scripts/presets.sh" \
   "$TARGET/scripts/migrate-legacy-config.py" \
   "$TARGET/scripts/raohane" \
-  "$TARGET/scripts/raohane-audit.sh" \
-  "$TARGET/scripts/standalone-runtime-audit.sh"; do
+  "$TARGET/scripts/raohane-audit.sh"; do
   [[ ! -e "$retired" ]] || {
     echo "Legacy/source-only runtime path survived pruning: $retired" >&2
     exit 1
   }
 done
 
-if find "$TARGET/scripts" -mindepth 1 -maxdepth 1 -type f -name '*-boundary-audit.sh' -print -quit | grep -q .; then
-  echo 'Source-only boundary audit survived installed-runtime pruning.' >&2
+if find "$TARGET/scripts" -mindepth 1 -maxdepth 1 -type f -name '*-audit.sh' -print -quit | grep -q .; then
+  echo 'Source-only audit survived installed-runtime pruning.' >&2
   exit 1
 fi
 
