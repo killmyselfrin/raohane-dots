@@ -5,28 +5,32 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
 
+import qs.modules.raohane.models
 import qs.modules.raohane.services
 
 Scope {
     id: root
 
-    property int selectedIndex: 0
     readonly property var results: RaohaneSearch.results.slice(0, 9)
+
+    RaohaneSelectionModel {
+        id: selection
+        count: root.results.length
+    }
 
     function close(): void {
         RaohaneState.launcherOpen = false
     }
 
     function reset(): void {
-        selectedIndex = 0
+        selection.reset()
         RaohaneSearch.query = ""
     }
 
     function executeSelected(): void {
-        if (root.results.length === 0)
+        if (!selection.hasItems)
             return
-        const index = Math.max(0, Math.min(root.selectedIndex, root.results.length - 1))
-        const result = root.results[index]
+        const result = root.results[selection.currentIndex]
         if (!result || !result.execute)
             return
         root.close()
@@ -70,16 +74,14 @@ Scope {
             function onDismissed(): void { root.close() }
         }
 
-        Rectangle {
+        RaohaneSurface {
             id: launcherSurface
 
             anchors.horizontalCenter: parent.horizontalCenter
             width: 552
             implicitHeight: content.implicitHeight + 24
-            radius: RaohaneTheme.radiusLarge
-            color: RaohaneTheme.surfaceRaised
-            border.width: 1
-            border.color: RaohaneTheme.border
+            surfaceRadius: RaohaneTheme.radiusLarge
+            raised: true
             clip: true
 
             ColumnLayout {
@@ -93,13 +95,11 @@ Scope {
                 }
                 spacing: 7
 
-                Rectangle {
+                RaohaneSurface {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 48
-                    radius: 14
-                    color: searchInput.activeFocus ? RaohaneTheme.surfaceHover : "#12ffffff"
-                    border.width: 1
-                    border.color: searchInput.activeFocus ? RaohaneTheme.borderStrong : "#14ffffff"
+                    surfaceRadius: RaohaneTheme.radius
+                    hovered: searchInput.activeFocus
 
                     RowLayout {
                         anchors.fill: parent
@@ -128,7 +128,7 @@ Scope {
                             onTextChanged: {
                                 if (RaohaneSearch.query !== text)
                                     RaohaneSearch.query = text
-                                root.selectedIndex = 0
+                                selection.reset()
                             }
 
                             Keys.onPressed: event => {
@@ -136,11 +136,10 @@ Scope {
                                     root.close()
                                     event.accepted = true
                                 } else if (event.key === Qt.Key_Down) {
-                                    if (root.results.length > 0)
-                                        root.selectedIndex = Math.min(root.selectedIndex + 1, root.results.length - 1)
+                                    selection.move(1)
                                     event.accepted = true
                                 } else if (event.key === Qt.Key_Up) {
-                                    root.selectedIndex = Math.max(root.selectedIndex - 1, 0)
+                                    selection.move(-1)
                                     event.accepted = true
                                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                     root.executeSelected()
@@ -166,21 +165,21 @@ Scope {
                     Repeater {
                         model: root.results
 
-                        delegate: Rectangle {
+                        delegate: RaohaneSurface {
                             id: resultRow
                             required property var modelData
                             required property int index
 
-                            readonly property bool selected: index === root.selectedIndex
+                            readonly property bool selected: index === selection.currentIndex
 
                             Layout.fillWidth: true
                             Layout.preferredHeight: 46
-                            radius: 12
+                            surfaceRadius: RaohaneTheme.radiusSmall + 3
                             color: selected
                                 ? RaohaneTheme.accentSoft
                                 : resultMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
                             border.width: selected ? 1 : 0
-                            border.color: selected ? "#31b88cff" : "transparent"
+                            border.color: selected ? RaohaneTheme.borderStrong : "transparent"
 
                             RowLayout {
                                 anchors.fill: parent
@@ -280,9 +279,9 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onEntered: root.selectedIndex = resultRow.index
+                                onEntered: selection.select(resultRow.index)
                                 onClicked: {
-                                    root.selectedIndex = resultRow.index
+                                    selection.select(resultRow.index)
                                     root.executeSelected()
                                 }
                             }
