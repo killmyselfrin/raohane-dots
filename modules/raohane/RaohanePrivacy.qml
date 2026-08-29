@@ -113,19 +113,54 @@ Singleton {
             graphProbe.exec(["bash", "-lc", "command -v pw-dump >/dev/null 2>&1 && pw-dump || printf '[]'"])
     }
 
+    // pw-mon stays attached to the PipeWire registry and emits only when the
+    // graph changes. Debouncing those events avoids spawning pw-dump every
+    // second for the entire desktop session while keeping privacy indicators
+    // responsive when capture streams appear or disappear.
+    Process {
+        id: graphMonitor
+        command: ["pw-mon", "--color=never"]
+        running: true
+
+        stdout: SplitParser {
+            onRead: data => {
+                if (data.length > 0)
+                    graphChangeDebounce.restart()
+            }
+        }
+
+        onExited: monitorRestart.restart()
+    }
+
+    Timer {
+        id: graphChangeDebounce
+        interval: 140
+        repeat: false
+        onTriggered: root.refresh()
+    }
+
+    Timer {
+        id: monitorRestart
+        interval: 2500
+        repeat: false
+        onTriggered: graphMonitor.running = true
+    }
+
+    // Fallback health refresh is deliberately slow. It covers a crashed monitor
+    // or unusual PipeWire implementation without restoring the old 1.2s poll.
+    Timer {
+        interval: 15000
+        repeat: true
+        running: true
+        onTriggered: root.refresh()
+    }
+
     Process {
         id: graphProbe
         environment: ({ LANG: "C", LC_ALL: "C" })
         stdout: StdioCollector {
             onStreamFinished: root.applyDump(text)
         }
-    }
-
-    Timer {
-        interval: 1200
-        repeat: true
-        running: true
-        onTriggered: root.refresh()
     }
 
     Component.onCompleted: root.refresh()
