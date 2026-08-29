@@ -25,6 +25,8 @@ required=(
   scripts/raohane
   scripts/prune-runtime.sh
   scripts/phase4-live-check.sh
+  scripts/validate-runtime-payload.sh
+  scripts/runtime-payload-audit.sh
 )
 for path in "${required[@]}"; do
   [[ -e "$path" ]] || fail "missing native runtime path: $path"
@@ -118,6 +120,8 @@ rg -q '"scripts/prune-runtime\.sh"' install-raohane.sh \
   || fail 'installer does not require the runtime pruner'
 rg -q 'bash "\$ROOT/scripts/prune-runtime\.sh" "\$RUNTIME"' install-raohane.sh \
   || fail 'installer does not prune/normalize the staged runtime before startup'
+rg -q 'bash "\$ROOT/scripts/validate-runtime-payload\.sh" "\$RUNTIME"' install-raohane.sh \
+  || fail 'installer does not validate the final staged runtime before startup'
 rg -q '^prune_runtime_if_needed\(\)' scripts/raohane \
   || fail 'Raohane CLI does not define installed-runtime pruning'
 rg -q '^[[:space:]]*prune_runtime_if_needed$' scripts/raohane \
@@ -255,4 +259,6 @@ done
 root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
-printf 'standalone-runtime-audit: source/runtime are native-only, installer stages an explicit payload, live validator is retained and v9 settings upgrade safely to schema v10\n'
+bash scripts/runtime-payload-audit.sh
+
+printf 'standalone-runtime-audit: source/runtime are native-only, clean staging validates, live validator is retained and v9 settings upgrade safely to schema v10\n'
