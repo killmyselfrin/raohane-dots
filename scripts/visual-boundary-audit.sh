@@ -29,8 +29,8 @@ done
 # the direct raised-token binding so individual surfaces do not duplicate it.
 rg -q 'RaohaneSurface[[:space:]]*\{' "$launcher" || fail 'launcher no longer uses the shared RaohaneSurface primitive'
 rg -q 'raised:[[:space:]]*true' "$launcher" || fail 'launcher no longer requests a raised primary surface'
-rg -q 'raised[[:space:]]*\?[[:space:]]*RaohaneTheme\.surfaceRaised' "$surface" \
-  || fail 'RaohaneSurface no longer owns the raised surface token'
+rg -q 'property bool raised:[[:space:]]*false' "$surface" || fail 'RaohaneSurface lost its raised-state contract'
+rg -q 'RaohaneTheme\.surfaceRaised' "$surface" || fail 'RaohaneSurface no longer owns the raised surface token'
 
 for file in "$media" "$control" "$settings"; do
   rg -q 'RaohaneTheme\.surfaceRaised' "$file" || fail "$file no longer uses the shared raised surface token"
