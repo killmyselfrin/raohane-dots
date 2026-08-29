@@ -68,7 +68,14 @@ if rg -n '^import qs\.(services|modules\.ii|modules\.common)' "$status"; then
   fail 'RaohaneSystemIcons regressed to inherited status plumbing'
 fi
 
-rg -q '\bTimer[[:space:]]*\{' "$clock" || fail 'RaohaneClock lost its native timer'
+for symbol in \
+  'property bool active:' \
+  '\bTimer[[:space:]]*\{' \
+  'running:[[:space:]]*root\.active'; do
+  rg -q "$symbol" "$clock" || fail "RaohaneClock lost idle-safe timer contract: $symbol"
+done
+rg -q 'active:[[:space:]]*barWindow\.visible' "$bar" \
+  || fail 'horizontal bar does not suspend RaohaneClock while fullscreen/hidden'
 if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
@@ -107,4 +114,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: native bars stay out of fullscreen games, support Super reveal, and preserve workspaces/tray/status/clock contracts\n'
+printf 'bar-boundary-audit: native bars stay out of fullscreen games, suspend hidden clocks, support Super reveal and preserve native shell contracts\n'
