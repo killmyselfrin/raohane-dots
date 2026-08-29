@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Widgets
 
@@ -11,6 +12,8 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
+    readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
+        ?? Quickshell.screens[0]
     readonly property var results: RaohaneSearch.results.slice(0, 9)
 
     RaohaneSelectionModel {
@@ -41,6 +44,7 @@ Scope {
         id: panelWindow
 
         visible: RaohaneState.launcherOpen
+        screen: root.focusedScreen
         exclusiveZone: 0
         implicitWidth: 586
         implicitHeight: Math.min(560, launcherSurface.implicitHeight)
