@@ -26,8 +26,10 @@ Scope {
     Connections {
         target: RaohaneState
         function onControlCenterOpenChanged(): void {
-            if (RaohaneState.controlCenterOpen)
+            if (RaohaneState.controlCenterOpen) {
                 root.now = new Date()
+                RaohaneEasyEffects.refresh()
+            }
         }
     }
 
