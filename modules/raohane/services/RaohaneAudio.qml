@@ -172,6 +172,39 @@ Singleton {
         }
     }
 
+    // Keep one lightweight PipeWire registry monitor alive instead of spawning
+    // a shell plus multiple wpctl commands every 750 ms. Any graph/object change
+    // is collapsed into one refresh, while direct Raohane actions still use the
+    // short refreshTimer below for immediate confirmation.
+    Process {
+        id: audioMonitor
+        command: ["pw-mon", "--color=never"]
+        running: true
+
+        stdout: SplitParser {
+            onRead: data => {
+                if (data.length > 0)
+                    audioGraphDebounce.restart()
+            }
+        }
+
+        onExited: audioMonitorRestart.restart()
+    }
+
+    Timer {
+        id: audioGraphDebounce
+        interval: 150
+        repeat: false
+        onTriggered: root.refresh()
+    }
+
+    Timer {
+        id: audioMonitorRestart
+        interval: 2500
+        repeat: false
+        onTriggered: audioMonitor.running = true
+    }
+
     Process {
         id: volumeProbe
         environment: ({ LANG: "C", LC_ALL: "C" })
@@ -187,8 +220,10 @@ Singleton {
         onTriggered: root.refresh()
     }
 
+    // Slow health fallback covers monitor failure/unusual PipeWire behavior
+    // without restoring the old continuous subprocess polling.
     Timer {
-        interval: 750
+        interval: 15000
         repeat: true
         running: true
         onTriggered: root.refresh()
