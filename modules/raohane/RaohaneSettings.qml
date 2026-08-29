@@ -2,15 +2,20 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Wayland
 
 Scope {
     id: root
 
+    readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
+        ?? Quickshell.screens[0]
+
     PanelWindow {
         id: panelWindow
 
         visible: RaohaneState.settingsOpen
+        screen: root.focusedScreen
         exclusiveZone: 0
         color: "transparent"
         WlrLayershell.namespace: "quickshell:raohane-settings"
