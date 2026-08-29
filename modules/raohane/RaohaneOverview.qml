@@ -33,18 +33,15 @@ Scope {
 
     function open(): void {
         root.syncSelection()
-        RaohaneState.overviewOpen = true
+        RaohaneState.setPrimaryOpen("overview", true)
     }
 
     function close(): void {
-        RaohaneState.overviewOpen = false
+        RaohaneState.setPrimaryOpen("overview", false)
     }
 
     function toggle(): void {
-        if (RaohaneState.overviewOpen)
-            root.close()
-        else
-            root.open()
+        RaohaneState.togglePrimary("overview")
     }
 
     function activateWorkspace(workspaceId: int): void {
@@ -410,9 +407,8 @@ Scope {
         function close(): void { root.close() }
         function open(): void { root.open() }
         function clipboardToggle(): void {
-            root.close()
             RaohaneSearch.query = ":"
-            RaohaneState.launcherOpen = true
+            RaohaneState.setPrimaryOpen("launcher", true)
         }
     }
 
@@ -432,9 +428,8 @@ Scope {
         name: "overviewClipboardToggle"
         description: "Open clipboard search in Raohane launcher"
         onPressed: {
-            root.close()
             RaohaneSearch.query = ":"
-            RaohaneState.launcherOpen = true
+            RaohaneState.setPrimaryOpen("launcher", true)
         }
     }
 }
