@@ -7,6 +7,9 @@ singleton RaohaneFocusGrab 1.0 RaohaneFocusGrab.qml
 CompositorGlobalShortcut 1.0 CompositorGlobalShortcut.qml
 RaohanePanelLoader 1.0 RaohanePanelLoader.qml
 RaohaneIcon 1.0 RaohaneIcon.qml
+RaohaneSurface 1.0 RaohaneSurface.qml
+RaohaneDivider 1.0 RaohaneDivider.qml
+RaohaneIconButton 1.0 RaohaneIconButton.qml
 RaohaneBackground 1.0 RaohaneBackground.qml
 RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
 RaohaneOverview 1.0 RaohaneOverview.qml
