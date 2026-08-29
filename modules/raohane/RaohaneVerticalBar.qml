@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import Quickshell.Wayland
 
 import qs.modules.raohane.config
@@ -352,6 +353,20 @@ Scope {
                 }
             }
         }
+    }
+
+    IpcHandler {
+        target: "bar"
+        function toggle(): void { RaohaneState.barOpen = !RaohaneState.barOpen }
+        function open(): void { RaohaneState.barOpen = true }
+        function close(): void { RaohaneState.barOpen = false }
+        function mode(): string { return "vertical" }
+    }
+
+    CompositorGlobalShortcut {
+        name: "barToggle"
+        description: "Toggles the Raohane bar"
+        onPressed: RaohaneState.barOpen = !RaohaneState.barOpen
     }
 
     component IconButton: Rectangle {
