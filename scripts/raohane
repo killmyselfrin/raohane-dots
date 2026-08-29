@@ -19,7 +19,8 @@ Shell:
   wallpaper [toggle|random]
 
 Diagnostics:
-  doctor [all|graphics|deps|services|runtime]
+  doctor [all|graphics|deps|services|runtime|phase4]
+  validate phase4 [--exercise] [--lock] [--capture] [--translate]
   wifi [status|menu]
   audio [status|recover [percent]]
 EOF
@@ -170,6 +171,29 @@ find_dependency_installer() {
   return 1
 }
 
+find_phase4_validator() {
+  local candidate
+  for candidate in \
+    "$RUNTIME/scripts/phase4-live-check.sh" \
+    "$SCRIPT_DIR/phase4-live-check.sh" \
+    "$SCRIPT_DIR/../scripts/phase4-live-check.sh"; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+run_phase4_validator() {
+  local validator=""
+  if ! validator="$(find_phase4_validator)"; then
+    echo '[Raohane] Phase 4 validator is missing. Reinstall from an up-to-date checkout.' >&2
+    return 1
+  fi
+  bash "$validator" "$@"
+}
+
 print_command_report() {
   local failures=0
 
@@ -192,6 +216,7 @@ print_command_report() {
   check_cmd slurp slurp optional
   check_cmd wf-recorder wf-recorder optional
   check_cmd wl-copy wl-clipboard optional
+  check_cmd wl-paste wl-clipboard optional
   check_cmd cliphist cliphist optional
   check_cmd ffmpeg ffmpeg optional
   check_cmd magick imagemagick optional
@@ -427,6 +452,18 @@ case "${1:-help}" in
       *) echo "Unknown wallpaper command: ${2:-}" >&2; exit 2 ;;
     esac
     ;;
+  validate)
+    case "${2:-}" in
+      phase4)
+        shift 2
+        run_phase4_validator "$@"
+        ;;
+      *)
+        echo "Unknown validation target: ${2:-}" >&2
+        exit 2
+        ;;
+    esac
+    ;;
   doctor)
     case "${2:-all}" in
       graphics)
@@ -449,6 +486,9 @@ case "${1:-help}" in
       runtime)
         echo 'Raohane doctor runtime'
         print_runtime_integrity
+        ;;
+      phase4)
+        run_phase4_validator
         ;;
       services)
         echo 'Raohane doctor services'
