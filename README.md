@@ -13,7 +13,7 @@
 [![Audit](https://img.shields.io/badge/CI-Raohane%20audit-36b37e?style=for-the-badge)](.github/workflows/raohane-audit.yml)
 [![License](https://img.shields.io/badge/License-GPLv3-2f2f2f?style=for-the-badge)](LICENSE)
 
-> **Current phase:** Phase 3 complete · Phase 4 runtime/product parity
+> **Current phase:** Phase 4 source/static completion · real Hyprland validation pending
 >
 > **`main` is the live integration/testing branch.** We intentionally install and test the current integration graph there so real Hyprland runtime errors are found early.
 
@@ -242,7 +242,7 @@ Current Raohane-owned presentation includes:
 - application Dock;
 - launcher;
 - Control Center;
-- Settings;
+- Settings with native global setting search;
 - media/game overlay;
 - OSD;
 - notification popup + notification center;
@@ -260,13 +260,46 @@ The project is **Hyprland-first and Hyprland-only as a product target**. We are 
 
 ---
 
+## 🧪 Phase 4 runtime validation boundary
+
+The Phase 4 source/runtime contract is guarded by:
+
+```text
+scripts/phase4-visible-runtime-audit.sh
+modules/raohane/RaohaneRuntimeProbe.qml
+scripts/phase4-live-check.sh
+```
+
+Static CI validates the native composition, vertical/horizontal bar parity, Lock/PAM contracts, Settings search/routing, capture backends and the installed runtime boundary. The live validator is intentionally retained in the installed shell while source-only audit scripts are pruned.
+
+A real Hyprland session can then validate the parts CI cannot emulate:
+
+```bash
+raohane doctor phase4
+raohane validate phase4 --exercise
+raohane validate phase4 --vertical
+raohane validate phase4 --capture
+raohane validate phase4 --translate
+raohane validate phase4 --lock
+```
+
+Or run the complete interactive Phase 4 sequence:
+
+```bash
+raohane validate phase4 --full
+```
+
+`--vertical` temporarily switches the native bar mode and restores the previous `native.json` value. `--capture` and `--translate` ask for a region through `slurp`. `--lock` enters the real WlSessionLock/PAM path and must be unlocked normally.
+
+---
+
 ## 🧩 What remains after the core framework
 
-Phase 3 no longer has a compatibility/common-framework dependency to remove. Remaining work is product/runtime completion rather than framework extraction:
+Phase 3 no longer has a compatibility/common-framework dependency to remove. Phase 4 source/static implementation is complete; the remaining Phase 4 gates are real-session validation:
 
-- continue UI/UX parity and polish across all native surfaces;
-- exercise Lock, fingerprint, Polkit, OSK, capture and translation in real sessions;
-- validate vertical/horizontal bar behavior and fullscreen/game interaction;
+- exercise Lock/password/fingerprint behavior in a real session;
+- exercise the vertical bar, its IPC/shortcut parity and fullscreen interaction;
+- exercise native screen chrome, capture/OCR/translation and OSK/DropShelf surfaces;
 - validate multi-monitor placement and focus behavior;
 - complete fresh-install and hardware validation across NVIDIA/AMD/Intel;
 - finish release packaging/versioning and the final source-lineage/license audit.
@@ -319,11 +352,13 @@ Phase 3 is guarded by `scripts/core-framework-phase3-audit.sh` in the required G
 - [x] native Overview/workspace UI
 - [x] native Dock
 - [x] native media controls surface in active runtime
-- [ ] native Lock runtime validation
-- [ ] vertical-bar runtime/product validation
-- [ ] native remaining screen chrome/capture runtime validation
-- [ ] final Settings UX/parity pass
+- [ ] native Lock runtime validation — live suite ready
+- [ ] vertical-bar runtime/product validation — live suite ready
+- [ ] native remaining screen chrome/capture runtime validation — live suite ready
+- [x] final Settings UX/parity pass
 - [x] remove `modules/ii` runtime imports/source tree
+
+Phase 4 source/static contracts are required by `scripts/phase4-visible-runtime-audit.sh`. The three remaining checkboxes require a successful real-session `raohane validate phase4 --full`; static CI is not treated as equivalent evidence.
 
 ### Phase 5 — Remove migration scaffolding
 
@@ -393,16 +428,19 @@ raohane session
 raohane translate
 ```
 
-Diagnostics:
+Diagnostics and Phase 4 validation:
 
 ```bash
 raohane doctor all
 raohane doctor runtime
+raohane doctor phase4
 raohane doctor deps
 raohane doctor services
 raohane doctor graphics
 raohane wifi status
 raohane audio status
+
+raohane validate phase4 --full
 ```
 
 Foreground runtime debugging:
@@ -424,19 +462,21 @@ raohane logs
 
 Static CI is useful, but it cannot validate a real compositor session.
 
-When testing `main`, collect a **batch** of failures instead of stopping at the first cosmetic issue.
-
-Recommended sequence:
+For the Phase 4 boundary, install the current checkout, restart Raohane, run the safe probe, then run the complete interactive validator:
 
 ```bash
-raohane doctor all
-raohane stop
-raohane run
+./install-raohane.sh
+hyprctl reload
+raohane restart
+raohane doctor phase4
+raohane validate phase4 --full
 ```
 
-Then exercise:
+The full validator checks native source/runtime integrity, monitor discovery, RuntimeProbe IPC, Settings routing, OSK, Overlay, SidebarLeft, DropShelf, a temporary vertical-bar mode cycle, region screenshot clipboard output, OCR/translation result flow and a real WlSessionLock cycle.
 
-1. horizontal/vertical bar and workspaces;
+After Phase 4 passes, broader release validation should still exercise:
+
+1. horizontal/vertical bar and workspaces in normal and fullscreen apps;
 2. Spaces / Overview navigation and toplevel focus;
 3. native Dock: running apps, pinned apps, middle/right click and autohide;
 4. launcher and its `/`, `>`, `=`, `:` modes;
@@ -446,16 +486,12 @@ Then exercise:
 8. MPRIS and Media Overlay;
 9. image/video wallpaper preview/apply/random;
 10. Desktop Canvas and desktop context menu;
-11. Settings pages;
-12. lock/session/logout/reboot/shutdown;
-13. fingerprint/PAM and Polkit;
-14. OSK/ydotool key release;
-15. capture/OCR/translation/recording;
-16. microphone/camera/screen-sharing privacy state;
-17. fullscreen game/overlay behavior;
-18. multiple monitors if available.
+11. fingerprint/PAM and Polkit;
+12. microphone/camera/screen-sharing privacy state;
+13. fullscreen game/overlay behavior;
+14. multiple monitors if available.
 
-If something fails, the most useful output is the full terminal section around the error plus `raohane doctor all`.
+If something fails, the most useful output is the full `raohane validate phase4 --full` terminal section plus `raohane doctor all`.
 
 ---
 
@@ -477,20 +513,25 @@ It validates:
 - Overview and Dock/toplevel ownership;
 - native media ownership;
 - launcher-search ownership;
-- lock/PAM/fingerprint, Polkit and OSK boundaries;
-- capture/translation runtime-surface boundaries;
+- Lock/PAM/fingerprint, Polkit and OSK boundaries;
+- horizontal/vertical bar IPC, shortcut and fullscreen contracts;
+- Settings global search and exact native-control routing;
+- capture/translation/runtime-surface boundaries;
+- Phase 4 RuntimeProbe/live-validator contracts;
+- installed-runtime pruning while preserving the live validator;
 - installer/dependency independence;
 - integration graph completeness;
 - clean checkout after validation.
 
-Core-framework regressions are explicitly guarded by:
+Core and visible-runtime regressions are explicitly guarded by:
 
 ```text
 scripts/core-framework-audit.sh
 scripts/core-framework-phase3-audit.sh
+scripts/phase4-visible-runtime-audit.sh
 ```
 
-This prevents native components from silently drifting back toward a compatibility/common framework.
+These prevent native components from silently drifting back toward a compatibility/common framework and keep Phase 4 live validation reproducible on the installed shell.
 
 ---
 
@@ -512,8 +553,10 @@ raohane-dots/
 │   └── arch/                # Raohane package manifests
 ├── scripts/
 │   ├── raohane
+│   ├── phase4-live-check.sh # installed real-session validator
 │   ├── raohane-audit.sh
 │   ├── core-framework-phase3-audit.sh
+│   ├── phase4-visible-runtime-audit.sh
 │   └── *-boundary-audit.sh
 ├── defaults/
 │   └── native.json
