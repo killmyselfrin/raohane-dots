@@ -70,13 +70,14 @@ for property_name in "${product_properties[@]}"; do
     || fail "persisted property lost save handler: $property_name"
 done
 
-# Every Settings control key must resolve directly into RaohaneConfig. This
-# prevents Settings from silently inventing compatibility-only config fields.
-mapfile -t settings_keys < <(rg -o 'key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings" \
-  | sed -E 's/.*"([A-Za-z0-9_]+)"/\1/' | sort -u)
+# Every actual Settings control key must resolve directly into RaohaneConfig.
+# Navigation page keys such as home/about are deliberately excluded.
+mapfile -t settings_keys < <(rg -o '\{[[:space:]]*type:[[:space:]]*"[^"]+",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings" \
+  | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
+[[ "${#settings_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys'
 for key in "${settings_keys[@]}"; do
   rg -q "property [^:]+ ${key}:" "$config" \
-    || fail "Settings key is not owned by RaohaneConfig: $key"
+    || fail "Settings control key is not owned by RaohaneConfig: $key"
 done
 
 for section in wallpaper overview dock bar frame corners osk osd display apps profile quickControls features; do
