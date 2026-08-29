@@ -234,6 +234,7 @@ Scope {
                         RaohaneClock {
                             Layout.alignment: Qt.AlignVCenter
                             showDate: RaohaneConfig.barShowDate
+                            active: barWindow.visible
                         }
 
                         Rectangle {
