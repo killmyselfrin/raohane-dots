@@ -137,6 +137,12 @@ rg -q '^[[:space:]]*runtime\)' scripts/raohane \
   || fail 'doctor runtime route is missing'
 rg -q 'native\.json.*schema v10|schemaVersion.*10' scripts/raohane \
   || fail 'doctor runtime no longer validates native config schema v10'
+rg -q '^find_runtime_payload_validator\(\)' scripts/raohane \
+  || fail 'doctor runtime no longer resolves the strict runtime payload validator'
+rg -q '\$RUNTIME/scripts/validate-runtime-payload\.sh' scripts/raohane \
+  || fail 'doctor runtime does not prefer the validator installed with the runtime'
+rg -q 'bash "\$payload_validator" "\$RUNTIME"' scripts/raohane \
+  || fail 'doctor runtime does not execute strict payload validation against the installed runtime'
 
 # Exercise both runtime pruning and the native schema upgrade against disposable
 # state. This reproduces real upgrades from an existing v9 native.json without
@@ -261,4 +267,4 @@ root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.q
 
 bash scripts/runtime-payload-audit.sh
 
-printf 'standalone-runtime-audit: source/runtime are native-only, clean staging validates, live validator is retained and v9 settings upgrade safely to schema v10\n'
+printf 'standalone-runtime-audit: source/runtime are native-only, clean staging validates, doctor reuses strict payload validation, live validator is retained and v9 settings upgrade safely to schema v10\n'
