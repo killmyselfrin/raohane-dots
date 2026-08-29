@@ -35,10 +35,11 @@ Scope {
 
     PanelWindow {
         id: panelWindow
+
         visible: RaohaneState.launcherOpen
         exclusiveZone: 0
-        implicitWidth: 620
-        implicitHeight: Math.min(590, shell.implicitHeight)
+        implicitWidth: 586
+        implicitHeight: Math.min(560, launcherSurface.implicitHeight)
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-launcher"
@@ -52,8 +53,7 @@ Scope {
             left: true
             right: true
         }
-
-        margins.top: 92
+        margins.top: 78
 
         onVisibleChanged: {
             if (visible) {
@@ -67,124 +67,100 @@ Scope {
 
         Connections {
             target: RaohaneFocusGrab
-            function onDismissed(): void {
-                root.close()
-            }
+            function onDismissed(): void { root.close() }
         }
 
         Rectangle {
-            id: shell
+            id: launcherSurface
+
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 590
-            implicitHeight: content.implicitHeight + 28
-            radius: 28
-            color: RaohaneTheme.glassStrong
+            width: 552
+            implicitHeight: content.implicitHeight + 24
+            radius: RaohaneTheme.radiusLarge
+            color: RaohaneTheme.surfaceRaised
             border.width: 1
             border.color: RaohaneTheme.border
             clip: true
 
-            Rectangle {
-                width: 4
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    bottom: parent.bottom
-                }
-                color: RaohaneTheme.accent
-                opacity: 0.9
-            }
-
             ColumnLayout {
                 id: content
+
                 anchors {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    margins: 14
+                    margins: 12
                 }
-                spacing: 10
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 52
-                    spacing: 10
-
-                    Rectangle {
-                        width: 34
-                        height: 34
-                        radius: 12
-                        color: RaohaneTheme.accentSoft
-                        border.width: 1
-                        border.color: RaohaneTheme.border
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "ラ"
-                            color: RaohaneTheme.accent
-                            font.pixelSize: 16
-                            font.weight: Font.Bold
-                        }
-                    }
-
-                    TextInput {
-                        id: searchInput
-                        Layout.fillWidth: true
-                        color: RaohaneTheme.text
-                        selectionColor: RaohaneTheme.accentSoft
-                        selectedTextColor: RaohaneTheme.text
-                        font.pixelSize: 17
-                        clip: true
-                        text: RaohaneSearch.query
-
-                        onTextChanged: {
-                            if (RaohaneSearch.query !== text)
-                                RaohaneSearch.query = text
-                            root.selectedIndex = 0
-                        }
-
-                        Keys.onPressed: event => {
-                            if (event.key === Qt.Key_Escape) {
-                                root.close()
-                                event.accepted = true
-                            } else if (event.key === Qt.Key_Down) {
-                                if (root.results.length > 0)
-                                    root.selectedIndex = Math.min(root.selectedIndex + 1, root.results.length - 1)
-                                event.accepted = true
-                            } else if (event.key === Qt.Key_Up) {
-                                root.selectedIndex = Math.max(root.selectedIndex - 1, 0)
-                                event.accepted = true
-                            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                root.executeSelected()
-                                event.accepted = true
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        width: 42
-                        height: 28
-                        radius: 14
-                        color: "#2affffff"
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "ESC"
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
-                            font.weight: Font.DemiBold
-                        }
-                    }
-                }
+                spacing: 7
 
                 Rectangle {
                     Layout.fillWidth: true
-                    height: 1
-                    color: RaohaneTheme.border
+                    Layout.preferredHeight: 48
+                    radius: 14
+                    color: searchInput.activeFocus ? RaohaneTheme.surfaceHover : "#12ffffff"
+                    border.width: 1
+                    border.color: searchInput.activeFocus ? RaohaneTheme.borderStrong : "#14ffffff"
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 13
+                        anchors.rightMargin: 11
+                        spacing: 10
+
+                        Text {
+                            text: "ラ"
+                            color: RaohaneTheme.accent
+                            font.pixelSize: 14
+                            font.weight: Font.Bold
+                        }
+
+                        TextInput {
+                            id: searchInput
+
+                            Layout.fillWidth: true
+                            color: RaohaneTheme.text
+                            selectionColor: RaohaneTheme.accentSoft
+                            selectedTextColor: RaohaneTheme.text
+                            font.pixelSize: 15
+                            clip: true
+                            text: RaohaneSearch.query
+
+                            onTextChanged: {
+                                if (RaohaneSearch.query !== text)
+                                    RaohaneSearch.query = text
+                                root.selectedIndex = 0
+                            }
+
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_Escape) {
+                                    root.close()
+                                    event.accepted = true
+                                } else if (event.key === Qt.Key_Down) {
+                                    if (root.results.length > 0)
+                                        root.selectedIndex = Math.min(root.selectedIndex + 1, root.results.length - 1)
+                                    event.accepted = true
+                                } else if (event.key === Qt.Key_Up) {
+                                    root.selectedIndex = Math.max(root.selectedIndex - 1, 0)
+                                    event.accepted = true
+                                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    root.executeSelected()
+                                    event.accepted = true
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: "esc"
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 9
+                            font.weight: Font.Medium
+                        }
+                    }
                 }
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 2
                     visible: root.results.length > 0
 
                     Repeater {
@@ -195,24 +171,26 @@ Scope {
                             required property var modelData
                             required property int index
 
+                            readonly property bool selected: index === root.selectedIndex
+
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 48
-                            radius: 15
-                            color: index === root.selectedIndex
+                            Layout.preferredHeight: 46
+                            radius: 12
+                            color: selected
                                 ? RaohaneTheme.accentSoft
-                                : resultMouse.containsMouse ? "#20ffffff" : "transparent"
-                            border.width: index === root.selectedIndex ? 1 : 0
-                            border.color: RaohaneTheme.border
+                                : resultMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+                            border.width: selected ? 1 : 0
+                            border.color: selected ? "#31b88cff" : "transparent"
 
                             RowLayout {
                                 anchors.fill: parent
                                 anchors.leftMargin: 10
-                                anchors.rightMargin: 10
+                                anchors.rightMargin: 11
                                 spacing: 10
 
                                 Item {
-                                    width: 30
-                                    height: 30
+                                    width: 28
+                                    height: 28
 
                                     Loader {
                                         anchors.fill: parent
@@ -230,7 +208,7 @@ Scope {
                                     Component {
                                         id: systemIcon
                                         IconImage {
-                                            implicitSize: 28
+                                            implicitSize: 26
                                             source: Quickshell.iconPath(resultRow.modelData.iconName, "image-missing")
                                         }
                                     }
@@ -240,8 +218,8 @@ Scope {
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: resultRow.modelData.iconName
-                                            iconSize: 22
-                                            color: RaohaneTheme.accent
+                                            iconSize: 19
+                                            color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                         }
                                     }
 
@@ -250,8 +228,8 @@ Scope {
                                         Text {
                                             anchors.centerIn: parent
                                             text: resultRow.modelData.iconName
-                                            color: RaohaneTheme.text
-                                            font.pixelSize: 18
+                                            color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.text
+                                            font.pixelSize: 17
                                         }
                                     }
 
@@ -259,23 +237,23 @@ Scope {
                                         id: fallbackIcon
                                         Text {
                                             anchors.centerIn: parent
-                                            text: "◇"
+                                            text: "·"
                                             color: RaohaneTheme.textMuted
-                                            font.pixelSize: 17
+                                            font.pixelSize: 18
                                         }
                                     }
                                 }
 
                                 ColumnLayout {
                                     Layout.fillWidth: true
-                                    spacing: 0
+                                    spacing: -1
 
                                     Text {
                                         Layout.fillWidth: true
                                         text: resultRow.modelData.name
                                         color: RaohaneTheme.text
-                                        font.pixelSize: 12
-                                        font.weight: Font.DemiBold
+                                        font.pixelSize: 11
+                                        font.weight: resultRow.selected ? Font.DemiBold : Font.Medium
                                         elide: Text.ElideRight
                                     }
 
@@ -283,19 +261,17 @@ Scope {
                                         Layout.fillWidth: true
                                         text: resultRow.modelData.comment || resultRow.modelData.type
                                         color: RaohaneTheme.textMuted
-                                        font.pixelSize: 9
+                                        font.pixelSize: 8
                                         elide: Text.ElideRight
                                     }
                                 }
 
                                 Text {
-                                    text: resultRow.modelData.verb
                                     visible: text.length > 0
-                                    color: index === root.selectedIndex
-                                        ? RaohaneTheme.accent
-                                        : RaohaneTheme.textMuted
-                                    font.pixelSize: 9
-                                    font.weight: Font.DemiBold
+                                    text: resultRow.modelData.verb
+                                    color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                                    font.pixelSize: 8
+                                    font.weight: Font.Medium
                                 }
                             }
 
@@ -314,11 +290,9 @@ Scope {
                     }
                 }
 
-                Rectangle {
+                Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 88
-                    radius: 18
-                    color: "#1810141d"
+                    Layout.preferredHeight: 78
                     visible: root.results.length === 0
 
                     Column {
@@ -327,40 +301,41 @@ Scope {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: RaohaneSearch.query.length === 0
-                                ? qsTr("Start typing")
-                                : qsTr("No results")
+                            text: RaohaneSearch.query.length === 0 ? qsTr("Search Raohane") : qsTr("No results")
                             color: RaohaneTheme.text
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
+                            font.pixelSize: 12
+                            font.weight: Font.Medium
                         }
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: qsTr("Apps · / actions · > commands · = math · : clipboard")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
+                            text: qsTr("/ actions   > commands   = math   : clipboard")
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
                         }
                     }
                 }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 24
+                    Layout.preferredHeight: 20
+                    Layout.leftMargin: 3
+                    Layout.rightMargin: 3
 
                     Text {
-                        text: "RAOHANE / LAUNCHER"
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 9
-                        font.letterSpacing: 0.9
+                        text: "RAOHANE"
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 8
+                        font.letterSpacing: 1.1
+                        font.weight: Font.DemiBold
                     }
 
                     Item { Layout.fillWidth: true }
 
                     Text {
-                        text: "↑↓  NAVIGATE   ↵  OPEN"
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 9
+                        text: "↑↓ navigate   ↵ open"
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 8
                     }
                 }
             }
@@ -369,18 +344,9 @@ Scope {
 
     IpcHandler {
         target: "raohaneLauncher"
-
-        function toggle(): void {
-            RaohaneState.launcherOpen = !RaohaneState.launcherOpen
-        }
-
-        function open(): void {
-            RaohaneState.launcherOpen = true
-        }
-
-        function close(): void {
-            RaohaneState.launcherOpen = false
-        }
+        function toggle(): void { RaohaneState.launcherOpen = !RaohaneState.launcherOpen }
+        function open(): void { RaohaneState.launcherOpen = true }
+        function close(): void { RaohaneState.launcherOpen = false }
     }
 
     CompositorGlobalShortcut {
