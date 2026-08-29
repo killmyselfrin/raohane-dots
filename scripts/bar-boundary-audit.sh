@@ -88,12 +88,23 @@ for file in "$bar" "$vertical"; do
     'effectiveFullscreen' \
     'fullscreenSuppressed' \
     '&& !fullscreenSuppressed' \
-    'fullscreenSuppressed' \
     'monitorHasSpecialOpen \|\| superShow' \
-    'WlrLayer\.Overlay'; do
-    rg -q "$symbol" "$file" || fail "$file lost fullscreen game contract: $symbol"
+    'WlrLayer\.Overlay' \
+    'target:[[:space:]]*"bar"' \
+    'function toggle\(\): void' \
+    'function open\(\): void' \
+    'function close\(\): void' \
+    'function mode\(\): string' \
+    'name:[[:space:]]*"barToggle"'; do
+    rg -q "$symbol" "$file" || fail "$file lost shared bar/runtime contract: $symbol"
   done
 done
+rg -q 'return[[:space:]]+"horizontal"' "$bar" \
+  || fail 'horizontal bar does not identify its active runtime mode'
+rg -q 'return[[:space:]]+"vertical"' "$vertical" \
+  || fail 'vertical bar does not identify its active runtime mode'
+rg -q '^import Quickshell\.Io$' "$vertical" \
+  || fail 'vertical bar does not import Quickshell.Io for its IPC handler'
 
 for symbol in \
   'RaohaneConfig\.barAutoHide' \
@@ -114,4 +125,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: native bars stay out of fullscreen games, suspend hidden clocks, support Super reveal and preserve native shell contracts\n'
+printf 'bar-boundary-audit: native bars preserve fullscreen behavior, Super reveal and equivalent IPC/shortcut product contracts\n'
