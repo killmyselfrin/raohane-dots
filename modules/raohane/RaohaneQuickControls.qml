@@ -82,7 +82,7 @@ Item {
                 subtitle: root.gameModeActive ? qsTr("Low latency") : qsTr("Desktop effects")
                 active: root.gameModeActive
                 onPrimary: root.setGameMode(!root.gameModeActive)
-                onSecondary: Quickshell.execDetached(["hyprctl", "reload"])
+                onSecondary: root.setGameMode(false)
             }
 
             QuickTile {
@@ -173,9 +173,13 @@ Item {
         }
     }
 
+    function refreshGameMode(): void {
+        if (!gameModeProbe.running)
+            gameModeProbe.running = true
+    }
+
     Process {
         id: gameModeProbe
-        running: true
         command: ["hyprctl", "getoption", "animations:enabled", "-j"]
         stdout: StdioCollector {
             onStreamFinished: {
