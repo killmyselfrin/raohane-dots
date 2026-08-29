@@ -31,12 +31,19 @@ for symbol in \
   'RaohaneConfig\.frameBarSideVisible' \
   'RaohaneConfig\.barVertical' \
   'RaohaneConfig\.barBottom' \
+  'Hyprland\.monitorFor' \
+  'monitorHasFullscreen' \
+  'monitorHasSpecialOpen' \
+  'effectiveFullscreen' \
+  '&& !effectiveFullscreen' \
   '\bPanelWindow[[:space:]]*\{' \
   'ExclusionMode\.Normal' \
   'WlrKeyboardFocus\.None'; do
   rg -q "$symbol" "$frame" || fail "native frame lost required contract: $symbol"
 done
 
+rg -q '^import Quickshell\.Hyprland$' "$frame" \
+  || fail 'screen frame lost per-monitor fullscreen integration'
 if rg -n '^import qs$|^import qs\.services|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|\bAppearance\.|\bRoundCorner[[:space:]]*\{' "$frame"; then
   fail 'native frame regressed to inherited framework/widgets'
 fi
@@ -57,4 +64,4 @@ if rg -n '^import qs\.modules\.ii\.frame$|component:[[:space:]]*ScreenFrame[[:sp
   fail 'legacy ScreenFrame is active in RaohaneFamily'
 fi
 
-printf 'frame-boundary-audit: native screen frame owns rendering and persisted config with no legacy reference requirement\n'
+printf 'frame-boundary-audit: native screen frame owns rendering, persisted config and fullscreen suppression with no legacy requirement\n'
