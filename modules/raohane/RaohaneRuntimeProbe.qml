@@ -6,6 +6,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Scope {
     id: root
@@ -48,7 +49,8 @@ Scope {
                 hotCornersEnabled: RaohaneConfig.hotCornersEnabled,
                 overlayOpen: RaohaneState.overlayOpen,
                 oskOpen: RaohaneState.oskOpen,
-                sidebarLeftOpen: RaohaneState.leftSidebarOpen
+                sidebarLeftOpen: RaohaneState.leftSidebarOpen,
+                dropShelfOpen: RaohaneDropShelf.open
             },
             capture: {
                 regionSelectorOpen: RaohaneState.regionSelectorOpen,
