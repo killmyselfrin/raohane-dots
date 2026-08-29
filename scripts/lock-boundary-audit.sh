@@ -35,7 +35,12 @@ if rg -n '^import qs\.modules\.ii\.lock$|component: Lock \{\}' "$family"; then
   fail 'RaohaneFamily still loads the inherited lock runtime'
 fi
 
-for symbol in 'WlSessionLock[[:space:]]*\{' 'WlSessionLockSurface[[:space:]]*\{' 'RaohaneState\.screenLocked' 'target: "lock"'; do
+for symbol in \
+  'WlSessionLock[[:space:]]*\{' \
+  'WlSessionLockSurface[[:space:]]*\{' \
+  'RaohaneState\.screenLocked' \
+  'lockContext\.refreshFingerprints\(\)' \
+  'target: "lock"'; do
   rg -q "$symbol" "$lock" || fail "RaohaneLock lost secure/native contract: $symbol"
 done
 if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bGlobalStates\.|\bConfig\.|\bAppearance\.' "$lock" "$context" "$surface"; then
@@ -52,6 +57,16 @@ rg -q 'config:[[:space:]]*"fprintd\.conf"' "$context" \
   || fail 'fingerprint PamContext lost its native PAM profile'
 rg -q 'fprintd-list' "$context" \
   || fail 'RaohaneLockContext lost optional fingerprint discovery'
+for finger in left-thumb left-index-finger right-thumb right-index-finger; do
+  rg -q "\"${finger}\"" "$context" \
+    || fail "fingerprint discovery lost stable fprintd finger identifier: $finger"
+done
+rg -q 'fingerprintNames\.some\(name => output\.includes\(name\)\)' "$context" \
+  || fail 'fingerprint discovery regressed to locale-dependent output parsing'
+rg -q 'readonly property int fingerprintRetryLimit:[[:space:]]*[1-9]' "$context" \
+  || fail 'fingerprint transient retries are no longer bounded'
+rg -q 'fingerprintRetryCount \+ 1 < root\.fingerprintRetryLimit' "$context" \
+  || fail 'fingerprint PAM errors can retry without the native retry bound'
 rg -q '^[[:space:]]*auth[[:space:]]+required[[:space:]]+pam_fprintd\.so([[:space:]]|$)' "$fingerprint_pam" \
   || fail 'native fingerprint PAM profile does not require pam_fprintd.so'
 rg -q '^fprintd$' "$features" \
@@ -67,4 +82,4 @@ if rg -n 'loginctl.*lock-session' "$session"; then
   fail 'RaohaneSession.lock still uses the old logind-only lock path'
 fi
 
-printf 'lock-boundary-audit: native WlSessionLock/PAM/fprintd runtime and owned fingerprint profile are valid\n'
+printf 'lock-boundary-audit: native WlSessionLock/PAM/fprintd runtime, refresh, bounded retries and owned fingerprint profile are valid\n'
