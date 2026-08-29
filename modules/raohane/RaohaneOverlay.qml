@@ -17,40 +17,38 @@ Scope {
 
     function open(): void {
         root.now = new Date()
-        RaohaneState.overlayOpen = true
+        RaohaneState.setPrimaryOpen("overlay", true)
     }
 
     function close(): void {
-        RaohaneState.overlayOpen = false
+        RaohaneState.setPrimaryOpen("overlay", false)
     }
 
     function toggle(): void {
-        if (RaohaneState.overlayOpen)
-            root.close()
-        else
-            root.open()
+        RaohaneState.togglePrimary("overlay")
     }
 
     function openSurface(name: string): void {
-        root.close()
         switch (name) {
         case "launcher":
-            RaohaneState.launcherOpen = true
+            RaohaneState.setPrimaryOpen("launcher", true)
             break
         case "control":
-            RaohaneState.controlCenterOpen = true
+            RaohaneState.setPrimaryOpen("controlCenter", true)
             break
         case "media":
+            root.close()
             RaohaneState.mediaOverlayOpen = true
             break
         case "settings":
-            RaohaneState.settingsOpen = true
+            RaohaneState.setPrimaryOpen("settings", true)
             break
         case "osk":
+            root.close()
             RaohaneState.oskOpen = true
             break
         case "session":
-            RaohaneState.sessionOpen = true
+            RaohaneState.setPrimaryOpen("session", true)
             break
         }
     }
