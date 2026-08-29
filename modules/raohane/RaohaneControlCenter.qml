@@ -54,7 +54,7 @@ Scope {
             bottom: 12
         }
 
-        function hide(): void { RaohaneState.controlCenterOpen = false }
+        function hide(): void { RaohaneState.setPrimaryOpen("controlCenter", false) }
 
         onVisibleChanged: {
             if (visible) {
@@ -139,10 +139,7 @@ Scope {
 
                         ActionButton {
                             icon: "settings"
-                            onClicked: {
-                                panelWindow.hide()
-                                RaohaneState.settingsOpen = true
-                            }
+                            onClicked: RaohaneState.setPrimaryOpen("settings", true)
                         }
                         ActionButton {
                             icon: "restart_alt"
@@ -153,10 +150,7 @@ Scope {
                         }
                         ActionButton {
                             icon: "power_settings_new"
-                            onClicked: {
-                                panelWindow.hide()
-                                RaohaneState.sessionOpen = true
-                            }
+                            onClicked: RaohaneState.setPrimaryOpen("session", true)
                         }
                     }
                 }
@@ -242,15 +236,15 @@ Scope {
 
         IpcHandler {
             target: "sidebarRight"
-            function toggle(): void { RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen }
-            function open(): void { RaohaneState.controlCenterOpen = true }
-            function close(): void { RaohaneState.controlCenterOpen = false }
+            function toggle(): void { RaohaneState.togglePrimary("controlCenter") }
+            function open(): void { RaohaneState.setPrimaryOpen("controlCenter", true) }
+            function close(): void { RaohaneState.setPrimaryOpen("controlCenter", false) }
         }
 
         CompositorGlobalShortcut {
             name: "sidebarRightToggle"
             description: "Toggles Raohane control center"
-            onPressed: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
+            onPressed: RaohaneState.togglePrimary("controlCenter")
         }
     }
 
