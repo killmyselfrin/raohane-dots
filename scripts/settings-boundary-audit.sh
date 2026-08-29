@@ -41,11 +41,19 @@ for page_key in quick general bar desktop interface services hyprland profile; d
   rg -q "key: \"${page_key}\"" "$content" || fail "native Settings route is missing: $page_key"
 done
 
+for contract in \
+  'key:[[:space:]]*"barShowOnSuper"' \
+  'Reveal on Super' \
+  'native\.json' \
+  'Live settings · ~/.config/raohane/native\.json'; do
+  rg -q "$contract" "$content" || fail "Settings lost release UX contract: $contract"
+done
+
 if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bMaterialSymbol[[:space:]]*\{|\bGlobalStates\.|\bContentPage[[:space:]]*\{' "$content"; then
   fail 'Settings navigation resolves inherited settings/common/root types'
 fi
-if rg -n 'compatibilityConfigFile' "$content"; then
-  fail 'Settings still exposes the legacy compatibility config path'
+if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.json"\)' "$content"; then
+  fail 'Settings still exposes the retired compatibility config path/name'
 fi
 
 for symbol in 'RaohaneConfig\.wallpaperPath' 'RaohaneNetwork\.' 'RaohaneAudio\.' 'RaohanePrivacy\.' 'RaohaneState\.settingsPage' 'RaohaneIcon[[:space:]]*\{'; do
@@ -62,4 +70,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: all active Settings routes are Raohane-owned and use native config/state\n'
+printf 'settings-boundary-audit: active Settings routes, Super reveal control and native config UX are Raohane-owned\n'
