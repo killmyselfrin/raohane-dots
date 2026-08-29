@@ -15,7 +15,7 @@ Scope {
 
     function openCentered(shouldOpen: bool): void {
         if (!shouldOpen) {
-            RaohaneState.desktopMenuOpen = false
+            RaohaneState.setPrimaryOpen("desktopMenu", false)
             return
         }
 
@@ -27,11 +27,11 @@ Scope {
         RaohaneState.desktopMenuScreen = screen
         RaohaneState.desktopMenuX = screen.width / 2
         RaohaneState.desktopMenuY = screen.height / 2
-        RaohaneState.desktopMenuOpen = true
+        RaohaneState.setPrimaryOpen("desktopMenu", true)
     }
 
     function close(): void {
-        RaohaneState.desktopMenuOpen = false
+        RaohaneState.setPrimaryOpen("desktopMenu", false)
     }
 
     Loader {
@@ -179,9 +179,8 @@ Scope {
                         detail: qsTr("Browse and preview backgrounds")
                         accent: true
                         onTriggered: {
-                            root.close()
                             RaohaneState.wallpaperSelectorTarget = "wallpaper"
-                            RaohaneState.wallpaperSelectorOpen = true
+                            RaohaneState.setPrimaryOpen("wallpaper", true)
                         }
                     }
 
@@ -235,9 +234,8 @@ Scope {
                         title: qsTr("Desktop & widgets")
                         detail: qsTr("Open desktop configuration")
                         onTriggered: {
-                            root.close()
                             RaohaneState.settingsPage = "Desktop"
-                            RaohaneState.settingsOpen = true
+                            RaohaneState.setPrimaryOpen("settings", true)
                         }
                     }
 
@@ -245,20 +243,14 @@ Scope {
                         icon: "tune"
                         title: qsTr("Control Center")
                         detail: qsTr("Network, audio, privacy and notifications")
-                        onTriggered: {
-                            root.close()
-                            RaohaneState.controlCenterOpen = true
-                        }
+                        onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                     }
 
                     MenuAction {
                         icon: "settings"
                         title: qsTr("Settings")
                         detail: qsTr("Configure Raohane")
-                        onTriggered: {
-                            root.close()
-                            RaohaneState.settingsOpen = true
-                        }
+                        onTriggered: RaohaneState.setPrimaryOpen("settings", true)
                     }
 
                     RowLayout {
@@ -281,10 +273,7 @@ Scope {
                             Layout.fillWidth: true
                             icon: "power_settings_new"
                             title: qsTr("Session")
-                            onTriggered: {
-                                root.close()
-                                RaohaneState.sessionOpen = true
-                            }
+                            onTriggered: RaohaneState.setPrimaryOpen("session", true)
                         }
                     }
                 }
