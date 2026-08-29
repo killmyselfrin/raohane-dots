@@ -30,11 +30,11 @@ Scope {
 
     function close(): void {
         RaohaneWallpapers.stopPreview()
-        RaohaneState.wallpaperSelectorOpen = false
+        RaohaneState.setPrimaryOpen("wallpaper", false)
     }
 
     function toggle(): void {
-        RaohaneState.wallpaperSelectorOpen = !RaohaneState.wallpaperSelectorOpen
+        RaohaneState.togglePrimary("wallpaper")
     }
 
     function selectPath(path: string, isDirectory: bool): void {
