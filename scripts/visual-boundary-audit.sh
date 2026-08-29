@@ -15,8 +15,9 @@ media='modules/raohane/RaohaneMediaOverlay.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 bar='modules/raohane/RaohaneBar.qml'
+surface='modules/raohane/RaohaneSurface.qml'
 
-for file in "$theme" "$launcher" "$media" "$control" "$settings" "$bar"; do
+for file in "$theme" "$launcher" "$media" "$control" "$settings" "$bar" "$surface"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
 done
 
@@ -24,7 +25,14 @@ for token in background surface surfaceRaised surfaceHover surfacePressed border
   rg -q "property .* ${token}:" "$theme" || fail "theme lost design token: $token"
 done
 
-for file in "$launcher" "$media" "$control" "$settings"; do
+# Launcher consumes the common Raohane surface primitive. The primitive owns
+# the direct raised-token binding so individual surfaces do not duplicate it.
+rg -q 'RaohaneSurface[[:space:]]*\{' "$launcher" || fail 'launcher no longer uses the shared RaohaneSurface primitive'
+rg -q 'raised:[[:space:]]*true' "$launcher" || fail 'launcher no longer requests a raised primary surface'
+rg -q 'raised[[:space:]]*\?[[:space:]]*RaohaneTheme\.surfaceRaised' "$surface" \
+  || fail 'RaohaneSurface no longer owns the raised surface token'
+
+for file in "$media" "$control" "$settings"; do
   rg -q 'RaohaneTheme\.surfaceRaised' "$file" || fail "$file no longer uses the shared raised surface token"
 done
 
@@ -40,4 +48,4 @@ for file in "$launcher" "$media" "$control" "$settings" "$bar"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
 
-printf 'visual-boundary-audit: minimal palette, spacing and primary-surface hierarchy are valid\n'
+printf 'visual-boundary-audit: minimal palette, shared surface primitive, spacing and primary-surface hierarchy are valid\n'
