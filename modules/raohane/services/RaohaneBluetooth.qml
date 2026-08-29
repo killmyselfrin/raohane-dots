@@ -80,8 +80,46 @@ Singleton {
         onExited: root.refresh()
     }
 
+    // BlueZ's bluetoothctl monitor mode emits state changes instead of forcing
+    // two short-lived bluetoothctl probes every few seconds. A short debounce
+    // collapses bursts such as connect + services-resolved into one refresh.
+    Process {
+        id: bluezMonitor
+        command: [
+            "bash", "-lc",
+            "if command -v bluetoothctl >/dev/null 2>&1; then exec bluetoothctl --monitor; else sleep 3600; fi"
+        ]
+        running: true
+        environment: ({ LANG: "C", LC_ALL: "C" })
+
+        stdout: SplitParser {
+            onRead: data => {
+                if (data.length > 0)
+                    monitorDebounce.restart()
+            }
+        }
+
+        onExited: monitorRestart.restart()
+    }
+
     Timer {
-        interval: 3000
+        id: monitorDebounce
+        interval: 180
+        repeat: false
+        onTriggered: root.refresh()
+    }
+
+    Timer {
+        id: monitorRestart
+        interval: 2500
+        repeat: false
+        onTriggered: bluezMonitor.running = true
+    }
+
+    // Slow fallback keeps state correct if monitor output is unavailable on an
+    // older BlueZ build without restoring the former 3-second polling loop.
+    Timer {
+        interval: 15000
         repeat: true
         running: true
         onTriggered: root.refresh()
