@@ -25,13 +25,35 @@ for path in "${required[@]}"; do
 done
 
 retired_source=(
+  modules/common
+  modules/ii
+  services
+  GlobalStates.qml
+  ReloadPopup.qml
+  killDialog.qml
+  settings.qml
+  welcome.qml
+  panelFamilies/IllogicalImpulseFamily.qml
+  panelFamilies/PanelLoader.qml
   scripts/sync-end4-foundation.sh
   scripts/install-foundation-deps.sh
+  scripts/ai
+  scripts/cava
+  scripts/colors
+  scripts/hyprland
+  scripts/images
+  scripts/keyring
+  scripts/kvantum
+  scripts/lyrics
+  scripts/musicRecognition
+  scripts/theming
+  scripts/presets.sh
+  defaults/config.json
   upstream/end4-pC.lock
   upstream/illogical-impulse.lock
 )
 for path in "${retired_source[@]}"; do
-  [[ ! -e "$path" ]] || fail "retired upstream bootstrap/sync path returned: $path"
+  [[ ! -e "$path" ]] || fail "retired inherited source path returned: $path"
 done
 
 retired_script_dirs=(ai cava colors hyprland images keyring kvantum lyrics musicRecognition theming)
@@ -62,11 +84,11 @@ fi
 rg -q '"scripts/prune-runtime\.sh"' install-raohane.sh \
   || fail 'installer does not require the runtime pruner'
 rg -q 'bash "\$ROOT/scripts/prune-runtime\.sh" "\$RUNTIME"' install-raohane.sh \
-  || fail 'installer does not prune the copied runtime before startup'
+  || fail 'installer does not prune/normalize the copied runtime before startup'
 rg -q '^prune_runtime_if_needed\(\)' scripts/raohane \
   || fail 'Raohane CLI does not define installed-runtime pruning'
 rg -q '^[[:space:]]*prune_runtime_if_needed$' scripts/raohane \
-  || fail 'raohane run does not prune before qs starts'
+  || fail 'raohane run does not maintain runtime before qs starts'
 rg -q 'bash "\$pruner" "\$RUNTIME"' scripts/raohane \
   || fail 'Raohane CLI does not route pruning through the dedicated script'
 
@@ -79,7 +101,11 @@ rg -q '^[[:space:]]*runtime\)' scripts/raohane \
 rg -q 'native\.json.*schema v10|schemaVersion.*10' scripts/raohane \
   || fail 'doctor runtime no longer validates native config schema v10'
 
+# Exercise both runtime pruning and the native schema upgrade against disposable
+# state. This reproduces real upgrades from an existing v9 native.json without
+# touching the CI account's own config directory.
 tmp_runtime="$(mktemp -d /tmp/raohane-standalone-audit.XXXXXX)"
+tmp_config="$tmp_runtime/config-home"
 cleanup() { rm -rf -- "$tmp_runtime"; }
 trap cleanup EXIT
 
@@ -88,16 +114,34 @@ mkdir -p \
   "$tmp_runtime/panelFamilies" \
   "$tmp_runtime/defaults" \
   "$tmp_runtime/services" \
-  "$tmp_runtime/scripts"
+  "$tmp_runtime/scripts" \
+  "$tmp_config/raohane"
 cp shell.qml qmldir "$tmp_runtime/"
 cp -a modules/raohane "$tmp_runtime/modules/"
 cp panelFamilies/RaohaneFamily.qml "$tmp_runtime/panelFamilies/"
+cp defaults/native.json "$tmp_runtime/defaults/native.json"
 cp scripts/install-deps.sh scripts/prune-runtime.sh scripts/autostart.sh "$tmp_runtime/scripts/"
 mkdir -p "$tmp_runtime/modules/common" "$tmp_runtime/modules/ii"
 for name in "${retired_script_dirs[@]}"; do
   mkdir -p "$tmp_runtime/scripts/$name"
   touch "$tmp_runtime/scripts/$name/legacy-helper"
 done
+cat > "$tmp_config/raohane/native.json" <<'JSON'
+{
+  "schemaVersion": 9,
+  "wallpaper": {
+    "path": "/tmp/keep-wallpaper.png",
+    "preview": false
+  },
+  "dock": {
+    "iconSize": 51
+  },
+  "customFutureSection": {
+    "keepMe": true
+  }
+}
+JSON
+
 touch \
   "$tmp_runtime/GlobalStates.qml" \
   "$tmp_runtime/ReloadPopup.qml" \
@@ -113,7 +157,23 @@ touch \
   "$tmp_runtime/scripts/standalone-runtime-audit.sh" \
   "$tmp_runtime/scripts/fake-boundary-audit.sh"
 
-bash scripts/prune-runtime.sh "$tmp_runtime" >/dev/null
+XDG_CONFIG_HOME="$tmp_config" bash scripts/prune-runtime.sh "$tmp_runtime" >/dev/null
+
+python3 - "$tmp_config/raohane/native.json" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+assert data["schemaVersion"] == 10
+assert data["wallpaper"]["path"] == "/tmp/keep-wallpaper.png"
+assert data["wallpaper"]["preview"] is False
+assert data["dock"]["iconSize"] == 51
+assert data["osk"]["pinned"] is False
+assert data["osk"]["layout"] == "English (US)"
+assert data["customFutureSection"]["keepMe"] is True
+PY
 
 for retired in \
   "$tmp_runtime/modules/common" \
@@ -141,6 +201,7 @@ for preserved in \
   "$tmp_runtime/modules/raohane" \
   "$tmp_runtime/shell.qml" \
   "$tmp_runtime/panelFamilies/RaohaneFamily.qml" \
+  "$tmp_runtime/defaults/native.json" \
   "$tmp_runtime/scripts/install-deps.sh" \
   "$tmp_runtime/scripts/prune-runtime.sh" \
   "$tmp_runtime/scripts/autostart.sh"; do
@@ -151,4 +212,4 @@ done
 root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
-printf 'standalone-runtime-audit: installed graph keeps native backends while excluding legacy/source-only QML and tooling\n'
+printf 'standalone-runtime-audit: source/runtime are native-only and v9 settings upgrade safely to schema v10\n'
