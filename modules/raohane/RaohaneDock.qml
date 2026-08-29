@@ -276,7 +276,7 @@ Scope {
                             glyph: "間"
                             active: RaohaneState.overviewOpen
                             tooltip: qsTr("Spaces")
-                            onTriggered: RaohaneState.overviewOpen = !RaohaneState.overviewOpen
+                            onTriggered: RaohaneState.togglePrimary("overview")
                         }
 
                         DockControlButton {
