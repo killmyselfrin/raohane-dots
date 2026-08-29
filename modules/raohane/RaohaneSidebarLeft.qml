@@ -16,9 +16,9 @@ Scope {
         ?? Quickshell.screens[0]
     property date now: new Date()
 
-    function open(): void { RaohaneState.leftSidebarOpen = true }
-    function close(): void { RaohaneState.leftSidebarOpen = false }
-    function toggle(): void { RaohaneState.leftSidebarOpen = !RaohaneState.leftSidebarOpen }
+    function open(): void { RaohaneState.setPrimaryOpen("leftSidebar", true) }
+    function close(): void { RaohaneState.setPrimaryOpen("leftSidebar", false) }
+    function toggle(): void { RaohaneState.togglePrimary("leftSidebar") }
 
     Timer {
         interval: 1000
@@ -297,10 +297,7 @@ Scope {
                                 ? RaohaneNetwork.networkName
                                 : (RaohaneNetwork.wifiEnabled ? qsTr("Not connected") : qsTr("Wi-Fi off"))
                             active: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
-                            onTriggered: {
-                                root.close()
-                                RaohaneState.controlCenterOpen = true
-                            }
+                            onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                         }
 
                         StatusRow {
@@ -320,10 +317,7 @@ Scope {
                                 ? qsTr("%1 unread").arg(RaohaneNotifications.unread)
                                 : qsTr("All caught up")
                             active: RaohaneNotifications.unread > 0
-                            onTriggered: {
-                                root.close()
-                                RaohaneState.controlCenterOpen = true
-                            }
+                            onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                         }
 
                         StatusRow {
@@ -338,10 +332,7 @@ Scope {
                                 : RaohanePrivacy.microphoneActive ? qsTr("Microphone active")
                                 : qsTr("No capture devices active")
                             active: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
-                            onTriggered: {
-                                root.close()
-                                RaohaneState.controlCenterOpen = true
-                            }
+                            onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                         }
                     }
                 }
@@ -355,50 +346,32 @@ Scope {
                     ActionButton {
                         glyph: "⌕"
                         title: qsTr("Launcher")
-                        onTriggered: {
-                            root.close()
-                            RaohaneState.launcherOpen = true
-                        }
+                        onTriggered: RaohaneState.setPrimaryOpen("launcher", true)
                     }
                     ActionButton {
                         glyph: "◎"
                         title: qsTr("Control")
-                        onTriggered: {
-                            root.close()
-                            RaohaneState.controlCenterOpen = true
-                        }
+                        onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                     }
                     ActionButton {
                         glyph: "▧"
                         title: qsTr("Wallpaper")
-                        onTriggered: {
-                            root.close()
-                            RaohaneState.wallpaperSelectorOpen = true
-                        }
+                        onTriggered: RaohaneState.setPrimaryOpen("wallpaper", true)
                     }
                     ActionButton {
                         glyph: "文"
                         title: qsTr("Translate")
-                        onTriggered: {
-                            root.close()
-                            RaohaneState.screenTranslatorOpen = true
-                        }
+                        onTriggered: RaohaneState.setPrimaryOpen("screenTranslator", true)
                     }
                     ActionButton {
                         glyph: "⚙"
                         title: qsTr("Settings")
-                        onTriggered: {
-                            root.close()
-                            RaohaneState.settingsOpen = true
-                        }
+                        onTriggered: RaohaneState.setPrimaryOpen("settings", true)
                     }
                     ActionButton {
                         glyph: "⏻"
                         title: qsTr("Session")
-                        onTriggered: {
-                            root.close()
-                            RaohaneState.sessionOpen = true
-                        }
+                        onTriggered: RaohaneState.setPrimaryOpen("session", true)
                     }
                 }
 
