@@ -42,6 +42,14 @@ for symbol in \
   rg -q "$symbol" "$frame" || fail "native frame lost required contract: $symbol"
 done
 
+rg -q 'barPosition:[[:space:]]*RaohaneConfig\.barVertical' "$frame" \
+  || fail 'screen frame no longer derives its bar edge from native bar mode'
+rg -q '\?[[:space:]]*"left"' "$frame" \
+  || fail 'screen frame lost the current left-only vertical-bar strategy'
+if rg -n 'barVertical[^\n]*barBottom[^\n]*"right"' "$frame"; then
+  fail 'screen frame incorrectly reinterprets barBottom as a right-side vertical bar'
+fi
+
 rg -q '^import Quickshell\.Hyprland$' "$frame" \
   || fail 'screen frame lost per-monitor fullscreen integration'
 if rg -n '^import qs$|^import qs\.services|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|\bAppearance\.|\bRoundCorner[[:space:]]*\{' "$frame"; then
@@ -64,4 +72,4 @@ if rg -n '^import qs\.modules\.ii\.frame$|component:[[:space:]]*ScreenFrame[[:sp
   fail 'legacy ScreenFrame is active in RaohaneFamily'
 fi
 
-printf 'frame-boundary-audit: native screen frame owns rendering, persisted config and fullscreen suppression with no legacy requirement\n'
+printf 'frame-boundary-audit: native screen frame follows the left-only vertical strategy, persisted config and fullscreen suppression\n'
