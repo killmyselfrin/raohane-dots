@@ -32,6 +32,7 @@ Singleton {
             "if command -v easyeffects >/dev/null 2>&1; then easyeffects; "
                 + "elif command -v flatpak >/dev/null 2>&1; then flatpak run com.github.wwmm.easyeffects; fi"
         ])
+        refreshTimer.restart()
     }
 
     function disable(): void {
@@ -84,15 +85,8 @@ Singleton {
 
     Timer {
         id: refreshTimer
-        interval: 450
+        interval: 700
         repeat: false
-        onTriggered: root.fetchActiveState()
-    }
-
-    Timer {
-        interval: 5000
-        repeat: true
-        running: root.available
         onTriggered: root.fetchActiveState()
     }
 
