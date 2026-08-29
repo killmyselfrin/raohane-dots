@@ -2,8 +2,8 @@ pragma Singleton
 
 import QtQuick
 
-// Raohane-owned cross-surface state. Product-specific transient state stays
-// here; GlobalStates is only bridged while compatibility surfaces remain.
+// Raohane-owned cross-surface state. All ephemeral product state lives here;
+// the active runtime has no legacy global-state bridge.
 QtObject {
     property bool launcherOpen: false
     property bool mediaOverlayOpen: false
@@ -47,7 +47,8 @@ QtObject {
         case "wallpaperSelectorOpen":
             wallpaperSelectorOpen = !wallpaperSelectorOpen
             break
-        case "mediaControlsOpen":
+        case "mediaOverlayOpen":
+        case "mediaControlsOpen": // v10 config compatibility alias
             mediaOverlayOpen = !mediaOverlayOpen
             break
         case "overlayOpen":
