@@ -20,10 +20,18 @@ Scope {
     function close(): void { RaohaneState.setPrimaryOpen("leftSidebar", false) }
     function toggle(): void { RaohaneState.togglePrimary("leftSidebar") }
 
+    Connections {
+        target: RaohaneState
+        function onLeftSidebarOpenChanged(): void {
+            if (RaohaneState.leftSidebarOpen)
+                root.now = new Date()
+        }
+    }
+
     Timer {
         interval: 1000
         repeat: true
-        running: true
+        running: RaohaneState.leftSidebarOpen
         onTriggered: root.now = new Date()
     }
 
