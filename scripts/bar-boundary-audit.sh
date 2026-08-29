@@ -78,6 +78,7 @@ for symbol in \
   'RaohaneConfig\.barAutoHidePushWindows' \
   'RaohaneConfig\.barShowOnSuper' \
   'RaohaneState\.superDown' \
+  'running:[[:space:]]*RaohaneConfig\.barVertical && RaohaneState\.barOpen && !RaohaneState\.screenLocked' \
   'Behavior on x' \
   'Hyprland\.monitorFor' \
   'RaohaneNetwork\.' \
@@ -92,4 +93,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: horizontal and vertical native bar contracts, workspaces, tray, status and clock boundaries are valid\n'
+printf 'bar-boundary-audit: horizontal and vertical native bar contracts, idle-safe vertical clock, workspaces, tray, status and clock boundaries are valid\n'
