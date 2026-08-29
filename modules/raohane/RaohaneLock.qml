@@ -15,9 +15,8 @@ Scope {
 
     function lock(): void {
         RaohaneState.closeTransientSurfaces()
-        lockContext.reset()
-        RaohaneState.screenLocked = true
-        lockContext.tryFingerUnlock()
+        if (!RaohaneState.screenLocked)
+            RaohaneState.screenLocked = true
     }
 
     function unlock(): void {
@@ -56,7 +55,7 @@ Scope {
         function onScreenLockedChanged(): void {
             if (RaohaneState.screenLocked) {
                 lockContext.reset()
-                lockContext.tryFingerUnlock()
+                lockContext.refreshFingerprints()
                 refocusTimer.restart()
             } else {
                 lockContext.reset()
