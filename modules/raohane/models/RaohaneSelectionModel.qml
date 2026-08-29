@@ -1,5 +1,7 @@
 import QtQuick
 
+import qs.modules.raohane.helpers
+
 QtObject {
     id: root
 
@@ -10,7 +12,7 @@ QtObject {
     function normalize(index: int): int {
         if (root.count <= 0)
             return 0
-        return Math.max(0, Math.min(root.count - 1, index))
+        return RaohaneUtils.clampInt(index, 0, root.count - 1, 0)
     }
 
     function reset(): void {
