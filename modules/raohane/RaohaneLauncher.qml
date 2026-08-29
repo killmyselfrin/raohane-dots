@@ -22,7 +22,7 @@ Scope {
     }
 
     function close(): void {
-        RaohaneState.launcherOpen = false
+        RaohaneState.setPrimaryOpen("launcher", false)
     }
 
     function reset(): void {
@@ -347,14 +347,14 @@ Scope {
 
     IpcHandler {
         target: "raohaneLauncher"
-        function toggle(): void { RaohaneState.launcherOpen = !RaohaneState.launcherOpen }
-        function open(): void { RaohaneState.launcherOpen = true }
-        function close(): void { RaohaneState.launcherOpen = false }
+        function toggle(): void { RaohaneState.togglePrimary("launcher") }
+        function open(): void { RaohaneState.setPrimaryOpen("launcher", true) }
+        function close(): void { RaohaneState.setPrimaryOpen("launcher", false) }
     }
 
     CompositorGlobalShortcut {
         name: "raohaneLauncherToggle"
         description: "Toggles the Raohane launcher"
-        onPressed: RaohaneState.launcherOpen = !RaohaneState.launcherOpen
+        onPressed: RaohaneState.togglePrimary("launcher")
     }
 }
