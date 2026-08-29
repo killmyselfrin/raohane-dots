@@ -11,6 +11,22 @@ Scope {
     id: root
 
     property int panelWidth: 420
+    property date now: new Date()
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: RaohaneState.controlCenterOpen
+        onTriggered: root.now = new Date()
+    }
+
+    Connections {
+        target: RaohaneState
+        function onControlCenterOpenChanged(): void {
+            if (RaohaneState.controlCenterOpen)
+                root.now = new Date()
+        }
+    }
 
     PanelWindow {
         id: panelWindow
@@ -267,7 +283,7 @@ Scope {
                             }
 
                             Text {
-                                text: "ラオハネ  ·  " + Qt.formatTime(new Date(), "hh:mm")
+                                text: "ラオハネ  ·  " + Qt.formatTime(root.now, "hh:mm")
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 10
                             }
