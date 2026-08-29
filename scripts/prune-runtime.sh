@@ -29,6 +29,58 @@ esac
   exit 1
 }
 
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+NATIVE_CONFIG="$CONFIG_HOME/raohane/native.json"
+NATIVE_DEFAULTS="$TARGET/defaults/native.json"
+
+# Normalize an existing native document before the shell starts. Native schema
+# upgrades are additive: defaults provide new keys while every existing user
+# value (and unknown forward-compatible key) is preserved. This makes upgrades
+# deterministic and avoids waiting for an asynchronous QML save before doctor.
+if [[ -f "$NATIVE_CONFIG" && -f "$NATIVE_DEFAULTS" ]]; then
+  python3 - "$NATIVE_CONFIG" "$NATIVE_DEFAULTS" <<'PY'
+import json
+import pathlib
+import sys
+
+config_path = pathlib.Path(sys.argv[1])
+defaults_path = pathlib.Path(sys.argv[2])
+
+try:
+    current = json.loads(config_path.read_text(encoding="utf-8"))
+    defaults = json.loads(defaults_path.read_text(encoding="utf-8"))
+except (OSError, json.JSONDecodeError):
+    raise SystemExit(0)
+
+if not isinstance(current, dict) or not isinstance(defaults, dict):
+    raise SystemExit(0)
+
+target_schema = defaults.get("schemaVersion")
+current_schema = current.get("schemaVersion")
+if not isinstance(target_schema, int) or current_schema == target_schema:
+    raise SystemExit(0)
+
+
+def merge(base, override):
+    if isinstance(base, dict) and isinstance(override, dict):
+        result = {key: merge(value, override[key]) if key in override else value
+                  for key, value in base.items()}
+        for key, value in override.items():
+            if key not in result:
+                result[key] = value
+        return result
+    return override
+
+upgraded = merge(defaults, current)
+upgraded["schemaVersion"] = target_schema
+config_path.parent.mkdir(parents=True, exist_ok=True)
+temporary = config_path.with_suffix(config_path.suffix + ".tmp")
+temporary.write_text(json.dumps(upgraded, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+temporary.replace(config_path)
+print(f"[Raohane] Upgraded native config schema v{current_schema} -> v{target_schema}.")
+PY
+fi
+
 # Retired QML/runtime trees. They may remain in the source checkout until live
 # validation is complete, but they must not be present in an installed Raohane.
 rm -rf -- \
