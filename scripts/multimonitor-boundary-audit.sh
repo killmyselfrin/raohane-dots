@@ -21,6 +21,8 @@ focused_surfaces=(
   modules/raohane/RaohaneScreenTranslator.qml
   modules/raohane/RaohaneWallpaperSelector.qml
   modules/raohane/RaohaneSessionScreen.qml
+  modules/raohane/RaohanePolkit.qml
+  modules/raohane/RaohaneDropShelfPanel.qml
 )
 
 for file in "${focused_surfaces[@]}"; do
