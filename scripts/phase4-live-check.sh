@@ -5,28 +5,35 @@ QS_CONFIG="${RAOHANE_QS_CONFIG:-raohane}"
 SERVICE="${RAOHANE_SERVICE:-raohane.service}"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 RUNTIME="${RAOHANE_RUNTIME:-$CONFIG_HOME/quickshell/$QS_CONFIG}"
+NATIVE_CONFIG="$CONFIG_HOME/raohane/native.json"
 
 failures=0
 exercise=0
+vertical_cycle=0
 lock_cycle=0
 capture_cycle=0
 translate_cycle=0
+restore_vertical_needed=0
+original_vertical=""
+monitor_tmp=""
 
 usage() {
   cat <<'EOF'
 Raohane Phase 4 live validator
 
 Usage:
-  phase4-live-check.sh [--exercise] [--lock] [--capture] [--translate]
+  phase4-live-check.sh [--exercise] [--vertical] [--lock] [--capture] [--translate] [--full]
 
 Default mode is non-destructive and validates the live Hyprland/Quickshell
 runtime, native source tree, IPC probe, monitor state and feature backends.
 
 Optional runtime exercises:
-  --exercise   open/close Settings, OSK, Overlay and Translator surfaces
+  --exercise   open/close Settings, OSK, Overlay, SidebarLeft, DropShelf and Translator
+  --vertical   temporarily enable the vertical bar, verify its real IPC runtime, then restore config
   --lock       perform a real lock/unlock cycle; you must unlock normally
   --capture    perform a real region screenshot and verify clipboard image data
   --translate  start a real region OCR/translation cycle and verify result UI opens
+  --full       run exercise + vertical + capture + translate + lock (interactive)
 EOF
 }
 
@@ -104,6 +111,66 @@ wait_for_json_value() {
   return 1
 }
 
+wait_for_bar_mode() {
+  local expected="$1"
+  local timeout_seconds="${2:-15}"
+  local i mode
+
+  for ((i = 0; i < timeout_seconds; i++)); do
+    mode="$(ipc bar mode 2>/dev/null || true)"
+    if [[ "$mode" == *"$expected"* ]]; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+read_config_vertical() {
+  python3 - "$NATIVE_CONFIG" <<'PY'
+import json, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+print("true" if bool(data.get("bar", {}).get("vertical", False)) else "false")
+PY
+}
+
+set_config_vertical() {
+  local value="$1"
+  python3 - "$NATIVE_CONFIG" "$value" <<'PY'
+import json, os, pathlib, sys, tempfile
+path = pathlib.Path(sys.argv[1])
+value = sys.argv[2].lower() == "true"
+data = json.loads(path.read_text(encoding="utf-8"))
+data.setdefault("bar", {})["vertical"] = value
+path.parent.mkdir(parents=True, exist_ok=True)
+fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".phase4-", dir=path.parent)
+try:
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2, ensure_ascii=False)
+        handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp_name, path)
+finally:
+    if os.path.exists(tmp_name):
+        os.unlink(tmp_name)
+PY
+}
+
+restore_vertical_config() {
+  if ((restore_vertical_needed)) && [[ -n "$original_vertical" && -f "$NATIVE_CONFIG" ]]; then
+    set_config_vertical "$original_vertical" >/dev/null 2>&1 || true
+    restore_vertical_needed=0
+  fi
+}
+
+cleanup() {
+  [[ -z "$monitor_tmp" ]] || rm -f -- "$monitor_tmp"
+  restore_vertical_config
+}
+trap cleanup EXIT
+
 clipboard_image_hash() {
   if ! have wl-paste; then
     return 1
@@ -114,9 +181,17 @@ clipboard_image_hash() {
 for arg in "$@"; do
   case "$arg" in
     --exercise) exercise=1 ;;
+    --vertical) vertical_cycle=1 ;;
     --lock) lock_cycle=1 ;;
     --capture) capture_cycle=1 ;;
     --translate) translate_cycle=1 ;;
+    --full)
+      exercise=1
+      vertical_cycle=1
+      capture_cycle=1
+      translate_cycle=1
+      lock_cycle=1
+      ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $arg" >&2; usage >&2; exit 2 ;;
   esac
@@ -132,7 +207,7 @@ else
   bad 'WAYLAND_DISPLAY is unset'
 fi
 if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
-  ok "HYPRLAND_INSTANCE_SIGNATURE is set"
+  ok 'HYPRLAND_INSTANCE_SIGNATURE is set'
 else
   bad 'HYPRLAND_INSTANCE_SIGNATURE is unset'
 fi
@@ -186,8 +261,9 @@ fi
 
 echo
 echo 'Compositor state'
-if have hyprctl && hyprctl -j monitors >/tmp/raohane-phase4-monitors.json 2>/dev/null; then
-  if python3 - /tmp/raohane-phase4-monitors.json <<'PY'
+monitor_tmp="$(mktemp /tmp/raohane-phase4-monitors.XXXXXX.json)"
+if have hyprctl && hyprctl -j monitors >"$monitor_tmp" 2>/dev/null; then
+  if python3 - "$monitor_tmp" <<'PY'
 import json, pathlib, sys
 path = pathlib.Path(sys.argv[1])
 try:
@@ -206,7 +282,6 @@ PY
   else
     bad 'Hyprland monitor JSON is invalid/empty'
   fi
-  rm -f /tmp/raohane-phase4-monitors.json
 else
   bad 'hyprctl monitors failed'
 fi
@@ -237,6 +312,16 @@ raise SystemExit(0 if all(key in data for key in required) and data["monitors"] 
   else
     bad 'runtime IPC returned invalid/incomplete Phase 4 JSON'
   fi
+fi
+
+expected_bar_mode="horizontal"
+if [[ "$(printf '%s' "$payload" | json_value bar.vertical 2>/dev/null || true)" == "true" ]]; then
+  expected_bar_mode="vertical"
+fi
+if wait_for_bar_mode "$expected_bar_mode" 5; then
+  ok "active bar IPC is owned by the ${expected_bar_mode} component"
+else
+  bad "active bar component does not report expected mode: ${expected_bar_mode}"
 fi
 
 if lock_status="$(ipc lock status 2>/dev/null)"; then
@@ -275,10 +360,10 @@ if ((exercise)); then
   echo
 echo 'Non-destructive surface exercises'
 
-  if ipc settings open >/dev/null 2>&1 && wait_for_json_value settings.open true 5; then
-    ok 'Settings opened through live IPC'
+  if ipc settings page interface:frameEnabled >/dev/null 2>&1 && wait_for_json_value settings.open true 5; then
+    ok 'Settings opened and accepted exact native control routing'
   else
-    bad 'Settings did not open through live IPC'
+    bad 'Settings did not open through exact native page/control IPC'
   fi
   ipc settings close >/dev/null 2>&1 || true
 
@@ -296,12 +381,74 @@ echo 'Non-destructive surface exercises'
   fi
   ipc overlay close >/dev/null 2>&1 || true
 
+  if ipc sidebarLeft open >/dev/null 2>&1 && wait_for_json_value chrome.sidebarLeftOpen true 5; then
+    ok 'left sidebar opened through live IPC'
+  else
+    bad 'left sidebar did not open through live IPC'
+  fi
+  ipc sidebarLeft close >/dev/null 2>&1 || true
+
+  if ipc dropShelf open >/dev/null 2>&1 && wait_for_json_value chrome.dropShelfOpen true 5; then
+    ok 'DropShelf opened through live IPC'
+  else
+    bad 'DropShelf did not open through live IPC'
+  fi
+  ipc dropShelf close >/dev/null 2>&1 || true
+
   if ipc screenTranslator open >/dev/null 2>&1 && wait_for_json_value capture.screenTranslatorOpen true 5; then
     ok 'Screen Translator opened through live IPC'
   else
     bad 'Screen Translator did not open through live IPC'
   fi
   ipc screenTranslator close >/dev/null 2>&1 || true
+fi
+
+if ((vertical_cycle)); then
+  echo
+echo 'Vertical bar product exercise'
+  if [[ ! -f "$NATIVE_CONFIG" ]]; then
+    bad "native config missing: $NATIVE_CONFIG"
+  else
+    original_vertical="$(read_config_vertical 2>/dev/null || true)"
+    if [[ "$original_vertical" != "true" && "$original_vertical" != "false" ]]; then
+      bad 'could not read current bar.vertical value'
+    else
+      if [[ "$original_vertical" != "true" ]]; then
+        restore_vertical_needed=1
+        if set_config_vertical true && wait_for_json_value bar.vertical true 10; then
+          ok 'temporarily enabled vertical bar through native config reload'
+        else
+          bad 'native config did not switch into vertical mode'
+        fi
+      fi
+
+      if wait_for_bar_mode vertical 10; then
+        ok 'vertical RaohaneBar component owns live bar IPC'
+      else
+        bad 'vertical bar component did not become the live bar IPC owner'
+      fi
+
+      if ipc bar close >/dev/null 2>&1 && wait_for_json_value bar.open false 5; then
+        ok 'vertical bar close IPC updates native state'
+      else
+        bad 'vertical bar close IPC failed'
+      fi
+      if ipc bar open >/dev/null 2>&1 && wait_for_json_value bar.open true 5; then
+        ok 'vertical bar open IPC updates native state'
+      else
+        bad 'vertical bar open IPC failed'
+      fi
+
+      if [[ "$original_vertical" == "false" ]]; then
+        if set_config_vertical false && wait_for_json_value bar.vertical false 10 && wait_for_bar_mode horizontal 10; then
+          ok 'restored horizontal bar and original native config'
+          restore_vertical_needed=0
+        else
+          bad 'failed to restore horizontal bar after vertical exercise'
+        fi
+      fi
+    fi
+  fi
 fi
 
 if ((capture_cycle)); then
