@@ -64,6 +64,7 @@ Item {
                 { type: "toggle", key: "barVertical", label: qsTr("Vertical bar"), detail: qsTr("Use the native vertical bar layout") },
                 { type: "toggle", key: "barAutoHide", label: qsTr("Auto-hide bar"), detail: qsTr("Hide the bar until interaction requires it") },
                 { type: "toggle", key: "barAutoHidePushWindows", label: qsTr("Push windows"), detail: qsTr("Reserve space while an auto-hidden bar is visible") },
+                { type: "toggle", key: "barShowOnSuper", label: qsTr("Reveal on Super"), detail: qsTr("Temporarily reveal the bar with Super, including over fullscreen apps") },
                 { type: "toggle", key: "barShowDate", label: qsTr("Show date"), detail: qsTr("Display the date alongside the clock") },
                 { type: "toggle", key: "dockEnabled", label: qsTr("Dock"), detail: qsTr("Enable the Raohane dock") },
                 { type: "toggle", key: "dockAutoHide", label: qsTr("Auto-hide dock"), detail: qsTr("Hide the dock when it is not in use") },
@@ -519,7 +520,7 @@ Item {
                         anchors.rightMargin: 9
                         spacing: 9
                         RaohaneIcon { text: "description"; iconSize: 17; color: RaohaneTheme.textMuted }
-                        Text { Layout.fillWidth: true; visible: !root.compactNav; text: copiedTimer.running ? qsTr("Path copied") : qsTr("config.json"); color: RaohaneTheme.textMuted; font.pixelSize: 9; elide: Text.ElideRight }
+                        Text { Layout.fillWidth: true; visible: !root.compactNav; text: copiedTimer.running ? qsTr("Path copied") : qsTr("native.json"); color: RaohaneTheme.textMuted; font.pixelSize: 9; elide: Text.ElideRight }
                     }
 
                     MouseArea {
@@ -578,7 +579,7 @@ Item {
                             Layout.fillWidth: true
                             spacing: -1
                             Text { Layout.fillWidth: true; text: root.pages[root.currentPage]?.name ?? qsTr("Settings"); color: RaohaneTheme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
-                            Text { Layout.fillWidth: true; text: qsTr("Live settings · ~/.config/raohane/config.json"); color: RaohaneTheme.textMuted; font.pixelSize: 8; elide: Text.ElideRight }
+                            Text { Layout.fillWidth: true; text: qsTr("Live settings · ~/.config/raohane/native.json"); color: RaohaneTheme.textMuted; font.pixelSize: 8; elide: Text.ElideRight }
                         }
 
                         Rectangle { width: 7; height: 7; radius: 4; color: RaohaneTheme.accent }
