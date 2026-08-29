@@ -10,6 +10,7 @@ import qs.modules.raohane.services
 Scope {
     Component.onCompleted: RaohaneAutostart.runOnce()
 
+    RaohanePanelLoader { component: RaohaneRuntimeProbe {} }
     RaohanePanelLoader { component: RaohaneBackground {} }
     RaohanePanelLoader { component: RaohaneDesktopCanvas {} }
     RaohanePanelLoader { extraCondition: !RaohaneConfig.barVertical; component: RaohaneBar {} }
