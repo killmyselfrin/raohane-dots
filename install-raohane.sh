@@ -98,6 +98,9 @@ fi
 required_runtime=(
   "shell.qml"
   "qmldir"
+  "VERSION"
+  "assets"
+  "translations"
   "scripts/raohane"
   "scripts/raohane-audit.sh"
   "scripts/install-deps.sh"
@@ -189,14 +192,24 @@ PY
   fi
 fi
 
+# Stage only the standalone product payload. Development documents, patches,
+# repository metadata and unrelated root files never enter the installed
+# Quickshell configuration. scripts/ remains conservative so every native
+# backend is preserved; prune-runtime removes source-only audits afterwards.
 find "$RUNTIME" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
-cp -a "$ROOT"/. "$RUNTIME"/
+mkdir -p "$RUNTIME/modules" "$RUNTIME/panelFamilies" "$RUNTIME/defaults" "$RUNTIME/install"
+cp -a "$ROOT/shell.qml" "$ROOT/qmldir" "$ROOT/VERSION" "$RUNTIME/"
+cp -a "$ROOT/modules/raohane" "$RUNTIME/modules/"
+cp -a "$ROOT/panelFamilies/RaohaneFamily.qml" "$RUNTIME/panelFamilies/"
+cp -a "$ROOT/defaults/native.json" "$RUNTIME/defaults/"
+cp -a "$ROOT/install/arch" "$RUNTIME/install/"
+cp -a "$ROOT/assets" "$RUNTIME/"
+cp -a "$ROOT/translations" "$RUNTIME/"
+cp -a "$ROOT/scripts" "$RUNTIME/"
 
-# The git checkout may still retain inherited trees temporarily as migration
-# reference/rollback material. The installed product does not: prune them before
-# the shell is started, including for --no-start installations.
+# Keep the pruner as an upgrade/self-heal boundary for users coming from older
+# installations. On a fresh staged runtime it mainly removes source-only audits.
 bash "$ROOT/scripts/prune-runtime.sh" "$RUNTIME"
-rm -f "$RUNTIME/install-raohane.sh"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
 
