@@ -19,6 +19,8 @@ translator_backend='scripts/screen-translate.sh'
 region_ocr_backend='scripts/region-ocr.sh'
 region_search_backend='scripts/region-search.sh'
 
+aoverlay='modules/raohane/RaohaneOverlay.qml'
+
 native_surfaces=(
   modules/raohane/RaohaneOverlay.qml
   modules/raohane/RaohaneSidebarLeft.qml
@@ -123,11 +125,15 @@ fi
 
 for contract in \
   'RaohaneState\.overlayOpen' \
+  'running:[[:space:]]*RaohaneState\.overlayOpen' \
   'target:[[:space:]]*"overlay"' \
   'name:[[:space:]]*"overlayToggle"'; do
-  rg -q "$contract" modules/raohane/RaohaneOverlay.qml \
+  rg -q "$contract" "$aoverlay" \
     || fail "native overlay lost contract: $contract"
 done
+if rg -n 'running:[[:space:]]*true' "$aoverlay"; then
+  fail 'hidden overlay can keep an unconditional repeating timer alive'
+fi
 
 for contract in \
   'target:[[:space:]]*"region"' \
@@ -214,4 +220,4 @@ for contract in \
     || fail "native desktop menu lost contract: $contract"
 done
 
-printf 'runtime-surface-boundary-audit: native bootstrap, capture/OCR/search and active family boundaries are valid\n'
+printf 'runtime-surface-boundary-audit: native bootstrap, idle-safe overlay, capture/OCR/search and active family boundaries are valid\n'
