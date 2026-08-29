@@ -92,7 +92,7 @@ rg -q '^[[:space:]]*prune_runtime_if_needed$' scripts/raohane \
 rg -q 'bash "\$pruner" "\$RUNTIME"' scripts/raohane \
   || fail 'Raohane CLI does not route pruning through the dedicated script'
 
-rg -q 'doctor \[all\|graphics\|deps\|services\|runtime\]' scripts/raohane \
+rg -q 'doctor \[[^]]*runtime[^]]*\]' scripts/raohane \
   || fail 'CLI usage does not expose doctor runtime'
 rg -q '^print_runtime_integrity\(\)' scripts/raohane \
   || fail 'CLI lost installed-runtime integrity diagnostics'
