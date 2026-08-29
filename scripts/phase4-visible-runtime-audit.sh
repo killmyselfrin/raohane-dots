@@ -17,6 +17,7 @@ settings_content='modules/raohane/RaohaneSettingsContent.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 runtime_probe='modules/raohane/RaohaneRuntimeProbe.qml'
 live_check='scripts/phase4-live-check.sh'
+cli='scripts/raohane'
 
 phase4_surfaces=(
   modules/raohane/RaohaneBackground.qml
@@ -43,7 +44,7 @@ phase4_surfaces=(
   "$runtime_probe"
 )
 
-for path in "$family" "$qmldir" "$config" "$live_check" "${phase4_surfaces[@]}"; do
+for path in "$family" "$qmldir" "$config" "$live_check" "$cli" "${phase4_surfaces[@]}"; do
   [[ -f "$path" ]] || fail "missing Phase 4 path: $path"
 done
 
@@ -79,13 +80,24 @@ rg -q 'function status\(\): string' modules/raohane/RaohaneLock.qml \
 rg -q 'PamContext[[:space:]]*\{' modules/raohane/RaohaneLockContext.qml \
   || fail 'native Lock lost PAM transaction'
 
-# Horizontal and vertical products share the same fullscreen/Super/autohide
-# contract; bar-boundary-audit owns the detailed checks.
+# Horizontal and vertical products must be interchangeable at runtime. Both
+# own the same bar IPC and shortcut contract, and identify the loaded mode.
 for file in modules/raohane/RaohaneBar.qml modules/raohane/RaohaneVerticalBar.qml; do
-  for symbol in 'monitorHasFullscreen' 'fullscreenSuppressed' 'RaohaneConfig\.barShowOnSuper' 'RaohaneState\.superDown'; do
+  for symbol in \
+    'monitorHasFullscreen' \
+    'fullscreenSuppressed' \
+    'RaohaneConfig\.barShowOnSuper' \
+    'RaohaneState\.superDown' \
+    'target:[[:space:]]*"bar"' \
+    'function mode\(\): string' \
+    'name:[[:space:]]*"barToggle"'; do
     rg -q "$symbol" "$file" || fail "$file lost Phase 4 bar contract: $symbol"
   done
 done
+rg -q 'return[[:space:]]+"horizontal"' modules/raohane/RaohaneBar.qml \
+  || fail 'horizontal bar lost runtime mode identity'
+rg -q 'return[[:space:]]+"vertical"' modules/raohane/RaohaneVerticalBar.qml \
+  || fail 'vertical bar lost runtime mode identity'
 
 # Screen chrome/capture are native and have real backends rather than migration
 # placeholders.
@@ -143,18 +155,32 @@ for symbol in \
   'bar:' 'lock:' 'settings:' 'chrome:' 'capture:' \
   'RaohaneConfig\.barVertical' \
   'RaohaneState\.screenLocked' \
-  'RaohaneState\.screenTranslatorOpen'; do
+  'RaohaneState\.screenTranslatorOpen' \
+  'RaohaneDropShelf\.open' \
+  'dropShelfOpen:'; do
   rg -q "$symbol" "$runtime_probe" || fail "runtime probe lost contract: $symbol"
 done
 
 # The live harness must be safe by default and make invasive exercises explicit.
+# Vertical mode is modified only when explicitly requested and its prior value
+# is restored even on an unexpected exit.
 for symbol in \
   'phase4_json' \
   'ipc runtime phase4' \
   '--exercise' \
+  '--vertical' \
   '--lock' \
   '--capture' \
   '--translate' \
+  '--full' \
+  'wait_for_bar_mode' \
+  'set_config_vertical' \
+  'restore_vertical_config' \
+  'trap cleanup EXIT' \
+  'ipc sidebarLeft open' \
+  'ipc dropShelf open' \
+  'ipc bar close' \
+  'ipc bar open' \
   'ipc lock activate' \
   'ipc region screenshot' \
   'ipc screenTranslator translate' \
@@ -164,4 +190,15 @@ for symbol in \
 done
 bash -n "$live_check"
 
-printf 'phase4-visible-runtime-audit: native visible surfaces, runtime probe, Settings search and live validation harness are valid\n'
+# CLI must expose both the safe diagnostic and explicit live exercise route.
+for symbol in \
+  'doctor \[all\|graphics\|deps\|services\|runtime\|phase4\]' \
+  'validate phase4' \
+  'find_phase4_validator' \
+  'run_phase4_validator' \
+  '^[[:space:]]*phase4\)' \
+  'run_phase4_validator "\$@"'; do
+  rg -q "$symbol" "$cli" || fail "Raohane CLI lost Phase 4 route: $symbol"
+done
+
+printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, Settings search and full live validation workflow are valid\n'
