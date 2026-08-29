@@ -54,6 +54,8 @@ jobs:
           bash -n scripts/bar-boundary-audit.sh
           bash -n scripts/core-framework-audit.sh
           bash -n scripts/core-framework-phase3-audit.sh
+          bash -n scripts/phase4-visible-runtime-audit.sh
+          bash -n scripts/phase4-live-check.sh
           bash -n scripts/wallpaper-boundary-audit.sh
           bash -n scripts/notification-boundary-audit.sh
           bash -n scripts/lock-boundary-audit.sh
@@ -98,6 +100,7 @@ jobs:
           bash scripts/bar-boundary-audit.sh
           bash scripts/core-framework-audit.sh
           bash scripts/core-framework-phase3-audit.sh
+          bash scripts/phase4-visible-runtime-audit.sh
           bash scripts/wallpaper-boundary-audit.sh
           bash scripts/notification-boundary-audit.sh
           bash scripts/lock-boundary-audit.sh
@@ -131,6 +134,7 @@ jobs:
             modules/raohane/RaohaneSurface.qml
             modules/raohane/RaohaneDivider.qml
             modules/raohane/RaohaneIconButton.qml
+            modules/raohane/RaohaneRuntimeProbe.qml
             modules/raohane/RaohaneState.qml
             modules/raohane/RaohaneWorkspaces.qml
             modules/raohane/RaohaneSysTray.qml
@@ -157,6 +161,9 @@ jobs:
             modules/raohane/RaohaneScreenTranslator.qml
             modules/raohane/RaohaneVerticalBar.qml
             modules/raohane/RaohaneDropShelfPanel.qml
+            modules/raohane/RaohaneSettings.qml
+            modules/raohane/RaohaneSettingsSearch.qml
+            modules/raohane/RaohaneSettingsContent.qml
             modules/raohane/RaohaneSettingsAbout.qml
             modules/raohane/services/RaohaneMedia.qml
             modules/raohane/services/RaohaneBluetooth.qml
@@ -176,6 +183,8 @@ jobs:
             panelFamilies/RaohaneFamily.qml
             translations
             scripts/raohane
+            scripts/phase4-visible-runtime-audit.sh
+            scripts/phase4-live-check.sh
             scripts/screen-translate.sh
             scripts/region-ocr.sh
             scripts/region-search.sh
@@ -207,6 +216,11 @@ jobs:
 
           [[ ! -e modules/raohane/RaohaneLegacyBridge.qml ]] || {
             echo 'Retired RaohaneLegacyBridge returned to the integration graph.' >&2
+            exit 1
+          }
+
+          [[ ! -e modules/ii ]] || {
+            echo 'Retired modules/ii source tree returned to the integration graph.' >&2
             exit 1
           }
 
