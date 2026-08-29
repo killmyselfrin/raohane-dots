@@ -14,7 +14,10 @@ Scope {
         ?? Quickshell.screens[0]
     readonly property var flow: agent.flow
     readonly property bool responseVisible: root.flow?.responseVisible ?? false
-    property bool interactionAvailable: false
+    readonly property bool interactionAvailable: (root.flow?.isResponseRequired ?? false) && !root.submitting
+    readonly property string supplementaryMessage: String(root.flow?.supplementaryMessage ?? "").trim()
+    readonly property bool supplementaryIsError: root.flow?.supplementaryIsError ?? false
+    property bool submitting: false
 
     readonly property string message: {
         const value = String(root.flow?.message ?? "").trim()
@@ -26,6 +29,17 @@ Scope {
         return cleaned.length > 0 ? cleaned : (root.responseVisible ? qsTr("Input") : qsTr("Password"))
     }
 
+    function focusInput(): void {
+        if (root.interactionAvailable)
+            Qt.callLater(inputField.forceActiveFocus)
+    }
+
+    function preparePrompt(): void {
+        root.submitting = false
+        inputField.text = ""
+        root.focusInput()
+    }
+
     function cancel(): void {
         if (root.flow)
             root.flow.cancelAuthenticationRequest()
@@ -34,17 +48,17 @@ Scope {
     function submit(): void {
         if (!root.flow || !root.interactionAvailable)
             return
+        root.submitting = true
         root.flow.submit(inputField.text)
-        root.interactionAvailable = false
     }
 
     PolkitAgent {
         id: agent
 
         onAuthenticationRequestStarted: {
-            root.interactionAvailable = true
+            root.submitting = false
             inputField.text = ""
-            Qt.callLater(inputField.forceActiveFocus)
+            root.focusInput()
         }
     }
 
@@ -52,10 +66,27 @@ Scope {
         target: root.flow
         ignoreUnknownSignals: true
 
+        function onIsResponseRequiredChanged(): void {
+            if (root.flow?.isResponseRequired)
+                root.preparePrompt()
+        }
+
+        function onInputPromptChanged(): void {
+            if (root.flow?.isResponseRequired)
+                root.preparePrompt()
+        }
+
         function onAuthenticationFailed(): void {
-            root.interactionAvailable = true
+            root.preparePrompt()
+        }
+
+        function onAuthenticationSucceeded(): void {
+            root.submitting = true
+        }
+
+        function onAuthenticationRequestCancelled(): void {
+            root.submitting = false
             inputField.text = ""
-            Qt.callLater(inputField.forceActiveFocus)
         }
     }
 
@@ -64,8 +95,10 @@ Scope {
 
         function onIsActiveChanged(): void {
             if (!agent.isActive) {
-                root.interactionAvailable = false
+                root.submitting = false
                 inputField.text = ""
+            } else {
+                root.focusInput()
             }
         }
     }
@@ -160,6 +193,30 @@ Scope {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     font.pixelSize: 10
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: supplementaryText.implicitHeight + 18
+                    visible: root.supplementaryMessage.length > 0
+                    radius: 12
+                    color: root.supplementaryIsError ? "#2cff5f72" : "#16ffffff"
+                    border.width: 1
+                    border.color: root.supplementaryIsError ? "#74ff5f72" : RaohaneTheme.border
+
+                    Text {
+                        id: supplementaryText
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            verticalCenter: parent.verticalCenter
+                            margins: 9
+                        }
+                        text: root.supplementaryMessage
+                        color: root.supplementaryIsError ? "#ff9aa7" : RaohaneTheme.textMuted
+                        wrapMode: Text.Wrap
+                        font.pixelSize: 9
+                    }
                 }
 
                 Text {
