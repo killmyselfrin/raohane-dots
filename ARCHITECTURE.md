@@ -1,6 +1,6 @@
 # Raohane architecture
 
-Raohane is a Hyprland + Quickshell shell with a Raohane-owned production runtime. Historical end4-pC / illogical-impulse code may still remain in the source checkout as temporary rollback/reference material, but it is not part of the installed QML graph.
+Raohane is a standalone Hyprland + Quickshell shell with a Raohane-owned production and source runtime graph. Historical end4-pC / illogical-impulse code is no longer part of the active source tree; retained provenance/license notices document derivative history where required.
 
 ## Production graph
 
@@ -18,7 +18,7 @@ Hyprland / Wayland / D-Bus / PipeWire / MPRIS / PAM / Polkit
                     shell.qml
 ```
 
-Production code must not import `modules/common`, `modules/ii`, root `services/`, `GlobalStates`, inherited `Config`, or another shell namespace.
+Production code must not import `modules/common`, `modules/ii`, root `services/`, `GlobalStates`, inherited `Config`, or another shell namespace. Those inherited source trees have been physically removed.
 
 ## Bootstrap and module boundary
 
@@ -30,7 +30,7 @@ The root `qmldir` exports only:
 module qs
 ```
 
-`modules/raohane/qmldir` contains Raohane UI/state types. `modules/raohane/services/qmldir` contains native service singletons. `modules/raohane/config/qmldir` owns paths and persistent configuration.
+`modules/` contains only `modules/raohane`. `panelFamilies/` contains only `RaohaneFamily.qml`. `modules/raohane/qmldir` contains Raohane UI/state types, `modules/raohane/services/qmldir` contains native service singletons, and `modules/raohane/config/qmldir` owns paths and persistent configuration.
 
 ## Persistent state
 
@@ -40,9 +40,11 @@ Raohane owns schema v10 in:
 ~/.config/raohane/native.json
 ```
 
-`RaohaneConfig.qml` owns serialization, reload and validation boundaries. The installer seeds `defaults/native.json` and can migrate the directly supported subset of an older configuration through `scripts/migrate-legacy-config.py`.
+`RaohaneConfig.qml` owns runtime serialization and reload behavior. The installer seeds `defaults/native.json`. During upgrades, `scripts/prune-runtime.sh` deep-merges an older native document with current defaults before Quickshell starts, preserving existing values and forward-compatible unknown keys while moving the schema to v10.
 
-Ephemeral UI state belongs to `RaohaneState.qml` and is never stored in the old `GlobalStates.qml` runtime.
+The optional `scripts/migrate-legacy-config.py` exists only as an install-time importer for users explicitly migrating supported values from an older shell configuration; it is removed from the installed runtime and is not a runtime dependency.
+
+Ephemeral UI state belongs to `RaohaneState.qml` and is never stored in the retired `GlobalStates.qml` runtime.
 
 User autostart commands live in:
 
@@ -54,7 +56,7 @@ User autostart commands live in:
 
 ## Native product surfaces
 
-The active family currently owns:
+The active family owns:
 
 - background and desktop canvas;
 - horizontal and vertical bars, workspaces, tray, system state and clock;
@@ -130,9 +132,9 @@ install/arch/features.txt
 
 It does not clone end4-pC or illogical-impulse. The retired upstream synchronizer, inherited dependency bootstrap and upstream source lock files have been removed.
 
-The installer copies the checkout to the Quickshell runtime and immediately runs `scripts/prune-runtime.sh`. The installed QML graph therefore excludes source-only rollback/reference trees such as `modules/common`, `modules/ii`, root `services`, old root QML and non-Raohane panel families.
+The installer copies the checkout to the Quickshell runtime and runs `scripts/prune-runtime.sh` before startup. The pruner remains intentionally defensive so upgrades from older installed copies remove obsolete `modules/common`, `modules/ii`, root `services`, old root QML, retired panel families and source-only helper tooling even though those paths no longer exist in the current source tree.
 
-`raohane run` repeats this integrity guard before starting Quickshell so an older installed copy can self-heal after an upgrade.
+The same maintenance path also normalizes an existing native config to the current schema before the shell starts.
 
 ## Diagnostics
 
@@ -158,16 +160,24 @@ raohane doctor runtime
 
 `raohane doctor runtime` is the live boundary check for the user's installed copy. It is distinct from CI and verifies that the installed tree is native-only and that `native.json` is schema v10.
 
-## Source cleanup boundary
+## Standalone source boundary
 
-The installed runtime is already pruned to the standalone graph. Some historical inherited source trees remain in Git only as temporary rollback/reference material until the current native runtime passes another complete live validation cycle.
+The current source graph is native-only at the QML/runtime layer:
 
-After that validation, the remaining source copies of `modules/common`, `modules/ii`, old root `services`, inherited root QML and obsolete panel families can be removed physically. Required copyright/license notices remain where derivative code or assets still require them.
+- `modules/common` — removed;
+- `modules/ii` — removed;
+- root `services/` — removed;
+- inherited root QML (`GlobalStates.qml`, `ReloadPopup.qml`, `settings.qml`, `welcome.qml`, `killDialog.qml`) — removed;
+- old panel families/loaders — removed;
+- retired upstream helper script families and legacy default config — removed;
+- upstream synchronization/bootstrap lock scaffolding — removed.
+
+`NOTICE-UPSTREAM.md` remains for provenance and licensing. Install-time migration support may remain while it is useful, but it must never become part of the active runtime graph.
 
 ## Runtime verification boundary
 
-Static CI verifies shell syntax, native QML parsing, registrations, package contracts, persistence boundaries, installed-runtime pruning and regression guards. It cannot prove compositor/device behavior.
+Static CI verifies shell syntax, native QML parsing, registrations, package contracts, persistence boundaries, native schema upgrades, installed-runtime pruning and regression guards. It cannot prove compositor/device behavior.
 
 Release-level validation still requires a real Hyprland + Quickshell session for startup, multi-monitor behavior, fullscreen/game overlay behavior, focus/input, launcher execution, notifications, audio/display controls, networking/Bluetooth, media, Settings, wallpapers/thumbnails, capture/OCR/translation, OSK/ydotool, lock/PAM/fingerprint, Polkit, session actions and NVIDIA/AMD/Intel hardware paths.
 
-See `NOTICE-UPSTREAM.md` for provenance/licensing notes and `INDEPENDENCE-PLAN.md` for the remaining source-removal/release gates.
+See `NOTICE-UPSTREAM.md` for provenance/licensing notes and `INDEPENDENCE-PLAN.md` for remaining release validation gates.
