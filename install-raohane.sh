@@ -240,6 +240,13 @@ cat > "$HYPR_LEGACY_SNIPPET" <<'HYPR'
 # Managed by install-raohane.sh
 exec-once = systemctl --user start raohane.service
 
+# Native XKB layout switching. US stays first so Raohane's symbol-based binds
+# retain stable physical-key behavior while typing can switch between EN/RU.
+input {
+    kb_layout = us,ru
+    kb_options = grp:alt_shift_toggle
+}
+
 unbind = SUPER, Super_L
 unbind = SUPER, Super_R
 unbind = SUPER, R
@@ -299,6 +306,15 @@ HYPR
 cat > "$HYPR_LUA_SNIPPET" <<'LUA'
 -- Raohane shell integration for Hyprland 0.55+
 -- Managed by install-raohane.sh
+
+-- Native XKB layout switching. This is the Hyprland 0.55+ equivalent of the
+-- managed input block in raohane.conf and avoids modifier-only bind hacks.
+hl.config({
+    input = {
+        kb_layout = "us,ru",
+        kb_options = "grp:alt_shift_toggle",
+    },
+})
 
 hl.unbind("SUPER + SUPER_L")
 hl.unbind("SUPER + SUPER_R")
