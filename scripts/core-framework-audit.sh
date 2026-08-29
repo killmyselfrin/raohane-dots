@@ -90,7 +90,14 @@ for property_name in settingsPage wallpaperSelectorTarget; do
   rg -q "property string ${property_name}:" "$state" \
     || fail "RaohaneState missing routing property: $property_name"
 done
-rg -q 'function toggleAction\(name: string\)' "$state" || fail 'RaohaneState missing action router'
+for contract in \
+  'function primaryOpen\(name: string\): bool' \
+  'function closePrimarySurfaces\(except: string\): void' \
+  'function setPrimaryOpen\(name: string, open: bool\): void' \
+  'function togglePrimary\(name: string\): void' \
+  'function toggleAction\(name: string\)'; do
+  rg -q "$contract" "$state" || fail "RaohaneState missing action/coordinator contract: $contract"
+done
 
 rg -q '^import Quickshell\.Hyprland$' "$focus" || fail 'RaohaneFocusGrab is not bound to Hyprland'
 rg -q '\bHyprlandFocusGrab[[:space:]]*\{' "$focus" || fail 'RaohaneFocusGrab does not own HyprlandFocusGrab'
@@ -101,7 +108,7 @@ fi
 for symbol in \
   'RaohaneConfig\.barAutoHide' 'RaohaneConfig\.barScreenList' \
   'RaohaneConfig\.barShowDate' 'RaohaneState\.barOpen' \
-  'RaohaneState\.controlCenterOpen' 'RaohaneState\.screenLocked'; do
+  'RaohaneState\.togglePrimary\("controlCenter"\)' 'RaohaneState\.screenLocked'; do
   rg -q "$symbol" "$bar" || fail "RaohaneBar lost native symbol: $symbol"
 done
 if rg -n '^import qs$|^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.' "$bar"; then
@@ -116,8 +123,9 @@ for surface in "$launcher" "$settings" "$control_center"; do
 done
 
 for symbol in \
-  'RaohaneState\.controlCenterOpen' 'RaohaneNotifications\.markAllRead' \
-  'RaohaneConfig\.profileDisplayName' 'RaohaneSystemInfo\.' 'RaohaneIcon[[:space:]]*\{'; do
+  'RaohaneState\.controlCenterOpen' 'RaohaneState\.setPrimaryOpen\("controlCenter"' \
+  'RaohaneNotifications\.markAllRead' 'RaohaneConfig\.profileDisplayName' \
+  'RaohaneSystemInfo\.' 'RaohaneIcon[[:space:]]*\{'; do
   rg -q "$symbol" "$control_center" || fail "RaohaneControlCenter lost native symbol: $symbol"
 done
 if rg -n '^import qs$|^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.|\bMaterialSymbol[[:space:]]*\{' "$control_center"; then
@@ -142,6 +150,7 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|\bGlobal
 fi
 
 rg -q 'RaohaneState\.settingsOpen' "$settings" || fail 'RaohaneSettings does not own open state'
+rg -q 'RaohaneState\.setPrimaryOpen\("settings"' "$settings" || fail 'RaohaneSettings does not use primary coordinator'
 if rg -n '\bGlobalStates\.settingsOpen\b|^import qs$|^import qs\.modules\.common|\bMaterialSymbol[[:space:]]*\{' "$settings"; then
   fail 'RaohaneSettings regressed to inherited root/common/widgets'
 fi
@@ -182,4 +191,4 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+E
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost move-window workspace binds'
 
-printf 'core-framework-audit: native paths/config/state/focus/settings/composition and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus/settings/composition, primary coordinator and boot boundaries are valid\n'
