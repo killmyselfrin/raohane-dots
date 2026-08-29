@@ -24,7 +24,10 @@ Scope {
             right: true
         }
 
-        function hide(): void { RaohaneState.settingsOpen = false }
+        function hide(): void {
+            settingsSearch.clear()
+            RaohaneState.settingsOpen = false
+        }
 
         onVisibleChanged: {
             if (visible)
@@ -63,12 +66,14 @@ Scope {
             clip: true
             opacity: RaohaneState.settingsOpen ? 1 : 0
             scale: RaohaneState.settingsOpen ? 1 : 0.98
+            focus: RaohaneState.settingsOpen
 
             Behavior on opacity { NumberAnimation { duration: RaohaneTheme.animationDuration } }
             Behavior on scale { NumberAnimation { duration: RaohaneTheme.animationDuration; easing.type: Easing.OutCubic } }
 
             Item {
                 id: titleBar
+                z: 20
 
                 anchors {
                     left: parent.left
@@ -108,26 +113,17 @@ Scope {
                         }
                     }
 
-                    Rectangle {
-                        width: 30
-                        height: 30
-                        radius: 10
-                        color: closeMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+                    RaohaneSettingsSearch {
+                        id: settingsSearch
+                        Layout.preferredWidth: Math.min(320, Math.max(210, window.width * 0.31))
+                        Layout.preferredHeight: 32
+                    }
 
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "close"
-                            iconSize: 16
-                            color: closeMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
-                        }
-
-                        MouseArea {
-                            id: closeMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: panelWindow.hide()
-                        }
+                    RaohaneIconButton {
+                        buttonSize: 30
+                        iconSize: 16
+                        icon: "close"
+                        onClicked: panelWindow.hide()
                     }
                 }
 
@@ -153,8 +149,16 @@ Scope {
             }
 
             Keys.onPressed: event => {
-                if (event.key === Qt.Key_Escape) {
-                    panelWindow.hide()
+                if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
+                    settingsSearch.focusSearch()
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Escape) {
+                    if (settingsSearch.query.length > 0) {
+                        settingsSearch.clear()
+                        window.forceActiveFocus()
+                    } else {
+                        panelWindow.hide()
+                    }
                     event.accepted = true
                 }
             }
@@ -164,7 +168,12 @@ Scope {
             target: "settings"
             function toggle(): void { RaohaneState.settingsOpen = !RaohaneState.settingsOpen }
             function open(): void { RaohaneState.settingsOpen = true }
-            function close(): void { RaohaneState.settingsOpen = false }
+            function close(): void { panelWindow.hide() }
+            function status(): string { return RaohaneState.settingsOpen ? "open" : "closed" }
+            function page(page: string): void {
+                RaohaneState.settingsPage = page
+                RaohaneState.settingsOpen = true
+            }
         }
 
         CompositorGlobalShortcut {
