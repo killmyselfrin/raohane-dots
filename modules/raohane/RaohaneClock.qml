@@ -7,6 +7,7 @@ Item {
     id: root
 
     property bool showDate: true
+    property bool active: true
     property date now: new Date()
 
     implicitWidth: clockColumn.implicitWidth
@@ -15,10 +16,15 @@ Item {
     readonly property string timeText: Qt.formatTime(root.now, "HH:mm")
     readonly property string dateText: Qt.formatDate(root.now, "ddd, d MMM")
 
+    onActiveChanged: {
+        if (active)
+            root.now = new Date()
+    }
+
     Timer {
         interval: 1000
         repeat: true
-        running: true
+        running: root.active
         triggeredOnStart: true
         onTriggered: root.now = new Date()
     }
