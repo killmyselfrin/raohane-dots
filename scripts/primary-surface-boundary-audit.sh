@@ -40,6 +40,7 @@ coordinated_surfaces=(
   modules/raohane/RaohaneDesktopMenu.qml
   modules/raohane/RaohaneBar.qml
   modules/raohane/RaohaneVerticalBar.qml
+  modules/raohane/RaohaneDock.qml
 )
 for file in "${coordinated_surfaces[@]}"; do
   [[ -f "$file" ]] || fail "missing coordinated surface: $file"
