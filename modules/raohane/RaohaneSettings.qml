@@ -9,6 +9,7 @@ Scope {
 
     PanelWindow {
         id: panelWindow
+
         visible: RaohaneState.settingsOpen
         exclusiveZone: 0
         color: "transparent"
@@ -39,9 +40,9 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            color: "#6608070d"
+            color: "#72000000"
             opacity: RaohaneState.settingsOpen ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 180 } }
+            Behavior on opacity { NumberAnimation { duration: RaohaneTheme.animationDuration } }
 
             MouseArea {
                 anchors.fill: parent
@@ -51,128 +52,73 @@ Scope {
 
         Rectangle {
             id: window
-            width: Math.min(parent.width - 70, 1120)
-            height: Math.min(parent.height - 70, 760)
+
+            width: Math.min(parent.width - 72, 1080)
+            height: Math.min(parent.height - 72, 720)
             anchors.centerIn: parent
-            radius: 28
-            color: RaohaneTheme.glassStrong
+            radius: RaohaneTheme.radiusLarge
+            color: RaohaneTheme.surfaceRaised
             border.width: 1
             border.color: RaohaneTheme.border
             clip: true
             opacity: RaohaneState.settingsOpen ? 1 : 0
-            scale: RaohaneState.settingsOpen ? 1 : 0.965
+            scale: RaohaneState.settingsOpen ? 1 : 0.98
 
-            Behavior on opacity { NumberAnimation { duration: 190; easing.type: Easing.OutCubic } }
-            Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
+            Behavior on opacity { NumberAnimation { duration: RaohaneTheme.animationDuration } }
+            Behavior on scale { NumberAnimation { duration: RaohaneTheme.animationDuration; easing.type: Easing.OutCubic } }
 
-            Rectangle {
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    bottom: parent.bottom
-                }
-                width: 4
-                color: RaohaneTheme.accent
-                opacity: 0.82
-            }
+            Item {
+                id: titleBar
 
-            Rectangle {
                 anchors {
                     left: parent.left
                     right: parent.right
                     top: parent.top
                 }
-                height: 54
-                color: "#d216141f"
+                height: 50
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 20
-                    anchors.rightMargin: 14
-                    spacing: 12
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 12
+                    spacing: 10
+
+                    Text {
+                        text: "ラ"
+                        color: RaohaneTheme.accent
+                        font.pixelSize: 14
+                        font.weight: Font.Bold
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: -2
+
+                        Text {
+                            text: qsTr("Settings")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 12
+                            font.weight: Font.DemiBold
+                        }
+
+                        Text {
+                            text: "設定 · native.json"
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
+                        }
+                    }
 
                     Rectangle {
                         width: 30
                         height: 30
                         radius: 10
-                        color: RaohaneTheme.accentSoft
-                        border.width: 1
-                        border.color: RaohaneTheme.border
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "ラ"
-                            color: RaohaneTheme.accent
-                            font.pixelSize: 15
-                            font.weight: Font.Bold
-                        }
-                    }
-
-                    Column {
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: -1
-
-                        Text {
-                            text: "RAOHANE SETTINGS"
-                            color: RaohaneTheme.text
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: 1.2
-                        }
-
-                        Text {
-                            text: "設定  /  Hyprland shell control"
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
-                            font.letterSpacing: 0.6
-                        }
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    Rectangle {
-                        width: stateText.implicitWidth + 20
-                        height: 28
-                        radius: 14
-                        color: "#8f201b2b"
-                        border.width: 1
-                        border.color: RaohaneTheme.border
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 7
-
-                            Rectangle {
-                                width: 6
-                                height: 6
-                                radius: 3
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: RaohaneTheme.accent
-                            }
-
-                            Text {
-                                id: stateText
-                                text: "LIVE CONFIG"
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
-                                font.letterSpacing: 0.8
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        width: 32
-                        height: 32
-                        radius: 11
-                        color: closeMouse.containsMouse ? RaohaneTheme.accentSoft : "#6f201d29"
-                        border.width: 1
-                        border.color: closeMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+                        color: closeMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: "close"
-                            iconSize: 18
-                            color: RaohaneTheme.text
+                            iconSize: 16
+                            color: closeMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
                         }
 
                         MouseArea {
@@ -184,28 +130,25 @@ Scope {
                         }
                     }
                 }
+
+                Rectangle {
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        bottom: parent.bottom
+                    }
+                    height: 1
+                    color: "#14ffffff"
+                }
             }
 
-            Rectangle {
+            RaohaneSettingsContent {
                 anchors {
                     left: parent.left
                     right: parent.right
-                    top: parent.top
+                    top: titleBar.bottom
                     bottom: parent.bottom
-                    leftMargin: 10
-                    rightMargin: 10
-                    topMargin: 64
-                    bottomMargin: 10
-                }
-                radius: 22
-                color: "#b3121019"
-                border.width: 1
-                border.color: "#25ffffff"
-                clip: true
-
-                RaohaneSettingsContent {
-                    anchors.fill: parent
-                    anchors.margins: 8
+                    margins: 8
                 }
             }
 
