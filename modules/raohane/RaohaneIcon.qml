@@ -1,7 +1,7 @@
 import QtQuick
 
-// Raohane-owned Material Symbols wrapper. Keep native surfaces independent
-// from modules/common/widgets while retaining the standard ligature API.
+// Raohane-owned Material Symbols wrapper with a stable ligature API for
+// native shell surfaces.
 Text {
     id: root
 
