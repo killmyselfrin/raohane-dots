@@ -29,6 +29,7 @@ required_root=(
   scripts/runtime-surface-boundary-audit.sh
   scripts/phase4-visible-runtime-audit.sh
   scripts/phase4-live-check.sh
+  scripts/multimonitor-boundary-audit.sh
   scripts/install-deps.sh
   scripts/migrate-legacy-config.py
   scripts/screen-translate.sh
@@ -207,6 +208,7 @@ bash -n scripts/raohane-audit.sh
 bash -n scripts/runtime-surface-boundary-audit.sh
 bash -n scripts/phase4-visible-runtime-audit.sh
 bash -n scripts/phase4-live-check.sh
+bash -n scripts/multimonitor-boundary-audit.sh
 bash -n scripts/install-deps.sh
 bash -n scripts/screen-translate.sh
 bash -n scripts/region-ocr.sh
@@ -215,5 +217,6 @@ bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
 bash scripts/phase4-visible-runtime-audit.sh
+bash scripts/multimonitor-boundary-audit.sh
 
-printf 'raohane-audit: native bootstrap, Phase 4 runtime contract, capture backends, native config/autostart release boundary and installation graph are valid\n'
+printf 'raohane-audit: native bootstrap, Phase 4 runtime contract, multi-monitor focused overlays, capture backends, native config/autostart release boundary and installation graph are valid\n'
