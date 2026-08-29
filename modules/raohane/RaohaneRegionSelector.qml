@@ -12,11 +12,16 @@ Scope {
 
     property bool busy: false
 
+    function prepareCapture(): void {
+        RaohaneState.closePrimarySurfaces("")
+        RaohaneState.regionSelectorOpen = false
+    }
+
     function runBackend(scriptName: string): void {
         if (root.busy)
             return
         root.busy = true
-        RaohaneState.regionSelectorOpen = false
+        root.prepareCapture()
         Quickshell.execDetached([
             "bash",
             Quickshell.shellPath("scripts/" + scriptName)
@@ -28,7 +33,7 @@ Scope {
         if (root.busy)
             return
         root.busy = true
-        RaohaneState.regionSelectorOpen = false
+        root.prepareCapture()
         Quickshell.execDetached([
             "bash", "-lc",
             "geometry=\"$(slurp 2>/dev/null)\" || exit 0; "
@@ -51,7 +56,7 @@ Scope {
         if (root.busy)
             return
         root.busy = true
-        RaohaneState.regionSelectorOpen = false
+        root.prepareCapture()
         const script = RaohanePaths.join(RaohanePaths.scriptsPath, "videos/record.sh")
         if (sound)
             Quickshell.execDetached([script, "--sound"])
