@@ -10,8 +10,6 @@ import Quickshell.Hyprland
 
 import qs.modules.raohane.config
 
-// Raohane-owned shell chrome. Workspaces, tray, status, clock, configuration
-// and runtime state are all native and resolve only Raohane-owned contracts.
 Scope {
     id: root
 
@@ -31,7 +29,7 @@ Scope {
             screen: modelData
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
-            implicitHeight: 64
+            implicitHeight: 56
 
             property bool superShow: false
             readonly property bool autoHide: RaohaneConfig.barAutoHide
@@ -70,7 +68,6 @@ Scope {
 
             Connections {
                 target: RaohaneState
-
                 function onSuperDownChanged(): void {
                     if (!RaohaneConfig.barShowOnSuper)
                         return
@@ -93,15 +90,11 @@ Scope {
             Item {
                 id: barContent
                 width: parent.width
-                height: 54
+                height: 48
                 y: {
                     if (barWindow.mustShow)
-                        return RaohaneConfig.barBottom
-                            ? barWindow.height - height - 5
-                            : 5
-                    return RaohaneConfig.barBottom
-                        ? barWindow.height + 2
-                        : -height - 2
+                        return RaohaneConfig.barBottom ? barWindow.height - height - 4 : 4
+                    return RaohaneConfig.barBottom ? barWindow.height + 2 : -height - 2
                 }
 
                 Behavior on y {
@@ -115,13 +108,13 @@ Scope {
                     id: leftIsland
                     anchors {
                         left: parent.left
-                        leftMargin: 14
+                        leftMargin: 10
                         verticalCenter: parent.verticalCenter
                     }
-                    width: Math.min(parent.width * 0.38, leftRow.implicitWidth + 20)
+                    width: Math.min(parent.width * 0.38, leftRow.implicitWidth + 16)
                     height: RaohaneTheme.barHeight
                     radius: RaohaneTheme.radius
-                    color: RaohaneTheme.glass
+                    color: RaohaneTheme.surface
                     border.width: 1
                     border.color: RaohaneTheme.border
 
@@ -129,24 +122,22 @@ Scope {
                         id: leftRow
                         anchors {
                             fill: parent
-                            leftMargin: 8
-                            rightMargin: 8
+                            leftMargin: 6
+                            rightMargin: 7
                         }
-                        spacing: 6
+                        spacing: 5
 
                         Rectangle {
-                            width: 30
-                            height: 30
-                            radius: 11
-                            color: launcherMouse.containsMouse
-                                ? RaohaneTheme.accentSoft
-                                : "transparent"
+                            width: 28
+                            height: 28
+                            radius: 9
+                            color: launcherMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "ラ"
                                 color: RaohaneTheme.accent
-                                font.pixelSize: 15
+                                font.pixelSize: 13
                                 font.weight: Font.Bold
                             }
 
@@ -164,8 +155,8 @@ Scope {
 
                         Rectangle {
                             width: 1
-                            Layout.preferredHeight: 22
-                            color: RaohaneTheme.border
+                            Layout.preferredHeight: 18
+                            color: "#18ffffff"
                         }
 
                         RaohaneWorkspaces {
@@ -196,13 +187,13 @@ Scope {
                     id: rightIsland
                     anchors {
                         right: parent.right
-                        rightMargin: 14
+                        rightMargin: 10
                         verticalCenter: parent.verticalCenter
                     }
-                    width: Math.min(parent.width * 0.38, Math.max(190, rightRow.implicitWidth + 22))
+                    width: Math.min(parent.width * 0.38, Math.max(176, rightRow.implicitWidth + 18))
                     height: RaohaneTheme.barHeight
                     radius: RaohaneTheme.radius
-                    color: RaohaneTheme.glass
+                    color: RaohaneTheme.surface
                     border.width: 1
                     border.color: RaohaneTheme.border
 
@@ -210,10 +201,10 @@ Scope {
                         id: rightRow
                         anchors {
                             fill: parent
-                            leftMargin: 9
-                            rightMargin: 9
+                            leftMargin: 7
+                            rightMargin: 6
                         }
-                        spacing: 8
+                        spacing: 6
 
                         RaohaneSysTray {
                             Layout.alignment: Qt.AlignVCenter
@@ -227,8 +218,8 @@ Scope {
 
                         Rectangle {
                             width: 1
-                            Layout.preferredHeight: 22
-                            color: RaohaneTheme.border
+                            Layout.preferredHeight: 18
+                            color: "#18ffffff"
                         }
 
                         RaohaneClock {
@@ -238,18 +229,16 @@ Scope {
                         }
 
                         Rectangle {
-                            width: 30
-                            height: 30
-                            radius: 11
-                            color: controlMouse.containsMouse
-                                ? RaohaneTheme.accentSoft
-                                : "transparent"
+                            width: 28
+                            height: 28
+                            radius: 9
+                            color: controlMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "tune"
-                                iconSize: 17
-                                color: RaohaneTheme.text
+                                iconSize: 15
+                                color: controlMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
                             }
 
                             MouseArea {
@@ -268,18 +257,9 @@ Scope {
 
     IpcHandler {
         target: "bar"
-
-        function toggle(): void {
-            RaohaneState.barOpen = !RaohaneState.barOpen
-        }
-
-        function open(): void {
-            RaohaneState.barOpen = true
-        }
-
-        function close(): void {
-            RaohaneState.barOpen = false
-        }
+        function toggle(): void { RaohaneState.barOpen = !RaohaneState.barOpen }
+        function open(): void { RaohaneState.barOpen = true }
+        function close(): void { RaohaneState.barOpen = false }
     }
 
     CompositorGlobalShortcut {
