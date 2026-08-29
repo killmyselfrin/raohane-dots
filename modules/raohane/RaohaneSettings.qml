@@ -31,7 +31,7 @@ Scope {
 
         function hide(): void {
             settingsSearch.clear()
-            RaohaneState.settingsOpen = false
+            RaohaneState.setPrimaryOpen("settings", false)
         }
 
         onVisibleChanged: {
@@ -171,20 +171,20 @@ Scope {
 
         IpcHandler {
             target: "settings"
-            function toggle(): void { RaohaneState.settingsOpen = !RaohaneState.settingsOpen }
-            function open(): void { RaohaneState.settingsOpen = true }
+            function toggle(): void { RaohaneState.togglePrimary("settings") }
+            function open(): void { RaohaneState.setPrimaryOpen("settings", true) }
             function close(): void { panelWindow.hide() }
             function status(): string { return RaohaneState.settingsOpen ? "open" : "closed" }
             function page(page: string): void {
                 RaohaneState.settingsPage = page
-                RaohaneState.settingsOpen = true
+                RaohaneState.setPrimaryOpen("settings", true)
             }
         }
 
         CompositorGlobalShortcut {
             name: "settingsToggle"
             description: "Toggles Raohane settings"
-            onPressed: RaohaneState.settingsOpen = !RaohaneState.settingsOpen
+            onPressed: RaohaneState.togglePrimary("settings")
         }
     }
 }
