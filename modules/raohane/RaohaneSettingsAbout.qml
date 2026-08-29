@@ -216,7 +216,7 @@ Item {
                         spacing: 3
 
                         Text {
-                            text: qsTr("Standalone migration")
+                            text: qsTr("Standalone architecture")
                             color: RaohaneTheme.text
                             font.pixelSize: 12
                             font.weight: Font.DemiBold
@@ -224,7 +224,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: qsTr("Raohane updates from its own repository. This page never clones, launches or switches to another desktop shell.")
+                            text: qsTr("Raohane owns its runtime, configuration and dependency graph. No other desktop shell repository is required to install, run or update it.")
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 9
                             wrapMode: Text.Wrap
