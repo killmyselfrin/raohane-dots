@@ -16,6 +16,9 @@ focused_surfaces=(
   modules/raohane/RaohaneSidebarLeft.qml
   modules/raohane/RaohaneMediaOverlay.qml
   modules/raohane/RaohaneOverview.qml
+  modules/raohane/RaohaneOverlay.qml
+  modules/raohane/RaohaneOnScreenKeyboard.qml
+  modules/raohane/RaohaneScreenTranslator.qml
   modules/raohane/RaohaneWallpaperSelector.qml
   modules/raohane/RaohaneSessionScreen.qml
 )
