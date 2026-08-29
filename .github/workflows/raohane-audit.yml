@@ -63,6 +63,7 @@ jobs:
           bash -n scripts/osk-boundary-audit.sh
           bash -n scripts/runtime-surface-boundary-audit.sh
           bash -n scripts/standalone-runtime-audit.sh
+          bash -n scripts/visual-boundary-audit.sh
           bash -n scripts/screen-translate.sh
           bash -n scripts/region-ocr.sh
           bash -n scripts/region-search.sh
@@ -105,6 +106,7 @@ jobs:
           bash scripts/osk-boundary-audit.sh
           bash scripts/runtime-surface-boundary-audit.sh
           bash scripts/standalone-runtime-audit.sh
+          bash scripts/visual-boundary-audit.sh
 
       - name: Validate current integration graph
         shell: bash
@@ -181,6 +183,7 @@ jobs:
             scripts/osk-boundary-audit.sh
             scripts/runtime-surface-boundary-audit.sh
             scripts/standalone-runtime-audit.sh
+            scripts/visual-boundary-audit.sh
           )
 
           for path in "${required_paths[@]}"; do
