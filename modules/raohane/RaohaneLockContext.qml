@@ -19,6 +19,20 @@ Scope {
     property bool unlockInProgress: false
     property bool showFailure: false
     property bool fingerprintsConfigured: false
+    property int fingerprintRetryCount: 0
+    readonly property int fingerprintRetryLimit: 3
+    readonly property var fingerprintNames: [
+        "left-thumb",
+        "left-index-finger",
+        "left-middle-finger",
+        "left-ring-finger",
+        "left-little-finger",
+        "right-thumb",
+        "right-index-finger",
+        "right-middle-finger",
+        "right-ring-finger",
+        "right-little-finger"
+    ]
 
     function clearText(): void {
         root.currentText = ""
@@ -30,7 +44,13 @@ Scope {
         root.clearText()
         root.unlockInProgress = false
         root.showFailure = false
+        root.fingerprintRetryCount = 0
         root.stopFingerPam()
+    }
+
+    function refreshFingerprints(): void {
+        fingerprintCheck.running = false
+        fingerprintCheck.running = true
     }
 
     function tryUnlock(): void {
@@ -67,12 +87,20 @@ Scope {
 
     Process {
         id: fingerprintCheck
-        running: true
+        running: false
         command: ["bash", "-lc", "command -v fprintd-list >/dev/null 2>&1 && fprintd-list \"$(whoami)\" || true"]
 
         stdout: StdioCollector {
             id: fingerprintOutput
-            onStreamFinished: root.fingerprintsConfigured = fingerprintOutput.text.includes("Fingerprints for user")
+            onStreamFinished: {
+                const output = fingerprintOutput.text
+                root.fingerprintsConfigured = root.fingerprintNames.some(name => output.includes(name))
+            }
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            if (RaohaneState.screenLocked && root.fingerprintsConfigured)
+                root.tryFingerUnlock()
         }
     }
 
@@ -107,9 +135,13 @@ Scope {
         onCompleted: result => {
             if (result === PamResult.Success) {
                 root.unlocked()
-            } else if (result === PamResult.Error && RaohaneState.screenLocked) {
-                // fprintd can time out while the lock screen stays active. A new
-                // PAM transaction is cheaper and safer than keeping stale state.
+            } else if (result === PamResult.Error
+                    && RaohaneState.screenLocked
+                    && root.fingerprintsConfigured
+                    && root.fingerprintRetryCount + 1 < root.fingerprintRetryLimit) {
+                // Retry a small number of transient fprintd/PAM errors. An
+                // unavailable reader must never create an unbounded retry loop.
+                root.fingerprintRetryCount += 1
                 fingerRetry.restart()
             }
         }
@@ -121,4 +153,6 @@ Scope {
         repeat: false
         onTriggered: root.tryFingerUnlock()
     }
+
+    Component.onCompleted: root.refreshFingerprints()
 }
