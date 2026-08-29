@@ -117,7 +117,7 @@ done
 
 for symbol in \
   'RaohaneState\.controlCenterOpen' 'RaohaneNotifications\.markAllRead' \
-  'RaohaneConfig\.wallpaperPath' 'RaohaneSystemInfo\.' 'RaohaneIcon[[:space:]]*\{'; do
+  'RaohaneConfig\.profileDisplayName' 'RaohaneSystemInfo\.' 'RaohaneIcon[[:space:]]*\{'; do
   rg -q "$symbol" "$control_center" || fail "RaohaneControlCenter lost native symbol: $symbol"
 done
 if rg -n '^import qs$|^import qs\.modules\.common|\bConfig\.|\bGlobalStates\.|\bMaterialSymbol[[:space:]]*\{' "$control_center"; then
