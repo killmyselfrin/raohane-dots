@@ -143,16 +143,16 @@ check_cmd() {
   local level="${3:-required}"
 
   if command -v "$command_name" >/dev/null 2>&1; then
-    printf '  [ok] %-16s %s\n' "$command_name" "$(command -v "$command_name")"
+    printf '  [ok] %-20s %s\n' "$command_name" "$(command -v "$command_name")"
     return 0
   fi
 
   if [[ "$level" == "optional" ]]; then
-    printf '  [--] %-16s optional%s\n' "$command_name" "${package_hint:+ ($package_hint)}"
+    printf '  [--] %-20s optional%s\n' "$command_name" "${package_hint:+ ($package_hint)}"
     return 0
   fi
 
-  printf '  [!!] %-16s missing%s\n' "$command_name" "${package_hint:+ ($package_hint)}"
+  printf '  [!!] %-20s missing%s\n' "$command_name" "${package_hint:+ ($package_hint)}"
   return 1
 }
 
@@ -181,20 +181,28 @@ print_command_report() {
   check_cmd wpctl wireplumber || check_cmd pactl libpulse || failures=$((failures + 1))
 
   echo
-  echo 'Feature commands'
+  echo 'Native feature backends'
   check_cmd bluetoothctl bluez-utils optional
+  check_cmd blueman-manager blueman optional
+  check_cmd nm-connection-editor network-manager-applet optional
   check_cmd brightnessctl brightnessctl optional
   check_cmd ddcutil ddcutil optional
+  check_cmd hyprsunset hyprsunset optional
   check_cmd grim grim optional
   check_cmd slurp slurp optional
   check_cmd wf-recorder wf-recorder optional
   check_cmd wl-copy wl-clipboard optional
   check_cmd cliphist cliphist optional
-  check_cmd cava cava optional
-  check_cmd ffplay ffmpeg optional
+  check_cmd ffmpeg ffmpeg optional
+  check_cmd magick imagemagick optional
   check_cmd notify-send libnotify optional
   check_cmd tesseract tesseract optional
   check_cmd trans translate-shell optional
+  check_cmd ydotool ydotool optional
+  check_cmd ydotoold ydotool optional
+  check_cmd qalc libqalculate optional
+  check_cmd easyeffects easyeffects optional
+  check_cmd fprintd-list fprintd optional
 
   return "$failures"
 }
@@ -220,7 +228,7 @@ print_dependency_report() {
     echo 'Dependency issues were detected.'
     return 1
   fi
-  echo 'Raohane dependency manifest and required runtime commands look available.'
+  echo 'Raohane dependency manifest and native backend commands look available.'
 }
 
 print_runtime_integrity() {
