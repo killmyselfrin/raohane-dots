@@ -34,6 +34,7 @@ required_root=(
   scripts/primary-surface-boundary-audit.sh
   scripts/privacy-performance-audit.sh
   scripts/sidebar-performance-audit.sh
+  scripts/bluetooth-performance-audit.sh
   scripts/keyboard-layout-boundary-audit.sh
   scripts/install-deps.sh
   scripts/migrate-legacy-config.py
@@ -218,6 +219,7 @@ bash -n scripts/fullscreen-boundary-audit.sh
 bash -n scripts/primary-surface-boundary-audit.sh
 bash -n scripts/privacy-performance-audit.sh
 bash -n scripts/sidebar-performance-audit.sh
+bash -n scripts/bluetooth-performance-audit.sh
 bash -n scripts/keyboard-layout-boundary-audit.sh
 bash -n scripts/install-deps.sh
 bash -n scripts/screen-translate.sh
@@ -232,6 +234,7 @@ bash scripts/fullscreen-boundary-audit.sh
 bash scripts/primary-surface-boundary-audit.sh
 bash scripts/privacy-performance-audit.sh
 bash scripts/sidebar-performance-audit.sh
+bash scripts/bluetooth-performance-audit.sh
 bash scripts/keyboard-layout-boundary-audit.sh
 
-printf 'raohane-audit: native bootstrap, Phase 4 runtime contract, coordinated surfaces, multi-monitor/fullscreen behavior, event-driven privacy, idle sidebar timing, EN/RU input switching, capture backends and native release boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, Phase 4 runtime contract, coordinated surfaces, multi-monitor/fullscreen behavior, event-driven privacy/Bluetooth, idle sidebar timing, EN/RU input switching, capture backends and native release boundaries are valid\n'
