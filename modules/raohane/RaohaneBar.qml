@@ -146,10 +146,7 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    RaohaneState.overviewOpen = false
-                                    RaohaneState.launcherOpen = !RaohaneState.launcherOpen
-                                }
+                                onClicked: RaohaneState.togglePrimary("launcher")
                             }
                         }
 
@@ -178,7 +175,7 @@ Scope {
                             if (RaohaneContext.mode === "media")
                                 RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
                             else
-                                RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
+                                RaohaneState.togglePrimary("controlCenter")
                         }
                     }
                 }
@@ -213,7 +210,7 @@ Scope {
 
                         RaohaneSystemIcons {
                             Layout.alignment: Qt.AlignVCenter
-                            onActivated: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
+                            onActivated: RaohaneState.togglePrimary("controlCenter")
                         }
 
                         Rectangle {
@@ -246,7 +243,7 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: RaohaneState.controlCenterOpen = !RaohaneState.controlCenterOpen
+                                onClicked: RaohaneState.togglePrimary("controlCenter")
                             }
                         }
                     }
