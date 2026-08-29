@@ -19,6 +19,17 @@ Scope {
         RaohaneState.oskOpen = false
     }
 
+    Connections {
+        target: RaohaneState
+
+        function onScreenLockedChanged(): void {
+            if (!RaohaneState.screenLocked)
+                return
+            RaohaneYdotool.releaseAllKeys()
+            root.close()
+        }
+    }
+
     Loader {
         id: oskLoader
         active: RaohaneState.oskOpen
