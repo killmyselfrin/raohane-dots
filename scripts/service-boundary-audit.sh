@@ -177,6 +177,7 @@ done
 
 # Doctor must report the same native feature backends that the product invokes.
 for probe in \
+  'check_cmd pw-mon pipewire' \
   'check_cmd bluetoothctl bluez-utils optional' \
   'check_cmd blueman-manager blueman optional' \
   'check_cmd nm-connection-editor network-manager-applet optional' \
