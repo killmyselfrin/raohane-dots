@@ -19,6 +19,7 @@ required=(
   modules/raohane/services
   scripts/raohane
   scripts/prune-runtime.sh
+  scripts/phase4-live-check.sh
 )
 for path in "${required[@]}"; do
   [[ -e "$path" ]] || fail "missing native runtime path: $path"
@@ -120,7 +121,7 @@ cp shell.qml qmldir "$tmp_runtime/"
 cp -a modules/raohane "$tmp_runtime/modules/"
 cp panelFamilies/RaohaneFamily.qml "$tmp_runtime/panelFamilies/"
 cp defaults/native.json "$tmp_runtime/defaults/native.json"
-cp scripts/install-deps.sh scripts/prune-runtime.sh scripts/autostart.sh "$tmp_runtime/scripts/"
+cp scripts/install-deps.sh scripts/prune-runtime.sh scripts/autostart.sh scripts/phase4-live-check.sh "$tmp_runtime/scripts/"
 mkdir -p "$tmp_runtime/modules/common" "$tmp_runtime/modules/ii"
 for name in "${retired_script_dirs[@]}"; do
   mkdir -p "$tmp_runtime/scripts/$name"
@@ -155,6 +156,9 @@ touch \
   "$tmp_runtime/scripts/raohane" \
   "$tmp_runtime/scripts/raohane-audit.sh" \
   "$tmp_runtime/scripts/standalone-runtime-audit.sh" \
+  "$tmp_runtime/scripts/core-framework-audit.sh" \
+  "$tmp_runtime/scripts/core-framework-phase3-audit.sh" \
+  "$tmp_runtime/scripts/phase4-visible-runtime-audit.sh" \
   "$tmp_runtime/scripts/fake-boundary-audit.sh"
 
 XDG_CONFIG_HOME="$tmp_config" bash scripts/prune-runtime.sh "$tmp_runtime" >/dev/null
@@ -190,12 +194,18 @@ for retired in \
   "$tmp_runtime/scripts/raohane" \
   "$tmp_runtime/scripts/raohane-audit.sh" \
   "$tmp_runtime/scripts/standalone-runtime-audit.sh" \
+  "$tmp_runtime/scripts/core-framework-audit.sh" \
+  "$tmp_runtime/scripts/core-framework-phase3-audit.sh" \
+  "$tmp_runtime/scripts/phase4-visible-runtime-audit.sh" \
   "$tmp_runtime/scripts/fake-boundary-audit.sh"; do
   [[ ! -e "$retired" ]] || fail "pruner left retired/source-only installed path: $retired"
 done
 for name in "${retired_script_dirs[@]}"; do
   [[ ! -e "$tmp_runtime/scripts/$name" ]] || fail "pruner left retired installed script tree: scripts/$name"
 done
+if find "$tmp_runtime/scripts" -mindepth 1 -maxdepth 1 -type f -name '*-audit.sh' -print -quit | grep -q .; then
+  fail 'pruner left a source-only audit in the installed runtime'
+fi
 
 for preserved in \
   "$tmp_runtime/modules/raohane" \
@@ -204,7 +214,8 @@ for preserved in \
   "$tmp_runtime/defaults/native.json" \
   "$tmp_runtime/scripts/install-deps.sh" \
   "$tmp_runtime/scripts/prune-runtime.sh" \
-  "$tmp_runtime/scripts/autostart.sh"; do
+  "$tmp_runtime/scripts/autostart.sh" \
+  "$tmp_runtime/scripts/phase4-live-check.sh"; do
   [[ -e "$preserved" ]] || fail "pruner removed required native path: $preserved"
 done
 
@@ -212,4 +223,4 @@ done
 root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
-printf 'standalone-runtime-audit: source/runtime are native-only and v9 settings upgrade safely to schema v10\n'
+printf 'standalone-runtime-audit: source/runtime are native-only, live validator is retained and v9 settings upgrade safely to schema v10\n'
