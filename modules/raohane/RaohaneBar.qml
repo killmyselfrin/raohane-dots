@@ -29,7 +29,6 @@ Scope {
             required property ShellScreen modelData
 
             screen: modelData
-            visible: RaohaneState.barOpen && !RaohaneState.screenLocked
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             implicitHeight: 64
@@ -40,13 +39,18 @@ Scope {
             readonly property var hyprMonitor: Hyprland.monitorFor(barWindow.screen)
             readonly property bool monitorHasFullscreen: hyprMonitor?.activeWorkspace?.hasFullscreen ?? false
             readonly property bool monitorHasSpecialOpen: (hyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
+            readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
+            readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
 
-            exclusiveZone: (autoHide && (!mustShow || !RaohaneConfig.barAutoHidePushWindows))
+            visible: RaohaneState.barOpen && !RaohaneState.screenLocked && !fullscreenSuppressed
+            exclusiveZone: fullscreenSuppressed
                 ? 0
-                : implicitHeight
+                : (autoHide && (!mustShow || !RaohaneConfig.barAutoHidePushWindows))
+                    ? 0
+                    : implicitHeight
 
             WlrLayershell.namespace: "quickshell:raohane-bar"
-            WlrLayershell.layer: (monitorHasFullscreen && monitorHasSpecialOpen)
+            WlrLayershell.layer: (monitorHasFullscreen && (monitorHasSpecialOpen || superShow))
                 ? WlrLayer.Overlay
                 : WlrLayer.Top
 
