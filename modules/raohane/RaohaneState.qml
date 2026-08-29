@@ -30,44 +30,106 @@ QtObject {
     property real desktopMenuX: 0
     property real desktopMenuY: 0
 
+    function primaryOpen(name: string): bool {
+        switch (name) {
+        case "launcher": return launcherOpen
+        case "wallpaper": return wallpaperSelectorOpen
+        case "overview": return overviewOpen
+        case "controlCenter": return controlCenterOpen
+        case "leftSidebar": return leftSidebarOpen
+        case "overlay": return overlayOpen
+        case "screenTranslator": return screenTranslatorOpen
+        case "settings": return settingsOpen
+        case "session": return sessionOpen
+        case "desktopMenu": return desktopMenuOpen
+        default: return false
+        }
+    }
+
+    function closePrimarySurfaces(except: string): void {
+        if (except !== "launcher") launcherOpen = false
+        if (except !== "wallpaper") wallpaperSelectorOpen = false
+        if (except !== "overview") overviewOpen = false
+        if (except !== "controlCenter") controlCenterOpen = false
+        if (except !== "leftSidebar") leftSidebarOpen = false
+        if (except !== "overlay") overlayOpen = false
+        if (except !== "screenTranslator") screenTranslatorOpen = false
+        if (except !== "settings") settingsOpen = false
+        if (except !== "session") sessionOpen = false
+        if (except !== "desktopMenu") desktopMenuOpen = false
+    }
+
+    function setPrimaryOpen(name: string, open: bool): void {
+        if (open)
+            closePrimarySurfaces(name)
+
+        switch (name) {
+        case "launcher": launcherOpen = open; break
+        case "wallpaper": wallpaperSelectorOpen = open; break
+        case "overview": overviewOpen = open; break
+        case "controlCenter": controlCenterOpen = open; break
+        case "leftSidebar": leftSidebarOpen = open; break
+        case "overlay": overlayOpen = open; break
+        case "screenTranslator": screenTranslatorOpen = open; break
+        case "settings": settingsOpen = open; break
+        case "session": sessionOpen = open; break
+        case "desktopMenu": desktopMenuOpen = open; break
+        default:
+            console.warn("[RaohaneState] Unknown primary surface:", name)
+            break
+        }
+    }
+
+    function togglePrimary(name: string): void {
+        const nextOpen = !primaryOpen(name)
+        if (nextOpen)
+            setPrimaryOpen(name, true)
+        else
+            setPrimaryOpen(name, false)
+    }
+
     function toggleAction(name: string): void {
         if (!name || name === "none")
             return
 
         switch (name) {
         case "sidebarLeftOpen":
-            leftSidebarOpen = !leftSidebarOpen
+            togglePrimary("leftSidebar")
             break
         case "sidebarRightOpen":
-            controlCenterOpen = !controlCenterOpen
+            togglePrimary("controlCenter")
             break
         case "overviewOpen":
-            overviewOpen = !overviewOpen
+            togglePrimary("overview")
             break
         case "wallpaperSelectorOpen":
-            wallpaperSelectorOpen = !wallpaperSelectorOpen
+            togglePrimary("wallpaper")
             break
         case "mediaOverlayOpen":
         case "mediaControlsOpen": // v10 config compatibility alias
             mediaOverlayOpen = !mediaOverlayOpen
             break
         case "overlayOpen":
-            overlayOpen = !overlayOpen
+            togglePrimary("overlay")
             break
-        case "regionSelectorOpen":
-            regionSelectorOpen = !regionSelectorOpen
+        case "regionSelectorOpen": {
+            const opening = !regionSelectorOpen
+            if (opening)
+                closePrimarySurfaces("")
+            regionSelectorOpen = opening
             break
+        }
         case "screenTranslatorOpen":
-            screenTranslatorOpen = !screenTranslatorOpen
+            togglePrimary("screenTranslator")
             break
         case "oskOpen":
             oskOpen = !oskOpen
             break
         case "sessionOpen":
-            sessionOpen = !sessionOpen
+            togglePrimary("session")
             break
         case "desktopMenuOpen":
-            desktopMenuOpen = !desktopMenuOpen
+            togglePrimary("desktopMenu")
             break
         default:
             console.warn("[RaohaneState] Unknown transient action:", name)
@@ -76,19 +138,10 @@ QtObject {
     }
 
     function closeTransientSurfaces(): void {
-        launcherOpen = false
+        closePrimarySurfaces("")
         mediaOverlayOpen = false
-        wallpaperSelectorOpen = false
-        overviewOpen = false
-        controlCenterOpen = false
-        leftSidebarOpen = false
-        overlayOpen = false
         regionSelectorOpen = false
-        screenTranslatorOpen = false
         oskOpen = false
-        settingsOpen = false
-        sessionOpen = false
         osdOpen = false
-        desktopMenuOpen = false
     }
 }
