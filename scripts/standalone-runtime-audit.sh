@@ -12,7 +12,12 @@ fail() {
 required=(
   shell.qml
   qmldir
+  VERSION
+  assets
+  translations
   install-raohane.sh
+  install/arch/required.txt
+  install/arch/features.txt
   panelFamilies/RaohaneFamily.qml
   modules/raohane
   modules/raohane/config
@@ -82,10 +87,37 @@ if rg -n \
   fail 'family composition can still instantiate an inherited presentation type'
 fi
 
+# Fresh installation must stage an explicit standalone payload. Never copy the
+# source checkout wholesale into ~/.config/quickshell/raohane and prune it later.
+if rg -n 'cp[[:space:]]+-a[[:space:]]+"\$ROOT"/\.[[:space:]]+"\$RUNTIME"/?' install-raohane.sh; then
+  fail 'installer regressed to copying the whole source checkout into runtime'
+fi
+
+staged_contracts=(
+  'cp -a "\$ROOT/shell\.qml" "\$ROOT/qmldir" "\$ROOT/VERSION" "\$RUNTIME/"'
+  'cp -a "\$ROOT/modules/raohane" "\$RUNTIME/modules/"'
+  'cp -a "\$ROOT/panelFamilies/RaohaneFamily\.qml" "\$RUNTIME/panelFamilies/"'
+  'cp -a "\$ROOT/defaults/native\.json" "\$RUNTIME/defaults/"'
+  'cp -a "\$ROOT/install/arch" "\$RUNTIME/install/"'
+  'cp -a "\$ROOT/assets" "\$RUNTIME/"'
+  'cp -a "\$ROOT/translations" "\$RUNTIME/"'
+  'cp -a "\$ROOT/scripts" "\$RUNTIME/"'
+)
+for contract in "${staged_contracts[@]}"; do
+  rg -q "$contract" install-raohane.sh \
+    || fail "installer lost explicit runtime staging contract: $contract"
+done
+
+for source_only in docs patches .github AGENTS.md ARCHITECTURE.md INDEPENDENCE-PLAN.md; do
+  if rg -n "cp[[:space:]]+-a.*\\\$ROOT/${source_only}([[:space:]]|\\\")" install-raohane.sh; then
+    fail "installer stages source-only path into runtime: $source_only"
+  fi
+done
+
 rg -q '"scripts/prune-runtime\.sh"' install-raohane.sh \
   || fail 'installer does not require the runtime pruner'
 rg -q 'bash "\$ROOT/scripts/prune-runtime\.sh" "\$RUNTIME"' install-raohane.sh \
-  || fail 'installer does not prune/normalize the copied runtime before startup'
+  || fail 'installer does not prune/normalize the staged runtime before startup'
 rg -q '^prune_runtime_if_needed\(\)' scripts/raohane \
   || fail 'Raohane CLI does not define installed-runtime pruning'
 rg -q '^[[:space:]]*prune_runtime_if_needed$' scripts/raohane \
@@ -223,4 +255,4 @@ done
 root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.qml' -printf '.' | wc -c)"
 [[ "$root_qml_count" -eq 1 ]] || fail "pruned runtime still has $root_qml_count root QML files"
 
-printf 'standalone-runtime-audit: source/runtime are native-only, live validator is retained and v9 settings upgrade safely to schema v10\n'
+printf 'standalone-runtime-audit: source/runtime are native-only, installer stages an explicit payload, live validator is retained and v9 settings upgrade safely to schema v10\n'
