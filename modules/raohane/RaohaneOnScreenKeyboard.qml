@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Wayland
 
 import qs.modules.raohane.config
@@ -12,6 +13,8 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
+    readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
+        ?? Quickshell.screens[0]
     readonly property bool pinned: RaohaneConfig.oskPinned
     readonly property string layoutName: RaohaneConfig.oskLayout
 
@@ -43,6 +46,7 @@ Scope {
             id: oskWindow
 
             visible: oskLoader.active && !RaohaneState.screenLocked
+            screen: root.focusedScreen
             color: "transparent"
             exclusionMode: ExclusionMode.Normal
             exclusiveZone: root.pinned ? implicitHeight : 0
