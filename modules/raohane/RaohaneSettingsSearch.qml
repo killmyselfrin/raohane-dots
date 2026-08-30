@@ -10,6 +10,7 @@ Item {
     property int currentIndex: 0
     readonly property bool active: searchInput.activeFocus || root.query.length > 0
     readonly property var entries: [
+        { section: "themes", key: "themePreset", label: qsTr("Theme library"), detail: qsTr("Appearance") },
         { section: "quick", key: "quickSliderBrightness", label: qsTr("Brightness slider"), detail: qsTr("Quick Controls") },
         { section: "quick", key: "quickSliderVolume", label: qsTr("Volume slider"), detail: qsTr("Quick Controls") },
         { section: "quick", key: "quickSliderMic", label: qsTr("Microphone slider"), detail: qsTr("Quick Controls") },
@@ -96,9 +97,9 @@ Item {
         id: searchBox
         anchors.fill: parent
         radius: 11
-        color: searchInput.activeFocus ? RaohaneTheme.surfaceHover : "#18ffffff"
+        color: searchInput.activeFocus ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.border
+        border.color: searchInput.activeFocus ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         RowLayout {
             anchors.fill: parent
