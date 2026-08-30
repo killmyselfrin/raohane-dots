@@ -2,7 +2,7 @@ import QtQuick
 
 import qs.modules.raohane.config
 
-Rectangle {
+RaohaneSurface {
     id: root
 
     readonly property var styleConfig: RaohaneConfig.style ?? ({})
@@ -13,30 +13,16 @@ Rectangle {
     implicitWidth: {
         const titleWidth = titleMetrics.advanceWidth
         const detailWidth = root.showDetail ? detailMetrics.advanceWidth : 0
-        const contentWidth = Math.max(titleWidth, detailWidth) + (root.showIndicators ? 112 : 88)
-        return Math.max(176, Math.min(520, Math.round(contentWidth * root.islandScale)))
+        const contentWidth = Math.max(titleWidth, detailWidth) + (root.showIndicators ? 96 : 82)
+        return Math.max(170, Math.min(500, Math.round(contentWidth * root.islandScale)))
     }
     implicitHeight: Math.max(38, Math.min(50, Math.round(RaohaneTheme.islandHeight * root.islandScale)))
-    radius: height / 2
-    color: RaohaneTheme.glassStrong
-    border.width: 1
+    surfaceRadius: height / 2
+    raised: true
+    showSheen: false
     border.color: RaohaneContext.mode === "recording"
         ? RaohaneTheme.critical
         : RaohaneTheme.borderStrong
-
-    Rectangle {
-        z: -2
-        anchors.centerIn: parent
-        width: parent.width + 8
-        height: parent.height + 8
-        radius: height / 2
-        color: "transparent"
-        border.width: 1
-        border.color: RaohaneContext.mode === "recording"
-            ? RaohaneTheme.critical
-            : RaohaneTheme.borderFaint
-        opacity: 0.8
-    }
 
     Behavior on implicitWidth {
         NumberAnimation {
@@ -54,36 +40,34 @@ Rectangle {
 
     Rectangle {
         id: iconPlate
-        width: Math.max(30, Math.min(36, Math.round(root.height * 0.74)))
+        width: Math.max(29, Math.min(34, Math.round(root.height * 0.72)))
         height: width
         radius: width / 2
         anchors.left: parent.left
         anchors.leftMargin: 7
         anchors.verticalCenter: parent.verticalCenter
-        color: RaohaneContext.mode === "recording"
-            ? RaohaneTheme.surfaceHover
-            : RaohaneTheme.surfaceSubtle
+        color: RaohaneTheme.surfaceSubtle
         border.width: 1
         border.color: RaohaneContext.mode === "recording"
             ? RaohaneTheme.critical
             : RaohaneTheme.border
 
-        Text {
+        RaohaneIcon {
             anchors.centerIn: parent
             text: RaohaneContext.icon
+            iconSize: 15
+            fill: RaohaneContext.mode === "media" || RaohaneContext.mode === "recording" ? 1 : 0
             color: RaohaneContext.mode === "recording"
                 ? RaohaneTheme.critical
                 : RaohaneTheme.accent
-            font.pixelSize: 14
-            font.weight: Font.DemiBold
         }
     }
 
     Column {
         anchors.left: iconPlate.right
         anchors.leftMargin: 10
-        anchors.right: root.showIndicators ? statusDots.left : parent.right
-        anchors.rightMargin: root.showIndicators ? 10 : 14
+        anchors.right: root.showIndicators ? statusIndicator.left : parent.right
+        anchors.rightMargin: root.showIndicators ? 11 : 14
         anchors.verticalCenter: parent.verticalCenter
         spacing: root.showDetail ? 0 : -1
 
@@ -91,7 +75,7 @@ Rectangle {
             width: parent.width
             text: RaohaneContext.title
             color: RaohaneTheme.text
-            font.pixelSize: root.showDetail ? 12 : 11
+            font.pixelSize: root.showDetail ? 11 : 10
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
@@ -101,43 +85,38 @@ Rectangle {
             visible: root.showDetail
             text: RaohaneContext.detail
             color: RaohaneTheme.textMuted
-            font.pixelSize: 9
-            font.letterSpacing: 0.1
+            font.pixelSize: 8
             elide: Text.ElideRight
         }
     }
 
-    Row {
-        id: statusDots
+    Rectangle {
+        id: statusIndicator
         visible: root.showIndicators
         anchors {
             right: parent.right
             rightMargin: 13
             verticalCenter: parent.verticalCenter
         }
-        spacing: 4
-
-        Repeater {
-            model: 3
-            delegate: Rectangle {
-                required property int index
-                width: index === 1 ? 5 : 3
-                height: width
-                radius: width / 2
-                color: index === 1 ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                opacity: index === 1 ? 0.8 : 0.4
-            }
-        }
+        width: 6
+        height: 6
+        radius: 3
+        color: RaohaneContext.mode === "recording"
+            ? RaohaneTheme.critical
+            : RaohaneContext.mode === "privacy"
+                ? RaohaneTheme.warning
+                : RaohaneTheme.accent
+        opacity: RaohaneContext.mode === "idle" ? 0.45 : 0.9
     }
 
     TextMetrics {
         id: titleMetrics
-        font.pixelSize: 12
+        font.pixelSize: 11
         text: RaohaneContext.title
     }
     TextMetrics {
         id: detailMetrics
-        font.pixelSize: 9
+        font.pixelSize: 8
         text: RaohaneContext.detail
     }
 }
