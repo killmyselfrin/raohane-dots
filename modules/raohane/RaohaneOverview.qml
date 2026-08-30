@@ -101,7 +101,7 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            color: RaohaneTheme.dark ? "#86000000" : "#425b5750"
+            color: RaohaneTheme.dark ? "#72000000" : "#345b5750"
 
             MouseArea {
                 anchors.fill: parent
@@ -111,11 +111,12 @@ Scope {
 
         RaohaneSurface {
             id: overviewPanel
-            width: Math.min(parent.width - 80, 1060)
-            height: Math.min(parent.height - 100, 700)
+            width: Math.min(parent.width - 96, 1040)
+            height: Math.min(parent.height - 112, 680)
             anchors.centerIn: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
+            showSheen: false
             border.color: RaohaneTheme.borderStrong
             clip: true
 
@@ -154,52 +155,52 @@ Scope {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 14
+                anchors.margins: 18
+                spacing: 12
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 11
+                    Layout.preferredHeight: 44
+                    spacing: 10
 
                     Rectangle {
-                        width: 40
-                        height: 40
-                        radius: 14
+                        width: 36
+                        height: 36
+                        radius: 12
                         color: RaohaneTheme.surfaceSubtle
                         border.width: 1
                         border.color: RaohaneTheme.border
 
-                        Text {
+                        RaohaneIcon {
                             anchors.centerIn: parent
-                            text: "間"
+                            text: "space_dashboard"
+                            iconSize: 18
                             color: RaohaneTheme.accent
-                            font.pixelSize: 17
-                            font.weight: Font.DemiBold
                         }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: -1
+                        spacing: 0
 
                         Text {
                             text: qsTr("Spaces")
                             color: RaohaneTheme.text
-                            font.pixelSize: 20
+                            font.pixelSize: 16
                             font.weight: Font.DemiBold
                         }
                         Text {
-                            text: qsTr("Hyprland workspaces · arrows / Enter / Esc · click a window to focus")
+                            text: qsTr("Workspaces and open windows")
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
+                            font.pixelSize: 8
                         }
                     }
 
                     Rectangle {
-                        width: groupText.implicitWidth + 18
-                        height: 29
-                        radius: 15
-                        color: RaohaneTheme.surfaceSubtle
+                        width: groupText.implicitWidth + 16
+                        height: 26
+                        radius: 9
+                        color: "transparent"
                         border.width: 1
                         border.color: RaohaneTheme.border
 
@@ -212,19 +213,32 @@ Scope {
                             font.weight: Font.Medium
                         }
                     }
+
+                    RaohaneIconButton {
+                        buttonSize: 30
+                        iconSize: 15
+                        icon: "close"
+                        onClicked: root.close()
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderFaint
                 }
 
                 GridLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     columns: root.columns
-                    columnSpacing: 10
-                    rowSpacing: 10
+                    columnSpacing: 9
+                    rowSpacing: 9
 
                     Repeater {
                         model: root.workspaceIds
 
-                        delegate: Rectangle {
+                        delegate: RaohaneSurface {
                             id: workspaceCard
 
                             required property var modelData
@@ -238,14 +252,28 @@ Scope {
 
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            Layout.minimumHeight: 130
-                            radius: 20
-                            color: active
-                                ? RaohaneTheme.accentSoft
-                                : selected || workspaceMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-                            border.width: active || selected ? 2 : 1
+                            Layout.minimumHeight: 128
+                            surfaceRadius: 17
+                            raised: active || selected
+                            hovered: workspaceMouse.containsMouse
+                            showSheen: false
                             border.color: active ? RaohaneTheme.accentBorder
                                 : selected || workspaceMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+
+                            Rectangle {
+                                visible: workspaceCard.active
+                                anchors {
+                                    left: parent.left
+                                    top: parent.top
+                                    bottom: parent.bottom
+                                    leftMargin: 3
+                                    topMargin: 12
+                                    bottomMargin: 12
+                                }
+                                width: 2
+                                radius: 1
+                                color: RaohaneTheme.accent
+                            }
 
                             ColumnLayout {
                                 z: 1
@@ -259,18 +287,29 @@ Scope {
                                     Text {
                                         text: String(workspaceCard.workspaceId).padStart(2, "0")
                                         color: workspaceCard.active ? RaohaneTheme.accent : RaohaneTheme.text
-                                        font.pixelSize: 22
-                                        font.weight: Font.Light
+                                        font.pixelSize: 18
+                                        font.weight: Font.Medium
                                     }
 
                                     Item { Layout.fillWidth: true }
 
-                                    Text {
+                                    Rectangle {
                                         visible: workspaceCard.active
-                                        text: qsTr("Active")
-                                        color: RaohaneTheme.accent
-                                        font.pixelSize: 7
-                                        font.weight: Font.DemiBold
+                                        implicitWidth: activeText.implicitWidth + 12
+                                        implicitHeight: 21
+                                        radius: 7
+                                        color: RaohaneTheme.surfaceSubtle
+                                        border.width: 1
+                                        border.color: RaohaneTheme.border
+
+                                        Text {
+                                            id: activeText
+                                            anchors.centerIn: parent
+                                            text: qsTr("Active")
+                                            color: RaohaneTheme.textMuted
+                                            font.pixelSize: 7
+                                            font.weight: Font.DemiBold
+                                        }
                                     }
                                 }
 
@@ -288,32 +327,44 @@ Scope {
                                     Repeater {
                                         model: workspaceCard.windows.slice(0, 4)
 
-                                        delegate: RowLayout {
+                                        delegate: Rectangle {
                                             id: windowRow
                                             required property var modelData
+
                                             Layout.fillWidth: true
-                                            spacing: 7
+                                            Layout.preferredHeight: 26
+                                            radius: 8
+                                            color: windowMouse.containsMouse || windowRow.modelData?.activated
+                                                ? RaohaneTheme.surfaceHover : "transparent"
                                             opacity: modelData?.wayland ? 1 : 0.65
 
-                                            Rectangle {
-                                                width: 6
-                                                height: 6
-                                                radius: 3
-                                                color: windowRow.modelData?.urgent
-                                                    ? RaohaneTheme.critical
-                                                    : windowRow.modelData?.activated ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                                            }
+                                            RowLayout {
+                                                anchors.fill: parent
+                                                anchors.leftMargin: 7
+                                                anchors.rightMargin: 7
+                                                spacing: 7
 
-                                            Text {
-                                                Layout.fillWidth: true
-                                                text: windowRow.modelData?.title ?? qsTr("Window")
-                                                color: windowRow.modelData?.activated ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                                font.pixelSize: 9
-                                                font.weight: windowRow.modelData?.activated ? Font.DemiBold : Font.Normal
-                                                elide: Text.ElideRight
+                                                Rectangle {
+                                                    width: 5
+                                                    height: 5
+                                                    radius: 3
+                                                    color: windowRow.modelData?.urgent
+                                                        ? RaohaneTheme.critical
+                                                        : windowRow.modelData?.activated ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                                                }
+
+                                                Text {
+                                                    Layout.fillWidth: true
+                                                    text: windowRow.modelData?.title ?? qsTr("Window")
+                                                    color: windowRow.modelData?.activated ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                                    font.pixelSize: 8
+                                                    font.weight: windowRow.modelData?.activated ? Font.DemiBold : Font.Normal
+                                                    elide: Text.ElideRight
+                                                }
                                             }
 
                                             MouseArea {
+                                                id: windowMouse
                                                 anchors.fill: parent
                                                 z: 2
                                                 enabled: !!windowRow.modelData?.wayland
@@ -331,7 +382,7 @@ Scope {
                                         visible: workspaceCard.windows.length === 0
                                         text: qsTr("Empty workspace")
                                         color: RaohaneTheme.textFaint
-                                        font.pixelSize: 9
+                                        font.pixelSize: 8
                                     }
 
                                     Item { Layout.fillHeight: true }
@@ -343,14 +394,14 @@ Scope {
                                     Text {
                                         text: qsTr("%1 windows").arg(workspaceCard.windows.length)
                                         color: RaohaneTheme.textFaint
-                                        font.pixelSize: 8
+                                        font.pixelSize: 7
                                     }
                                     Item { Layout.fillWidth: true }
                                     Text {
                                         visible: workspaceCard.windows.length > 4
                                         text: "+" + (workspaceCard.windows.length - 4)
                                         color: RaohaneTheme.textMuted
-                                        font.pixelSize: 8
+                                        font.pixelSize: 7
                                         font.weight: Font.DemiBold
                                     }
                                 }
@@ -373,15 +424,15 @@ Scope {
                     Layout.fillWidth: true
 
                     Text {
-                        text: qsTr("Raohane Overview")
+                        text: qsTr("Arrows navigate · Enter opens · Esc closes")
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        font.pixelSize: 7
                     }
                     Item { Layout.fillWidth: true }
                     Text {
                         text: qsTr("Workspace %1").arg(root.activeWorkspaceId)
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        font.pixelSize: 7
                     }
                 }
             }
