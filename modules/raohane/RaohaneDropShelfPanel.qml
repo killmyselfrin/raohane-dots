@@ -7,8 +7,6 @@ import Quickshell.Wayland
 
 import qs.modules.raohane.services
 
-// Native drag/drop transfer shelf. The old common-widget singleton and its
-// Hyprland service chain are no longer required by the active panel family.
 Scope {
     id: root
 
@@ -22,8 +20,8 @@ Scope {
         screen: root.focusedScreen
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
-        implicitWidth: 380
-        implicitHeight: 236
+        implicitWidth: 372
+        implicitHeight: 228
 
         anchors {
             top: true
@@ -42,7 +40,6 @@ Scope {
         DropArea {
             anchors.fill: parent
             keys: ["text/uri-list"]
-
             onEntered: drag => drag.accepted = drag.hasUrls
             onDropped: drop => {
                 if (!drop.hasUrls) {
@@ -54,53 +51,77 @@ Scope {
             }
         }
 
-        Rectangle {
+        RaohaneSurface {
             anchors.fill: parent
-            radius: 24
-            color: RaohaneTheme.glassStrong
-            border.width: 1
-            border.color: RaohaneTheme.border
+            surfaceRadius: 20
+            raised: true
+            showSheen: false
+            border.color: RaohaneTheme.borderStrong
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 14
-                spacing: 10
+                anchors.margins: 12
+                spacing: 8
 
                 RowLayout {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: 30
+
+                    Rectangle {
+                        width: 28
+                        height: 28
+                        radius: 9
+                        color: RaohaneTheme.surfaceSubtle
+                        border.width: 1
+                        border.color: RaohaneTheme.border
+
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "shelves"
+                            iconSize: 15
+                            color: RaohaneTheme.accent
+                        }
+                    }
+
                     Text {
                         Layout.fillWidth: true
                         text: qsTr("Drop Shelf")
                         color: RaohaneTheme.text
-                        font.pixelSize: 14
+                        font.pixelSize: 11
                         font.weight: Font.DemiBold
                     }
                     Text {
                         text: qsTr("%1 items").arg(RaohaneDropShelf.items.length)
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 10
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 8
                     }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderFaint
                 }
 
                 ListView {
                     id: shelfList
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 128
+                    Layout.preferredHeight: 124
                     orientation: ListView.Horizontal
-                    spacing: 8
+                    spacing: 7
                     clip: true
                     model: RaohaneDropShelf.items
 
-                    delegate: Rectangle {
+                    delegate: RaohaneSurface {
                         id: itemCard
                         required property string modelData
 
-                        width: 108
-                        height: 120
-                        radius: 16
-                        color: itemMouse.containsMouse ? "#24ffffff" : "#12ffffff"
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                        width: 104
+                        height: 116
+                        surfaceRadius: 14
+                        raised: false
+                        hovered: itemMouse.containsMouse
+                        showSheen: false
 
                         readonly property string entryPath: modelData
                         readonly property bool imageLike: /\.(png|jpe?g|webp|bmp|gif)$/i.test(entryPath)
@@ -112,14 +133,16 @@ Scope {
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 8
-                            spacing: 6
+                            anchors.margins: 7
+                            spacing: 5
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 78
-                                radius: 12
-                                color: RaohaneTheme.accentSoft
+                                Layout.preferredHeight: 76
+                                radius: 11
+                                color: RaohaneTheme.surfaceSubtle
+                                border.width: 1
+                                border.color: RaohaneTheme.border
                                 clip: true
 
                                 Image {
@@ -131,13 +154,12 @@ Scope {
                                     visible: itemCard.imageLike && status === Image.Ready
                                 }
 
-                                Text {
+                                RaohaneIcon {
                                     anchors.centerIn: parent
                                     visible: !itemCard.imageLike
-                                    text: itemCard.entryPath.endsWith("/") ? "▣" : "◇"
-                                    color: RaohaneTheme.accent
-                                    font.pixelSize: 25
-                                    font.bold: true
+                                    text: itemCard.entryPath.endsWith("/") ? "folder" : "draft"
+                                    iconSize: 24
+                                    color: RaohaneTheme.textMuted
                                 }
                             }
 
@@ -145,7 +167,7 @@ Scope {
                                 Layout.fillWidth: true
                                 text: itemCard.entryPath.split("/").pop()
                                 color: RaohaneTheme.text
-                                font.pixelSize: 9
+                                font.pixelSize: 8
                                 horizontalAlignment: Text.AlignHCenter
                                 elide: Text.ElideMiddle
                             }
@@ -166,32 +188,46 @@ Scope {
                         }
                     }
 
-                    Text {
+                    Column {
                         anchors.centerIn: parent
                         visible: RaohaneDropShelf.items.length === 0
-                        text: qsTr("Drop files here")
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 11
+                        spacing: 4
+
+                        RaohaneIcon {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "move_to_inbox"
+                            iconSize: 24
+                            color: RaohaneTheme.textFaint
+                        }
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: qsTr("Drop files here")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 9
+                        }
                     }
                 }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: 6
 
                     ShelfButton {
                         title: qsTr("Copy")
-                        emphasized: true
+                        icon: "content_copy"
+                        primary: true
                         enabled: RaohaneDropShelf.items.length > 0
                         onTriggered: RaohaneDropShelf.copyAll()
                     }
                     ShelfButton {
                         title: qsTr("Clear")
+                        icon: "delete_sweep"
                         enabled: RaohaneDropShelf.items.length > 0
                         onTriggered: RaohaneDropShelf.clear()
                     }
                     ShelfButton {
                         title: qsTr("Close")
+                        icon: "close"
                         onTriggered: RaohaneDropShelf.hide()
                     }
                 }
@@ -210,24 +246,33 @@ Scope {
     component ShelfButton: Rectangle {
         id: button
         required property string title
-        property bool emphasized: false
+        required property string icon
+        property bool primary: false
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 38
-        radius: 19
+        Layout.preferredHeight: 34
+        radius: 10
         opacity: button.enabled ? 1 : 0.35
-        color: emphasized ? RaohaneTheme.accentSoft
-            : buttonMouse.containsMouse && button.enabled ? "#24ffffff" : "#12ffffff"
+        color: buttonMouse.containsMouse && button.enabled ? RaohaneTheme.surfaceHover : "transparent"
         border.width: 1
-        border.color: emphasized ? RaohaneTheme.accent : RaohaneTheme.border
+        border.color: button.primary ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
-        Text {
+        Row {
             anchors.centerIn: parent
-            text: button.title
-            color: emphasized ? RaohaneTheme.accent : RaohaneTheme.text
-            font.pixelSize: 10
-            font.weight: Font.DemiBold
+            spacing: 5
+
+            RaohaneIcon {
+                text: button.icon
+                iconSize: 13
+                color: button.primary ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+            Text {
+                text: button.title
+                color: button.primary ? RaohaneTheme.accent : RaohaneTheme.text
+                font.pixelSize: 8
+                font.weight: Font.DemiBold
+            }
         }
 
         MouseArea {
