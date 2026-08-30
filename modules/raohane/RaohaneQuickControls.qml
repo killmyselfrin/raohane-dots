@@ -110,7 +110,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: sliderColumn.implicitHeight + 22
             radius: 20
-            color: "#76171420"
+            color: RaohaneTheme.surfaceSubtle
             border.width: 1
             border.color: RaohaneTheme.border
 
@@ -123,7 +123,8 @@ Item {
                     rightMargin: 18
                 }
                 height: 1
-                color: "#22ffffff"
+                color: RaohaneTheme.highlight
+                opacity: 0.22
             }
 
             ColumnLayout {
@@ -217,56 +218,13 @@ Item {
         readonly property bool hovered: pointer.containsMouse
 
         Layout.preferredHeight: 66
-        radius: 20
-        color: active ? "#8b2b203b" : (hovered ? "#841c1826" : "#76171420")
+        radius: 18
+        color: active ? RaohaneTheme.accentSoft : (hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle)
         border.width: 1
-        border.color: active ? RaohaneTheme.accent : (hovered ? "#58ffffff" : RaohaneTheme.border)
+        border.color: active ? RaohaneTheme.accentBorder : (hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border)
 
-        Behavior on color { ColorAnimation { duration: 140 } }
-        Behavior on border.color { ColorAnimation { duration: 140 } }
-
-        Rectangle {
-            anchors {
-                fill: parent
-                margins: 1
-            }
-            radius: tile.radius - 1
-            color: "transparent"
-            border.width: 1
-            border.color: tile.active ? "#1fffffff" : (tile.hovered ? "#12ffffff" : "transparent")
-
-            Behavior on border.color { ColorAnimation { duration: 140 } }
-        }
-
-        Rectangle {
-            visible: tile.active
-            anchors {
-                left: parent.left
-                top: parent.top
-                bottom: parent.bottom
-                leftMargin: 5
-                topMargin: 16
-                bottomMargin: 16
-            }
-            width: 3
-            radius: 2
-            color: RaohaneTheme.accent
-            opacity: 0.9
-        }
-
-        Rectangle {
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: parent.top
-                leftMargin: 18
-                rightMargin: 18
-            }
-            height: 1
-            color: tile.hovered || tile.active ? "#26ffffff" : "#10ffffff"
-
-            Behavior on color { ColorAnimation { duration: 140 } }
-        }
+        Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
+        Behavior on border.color { ColorAnimation { duration: RaohaneTheme.animationFast } }
 
         RowLayout {
             anchors {
@@ -276,42 +234,20 @@ Item {
             }
             spacing: 10
 
-            Item {
-                Layout.preferredWidth: 40
-                Layout.preferredHeight: 40
+            Rectangle {
+                Layout.preferredWidth: 34
+                Layout.preferredHeight: 34
+                radius: 12
+                color: tile.active ? RaohaneTheme.surfaceRaised : RaohaneTheme.surfaceSubtle
+                border.width: 1
+                border.color: tile.active ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
-                Rectangle {
+                RaohaneIcon {
                     anchors.centerIn: parent
-                    width: tile.active ? 40 : (tile.hovered ? 38 : 36)
-                    height: width
-                    radius: 14
-                    color: RaohaneTheme.accent
-                    opacity: tile.active ? 0.13 : (tile.hovered ? 0.08 : 0.03)
-
-                    Behavior on width { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-                    Behavior on opacity { NumberAnimation { duration: 140 } }
-                }
-
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: 34
-                    height: 34
-                    radius: 12
-                    color: tile.active ? "#2effffff" : (tile.hovered ? "#20ffffff" : "#14ffffff")
-                    border.width: 1
-                    border.color: tile.active ? "#44ffffff" : (tile.hovered ? "#26ffffff" : "#12ffffff")
-
-                    Behavior on color { ColorAnimation { duration: 140 } }
-                    Behavior on border.color { ColorAnimation { duration: 140 } }
-
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        text: tile.icon
-                        iconSize: 18
-                        color: tile.active || tile.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-
-                        Behavior on color { ColorAnimation { duration: 140 } }
-                    }
+                    text: tile.icon
+                    iconSize: 17
+                    color: tile.active || tile.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
                 }
             }
 
@@ -331,40 +267,28 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: tile.subtitle
-                    color: tile.active ? "#c8ffffff" : RaohaneTheme.textMuted
+                    color: RaohaneTheme.textMuted
                     font.pixelSize: 8
                     elide: Text.ElideRight
-
-                    Behavior on color { ColorAnimation { duration: 140 } }
                 }
             }
 
-            Item {
-                Layout.preferredWidth: 22
-                Layout.preferredHeight: 22
+            Rectangle {
+                Layout.preferredWidth: 18
+                Layout.preferredHeight: 18
+                radius: 9
+                color: tile.active ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
+                border.width: 1
+                border.color: tile.active ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                 Rectangle {
                     anchors.centerIn: parent
-                    width: 18
-                    height: 18
-                    radius: 9
-                    color: tile.active ? RaohaneTheme.accentSoft : "#10ffffff"
-                    border.width: 1
-                    border.color: tile.active ? "#66ffffff" : "#18ffffff"
-
-                    Behavior on color { ColorAnimation { duration: 140 } }
-                    Behavior on border.color { ColorAnimation { duration: 140 } }
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: tile.active ? 7 : 5
-                        height: width
-                        radius: width / 2
-                        color: tile.active ? RaohaneTheme.accent : "#5affffff"
-
-                        Behavior on width { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-                        Behavior on color { ColorAnimation { duration: 140 } }
-                    }
+                    width: tile.active ? 7 : 5
+                    height: width
+                    radius: width / 2
+                    color: tile.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    Behavior on width { NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic } }
+                    Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
                 }
             }
         }
@@ -409,20 +333,19 @@ Item {
                 width: 32
                 height: 32
                 radius: 11
-                color: control.hovered ? RaohaneTheme.accentSoft : "#18ffffff"
+                color: control.hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                 border.width: 1
-                border.color: control.hovered ? "#55ffffff" : "#16ffffff"
+                border.color: control.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
-                Behavior on color { ColorAnimation { duration: 120 } }
-                Behavior on border.color { ColorAnimation { duration: 120 } }
+                Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
+                Behavior on border.color { ColorAnimation { duration: RaohaneTheme.animationFast } }
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: control.icon
                     iconSize: 17
                     color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
                 }
 
                 MouseArea {
@@ -454,12 +377,9 @@ Item {
                         implicitWidth: valueLabel.implicitWidth + 12
                         implicitHeight: 17
                         radius: 8.5
-                        color: control.hovered ? RaohaneTheme.accentSoft : "#14ffffff"
+                        color: control.hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                         border.width: 1
-                        border.color: control.hovered ? "#38ffffff" : "transparent"
-
-                        Behavior on color { ColorAnimation { duration: 120 } }
-                        Behavior on border.color { ColorAnimation { duration: 120 } }
+                        border.color: control.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                         Text {
                             id: valueLabel
@@ -468,8 +388,6 @@ Item {
                             color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
                             font.pixelSize: 8
                             font.weight: Font.DemiBold
-
-                            Behavior on color { ColorAnimation { duration: 120 } }
                         }
                     }
                 }
@@ -480,22 +398,6 @@ Item {
                     Layout.preferredHeight: 18
 
                     Rectangle {
-                        id: trackGlow
-                        anchors {
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                        }
-                        width: Math.max(0, Math.min(parent.width, control.shownValue * parent.width))
-                        height: dragArea.pressed ? 13 : 11
-                        radius: height / 2
-                        color: RaohaneTheme.accent
-                        opacity: dragArea.pressed ? 0.18 : (dragArea.containsMouse ? 0.13 : 0.08)
-
-                        Behavior on height { NumberAnimation { duration: 100 } }
-                        Behavior on opacity { NumberAnimation { duration: 100 } }
-                    }
-
-                    Rectangle {
                         id: track
                         anchors {
                             left: parent.left
@@ -504,13 +406,9 @@ Item {
                         }
                         height: dragArea.pressed ? 7 : 6
                         radius: height / 2
-                        color: dragArea.containsMouse ? "#35ffffff" : "#28ffffff"
+                        color: RaohaneTheme.surfaceDeep
                         border.width: 1
-                        border.color: dragArea.containsMouse ? "#24ffffff" : "#14ffffff"
-
-                        Behavior on height { NumberAnimation { duration: 100 } }
-                        Behavior on color { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        border.color: control.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                         Rectangle {
                             width: Math.max(0, Math.min(parent.width, control.shownValue * parent.width))
@@ -521,43 +419,18 @@ Item {
                     }
 
                     Rectangle {
-                        id: handleHalo
-                        width: dragArea.pressed ? 29 : (dragArea.containsMouse ? 25 : 21)
-                        height: width
-                        radius: width / 2
-                        x: Math.max(-width / 2, Math.min(sliderArea.width - width / 2,
-                            control.shownValue * sliderArea.width - width / 2))
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: RaohaneTheme.accent
-                        opacity: dragArea.pressed ? 0.16 : (dragArea.containsMouse ? 0.10 : 0.04)
-
-                        Behavior on width { NumberAnimation { duration: 110; easing.type: Easing.OutCubic } }
-                        Behavior on opacity { NumberAnimation { duration: 110 } }
-                    }
-
-                    Rectangle {
                         id: handle
-                        width: dragArea.pressed ? 18 : (dragArea.containsMouse ? 16 : 14)
+                        width: dragArea.pressed ? 17 : (dragArea.containsMouse ? 16 : 14)
                         height: width
                         radius: width / 2
                         x: Math.max(0, Math.min(sliderArea.width - width,
                             control.shownValue * sliderArea.width - width / 2))
                         anchors.verticalCenter: parent.verticalCenter
-                        color: RaohaneTheme.text
+                        color: RaohaneTheme.surfaceRaised
                         border.width: 2
                         border.color: RaohaneTheme.accent
 
-                        Behavior on width { NumberAnimation { duration: 110; easing.type: Easing.OutCubic } }
-
-                        Rectangle {
-                            width: dragArea.pressed ? 6 : 4
-                            height: width
-                            radius: width / 2
-                            anchors.centerIn: parent
-                            color: RaohaneTheme.accent
-
-                            Behavior on width { NumberAnimation { duration: 100 } }
-                        }
+                        Behavior on width { NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic } }
                     }
 
                     MouseArea {
