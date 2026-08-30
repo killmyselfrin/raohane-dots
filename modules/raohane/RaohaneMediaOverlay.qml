@@ -58,6 +58,23 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
 
+            // Consume pointer presses on the non-interactive surface so they do
+            // not fall through the layer-shell window into an application below.
+            // Interactive controls are declared after this area and therefore
+            // remain above it in the QML stacking order.
+            MouseArea {
+                id: surfacePointerGuard
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+                preventStealing: true
+                hoverEnabled: true
+                cursorShape: Qt.ArrowCursor
+                onPressed: mouse => mouse.accepted = true
+                onReleased: mouse => mouse.accepted = true
+                onClicked: mouse => mouse.accepted = true
+                onWheel: wheel => wheel.accepted = true
+            }
+
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 14
@@ -273,6 +290,8 @@ Scope {
                             id: timelineMouse
                             anchors.fill: parent
                             enabled: RaohaneMedia.canSeek
+                            acceptedButtons: Qt.LeftButton
+                            preventStealing: true
                             hoverEnabled: true
                             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
@@ -414,6 +433,8 @@ Scope {
 
                                 MouseArea {
                                     anchors.fill: parent
+                                    acceptedButtons: Qt.LeftButton
+                                    preventStealing: true
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
 
@@ -485,6 +506,8 @@ Scope {
         MouseArea {
             id: mouse
             anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+            preventStealing: true
             hoverEnabled: true
             enabled: control.enabled
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
@@ -527,6 +550,8 @@ Scope {
         MouseArea {
             id: mouse
             anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+            preventStealing: true
             hoverEnabled: true
             enabled: control.enabled
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
