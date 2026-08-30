@@ -104,7 +104,15 @@ Singleton {
         accentStrength: 1.0,
         accentMode: "theme",
         customAccent: "#657987",
-        sheenEnabled: true
+        sheenEnabled: true,
+        barScale: 1.0,
+        dockHoverScale: 1.04,
+        contextIslandScale: 1.0,
+        contextIslandDetail: true,
+        contextIslandIndicators: true,
+        notificationScale: 1.0,
+        notificationCompact: false,
+        notificationBodyLines: 4
     })
 
     signal reloaded()
@@ -120,7 +128,15 @@ Singleton {
             accentStrength: 1.0,
             accentMode: "theme",
             customAccent: "#657987",
-            sheenEnabled: true
+            sheenEnabled: true,
+            barScale: 1.0,
+            dockHoverScale: 1.04,
+            contextIslandScale: 1.0,
+            contextIslandDetail: true,
+            contextIslandIndicators: true,
+            notificationScale: 1.0,
+            notificationCompact: false,
+            notificationBodyLines: 4
         }
     }
 
@@ -145,7 +161,15 @@ Singleton {
             accentStrength: root.clampNumber(input.accentStrength, 0.45, 1.5, 1.0),
             accentMode: allowedModes.indexOf(requestedMode) >= 0 ? requestedMode : "theme",
             customAccent: /^#[0-9a-fA-F]{6}$/.test(requestedAccent) ? requestedAccent : "#657987",
-            sheenEnabled: input.sheenEnabled === undefined ? true : Boolean(input.sheenEnabled)
+            sheenEnabled: input.sheenEnabled === undefined ? true : Boolean(input.sheenEnabled),
+            barScale: root.clampNumber(input.barScale, 0.85, 1.15, 1.0),
+            dockHoverScale: root.clampNumber(input.dockHoverScale, 1.0, 1.12, 1.04),
+            contextIslandScale: root.clampNumber(input.contextIslandScale, 0.8, 1.25, 1.0),
+            contextIslandDetail: input.contextIslandDetail === undefined ? true : Boolean(input.contextIslandDetail),
+            contextIslandIndicators: input.contextIslandIndicators === undefined ? true : Boolean(input.contextIslandIndicators),
+            notificationScale: root.clampNumber(input.notificationScale, 0.85, 1.15, 1.0),
+            notificationCompact: input.notificationCompact === undefined ? false : Boolean(input.notificationCompact),
+            notificationBodyLines: Math.round(root.clampNumber(input.notificationBodyLines, 1, 6, 4))
         }
     }
 
