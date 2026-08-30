@@ -1,0 +1,37 @@
+name: QML singleton guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/raohane/**/*.qml'
+      - '.github/workflows/qml-singleton-guard.yml'
+  pull_request:
+    paths:
+      - 'modules/raohane/**/*.qml'
+      - '.github/workflows/qml-singleton-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  singleton-imports:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Validate Quickshell singleton imports
+        shell: bash
+        run: |
+          set -euo pipefail
+          failed=0
+          while IFS= read -r file; do
+            if grep -Eq '^[[:space:]]*Singleton[[:space:]]*\{' "$file" \
+              && ! grep -Eq '^import[[:space:]]+Quickshell([[:space:]]|$)' "$file"; then
+              echo "QML Singleton root without import Quickshell: $file" >&2
+              failed=1
+            fi
+          done < <(find modules/raohane -type f -name '*.qml' -print | sort)
+          exit "$failed"
