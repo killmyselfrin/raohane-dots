@@ -24,8 +24,8 @@ Rectangle {
             ? RaohaneTheme.borderStrong
             : RaohaneTheme.border
 
-    // A restrained top highlight makes every panel read as the same piece of
-    // glass without requiring expensive blur/shadow effects per component.
+    // Minimal glass highlight: enough to separate a floating surface from the
+    // wallpaper without bringing back the previous neon/shader-heavy look.
     Rectangle {
         visible: root.showSheen
         z: 100
@@ -38,7 +38,7 @@ Rectangle {
         }
         height: 1
         color: root.active ? RaohaneTheme.accentGlow : RaohaneTheme.highlight
-        opacity: root.active ? 0.52 : root.hovered ? 0.34 : 0.18
+        opacity: root.active ? 0.28 : root.hovered ? 0.18 : 0.10
     }
 
     Behavior on color {
