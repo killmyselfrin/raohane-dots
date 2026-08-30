@@ -24,10 +24,10 @@ Rectangle {
             ? RaohaneTheme.borderStrong
             : RaohaneTheme.border
 
-    // Minimal glass highlight: enough to separate a floating surface from the
-    // wallpaper without bringing back the previous neon/shader-heavy look.
+    // Minimal glass highlight. Style Studio can turn it off globally without
+    // forcing individual surfaces to carry extra state.
     Rectangle {
-        visible: root.showSheen
+        visible: root.showSheen && RaohaneTheme.sheenEnabled
         z: 100
         anchors {
             left: parent.left
