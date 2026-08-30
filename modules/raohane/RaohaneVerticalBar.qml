@@ -44,7 +44,7 @@ Scope {
             required property ShellScreen modelData
 
             screen: modelData
-            implicitWidth: 72
+            implicitWidth: 78
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
 
@@ -107,9 +107,9 @@ Scope {
 
             Item {
                 id: barContent
-                width: 62
+                width: 66
                 height: parent.height
-                x: barWindow.mustShow ? 5 : -width - 2
+                x: barWindow.mustShow ? 6 : -width - 3
 
                 Behavior on x {
                     NumberAnimation {
@@ -119,20 +119,30 @@ Scope {
                 }
 
                 Rectangle {
+                    anchors.centerIn: verticalSurface
+                    width: verticalSurface.width + 10
+                    height: verticalSurface.height + 10
+                    radius: RaohaneTheme.radiusHero + 5
+                    color: "transparent"
+                    border.width: 4
+                    border.color: "#1fc56cff"
+                }
+
+                RaohaneSurface {
+                    id: verticalSurface
                     anchors {
                         fill: parent
-                        topMargin: 7
-                        bottomMargin: 7
+                        topMargin: 8
+                        bottomMargin: 8
                     }
-                    radius: 24
-                    color: RaohaneTheme.glass
-                    border.width: 1
-                    border.color: RaohaneTheme.border
+                    surfaceRadius: RaohaneTheme.radiusLarge
+                    raised: true
+                    border.color: RaohaneTheme.accentBorder
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 7
-                        spacing: 6
+                        anchors.margins: 8
+                        spacing: 7
 
                         IconButton {
                             icon: "apps"
@@ -144,12 +154,12 @@ Scope {
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 1
-                            color: RaohaneTheme.border
+                            color: RaohaneTheme.borderFaint
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 3
+                            spacing: 4
 
                             Repeater {
                                 model: Math.max(2, Math.min(10, RaohaneConfig.overviewWorkspaceCount))
@@ -165,13 +175,14 @@ Scope {
                                     readonly property bool occupied: (workspace?.toplevels?.values?.length ?? 0) > 0
 
                                     Layout.alignment: Qt.AlignHCenter
-                                    Layout.preferredWidth: 36
-                                    Layout.preferredHeight: 29
+                                    Layout.preferredWidth: 38
+                                    Layout.preferredHeight: 30
                                     radius: 11
-                                    color: active ? RaohaneTheme.accentSoft
-                                        : workspaceMouse.containsMouse ? "#24ffffff" : "transparent"
-                                    border.width: active ? 1 : 0
-                                    border.color: active ? RaohaneTheme.accent : "transparent"
+                                    color: active
+                                        ? RaohaneTheme.accentSoft
+                                        : workspaceMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+                                    border.width: active || workspaceMouse.containsMouse ? 1 : 0
+                                    border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
 
                                     Text {
                                         anchors.centerIn: parent
@@ -184,14 +195,14 @@ Scope {
                                     Rectangle {
                                         visible: workspaceButton.occupied
                                         width: 3
-                                        height: 7
+                                        height: 8
                                         radius: 2
                                         anchors {
                                             right: parent.right
                                             rightMargin: 4
                                             verticalCenter: parent.verticalCenter
                                         }
-                                        color: workspaceButton.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                        color: workspaceButton.active ? RaohaneTheme.accentSecondary : RaohaneTheme.textFaint
                                     }
 
                                     MouseArea {
@@ -246,10 +257,12 @@ Scope {
 
                         Rectangle {
                             Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: 36
-                            Layout.preferredHeight: 36
+                            Layout.preferredWidth: 38
+                            Layout.preferredHeight: 38
                             radius: 13
-                            color: notificationMouse.containsMouse ? "#24ffffff" : "transparent"
+                            color: notificationMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+                            border.width: notificationMouse.containsMouse ? 1 : 0
+                            border.color: RaohaneTheme.borderStrong
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
@@ -274,7 +287,7 @@ Scope {
                                 Text {
                                     anchors.centerIn: parent
                                     text: Math.min(9, RaohaneNotifications.unread) + (RaohaneNotifications.unread > 9 ? "+" : "")
-                                    color: "#120d18"
+                                    color: RaohaneTheme.background
                                     font.pixelSize: 7
                                     font.weight: Font.Bold
                                 }
@@ -292,7 +305,7 @@ Scope {
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 1
-                            color: RaohaneTheme.border
+                            color: RaohaneTheme.borderFaint
                         }
 
                         ColumnLayout {
@@ -325,7 +338,7 @@ Scope {
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 1
-                            color: RaohaneTheme.border
+                            color: RaohaneTheme.borderFaint
                         }
 
                         IconButton {
@@ -374,13 +387,19 @@ Scope {
         signal triggered()
 
         Layout.alignment: Qt.AlignHCenter
-        Layout.preferredWidth: 36
-        Layout.preferredHeight: 36
+        Layout.preferredWidth: 38
+        Layout.preferredHeight: 38
         radius: 13
-        color: emphasized ? RaohaneTheme.accentSoft
-            : buttonMouse.containsMouse ? "#24ffffff" : "transparent"
-        border.width: emphasized ? 1 : 0
-        border.color: emphasized ? RaohaneTheme.accent : "transparent"
+        color: emphasized
+            ? RaohaneTheme.accentSoft
+            : buttonMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: emphasized || buttonMouse.containsMouse ? 1 : 0
+        border.color: emphasized ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
+        scale: buttonMouse.containsMouse ? 1.05 : 1
+
+        Behavior on scale {
+            NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
+        }
 
         RaohaneIcon {
             anchors.centerIn: parent
