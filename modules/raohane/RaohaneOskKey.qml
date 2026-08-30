@@ -102,20 +102,21 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 12
+        radius: 11
         color: {
             if (root.isEmpty)
                 return "transparent"
             if (root.toggled)
-                return RaohaneTheme.accentSoft
+                return RaohaneTheme.surfaceRaised
             if (keyMouse.pressed)
-                return "#35ffffff"
+                return RaohaneTheme.surfacePressed
             if (keyMouse.containsMouse)
-                return "#24ffffff"
-            return "#18ffffff"
+                return RaohaneTheme.surfaceHover
+            return RaohaneTheme.surfaceSubtle
         }
         border.width: root.isEmpty ? 0 : 1
-        border.color: root.toggled ? RaohaneTheme.accent : RaohaneTheme.border
+        border.color: root.toggled ? RaohaneTheme.accentBorder
+            : keyMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         Text {
             anchors.centerIn: parent
@@ -134,7 +135,7 @@ Item {
                     return root.keyData.labelShift ?? root.keyLabel
                 return root.keyLabel
             }
-            color: root.isEmpty ? "transparent" : RaohaneTheme.text
+            color: root.isEmpty ? "transparent" : root.toggled ? RaohaneTheme.accent : RaohaneTheme.text
             font.pixelSize: root.shape === "fn" ? 10 : 12
             font.weight: root.toggled ? Font.DemiBold : Font.Normal
         }
