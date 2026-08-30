@@ -76,14 +76,8 @@ Scope {
                 root.preparePrompt()
         }
 
-        function onAuthenticationFailed(): void {
-            root.preparePrompt()
-        }
-
-        function onAuthenticationSucceeded(): void {
-            root.submitting = true
-        }
-
+        function onAuthenticationFailed(): void { root.preparePrompt() }
+        function onAuthenticationSucceeded(): void { root.submitting = true }
         function onAuthenticationRequestCancelled(): void {
             root.submitting = false
             inputField.text = ""
@@ -92,7 +86,6 @@ Scope {
 
     Connections {
         target: agent
-
         function onIsActiveChanged(): void {
             if (!agent.isActive) {
                 root.submitting = false
@@ -124,23 +117,20 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            color: "#b3080710"
-
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.AllButtons
-            }
+            color: RaohaneTheme.dark ? "#8a000000" : "#465b5750"
+            MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons }
         }
 
-        Rectangle {
+        RaohaneSurface {
             id: dialog
-            width: Math.min(parent.width - 72, 470)
-            height: content.implicitHeight + 44
+            width: Math.min(parent.width - 72, 450)
+            implicitHeight: content.implicitHeight + 40
+            height: implicitHeight
             anchors.centerIn: parent
-            radius: 26
-            color: RaohaneTheme.glassStrong
-            border.width: 1
-            border.color: RaohaneTheme.border
+            surfaceRadius: 20
+            raised: true
+            showSheen: false
+            border.color: RaohaneTheme.borderStrong
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
@@ -155,23 +145,23 @@ Scope {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    margins: 22
+                    margins: 20
                 }
-                spacing: 13
+                spacing: 11
 
                 Rectangle {
                     Layout.alignment: Qt.AlignHCenter
-                    width: 54
-                    height: 54
-                    radius: 18
-                    color: RaohaneTheme.accentSoft
+                    width: 48
+                    height: 48
+                    radius: 15
+                    color: RaohaneTheme.surfaceSubtle
                     border.width: 1
                     border.color: RaohaneTheme.border
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: "security"
-                        iconSize: 27
+                        iconSize: 23
                         color: RaohaneTheme.accent
                     }
                 }
@@ -181,7 +171,7 @@ Scope {
                     text: qsTr("Authentication required")
                     color: RaohaneTheme.text
                     horizontalAlignment: Text.AlignHCenter
-                    font.pixelSize: 17
+                    font.pixelSize: 15
                     font.weight: Font.DemiBold
                 }
 
@@ -192,17 +182,17 @@ Scope {
                     color: RaohaneTheme.textMuted
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
-                    font.pixelSize: 10
+                    font.pixelSize: 9
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: supplementaryText.implicitHeight + 18
+                    Layout.preferredHeight: supplementaryText.implicitHeight + 16
                     visible: root.supplementaryMessage.length > 0
-                    radius: 12
-                    color: root.supplementaryIsError ? "#2cff5f72" : "#16ffffff"
+                    radius: 10
+                    color: RaohaneTheme.surfaceSubtle
                     border.width: 1
-                    border.color: root.supplementaryIsError ? "#74ff5f72" : RaohaneTheme.border
+                    border.color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.border
 
                     Text {
                         id: supplementaryText
@@ -210,43 +200,43 @@ Scope {
                             left: parent.left
                             right: parent.right
                             verticalCenter: parent.verticalCenter
-                            margins: 9
+                            margins: 8
                         }
                         text: root.supplementaryMessage
-                        color: root.supplementaryIsError ? "#ff9aa7" : RaohaneTheme.textMuted
+                        color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.textMuted
                         wrapMode: Text.Wrap
-                        font.pixelSize: 9
+                        font.pixelSize: 8
                     }
                 }
 
                 Text {
                     Layout.fillWidth: true
                     text: root.prompt
-                    color: RaohaneTheme.text
-                    font.pixelSize: 9
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 8
                     font.weight: Font.DemiBold
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 46
-                    radius: 14
-                    color: "#74120f19"
+                    Layout.preferredHeight: 44
+                    radius: 13
+                    color: inputField.activeFocus ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                     border.width: 1
-                    border.color: inputField.activeFocus ? RaohaneTheme.accent : RaohaneTheme.border
+                    border.color: inputField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                     TextInput {
                         id: inputField
                         anchors.fill: parent
-                        anchors.leftMargin: 13
-                        anchors.rightMargin: 13
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
                         verticalAlignment: TextInput.AlignVCenter
                         enabled: root.interactionAvailable
                         color: RaohaneTheme.text
                         selectionColor: RaohaneTheme.accentSoft
                         selectedTextColor: RaohaneTheme.text
                         echoMode: root.responseVisible ? TextInput.Normal : TextInput.Password
-                        font.pixelSize: 11
+                        font.pixelSize: 10
                         clip: true
                         onAccepted: root.submit()
 
@@ -261,85 +251,66 @@ Scope {
                     Text {
                         anchors {
                             left: parent.left
-                            leftMargin: 13
+                            leftMargin: 12
                             verticalCenter: parent.verticalCenter
                         }
                         visible: inputField.text.length === 0 && !inputField.activeFocus
                         text: root.prompt
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 10
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 9
                     }
                 }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 10
+                    spacing: 8
 
                     Item { Layout.fillWidth: true }
 
-                    Rectangle {
-                        width: 104
-                        height: 38
-                        radius: 13
-                        color: cancelMouse.containsMouse ? "#24ffffff" : "#15ffffff"
-                        border.width: 1
-                        border.color: RaohaneTheme.border
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: qsTr("Cancel")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 10
-                            font.weight: Font.DemiBold
-                        }
-
-                        MouseArea {
-                            id: cancelMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.cancel()
-                        }
+                    AuthButton {
+                        title: qsTr("Cancel")
+                        onTriggered: root.cancel()
                     }
-
-                    Rectangle {
-                        width: 128
-                        height: 38
-                        radius: 13
-                        opacity: root.interactionAvailable ? 1 : 0.5
-                        color: authMouse.containsMouse && root.interactionAvailable ? "#5bc879ff" : RaohaneTheme.accentSoft
-                        border.width: 1
-                        border.color: RaohaneTheme.accent
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: root.interactionAvailable ? qsTr("Authenticate") : qsTr("Checking…")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 10
-                            font.weight: Font.DemiBold
-                        }
-
-                        MouseArea {
-                            id: authMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            enabled: root.interactionAvailable
-                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            onClicked: root.submit()
-                        }
+                    AuthButton {
+                        title: root.interactionAvailable ? qsTr("Authenticate") : qsTr("Checking…")
+                        primary: true
+                        enabled: root.interactionAvailable
+                        onTriggered: root.submit()
                     }
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: "RAOHANE / POLKIT"
-                    color: RaohaneTheme.textMuted
-                    horizontalAlignment: Text.AlignRight
-                    font.pixelSize: 8
-                    font.letterSpacing: 0.8
-                    font.weight: Font.DemiBold
                 }
             }
+        }
+    }
+
+    component AuthButton: Rectangle {
+        id: button
+        required property string title
+        property bool primary: false
+        signal triggered()
+
+        Layout.preferredWidth: primary ? 126 : 96
+        Layout.preferredHeight: 36
+        radius: 11
+        opacity: enabled ? 1 : 0.45
+        color: pointer.containsMouse && enabled ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: 1
+        border.color: primary ? RaohaneTheme.accentBorder : RaohaneTheme.border
+
+        Text {
+            anchors.centerIn: parent
+            text: button.title
+            color: button.primary ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            font.pixelSize: 9
+            font.weight: Font.DemiBold
+        }
+
+        MouseArea {
+            id: pointer
+            anchors.fill: parent
+            enabled: button.enabled
+            hoverEnabled: true
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: button.triggered()
         }
     }
 }
