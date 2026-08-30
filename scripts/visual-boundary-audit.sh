@@ -132,7 +132,7 @@ fi
 
 for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" \
-    || fail "$file lost restrained secondary text hierarchy'
+    || fail "$file lost restrained secondary text hierarchy"
 done
 
 printf 'visual-boundary-audit: minimalist theme catalog, shared frosted-glass tokens, floating bars/dock and stable primary-surface hierarchy are valid\n'
