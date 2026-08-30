@@ -46,22 +46,28 @@ Preserve GNU GPLv3 obligations for covered derivative work. Runtime independence
 - Persisted product settings belong in `RaohaneConfig` and `defaults/native.json`.
 - Filesystem/config/cache/state/runtime locations belong in `RaohanePaths`.
 - Shared visual primitives belong in Raohane-owned framework components rather than ad-hoc copies.
+- Complete color themes belong in the central `RaohaneTheme.presets` catalog and selected preset state belongs in `RaohaneConfig.themePreset`.
+- Feature surfaces must consume shared theme tokens rather than embedding one-off light/dark/neon palettes.
 - New system integrations should expose a Raohane-owned service/API boundary before being consumed across multiple surfaces.
 - Keep expensive polling/event work centralized and demand-driven where possible.
 - Preserve horizontal/vertical bar, fullscreen and multi-monitor contracts when touching shared shell state.
 
 ## Design direction
 
-Raohane visual identity:
+Raohane visual identity is now **Japanese minimalism** while preserving the established UI structure and interaction model.
 
-- Japanese minimalism;
-- dark translucent glass;
-- floating surfaces/islands;
-- purple / magenta accents;
-- wallpaper/media-aware accents where useful;
-- Context Island as a signature surface;
-- smooth organic motion;
-- dense but readable information hierarchy.
+- calm frosted-glass surfaces;
+- light warm-gray / off-white default appearance;
+- optional dark minimalist presets instead of a dark-only shell;
+- thin low-contrast borders and restrained shadows/highlights;
+- charcoal, stone, sage, blush and cool-gray accents rather than neon purple/magenta;
+- generous negative space and quiet information hierarchy;
+- floating Bar pods, Context Island and Dock remain signature geometry;
+- wallpaper-aware atmosphere should be subtle and Japanese-inspired rather than cyberpunk-heavy;
+- animation should be short, smooth and understated;
+- semantic colors (recording, warning, success) may stand out, but decorative glow should not.
+
+`Zen Mist` is the default visual preset. The Theme Library should offer multiple coherent whole-shell moods while keeping layout, shortcuts, services and behavior stable across presets.
 
 References may inform behavior, but the final user-facing design must remain recognizably Raohane rather than a renamed upstream shell.
 
@@ -73,6 +79,7 @@ For changes that touch active shell behavior, verify when possible:
 
 - `qs -c raohane` / the installed `raohane.service` starts cleanly;
 - Settings opens and persists the changed setting;
+- theme selection updates shared surfaces live and survives a restart;
 - Launcher/Control Center/affected IPC routes still open;
 - notifications/OSD/media remain functional when their shared services are touched;
 - network/Bluetooth/audio/display backends still respond when changed;
