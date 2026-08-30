@@ -84,8 +84,6 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
 
-            // Keep empty player chrome inert and prevent click-through into a
-            // fullscreen/game/application surface below the layer-shell window.
             MouseArea {
                 id: surfacePointerGuard
                 anchors.fill: parent
@@ -201,12 +199,6 @@ Scope {
 
                                     Item { Layout.fillWidth: true }
 
-                                    MiniButton {
-                                        icon: "lyrics"
-                                        tooltip: qsTr("Lyrics")
-                                        enabled: RaohaneMedia.available
-                                        onClicked: root.showLyrics()
-                                    }
                                     MiniButton {
                                         icon: "open_in_new"
                                         tooltip: qsTr("Open player")
@@ -625,6 +617,19 @@ Scope {
                             icon: "skip_next"
                             enabled: RaohaneMedia.canGoNext
                             onClicked: RaohaneMedia.next()
+                        }
+
+                        MiniButton {
+                            icon: "lyrics"
+                            tooltip: root.lyricsOpen ? qsTr("Back to player") : qsTr("Lyrics")
+                            enabled: RaohaneMedia.available
+                            active: root.lyricsOpen
+                            onClicked: {
+                                if (root.lyricsOpen)
+                                    root.lyricsOpen = false
+                                else
+                                    root.showLyrics()
+                            }
                         }
 
                         Item { Layout.fillWidth: true }
