@@ -6,8 +6,8 @@ import qs.modules.raohane.config
 QtObject {
     id: root
 
-    // Theme presets own the base mood. Style Studio applies a small set of
-    // global overrides on top without changing Raohane's information architecture.
+    // Theme presets own the base mood. Style Studio applies global persisted
+    // overrides on top without changing Raohane's information architecture.
     readonly property var presets: [
         {
             id: "zen-mist", name: qsTr("Zen Mist"), description: qsTr("Warm ivory glass and charcoal details"), tone: qsTr("Light"), dark: false,
@@ -67,32 +67,31 @@ QtObject {
         }
     ]
 
-    // Live Style Studio overrides. Theme selection remains persisted in
-    // RaohaneConfig; these values intentionally affect every shared token.
-    property real glassOpacity: 1.0
-    property real borderStrength: 1.0
-    property real radiusScale: 1.0
-    property real densityScale: 1.0
-    property real motionScale: 1.0
-    property real accentStrength: 1.0
-    property string accentMode: "theme"
-    property bool sheenEnabled: true
-
     function presetFor(id): var {
         const match = root.presets.find(item => item.id === String(id ?? ""))
         return match ?? root.presets[0]
     }
 
-    function resetStyle(): void {
-        glassOpacity = 1.0
-        borderStrength = 1.0
-        radiusScale = 1.0
-        densityScale = 1.0
-        motionScale = 1.0
-        accentStrength = 1.0
-        accentMode = "theme"
-        sheenEnabled = true
+    function styleValue(key, fallback): var {
+        const current = RaohaneConfig.style
+        if (!current || !Object.prototype.hasOwnProperty.call(current, key))
+            return fallback
+        return current[key]
     }
+
+    function resetStyle(): void {
+        RaohaneConfig.style = RaohaneConfig.defaultStyle()
+    }
+
+    readonly property real glassOpacity: Number(styleValue("glassOpacity", 1.0))
+    readonly property real borderStrength: Number(styleValue("borderStrength", 1.0))
+    readonly property real radiusScale: Number(styleValue("radiusScale", 1.0))
+    readonly property real densityScale: Number(styleValue("densityScale", 1.0))
+    readonly property real motionScale: Number(styleValue("motionScale", 1.0))
+    readonly property real accentStrength: Number(styleValue("accentStrength", 1.0))
+    readonly property string accentMode: String(styleValue("accentMode", "theme"))
+    readonly property color customAccent: String(styleValue("customAccent", "#657987"))
+    readonly property bool sheenEnabled: Boolean(styleValue("sheenEnabled", true))
 
     readonly property var activePreset: presetFor(RaohaneConfig.themePreset)
     readonly property bool dark: Boolean(activePreset.dark)
@@ -136,14 +135,15 @@ QtObject {
     readonly property color textFaint: activePreset.textFaint
 
     readonly property color presetAccent: activePreset.accent
-    readonly property color accentSecondary: activePreset.accentSecondary
-    readonly property color accentBlue: activePreset.accentBlue
     readonly property color accent: accentMode === "ink" ? (dark ? "#eeeae2" : "#2b2a27")
         : accentMode === "sakura" ? "#9a7077"
         : accentMode === "matcha" ? "#667866"
         : accentMode === "slate" ? "#657987"
         : accentMode === "sand" ? "#806f59"
+        : accentMode === "custom" ? customAccent
         : presetAccent
+    readonly property color accentSecondary: accentMode === "theme" ? activePreset.accentSecondary : accent
+    readonly property color accentBlue: accentMode === "theme" ? activePreset.accentBlue : accent
     readonly property color accentSoft: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.48, (dark ? 0.18 : 0.11) * accentStrength))
     readonly property color accentHover: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.58, (dark ? 0.25 : 0.16) * accentStrength))
     readonly property color accentPressed: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.70, (dark ? 0.34 : 0.23) * accentStrength))
