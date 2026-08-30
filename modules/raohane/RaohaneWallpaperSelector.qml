@@ -94,7 +94,7 @@ Scope {
 
             Rectangle {
                 anchors.fill: parent
-                color: "#7808070d"
+                color: RaohaneTheme.dark ? "#70000000" : "#305b5750"
 
                 MouseArea {
                     anchors.fill: parent
@@ -102,15 +102,15 @@ Scope {
                 }
             }
 
-            Rectangle {
+            RaohaneSurface {
                 id: selector
-                width: Math.min(parent.width - 72, 1120)
-                height: Math.min(parent.height - 90, 720)
+                width: Math.min(parent.width - 96, 1080)
+                height: Math.min(parent.height - 104, 700)
                 anchors.centerIn: parent
-                radius: 28
-                color: RaohaneTheme.glassStrong
-                border.width: 1
-                border.color: RaohaneTheme.border
+                surfaceRadius: RaohaneTheme.radiusHero
+                raised: true
+                showSheen: false
+                border.color: RaohaneTheme.borderStrong
                 clip: true
 
                 MouseArea {
@@ -139,91 +139,121 @@ Scope {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 12
-                    spacing: 10
+                    anchors.margins: 14
+                    spacing: 9
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 44
+                        spacing: 7
+
+                        Rectangle {
+                            width: 34
+                            height: 34
+                            radius: 11
+                            color: RaohaneTheme.surfaceSubtle
+                            border.width: 1
+                            border.color: RaohaneTheme.border
+
+                            RaohaneIcon {
+                                anchors.centerIn: parent
+                                text: "wallpaper"
+                                iconSize: 18
+                                color: RaohaneTheme.accent
+                            }
+                        }
+
+                        ColumnLayout {
+                            spacing: 0
+
+                            Text {
+                                text: RaohaneState.wallpaperSelectorTarget === "lockWall"
+                                    ? qsTr("Lock screen wallpaper") : qsTr("Wallpaper")
+                                color: RaohaneTheme.text
+                                font.pixelSize: 13
+                                font.weight: Font.DemiBold
+                            }
+
+                            Text {
+                                text: qsTr("Browse, preview and apply")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        NavButton { icon: "arrow_back"; onTriggered: RaohaneWallpapers.navigateBack() }
+                        NavButton { icon: "arrow_upward"; onTriggered: RaohaneWallpapers.navigateUp() }
+                        NavButton { icon: "arrow_forward"; onTriggered: RaohaneWallpapers.navigateForward() }
+                        NavButton {
+                            icon: "casino"
+                            onTriggered: {
+                                RaohaneWallpapers.stopPreview()
+                                RaohaneWallpapers.randomFromCurrentFolder()
+                                root.close()
+                            }
+                        }
+                        NavButton {
+                            icon: "folder_open"
+                            onTriggered: RaohaneWallpapers.openFallbackPicker(true, RaohaneWallpapers.effectiveDirectory)
+                        }
+                        NavButton { icon: "close"; onTriggered: root.close() }
+                    }
 
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 58
-                        radius: 18
-                        color: "#87171320"
-                        border.width: 1
-                        border.color: RaohaneTheme.border
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
-                            spacing: 7
-
-                            NavButton { icon: "arrow_back"; onTriggered: RaohaneWallpapers.navigateBack() }
-                            NavButton { icon: "arrow_upward"; onTriggered: RaohaneWallpapers.navigateUp() }
-                            NavButton { icon: "arrow_forward"; onTriggered: RaohaneWallpapers.navigateForward() }
-
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 38
-                                radius: 13
-                                color: "#54100e16"
-                                border.width: 1
-                                border.color: searchField.activeFocus ? RaohaneTheme.accent : RaohaneTheme.border
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 11
-                                    anchors.rightMargin: 10
-                                    spacing: 8
-
-                                    RaohaneIcon {
-                                        text: "search"
-                                        iconSize: 17
-                                        color: RaohaneTheme.textMuted
-                                    }
-
-                                    TextField {
-                                        id: searchField
-                                        Layout.fillWidth: true
-                                        background: null
-                                        color: RaohaneTheme.text
-                                        placeholderText: qsTr("Search wallpapers")
-                                        placeholderTextColor: RaohaneTheme.textMuted
-                                        font.pixelSize: 10
-                                        selectByMouse: true
-                                        onTextChanged: RaohaneWallpapers.searchQuery = text
-                                    }
-
-                                    Text {
-                                        visible: searchField.text.length === 0
-                                        text: RaohaneWallpapers.effectiveDirectory
-                                        color: RaohaneTheme.textMuted
-                                        font.pixelSize: 8
-                                        elide: Text.ElideMiddle
-                                        Layout.maximumWidth: 290
-                                    }
-                                }
-                            }
-
-                            NavButton {
-                                icon: "casino"
-                                emphasized: true
-                                onTriggered: {
-                                    RaohaneWallpapers.stopPreview()
-                                    RaohaneWallpapers.randomFromCurrentFolder()
-                                    root.close()
-                                }
-                            }
-                            NavButton {
-                                icon: "folder_open"
-                                onTriggered: RaohaneWallpapers.openFallbackPicker(true, RaohaneWallpapers.effectiveDirectory)
-                            }
-                            NavButton { icon: "close"; onTriggered: root.close() }
-                        }
+                        Layout.preferredHeight: 1
+                        color: RaohaneTheme.borderFaint
                     }
 
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 38
                         spacing: 7
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 34
+                            radius: 11
+                            color: searchField.activeFocus ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
+                            border.width: 1
+                            border.color: searchField.activeFocus ? RaohaneTheme.borderStrong : RaohaneTheme.border
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 9
+                                spacing: 7
+
+                                RaohaneIcon {
+                                    text: "search"
+                                    iconSize: 15
+                                    color: searchField.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                }
+
+                                TextField {
+                                    id: searchField
+                                    Layout.fillWidth: true
+                                    background: null
+                                    color: RaohaneTheme.text
+                                    placeholderText: qsTr("Search wallpapers")
+                                    placeholderTextColor: RaohaneTheme.textFaint
+                                    font.pixelSize: 9
+                                    selectByMouse: true
+                                    onTextChanged: RaohaneWallpapers.searchQuery = text
+                                }
+
+                                Text {
+                                    visible: searchField.text.length === 0
+                                    text: RaohaneWallpapers.effectiveDirectory
+                                    color: RaohaneTheme.textFaint
+                                    font.pixelSize: 7
+                                    elide: Text.ElideMiddle
+                                    Layout.maximumWidth: 260
+                                }
+                            }
+                        }
 
                         QuickDir {
                             visible: root.picturesPath.length > 0
@@ -237,58 +267,25 @@ Scope {
                             title: qsTr("Home")
                             path: root.homePath
                         }
-                        QuickDir {
-                            visible: RaohaneConfig.wallpaperDirectory.length > 0
-                                && RaohaneConfig.wallpaperDirectory !== root.homePath
-                                && RaohaneConfig.wallpaperDirectory !== root.picturesPath + "/Wallpapers"
-                            icon: "folder_special"
-                            title: qsTr("Current")
-                            path: RaohaneConfig.wallpaperDirectory
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Rectangle {
-                            width: targetText.implicitWidth + 18
-                            height: 28
-                            radius: 14
-                            color: RaohaneState.wallpaperSelectorTarget === "lockWall"
-                                ? RaohaneTheme.accentSoft : "#18ffffff"
-                            border.width: 1
-                            border.color: RaohaneTheme.border
-
-                            Text {
-                                id: targetText
-                                anchors.centerIn: parent
-                                text: RaohaneState.wallpaperSelectorTarget === "lockWall"
-                                    ? qsTr("LOCK SCREEN") : qsTr("DESKTOP")
-                                color: RaohaneState.wallpaperSelectorTarget === "lockWall"
-                                    ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                                font.pixelSize: 8
-                                font.weight: Font.DemiBold
-                                font.letterSpacing: 0.7
-                            }
-                        }
                     }
 
-                    Rectangle {
+                    RaohaneSurface {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        radius: 20
-                        color: "#74121019"
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                        surfaceRadius: 17
+                        raised: false
+                        showSheen: false
                         clip: true
 
                         GridView {
                             id: grid
                             anchors.fill: parent
-                            anchors.margins: 8
+                            anchors.margins: 7
                             model: RaohaneWallpapers.folderModel
                             clip: true
                             boundsBehavior: Flickable.StopAtBounds
                             cellWidth: width / Math.max(2, Math.min(6, RaohaneConfig.wallpaperColumns || 4))
-                            cellHeight: cellWidth * 0.72
+                            cellHeight: cellWidth * 0.70
                             keyNavigationWraps: true
                             focus: true
 
@@ -309,12 +306,12 @@ Scope {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    anchors.margins: 5
-                                    radius: 16
-                                    color: cell.selected ? RaohaneTheme.accentSoft : "#471a1722"
-                                    border.width: 1
-                                    border.color: cellMouse.containsMouse || cell.selected
-                                        ? RaohaneTheme.accent : RaohaneTheme.border
+                                    anchors.margins: 4
+                                    radius: 13
+                                    color: RaohaneTheme.surfaceSubtle
+                                    border.width: cell.selected || cellMouse.containsMouse ? 2 : 1
+                                    border.color: cell.selected ? RaohaneTheme.accentBorder
+                                        : cellMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
                                     clip: true
 
                                     Image {
@@ -329,16 +326,13 @@ Scope {
                                     Rectangle {
                                         anchors.fill: parent
                                         visible: !cell.isDirectory && cell.isVideo
-                                        gradient: Gradient {
-                                            GradientStop { position: 0.0; color: "#2c231f36" }
-                                            GradientStop { position: 1.0; color: "#b20c0a11" }
-                                        }
+                                        color: RaohaneTheme.surfaceDeep
 
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: "movie"
-                                            iconSize: 38
-                                            color: RaohaneTheme.accent
+                                            iconSize: 32
+                                            color: RaohaneTheme.textMuted
                                         }
                                     }
 
@@ -346,24 +340,26 @@ Scope {
                                         anchors.fill: parent
                                         visible: !cell.isDirectory
                                         gradient: Gradient {
-                                            GradientStop { position: 0.38; color: "#00100e16" }
-                                            GradientStop { position: 1.0; color: "#cf100e16" }
+                                            GradientStop { position: 0.48; color: "#00000000" }
+                                            GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#c0000000" : "#b8f5f2ec" }
                                         }
                                     }
 
                                     Rectangle {
                                         anchors.centerIn: parent
                                         visible: cell.isDirectory
-                                        width: 54
-                                        height: 54
-                                        radius: 18
-                                        color: RaohaneTheme.accentSoft
+                                        width: 48
+                                        height: 48
+                                        radius: 14
+                                        color: RaohaneTheme.surfaceRaised
+                                        border.width: 1
+                                        border.color: RaohaneTheme.border
 
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: "folder"
-                                            iconSize: 28
-                                            color: RaohaneTheme.accent
+                                            iconSize: 24
+                                            color: RaohaneTheme.textMuted
                                         }
                                     }
 
@@ -372,7 +368,7 @@ Scope {
                                             left: parent.left
                                             right: parent.right
                                             bottom: parent.bottom
-                                            margins: 10
+                                            margins: 9
                                         }
                                         spacing: 6
 
@@ -380,7 +376,7 @@ Scope {
                                             text: cell.isDirectory ? "folder"
                                                 : cell.selected ? "check_circle"
                                                 : cell.isVideo ? "movie" : "image"
-                                            iconSize: 15
+                                            iconSize: 14
                                             color: cell.selected ? RaohaneTheme.accent : RaohaneTheme.text
                                         }
 
@@ -388,7 +384,7 @@ Scope {
                                             Layout.fillWidth: true
                                             text: cell.fileName
                                             color: RaohaneTheme.text
-                                            font.pixelSize: 9
+                                            font.pixelSize: 8
                                             font.weight: Font.DemiBold
                                             elide: Text.ElideRight
                                         }
@@ -413,9 +409,7 @@ Scope {
                                 }
                             }
 
-                            ScrollBar.vertical: ScrollBar {
-                                policy: ScrollBar.AsNeeded
-                            }
+                            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
                         }
 
                         Column {
@@ -426,32 +420,32 @@ Scope {
                             RaohaneIcon {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: "image_not_supported"
-                                iconSize: 34
-                                color: RaohaneTheme.textMuted
+                                iconSize: 30
+                                color: RaohaneTheme.textFaint
                             }
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: qsTr("No wallpapers found")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 10
+                                font.pixelSize: 9
                             }
                         }
                     }
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 28
+                        Layout.preferredHeight: 24
 
                         Text {
                             text: qsTr("%1 items").arg(RaohaneWallpapers.folderModel.count)
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
                         }
                         Item { Layout.fillWidth: true }
                         Text {
                             text: qsTr("Alt+←/→ history · Alt+↑ parent · Ctrl+F search")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
                         }
                     }
                 }
@@ -480,21 +474,20 @@ Scope {
     component NavButton: Rectangle {
         id: button
         required property string icon
-        property bool emphasized: false
         signal triggered()
 
-        width: 36
-        height: 36
-        radius: 12
-        color: emphasized || pointer.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
-        border.width: 1
-        border.color: emphasized || pointer.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        width: 32
+        height: 32
+        radius: 10
+        color: pointer.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: pointer.containsMouse ? 1 : 0
+        border.color: RaohaneTheme.border
 
         RaohaneIcon {
             anchors.centerIn: parent
             text: button.icon
-            iconSize: 18
-            color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            iconSize: 16
+            color: pointer.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
         }
 
         MouseArea {
@@ -511,23 +504,30 @@ Scope {
         required property string icon
         required property string title
         required property string path
-        Layout.preferredWidth: label.implicitWidth + 48
-        Layout.preferredHeight: 30
-        radius: 15
-        color: dirMouse.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
+
+        Layout.preferredWidth: label.implicitWidth + 42
+        Layout.preferredHeight: 32
+        radius: 10
+        color: dirMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
         border.width: 1
-        border.color: dirMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        border.color: dirMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         Row {
             anchors.centerIn: parent
             spacing: 6
-            RaohaneIcon { text: dir.icon; iconSize: 14; color: RaohaneTheme.textMuted }
+
+            RaohaneIcon {
+                text: dir.icon
+                iconSize: 13
+                color: dirMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+
             Text {
                 id: label
                 text: dir.title
                 color: RaohaneTheme.text
-                font.pixelSize: 9
-                font.weight: Font.DemiBold
+                font.pixelSize: 8
+                font.weight: Font.Medium
             }
         }
 
