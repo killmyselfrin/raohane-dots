@@ -80,12 +80,12 @@ Scope {
 
         Rectangle {
             anchors.centerIn: launcherSurface
-            width: launcherSurface.width + 14
-            height: launcherSurface.height + 14
+            width: launcherSurface.width + 10
+            height: launcherSurface.height + 10
             radius: RaohaneTheme.radiusHero + 5
             color: "transparent"
-            border.width: 4
-            border.color: "#20c56cff"
+            border.width: 1
+            border.color: RaohaneTheme.borderFaint
         }
 
         RaohaneSurface {
@@ -96,7 +96,7 @@ Scope {
             implicitHeight: content.implicitHeight + 30
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
-            border.color: RaohaneTheme.accentBorder
+            border.color: RaohaneTheme.borderStrong
             clip: true
 
             ColumnLayout {
@@ -118,11 +118,10 @@ Scope {
                     spacing: 8
 
                     Text {
-                        text: "RAOHANE / SEARCH"
+                        text: qsTr("Search")
                         color: RaohaneTheme.textMuted
                         font.pixelSize: 9
                         font.weight: Font.DemiBold
-                        font.letterSpacing: 1.2
                     }
 
                     Item { Layout.fillWidth: true }
@@ -151,16 +150,16 @@ Scope {
                             Layout.preferredWidth: 36
                             Layout.preferredHeight: 36
                             radius: 13
-                            color: RaohaneTheme.accentSoft
+                            color: RaohaneTheme.surfaceSubtle
                             border.width: 1
-                            border.color: RaohaneTheme.accentGlow
+                            border.color: searchInput.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "ラ"
-                                color: RaohaneTheme.text
+                                color: RaohaneTheme.accent
                                 font.pixelSize: 14
-                                font.weight: Font.Bold
+                                font.weight: Font.DemiBold
                             }
                         }
 
@@ -202,9 +201,9 @@ Scope {
                             implicitWidth: escText.implicitWidth + 14
                             implicitHeight: 24
                             radius: 9
-                            color: "#18ffffff"
+                            color: RaohaneTheme.surfaceSubtle
                             border.width: 1
-                            border.color: RaohaneTheme.borderFaint
+                            border.color: RaohaneTheme.border
 
                             Text {
                                 id: escText
@@ -238,20 +237,7 @@ Scope {
                             surfaceRadius: 16
                             active: selected
                             hovered: resultMouse.containsMouse
-                            showSheen: selected
-
-                            Rectangle {
-                                visible: resultRow.selected
-                                anchors {
-                                    left: parent.left
-                                    verticalCenter: parent.verticalCenter
-                                    leftMargin: 1
-                                }
-                                width: 3
-                                height: 22
-                                radius: 2
-                                color: RaohaneTheme.accentSecondary
-                            }
+                            showSheen: false
 
                             RowLayout {
                                 anchors.fill: parent
@@ -263,13 +249,9 @@ Scope {
                                     Layout.preferredWidth: 34
                                     Layout.preferredHeight: 34
                                     radius: 12
-                                    color: resultRow.selected
-                                        ? "#24ffffff"
-                                        : "#12ffffff"
+                                    color: resultRow.selected ? RaohaneTheme.surfaceRaised : RaohaneTheme.surfaceSubtle
                                     border.width: 1
-                                    border.color: resultRow.selected
-                                        ? RaohaneTheme.accentGlow
-                                        : RaohaneTheme.borderFaint
+                                    border.color: resultRow.selected ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                                     Loader {
                                         anchors.centerIn: parent
@@ -352,7 +334,9 @@ Scope {
                                     implicitWidth: verbText.implicitWidth + 14
                                     implicitHeight: 24
                                     radius: 9
-                                    color: resultRow.selected ? RaohaneTheme.accentSoft : "#10ffffff"
+                                    color: resultRow.selected ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
+                                    border.width: 1
+                                    border.color: resultRow.selected ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                                     Text {
                                         id: verbText
