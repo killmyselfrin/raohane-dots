@@ -1,7 +1,17 @@
 # Raohane changelog
 
-## 0.10.0-dev — Foundation Migration Batch
+## 0.10.0-dev — Standalone + Cyber-Noir Redesign
 
+- Establish the new Raohane cyber-noir design system: deep violet glass, restrained magenta neon, shared spacing/radius/motion tokens and a single raised-surface contract.
+- Rebuild the horizontal Bar as three floating pods with a signature centered Context Island; bring the vertical Bar into the same visual system.
+- Turn Context Island into the primary Raohane identity capsule with contextual privacy/media state and a lightweight neon halo.
+- Reshape Dock into a floating glass capsule with clearer running/active/pinned states while preserving fullscreen-safe reveal behavior.
+- Rebuild Control Center as a larger command deck with profile/time context, native Quick Controls, notifications and privacy/system status.
+- Elevate Launcher into the flagship Raohane search surface with a hero input, richer result cards and consistent keyboard/IPC behavior.
+- Turn Settings into a larger flagship dashboard and rebuild its Home screen as a wallpaper-backed Living Shell control deck.
+- Restyle the media/game overlay and native notification cards to use the same neon-glass hierarchy.
+- Rebuild Spaces/Overview into an immersive workspace deck with a dedicated space rail and interactive window cards while preserving direct toplevel activation.
+- Replace the old visual-boundary assumptions with an audit for the centralized cyber-noir token/surface system.
 - Complete the source/static standalone migration boundary: the active shell, services, configuration framework and visible runtime are Raohane-owned, while remaining hardware/session validation stays explicit.
 - Add an automated source-lineage/license audit that distinguishes removed upstream runtime dependencies from retained GPL/data/asset provenance.
 - Add reproducible source release packaging from committed `HEAD`, version consistency checks and SHA-256 verification through the release-boundary CI workflow.
