@@ -1,93 +1,125 @@
 # Raohane
 
-Raohane is a Hyprland + Quickshell desktop shell.
+Raohane is a standalone Hyprland + Quickshell desktop shell.
 
-## Foundation strategy
+## Current architecture
 
-Raohane now uses `pctrade/end4-pC` as the technical foundation rather than only as a visual/architectural reference.
+The active product runtime is Raohane-owned. Historical end4/illogical/iNiR code was used during migration, but another shell repository is no longer an installation, runtime, update or normal-development dependency.
 
-Upstream chain:
+Current source/runtime boundary:
+
+- `shell.qml` boots `panelFamilies/RaohaneFamily.qml`;
+- active QML/product code lives under `modules/raohane/`;
+- Raohane owns service adapters, state, theme, reusable widgets/helpers/models and the persisted config/path framework;
+- `defaults/native.json` is the current native schema baseline;
+- `install/arch/*.txt`, `scripts/install-deps.sh` and `install-raohane.sh` are the supported install/dependency path;
+- retired `modules/ii`, `modules/common`, root inherited `services`, upstream family fallbacks and sync/bootstrap trees must not be reintroduced.
+
+Do not build new features against historical upstream shell namespaces. If mature behavior must be studied, use upstream repositories as references and implement the resulting product path through Raohane-owned APIs.
+
+## Provenance and licensing
+
+Historical migration/provenance sources include:
 
 - `pctrade/end4-pC`
 - `end-4/dots-hyprland` / illogical-impulse
+- `snowarch/iNiR`
 
-The goal is to retain the mature system coverage, integrations, package/dependency model, services, settings infrastructure, widgets, notifications, OSD, media stack, and shell completeness of that foundation while progressively transforming the product into Raohane.
+Preserve GNU GPLv3 obligations for covered derivative work. Runtime independence does not mean every retained asset, translation, default or historical implementation became independently authored.
 
-Do not perform a shallow copy-and-rebrand. Preserve functionality first, then migrate identity and UX in controlled phases.
+- Keep `LICENSE` and `NOTICE-UPSTREAM.md` accurate.
+- Preserve applicable upstream/third-party notices for retained code, data, assets, shaders, integrations, icons, prompts or themes.
+- Do not remove attribution merely because an upstream runtime dependency was deleted.
+- Do not bundle font binaries; fonts remain package-managed.
+- Run `bash scripts/source-lineage-audit.sh` for provenance/release-boundary changes.
 
-## Licensing and attribution
-
-- Preserve GNU GPLv3 licensing for covered derivative work.
-- Keep upstream copyright/license notices intact where required.
-- Maintain a clear `NOTICE-UPSTREAM.md` / credits section documenting end4-pC and illogical-impulse origins.
-- Mark Raohane-modified files/releases as modified where appropriate.
-- Do not remove third-party notices for assets, shaders, integrations, or copied components.
-
-## Architecture
+## Product target
 
 - Hyprland only for the Raohane product target.
-- Quickshell/QML UI.
-- end4-pC/illogical-impulse backend and UI modules may be retained during migration when they provide working functionality.
-- New or rewritten Raohane-native surfaces should live under `modules/raohane/` where practical.
-- Do not introduce new Niri-specific product work.
-- Migrate old naming/config namespaces incrementally instead of deleting working subsystems prematurely.
-- Preserve working package/service integrations until a Raohane-native replacement is verified at runtime.
+- Quickshell / Qt QML UI.
+- New or rewritten product code belongs under `modules/raohane/` or another explicitly Raohane-owned root.
+- Do not introduce Niri-specific product architecture.
+- Do not restore compatibility bridges as a shortcut around a missing native implementation.
+
+## Native framework rules
+
+- Persisted product settings belong in `RaohaneConfig` and `defaults/native.json`.
+- Filesystem/config/cache/state/runtime locations belong in `RaohanePaths`.
+- Shared visual primitives belong in Raohane-owned framework components rather than ad-hoc copies.
+- New system integrations should expose a Raohane-owned service/API boundary before being consumed across multiple surfaces.
+- Keep expensive polling/event work centralized and demand-driven where possible.
+- Preserve horizontal/vertical bar, fullscreen and multi-monitor contracts when touching shared shell state.
 
 ## Design direction
 
 Raohane visual identity:
 
-- Japanese minimalism
-- dark translucent glass
-- floating surfaces/islands
-- purple / magenta accents
-- wallpaper/media-aware accents where useful
-- Context Island as a signature surface
-- smooth organic motion
-- dense but readable information hierarchy
+- Japanese minimalism;
+- dark translucent glass;
+- floating surfaces/islands;
+- purple / magenta accents;
+- wallpaper/media-aware accents where useful;
+- Context Island as a signature surface;
+- smooth organic motion;
+- dense but readable information hierarchy.
 
-end4-pC may now be reused as source foundation under GPLv3, but the final user-facing design should become recognizably Raohane rather than a simple renamed clone.
+References may inform behavior, but the final user-facing design must remain recognizably Raohane rather than a renamed upstream shell.
 
-## Migration priorities
+## Runtime validation rule
 
-1. Import/synchronize the full end4-pC foundation and verify it launches unchanged.
-2. Bring over the full upstream dependency/install coverage required by the imported features.
-3. Preserve and verify Settings, bar, launcher, notifications, OSD, media, network, Bluetooth, audio, portals, power, capture, widgets, and supporting services.
-4. Integrate Raohane hardware/bootstrap improvements: GPU detection, driver planning, display/refresh-rate management, doctor diagnostics.
-5. Introduce Raohane design tokens and branding without breaking existing functionality.
-6. Rebuild primary surfaces progressively: Bar + Context Island, Control Center, Settings, Launcher/Overview, Notifications/OSD.
-7. Remove obsolete upstream identity/config paths only after their Raohane replacements work in a real Hyprland session.
+A UI/runtime task is not complete only because QML parses or static checks pass.
 
-## Runtime rule
+For changes that touch active shell behavior, verify when possible:
 
-A migration task is not complete only because QML parses or static checks pass.
+- `qs -c raohane` / the installed `raohane.service` starts cleanly;
+- Settings opens and persists the changed setting;
+- Launcher/Control Center/affected IPC routes still open;
+- notifications/OSD/media remain functional when their shared services are touched;
+- network/Bluetooth/audio/display backends still respond when changed;
+- no critical QML runtime errors appear;
+- no duplicate Quickshell instances or conflicting services are introduced.
 
-For UI/runtime changes verify when possible:
+For the current Phase 4 live boundary use:
 
-- `qs -c raohane` starts
-- Settings opens
-- launcher opens
-- control/system surfaces open
-- notifications/OSD still work
-- media works
-- network/Bluetooth/audio backends still work
-- no critical QML runtime errors
-- no duplicate Quickshell instances or conflicting services
+```bash
+raohane doctor phase4
+raohane validate phase4 --full
+```
 
-If the implementation environment cannot run Hyprland/Quickshell, state that explicitly in the PR and provide exact target-session tests.
+The complete validator intentionally exercises real compositor/PAM/capture behavior. If the implementation environment cannot run Hyprland/Quickshell, do not claim those live gates passed; state the limitation and leave the corresponding roadmap items open.
 
 ## Package/dependency rule
 
-Do not reduce the imported upstream package model to a small hand-written list. Audit all retained features and preserve their runtime/build dependencies. Group dependencies by subsystem and distinguish required, optional, AUR/manual, hardware-specific, and service requirements.
+Do not reduce package coverage to a small hand-written convenience list. Audit retained/native features against `install/arch/required.txt` and `install/arch/features.txt` and keep required versus optional/hardware-specific dependencies explicit.
 
 GPU driver mutation must remain explicit and architecture-aware; never silently replace a working GPU driver.
 
+## Release boundary
+
+`VERSION` is the committed product version. Source releases are produced from committed `HEAD`:
+
+```bash
+bash scripts/package-release.sh
+```
+
+The packager runs the source-lineage and runtime-payload audits and emits a source archive plus SHA-256 checksum. `.github/workflows/release-boundary.yml` must continue to verify this path.
+
+Do not create a release from a dirty tracked working tree or bypass provenance/runtime-payload validation to make an archive pass.
+
 ## Before finishing
 
-Run:
+Run the relevant focused audit plus the umbrella audit:
 
-./scripts/raohane-audit.sh
+```bash
+bash scripts/raohane-audit.sh
+```
 
-Also run `bash -n` on touched shell scripts and validate `qmldir`/local QML imports.
+For release/provenance work also run:
 
-Do not bundle font files in Raohane archives. Fonts may be installed as distribution packages.
+```bash
+bash scripts/source-lineage-audit.sh
+bash scripts/runtime-payload-audit.sh
+bash scripts/package-release.sh
+```
+
+Also run `bash -n` on touched shell scripts and validate `qmldir`/local QML imports. For active UI changes, treat real Hyprland runtime validation as a separate required gate rather than substituting static CI for it.
