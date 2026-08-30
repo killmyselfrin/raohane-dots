@@ -13,7 +13,7 @@ Scope {
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
-    property int panelWidth: 470
+    property int panelWidth: 440
     property date now: new Date()
 
     Timer {
@@ -40,7 +40,7 @@ Scope {
         visible: RaohaneState.controlCenterOpen
         screen: root.focusedScreen
         exclusiveZone: 0
-        implicitWidth: root.panelWidth + 34
+        implicitWidth: root.panelWidth + 28
         color: "transparent"
         WlrLayershell.namespace: "quickshell:raohane-control-center"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -52,9 +52,9 @@ Scope {
             bottom: true
         }
         margins {
-            top: 16
-            right: 16
-            bottom: 16
+            top: 14
+            right: 14
+            bottom: 14
         }
 
         function hide(): void { RaohaneState.setPrimaryOpen("controlCenter", false) }
@@ -73,17 +73,6 @@ Scope {
             function onDismissed() { panelWindow.hide() }
         }
 
-        Rectangle {
-            anchors.centerIn: panelSurface
-            width: panelSurface.width + 10
-            height: panelSurface.height + 10
-            radius: RaohaneTheme.radiusHero + 5
-            color: "transparent"
-            border.width: 1
-            border.color: RaohaneTheme.borderFaint
-            opacity: RaohaneState.controlCenterOpen ? 0.8 : 0
-        }
-
         RaohaneSurface {
             id: panelSurface
             width: root.panelWidth
@@ -94,26 +83,27 @@ Scope {
             }
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
+            showSheen: false
             border.color: RaohaneTheme.borderStrong
             clip: true
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: RaohaneTheme.panelPadding
-                spacing: 12
+                anchors.margins: 14
+                spacing: 10
 
                 Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 68
+                    Layout.preferredHeight: 56
 
                     RowLayout {
                         anchors.fill: parent
-                        spacing: 11
+                        spacing: 10
 
                         Rectangle {
-                            Layout.preferredWidth: 40
-                            Layout.preferredHeight: 40
-                            radius: 14
+                            Layout.preferredWidth: 36
+                            Layout.preferredHeight: 36
+                            radius: 12
                             color: RaohaneTheme.surfaceSubtle
                             border.width: 1
                             border.color: RaohaneTheme.border
@@ -122,20 +112,20 @@ Scope {
                                 anchors.centerIn: parent
                                 text: "ラ"
                                 color: RaohaneTheme.accent
-                                font.pixelSize: 15
+                                font.pixelSize: 14
                                 font.weight: Font.DemiBold
                             }
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 1
+                            spacing: 0
 
                             Text {
                                 Layout.fillWidth: true
                                 text: qsTr("Control Center")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 16
+                                font.pixelSize: 14
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
@@ -145,9 +135,9 @@ Scope {
                                 text: (RaohaneConfig.profileDisplayName !== ""
                                     ? RaohaneConfig.profileDisplayName
                                     : RaohaneSystemInfo.username)
-                                    + "  ·  " + RaohaneSystemInfo.hostname
+                                    + " · " + RaohaneSystemInfo.hostname
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
+                                font.pixelSize: 8
                                 elide: Text.ElideRight
                             }
                         }
@@ -159,7 +149,7 @@ Scope {
                                 Layout.alignment: Qt.AlignRight
                                 text: Qt.formatTime(root.now, "HH:mm")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 15
+                                font.pixelSize: 13
                                 font.weight: Font.Medium
                             }
 
@@ -167,13 +157,12 @@ Scope {
                                 Layout.alignment: Qt.AlignRight
                                 text: Qt.formatDate(root.now, "ddd, d MMM")
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 8
+                                font.pixelSize: 7
                             }
                         }
 
                         ActionButton {
                             icon: "settings"
-                            emphasized: false
                             onClicked: RaohaneState.setPrimaryOpen("settings", true)
                         }
                         ActionButton {
@@ -184,11 +173,18 @@ Scope {
                     }
                 }
 
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderFaint
+                }
+
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: quickControls.implicitHeight + 22
-                    surfaceRadius: 19
+                    Layout.preferredHeight: quickControls.implicitHeight + 18
+                    surfaceRadius: 17
                     raised: false
+                    showSheen: false
 
                     RaohaneQuickControls {
                         id: quickControls
@@ -196,7 +192,7 @@ Scope {
                             left: parent.left
                             right: parent.right
                             top: parent.top
-                            margins: 11
+                            margins: 9
                         }
                         screen: panelWindow.screen
                     }
@@ -206,70 +202,70 @@ Scope {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.minimumHeight: 180
-                    surfaceRadius: 19
+                    surfaceRadius: 17
                     raised: false
+                    showSheen: false
 
                     RaohaneNotificationCenter {
                         anchors.fill: parent
-                        anchors.margins: 11
+                        anchors.margins: 10
                     }
                 }
 
-                RaohaneSurface {
+                Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 48
-                    surfaceRadius: 16
-                    raised: false
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderFaint
+                }
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 8
-                        spacing: 9
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 36
+                    Layout.leftMargin: 4
+                    spacing: 8
 
-                        Rectangle {
-                            width: 8
-                            height: 8
-                            radius: 4
-                            color: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
-                                ? RaohaneTheme.critical
-                                : RaohaneTheme.success
-                        }
+                    Rectangle {
+                        width: 7
+                        height: 7
+                        radius: 4
+                        color: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                            ? RaohaneTheme.critical
+                            : RaohaneTheme.success
+                    }
 
-                        Text {
-                            text: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
-                                ? qsTr("Privacy activity")
-                                : qsTr("All systems calm")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
-                            font.weight: Font.Medium
-                        }
+                    Text {
+                        text: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                            ? qsTr("Privacy activity")
+                            : qsTr("System ready")
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                        font.weight: Font.Medium
+                    }
 
-                        Text {
-                            text: "·"
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 9
-                        }
+                    Text {
+                        text: "·"
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 8
+                    }
 
-                        Text {
-                            text: RaohaneSystemInfo.distroName
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
-                            elide: Text.ElideRight
-                            Layout.fillWidth: true
-                        }
+                    Text {
+                        text: RaohaneSystemInfo.distroName
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 8
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
 
-                        ActionButton {
-                            icon: "restart_alt"
-                            onClicked: {
-                                Quickshell.execDetached(["hyprctl", "reload"])
-                                Quickshell.reload(true)
-                            }
+                    ActionButton {
+                        icon: "restart_alt"
+                        onClicked: {
+                            Quickshell.execDetached(["hyprctl", "reload"])
+                            Quickshell.reload(true)
                         }
-                        ActionButton {
-                            icon: "close"
-                            onClicked: panelWindow.hide()
-                        }
+                    }
+                    ActionButton {
+                        icon: "close"
+                        onClicked: panelWindow.hide()
                     }
                 }
             }
@@ -296,12 +292,10 @@ Scope {
         property bool emphasized: false
         signal clicked()
 
-        Layout.preferredWidth: 32
-        Layout.preferredHeight: 32
-        radius: 11
-        color: emphasized
-            ? RaohaneTheme.accentSoft
-            : pointer.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+        Layout.preferredWidth: 31
+        Layout.preferredHeight: 31
+        radius: 10
+        color: pointer.containsMouse || emphasized ? RaohaneTheme.surfaceHover : "transparent"
         border.width: emphasized || pointer.containsMouse ? 1 : 0
         border.color: emphasized ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
 
@@ -309,9 +303,8 @@ Scope {
             anchors.centerIn: parent
             text: action.icon
             iconSize: 16
-            color: action.emphasized || pointer.containsMouse
-                ? RaohaneTheme.accent
-                : RaohaneTheme.textMuted
+            fill: action.emphasized ? 1 : 0
+            color: action.emphasized ? RaohaneTheme.accent : pointer.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
         }
 
         MouseArea {
