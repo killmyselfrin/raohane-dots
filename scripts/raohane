@@ -21,6 +21,7 @@ Shell:
 Diagnostics:
   doctor [all|graphics|deps|services|runtime|phase4]
   validate phase4 [--exercise] [--lock] [--capture] [--translate]
+  validate release [--phase4|--full] [--report PATH]
   wifi [status|menu]
   audio [status|recover [percent]]
 EOF
@@ -203,6 +204,29 @@ run_phase4_validator() {
   local validator=""
   if ! validator="$(find_phase4_validator)"; then
     echo '[Raohane] Phase 4 validator is missing. Reinstall from an up-to-date checkout.' >&2
+    return 1
+  fi
+  bash "$validator" "$@"
+}
+
+find_release_validator() {
+  local candidate
+  for candidate in \
+    "$RUNTIME/scripts/release-live-check.sh" \
+    "$SCRIPT_DIR/release-live-check.sh" \
+    "$SCRIPT_DIR/../scripts/release-live-check.sh"; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+run_release_validator() {
+  local validator=""
+  if ! validator="$(find_release_validator)"; then
+    echo '[Raohane] Release validator is missing. Reinstall from an up-to-date checkout.' >&2
     return 1
   fi
   bash "$validator" "$@"
@@ -487,6 +511,10 @@ case "${1:-help}" in
       phase4)
         shift 2
         run_phase4_validator "$@"
+        ;;
+      release)
+        shift 2
+        run_release_validator "$@"
         ;;
       *)
         echo "Unknown validation target: ${2:-}" >&2
