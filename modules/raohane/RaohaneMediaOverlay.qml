@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -10,12 +12,36 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
+    property bool lyricsOpen: false
+
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
 
     function toggle(): void { RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen }
     function open(): void { RaohaneState.mediaOverlayOpen = true }
-    function close(): void { RaohaneState.mediaOverlayOpen = false }
+    function close(): void {
+        RaohaneState.mediaOverlayOpen = false
+        root.lyricsOpen = false
+    }
+    function showLyrics(): void {
+        RaohaneState.mediaOverlayOpen = true
+        root.lyricsOpen = true
+        if (!RaohaneLyrics.available && !RaohaneLyrics.loading)
+            RaohaneLyrics.forceRefresh()
+    }
+
+    Connections {
+        target: RaohaneLyrics
+
+        function onCurrentLineIndexChanged(): void {
+            if (!root.lyricsOpen || !RaohaneLyrics.syncedAvailable || RaohaneLyrics.currentLineIndex < 0)
+                return
+            Qt.callLater(() => {
+                if (lyricsList.count > 0)
+                    lyricsList.positionViewAtIndex(RaohaneLyrics.currentLineIndex, ListView.Center)
+            })
+        }
+    }
 
     PanelWindow {
         id: panelWindow
@@ -24,7 +50,7 @@ Scope {
         screen: root.focusedScreen
         exclusiveZone: 0
         implicitWidth: 536
-        implicitHeight: 330
+        implicitHeight: 344
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-media-overlay"
@@ -58,10 +84,8 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
 
-            // Consume pointer presses on the non-interactive surface so they do
-            // not fall through the layer-shell window into an application below.
-            // Interactive controls are declared after this area and therefore
-            // remain above it in the QML stacking order.
+            // Keep empty player chrome inert and prevent click-through into a
+            // fullscreen/game/application surface below the layer-shell window.
             MouseArea {
                 id: surfacePointerGuard
                 anchors.fill: parent
@@ -78,254 +102,482 @@ Scope {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 14
-                spacing: 11
+                spacing: 10
 
-                RowLayout {
+                Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 172
-                    spacing: 14
+                    Layout.fillHeight: true
+
+                    ColumnLayout {
+                        id: nowPlayingPage
+                        anchors.fill: parent
+                        visible: !root.lyricsOpen
+                        spacing: 8
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            spacing: 14
+
+                            Rectangle {
+                                Layout.preferredWidth: 172
+                                Layout.preferredHeight: 172
+                                Layout.alignment: Qt.AlignVCenter
+                                radius: 22
+                                color: RaohaneTheme.surfaceSubtle
+                                border.width: 1
+                                border.color: RaohaneTheme.border
+                                clip: true
+
+                                Image {
+                                    id: coverArt
+                                    anchors.fill: parent
+                                    source: RaohaneMedia.artUrl
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    cache: false
+                                    visible: status === Image.Ready
+                                }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    visible: coverArt.status === Image.Ready
+                                    radius: parent.radius
+                                    color: "transparent"
+                                    border.width: 1
+                                    border.color: RaohaneTheme.border
+                                }
+
+                                Column {
+                                    anchors.centerIn: parent
+                                    visible: !RaohaneMedia.available || coverArt.status !== Image.Ready
+                                    spacing: 4
+
+                                    Text {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: "音"
+                                        color: RaohaneTheme.accent
+                                        font.pixelSize: 34
+                                        font.weight: Font.DemiBold
+                                    }
+                                    Text {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: qsTr("Raohane")
+                                        color: RaohaneTheme.textFaint
+                                        font.pixelSize: 8
+                                        font.letterSpacing: 1
+                                    }
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                spacing: 7
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 7
+
+                                    Rectangle {
+                                        implicitWidth: playerLabel.implicitWidth + 16
+                                        implicitHeight: 27
+                                        radius: 10
+                                        color: RaohaneTheme.surfaceSubtle
+                                        border.width: 1
+                                        border.color: RaohaneTheme.border
+
+                                        Text {
+                                            id: playerLabel
+                                            anchors.centerIn: parent
+                                            text: RaohaneMedia.available
+                                                ? (RaohaneMedia.playerName || qsTr("Media player"))
+                                                : qsTr("No player")
+                                            color: RaohaneTheme.textMuted
+                                            font.pixelSize: 8
+                                            font.weight: Font.Medium
+                                        }
+                                    }
+
+                                    Item { Layout.fillWidth: true }
+
+                                    MiniButton {
+                                        icon: "lyrics"
+                                        tooltip: qsTr("Lyrics")
+                                        enabled: RaohaneMedia.available
+                                        onClicked: root.showLyrics()
+                                    }
+                                    MiniButton {
+                                        icon: "open_in_new"
+                                        tooltip: qsTr("Open player")
+                                        enabled: RaohaneMedia.canRaise
+                                        onClicked: RaohaneMedia.raisePlayer()
+                                    }
+                                    MiniButton {
+                                        icon: "close"
+                                        tooltip: qsTr("Close")
+                                        onClicked: root.close()
+                                    }
+                                }
+
+                                Item { Layout.fillHeight: true }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: RaohaneMedia.available && RaohaneMedia.title.length > 0
+                                        ? RaohaneMedia.title
+                                        : qsTr("Nothing is playing")
+                                    color: RaohaneTheme.text
+                                    font.pixelSize: 20
+                                    font.weight: Font.DemiBold
+                                    elide: Text.ElideRight
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: RaohaneMedia.available && RaohaneMedia.artist.length > 0
+                                        ? RaohaneMedia.artist
+                                        : qsTr("Start a MPRIS-compatible player")
+                                    color: RaohaneTheme.textMuted
+                                    font.pixelSize: 11
+                                    elide: Text.ElideRight
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: RaohaneMedia.album.length > 0
+                                    text: RaohaneMedia.album
+                                    color: RaohaneTheme.textFaint
+                                    font.pixelSize: 9
+                                    elide: Text.ElideRight
+                                }
+
+                                Item { Layout.fillHeight: true }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    visible: RaohaneMedia.playerCount > 1
+                                    spacing: 7
+
+                                    MiniButton {
+                                        icon: "chevron_left"
+                                        tooltip: qsTr("Previous player")
+                                        onClicked: RaohaneMedia.cyclePlayer(-1)
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: qsTr("Player %1 of %2").arg(RaohaneMedia.activePlayerIndex + 1).arg(RaohaneMedia.playerCount)
+                                        color: RaohaneTheme.textFaint
+                                        font.pixelSize: 8
+                                        horizontalAlignment: Text.AlignHCenter
+                                    }
+
+                                    MiniButton {
+                                        icon: "chevron_right"
+                                        tooltip: qsTr("Next player")
+                                        onClicked: RaohaneMedia.cyclePlayer(1)
+                                    }
+                                }
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Item {
+                                id: timelineArea
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 20
+
+                                Rectangle {
+                                    anchors {
+                                        left: parent.left
+                                        right: parent.right
+                                        verticalCenter: parent.verticalCenter
+                                    }
+                                    height: 6
+                                    radius: 3
+                                    color: RaohaneTheme.surfaceDeep
+                                    border.width: 1
+                                    border.color: RaohaneTheme.border
+
+                                    Rectangle {
+                                        width: parent.width * RaohaneMedia.progress
+                                        height: parent.height
+                                        radius: parent.radius
+                                        color: RaohaneTheme.accent
+                                    }
+                                }
+
+                                Rectangle {
+                                    visible: RaohaneMedia.canSeek
+                                    width: timelineMouse.pressed ? 15 : 12
+                                    height: width
+                                    radius: width / 2
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    x: Math.max(0, Math.min(timelineArea.width - width, timelineArea.width * RaohaneMedia.progress - width / 2))
+                                    color: RaohaneTheme.surfaceRaised
+                                    border.width: 2
+                                    border.color: RaohaneTheme.accent
+
+                                    Behavior on width {
+                                        NumberAnimation { duration: RaohaneTheme.animationFast }
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: timelineMouse
+                                    anchors.fill: parent
+                                    enabled: RaohaneMedia.canSeek
+                                    acceptedButtons: Qt.LeftButton
+                                    preventStealing: true
+                                    hoverEnabled: true
+                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
+                                    function seekAt(mouseX: real): void {
+                                        if (width > 0)
+                                            RaohaneMedia.seekRatio(mouseX / width)
+                                    }
+
+                                    onPressed: mouse => seekAt(mouse.x)
+                                    onPositionChanged: mouse => {
+                                        if (pressed)
+                                            seekAt(mouse.x)
+                                    }
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                Text {
+                                    text: RaohaneMedia.formatTime(RaohaneMedia.position)
+                                    color: RaohaneTheme.textMuted
+                                    font.pixelSize: 8
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: RaohaneMedia.length > 0 ? RaohaneMedia.formatTime(RaohaneMedia.length) : "--:--"
+                                    color: RaohaneTheme.textMuted
+                                    font.pixelSize: 8
+                                }
+                            }
+                        }
+                    }
 
                     Rectangle {
-                        Layout.preferredWidth: 172
-                        Layout.preferredHeight: 172
-                        radius: 22
+                        id: lyricsPage
+                        anchors.fill: parent
+                        visible: root.lyricsOpen
+                        radius: 18
                         color: RaohaneTheme.surfaceSubtle
                         border.width: 1
                         border.color: RaohaneTheme.border
                         clip: true
 
-                        Image {
-                            id: coverArt
+                        ColumnLayout {
                             anchors.fill: parent
-                            source: RaohaneMedia.artUrl
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            cache: false
-                            visible: status === Image.Ready
-                        }
-
-                        Rectangle {
-                            anchors.fill: parent
-                            visible: coverArt.status === Image.Ready
-                            radius: parent.radius
-                            color: "transparent"
-                            border.width: 1
-                            border.color: RaohaneTheme.border
-                        }
-
-                        Column {
-                            anchors.centerIn: parent
-                            visible: !RaohaneMedia.available || coverArt.status !== Image.Ready
-                            spacing: 4
-
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: "音"
-                                color: RaohaneTheme.accent
-                                font.pixelSize: 34
-                                font.weight: Font.DemiBold
-                            }
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: qsTr("Raohane")
-                                color: RaohaneTheme.textFaint
-                                font.pixelSize: 8
-                                font.letterSpacing: 1
-                            }
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        spacing: 7
-
-                        RowLayout {
-                            Layout.fillWidth: true
+                            anchors.margins: 10
                             spacing: 7
 
-                            Rectangle {
-                                implicitWidth: playerLabel.implicitWidth + 16
-                                implicitHeight: 27
-                                radius: 10
-                                color: RaohaneTheme.surfaceSubtle
-                                border.width: 1
-                                border.color: RaohaneTheme.border
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 7
 
-                                Text {
-                                    id: playerLabel
-                                    anchors.centerIn: parent
-                                    text: RaohaneMedia.available
-                                        ? (RaohaneMedia.playerName || qsTr("Media player"))
-                                        : qsTr("No player")
-                                    color: RaohaneTheme.textMuted
-                                    font.pixelSize: 8
-                                    font.weight: Font.Medium
+                                MiniButton {
+                                    icon: "arrow_back"
+                                    tooltip: qsTr("Back to player")
+                                    onClicked: root.lyricsOpen = false
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 0
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: qsTr("Lyrics")
+                                        color: RaohaneTheme.text
+                                        font.pixelSize: 12
+                                        font.weight: Font.DemiBold
+                                    }
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: RaohaneLyrics.syncedAvailable
+                                            ? qsTr("Synced · %1").arg(RaohaneLyrics.providerName)
+                                            : qsTr("%1 · %2").arg(RaohaneMedia.artist).arg(RaohaneMedia.title)
+                                        color: RaohaneTheme.textFaint
+                                        font.pixelSize: 7
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                MiniButton {
+                                    icon: "refresh"
+                                    tooltip: qsTr("Refresh lyrics")
+                                    enabled: !RaohaneLyrics.loading && RaohaneMedia.available
+                                    onClicked: RaohaneLyrics.forceRefresh()
+                                }
+
+                                MiniButton {
+                                    icon: "close"
+                                    tooltip: qsTr("Close")
+                                    onClicked: root.close()
                                 }
                             }
 
-                            Item { Layout.fillWidth: true }
-
-                            MiniButton {
-                                icon: "open_in_new"
-                                tooltip: qsTr("Open player")
-                                enabled: RaohaneMedia.canRaise
-                                onClicked: RaohaneMedia.raisePlayer()
-                            }
-                            MiniButton {
-                                icon: "close"
-                                tooltip: qsTr("Close")
-                                onClicked: root.close()
-                            }
-                        }
-
-                        Item { Layout.fillHeight: true }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: RaohaneMedia.available && RaohaneMedia.title.length > 0
-                                ? RaohaneMedia.title
-                                : qsTr("Nothing is playing")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 20
-                            font.weight: Font.DemiBold
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: RaohaneMedia.available && RaohaneMedia.artist.length > 0
-                                ? RaohaneMedia.artist
-                                : qsTr("Start a MPRIS-compatible player")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            visible: RaohaneMedia.album.length > 0
-                            text: RaohaneMedia.album
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 9
-                            elide: Text.ElideRight
-                        }
-
-                        Item { Layout.fillHeight: true }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            visible: RaohaneMedia.playerCount > 1
-                            spacing: 7
-
-                            MiniButton {
-                                icon: "chevron_left"
-                                tooltip: qsTr("Previous player")
-                                onClicked: RaohaneMedia.cyclePlayer(-1)
-                            }
-
-                            Text {
+                            Item {
                                 Layout.fillWidth: true
-                                text: qsTr("Player %1 of %2").arg(RaohaneMedia.activePlayerIndex + 1).arg(RaohaneMedia.playerCount)
-                                color: RaohaneTheme.textFaint
-                                font.pixelSize: 8
-                                horizontalAlignment: Text.AlignHCenter
+                                Layout.fillHeight: true
+
+                                Column {
+                                    anchors.centerIn: parent
+                                    width: Math.min(parent.width - 28, 360)
+                                    visible: RaohaneLyrics.loading
+                                    spacing: 8
+
+                                    RaohaneIcon {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: "lyrics"
+                                        iconSize: 28
+                                        color: RaohaneTheme.accent
+                                    }
+                                    Text {
+                                        width: parent.width
+                                        text: qsTr("Looking for lyrics…")
+                                        color: RaohaneTheme.textMuted
+                                        font.pixelSize: 10
+                                        horizontalAlignment: Text.AlignHCenter
+                                        wrapMode: Text.WordWrap
+                                    }
+                                }
+
+                                Column {
+                                    anchors.centerIn: parent
+                                    width: Math.min(parent.width - 28, 390)
+                                    visible: !RaohaneLyrics.loading && RaohaneLyrics.instrumental
+                                    spacing: 7
+
+                                    RaohaneIcon {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: "graphic_eq"
+                                        iconSize: 30
+                                        color: RaohaneTheme.accent
+                                    }
+                                    Text {
+                                        width: parent.width
+                                        text: qsTr("Instrumental track")
+                                        color: RaohaneTheme.text
+                                        font.pixelSize: 12
+                                        font.weight: Font.DemiBold
+                                        horizontalAlignment: Text.AlignHCenter
+                                    }
+                                    Text {
+                                        width: parent.width
+                                        text: qsTr("No vocal lyrics are expected for this recording.")
+                                        color: RaohaneTheme.textMuted
+                                        font.pixelSize: 9
+                                        horizontalAlignment: Text.AlignHCenter
+                                        wrapMode: Text.WordWrap
+                                    }
+                                }
+
+                                Column {
+                                    anchors.centerIn: parent
+                                    width: Math.min(parent.width - 28, 390)
+                                    visible: !RaohaneLyrics.loading && !RaohaneLyrics.available && !RaohaneLyrics.instrumental
+                                    spacing: 7
+
+                                    RaohaneIcon {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: "lyrics"
+                                        iconSize: 28
+                                        color: RaohaneTheme.textFaint
+                                    }
+                                    Text {
+                                        width: parent.width
+                                        text: RaohaneLyrics.errorText.length > 0
+                                            ? RaohaneLyrics.errorText
+                                            : qsTr("Lyrics are not available yet")
+                                        color: RaohaneTheme.textMuted
+                                        font.pixelSize: 9
+                                        horizontalAlignment: Text.AlignHCenter
+                                        wrapMode: Text.WordWrap
+                                    }
+                                }
+
+                                ListView {
+                                    id: lyricsList
+                                    anchors.fill: parent
+                                    visible: !RaohaneLyrics.loading && RaohaneLyrics.available && !RaohaneLyrics.instrumental
+                                    clip: true
+                                    spacing: 2
+                                    model: RaohaneLyrics.displayLines
+                                    boundsBehavior: Flickable.StopAtBounds
+                                    flickDeceleration: 2200
+
+                                    delegate: Item {
+                                        id: lyricLine
+                                        required property var modelData
+                                        required property int index
+                                        readonly property bool current: RaohaneLyrics.syncedAvailable
+                                            && index === RaohaneLyrics.currentLineIndex
+
+                                        width: ListView.view.width
+                                        height: lyricText.implicitHeight + 12
+
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            radius: 10
+                                            color: lyricLine.current ? RaohaneTheme.accentSoft : "transparent"
+                                            border.width: lyricLine.current ? 1 : 0
+                                            border.color: RaohaneTheme.accentBorder
+                                        }
+
+                                        Text {
+                                            id: lyricText
+                                            anchors {
+                                                left: parent.left
+                                                right: parent.right
+                                                verticalCenter: parent.verticalCenter
+                                                leftMargin: 10
+                                                rightMargin: 10
+                                            }
+                                            text: String(lyricLine.modelData.text ?? "")
+                                            color: lyricLine.current ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                            font.pixelSize: lyricLine.current ? 12 : 10
+                                            font.weight: lyricLine.current ? Font.DemiBold : Font.Normal
+                                            wrapMode: Text.WordWrap
+                                            horizontalAlignment: Text.AlignHCenter
+
+                                            Behavior on color {
+                                                ColorAnimation { duration: RaohaneTheme.animationFast }
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            acceptedButtons: Qt.LeftButton
+                                            preventStealing: true
+                                            enabled: RaohaneLyrics.syncedAvailable
+                                                && Number(lyricLine.modelData.time) >= 0
+                                                && RaohaneMedia.canSeek
+                                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                            onClicked: {
+                                                if (RaohaneMedia.length > 0)
+                                                    RaohaneMedia.seekRatio(Number(lyricLine.modelData.time) / RaohaneMedia.length)
+                                            }
+                                        }
+                                    }
+                                }
                             }
-
-                            MiniButton {
-                                icon: "chevron_right"
-                                tooltip: qsTr("Next player")
-                                onClicked: RaohaneMedia.cyclePlayer(1)
-                            }
-                        }
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
-
-                    Item {
-                        id: timelineArea
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 20
-
-                        Rectangle {
-                            anchors {
-                                left: parent.left
-                                right: parent.right
-                                verticalCenter: parent.verticalCenter
-                            }
-                            height: 6
-                            radius: 3
-                            color: RaohaneTheme.surfaceDeep
-                            border.width: 1
-                            border.color: RaohaneTheme.border
-
-                            Rectangle {
-                                width: parent.width * RaohaneMedia.progress
-                                height: parent.height
-                                radius: parent.radius
-                                color: RaohaneTheme.accent
-                            }
-                        }
-
-                        Rectangle {
-                            visible: RaohaneMedia.canSeek
-                            width: timelineMouse.pressed ? 15 : 12
-                            height: width
-                            radius: width / 2
-                            anchors.verticalCenter: parent.verticalCenter
-                            x: Math.max(0, Math.min(timelineArea.width - width, timelineArea.width * RaohaneMedia.progress - width / 2))
-                            color: RaohaneTheme.surfaceRaised
-                            border.width: 2
-                            border.color: RaohaneTheme.accent
-
-                            Behavior on width {
-                                NumberAnimation { duration: RaohaneTheme.animationFast }
-                            }
-                        }
-
-                        MouseArea {
-                            id: timelineMouse
-                            anchors.fill: parent
-                            enabled: RaohaneMedia.canSeek
-                            acceptedButtons: Qt.LeftButton
-                            preventStealing: true
-                            hoverEnabled: true
-                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-
-                            function seekAt(mouseX: real): void {
-                                if (width > 0)
-                                    RaohaneMedia.seekRatio(mouseX / width)
-                            }
-
-                            onPressed: mouse => seekAt(mouse.x)
-                            onPositionChanged: mouse => {
-                                if (pressed)
-                                    seekAt(mouse.x)
-                            }
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-
-                        Text {
-                            text: RaohaneMedia.formatTime(RaohaneMedia.position)
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                        }
-                        Item { Layout.fillWidth: true }
-                        Text {
-                            text: RaohaneMedia.length > 0 ? RaohaneMedia.formatTime(RaohaneMedia.length) : "--:--"
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
                         }
                     }
                 }
 
                 Rectangle {
+                    id: transportRail
                     Layout.fillWidth: true
                     Layout.preferredHeight: 54
                     radius: 18
@@ -462,6 +714,7 @@ Scope {
         function toggle(): void { root.toggle() }
         function open(): void { root.open() }
         function close(): void { root.close() }
+        function lyrics(): void { root.showLyrics() }
     }
 
     CompositorGlobalShortcut {
