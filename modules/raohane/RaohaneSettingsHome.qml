@@ -20,7 +20,7 @@ Item {
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 220
+            Layout.preferredHeight: 190
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: true
             clip: true
@@ -32,16 +32,16 @@ Item {
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: false
-                opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.52 : 0.38) : 0
+                opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.42 : 0.30) : 0
             }
 
             Rectangle {
                 anchors.fill: parent
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: RaohaneTheme.dark ? "#e8171817" : "#e8f4f1eb" }
-                    GradientStop { position: 0.52; color: RaohaneTheme.dark ? "#c8171817" : "#ccefebE5" }
-                    GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#8a171817" : "#8af5f1eb" }
+                    GradientStop { position: 0.0; color: RaohaneTheme.dark ? "#ee161616" : "#eef5f2ec" }
+                    GradientStop { position: 0.62; color: RaohaneTheme.dark ? "#c9161616" : "#d8f5f2ec" }
+                    GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#92161616" : "#9cf5f2ec" }
                 }
             }
 
@@ -57,12 +57,12 @@ Item {
                 Text {
                     text: qsTr("Raohane")
                     color: RaohaneTheme.text
-                    font.pixelSize: 18
+                    font.pixelSize: 19
                     font.weight: Font.DemiBold
                 }
 
                 Text {
-                    text: qsTr("Minimal Japanese shell · native Hyprland control deck")
+                    text: qsTr("A minimal Hyprland shell, shaped live")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 10
                 }
@@ -94,7 +94,7 @@ Item {
 
                 StatusChip {
                     icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
-                    text: qsTr("Volume %1%").arg(Math.round(RaohaneAudio.volume * 100))
+                    text: qsTr("%1% volume").arg(Math.round(RaohaneAudio.volume * 100))
                     active: RaohaneAudio.ready && !RaohaneAudio.muted
                 }
 
@@ -127,20 +127,20 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 9
+            spacing: 10
 
             ColumnLayout {
-                spacing: 0
+                spacing: 1
 
                 Text {
-                    text: qsTr("Shape Raohane")
+                    text: qsTr("Core surfaces")
                     color: RaohaneTheme.text
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
                 }
 
                 Text {
-                    text: qsTr("native settings are applied live")
+                    text: qsTr("Everything below applies live and stays inside the Raohane design system")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 8
                 }
@@ -149,15 +149,9 @@ Item {
             Item { Layout.fillWidth: true }
 
             PathChip {
-                label: "native.json"
+                label: qsTr("Open native.json")
                 path: RaohanePaths.nativeConfigFile
                 icon: "tune"
-            }
-
-            PathChip {
-                label: "autostart.conf"
-                path: RaohanePaths.autostartFile
-                icon: "rocket_launch"
             }
         }
 
@@ -165,61 +159,61 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             columns: root.width > 820 ? 3 : 2
-            columnSpacing: 12
-            rowSpacing: 12
+            columnSpacing: 10
+            rowSpacing: 10
 
             DeckCard {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 icon: "palette"
                 title: qsTr("Themes")
-                detail: qsTr("Minimal palettes and complete shell moods")
+                detail: qsTr("Theme Library, accent color and Style Studio")
                 page: "Themes"
             }
 
             DeckCard {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                icon: "toast"
+                icon: "wand_stars"
+                title: qsTr("Appearance")
+                detail: qsTr("Screen framing, rounding and interaction chrome")
+                page: "Appearance"
+            }
+
+            DeckCard {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                icon: "dock_to_bottom"
                 title: qsTr("Bar & Dock")
-                detail: qsTr("Floating pods, Context Island and application dock")
-                page: "Bar"
+                detail: qsTr("Floating bar, Context Island and application dock")
+                page: "Bar & Dock"
             }
 
             DeckCard {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                icon: "texture"
+                icon: "music_note"
+                title: qsTr("Media & OSD")
+                detail: qsTr("Media overlay, Island behavior and system feedback")
+                page: "Media & OSD"
+            }
+
+            DeckCard {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                icon: "view_quilt"
                 title: qsTr("Desktop & Spaces")
-                detail: qsTr("Wallpaper, Overview, transitions and living canvas")
-                page: "Desktop"
+                detail: qsTr("Wallpaper, transitions and workspace overview")
+                page: "Desktop & Spaces"
             }
 
             DeckCard {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                icon: "bottom_app_bar"
-                title: qsTr("Interface")
-                detail: qsTr("Screen chrome, corners and interaction feel")
-                page: "Interface"
-            }
-
-            DeckCard {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                icon: "select_window_2"
-                title: qsTr("Hyprland")
-                detail: qsTr("Compositor-facing behavior, workspaces and fullscreen")
-                page: "Hyprland"
-            }
-
-            DeckCard {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                icon: "settings"
-                title: qsTr("System & Services")
-                detail: qsTr("Integrations, commands, autostart and native helpers")
-                page: "Services"
+                icon: "instant_mix"
+                title: qsTr("Quick Controls")
+                detail: qsTr("Choose the controls shown in the command surface")
+                page: "Quick Controls"
             }
         }
     }
@@ -231,10 +225,10 @@ Item {
         required property string path
         required property string icon
 
-        width: pathRow.implicitWidth + 20
-        height: 30
-        radius: 12
-        color: pathMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
+        width: pathRow.implicitWidth + 18
+        height: 29
+        radius: 10
+        color: pathMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
         border.width: 1
         border.color: pathMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
@@ -279,10 +273,11 @@ Item {
         required property string detail
         required property string page
 
-        Layout.minimumHeight: 112
-        surfaceRadius: 19
+        Layout.minimumHeight: 108
+        surfaceRadius: 17
         hovered: cardMouse.containsMouse
         raised: false
+        showSheen: false
 
         ColumnLayout {
             anchors.fill: parent
@@ -293,17 +288,17 @@ Item {
                 Layout.fillWidth: true
 
                 Rectangle {
-                    width: 34
-                    height: 34
-                    radius: 12
-                    color: cardMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
+                    width: 32
+                    height: 32
+                    radius: 10
+                    color: RaohaneTheme.surfaceSubtle
                     border.width: 1
                     border.color: cardMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: card.icon
-                        iconSize: 18
+                        iconSize: 17
                         color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     }
                 }
@@ -312,7 +307,7 @@ Item {
 
                 RaohaneIcon {
                     text: "arrow_forward"
-                    iconSize: 15
+                    iconSize: 14
                     color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
                 }
             }
@@ -321,7 +316,7 @@ Item {
                 Layout.fillWidth: true
                 text: card.title
                 color: RaohaneTheme.text
-                font.pixelSize: 11
+                font.pixelSize: 10
                 font.weight: Font.DemiBold
             }
 
@@ -354,13 +349,11 @@ Item {
         property bool critical: false
 
         width: chipRow.implicitWidth + 18
-        height: 28
-        radius: 11
+        height: 27
+        radius: 10
         color: RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: critical
-            ? RaohaneTheme.critical
-            : active ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        border.color: critical ? RaohaneTheme.critical : active ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         Row {
             id: chipRow
@@ -369,10 +362,8 @@ Item {
 
             RaohaneIcon {
                 text: chip.icon
-                iconSize: 14
-                color: chip.critical
-                    ? RaohaneTheme.critical
-                    : chip.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                iconSize: 13
+                color: chip.critical ? RaohaneTheme.critical : chip.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
@@ -389,8 +380,8 @@ Item {
         property bool active: false
 
         width: labelText.implicitWidth + 18
-        height: 26
-        radius: 10
+        height: 25
+        radius: 9
         color: active ? RaohaneTheme.surfaceRaised : RaohaneTheme.surfaceSubtle
         border.width: 1
         border.color: active ? RaohaneTheme.borderStrong : RaohaneTheme.border
