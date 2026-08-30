@@ -23,8 +23,8 @@ Scope {
         visible: RaohaneState.mediaOverlayOpen
         screen: root.focusedScreen
         exclusiveZone: 0
-        implicitWidth: 520
-        implicitHeight: 318
+        implicitWidth: 536
+        implicitHeight: 330
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-media-overlay"
@@ -61,7 +61,7 @@ Scope {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 14
-                spacing: 12
+                spacing: 11
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -129,8 +129,8 @@ Scope {
 
                             Rectangle {
                                 implicitWidth: playerLabel.implicitWidth + 16
-                                implicitHeight: 25
-                                radius: 9
+                                implicitHeight: 27
+                                radius: 10
                                 color: RaohaneTheme.surfaceSubtle
                                 border.width: 1
                                 border.color: RaohaneTheme.border
@@ -142,7 +142,7 @@ Scope {
                                         ? (RaohaneMedia.playerName || qsTr("Media player"))
                                         : qsTr("No player")
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 7
+                                    font.pixelSize: 8
                                     font.weight: Font.Medium
                                 }
                             }
@@ -150,13 +150,13 @@ Scope {
                             Item { Layout.fillWidth: true }
 
                             MiniButton {
-                                glyph: "↗"
+                                icon: "open_in_new"
                                 tooltip: qsTr("Open player")
                                 enabled: RaohaneMedia.canRaise
                                 onClicked: RaohaneMedia.raisePlayer()
                             }
                             MiniButton {
-                                glyph: "×"
+                                icon: "close"
                                 tooltip: qsTr("Close")
                                 onClicked: root.close()
                             }
@@ -199,10 +199,10 @@ Scope {
                         RowLayout {
                             Layout.fillWidth: true
                             visible: RaohaneMedia.playerCount > 1
-                            spacing: 6
+                            spacing: 7
 
                             MiniButton {
-                                glyph: "‹"
+                                icon: "chevron_left"
                                 tooltip: qsTr("Previous player")
                                 onClicked: RaohaneMedia.cyclePlayer(-1)
                             }
@@ -216,7 +216,7 @@ Scope {
                             }
 
                             MiniButton {
-                                glyph: "›"
+                                icon: "chevron_right"
                                 tooltip: qsTr("Next player")
                                 onClicked: RaohaneMedia.cyclePlayer(1)
                             }
@@ -226,12 +226,12 @@ Scope {
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 4
 
                     Item {
                         id: timelineArea
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 18
+                        Layout.preferredHeight: 20
 
                         Rectangle {
                             anchors {
@@ -239,11 +239,11 @@ Scope {
                                 right: parent.right
                                 verticalCenter: parent.verticalCenter
                             }
-                            height: 5
+                            height: 6
                             radius: 3
                             color: RaohaneTheme.surfaceDeep
                             border.width: 1
-                            border.color: RaohaneTheme.borderFaint
+                            border.color: RaohaneTheme.border
 
                             Rectangle {
                                 width: parent.width * RaohaneMedia.progress
@@ -255,7 +255,7 @@ Scope {
 
                         Rectangle {
                             visible: RaohaneMedia.canSeek
-                            width: timelineMouse.pressed ? 14 : 11
+                            width: timelineMouse.pressed ? 15 : 12
                             height: width
                             radius: width / 2
                             anchors.verticalCenter: parent.verticalCenter
@@ -294,116 +294,139 @@ Scope {
 
                         Text {
                             text: RaohaneMedia.formatTime(RaohaneMedia.position)
-                            color: RaohaneTheme.textFaint
+                            color: RaohaneTheme.textMuted
                             font.pixelSize: 8
                         }
                         Item { Layout.fillWidth: true }
                         Text {
                             text: RaohaneMedia.length > 0 ? RaohaneMedia.formatTime(RaohaneMedia.length) : "--:--"
-                            color: RaohaneTheme.textFaint
+                            color: RaohaneTheme.textMuted
                             font.pixelSize: 8
                         }
                     }
                 }
 
-                RowLayout {
+                Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 46
-                    spacing: 8
-
-                    MiniButton {
-                        glyph: "↶"
-                        tooltip: qsTr("Back 10 seconds")
-                        enabled: RaohaneMedia.available && RaohaneMedia.activePlayer?.canSeek
-                        onClicked: RaohaneMedia.seekSeconds(-10)
-                    }
-
-                    MiniButton {
-                        glyph: "⇄"
-                        tooltip: qsTr("Shuffle")
-                        enabled: RaohaneMedia.shuffleSupported
-                        active: RaohaneMedia.shuffle
-                        onClicked: RaohaneMedia.toggleShuffle()
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    MainButton {
-                        glyph: "⏮"
-                        enabled: RaohaneMedia.canGoPrevious
-                        onClicked: RaohaneMedia.previous()
-                    }
-
-                    MainButton {
-                        glyph: RaohaneMedia.isPlaying ? "Ⅱ" : "▶"
-                        enabled: RaohaneMedia.canTogglePlaying
-                        emphasized: true
-                        onClicked: RaohaneMedia.togglePlaying()
-                    }
-
-                    MainButton {
-                        glyph: "⏭"
-                        enabled: RaohaneMedia.canGoNext
-                        onClicked: RaohaneMedia.next()
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    MiniButton {
-                        glyph: "↷"
-                        tooltip: qsTr("Forward 10 seconds")
-                        enabled: RaohaneMedia.available && RaohaneMedia.activePlayer?.canSeek
-                        onClicked: RaohaneMedia.seekSeconds(10)
-                    }
+                    Layout.preferredHeight: 54
+                    radius: 18
+                    color: RaohaneTheme.surfaceSubtle
+                    border.width: 1
+                    border.color: RaohaneTheme.border
 
                     RowLayout {
-                        visible: RaohaneMedia.volumeSupported
-                        spacing: 6
+                        anchors.fill: parent
+                        anchors.leftMargin: 9
+                        anchors.rightMargin: 9
+                        spacing: 8
 
-                        Text {
-                            text: "♪"
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 12
+                        MiniButton {
+                            icon: "replay_10"
+                            tooltip: qsTr("Back 10 seconds")
+                            enabled: RaohaneMedia.available && RaohaneMedia.activePlayer?.canSeek
+                            onClicked: RaohaneMedia.seekSeconds(-10)
                         }
 
-                        Item {
-                            id: volumeArea
-                            Layout.preferredWidth: 92
-                            Layout.preferredHeight: 18
+                        MiniButton {
+                            icon: "shuffle"
+                            tooltip: qsTr("Shuffle")
+                            enabled: RaohaneMedia.shuffleSupported
+                            active: RaohaneMedia.shuffle
+                            onClicked: RaohaneMedia.toggleShuffle()
+                        }
 
-                            Rectangle {
-                                anchors {
-                                    left: parent.left
-                                    right: parent.right
-                                    verticalCenter: parent.verticalCenter
-                                }
-                                height: 4
-                                radius: 2
-                                color: RaohaneTheme.surfaceDeep
+                        Item { Layout.fillWidth: true }
 
-                                Rectangle {
-                                    width: parent.width * RaohaneMedia.volume
-                                    height: parent.height
-                                    radius: parent.radius
-                                    color: RaohaneTheme.accent
-                                    opacity: 0.75
-                                }
+                        MainButton {
+                            icon: "skip_previous"
+                            enabled: RaohaneMedia.canGoPrevious
+                            onClicked: RaohaneMedia.previous()
+                        }
+
+                        MainButton {
+                            icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
+                            enabled: RaohaneMedia.canTogglePlaying
+                            emphasized: true
+                            onClicked: RaohaneMedia.togglePlaying()
+                        }
+
+                        MainButton {
+                            icon: "skip_next"
+                            enabled: RaohaneMedia.canGoNext
+                            onClicked: RaohaneMedia.next()
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        MiniButton {
+                            icon: "forward_10"
+                            tooltip: qsTr("Forward 10 seconds")
+                            enabled: RaohaneMedia.available && RaohaneMedia.activePlayer?.canSeek
+                            onClicked: RaohaneMedia.seekSeconds(10)
+                        }
+
+                        RowLayout {
+                            visible: RaohaneMedia.volumeSupported
+                            spacing: 7
+
+                            RaohaneIcon {
+                                text: RaohaneMedia.volume <= 0.01 ? "volume_off" : "volume_up"
+                                iconSize: 17
+                                color: RaohaneTheme.textMuted
                             }
 
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
+                            Item {
+                                id: volumeArea
+                                Layout.preferredWidth: 86
+                                Layout.preferredHeight: 22
 
-                                function setAt(mouseX: real): void {
-                                    if (width > 0)
-                                        RaohaneMedia.setVolume(mouseX / width)
+                                Rectangle {
+                                    anchors {
+                                        left: parent.left
+                                        right: parent.right
+                                        verticalCenter: parent.verticalCenter
+                                    }
+                                    height: 5
+                                    radius: 3
+                                    color: RaohaneTheme.surfaceDeep
+                                    border.width: 1
+                                    border.color: RaohaneTheme.borderFaint
+
+                                    Rectangle {
+                                        width: parent.width * RaohaneMedia.volume
+                                        height: parent.height
+                                        radius: parent.radius
+                                        color: RaohaneTheme.accent
+                                        opacity: 0.88
+                                    }
                                 }
 
-                                onPressed: mouse => setAt(mouse.x)
-                                onPositionChanged: mouse => {
-                                    if (pressed)
-                                        setAt(mouse.x)
+                                Rectangle {
+                                    width: 10
+                                    height: 10
+                                    radius: 5
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    x: Math.max(0, Math.min(volumeArea.width - width, volumeArea.width * RaohaneMedia.volume - width / 2))
+                                    color: RaohaneTheme.surfaceRaised
+                                    border.width: 2
+                                    border.color: RaohaneTheme.accent
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+
+                                    function setAt(mouseX: real): void {
+                                        if (width > 0)
+                                            RaohaneMedia.setVolume(mouseX / width)
+                                    }
+
+                                    onPressed: mouse => setAt(mouse.x)
+                                    onPositionChanged: mouse => {
+                                        if (pressed)
+                                            setAt(mouse.x)
+                                    }
                                 }
                             }
                         }
@@ -429,27 +452,34 @@ Scope {
     component MiniButton: Rectangle {
         id: control
 
-        required property string glyph
+        required property string icon
         property string tooltip: ""
         property bool active: false
         signal clicked()
 
-        implicitWidth: 30
-        implicitHeight: 30
-        radius: 10
-        opacity: control.enabled ? 1 : 0.30
+        implicitWidth: 36
+        implicitHeight: 36
+        radius: 12
+        opacity: control.enabled ? 1 : 0.46
         color: control.active
             ? RaohaneTheme.accentSoft
-            : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: control.active || mouse.containsMouse ? 1 : 0
-        border.color: control.active ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
+            : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceRaised
+        border.width: 1
+        border.color: control.active
+            ? RaohaneTheme.accentBorder
+            : mouse.containsMouse && control.enabled ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        scale: mouse.containsMouse && control.enabled ? 1.04 : 1
 
-        Text {
+        Behavior on scale {
+            NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
+        }
+
+        RaohaneIcon {
             anchors.centerIn: parent
-            text: control.glyph
-            color: control.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            font.pixelSize: 14
-            font.weight: Font.DemiBold
+            text: control.icon
+            iconSize: 18
+            fill: control.active ? 1 : 0
+            color: control.active ? RaohaneTheme.accent : (control.enabled ? RaohaneTheme.text : RaohaneTheme.textFaint)
         }
 
         MouseArea {
@@ -465,31 +495,33 @@ Scope {
     component MainButton: Rectangle {
         id: control
 
-        required property string glyph
+        required property string icon
         property bool emphasized: false
         signal clicked()
 
-        implicitWidth: control.emphasized ? 44 : 36
-        implicitHeight: control.emphasized ? 44 : 36
-        radius: control.emphasized ? 16 : 13
-        opacity: control.enabled ? 1 : 0.30
+        implicitWidth: control.emphasized ? 48 : 40
+        implicitHeight: control.emphasized ? 48 : 40
+        radius: control.emphasized ? 17 : 14
+        opacity: control.enabled ? 1 : 0.46
         color: control.emphasized
             ? RaohaneTheme.accentSoft
-            : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: control.emphasized || mouse.containsMouse ? 1 : 0
-        border.color: control.emphasized ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
-        scale: mouse.containsMouse && control.enabled ? 1.04 : 1
+            : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceRaised
+        border.width: 1
+        border.color: control.emphasized
+            ? RaohaneTheme.accentBorder
+            : mouse.containsMouse && control.enabled ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        scale: mouse.containsMouse && control.enabled ? 1.05 : 1
 
         Behavior on scale {
             NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
         }
 
-        Text {
+        RaohaneIcon {
             anchors.centerIn: parent
-            text: control.glyph
-            color: control.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            font.pixelSize: control.emphasized ? 15 : 14
-            font.weight: Font.DemiBold
+            text: control.icon
+            iconSize: control.emphasized ? 24 : 21
+            fill: control.emphasized ? 1 : 0
+            color: control.emphasized ? RaohaneTheme.accent : (control.enabled ? RaohaneTheme.text : RaohaneTheme.textFaint)
         }
 
         MouseArea {
