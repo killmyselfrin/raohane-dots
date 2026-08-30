@@ -125,11 +125,12 @@ Singleton {
         root.lines = []
         root.errorText = ""
 
-        // Start with the metadata exactly as the player published it. Browser
-        // MPRIS often adds channel suffixes such as "- Topic", so a miss is
-        // followed by normalized structured and keyword searches.
+        // Start with metadata exactly as the player published it. Browser
+        // MPRIS often adds channel suffixes such as "- Topic". A miss is
+        // followed by a second exact lookup using normalized identity before
+        // any search endpoint is allowed to return candidates.
         root.requestExact(serial, key, meta.rawArtist, meta.rawTitle, meta.rawAlbum, meta.duration, () => {
-            root.requestNormalizedSearch(serial, key, meta)
+            root.requestNormalizedExact(serial, key, meta)
         })
     }
 
@@ -152,6 +153,15 @@ Singleton {
             record => root.applyRecord(record, key),
             onMiss
         )
+    }
+
+    function requestNormalizedExact(serial: int, key: string, meta): void {
+        if (serial !== root.requestSerial)
+            return
+
+        root.requestExact(serial, key, meta.artist, meta.title, meta.album, meta.duration, () => {
+            root.requestNormalizedSearch(serial, key, meta)
+        })
     }
 
     function requestNormalizedSearch(serial: int, key: string, meta): void {
@@ -249,51 +259,61 @@ Singleton {
     }
 
     function chooseBestRecord(records, meta): var {
-        const wantedTitle = root.comparable(meta.title)
-        const wantedArtist = root.comparable(meta.artist)
-        const wantedAlbum = root.comparable(meta.album)
+        const wantedTitle = root.comparable(root.cleanTitle(meta.title))
+        const wantedArtist = root.comparable(root.cleanArtist(meta.artist))
+        const wantedAlbum = root.comparable(root.cleanAlbum(meta.album))
         const wantedDuration = Number(meta.duration) || 0
+
+        if (wantedTitle.length === 0 || wantedArtist.length === 0)
+            return null
 
         let best = null
         let bestScore = Number.POSITIVE_INFINITY
         for (const record of records) {
-            const recordTitle = root.comparable(record.trackName ?? record.name ?? "")
+            const recordTitle = root.comparable(root.cleanTitle(record.trackName ?? record.name ?? ""))
             const recordArtist = root.comparable(root.cleanArtist(record.artistName ?? ""))
-            const recordAlbum = root.comparable(record.albumName ?? "")
+            const recordAlbum = root.comparable(root.cleanAlbum(record.albumName ?? ""))
             const recordDuration = Number(record.duration) || 0
-            let score = 0
 
-            if (recordTitle === wantedTitle)
-                score -= 120
-            else if (recordTitle.includes(wantedTitle) || wantedTitle.includes(recordTitle))
-                score -= 45
-            else
-                score += 100
-
-            if (recordArtist === wantedArtist)
-                score -= 120
-            else if (recordArtist.includes(wantedArtist) || wantedArtist.includes(recordArtist))
-                score -= 35
-            else
-                score += 100
-
-            if (wantedAlbum.length > 0) {
-                if (recordAlbum === wantedAlbum)
-                    score -= 24
-                else if (recordAlbum.length > 0)
-                    score += 10
-            }
-
-            if (wantedDuration > 0 && recordDuration > 0) {
-                const durationDiff = Math.abs(wantedDuration - recordDuration)
-                score += durationDiff <= 2 ? -30 : Math.min(90, durationDiff * 3)
-            }
+            // A generic title such as "You" is never enough. Search results
+            // must preserve the track identity: exact normalized title plus a
+            // matching artist. Containment is allowed only for meaningful
+            // artist names so variants with an extra collaborator can pass.
+            const titleMatches = recordTitle === wantedTitle
+            const artistMatches = recordArtist === wantedArtist
+                || (wantedArtist.length >= 5 && recordArtist.includes(wantedArtist))
+                || (recordArtist.length >= 5 && wantedArtist.includes(recordArtist))
+            if (!titleMatches || !artistMatches)
+                continue
 
             const hasLyrics = Boolean(record.instrumental)
                 || String(record.syncedLyrics ?? "").trim().length > 0
                 || String(record.plainLyrics ?? "").trim().length > 0
             if (!hasLyrics)
-                score += 200
+                continue
+
+            let score = recordArtist === wantedArtist ? 0 : 20
+
+            if (wantedAlbum.length > 0) {
+                if (recordAlbum === wantedAlbum)
+                    score -= 12
+                else if (recordAlbum.length > 0)
+                    score += 6
+            }
+
+            if (wantedDuration > 0 && recordDuration > 0) {
+                const durationDiff = Math.abs(wantedDuration - recordDuration)
+                // Reject another recording/version when both sides provide a
+                // trustworthy duration. Browser MPRIS can be off by a second
+                // or two, hence the small tolerance window.
+                if (durationDiff > 8)
+                    continue
+                score += durationDiff
+            }
+
+            // Prefer synchronized lyrics when identity confidence is equal.
+            if (String(record.syncedLyrics ?? "").trim().length > 0)
+                score -= 3
 
             if (score < bestScore) {
                 bestScore = score
@@ -301,8 +321,7 @@ Singleton {
             }
         }
 
-        // Do not accept a random same-title result from a loose query.
-        return bestScore <= 80 ? best : null
+        return best
     }
 
     function applyRecord(record, key: string): void {
