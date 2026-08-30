@@ -13,6 +13,13 @@ import qs.modules.raohane.config
 Scope {
     id: root
 
+    function styleValue(key: string, fallback): var {
+        const style = RaohaneConfig.style
+        if (!style || !Object.prototype.hasOwnProperty.call(style, key))
+            return fallback
+        return style[key]
+    }
+
     Variants {
         model: {
             const screens = Quickshell.screens
@@ -39,6 +46,8 @@ Scope {
             readonly property bool monitorHasSpecialOpen: (hyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
             readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
+            readonly property real podScale: Number(root.styleValue("barScale", 1.0))
+            readonly property int podHeight: Math.max(38, Math.min(48, Math.round(RaohaneTheme.barHeight * podScale)))
 
             visible: RaohaneState.barOpen && !RaohaneState.screenLocked && !fullscreenSuppressed
             exclusiveZone: fullscreenSuppressed
@@ -112,8 +121,8 @@ Scope {
                         verticalCenter: parent.verticalCenter
                     }
                     width: Math.min(parent.width * 0.38, leftRow.implicitWidth + 24)
-                    height: RaohaneTheme.barHeight
-                    surfaceRadius: 18
+                    height: barWindow.podHeight
+                    surfaceRadius: Math.min(Math.round(height * 0.42), height / 2)
                     raised: true
 
                     Rectangle {
@@ -123,7 +132,7 @@ Scope {
                             verticalCenter: parent.verticalCenter
                         }
                         width: 2
-                        height: 18
+                        height: Math.min(18, parent.height - 12)
                         radius: 1
                         color: RaohaneTheme.accent
                         opacity: 0.72
@@ -205,8 +214,8 @@ Scope {
                         verticalCenter: parent.verticalCenter
                     }
                     width: Math.min(parent.width * 0.38, Math.max(184, rightRow.implicitWidth + 22))
-                    height: RaohaneTheme.barHeight
-                    surfaceRadius: 18
+                    height: barWindow.podHeight
+                    surfaceRadius: Math.min(Math.round(height * 0.42), height / 2)
                     raised: true
 
                     Rectangle {
@@ -216,7 +225,7 @@ Scope {
                             verticalCenter: parent.verticalCenter
                         }
                         width: 2
-                        height: 18
+                        height: Math.min(18, parent.height - 12)
                         radius: 1
                         color: RaohaneTheme.accentSecondary
                         opacity: 0.5
