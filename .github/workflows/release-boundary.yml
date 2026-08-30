@@ -59,9 +59,11 @@ jobs:
           set -euo pipefail
           bash -n scripts/source-lineage-audit.sh
           bash -n scripts/package-release.sh
+          bash -n scripts/release-live-check.sh
           bash -n scripts/runtime-payload-audit.sh
           bash -n scripts/prune-runtime.sh
           bash -n scripts/validate-runtime-payload.sh
+          bash scripts/release-live-check.sh --help >/dev/null
 
       - name: Validate source lineage
         shell: bash
