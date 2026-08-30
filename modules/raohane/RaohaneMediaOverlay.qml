@@ -44,12 +44,12 @@ Scope {
 
         Rectangle {
             anchors.centerIn: mediaSurface
-            width: mediaSurface.width + 12
-            height: mediaSurface.height + 12
+            width: mediaSurface.width + 10
+            height: mediaSurface.height + 10
             radius: RaohaneTheme.radiusLarge + 5
             color: "transparent"
-            border.width: 4
-            border.color: "#20c56cff"
+            border.width: 1
+            border.color: RaohaneTheme.borderFaint
         }
 
         RaohaneSurface {
@@ -57,21 +57,8 @@ Scope {
             anchors.fill: parent
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: true
-            border.color: RaohaneTheme.accentBorder
+            border.color: RaohaneTheme.borderStrong
             clip: true
-
-            Rectangle {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                    leftMargin: 28
-                    rightMargin: 28
-                }
-                height: 1
-                color: RaohaneTheme.accentSecondary
-                opacity: 0.38
-            }
 
             RowLayout {
                 anchors.fill: parent
@@ -84,7 +71,7 @@ Scope {
                     radius: 18
                     color: RaohaneTheme.surfaceSubtle
                     border.width: 1
-                    border.color: RaohaneTheme.borderStrong
+                    border.color: RaohaneTheme.border
                     clip: true
 
                     Image {
@@ -102,7 +89,7 @@ Scope {
                         visible: coverArt.status === Image.Ready
                         color: "transparent"
                         border.width: 1
-                        border.color: "#2bffffff"
+                        border.color: RaohaneTheme.border
                         radius: parent.radius
                     }
 
@@ -112,7 +99,7 @@ Scope {
                         text: "音"
                         color: RaohaneTheme.accent
                         font.pixelSize: 27
-                        font.weight: Font.Bold
+                        font.weight: Font.DemiBold
                     }
                 }
 
@@ -155,18 +142,17 @@ Scope {
                             implicitWidth: contextLabel.implicitWidth + 14
                             implicitHeight: 24
                             radius: 9
-                            color: RaohaneTheme.accentSoft
+                            color: RaohaneTheme.surfaceSubtle
                             border.width: 1
                             border.color: RaohaneTheme.border
 
                             Text {
                                 id: contextLabel
                                 anchors.centerIn: parent
-                                text: "CONTEXT"
-                                color: RaohaneTheme.accent
+                                text: qsTr("Media")
+                                color: RaohaneTheme.textMuted
                                 font.pixelSize: 7
-                                font.weight: Font.DemiBold
-                                font.letterSpacing: 0.8
+                                font.weight: Font.Medium
                             }
                         }
 
@@ -182,7 +168,9 @@ Scope {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 5
                         radius: 3
-                        color: "#24ffffff"
+                        color: RaohaneTheme.surfaceDeep
+                        border.width: 1
+                        border.color: RaohaneTheme.borderFaint
 
                         Rectangle {
                             width: parent.width * root.progress
@@ -193,12 +181,12 @@ Scope {
 
                         Rectangle {
                             visible: root.progress > 0.01
-                            x: Math.max(0, parent.width * root.progress - 4)
+                            x: Math.max(0, parent.width * root.progress - 3)
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 8
-                            height: 8
-                            radius: 4
-                            color: RaohaneTheme.accentSecondary
+                            width: 6
+                            height: 6
+                            radius: 3
+                            color: RaohaneTheme.accent
                         }
 
                         MouseArea {
@@ -214,10 +202,10 @@ Scope {
                         spacing: 6
 
                         Text {
-                            text: "音 / RAOHANE"
+                            text: "Raohane"
                             color: RaohaneTheme.textFaint
                             font.pixelSize: 8
-                            font.letterSpacing: 0.8
+                            font.weight: Font.Medium
                         }
 
                         Item { Layout.fillWidth: true }
@@ -273,7 +261,7 @@ Scope {
             : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : "transparent"
         border.width: control.emphasized || mouse.containsMouse ? 1 : 0
         border.color: control.emphasized ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
-        scale: mouse.containsMouse && control.enabled ? 1.05 : 1
+        scale: mouse.containsMouse && control.enabled ? 1.03 : 1
 
         Behavior on scale {
             NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
