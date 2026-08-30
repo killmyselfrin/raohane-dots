@@ -61,7 +61,7 @@ product_properties=(
   networkCommand networkEthernetCommand bluetoothCommand taskManagerCommand
   changePasswordCommand profileDisplayName profileAvatarPath
   quickSliderBrightness quickSliderVolume quickSliderMic
-  contextIslandEnabled mediaOverlayEnabled integrationMode
+  contextIslandEnabled mediaOverlayEnabled integrationMode themePreset
 )
 for property_name in "${product_properties[@]}"; do
   rg -q "property [^:]+ ${property_name}:" "$config" \
@@ -71,7 +71,7 @@ for property_name in "${product_properties[@]}"; do
 done
 
 # Every actual Settings control key must resolve directly into RaohaneConfig.
-# Navigation page keys such as home/about are deliberately excluded.
+# Navigation page keys such as home/about/themes are deliberately excluded.
 mapfile -t settings_keys < <(rg -o '\{[[:space:]]*type:[[:space:]]*"[^"]+",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings" \
   | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
 [[ "${#settings_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys'
@@ -85,6 +85,7 @@ for section in wallpaper overview dock bar frame corners osk osd display apps pr
     || fail "snapshot lost product section: $section"
 done
 rg -q 'schemaVersion:[[:space:]]*10' "$config" || fail 'RaohaneConfig schema contract is not v10'
+rg -q 'themePreset:[[:space:]]*root\.themePreset' "$config" || fail 'theme selection is not persisted in the native document'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig bypasses RaohanePaths'
 
 # Raohane owns all directory resolution needed by active runtime/services.
@@ -148,4 +149,4 @@ if rg -n 'IllogicalImpulse|illogical-impulse|end4-pC' "$family" shell.qml; then
   fail 'startup graph contains upstream family/runtime identity'
 fi
 
-printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers and compatibility-free active UI are valid\n'
+printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers, persisted theme selection and compatibility-free active UI are valid\n'
