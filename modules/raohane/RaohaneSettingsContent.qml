@@ -16,6 +16,7 @@ Item {
 
     readonly property var pages: [
         { key: "home", name: qsTr("Home"), icon: "space_dashboard" },
+        { key: "themes", name: qsTr("Themes"), icon: "palette" },
         { key: "quick", name: qsTr("Quick"), icon: "instant_mix" },
         { key: "general", name: qsTr("General"), icon: "browse" },
         { key: "bar", name: qsTr("Bar"), icon: "toast" },
@@ -74,7 +75,7 @@ Item {
             return [
                 { type: "toggle", key: "wallpaperPreview", label: qsTr("Wallpaper preview"), detail: qsTr("Preview wallpapers before applying them") },
                 { type: "toggle", key: "wallpaperHideWhenFullscreen", label: qsTr("Hide wallpaper on fullscreen"), detail: qsTr("Reduce background rendering behind fullscreen clients") },
-                { type: "number", key: "wallpaperColumns", label: qsTr("Wallpaper columns"), detail: qsTr("Columns in the wallpaper selector") , min: 2, max: 8, step: 1 },
+                { type: "number", key: "wallpaperColumns", label: qsTr("Wallpaper columns"), detail: qsTr("Columns in the wallpaper selector"), min: 2, max: 8, step: 1 },
                 { type: "number", key: "wallpaperTransitionDuration", label: qsTr("Transition duration"), detail: qsTr("Wallpaper transition duration in milliseconds"), min: 0, max: 3000, step: 100 },
                 { type: "number", key: "overviewWorkspaceCount", label: qsTr("Overview workspaces"), detail: qsTr("Workspace count represented in Overview"), min: 2, max: 12, step: 1 },
                 { type: "number", key: "overviewColumns", label: qsTr("Overview columns"), detail: qsTr("Workspace grid columns"), min: 1, max: 4, step: 1 }
@@ -164,6 +165,11 @@ Item {
     }
 
     Component {
+        id: themesPage
+        RaohaneThemeCatalog {}
+    }
+
+    Component {
         id: aboutPage
         RaohaneSettingsAbout {}
     }
@@ -220,9 +226,9 @@ Item {
                             height: modelData.type === "text" ? 82 : 64
                             anchors.horizontalCenter: parent.horizontalCenter
                             radius: 15
-                            color: settingMouse.containsMouse ? "#271f1a29" : "#171d1824"
+                            color: settingMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                             border.width: 1
-                            border.color: settingMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+                            border.color: settingMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                             RowLayout {
                                 anchors.fill: parent
@@ -253,21 +259,21 @@ Item {
 
                                 Rectangle {
                                     visible: settingRow.modelData.type === "toggle"
-                                    Layout.preferredWidth: 56
-                                    Layout.preferredHeight: 30
-                                    radius: 15
-                                    color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accentSoft : "#24ffffff"
+                                    Layout.preferredWidth: 50
+                                    Layout.preferredHeight: 28
+                                    radius: 14
+                                    color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
                                     border.width: 1
-                                    border.color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accent : RaohaneTheme.border
+                                    border.color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                                     Rectangle {
-                                        width: 22
-                                        height: 22
-                                        radius: 11
+                                        width: 20
+                                        height: 20
+                                        radius: 10
                                         anchors.verticalCenter: parent.verticalCenter
                                         x: Boolean(RaohaneConfig[settingRow.modelData.key]) ? parent.width - width - 4 : 4
-                                        color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                                        Behavior on x { NumberAnimation { duration: 150 } }
+                                        color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                                        Behavior on x { NumberAnimation { duration: RaohaneTheme.animationFast } }
                                     }
                                 }
 
@@ -279,7 +285,7 @@ Item {
                                         width: 28
                                         height: 28
                                         radius: 9
-                                        color: minusMouse.containsMouse ? RaohaneTheme.accentSoft : "#24ffffff"
+                                        color: minusMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                                         border.width: 1
                                         border.color: RaohaneTheme.border
                                         Text { anchors.centerIn: parent; text: "−"; color: RaohaneTheme.text; font.pixelSize: 15 }
@@ -305,7 +311,7 @@ Item {
                                         width: 28
                                         height: 28
                                         radius: 9
-                                        color: plusMouse.containsMouse ? RaohaneTheme.accentSoft : "#24ffffff"
+                                        color: plusMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                                         border.width: 1
                                         border.color: RaohaneTheme.border
                                         Text { anchors.centerIn: parent; text: "+"; color: RaohaneTheme.text; font.pixelSize: 14 }
@@ -324,9 +330,9 @@ Item {
                                     Layout.preferredWidth: Math.min(310, sectionRoot.width * 0.42)
                                     Layout.preferredHeight: 34
                                     radius: 10
-                                    color: "#28110f17"
+                                    color: RaohaneTheme.surfaceSubtle
                                     border.width: 1
-                                    border.color: field.activeFocus ? RaohaneTheme.accent : RaohaneTheme.border
+                                    border.color: field.activeFocus ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                                     TextInput {
                                         id: field
@@ -371,7 +377,7 @@ Item {
             Layout.fillHeight: true
             Layout.preferredWidth: root.compactNav ? 70 : 214
             radius: 18
-            color: "#9d17141f"
+            color: RaohaneTheme.surface
             border.width: 1
             border.color: RaohaneTheme.border
 
@@ -384,7 +390,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 66
                     radius: 16
-                    color: "#611f1a29"
+                    color: RaohaneTheme.surfaceSubtle
                     border.width: 1
                     border.color: RaohaneTheme.border
 
@@ -397,7 +403,9 @@ Item {
                             width: 40
                             height: 40
                             radius: 14
-                            color: RaohaneTheme.accentSoft
+                            color: RaohaneTheme.surfaceRaised
+                            border.width: 1
+                            border.color: RaohaneTheme.border
                             clip: true
 
                             Image {
@@ -450,11 +458,11 @@ Item {
 
                 Text {
                     visible: !root.compactNav
-                    text: "RAOHANE / CONFIG"
-                    color: RaohaneTheme.textMuted
+                    text: "CONFIGURATION"
+                    color: RaohaneTheme.textFaint
                     font.pixelSize: 8
-                    font.letterSpacing: 1.0
-                    font.weight: Font.DemiBold
+                    font.letterSpacing: 0.8
+                    font.weight: Font.Medium
                     Layout.leftMargin: 5
                 }
 
@@ -463,7 +471,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     model: root.pages
-                    spacing: 5
+                    spacing: 4
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
 
@@ -472,11 +480,11 @@ Item {
                         required property var modelData
                         required property int index
                         width: navigation.width
-                        height: 42
-                        radius: 13
-                        color: root.currentPage === index ? RaohaneTheme.accentSoft : navMouse.containsMouse ? "#20ffffff" : "transparent"
-                        border.width: 1
-                        border.color: root.currentPage === index ? RaohaneTheme.accent : "transparent"
+                        height: 40
+                        radius: 12
+                        color: root.currentPage === index ? RaohaneTheme.accentSoft : navMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+                        border.width: root.currentPage === index ? 1 : 0
+                        border.color: root.currentPage === index ? RaohaneTheme.accentBorder : "transparent"
 
                         RowLayout {
                             anchors.fill: parent
@@ -508,11 +516,11 @@ Item {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 42
-                    radius: 13
-                    color: configMouse.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
+                    Layout.preferredHeight: 40
+                    radius: 12
+                    color: configMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                     border.width: 1
-                    border.color: configMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+                    border.color: RaohaneTheme.border
 
                     RowLayout {
                         anchors.fill: parent
@@ -547,7 +555,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 18
-            color: "#6f121019"
+            color: RaohaneTheme.surfaceSubtle
             border.width: 1
             border.color: RaohaneTheme.border
             clip: true
@@ -559,7 +567,7 @@ Item {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 48
-                    color: "#7f17141f"
+                    color: RaohaneTheme.surface
 
                     RowLayout {
                         anchors.fill: parent
@@ -571,7 +579,9 @@ Item {
                             width: 30
                             height: 30
                             radius: 10
-                            color: RaohaneTheme.accentSoft
+                            color: RaohaneTheme.surfaceRaised
+                            border.width: 1
+                            border.color: RaohaneTheme.border
                             RaohaneIcon { anchors.centerIn: parent; text: root.pages[root.currentPage]?.icon ?? "settings"; iconSize: 17; color: RaohaneTheme.accent }
                         }
 
@@ -582,7 +592,7 @@ Item {
                             Text { Layout.fillWidth: true; text: qsTr("Live settings · ~/.config/raohane/native.json"); color: RaohaneTheme.textMuted; font.pixelSize: 8; elide: Text.ElideRight }
                         }
 
-                        Rectangle { width: 7; height: 7; radius: 4; color: RaohaneTheme.accent }
+                        Rectangle { width: 6; height: 6; radius: 3; color: RaohaneTheme.accent }
                     }
                 }
 
@@ -595,6 +605,7 @@ Item {
                         anchors.fill: parent
                         anchors.margins: 8
                         sourceComponent: root.pages[root.currentPage]?.key === "home" ? homePage
+                            : root.pages[root.currentPage]?.key === "themes" ? themesPage
                             : root.pages[root.currentPage]?.key === "about" ? aboutPage
                             : nativeSectionPage
                         onLoaded: Qt.callLater(root.configureLoadedPage)
