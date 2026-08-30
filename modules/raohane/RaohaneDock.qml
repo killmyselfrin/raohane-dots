@@ -183,7 +183,7 @@ Scope {
                     || dockWindow.hoverLatched
                     || root.forcedOpen
             }
-            readonly property int hiddenHoverHeight: 5
+            readonly property int hiddenHoverHeight: 6
 
             screen: modelData
             visible: RaohaneConfig.dockEnabled
@@ -195,7 +195,7 @@ Scope {
                 ? RaohaneConfig.dockHeight + RaohaneConfig.dockBottomMargin
                 : 0
             implicitHeight: dockWindow.revealed
-                ? RaohaneConfig.dockHeight + RaohaneConfig.dockBottomMargin + 12
+                ? RaohaneConfig.dockHeight + RaohaneConfig.dockBottomMargin + 20
                 : dockWindow.hiddenHoverHeight
             WlrLayershell.namespace: "quickshell:raohane-dock"
             WlrLayershell.layer: WlrLayer.Top
@@ -213,7 +213,7 @@ Scope {
 
             Timer {
                 id: hideTimer
-                interval: 420
+                interval: 460
                 repeat: false
                 onTriggered: dockWindow.hoverLatched = false
             }
@@ -225,7 +225,7 @@ Scope {
                     bottom: parent.bottom
                     horizontalCenter: parent.horizontalCenter
                 }
-                width: Math.max(250, dockSurface.implicitWidth + 34)
+                width: Math.max(280, dockSurface.implicitWidth + 44)
                 height: parent.height
                 hoverEnabled: true
                 acceptedButtons: Qt.NoButton
@@ -237,6 +237,22 @@ Scope {
                 onExited: hideTimer.restart()
 
                 Rectangle {
+                    id: dockHalo
+                    anchors.centerIn: dockSurface
+                    width: dockSurface.width + 14
+                    height: dockSurface.height + 14
+                    radius: height / 2
+                    color: "transparent"
+                    border.width: 4
+                    border.color: dockWindow.fullscreenActive ? "#28ff6f91" : "#20c56cff"
+                    opacity: dockWindow.revealed ? 0.8 : 0
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: RaohaneTheme.animationDuration }
+                    }
+                }
+
+                RaohaneSurface {
                     id: dockSurface
 
                     anchors {
@@ -244,21 +260,35 @@ Scope {
                         bottomMargin: RaohaneConfig.dockBottomMargin
                         horizontalCenter: parent.horizontalCenter
                     }
-                    implicitWidth: dockRow.implicitWidth + 18
+                    implicitWidth: dockRow.implicitWidth + 26
                     width: implicitWidth
                     height: RaohaneConfig.dockHeight
-                    radius: Math.min(24, height / 2)
-                    color: RaohaneTheme.glassStrong
-                    border.width: 1
-                    border.color: dockWindow.fullscreenActive ? "#78c879ff" : RaohaneTheme.border
+                    surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)
+                    raised: true
+                    border.color: dockWindow.fullscreenActive
+                        ? RaohaneTheme.critical
+                        : RaohaneTheme.accentBorder
                     opacity: dockWindow.revealed ? 1 : 0
-                    scale: dockWindow.revealed ? 1 : 0.96
+                    scale: dockWindow.revealed ? 1 : 0.94
+
+                    Rectangle {
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            bottom: parent.bottom
+                            leftMargin: 24
+                            rightMargin: 24
+                        }
+                        height: 1
+                        color: RaohaneTheme.accent
+                        opacity: 0.22
+                    }
 
                     Behavior on opacity {
-                        NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+                        NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
                     }
                     Behavior on scale {
-                        NumberAnimation { duration: 180; easing.type: Easing.OutBack }
+                        NumberAnimation { duration: RaohaneTheme.animationDuration; easing.type: Easing.OutBack }
                     }
 
                     RowLayout {
@@ -270,7 +300,7 @@ Scope {
                             horizontalCenter: parent.horizontalCenter
                             margins: 7
                         }
-                        spacing: 4
+                        spacing: 5
 
                         DockControlButton {
                             glyph: "間"
@@ -289,7 +319,7 @@ Scope {
                         Rectangle {
                             Layout.preferredWidth: 1
                             Layout.preferredHeight: Math.max(24, RaohaneConfig.dockIconSize - 5)
-                            color: RaohaneTheme.border
+                            color: RaohaneTheme.borderFaint
                             visible: dockWindow.appModel.length > 0
                         }
 
@@ -304,14 +334,21 @@ Scope {
 
                                 readonly property bool anyActivated: Array.from(modelData.windows ?? []).some(window => window.activated)
 
-                                Layout.preferredWidth: RaohaneConfig.dockIconSize + 14
-                                Layout.preferredHeight: RaohaneConfig.dockIconSize + 14
-                                radius: 15
+                                Layout.preferredWidth: RaohaneConfig.dockIconSize + 16
+                                Layout.preferredHeight: RaohaneConfig.dockIconSize + 16
+                                radius: 16
                                 color: anyActivated
                                     ? RaohaneTheme.accentSoft
-                                    : appMouse.containsMouse ? "#22ffffff" : "transparent"
-                                border.width: anyActivated ? 1 : 0
-                                border.color: RaohaneTheme.accent
+                                    : appMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+                                border.width: anyActivated || appMouse.containsMouse ? 1 : 0
+                                border.color: anyActivated
+                                    ? RaohaneTheme.accentBorder
+                                    : RaohaneTheme.borderStrong
+                                scale: appMouse.containsMouse ? 1.08 : 1
+
+                                Behavior on scale {
+                                    NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
+                                }
 
                                 IconImage {
                                     anchors.centerIn: parent
@@ -320,7 +357,7 @@ Scope {
                                 }
 
                                 Rectangle {
-                                    width: appButton.modelData.windows?.length > 1 ? 15 : 7
+                                    width: appButton.modelData.windows?.length > 1 ? 18 : 8
                                     height: 3
                                     radius: 2
                                     anchors {
@@ -329,7 +366,21 @@ Scope {
                                         bottomMargin: 2
                                     }
                                     color: appButton.modelData.running ? RaohaneTheme.accent : "transparent"
-                                    opacity: appButton.modelData.running ? 0.95 : 0
+                                    opacity: appButton.modelData.running ? 0.98 : 0
+                                }
+
+                                Rectangle {
+                                    visible: appButton.anyActivated
+                                    width: 18
+                                    height: 2
+                                    radius: 1
+                                    anchors {
+                                        horizontalCenter: parent.horizontalCenter
+                                        bottom: parent.bottom
+                                        bottomMargin: 0
+                                    }
+                                    color: RaohaneTheme.accentSecondary
+                                    opacity: 0.7
                                 }
 
                                 Rectangle {
@@ -340,11 +391,11 @@ Scope {
                                     anchors {
                                         right: parent.right
                                         top: parent.top
-                                        rightMargin: 3
-                                        topMargin: 3
+                                        rightMargin: 4
+                                        topMargin: 4
                                     }
                                     color: RaohaneTheme.textMuted
-                                    opacity: 0.65
+                                    opacity: 0.5
                                 }
 
                                 MouseArea {
@@ -369,7 +420,7 @@ Scope {
                         Rectangle {
                             Layout.preferredWidth: 1
                             Layout.preferredHeight: Math.max(24, RaohaneConfig.dockIconSize - 5)
-                            color: RaohaneTheme.border
+                            color: RaohaneTheme.borderFaint
                             visible: RaohaneMedia.available && dockWindow.appModel.length > 0
                         }
 
@@ -408,12 +459,19 @@ Scope {
         property string tooltip: ""
         signal triggered()
 
-        Layout.preferredWidth: RaohaneConfig.dockIconSize + 10
-        Layout.preferredHeight: RaohaneConfig.dockIconSize + 10
-        radius: 15
-        color: active ? RaohaneTheme.accentSoft : controlMouse.containsMouse ? "#22ffffff" : "transparent"
-        border.width: active ? 1 : 0
-        border.color: RaohaneTheme.accent
+        Layout.preferredWidth: RaohaneConfig.dockIconSize + 12
+        Layout.preferredHeight: RaohaneConfig.dockIconSize + 12
+        radius: 16
+        color: active
+            ? RaohaneTheme.accentSoft
+            : controlMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: active || controlMouse.containsMouse ? 1 : 0
+        border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
+        scale: controlMouse.containsMouse ? 1.06 : 1
+
+        Behavior on scale {
+            NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
+        }
 
         Text {
             anchors.centerIn: parent
