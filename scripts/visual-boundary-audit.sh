@@ -25,10 +25,19 @@ context='modules/raohane/RaohaneContextIsland.qml'
 notification='modules/raohane/RaohaneNotificationCard.qml'
 surface='modules/raohane/RaohaneSurface.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
+sidebar='modules/raohane/RaohaneSidebarLeft.qml'
+session='modules/raohane/RaohaneSessionScreen.qml'
+lock_surface='modules/raohane/RaohaneLockSurface.qml'
+polkit='modules/raohane/RaohanePolkit.qml'
+dropshelf='modules/raohane/RaohaneDropShelfPanel.qml'
+translator='modules/raohane/RaohaneScreenTranslator.qml'
+osk='modules/raohane/RaohaneOnScreenKeyboard.qml'
+osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
   "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" \
-  "$settings_home" "$bar" "$vertical" "$dock" "$context" "$notification" "$surface" "$quick"; do
+  "$settings_home" "$bar" "$vertical" "$dock" "$context" "$notification" "$surface" "$quick" \
+  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
 done
 
@@ -96,17 +105,27 @@ rg -q 'RaohaneTheme\.accentBorder' "$surface" \
 rg -q 'showSheen' "$surface" \
   || fail 'RaohaneSurface lost the shared glass highlight contract'
 
-for file in "$launcher" "$media" "$control" "$settings" "$settings_home" "$bar" "$vertical" "$dock"; do
+shared_surfaces=(
+  "$launcher" "$media" "$control" "$settings" "$settings_home" "$bar" "$vertical" "$dock"
+  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
+)
+for file in "${shared_surfaces[@]}"; do
   rg -q 'RaohaneSurface[[:space:]]*\{' "$file" \
     || fail "$file no longer uses the shared RaohaneSurface primitive"
 done
 
-for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock"; do
+primary_surfaces=(
+  "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock"
+  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
+)
+for file in "${primary_surfaces[@]}"; do
   rg -q 'raised:[[:space:]]*true' "$file" \
     || fail "$file no longer requests a raised primary glass surface"
+  rg -q 'showSheen:[[:space:]]*false' "$file" \
+    || fail "$file no longer suppresses decorative sheen on the minimal primary surface"
 done
 
-for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media"; do
+for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" \
     || fail "$file lost the centralized Raohane accent system"
 done
@@ -118,6 +137,24 @@ rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" \
   || fail 'Quick Controls do not consume minimalist surface tokens'
 rg -q 'RaohaneTheme\.borderStrong' "$quick" \
   || fail 'Quick Controls do not consume shared minimal borders'
+
+# System/edge surfaces must not reintroduce the old one-off white/purple/red
+# glass fills. Semantic dim backdrops are allowed; component chrome comes from
+# RaohaneTheme and RaohaneSurface.
+edge_surfaces=("$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key")
+if rg -n '#18ffffff|#20ffffff|#24ffffff|#10ffffff|#12ffffff|#14ffffff|#2affffff|#35ffffff|#63171320|#3814111c|#74120f19|#1fc56cff|#2cff668c|#32ff668c' "${edge_surfaces[@]}"; then
+  fail 'a system/edge surface reintroduced retired one-off glass/neon colors'
+fi
+
+for file in "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
+  rg -q 'RaohaneIcon[[:space:]]*\{' "$file" \
+    || fail "$file no longer uses the shared Material-symbol icon wrapper"
+done
+
+if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|text:[[:space:]]*"[⌕◎▧文⚙⏻⏮⏭]"' \
+  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator"; then
+  fail 'a system surface regressed to decorative legacy labels or arbitrary glyph controls'
+fi
 
 # Keep the three-pod compositor contract while allowing the pod material to be
 # tuned inside safe bounds. Window height stays stable for fullscreen/exclusive-zone behavior.
@@ -142,9 +179,9 @@ if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' \
   fail 'a primary surface regressed to legacy one-off chrome'
 fi
 
-for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock"; do
+for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock" "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" \
     || fail "$file lost restrained secondary text hierarchy"
 done
 
-printf 'visual-boundary-audit: minimalist themes, persisted Style Studio/Advanced Surfaces, shared glass tokens and stable shell geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, persisted Style Studio/Advanced Surfaces, shared glass tokens, edge-system surfaces and stable shell geometry are valid\n'
