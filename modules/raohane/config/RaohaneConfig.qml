@@ -91,6 +91,7 @@ Singleton {
     property bool contextIslandEnabled: true
     property bool mediaOverlayEnabled: true
     property bool integrationMode: true
+    property string themePreset: "zen-mist"
 
     signal reloaded()
     signal saved()
@@ -185,7 +186,8 @@ Singleton {
             features: {
                 contextIsland: root.contextIslandEnabled,
                 mediaOverlay: root.mediaOverlayEnabled,
-                integrationMode: root.integrationMode
+                integrationMode: root.integrationMode,
+                themePreset: root.themePreset
             }
         }
     }
@@ -287,6 +289,7 @@ Singleton {
         root.assignIfPresent(features, "contextIsland", value => root.contextIslandEnabled = Boolean(value))
         root.assignIfPresent(features, "mediaOverlay", value => root.mediaOverlayEnabled = Boolean(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
+        root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "zen-mist"))
 
         root.loading = false
         root.ready = true
@@ -382,6 +385,7 @@ Singleton {
     onContextIslandEnabledChanged: scheduleSave()
     onMediaOverlayEnabledChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
+    onThemePresetChanged: scheduleSave()
 
     Timer {
         id: saveTimer
