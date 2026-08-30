@@ -183,7 +183,7 @@ Scope {
                     || dockWindow.hoverLatched
                     || root.forcedOpen
             }
-            readonly property int hiddenHoverHeight: 6
+            readonly property int hiddenHoverHeight: 5
 
             screen: modelData
             visible: RaohaneConfig.dockEnabled
