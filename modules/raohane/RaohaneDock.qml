@@ -239,13 +239,13 @@ Scope {
                 Rectangle {
                     id: dockHalo
                     anchors.centerIn: dockSurface
-                    width: dockSurface.width + 14
-                    height: dockSurface.height + 14
+                    width: dockSurface.width + 10
+                    height: dockSurface.height + 10
                     radius: height / 2
                     color: "transparent"
-                    border.width: 4
-                    border.color: dockWindow.fullscreenActive ? "#28ff6f91" : "#20c56cff"
-                    opacity: dockWindow.revealed ? 0.8 : 0
+                    border.width: 1
+                    border.color: dockWindow.fullscreenActive ? RaohaneTheme.critical : RaohaneTheme.borderFaint
+                    opacity: dockWindow.revealed ? 0.75 : 0
 
                     Behavior on opacity {
                         NumberAnimation { duration: RaohaneTheme.animationDuration }
@@ -267,28 +267,15 @@ Scope {
                     raised: true
                     border.color: dockWindow.fullscreenActive
                         ? RaohaneTheme.critical
-                        : RaohaneTheme.accentBorder
+                        : RaohaneTheme.borderStrong
                     opacity: dockWindow.revealed ? 1 : 0
-                    scale: dockWindow.revealed ? 1 : 0.94
-
-                    Rectangle {
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            bottom: parent.bottom
-                            leftMargin: 24
-                            rightMargin: 24
-                        }
-                        height: 1
-                        color: RaohaneTheme.accent
-                        opacity: 0.22
-                    }
+                    scale: dockWindow.revealed ? 1 : 0.96
 
                     Behavior on opacity {
                         NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
                     }
                     Behavior on scale {
-                        NumberAnimation { duration: RaohaneTheme.animationDuration; easing.type: Easing.OutBack }
+                        NumberAnimation { duration: RaohaneTheme.animationDuration; easing.type: Easing.OutCubic }
                     }
 
                     RowLayout {
@@ -344,7 +331,7 @@ Scope {
                                 border.color: anyActivated
                                     ? RaohaneTheme.accentBorder
                                     : RaohaneTheme.borderStrong
-                                scale: appMouse.containsMouse ? 1.08 : 1
+                                scale: appMouse.containsMouse ? 1.04 : 1
 
                                 Behavior on scale {
                                     NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
@@ -366,21 +353,7 @@ Scope {
                                         bottomMargin: 2
                                     }
                                     color: appButton.modelData.running ? RaohaneTheme.accent : "transparent"
-                                    opacity: appButton.modelData.running ? 0.98 : 0
-                                }
-
-                                Rectangle {
-                                    visible: appButton.anyActivated
-                                    width: 18
-                                    height: 2
-                                    radius: 1
-                                    anchors {
-                                        horizontalCenter: parent.horizontalCenter
-                                        bottom: parent.bottom
-                                        bottomMargin: 0
-                                    }
-                                    color: RaohaneTheme.accentSecondary
-                                    opacity: 0.7
+                                    opacity: appButton.modelData.running ? 0.9 : 0
                                 }
 
                                 Rectangle {
@@ -395,7 +368,7 @@ Scope {
                                         topMargin: 4
                                     }
                                     color: RaohaneTheme.textMuted
-                                    opacity: 0.5
+                                    opacity: 0.45
                                 }
 
                                 MouseArea {
@@ -467,7 +440,7 @@ Scope {
             : controlMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
         border.width: active || controlMouse.containsMouse ? 1 : 0
         border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
-        scale: controlMouse.containsMouse ? 1.06 : 1
+        scale: controlMouse.containsMouse ? 1.04 : 1
 
         Behavior on scale {
             NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
