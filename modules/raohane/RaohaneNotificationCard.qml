@@ -7,18 +7,18 @@ import Quickshell.Widgets
 
 import qs.modules.raohane.services
 
-Rectangle {
+RaohaneSurface {
     id: root
 
     required property var notification
     property bool compact: false
     property int bodyLineLimit: compact ? 2 : 4
+    readonly property bool criticalNotification: notification.urgency === "critical"
 
-    implicitHeight: Math.max(compact ? 92 : 104, content.implicitHeight + 24)
-    radius: compact ? 18 : 22
-    color: RaohaneTheme.glassStrong
-    border.width: 1
-    border.color: notification.urgency === "critical" ? RaohaneTheme.critical : RaohaneTheme.border
+    implicitHeight: Math.max(compact ? 92 : 108, content.implicitHeight + 26)
+    surfaceRadius: compact ? 17 : 20
+    raised: true
+    border.color: criticalNotification ? RaohaneTheme.critical : RaohaneTheme.borderStrong
     clip: true
 
     Rectangle {
@@ -29,7 +29,21 @@ Rectangle {
             bottom: parent.bottom
         }
         radius: 2
-        color: root.notification.urgency === "critical" ? RaohaneTheme.critical : RaohaneTheme.accent
+        color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.accent
+        opacity: 0.9
+    }
+
+    Rectangle {
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+            leftMargin: 24
+            rightMargin: 24
+        }
+        height: 1
+        color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.accentSecondary
+        opacity: 0.26
     }
 
     ColumnLayout {
@@ -39,19 +53,21 @@ Rectangle {
             right: parent.right
             top: parent.top
             margins: 12
-            leftMargin: 15
+            leftMargin: 16
         }
         spacing: 7
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 9
+            spacing: 10
 
             Rectangle {
-                width: 34
-                height: 34
-                radius: 12
-                color: RaohaneTheme.accentSoft
+                width: 36
+                height: 36
+                radius: 13
+                color: root.criticalNotification ? "#32ff6f91" : RaohaneTheme.accentSoft
+                border.width: 1
+                border.color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.borderStrong
                 clip: true
 
                 IconImage {
@@ -67,24 +83,47 @@ Rectangle {
                 RaohaneIcon {
                     anchors.centerIn: parent
                     visible: !appIcon.visible
-                    text: root.notification.urgency === "critical" ? "warning" : "notifications"
+                    text: root.criticalNotification ? "warning" : "notifications"
                     iconSize: 19
-                    color: root.notification.urgency === "critical" ? RaohaneTheme.critical : RaohaneTheme.accent
+                    color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.accent
                 }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: -1
+                spacing: 0
 
-                Text {
+                RowLayout {
                     Layout.fillWidth: true
-                    text: root.notification.appName || qsTr("Notification")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: 0.5
-                    elide: Text.ElideRight
+                    spacing: 6
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.notification.appName || qsTr("Notification")
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 0.7
+                        elide: Text.ElideRight
+                    }
+
+                    Rectangle {
+                        visible: root.criticalNotification
+                        implicitWidth: criticalLabel.implicitWidth + 12
+                        implicitHeight: 20
+                        radius: 8
+                        color: "#2eff6f91"
+
+                        Text {
+                            id: criticalLabel
+                            anchors.centerIn: parent
+                            text: "URGENT"
+                            color: RaohaneTheme.critical
+                            font.pixelSize: 7
+                            font.weight: Font.Bold
+                            font.letterSpacing: 0.7
+                        }
+                    }
                 }
 
                 Text {
@@ -98,16 +137,18 @@ Rectangle {
             }
 
             Rectangle {
-                width: 28
-                height: 28
-                radius: 10
-                color: closeMouse.containsMouse ? "#28ffffff" : "transparent"
+                width: 30
+                height: 30
+                radius: 11
+                color: closeMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+                border.width: closeMouse.containsMouse ? 1 : 0
+                border.color: RaohaneTheme.borderStrong
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: "close"
-                    iconSize: 16
-                    color: RaohaneTheme.textMuted
+                    iconSize: 15
+                    color: closeMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
 
                 MouseArea {
@@ -127,6 +168,7 @@ Rectangle {
             textFormat: Text.PlainText
             color: RaohaneTheme.textMuted
             font.pixelSize: 10
+            lineHeight: 1.08
             wrapMode: Text.Wrap
             maximumLineCount: root.bodyLineLimit
             elide: Text.ElideRight
@@ -146,18 +188,18 @@ Rectangle {
                     id: actionButton
                     required property var modelData
 
-                    width: Math.max(66, actionLabel.implicitWidth + 20)
-                    height: 28
-                    radius: 14
-                    color: actionMouse.containsMouse ? RaohaneTheme.accentSoft : "#20ffffff"
+                    width: Math.max(68, actionLabel.implicitWidth + 22)
+                    height: 30
+                    radius: 11
+                    color: actionMouse.containsMouse ? RaohaneTheme.accentHover : RaohaneTheme.surfaceSubtle
                     border.width: 1
-                    border.color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+                    border.color: actionMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                     Text {
                         id: actionLabel
                         anchors.centerIn: parent
                         text: actionButton.modelData.text
-                        color: RaohaneTheme.text
+                        color: actionMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
                         font.pixelSize: 9
                         font.weight: Font.DemiBold
                     }
