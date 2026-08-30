@@ -10,8 +10,6 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
-    readonly property var player: RaohaneMedia.activePlayer
-    readonly property real progress: RaohaneMedia.progress
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
 
@@ -25,8 +23,8 @@ Scope {
         visible: RaohaneState.mediaOverlayOpen
         screen: root.focusedScreen
         exclusiveZone: 0
-        implicitWidth: 454
-        implicitHeight: 140
+        implicitWidth: 520
+        implicitHeight: 318
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-media-overlay"
@@ -60,171 +58,354 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
 
-            RowLayout {
+            ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 13
-                spacing: 13
+                anchors.margins: 14
+                spacing: 12
 
-                Rectangle {
-                    Layout.preferredWidth: 106
-                    Layout.preferredHeight: 106
-                    radius: 18
-                    color: RaohaneTheme.surfaceSubtle
-                    border.width: 1
-                    border.color: RaohaneTheme.border
-                    clip: true
-
-                    Image {
-                        id: coverArt
-                        anchors.fill: parent
-                        source: RaohaneMedia.artUrl
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        cache: false
-                        visible: status === Image.Ready
-                    }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 172
+                    spacing: 14
 
                     Rectangle {
-                        anchors.fill: parent
-                        visible: coverArt.status === Image.Ready
-                        color: "transparent"
+                        Layout.preferredWidth: 172
+                        Layout.preferredHeight: 172
+                        radius: 22
+                        color: RaohaneTheme.surfaceSubtle
                         border.width: 1
                         border.color: RaohaneTheme.border
-                        radius: parent.radius
+                        clip: true
+
+                        Image {
+                            id: coverArt
+                            anchors.fill: parent
+                            source: RaohaneMedia.artUrl
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            cache: false
+                            visible: status === Image.Ready
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            visible: coverArt.status === Image.Ready
+                            radius: parent.radius
+                            color: "transparent"
+                            border.width: 1
+                            border.color: RaohaneTheme.border
+                        }
+
+                        Column {
+                            anchors.centerIn: parent
+                            visible: !RaohaneMedia.available || coverArt.status !== Image.Ready
+                            spacing: 4
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: "音"
+                                color: RaohaneTheme.accent
+                                font.pixelSize: 34
+                                font.weight: Font.DemiBold
+                            }
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: qsTr("Raohane")
+                                color: RaohaneTheme.textFaint
+                                font.pixelSize: 8
+                                font.letterSpacing: 1
+                            }
+                        }
                     }
 
-                    Text {
-                        anchors.centerIn: parent
-                        visible: !RaohaneMedia.available || coverArt.status !== Image.Ready
-                        text: "音"
-                        color: RaohaneTheme.accent
-                        font.pixelSize: 27
-                        font.weight: Font.DemiBold
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        spacing: 7
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 7
+
+                            Rectangle {
+                                implicitWidth: playerLabel.implicitWidth + 16
+                                implicitHeight: 25
+                                radius: 9
+                                color: RaohaneTheme.surfaceSubtle
+                                border.width: 1
+                                border.color: RaohaneTheme.border
+
+                                Text {
+                                    id: playerLabel
+                                    anchors.centerIn: parent
+                                    text: RaohaneMedia.available
+                                        ? (RaohaneMedia.playerName || qsTr("Media player"))
+                                        : qsTr("No player")
+                                    color: RaohaneTheme.textMuted
+                                    font.pixelSize: 7
+                                    font.weight: Font.Medium
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            MiniButton {
+                                glyph: "↗"
+                                tooltip: qsTr("Open player")
+                                enabled: RaohaneMedia.canRaise
+                                onClicked: RaohaneMedia.raisePlayer()
+                            }
+                            MiniButton {
+                                glyph: "×"
+                                tooltip: qsTr("Close")
+                                onClicked: root.close()
+                            }
+                        }
+
+                        Item { Layout.fillHeight: true }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: RaohaneMedia.available && RaohaneMedia.title.length > 0
+                                ? RaohaneMedia.title
+                                : qsTr("Nothing is playing")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 20
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: RaohaneMedia.available && RaohaneMedia.artist.length > 0
+                                ? RaohaneMedia.artist
+                                : qsTr("Start a MPRIS-compatible player")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            visible: RaohaneMedia.album.length > 0
+                            text: RaohaneMedia.album
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 9
+                            elide: Text.ElideRight
+                        }
+
+                        Item { Layout.fillHeight: true }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            visible: RaohaneMedia.playerCount > 1
+                            spacing: 6
+
+                            MiniButton {
+                                glyph: "‹"
+                                tooltip: qsTr("Previous player")
+                                onClicked: RaohaneMedia.cyclePlayer(-1)
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: qsTr("Player %1 of %2").arg(RaohaneMedia.activePlayerIndex + 1).arg(RaohaneMedia.playerCount)
+                                color: RaohaneTheme.textFaint
+                                font.pixelSize: 8
+                                horizontalAlignment: Text.AlignHCenter
+                            }
+
+                            MiniButton {
+                                glyph: "›"
+                                tooltip: qsTr("Next player")
+                                onClicked: RaohaneMedia.cyclePlayer(1)
+                            }
+                        }
                     }
                 }
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    spacing: 4
+                    spacing: 5
 
-                    RowLayout {
+                    Item {
+                        id: timelineArea
                         Layout.fillWidth: true
-                        spacing: 8
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 0
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: RaohaneMedia.available && RaohaneMedia.title.length > 0
-                                    ? RaohaneMedia.title
-                                    : qsTr("No active player")
-                                color: RaohaneTheme.text
-                                font.pixelSize: 13
-                                font.weight: Font.DemiBold
-                                elide: Text.ElideRight
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: RaohaneMedia.available && RaohaneMedia.artist.length > 0
-                                    ? RaohaneMedia.artist
-                                    : qsTr("Start music to use media controls")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
-                                elide: Text.ElideRight
-                            }
-                        }
+                        Layout.preferredHeight: 18
 
                         Rectangle {
-                            implicitWidth: contextLabel.implicitWidth + 14
-                            implicitHeight: 24
-                            radius: 9
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
-
-                            Text {
-                                id: contextLabel
-                                anchors.centerIn: parent
-                                text: qsTr("Media")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 7
-                                font.weight: Font.Medium
+                            anchors {
+                                left: parent.left
+                                right: parent.right
+                                verticalCenter: parent.verticalCenter
                             }
-                        }
-
-                        ControlButton {
-                            glyph: "×"
-                            onClicked: root.close()
-                        }
-                    }
-
-                    Item { Layout.fillHeight: true }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 5
-                        radius: 3
-                        color: RaohaneTheme.surfaceDeep
-                        border.width: 1
-                        border.color: RaohaneTheme.borderFaint
-
-                        Rectangle {
-                            width: parent.width * root.progress
-                            height: parent.height
-                            radius: parent.radius
-                            color: RaohaneTheme.accent
-                        }
-
-                        Rectangle {
-                            visible: root.progress > 0.01
-                            x: Math.max(0, parent.width * root.progress - 3)
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 6
-                            height: 6
+                            height: 5
                             radius: 3
-                            color: RaohaneTheme.accent
+                            color: RaohaneTheme.surfaceDeep
+                            border.width: 1
+                            border.color: RaohaneTheme.borderFaint
+
+                            Rectangle {
+                                width: parent.width * RaohaneMedia.progress
+                                height: parent.height
+                                radius: parent.radius
+                                color: RaohaneTheme.accent
+                            }
+                        }
+
+                        Rectangle {
+                            visible: RaohaneMedia.canSeek
+                            width: timelineMouse.pressed ? 14 : 11
+                            height: width
+                            radius: width / 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: Math.max(0, Math.min(timelineArea.width - width, timelineArea.width * RaohaneMedia.progress - width / 2))
+                            color: RaohaneTheme.surfaceRaised
+                            border.width: 2
+                            border.color: RaohaneTheme.accent
+
+                            Behavior on width {
+                                NumberAnimation { duration: RaohaneTheme.animationFast }
+                            }
                         }
 
                         MouseArea {
+                            id: timelineMouse
                             anchors.fill: parent
                             enabled: RaohaneMedia.canSeek
+                            hoverEnabled: true
                             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            onClicked: mouse => RaohaneMedia.seekRatio(mouse.x / width)
+
+                            function seekAt(mouseX: real): void {
+                                if (width > 0)
+                                    RaohaneMedia.seekRatio(mouseX / width)
+                            }
+
+                            onPressed: mouse => seekAt(mouse.x)
+                            onPositionChanged: mouse => {
+                                if (pressed)
+                                    seekAt(mouse.x)
+                            }
                         }
                     }
 
                     RowLayout {
                         Layout.fillWidth: true
+
+                        Text {
+                            text: RaohaneMedia.formatTime(RaohaneMedia.position)
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
+                        }
+                        Item { Layout.fillWidth: true }
+                        Text {
+                            text: RaohaneMedia.length > 0 ? RaohaneMedia.formatTime(RaohaneMedia.length) : "--:--"
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 46
+                    spacing: 8
+
+                    MiniButton {
+                        glyph: "↶"
+                        tooltip: qsTr("Back 10 seconds")
+                        enabled: RaohaneMedia.available && RaohaneMedia.activePlayer?.canSeek
+                        onClicked: RaohaneMedia.seekSeconds(-10)
+                    }
+
+                    MiniButton {
+                        glyph: "⇄"
+                        tooltip: qsTr("Shuffle")
+                        enabled: RaohaneMedia.shuffleSupported
+                        active: RaohaneMedia.shuffle
+                        onClicked: RaohaneMedia.toggleShuffle()
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    MainButton {
+                        glyph: "⏮"
+                        enabled: RaohaneMedia.canGoPrevious
+                        onClicked: RaohaneMedia.previous()
+                    }
+
+                    MainButton {
+                        glyph: RaohaneMedia.isPlaying ? "Ⅱ" : "▶"
+                        enabled: RaohaneMedia.canTogglePlaying
+                        emphasized: true
+                        onClicked: RaohaneMedia.togglePlaying()
+                    }
+
+                    MainButton {
+                        glyph: "⏭"
+                        enabled: RaohaneMedia.canGoNext
+                        onClicked: RaohaneMedia.next()
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    MiniButton {
+                        glyph: "↷"
+                        tooltip: qsTr("Forward 10 seconds")
+                        enabled: RaohaneMedia.available && RaohaneMedia.activePlayer?.canSeek
+                        onClicked: RaohaneMedia.seekSeconds(10)
+                    }
+
+                    RowLayout {
+                        visible: RaohaneMedia.volumeSupported
                         spacing: 6
 
                         Text {
-                            text: "Raohane"
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
-                            font.weight: Font.Medium
+                            text: "♪"
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 12
                         }
 
-                        Item { Layout.fillWidth: true }
+                        Item {
+                            id: volumeArea
+                            Layout.preferredWidth: 92
+                            Layout.preferredHeight: 18
 
-                        ControlButton {
-                            glyph: "⏮"
-                            enabled: RaohaneMedia.canGoPrevious
-                            onClicked: RaohaneMedia.previous()
-                        }
-                        ControlButton {
-                            glyph: RaohaneMedia.isPlaying ? "Ⅱ" : "▶"
-                            enabled: RaohaneMedia.canTogglePlaying
-                            emphasized: true
-                            onClicked: RaohaneMedia.togglePlaying()
-                        }
-                        ControlButton {
-                            glyph: "⏭"
-                            enabled: RaohaneMedia.canGoNext
-                            onClicked: RaohaneMedia.next()
+                            Rectangle {
+                                anchors {
+                                    left: parent.left
+                                    right: parent.right
+                                    verticalCenter: parent.verticalCenter
+                                }
+                                height: 4
+                                radius: 2
+                                color: RaohaneTheme.surfaceDeep
+
+                                Rectangle {
+                                    width: parent.width * RaohaneMedia.volume
+                                    height: parent.height
+                                    radius: parent.radius
+                                    color: RaohaneTheme.accent
+                                    opacity: 0.75
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+
+                                function setAt(mouseX: real): void {
+                                    if (width > 0)
+                                        RaohaneMedia.setVolume(mouseX / width)
+                                }
+
+                                onPressed: mouse => setAt(mouse.x)
+                                onPositionChanged: mouse => {
+                                    if (pressed)
+                                        setAt(mouse.x)
+                                }
+                            }
                         }
                     }
                 }
@@ -245,23 +426,59 @@ Scope {
         onPressed: root.toggle()
     }
 
-    component ControlButton: Rectangle {
+    component MiniButton: Rectangle {
+        id: control
+
+        required property string glyph
+        property string tooltip: ""
+        property bool active: false
+        signal clicked()
+
+        implicitWidth: 30
+        implicitHeight: 30
+        radius: 10
+        opacity: control.enabled ? 1 : 0.30
+        color: control.active
+            ? RaohaneTheme.accentSoft
+            : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: control.active || mouse.containsMouse ? 1 : 0
+        border.color: control.active ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
+
+        Text {
+            anchors.centerIn: parent
+            text: control.glyph
+            color: control.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            font.pixelSize: 14
+            font.weight: Font.DemiBold
+        }
+
+        MouseArea {
+            id: mouse
+            anchors.fill: parent
+            hoverEnabled: true
+            enabled: control.enabled
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: control.clicked()
+        }
+    }
+
+    component MainButton: Rectangle {
         id: control
 
         required property string glyph
         property bool emphasized: false
         signal clicked()
 
-        implicitWidth: 30
-        implicitHeight: 30
-        radius: 11
-        opacity: control.enabled ? 1 : 0.32
+        implicitWidth: control.emphasized ? 44 : 36
+        implicitHeight: control.emphasized ? 44 : 36
+        radius: control.emphasized ? 16 : 13
+        opacity: control.enabled ? 1 : 0.30
         color: control.emphasized
             ? RaohaneTheme.accentSoft
             : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : "transparent"
         border.width: control.emphasized || mouse.containsMouse ? 1 : 0
         border.color: control.emphasized ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
-        scale: mouse.containsMouse && control.enabled ? 1.03 : 1
+        scale: mouse.containsMouse && control.enabled ? 1.04 : 1
 
         Behavior on scale {
             NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
@@ -271,7 +488,7 @@ Scope {
             anchors.centerIn: parent
             text: control.glyph
             color: control.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            font.pixelSize: control.emphasized ? 13 : 14
+            font.pixelSize: control.emphasized ? 15 : 14
             font.weight: Font.DemiBold
         }
 
