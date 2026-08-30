@@ -112,8 +112,8 @@ rm -f -- \
   "$TARGET/scripts/raohane-audit.sh"
 
 # Static source/CI audits do not belong in the installed product runtime. The
-# interactive phase4-live-check.sh intentionally does not match this pattern
-# and remains available to `raohane doctor/validate phase4`.
+# interactive live validators intentionally do not match this pattern and remain
+# available after installation for Phase 4 and release validation.
 find "$TARGET/scripts" -mindepth 1 -maxdepth 1 -type f -name '*-audit.sh' -delete
 
 # shell.qml is the complete root bootstrap. Any other root-level QML file comes
@@ -157,6 +157,10 @@ fi
 }
 [[ -f "$TARGET/scripts/phase4-live-check.sh" ]] || {
   echo 'Pruning removed the Phase 4 live validator unexpectedly.' >&2
+  exit 1
+}
+[[ -f "$TARGET/scripts/release-live-check.sh" ]] || {
+  echo 'Pruning removed the release live validator unexpectedly.' >&2
   exit 1
 }
 
