@@ -1,14 +1,22 @@
 import QtQuick
 
+import qs.modules.raohane.config
+
 Rectangle {
     id: root
 
+    readonly property var styleConfig: RaohaneConfig.style ?? ({})
+    readonly property real islandScale: Number(styleConfig.contextIslandScale ?? 1.0)
+    readonly property bool showDetail: styleConfig.contextIslandDetail === undefined ? true : Boolean(styleConfig.contextIslandDetail)
+    readonly property bool showIndicators: styleConfig.contextIslandIndicators === undefined ? true : Boolean(styleConfig.contextIslandIndicators)
+
     implicitWidth: {
         const titleWidth = titleMetrics.advanceWidth
-        const detailWidth = detailMetrics.advanceWidth
-        return Math.max(196, Math.min(440, Math.max(titleWidth, detailWidth) + 112))
+        const detailWidth = root.showDetail ? detailMetrics.advanceWidth : 0
+        const contentWidth = Math.max(titleWidth, detailWidth) + (root.showIndicators ? 112 : 88)
+        return Math.max(176, Math.min(520, Math.round(contentWidth * root.islandScale)))
     }
-    implicitHeight: RaohaneTheme.islandHeight
+    implicitHeight: Math.max(38, Math.min(50, Math.round(RaohaneTheme.islandHeight * root.islandScale)))
     radius: height / 2
     color: RaohaneTheme.glassStrong
     border.width: 1
@@ -16,8 +24,6 @@ Rectangle {
         ? RaohaneTheme.critical
         : RaohaneTheme.borderStrong
 
-    // The island remains the signature center pod, but minimal themes separate
-    // it from the wallpaper with one quiet outer hairline rather than a glow.
     Rectangle {
         z: -2
         anchors.centerIn: parent
@@ -39,11 +45,18 @@ Rectangle {
         }
     }
 
+    Behavior on implicitHeight {
+        NumberAnimation {
+            duration: RaohaneTheme.animationDuration
+            easing.type: Easing.OutCubic
+        }
+    }
+
     Rectangle {
         id: iconPlate
-        width: 34
-        height: 34
-        radius: 17
+        width: Math.max(30, Math.min(36, Math.round(root.height * 0.74)))
+        height: width
+        radius: width / 2
         anchors.left: parent.left
         anchors.leftMargin: 7
         anchors.verticalCenter: parent.verticalCenter
@@ -69,22 +82,23 @@ Rectangle {
     Column {
         anchors.left: iconPlate.right
         anchors.leftMargin: 10
-        anchors.right: statusDots.left
-        anchors.rightMargin: 10
+        anchors.right: root.showIndicators ? statusDots.left : parent.right
+        anchors.rightMargin: root.showIndicators ? 10 : 14
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 0
+        spacing: root.showDetail ? 0 : -1
 
         Text {
             width: parent.width
             text: RaohaneContext.title
             color: RaohaneTheme.text
-            font.pixelSize: 12
+            font.pixelSize: root.showDetail ? 12 : 11
             font.weight: Font.DemiBold
             elide: Text.ElideRight
         }
 
         Text {
             width: parent.width
+            visible: root.showDetail
             text: RaohaneContext.detail
             color: RaohaneTheme.textMuted
             font.pixelSize: 9
@@ -95,6 +109,7 @@ Rectangle {
 
     Row {
         id: statusDots
+        visible: root.showIndicators
         anchors {
             right: parent.right
             rightMargin: 13
