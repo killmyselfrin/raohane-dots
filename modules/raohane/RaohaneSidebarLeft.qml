@@ -40,7 +40,7 @@ Scope {
 
         visible: RaohaneState.leftSidebarOpen
         screen: root.focusedScreen
-        implicitWidth: 380
+        implicitWidth: 372
         color: "transparent"
         exclusiveZone: 0
         exclusionMode: ExclusionMode.Ignore
@@ -61,82 +61,105 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
-        Rectangle {
+        RaohaneSurface {
             anchors.fill: parent
-            radius: 28
-            color: RaohaneTheme.glassStrong
-            border.width: 1
-            border.color: RaohaneTheme.border
+            surfaceRadius: RaohaneTheme.radiusHero
+            raised: true
+            showSheen: false
+            border.color: RaohaneTheme.borderStrong
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 18
-                spacing: 12
+                anchors.margins: 14
+                spacing: 10
 
                 RowLayout {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: 44
+                    spacing: 9
 
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 1
+                    Rectangle {
+                        width: 34
+                        height: 34
+                        radius: 11
+                        color: RaohaneTheme.surfaceSubtle
+                        border.width: 1
+                        border.color: RaohaneTheme.border
 
-                        Text {
-                            text: "RAOHANE / SIDE"
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "dashboard"
+                            iconSize: 17
                             color: RaohaneTheme.accent
-                            font.pixelSize: 10
-                            font.bold: true
-                            font.letterSpacing: 1.2
-                        }
-
-                        Text {
-                            text: qsTr("Quick glance")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 20
-                            font.weight: Font.DemiBold
                         }
                     }
 
                     ColumnLayout {
+                        Layout.fillWidth: true
                         spacing: 0
+
+                        Text {
+                            text: qsTr("Quick glance")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 14
+                            font.weight: Font.DemiBold
+                        }
+
+                        Text {
+                            text: qsTr("Media and system status")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 8
+                        }
+                    }
+
+                    ColumnLayout {
+                        spacing: -1
                         Text {
                             Layout.alignment: Qt.AlignRight
                             text: Qt.formatTime(root.now, "HH:mm")
                             color: RaohaneTheme.text
-                            font.pixelSize: 12
+                            font.pixelSize: 11
                             font.weight: Font.DemiBold
                         }
                         Text {
                             Layout.alignment: Qt.AlignRight
                             text: Qt.formatDate(root.now, "ddd, d MMM")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
                         }
                     }
 
-                    SmallButton {
-                        glyph: "×"
+                    IconControl {
+                        icon: "close"
                         onTriggered: root.close()
                     }
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 106
-                    radius: 20
-                    color: "#14ffffff"
-                    border.width: 1
-                    border.color: RaohaneTheme.border
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderFaint
+                }
+
+                RaohaneSurface {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 104
+                    surfaceRadius: 16
+                    raised: false
+                    showSheen: false
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 12
+                        anchors.margins: 11
+                        spacing: 11
 
                         Rectangle {
-                            Layout.preferredWidth: 78
-                            Layout.preferredHeight: 78
-                            radius: 16
-                            color: RaohaneTheme.accentSoft
+                            Layout.preferredWidth: 76
+                            Layout.preferredHeight: 76
+                            radius: 14
+                            color: RaohaneTheme.surfaceSubtle
+                            border.width: 1
+                            border.color: RaohaneTheme.border
                             clip: true
 
                             Image {
@@ -145,20 +168,21 @@ Scope {
                                 source: RaohaneMedia.artUrl
                                 fillMode: Image.PreserveAspectCrop
                                 asynchronous: true
+                                cache: false
                             }
 
-                            Text {
+                            RaohaneIcon {
                                 anchors.centerIn: parent
                                 visible: mediaArt.status !== Image.Ready
-                                text: "音"
-                                color: RaohaneTheme.accent
-                                font.pixelSize: 24
-                                font.bold: true
+                                text: "music_note"
+                                iconSize: 25
+                                color: RaohaneTheme.textMuted
                             }
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             spacing: 3
 
                             Text {
@@ -166,7 +190,7 @@ Scope {
                                 text: RaohaneMedia.available && RaohaneMedia.title.length > 0
                                     ? RaohaneMedia.title : qsTr("No active player")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 13
+                                font.pixelSize: 11
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
@@ -176,32 +200,34 @@ Scope {
                                 text: RaohaneMedia.available && RaohaneMedia.artist.length > 0
                                     ? RaohaneMedia.artist : qsTr("Start music to see it here")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 10
+                                font.pixelSize: 8
                                 elide: Text.ElideRight
                             }
 
                             Item { Layout.fillHeight: true }
 
                             RowLayout {
-                                SmallButton {
-                                    glyph: "⏮"
+                                spacing: 5
+
+                                IconControl {
+                                    icon: "skip_previous"
                                     enabled: RaohaneMedia.canGoPrevious
                                     onTriggered: RaohaneMedia.previous()
                                 }
-                                SmallButton {
-                                    glyph: RaohaneMedia.isPlaying ? "Ⅱ" : "▶"
-                                    emphasized: true
+                                IconControl {
+                                    icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
+                                    active: RaohaneMedia.isPlaying
                                     enabled: RaohaneMedia.canTogglePlaying
                                     onTriggered: RaohaneMedia.togglePlaying()
                                 }
-                                SmallButton {
-                                    glyph: "⏭"
+                                IconControl {
+                                    icon: "skip_next"
                                     enabled: RaohaneMedia.canGoNext
                                     onTriggered: RaohaneMedia.next()
                                 }
                                 Item { Layout.fillWidth: true }
-                                SmallButton {
-                                    glyph: "↗"
+                                IconControl {
+                                    icon: "open_in_new"
                                     enabled: RaohaneMedia.available
                                     onTriggered: {
                                         root.close()
@@ -213,59 +239,70 @@ Scope {
                     }
                 }
 
-                Text {
-                    text: qsTr("AUDIO")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
-                    font.bold: true
-                    font.letterSpacing: 1.2
-                }
+                SectionLabel { text: qsTr("Audio") }
 
-                Rectangle {
+                RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 78
-                    radius: 18
-                    color: "#10ffffff"
-                    border.width: 1
-                    border.color: RaohaneTheme.border
+                    Layout.preferredHeight: 70
+                    surfaceRadius: 15
+                    raised: false
+                    showSheen: false
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 8
+                        anchors.margins: 11
+                        spacing: 7
 
                         RowLayout {
                             Layout.fillWidth: true
+
+                            RaohaneIcon {
+                                text: RaohaneAudio.muted ? "volume_off" : "volume_up"
+                                iconSize: 15
+                                color: RaohaneAudio.muted ? RaohaneTheme.textMuted : RaohaneTheme.accent
+                            }
                             Text {
                                 text: RaohaneAudio.muted ? qsTr("Muted") : qsTr("Volume")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 12
+                                font.pixelSize: 9
                                 font.weight: Font.DemiBold
                             }
                             Item { Layout.fillWidth: true }
                             Text {
                                 text: RaohaneAudio.ready ? Math.round(RaohaneAudio.volume * 100) + "%" : "—"
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 11
+                                font.pixelSize: 8
                             }
                         }
 
-                        Rectangle {
+                        Item {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 7
-                            radius: height / 2
-                            color: "#2affffff"
+                            Layout.preferredHeight: 18
 
                             Rectangle {
-                                width: parent.width * (RaohaneAudio.muted ? 0 : RaohaneAudio.volume)
-                                height: parent.height
-                                radius: parent.radius
-                                color: RaohaneTheme.accent
+                                anchors {
+                                    left: parent.left
+                                    right: parent.right
+                                    verticalCenter: parent.verticalCenter
+                                }
+                                height: 5
+                                radius: 3
+                                color: RaohaneTheme.surfaceDeep
+                                border.width: 1
+                                border.color: RaohaneTheme.borderFaint
+
+                                Rectangle {
+                                    width: parent.width * (RaohaneAudio.muted ? 0 : RaohaneAudio.volume)
+                                    height: parent.height
+                                    radius: parent.radius
+                                    color: RaohaneTheme.accent
+                                }
                             }
 
                             MouseArea {
                                 anchors.fill: parent
                                 enabled: RaohaneAudio.ready
+                                preventStealing: true
                                 cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 onPressed: mouse => RaohaneAudio.setVolume(mouse.x / width)
                                 onPositionChanged: mouse => {
@@ -277,26 +314,19 @@ Scope {
                     }
                 }
 
-                Text {
-                    text: qsTr("SYSTEM")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
-                    font.bold: true
-                    font.letterSpacing: 1.2
-                }
+                SectionLabel { text: qsTr("System") }
 
-                Rectangle {
+                RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 156
-                    radius: 18
-                    color: "#10ffffff"
-                    border.width: 1
-                    border.color: RaohaneTheme.border
+                    Layout.preferredHeight: 152
+                    surfaceRadius: 15
+                    raised: false
+                    showSheen: false
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 9
-                        spacing: 3
+                        anchors.margins: 7
+                        spacing: 2
 
                         StatusRow {
                             icon: RaohaneNetwork.materialSymbol
@@ -345,39 +375,41 @@ Scope {
                     }
                 }
 
+                SectionLabel { text: qsTr("Shortcuts") }
+
                 GridLayout {
                     Layout.fillWidth: true
-                    columns: 2
-                    rowSpacing: 8
-                    columnSpacing: 8
+                    columns: 3
+                    rowSpacing: 6
+                    columnSpacing: 6
 
                     ActionButton {
-                        glyph: "⌕"
+                        icon: "search"
                         title: qsTr("Launcher")
                         onTriggered: RaohaneState.setPrimaryOpen("launcher", true)
                     }
                     ActionButton {
-                        glyph: "◎"
+                        icon: "tune"
                         title: qsTr("Control")
                         onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                     }
                     ActionButton {
-                        glyph: "▧"
+                        icon: "wallpaper"
                         title: qsTr("Wallpaper")
                         onTriggered: RaohaneState.setPrimaryOpen("wallpaper", true)
                     }
                     ActionButton {
-                        glyph: "文"
+                        icon: "translate"
                         title: qsTr("Translate")
                         onTriggered: RaohaneState.setPrimaryOpen("screenTranslator", true)
                     }
                     ActionButton {
-                        glyph: "⚙"
+                        icon: "settings"
                         title: qsTr("Settings")
                         onTriggered: RaohaneState.setPrimaryOpen("settings", true)
                     }
                     ActionButton {
-                        glyph: "⏻"
+                        icon: "power_settings_new"
                         title: qsTr("Session")
                         onTriggered: RaohaneState.setPrimaryOpen("session", true)
                     }
@@ -401,6 +433,13 @@ Scope {
         onPressed: root.toggle()
     }
 
+    component SectionLabel: Text {
+        color: RaohaneTheme.textFaint
+        font.pixelSize: 7
+        font.weight: Font.DemiBold
+        font.letterSpacing: 0.7
+    }
+
     component StatusRow: Rectangle {
         id: statusRow
         required property string icon
@@ -410,36 +449,37 @@ Scope {
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 31
-        radius: 11
-        color: statusMouse.containsMouse ? "#20ffffff" : "transparent"
+        Layout.preferredHeight: 32
+        radius: 9
+        color: statusMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
 
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 7
             anchors.rightMargin: 7
-            spacing: 8
+            spacing: 7
 
             RaohaneIcon {
                 text: statusRow.icon
-                iconSize: 15
+                iconSize: 14
+                fill: statusRow.active ? 1 : 0
                 color: statusRow.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
                 text: statusRow.title
                 color: RaohaneTheme.text
-                font.pixelSize: 10
+                font.pixelSize: 9
                 font.weight: Font.DemiBold
             }
 
             Item { Layout.fillWidth: true }
 
             Text {
-                Layout.maximumWidth: 170
+                Layout.maximumWidth: 166
                 text: statusRow.detail
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 9
+                font.pixelSize: 8
                 elide: Text.ElideRight
             }
         }
@@ -453,27 +493,28 @@ Scope {
         }
     }
 
-    component SmallButton: Rectangle {
+    component IconControl: Rectangle {
         id: button
-        required property string glyph
-        property bool emphasized: false
+        required property string icon
+        property bool active: false
         signal triggered()
 
         implicitWidth: 30
         implicitHeight: 30
-        radius: 15
+        radius: 9
         opacity: button.enabled ? 1 : 0.35
-        color: emphasized ? RaohaneTheme.accentSoft
-            : buttonMouse.containsMouse && button.enabled ? "#24ffffff" : "transparent"
-        border.width: emphasized ? 1 : 0
-        border.color: RaohaneTheme.border
+        color: button.active
+            ? RaohaneTheme.surfaceRaised
+            : buttonMouse.containsMouse && button.enabled ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: button.active || buttonMouse.containsMouse ? 1 : 0
+        border.color: button.active ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
-        Text {
+        RaohaneIcon {
             anchors.centerIn: parent
-            text: button.glyph
-            color: emphasized ? RaohaneTheme.accent : RaohaneTheme.text
-            font.pixelSize: 14
-            font.weight: Font.DemiBold
+            text: button.icon
+            iconSize: 15
+            fill: button.active ? 1 : 0
+            color: button.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
         }
 
         MouseArea {
@@ -488,30 +529,34 @@ Scope {
 
     component ActionButton: Rectangle {
         id: action
-        required property string glyph
+        required property string icon
         required property string title
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
-        radius: 16
-        color: actionMouse.containsMouse ? "#24ffffff" : "#10ffffff"
+        Layout.preferredHeight: 42
+        radius: 11
+        color: actionMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
         border.width: 1
-        border.color: actionMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.border
+        border.color: actionMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
-        RowLayout {
+        Column {
             anchors.centerIn: parent
-            spacing: 8
-            Text {
-                text: action.glyph
-                color: RaohaneTheme.accent
-                font.pixelSize: 15
+            spacing: 2
+
+            RaohaneIcon {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: action.icon
+                iconSize: 15
+                color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
+
             Text {
+                anchors.horizontalCenter: parent.horizontalCenter
                 text: action.title
                 color: RaohaneTheme.text
-                font.pixelSize: 10
-                font.weight: Font.DemiBold
+                font.pixelSize: 7
+                font.weight: Font.Medium
             }
         }
 
