@@ -24,7 +24,7 @@ Item {
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: true
             clip: true
-            border.color: RaohaneTheme.accentBorder
+            border.color: RaohaneTheme.borderStrong
 
             Image {
                 anchors.fill: parent
@@ -32,30 +32,17 @@ Item {
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: false
-                opacity: status === Image.Ready ? 0.74 : 0
+                opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.52 : 0.38) : 0
             }
 
             Rectangle {
                 anchors.fill: parent
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: "#f20b0813" }
-                    GradientStop { position: 0.48; color: "#c30b0813" }
-                    GradientStop { position: 1.0; color: "#66180c2a" }
+                    GradientStop { position: 0.0; color: RaohaneTheme.dark ? "#e8171817" : "#e8f4f1eb" }
+                    GradientStop { position: 0.52; color: RaohaneTheme.dark ? "#c8171817" : "#ccefebE5" }
+                    GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#8a171817" : "#8af5f1eb" }
                 }
-            }
-
-            Rectangle {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                    leftMargin: 32
-                    rightMargin: 32
-                }
-                height: 1
-                color: RaohaneTheme.accentSecondary
-                opacity: 0.36
             }
 
             Column {
@@ -68,15 +55,14 @@ Item {
                 spacing: 5
 
                 Text {
-                    text: "RAOHANE / LIVING SHELL"
+                    text: qsTr("Raohane")
                     color: RaohaneTheme.text
-                    font.pixelSize: 17
+                    font.pixelSize: 18
                     font.weight: Font.DemiBold
-                    font.letterSpacing: 1.25
                 }
 
                 Text {
-                    text: qsTr("Japanese cyber-noir · native Hyprland control deck")
+                    text: qsTr("Minimal Japanese shell · native Hyprland control deck")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 10
                 }
@@ -134,9 +120,8 @@ Item {
                 }
                 spacing: 7
 
-                MoodChip { label: qsTr("Dreamy"); active: true }
-                MoodChip { label: qsTr("Noir") }
-                MoodChip { label: qsTr("Zen") }
+                MoodChip { label: RaohaneTheme.presetName; active: true }
+                MoodChip { label: RaohaneTheme.dark ? qsTr("Dark") : qsTr("Light") }
             }
         }
 
@@ -187,10 +172,9 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 icon: "palette"
-                title: qsTr("Appearance")
-                detail: qsTr("Identity, quick behavior and signature shell mood")
-                page: "Quick"
-                accentIndex: 0
+                title: qsTr("Themes")
+                detail: qsTr("Minimal palettes and complete shell moods")
+                page: "Themes"
             }
 
             DeckCard {
@@ -200,7 +184,6 @@ Item {
                 title: qsTr("Bar & Dock")
                 detail: qsTr("Floating pods, Context Island and application dock")
                 page: "Bar"
-                accentIndex: 1
             }
 
             DeckCard {
@@ -210,7 +193,6 @@ Item {
                 title: qsTr("Desktop & Spaces")
                 detail: qsTr("Wallpaper, Overview, transitions and living canvas")
                 page: "Desktop"
-                accentIndex: 2
             }
 
             DeckCard {
@@ -218,9 +200,8 @@ Item {
                 Layout.fillHeight: true
                 icon: "bottom_app_bar"
                 title: qsTr("Interface")
-                detail: qsTr("Screen chrome, corners, effects and interaction feel")
+                detail: qsTr("Screen chrome, corners and interaction feel")
                 page: "Interface"
-                accentIndex: 3
             }
 
             DeckCard {
@@ -230,7 +211,6 @@ Item {
                 title: qsTr("Hyprland")
                 detail: qsTr("Compositor-facing behavior, workspaces and fullscreen")
                 page: "Hyprland"
-                accentIndex: 4
             }
 
             DeckCard {
@@ -240,7 +220,6 @@ Item {
                 title: qsTr("System & Services")
                 detail: qsTr("Integrations, commands, autostart and native helpers")
                 page: "Services"
-                accentIndex: 5
             }
         }
     }
@@ -255,9 +234,9 @@ Item {
         width: pathRow.implicitWidth + 20
         height: 30
         radius: 12
-        color: pathMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
+        color: pathMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: pathMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.border
+        border.color: pathMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         Row {
             id: pathRow
@@ -299,26 +278,11 @@ Item {
         required property string title
         required property string detail
         required property string page
-        property int accentIndex: 0
 
         Layout.minimumHeight: 112
         surfaceRadius: 19
         hovered: cardMouse.containsMouse
         raised: false
-
-        Rectangle {
-            anchors {
-                left: parent.left
-                top: parent.top
-                bottom: parent.bottom
-            }
-            width: 3
-            radius: 2
-            color: card.accentIndex % 2 === 0
-                ? RaohaneTheme.accent
-                : RaohaneTheme.accentSecondary
-            opacity: cardMouse.containsMouse ? 0.9 : 0.36
-        }
 
         ColumnLayout {
             anchors.fill: parent
@@ -329,18 +293,18 @@ Item {
                 Layout.fillWidth: true
 
                 Rectangle {
-                    width: 36
-                    height: 36
-                    radius: 13
-                    color: cardMouse.containsMouse ? RaohaneTheme.accentHover : RaohaneTheme.accentSoft
+                    width: 34
+                    height: 34
+                    radius: 12
+                    color: cardMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                     border.width: 1
-                    border.color: cardMouse.containsMouse ? RaohaneTheme.accentGlow : RaohaneTheme.border
+                    border.color: cardMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: card.icon
-                        iconSize: 19
-                        color: cardMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.accent
+                        iconSize: 18
+                        color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     }
                 }
 
@@ -348,7 +312,7 @@ Item {
 
                 RaohaneIcon {
                     text: "arrow_forward"
-                    iconSize: 16
+                    iconSize: 15
                     color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
                 }
             }
@@ -392,13 +356,11 @@ Item {
         width: chipRow.implicitWidth + 18
         height: 28
         radius: 11
-        color: critical
-            ? "#35ff6f91"
-            : active ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
+        color: RaohaneTheme.surfaceSubtle
         border.width: 1
         border.color: critical
             ? RaohaneTheme.critical
-            : active ? RaohaneTheme.accentBorder : RaohaneTheme.border
+            : active ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         Row {
             id: chipRow
@@ -417,7 +379,7 @@ Item {
                 text: chip.text
                 color: RaohaneTheme.text
                 font.pixelSize: 8
-                font.weight: Font.DemiBold
+                font.weight: Font.Medium
             }
         }
     }
@@ -429,9 +391,9 @@ Item {
         width: labelText.implicitWidth + 18
         height: 26
         radius: 10
-        color: active ? RaohaneTheme.accentSoft : "#5d100d18"
+        color: active ? RaohaneTheme.surfaceRaised : RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+        border.color: active ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         Text {
             id: labelText
