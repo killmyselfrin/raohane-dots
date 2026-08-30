@@ -20,35 +20,25 @@ Item {
             Layout.fillWidth: true
             spacing: 8
 
-            Text {
-                text: qsTr("通知  /  NOTIFICATIONS")
-                color: RaohaneTheme.text
-                font.pixelSize: 11
-                font.letterSpacing: 1.0
-                font.weight: Font.DemiBold
-            }
-
-            Rectangle {
-                width: unreadLabel.implicitWidth + 14
-                height: 22
-                radius: 11
-                color: RaohaneNotifications.unread > 0 ? RaohaneTheme.accentSoft : "#18ffffff"
-                border.width: 1
-                border.color: RaohaneTheme.border
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
 
                 Text {
-                    id: unreadLabel
-                    anchors.centerIn: parent
-                    text: RaohaneNotifications.unread > 0
-                        ? qsTr("%1 new").arg(RaohaneNotifications.unread)
-                        : qsTr("clear")
-                    color: RaohaneNotifications.unread > 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    font.pixelSize: 9
+                    text: qsTr("Notifications")
+                    color: RaohaneTheme.text
+                    font.pixelSize: 11
                     font.weight: Font.DemiBold
                 }
-            }
 
-            Item { Layout.fillWidth: true }
+                Text {
+                    text: RaohaneNotifications.unread > 0
+                        ? qsTr("%1 unread").arg(RaohaneNotifications.unread)
+                        : qsTr("You're all caught up")
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 8
+                }
+            }
 
             ActionButton {
                 icon: RaohaneNotifications.silent ? "notifications_off" : "notifications_active"
@@ -74,6 +64,12 @@ Item {
             }
         }
 
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: RaohaneTheme.borderFaint
+        }
+
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -82,7 +78,7 @@ Item {
                 id: listView
                 anchors.fill: parent
                 clip: true
-                spacing: 8
+                spacing: 7
                 model: root.notifications
                 boundsBehavior: Flickable.StopAtBounds
 
@@ -96,23 +92,23 @@ Item {
 
             Column {
                 anchors.centerIn: parent
-                spacing: 8
+                spacing: 7
                 visible: RaohaneNotifications.list.length === 0
 
                 Rectangle {
-                    width: 54
-                    height: 54
-                    radius: 18
+                    width: 48
+                    height: 48
+                    radius: 15
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: RaohaneTheme.accentSoft
+                    color: RaohaneTheme.surfaceSubtle
                     border.width: 1
                     border.color: RaohaneTheme.border
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: "notifications_none"
-                        iconSize: 26
-                        color: RaohaneTheme.accent
+                        iconSize: 23
+                        color: RaohaneTheme.textMuted
                     }
                 }
 
@@ -120,15 +116,15 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("No notifications")
                     color: RaohaneTheme.text
-                    font.pixelSize: 11
+                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: qsTr("Raohane is quiet for now")
+                    text: qsTr("New activity will appear here")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
+                    font.pixelSize: 8
                 }
             }
         }
@@ -144,16 +140,19 @@ Item {
 
         width: 28
         height: 28
-        radius: 10
+        radius: 9
         opacity: enabled ? 1 : 0.4
-        color: active || mouse.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
-        border.width: 1
-        border.color: active || mouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        color: active
+            ? RaohaneTheme.surfaceRaised
+            : mouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: active || mouse.containsMouse ? 1 : 0
+        border.color: active ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         RaohaneIcon {
             anchors.centerIn: parent
             text: action.icon
             iconSize: 15
+            fill: action.active ? 1 : 0
             color: action.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
         }
 
