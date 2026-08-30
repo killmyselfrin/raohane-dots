@@ -185,8 +185,32 @@ Item {
                                     color: themeCard.modelData.surface
                                     border.width: 1
                                     border.color: themeCard.modelData.border
-                                    Rectangle { anchors { left: parent.left; top: parent.top; margins: 6 }; width: parent.width * 0.46; height: 4; radius: 2; color: themeCard.modelData.text; opacity: 0.7 }
-                                    Rectangle { anchors { left: parent.left; bottom: parent.bottom; leftMargin: 6; bottomMargin: 6 }; width: parent.width * 0.28; height: 3; radius: 2; color: themeCard.modelData.accent }
+
+                                    Rectangle {
+                                        anchors {
+                                            left: parent.left
+                                            top: parent.top
+                                            margins: 6
+                                        }
+                                        width: parent.width * 0.46
+                                        height: 4
+                                        radius: 2
+                                        color: themeCard.modelData.text
+                                        opacity: 0.7
+                                    }
+
+                                    Rectangle {
+                                        anchors {
+                                            left: parent.left
+                                            bottom: parent.bottom
+                                            leftMargin: 6
+                                            bottomMargin: 6
+                                        }
+                                        width: parent.width * 0.28
+                                        height: 3
+                                        radius: 2
+                                        color: themeCard.modelData.accent
+                                    }
                                 }
                             }
 
