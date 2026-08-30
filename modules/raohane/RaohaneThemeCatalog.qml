@@ -21,13 +21,12 @@ Item {
             id: content
             width: parent.width
             spacing: 14
-            topPadding: 12
-            bottomPadding: 20
 
             RowLayout {
                 Layout.fillWidth: true
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
+                Layout.topMargin: 12
                 spacing: 12
 
                 ColumnLayout {
@@ -127,6 +126,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
+                Layout.bottomMargin: 20
                 columns: root.width >= 940 ? 3 : 2
                 columnSpacing: 10
                 rowSpacing: 10
@@ -166,7 +166,6 @@ Item {
                                 border.color: themeCard.modelData.border
                                 clip: true
 
-                                // Miniature top-bar composition.
                                 Rectangle {
                                     x: 8
                                     y: 8
