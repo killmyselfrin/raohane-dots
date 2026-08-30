@@ -87,6 +87,7 @@
   "features": {
     "contextIsland": true,
     "mediaOverlay": true,
-    "integrationMode": true
+    "integrationMode": true,
+    "themePreset": "zen-mist"
   }
 }
