@@ -16,6 +16,13 @@ Scope {
 
     property bool forcedOpen: false
 
+    function styleValue(key: string, fallback): var {
+        const style = RaohaneConfig.style
+        if (!style || !Object.prototype.hasOwnProperty.call(style, key))
+            return fallback
+        return style[key]
+    }
+
     function appEntry(appId: string): var {
         if (!appId || appId.length === 0)
             return null
@@ -184,6 +191,7 @@ Scope {
                     || root.forcedOpen
             }
             readonly property int hiddenHoverHeight: 5
+            readonly property real appHoverScale: Number(root.styleValue("dockHoverScale", 1.04))
 
             screen: modelData
             visible: RaohaneConfig.dockEnabled
@@ -331,7 +339,7 @@ Scope {
                                 border.color: anyActivated
                                     ? RaohaneTheme.accentBorder
                                     : RaohaneTheme.borderStrong
-                                scale: appMouse.containsMouse ? 1.04 : 1
+                                scale: appMouse.containsMouse ? dockWindow.appHoverScale : 1
 
                                 Behavior on scale {
                                     NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
@@ -440,7 +448,7 @@ Scope {
             : controlMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
         border.width: active || controlMouse.containsMouse ? 1 : 0
         border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
-        scale: controlMouse.containsMouse ? 1.04 : 1
+        scale: controlMouse.containsMouse ? Number(root.styleValue("dockHoverScale", 1.04)) : 1
 
         Behavior on scale {
             NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
