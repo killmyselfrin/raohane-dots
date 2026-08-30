@@ -121,51 +121,35 @@ Scope {
                         leftMargin: 14
                         verticalCenter: parent.verticalCenter
                     }
-                    width: Math.min(parent.width * 0.38, leftRow.implicitWidth + 24)
+                    width: Math.min(parent.width * 0.38, leftRow.implicitWidth + 22)
                     height: barWindow.podHeight
                     surfaceRadius: Math.min(Math.round(height * 0.42), height / 2)
                     raised: true
-
-                    Rectangle {
-                        anchors {
-                            left: parent.left
-                            leftMargin: 1
-                            verticalCenter: parent.verticalCenter
-                        }
-                        width: 2
-                        height: Math.min(18, parent.height - 12)
-                        radius: 1
-                        color: RaohaneTheme.accent
-                        opacity: 0.72
-                    }
+                    showSheen: false
 
                     RowLayout {
                         id: leftRow
                         anchors {
                             fill: parent
-                            leftMargin: 8
+                            leftMargin: 7
                             rightMargin: 9
                         }
-                        spacing: 6
+                        spacing: 7
 
                         Rectangle {
                             width: 30
                             height: 30
-                            radius: 12
-                            color: launcherMouse.containsMouse
-                                ? RaohaneTheme.accentHover
-                                : RaohaneTheme.accentSoft
+                            radius: 11
+                            color: launcherMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
                             border.width: 1
-                            border.color: launcherMouse.containsMouse
-                                ? RaohaneTheme.accentGlow
-                                : RaohaneTheme.border
+                            border.color: launcherMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "ラ"
-                                color: RaohaneTheme.text
+                                color: launcherMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.text
                                 font.pixelSize: 13
-                                font.weight: Font.Bold
+                                font.weight: Font.DemiBold
                             }
 
                             MouseArea {
@@ -179,7 +163,7 @@ Scope {
 
                         Rectangle {
                             width: 1
-                            Layout.preferredHeight: 18
+                            Layout.preferredHeight: 17
                             color: RaohaneTheme.borderFaint
                         }
 
@@ -233,30 +217,18 @@ Scope {
                         rightMargin: 14
                         verticalCenter: parent.verticalCenter
                     }
-                    width: Math.min(parent.width * 0.38, Math.max(184, rightRow.implicitWidth + 22))
+                    width: Math.min(parent.width * 0.38, Math.max(180, rightRow.implicitWidth + 20))
                     height: barWindow.podHeight
                     surfaceRadius: Math.min(Math.round(height * 0.42), height / 2)
                     raised: true
-
-                    Rectangle {
-                        anchors {
-                            right: parent.right
-                            rightMargin: 1
-                            verticalCenter: parent.verticalCenter
-                        }
-                        width: 2
-                        height: Math.min(18, parent.height - 12)
-                        radius: 1
-                        color: RaohaneTheme.accentSecondary
-                        opacity: 0.5
-                    }
+                    showSheen: false
 
                     RowLayout {
                         id: rightRow
                         anchors {
                             fill: parent
                             leftMargin: 8
-                            rightMargin: 8
+                            rightMargin: 7
                         }
                         spacing: 7
 
@@ -272,7 +244,7 @@ Scope {
 
                         Rectangle {
                             width: 1
-                            Layout.preferredHeight: 18
+                            Layout.preferredHeight: 17
                             color: RaohaneTheme.borderFaint
                         }
 
@@ -285,20 +257,16 @@ Scope {
                         Rectangle {
                             width: 30
                             height: 30
-                            radius: 12
-                            color: controlMouse.containsMouse
-                                ? RaohaneTheme.accentHover
-                                : "transparent"
-                            border.width: controlMouse.containsMouse ? 1 : 0
-                            border.color: RaohaneTheme.accentGlow
+                            radius: 11
+                            color: controlMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+                            border.width: 1
+                            border.color: controlMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "tune"
                                 iconSize: 15
-                                color: controlMouse.containsMouse
-                                    ? RaohaneTheme.accent
-                                    : RaohaneTheme.textMuted
+                                color: controlMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                             }
 
                             MouseArea {
