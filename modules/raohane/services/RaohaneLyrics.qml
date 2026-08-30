@@ -3,8 +3,9 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQml
+import Quickshell
 
-QtObject {
+Singleton {
     id: root
 
     property bool loading: false
