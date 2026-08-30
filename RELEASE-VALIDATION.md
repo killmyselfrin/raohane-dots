@@ -14,7 +14,13 @@ raohane restart
 
 ## 2. Run the full live release validator
 
-From the source checkout:
+After installation, use the normal Raohane CLI:
+
+```bash
+raohane validate release --full
+```
+
+From a source checkout the underlying validator can also be invoked directly:
 
 ```bash
 ./scripts/release-live-check.sh --full
@@ -33,6 +39,18 @@ The validator:
 
 `--full` can enter the real WlSessionLock/PAM path and interactive screenshot/OCR/translation flows through `phase4-live-check.sh --full`. Unlock normally and complete the on-screen region selections when requested.
 
+A non-interactive/safe evidence pass is available with:
+
+```bash
+raohane validate release
+```
+
+To include only the safe Phase 4 probe without the full interactive release sequence:
+
+```bash
+raohane validate release --phase4
+```
+
 Reports are saved by default under:
 
 ```text
@@ -42,12 +60,12 @@ Reports are saved by default under:
 A custom report location can be supplied:
 
 ```bash
-./scripts/release-live-check.sh --full --report ~/raohane-release-test.txt
+raohane validate release --full --report ~/raohane-release-test.txt
 ```
 
 ## 3. Result semantics
 
-The script returns:
+The validator returns:
 
 - `0` — all gates exercised by the run passed;
 - `1` — at least one hard gate failed;
