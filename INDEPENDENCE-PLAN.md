@@ -2,7 +2,7 @@
 
 Raohane's standalone migration goal is a Hyprland + Quickshell shell that does not require end4-pC, illogical-impulse, iNiR, Serpantinum or another shell repository at runtime, install time, update time or normal development time.
 
-As of the current native source boundary, that architectural migration is complete. Upstream projects remain references/provenance only; Raohane owns its runtime graph, dependency manifest, configuration schema, services, UI, scripts and installer.
+As of the current native source boundary, that architectural migration is complete. Upstream projects remain references/provenance only; Raohane owns its runtime graph, dependency manifest, configuration schema, services, UI, scripts, installer and source-release packaging path.
 
 ## Independence status
 
@@ -21,6 +21,8 @@ The following gates are complete:
 - all active visible surfaces are Raohane-owned;
 - installed runtime pruning prevents stale legacy trees from surviving upgrades;
 - CI parses and audits the standalone Raohane graph;
+- source-lineage/provenance boundaries are automatically audited;
+- committed `VERSION` and source archive/checksum generation are covered by the release-boundary workflow;
 - required provenance/license notices remain where derivative lineage still matters.
 
 ## Completed migration phases
@@ -45,11 +47,16 @@ Raohane owns `RaohaneConfig`, `RaohaneState`, `RaohanePaths`, theme/widgets/help
 
 The inherited source trees, upstream sync/bootstrap tooling, obsolete panel families, old root QML, retired helper script families and legacy default config have been removed. Defensive runtime pruning remains only to clean stale files from users upgrading an older installed copy.
 
+### Phase F — Source/release boundary — complete
+
+`NOTICE-UPSTREAM.md` records current provenance without confusing technical independence with copyright independence. `scripts/source-lineage-audit.sh` guards the active runtime, provenance notice, font policy and basic retained-asset boundary. `scripts/package-release.sh` packages committed `HEAD` and emits a SHA-256 checksum after lineage and runtime-payload validation. `.github/workflows/release-boundary.yml` exercises this path in CI.
+
 ## Remaining release gates
 
-Architectural independence is not the same as release completeness. The remaining work is validation and product parity rather than dependency migration:
+Architectural independence and source packaging are complete; release readiness still depends on real compositor/device validation rather than dependency migration:
 
 - repeated real Hyprland startup/restart testing;
+- clean install and upgrade testing on fresh Arch + Hyprland systems;
 - multi-monitor placement and focus/input behavior;
 - fullscreen/game overlay behavior and GPU load;
 - NVIDIA, AMD and Intel graphics validation;
@@ -65,13 +72,12 @@ Architectural independence is not the same as release completeness. The remainin
 - OSK + ydotool permissions/input;
 - WlSessionLock + PAM + fingerprint authentication;
 - Polkit authentication;
-- suspend/reboot/poweroff/logout flows;
-- clean-install packaging/versioning and upgrade tests.
+- suspend/reboot/poweroff/logout flows.
 
-Static CI must continue to guard the native-only graph, but compositor/device behavior must be tested in a real session.
+Static CI must continue to guard the native-only and source-release graphs, but compositor/device behavior must be tested in a real session.
 
 ## Licensing boundary
 
-Technical independence does not automatically erase source-code lineage. Applicable upstream notices must remain for derivative code/assets that are still redistributed. Replacing inherited implementation with independently written Raohane code reduces technical coupling; attribution should only be removed when licensing/provenance actually allows it.
+Technical independence does not automatically erase source-code or retained-data lineage. Applicable upstream notices must remain for derivative code/assets/data that are still redistributed. Replacing inherited implementation with independently written Raohane code reduces technical coupling; attribution should only be removed when licensing/provenance actually allows it.
 
 This document is an engineering status/roadmap, not legal advice.
