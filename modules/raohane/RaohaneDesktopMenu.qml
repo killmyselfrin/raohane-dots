@@ -61,26 +61,26 @@ Scope {
                 onClicked: root.close()
             }
 
-            Rectangle {
+            RaohaneSurface {
                 id: menuCard
 
-                width: 356
+                width: 336
                 implicitHeight: menuContent.implicitHeight + 20
                 x: Math.min(Math.max(RaohaneState.desktopMenuX - width / 2, 10), menuWindow.width - width - 10)
                 y: Math.min(Math.max(RaohaneState.desktopMenuY - implicitHeight / 2, 10), menuWindow.height - implicitHeight - 10)
-                radius: 24
-                color: RaohaneTheme.glassStrong
-                border.width: 1
-                border.color: RaohaneTheme.border
+                surfaceRadius: 20
+                raised: true
+                showSheen: false
+                border.color: RaohaneTheme.borderStrong
                 clip: true
-                scale: RaohaneState.desktopMenuOpen ? 1 : 0.94
+                scale: RaohaneState.desktopMenuOpen ? 1 : 0.97
                 opacity: RaohaneState.desktopMenuOpen ? 1 : 0
 
                 Behavior on scale {
-                    NumberAnimation { duration: 160; easing.type: Easing.OutBack }
+                    NumberAnimation { duration: RaohaneTheme.animationDuration; easing.type: Easing.OutCubic }
                 }
                 Behavior on opacity {
-                    NumberAnimation { duration: 130 }
+                    NumberAnimation { duration: RaohaneTheme.animationFast }
                 }
 
                 MouseArea {
@@ -96,13 +96,15 @@ Scope {
                         top: parent.top
                         margins: 10
                     }
-                    spacing: 7
+                    spacing: 6
 
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 142
-                        radius: 18
-                        color: "#201b2a"
+                        Layout.preferredHeight: 118
+                        radius: 15
+                        color: RaohaneTheme.surfaceDeep
+                        border.width: 1
+                        border.color: RaohaneTheme.border
                         clip: true
 
                         Image {
@@ -111,38 +113,49 @@ Scope {
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
                             cache: false
-                            opacity: status === Image.Ready ? 0.85 : 0
+                            opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.58 : 0.46) : 0
                         }
 
                         Rectangle {
                             anchors.fill: parent
                             gradient: Gradient {
-                                GradientStop { position: 0.28; color: "#10120f19" }
-                                GradientStop { position: 1.0; color: "#db120f19" }
+                                GradientStop { position: 0.25; color: RaohaneTheme.dark ? "#24101010" : "#20f5f2ec" }
+                                GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#d4101010" : "#d8f5f2ec" }
                             }
                         }
 
-                        Rectangle {
+                        RowLayout {
                             anchors {
                                 left: parent.left
+                                right: parent.right
                                 top: parent.top
-                                margins: 10
+                                margins: 11
                             }
-                            width: brand.implicitWidth + 18
-                            height: 27
-                            radius: 14
-                            color: "#be17131f"
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            spacing: 8
+
+                            Rectangle {
+                                width: 29
+                                height: 29
+                                radius: 9
+                                color: RaohaneTheme.surfaceSubtle
+                                border.width: 1
+                                border.color: RaohaneTheme.border
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "ラ"
+                                    color: RaohaneTheme.accent
+                                    font.pixelSize: 11
+                                    font.weight: Font.DemiBold
+                                }
+                            }
 
                             Text {
-                                id: brand
-                                anchors.centerIn: parent
-                                text: "RAOHANE / DESKTOP"
+                                Layout.fillWidth: true
+                                text: qsTr("Desktop")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 9
+                                font.pixelSize: 10
                                 font.weight: Font.DemiBold
-                                font.letterSpacing: 0.9
                             }
                         }
 
@@ -151,7 +164,7 @@ Scope {
                                 left: parent.left
                                 right: parent.right
                                 bottom: parent.bottom
-                                margins: 12
+                                margins: 11
                             }
                             spacing: 1
 
@@ -159,13 +172,13 @@ Scope {
                                 width: parent.width
                                 text: RaohaneConfig.wallpaperPath.split("/").pop() || qsTr("Wallpaper")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 11
+                                font.pixelSize: 10
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
                             Text {
                                 width: parent.width
-                                text: qsTr("Workspace controls")
+                                text: qsTr("Wallpaper and workspace actions")
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 8
                                 elide: Text.ElideRight
@@ -177,7 +190,6 @@ Scope {
                         icon: "wallpaper"
                         title: qsTr("Wallpaper")
                         detail: qsTr("Browse and preview backgrounds")
-                        accent: true
                         onTriggered: {
                             RaohaneState.wallpaperSelectorTarget = "wallpaper"
                             RaohaneState.setPrimaryOpen("wallpaper", true)
@@ -186,7 +198,7 @@ Scope {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: 6
 
                         CompactAction {
                             Layout.fillWidth: true
@@ -200,8 +212,8 @@ Scope {
 
                         CompactAction {
                             Layout.fillWidth: true
-                            icon: "video_template"
-                            title: qsTr("Choose")
+                            icon: "folder_open"
+                            title: qsTr("Choose file")
                             onTriggered: {
                                 RaohaneWallpapers.openFallbackPicker(true, RaohaneConfig.wallpaperDirectory)
                                 root.close()
@@ -212,7 +224,9 @@ Scope {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
-                        color: RaohaneTheme.border
+                        Layout.topMargin: 2
+                        Layout.bottomMargin: 2
+                        color: RaohaneTheme.borderFaint
                     }
 
                     MenuAction {
@@ -230,11 +244,11 @@ Scope {
                     }
 
                     MenuAction {
-                        icon: "widgets"
-                        title: qsTr("Desktop & widgets")
-                        detail: qsTr("Open desktop configuration")
+                        icon: "space_dashboard"
+                        title: qsTr("Desktop & Spaces")
+                        detail: qsTr("Wallpaper and workspace configuration")
                         onTriggered: {
-                            RaohaneState.settingsPage = "Desktop"
+                            RaohaneState.settingsPage = "Desktop & Spaces"
                             RaohaneState.setPrimaryOpen("settings", true)
                         }
                     }
@@ -256,7 +270,7 @@ Scope {
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.topMargin: 2
-                        spacing: 7
+                        spacing: 6
 
                         CompactAction {
                             Layout.fillWidth: true
@@ -301,33 +315,34 @@ Scope {
         required property string icon
         required property string title
         property string detail: ""
-        property bool accent: false
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 54
-        radius: 16
-        color: action.accent || actionMouse.containsMouse ? RaohaneTheme.accentSoft : "#4217131f"
-        border.width: 1
-        border.color: action.accent || actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        Layout.preferredHeight: 50
+        radius: 13
+        color: actionMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: actionMouse.containsMouse ? 1 : 0
+        border.color: RaohaneTheme.border
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 11
-            anchors.rightMargin: 10
+            anchors.leftMargin: 9
+            anchors.rightMargin: 9
             spacing: 9
 
             Rectangle {
-                width: 32
-                height: 32
-                radius: 11
-                color: "#20ffffff"
+                width: 30
+                height: 30
+                radius: 9
+                color: RaohaneTheme.surfaceSubtle
+                border.width: 1
+                border.color: RaohaneTheme.border
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: action.icon
-                    iconSize: 18
-                    color: action.accent ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    iconSize: 16
+                    color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
             }
 
@@ -339,7 +354,7 @@ Scope {
                     Layout.fillWidth: true
                     text: action.title
                     color: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -354,8 +369,8 @@ Scope {
 
             RaohaneIcon {
                 text: "chevron_right"
-                iconSize: 16
-                color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                iconSize: 14
+                color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
             }
         }
 
@@ -375,27 +390,27 @@ Scope {
         required property string title
         signal triggered()
 
-        Layout.preferredHeight: 38
-        radius: 13
-        color: compactMouse.containsMouse ? RaohaneTheme.accentSoft : "#4217131f"
+        Layout.preferredHeight: 36
+        radius: 11
+        color: compactMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
         border.width: 1
-        border.color: compactMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        border.color: compactMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         Row {
             anchors.centerIn: parent
-            spacing: 7
+            spacing: 6
 
             RaohaneIcon {
                 text: compact.icon
-                iconSize: 15
-                color: RaohaneTheme.textMuted
+                iconSize: 14
+                color: compactMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
                 text: compact.title
                 color: RaohaneTheme.text
-                font.pixelSize: 9
-                font.weight: Font.DemiBold
+                font.pixelSize: 8
+                font.weight: Font.Medium
             }
         }
 
