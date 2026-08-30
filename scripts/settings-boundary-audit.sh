@@ -13,19 +13,21 @@ settings='modules/raohane/RaohaneSettings.qml'
 search='modules/raohane/RaohaneSettingsSearch.qml'
 content='modules/raohane/RaohaneSettingsContent.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
+catalog='modules/raohane/RaohaneThemeCatalog.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 state='modules/raohane/RaohaneState.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$settings" "$search" "$content" "$home" "$about" "$config" "$state" "$qmldir"; do
+for path in "$settings" "$search" "$content" "$home" "$catalog" "$about" "$config" "$state" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
 done
 
 for registration in \
   '^RaohaneSettingsSearch .*RaohaneSettingsSearch.qml$' \
   '^RaohaneSettingsAbout .*RaohaneSettingsAbout.qml$' \
-  '^RaohaneSettingsHome .*RaohaneSettingsHome.qml$'; do
+  '^RaohaneSettingsHome .*RaohaneSettingsHome.qml$' \
+  '^RaohaneThemeCatalog .*RaohaneThemeCatalog.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 rg -q 'property string settingsPage:' "$state" \
@@ -42,7 +44,7 @@ for symbol in \
   rg -q "$symbol" "$content" || fail "Settings navigation lost native dependency: $symbol"
 done
 
-for page_key in quick general bar desktop interface services hyprland profile; do
+for page_key in themes quick general bar desktop interface services hyprland profile; do
   rg -q "key: \"${page_key}\"" "$content" || fail "native Settings route is missing: $page_key"
 done
 
@@ -54,10 +56,24 @@ for contract in \
   rg -q "$contract" "$content" || fail "Settings lost release UX contract: $contract"
 done
 
-if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bMaterialSymbol[[:space:]]*\{|\bGlobalStates\.|\bContentPage[[:space:]]*\{' "$content" "$settings" "$search"; then
+# Theme Library is a first-class native Settings page, not an external theme
+# switcher. It consumes the central preset catalog and persists selection through
+# RaohaneConfig so the active shell updates live.
+rg -q 'RaohaneThemeCatalog[[:space:]]*\{' "$content" \
+  || fail 'Settings does not load the native Theme Library'
+rg -q 'RaohaneTheme\.presets' "$catalog" \
+  || fail 'Theme Library does not consume the shared Raohane preset catalog'
+rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" \
+  || fail 'Theme Library does not apply theme selection through native config'
+rg -q 'property string themePreset:' "$config" \
+  || fail 'native config does not own selected theme state'
+rg -q 'key:[[:space:]]*"themePreset"' "$search" \
+  || fail 'global Settings search does not expose the Theme Library'
+
+if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bMaterialSymbol[[:space:]]*\{|\bGlobalStates\.|\bContentPage[[:space:]]*\{' "$content" "$settings" "$search" "$catalog"; then
   fail 'Settings navigation resolves inherited settings/common/root types'
 fi
-if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.json"\)' "$content" "$settings" "$search"; then
+if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.json"\)' "$content" "$settings" "$search" "$catalog"; then
   fail 'Settings still exposes the retired compatibility config path/name'
 fi
 
@@ -103,4 +119,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: native routes, global search, keyboard navigation and native config UX are Raohane-owned\n'
+printf 'settings-boundary-audit: native routes, Theme Library, global search, keyboard navigation and native config UX are Raohane-owned\n'
