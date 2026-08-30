@@ -2,6 +2,9 @@
 
 ## 0.10.0-dev — Foundation Migration Batch
 
+- Complete the source/static standalone migration boundary: the active shell, services, configuration framework and visible runtime are Raohane-owned, while remaining hardware/session validation stays explicit.
+- Add an automated source-lineage/license audit that distinguishes removed upstream runtime dependencies from retained GPL/data/asset provenance.
+- Add reproducible source release packaging from committed `HEAD`, version consistency checks and SHA-256 verification through the release-boundary CI workflow.
 - Make the Raohane product runtime explicitly Hyprland-only while keeping `ii-upstream` as a diagnostic fallback family.
 - Add `RaohaneState.qml` so product-only ephemeral state survives end4 foundation refreshes.
 - Add `RaohanePrivacy.qml` over Quickshell PipeWire for live microphone, camera and screen-capture context.
