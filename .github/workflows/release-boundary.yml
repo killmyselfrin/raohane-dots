@@ -63,7 +63,11 @@ jobs:
           bash -n scripts/runtime-payload-audit.sh
           bash -n scripts/prune-runtime.sh
           bash -n scripts/validate-runtime-payload.sh
+          bash -n scripts/raohane
           bash scripts/release-live-check.sh --help >/dev/null
+          bash scripts/raohane --help | grep -F 'validate release'
+          rg -q 'run_release_validator' scripts/raohane
+          rg -q 'release-live-check\.sh' scripts/raohane
 
       - name: Validate source lineage
         shell: bash
