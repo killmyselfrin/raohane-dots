@@ -93,8 +93,61 @@ Singleton {
     property bool integrationMode: true
     property string themePreset: "zen-mist"
 
+    // Style Studio is persisted as one object so new visual controls can be
+    // added without scattering a separate save signal across the config API.
+    property var style: ({
+        glassOpacity: 1.0,
+        borderStrength: 1.0,
+        radiusScale: 1.0,
+        densityScale: 1.0,
+        motionScale: 1.0,
+        accentStrength: 1.0,
+        accentMode: "theme",
+        customAccent: "#657987",
+        sheenEnabled: true
+    })
+
     signal reloaded()
     signal saved()
+
+    function defaultStyle(): var {
+        return {
+            glassOpacity: 1.0,
+            borderStrength: 1.0,
+            radiusScale: 1.0,
+            densityScale: 1.0,
+            motionScale: 1.0,
+            accentStrength: 1.0,
+            accentMode: "theme",
+            customAccent: "#657987",
+            sheenEnabled: true
+        }
+    }
+
+    function clampNumber(value, minimum, maximum, fallback): real {
+        const number = Number(value)
+        if (isNaN(number))
+            return fallback
+        return Math.max(minimum, Math.min(maximum, number))
+    }
+
+    function sanitizeStyle(value): var {
+        const input = value && typeof value === "object" ? value : {}
+        const allowedModes = ["theme", "ink", "sakura", "matcha", "slate", "sand", "custom"]
+        const requestedMode = String(input.accentMode ?? "theme")
+        const requestedAccent = String(input.customAccent ?? "#657987")
+        return {
+            glassOpacity: root.clampNumber(input.glassOpacity, 0.55, 1.0, 1.0),
+            borderStrength: root.clampNumber(input.borderStrength, 0.45, 1.5, 1.0),
+            radiusScale: root.clampNumber(input.radiusScale, 0.7, 1.4, 1.0),
+            densityScale: root.clampNumber(input.densityScale, 0.82, 1.18, 1.0),
+            motionScale: root.clampNumber(input.motionScale, 0.0, 1.4, 1.0),
+            accentStrength: root.clampNumber(input.accentStrength, 0.45, 1.5, 1.0),
+            accentMode: allowedModes.indexOf(requestedMode) >= 0 ? requestedMode : "theme",
+            customAccent: /^#[0-9a-fA-F]{6}$/.test(requestedAccent) ? requestedAccent : "#657987",
+            sheenEnabled: input.sheenEnabled === undefined ? true : Boolean(input.sheenEnabled)
+        }
+    }
 
     function snapshot(): var {
         return {
@@ -188,7 +241,8 @@ Singleton {
                 mediaOverlay: root.mediaOverlayEnabled,
                 integrationMode: root.integrationMode,
                 themePreset: root.themePreset
-            }
+            },
+            style: root.sanitizeStyle(root.style)
         }
     }
 
@@ -213,6 +267,7 @@ Singleton {
         const profile = document?.profile ?? {}
         const quickControls = document?.quickControls ?? {}
         const features = document?.features ?? {}
+        const style = document?.style ?? root.defaultStyle()
 
         root.assignIfPresent(wallpaper, "path", value => root.wallpaperPath = String(value ?? ""))
         root.assignIfPresent(wallpaper, "lockPath", value => root.lockWallpaperPath = String(value ?? ""))
@@ -290,6 +345,8 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlay", value => root.mediaOverlayEnabled = Boolean(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
         root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "zen-mist"))
+
+        root.style = root.sanitizeStyle(style)
 
         root.loading = false
         root.ready = true
@@ -386,6 +443,7 @@ Singleton {
     onMediaOverlayEnabledChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
     onThemePresetChanged: scheduleSave()
+    onStyleChanged: scheduleSave()
 
     Timer {
         id: saveTimer
