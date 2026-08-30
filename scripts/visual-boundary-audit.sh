@@ -58,6 +58,13 @@ rg -q 'RaohaneTheme\.presets' "$catalog" \
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" \
   || fail 'Theme Library cannot apply a preset live'
 
+# QtQuick.Layouts ColumnLayout does not expose topPadding/bottomPadding. This
+# exact mistake parses in our lightweight static path but fails when Quickshell
+# instantiates the type, making the entire settings family unavailable.
+if rg -n '^[[:space:]]*(topPadding|bottomPadding):' "$catalog"; then
+  fail 'Theme Library uses padding properties unsupported by QtQuick.Layouts ColumnLayout'
+fi
+
 # Shared surface primitive owns the light/dark frosted-glass hierarchy.
 rg -q 'property bool raised:[[:space:]]*false' "$surface" \
   || fail 'RaohaneSurface lost its raised-state contract'
@@ -125,7 +132,7 @@ fi
 
 for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" \
-    || fail "$file lost restrained secondary text hierarchy"
+    || fail "$file lost restrained secondary text hierarchy'
 done
 
 printf 'visual-boundary-audit: minimalist theme catalog, shared frosted-glass tokens, floating bars/dock and stable primary-surface hierarchy are valid\n'
