@@ -14,37 +14,22 @@ Rectangle {
     border.width: 1
     border.color: RaohaneContext.mode === "recording"
         ? RaohaneTheme.critical
-        : RaohaneTheme.accentBorder
+        : RaohaneTheme.borderStrong
 
-    // Soft neon halo. It intentionally stays cheap: no per-frame shader or
-    // blur effect, just layered translucent geometry around the signature pod.
+    // The island remains the signature center pod, but minimal themes separate
+    // it from the wallpaper with one quiet outer hairline rather than a glow.
     Rectangle {
         z: -2
         anchors.centerIn: parent
-        width: parent.width + 10
-        height: parent.height + 10
+        width: parent.width + 8
+        height: parent.height + 8
         radius: height / 2
         color: "transparent"
-        border.width: 4
+        border.width: 1
         border.color: RaohaneContext.mode === "recording"
-            ? "#24ff6f91"
-            : "#24c56cff"
-        opacity: 0.75
-    }
-
-    Rectangle {
-        anchors {
-            left: parent.left
-            right: parent.right
-            top: parent.top
-            leftMargin: 22
-            rightMargin: 22
-        }
-        height: 1
-        color: RaohaneContext.mode === "recording"
             ? RaohaneTheme.critical
-            : RaohaneTheme.accentSecondary
-        opacity: 0.42
+            : RaohaneTheme.borderFaint
+        opacity: 0.8
     }
 
     Behavior on implicitWidth {
@@ -56,35 +41,27 @@ Rectangle {
 
     Rectangle {
         id: iconPlate
-        width: 36
-        height: 36
-        radius: 18
+        width: 34
+        height: 34
+        radius: 17
         anchors.left: parent.left
         anchors.leftMargin: 7
         anchors.verticalCenter: parent.verticalCenter
         color: RaohaneContext.mode === "recording"
-            ? "#38ff6f91"
-            : RaohaneTheme.accentSoft
+            ? RaohaneTheme.surfaceHover
+            : RaohaneTheme.surfaceSubtle
         border.width: 1
         border.color: RaohaneContext.mode === "recording"
             ? RaohaneTheme.critical
-            : RaohaneTheme.accentGlow
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: 28
-            height: 28
-            radius: 14
-            color: "#1fffffff"
-        }
+            : RaohaneTheme.border
 
         Text {
             anchors.centerIn: parent
             text: RaohaneContext.icon
             color: RaohaneContext.mode === "recording"
                 ? RaohaneTheme.critical
-                : RaohaneTheme.text
-            font.pixelSize: 15
+                : RaohaneTheme.accent
+            font.pixelSize: 14
             font.weight: Font.DemiBold
         }
     }
@@ -111,7 +88,7 @@ Rectangle {
             text: RaohaneContext.detail
             color: RaohaneTheme.textMuted
             font.pixelSize: 9
-            font.letterSpacing: 0.15
+            font.letterSpacing: 0.1
             elide: Text.ElideRight
         }
     }
@@ -133,7 +110,7 @@ Rectangle {
                 height: width
                 radius: width / 2
                 color: index === 1 ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                opacity: index === 1 ? 0.9 : 0.48
+                opacity: index === 1 ? 0.8 : 0.4
             }
         }
     }
