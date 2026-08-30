@@ -50,29 +50,20 @@ for token in \
   rg -q "property .* ${token}:" "$theme" || fail "theme lost design token: $token"
 done
 
-rg -q 'RaohaneConfig\.themePreset' "$theme" \
-  || fail 'theme engine is not driven by persisted RaohaneConfig selection'
-rg -q 'readonly property var presets:' "$theme" \
-  || fail 'theme engine lost its preset catalog'
+rg -q 'RaohaneConfig\.themePreset' "$theme" || fail 'theme engine is not driven by persisted RaohaneConfig selection'
+rg -q 'readonly property var presets:' "$theme" || fail 'theme engine lost its preset catalog'
 for preset in zen-mist paper sakura matcha slate sand sumi midnight; do
   rg -q "id:[[:space:]]*\"${preset}\"" "$theme" || fail "theme preset missing: $preset"
 done
-rg -q 'property string themePreset:[[:space:]]*"zen-mist"' "$config" \
-  || fail 'native config does not default to Zen Mist'
-rg -q '"themePreset"[[:space:]]*:[[:space:]]*"zen-mist"' "$defaults" \
-  || fail 'native defaults do not select Zen Mist'
-rg -q 'RaohaneTheme\.presets' "$catalog" \
-  || fail 'Theme Library does not consume the shared preset source'
-rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" \
-  || fail 'Theme Library cannot apply a preset live'
+rg -q 'property string themePreset:[[:space:]]*"zen-mist"' "$config" || fail 'native config does not default to Zen Mist'
+rg -q '"themePreset"[[:space:]]*:[[:space:]]*"zen-mist"' "$defaults" || fail 'native defaults do not select Zen Mist'
+rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library does not consume the shared preset source'
+rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply a preset live'
 
 if rg -n '^[[:space:]]*(topPadding|bottomPadding):' "$catalog"; then
   fail 'Theme Library uses padding properties unsupported by QtQuick.Layouts ColumnLayout'
 fi
 
-# Style Studio and Advanced Surfaces are persisted through one sanitized style
-# object. Defaults and UI must expose the same keys, while runtime surfaces must
-# consume them instead of inventing one-off state.
 for key in \
   glassOpacity borderStrength radiusScale densityScale motionScale accentStrength accentMode customAccent sheenEnabled \
   barScale dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators \
@@ -91,64 +82,57 @@ rg -q 'notificationScale' "$notification" || fail 'Notification card does not co
 rg -q 'notificationCompact' "$notification" || fail 'Notification card does not consume compact mode'
 rg -q 'notificationBodyLines' "$notification" || fail 'Notification card does not consume body-line limit'
 
-# Shared surface primitive owns the light/dark frosted-glass hierarchy.
-rg -q 'property bool raised:[[:space:]]*false' "$surface" \
-  || fail 'RaohaneSurface lost its raised-state contract'
-rg -q 'property bool active:[[:space:]]*false' "$surface" \
-  || fail 'RaohaneSurface lost its active-state contract'
-rg -q 'property bool hovered:[[:space:]]*false' "$surface" \
-  || fail 'RaohaneSurface lost its hovered-state contract'
-rg -q 'RaohaneTheme\.surfaceRaised' "$surface" \
-  || fail 'RaohaneSurface no longer owns the raised surface token'
-rg -q 'RaohaneTheme\.accentBorder' "$surface" \
-  || fail 'RaohaneSurface no longer owns the active accent-border token'
-rg -q 'showSheen' "$surface" \
-  || fail 'RaohaneSurface lost the shared glass highlight contract'
+rg -q 'property bool raised:[[:space:]]*false' "$surface" || fail 'RaohaneSurface lost its raised-state contract'
+rg -q 'property bool active:[[:space:]]*false' "$surface" || fail 'RaohaneSurface lost its active-state contract'
+rg -q 'property bool hovered:[[:space:]]*false' "$surface" || fail 'RaohaneSurface lost its hovered-state contract'
+rg -q 'RaohaneTheme\.surfaceRaised' "$surface" || fail 'RaohaneSurface no longer owns the raised surface token'
+rg -q 'RaohaneTheme\.accentBorder' "$surface" || fail 'RaohaneSurface no longer owns the active accent-border token'
+rg -q 'showSheen' "$surface" || fail 'RaohaneSurface lost the shared glass highlight contract'
 
 shared_surfaces=(
   "$launcher" "$media" "$control" "$settings" "$settings_home" "$bar" "$vertical" "$dock"
   "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
 )
 for file in "${shared_surfaces[@]}"; do
-  rg -q 'RaohaneSurface[[:space:]]*\{' "$file" \
-    || fail "$file no longer uses the shared RaohaneSurface primitive"
+  rg -q 'RaohaneSurface[[:space:]]*\{' "$file" || fail "$file no longer uses the shared RaohaneSurface primitive"
 done
 
-primary_surfaces=(
+raised_surfaces=(
   "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock"
   "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
 )
-for file in "${primary_surfaces[@]}"; do
-  rg -q 'raised:[[:space:]]*true' "$file" \
-    || fail "$file no longer requests a raised primary glass surface"
-  rg -q 'showSheen:[[:space:]]*false' "$file" \
-    || fail "$file no longer suppresses decorative sheen on the minimal primary surface"
+for file in "${raised_surfaces[@]}"; do
+  rg -q 'raised:[[:space:]]*true' "$file" || fail "$file no longer requests a raised primary glass surface"
+done
+
+# Shell/system chrome is deliberately matte. Media is the single content-heavy
+# focal-surface exception: its artwork/lyrics presentation may keep the shared
+# optional sheen without changing the rest of the shell language.
+matte_surfaces=(
+  "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
+  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
+)
+for file in "${matte_surfaces[@]}"; do
+  rg -q 'showSheen:[[:space:]]*false' "$file" || fail "$file no longer suppresses decorative sheen on minimal shell chrome"
 done
 
 for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
-  rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" \
-    || fail "$file lost the centralized Raohane accent system"
+  rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
 done
 
 if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$control" "$settings"; then
   fail 'minimal primary controls contain retired cyber-noir hard-coded colors'
 fi
-rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" \
-  || fail 'Quick Controls do not consume minimalist surface tokens'
-rg -q 'RaohaneTheme\.borderStrong' "$quick" \
-  || fail 'Quick Controls do not consume shared minimal borders'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls do not consume minimalist surface tokens'
+rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls do not consume shared minimal borders'
 
-# System/edge surfaces must not reintroduce the old one-off white/purple/red
-# glass fills. Semantic dim backdrops are allowed; component chrome comes from
-# RaohaneTheme and RaohaneSurface.
 edge_surfaces=("$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key")
 if rg -n '#18ffffff|#20ffffff|#24ffffff|#10ffffff|#12ffffff|#14ffffff|#2affffff|#35ffffff|#63171320|#3814111c|#74120f19|#1fc56cff|#2cff668c|#32ff668c' "${edge_surfaces[@]}"; then
   fail 'a system/edge surface reintroduced retired one-off glass/neon colors'
 fi
 
 for file in "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
-  rg -q 'RaohaneIcon[[:space:]]*\{' "$file" \
-    || fail "$file no longer uses the shared Material-symbol icon wrapper"
+  rg -q 'RaohaneIcon[[:space:]]*\{' "$file" || fail "$file no longer uses the shared Material-symbol icon wrapper"
 done
 
 if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|text:[[:space:]]*"[⌕◎▧文⚙⏻⏮⏭]"' \
@@ -156,32 +140,21 @@ if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|text:
   fail 'a system surface regressed to decorative legacy labels or arbitrary glyph controls'
 fi
 
-# Keep the three-pod compositor contract while allowing the pod material to be
-# tuned inside safe bounds. Window height stays stable for fullscreen/exclusive-zone behavior.
-rg -q 'implicitHeight:[[:space:]]*64' "$bar" \
-  || fail 'horizontal bar lost the floating-pod compositor height contract'
-rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" \
-  || fail 'horizontal bar lost safe advanced pod-height bounds'
-rg -q 'barScale' "$bar" \
-  || fail 'horizontal bar does not consume persisted advanced scale'
-rg -q 'RaohaneContextIsland[[:space:]]*\{' "$bar" \
-  || fail 'horizontal bar lost the centered Context Island'
-rg -q 'RaohaneTheme\.islandHeight' "$context" \
-  || fail 'Context Island no longer derives from the shared height token'
+rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the floating-pod compositor height contract'
+rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" || fail 'horizontal bar lost safe advanced pod-height bounds'
+rg -q 'barScale' "$bar" || fail 'horizontal bar does not consume persisted advanced scale'
+rg -q 'RaohaneContextIsland[[:space:]]*\{' "$bar" || fail 'horizontal bar lost the centered Context Island'
+rg -q 'RaohaneTheme\.islandHeight' "$context" || fail 'Context Island no longer derives from the shared height token'
 
-rg -q 'source:[[:space:]]*RaohaneConfig\.wallpaperPath' "$settings_home" \
-  || fail 'Settings home lost its live wallpaper hero'
-rg -q 'RaohaneContextIsland[[:space:]]*\{' "$settings_home" \
-  || fail 'Settings home lost the Context Island live preview'
+rg -q 'source:[[:space:]]*RaohaneConfig\.wallpaperPath' "$settings_home" || fail 'Settings home lost its live wallpaper hero'
+rg -q 'RaohaneContextIsland[[:space:]]*\{' "$settings_home" || fail 'Settings home lost the Context Island live preview'
 
-if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' \
-  "$launcher" "$media" "$control" "$settings"; then
+if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$media" "$control" "$settings"; then
   fail 'a primary surface regressed to legacy one-off chrome'
 fi
 
 for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock" "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
-  rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" \
-    || fail "$file lost restrained secondary text hierarchy"
+  rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
 
-printf 'visual-boundary-audit: minimalist themes, persisted Style Studio/Advanced Surfaces, shared glass tokens, edge-system surfaces and stable shell geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, persisted Style Studio/Advanced Surfaces, matte shell/system chrome, shared focal media material and stable geometry are valid\n'
