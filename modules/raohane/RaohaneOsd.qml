@@ -86,8 +86,8 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
-            implicitWidth: 390
-            implicitHeight: 78
+            implicitWidth: 356
+            implicitHeight: 70
 
             WlrLayershell.namespace: "quickshell:raohane-osd"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -99,21 +99,21 @@ Scope {
             }
 
             margins {
-                top: 72
-                bottom: 72
+                top: 70
+                bottom: 70
             }
 
             mask: Region { item: card }
 
-            Rectangle {
+            RaohaneSurface {
                 id: card
-                width: 350
-                height: 72
+                width: 324
+                height: 64
                 anchors.horizontalCenter: parent.horizontalCenter
-                radius: 24
-                color: RaohaneTheme.glassStrong
-                border.width: 1
-                border.color: RaohaneTheme.border
+                surfaceRadius: 19
+                raised: true
+                showSheen: false
+                border.color: RaohaneTheme.borderStrong
 
                 MouseArea {
                     anchors.fill: parent
@@ -124,26 +124,29 @@ Scope {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 12
-                    spacing: 12
+                    anchors.margins: 10
+                    spacing: 11
 
                     Rectangle {
-                        width: 42
-                        height: 42
-                        radius: 15
-                        color: RaohaneTheme.accentSoft
+                        width: 38
+                        height: 38
+                        radius: 12
+                        color: RaohaneTheme.surfaceSubtle
+                        border.width: 1
+                        border.color: RaohaneTheme.border
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: root.icon
-                            iconSize: 22
+                            iconSize: 20
+                            fill: 1
                             color: RaohaneTheme.accent
                         }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 6
+                        spacing: 5
 
                         RowLayout {
                             Layout.fillWidth: true
@@ -151,7 +154,7 @@ Scope {
                             Text {
                                 text: root.label
                                 color: RaohaneTheme.text
-                                font.pixelSize: 11
+                                font.pixelSize: 10
                                 font.weight: Font.DemiBold
                             }
 
@@ -160,26 +163,29 @@ Scope {
                             Text {
                                 text: root.percent + "%"
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 10
+                                font.pixelSize: 9
                                 font.weight: Font.DemiBold
                             }
                         }
 
                         Rectangle {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 6
+                            Layout.preferredHeight: 5
                             radius: 3
-                            color: "#32ffffff"
+                            color: RaohaneTheme.surfaceDeep
+                            border.width: 1
+                            border.color: RaohaneTheme.borderFaint
 
                             Rectangle {
                                 width: parent.width * root.value
                                 height: parent.height
                                 radius: parent.radius
                                 color: RaohaneTheme.accent
+                                opacity: 0.9
 
                                 Behavior on width {
                                     NumberAnimation {
-                                        duration: 120
+                                        duration: RaohaneTheme.animationFast
                                         easing.type: Easing.OutCubic
                                     }
                                 }
