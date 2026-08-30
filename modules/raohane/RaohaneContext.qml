@@ -28,13 +28,13 @@ Item {
         : windowTitle.length > 0 ? "window"
         : "idle"
 
-    readonly property string icon: recording ? "●"
-        : camera ? "▣"
-        : microphone ? "◆"
-        : eventTitle.length > 0 ? "✦"
-        : mediaActive ? "♪"
-        : windowTitle.length > 0 ? "◇"
-        : "ラ"
+    readonly property string icon: recording ? "screen_record"
+        : camera ? "videocam"
+        : microphone ? "mic"
+        : eventTitle.length > 0 ? "auto_awesome"
+        : mediaActive ? "music_note"
+        : windowTitle.length > 0 ? "web_asset"
+        : "circle"
 
     readonly property string title: recording ? qsTr("Screen capture")
         : camera && microphone ? qsTr("Camera and microphone")
@@ -60,7 +60,7 @@ Item {
             return mediaArtist
         if (windowTitle.length > 0)
             return qsTr("Active window")
-        return "ラオハネ"
+        return qsTr("Hyprland shell")
     }
 
     function showEvent(title: string, detail: string): void {
