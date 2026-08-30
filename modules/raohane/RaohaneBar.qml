@@ -9,6 +9,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Scope {
     id: root
@@ -196,12 +197,31 @@ Scope {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (RaohaneContext.mode === "media")
+
+                        onClicked: mouse => {
+                            if (RaohaneContext.mode !== "media") {
+                                if (mouse.button === Qt.LeftButton)
+                                    RaohaneState.togglePrimary("controlCenter")
+                                return
+                            }
+
+                            if (mouse.button === Qt.MiddleButton) {
+                                RaohaneMedia.togglePlaying()
+                            } else if (mouse.button === Qt.RightButton) {
+                                RaohaneMedia.cyclePlayer(1)
+                            } else {
                                 RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
-                            else
-                                RaohaneState.togglePrimary("controlCenter")
+                            }
+                        }
+
+                        onWheel: wheel => {
+                            if (RaohaneContext.mode !== "media" || !RaohaneMedia.volumeSupported)
+                                return
+                            const step = wheel.angleDelta.y >= 0 ? 0.04 : -0.04
+                            RaohaneMedia.setVolume(RaohaneMedia.volume + step)
+                            wheel.accepted = true
                         }
                     }
                 }
