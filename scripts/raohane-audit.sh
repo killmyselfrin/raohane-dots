@@ -12,6 +12,9 @@ fail() {
 required_root=(
   shell.qml
   qmldir
+  VERSION
+  LICENSE
+  NOTICE-UPSTREAM.md
   panelFamilies/RaohaneFamily.qml
   modules/raohane/qmldir
   modules/raohane/config/qmldir
@@ -26,6 +29,10 @@ required_root=(
   defaults/native.json
   scripts/raohane
   scripts/raohane-audit.sh
+  scripts/source-lineage-audit.sh
+  scripts/runtime-payload-audit.sh
+  scripts/package-release.sh
+  scripts/release-live-check.sh
   scripts/runtime-surface-boundary-audit.sh
   scripts/phase4-visible-runtime-audit.sh
   scripts/phase4-live-check.sh
@@ -186,6 +193,15 @@ for route in \
   rg -q "$route" scripts/raohane || fail "CLI route missing: $route"
 done
 
+rg -q 'validate release' scripts/raohane \
+  || fail 'CLI usage does not expose live release validation'
+rg -q '^find_release_validator\(\)' scripts/raohane \
+  || fail 'CLI does not resolve the installed live release validator'
+rg -q '\$RUNTIME/scripts/release-live-check\.sh' scripts/raohane \
+  || fail 'CLI does not prefer the installed live release validator'
+rg -q 'run_release_validator "\$@"' scripts/raohane \
+  || fail 'validate release route does not execute the release validator'
+
 rg -q 'RAOHANE_CONFIG_FILE="\$RAOHANE_CONFIG/native\.json"' install-raohane.sh \
   || fail 'installer does not use native.json as the authoritative config'
 rg -q 'RAOHANE_AUTOSTART_FILE="\$RAOHANE_CONFIG/autostart\.conf"' install-raohane.sh \
@@ -213,6 +229,10 @@ python3 scripts/migrate-legacy-config.py --help >/dev/null
 
 bash -n scripts/raohane
 bash -n scripts/raohane-audit.sh
+bash -n scripts/source-lineage-audit.sh
+bash -n scripts/runtime-payload-audit.sh
+bash -n scripts/package-release.sh
+bash -n scripts/release-live-check.sh
 bash -n scripts/runtime-surface-boundary-audit.sh
 bash -n scripts/phase4-visible-runtime-audit.sh
 bash -n scripts/phase4-live-check.sh
@@ -232,6 +252,7 @@ bash -n scripts/region-search.sh
 bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
+bash scripts/source-lineage-audit.sh
 bash scripts/phase4-visible-runtime-audit.sh
 bash scripts/multimonitor-boundary-audit.sh
 bash scripts/fullscreen-boundary-audit.sh
@@ -243,4 +264,4 @@ bash scripts/bluetooth-performance-audit.sh
 bash scripts/easyeffects-performance-audit.sh
 bash scripts/keyboard-layout-boundary-audit.sh
 
-printf 'raohane-audit: native bootstrap, Phase 4 runtime contract, coordinated surfaces, overview pointer routing, multi-monitor/fullscreen behavior, event-driven privacy/Bluetooth, on-demand EasyEffects state, idle sidebar timing, EN/RU input switching, capture backends and native release boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, source lineage, release CLI, Phase 4 runtime contract, coordinated surfaces, overview pointer routing, multi-monitor/fullscreen behavior, event-driven privacy/Bluetooth, on-demand EasyEffects state, idle sidebar timing, EN/RU input switching, capture backends and native release boundaries are valid\n'
