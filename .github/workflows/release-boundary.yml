@@ -1,0 +1,87 @@
+name: Raohane release boundary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'VERSION'
+      - 'LICENSE'
+      - 'NOTICE-UPSTREAM.md'
+      - 'shell.qml'
+      - 'qmldir'
+      - 'assets/**'
+      - 'defaults/**'
+      - 'install/**'
+      - 'modules/**'
+      - 'panelFamilies/**'
+      - 'scripts/**'
+      - 'translations/**'
+      - 'install-raohane.sh'
+      - '.github/workflows/release-boundary.yml'
+  pull_request:
+    paths:
+      - 'VERSION'
+      - 'LICENSE'
+      - 'NOTICE-UPSTREAM.md'
+      - 'shell.qml'
+      - 'qmldir'
+      - 'assets/**'
+      - 'defaults/**'
+      - 'install/**'
+      - 'modules/**'
+      - 'panelFamilies/**'
+      - 'scripts/**'
+      - 'translations/**'
+      - 'install-raohane.sh'
+      - '.github/workflows/release-boundary.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: raohane-release-boundary-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Install audit dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq ripgrep
+
+      - name: Validate release scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/source-lineage-audit.sh
+          bash -n scripts/package-release.sh
+          bash -n scripts/runtime-payload-audit.sh
+          bash -n scripts/prune-runtime.sh
+          bash -n scripts/validate-runtime-payload.sh
+
+      - name: Validate source lineage
+        shell: bash
+        run: bash scripts/source-lineage-audit.sh
+
+      - name: Build and verify source release archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_dir="$RUNNER_TEMP/raohane-release"
+          bash scripts/package-release.sh "$release_dir"
+          cd "$release_dir"
+          sha256sum -c ./*.sha256
+
+      - name: Assert checkout remains clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo 'Release validation modified the repository:' >&2
+            git status --short >&2
+            exit 1
+          fi
