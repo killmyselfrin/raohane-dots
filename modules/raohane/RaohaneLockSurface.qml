@@ -34,31 +34,31 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: "#b4070610"
+        color: RaohaneTheme.dark ? "#8c000000" : "#785b5750"
     }
 
-    Rectangle {
-        width: Math.min(parent.width - 48, 520)
-        height: Math.min(parent.height - 70, 590)
+    RaohaneSurface {
+        width: Math.min(parent.width - 64, 500)
+        height: Math.min(parent.height - 86, 560)
         anchors.centerIn: parent
-        radius: 34
-        color: RaohaneTheme.glassStrong
-        border.width: 1
-        border.color: RaohaneTheme.border
+        surfaceRadius: RaohaneTheme.radiusHero
+        raised: true
+        showSheen: false
+        border.color: RaohaneTheme.borderStrong
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 30
-            spacing: 18
+            anchors.margins: 28
+            spacing: 15
 
             Item { Layout.fillHeight: true }
 
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                width: 76
-                height: 76
-                radius: 25
-                color: RaohaneTheme.accentSoft
+                width: 64
+                height: 64
+                radius: 20
+                color: RaohaneTheme.surfaceSubtle
                 border.width: 1
                 border.color: RaohaneTheme.border
 
@@ -66,8 +66,8 @@ Item {
                     anchors.centerIn: parent
                     text: "ラ"
                     color: RaohaneTheme.accent
-                    font.pixelSize: 32
-                    font.weight: Font.Bold
+                    font.pixelSize: 25
+                    font.weight: Font.DemiBold
                 }
             }
 
@@ -75,7 +75,7 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
                 text: Qt.formatTime(root.now, "HH:mm")
                 color: RaohaneTheme.text
-                font.pixelSize: 58
+                font.pixelSize: 52
                 font.weight: Font.Light
             }
 
@@ -83,38 +83,38 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
                 text: Qt.formatDate(root.now, "dddd, d MMMM")
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 13
+                font.pixelSize: 11
             }
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: RaohanePaths.username.length > 0 ? RaohanePaths.username : qsTr("User")
                 color: RaohaneTheme.text
-                font.pixelSize: 17
+                font.pixelSize: 14
                 font.weight: Font.DemiBold
             }
 
             Rectangle {
                 id: passwordBox
                 Layout.fillWidth: true
-                Layout.maximumWidth: 390
+                Layout.maximumWidth: 380
                 Layout.alignment: Qt.AlignHCenter
-                height: 54
-                radius: 18
-                color: root.context.showFailure ? "#2dff668c" : "#20ffffff"
+                height: 50
+                radius: 15
+                color: passwordInput.activeFocus ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
                 border.width: 1
                 border.color: root.context.showFailure ? RaohaneTheme.critical
-                    : passwordInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.border
+                    : passwordInput.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 17
-                    anchors.rightMargin: 9
-                    spacing: 10
+                    anchors.leftMargin: 14
+                    anchors.rightMargin: 7
+                    spacing: 9
 
                     RaohaneIcon {
                         text: root.context.showFailure ? "lock_reset" : "lock"
-                        iconSize: 20
+                        iconSize: 18
                         color: root.context.showFailure ? RaohaneTheme.critical : RaohaneTheme.textMuted
                     }
 
@@ -123,11 +123,11 @@ Item {
                         Layout.fillWidth: true
                         text: root.context.currentText
                         color: RaohaneTheme.text
-                        selectionColor: RaohaneTheme.accent
-                        selectedTextColor: "#190c20"
+                        selectionColor: RaohaneTheme.accentSoft
+                        selectedTextColor: RaohaneTheme.text
                         echoMode: TextInput.Password
                         passwordCharacter: "●"
-                        font.pixelSize: 16
+                        font.pixelSize: 15
                         clip: true
                         enabled: !root.context.unlockInProgress
 
@@ -144,23 +144,27 @@ Item {
                     }
 
                     Rectangle {
-                        width: 38
-                        height: 38
-                        radius: 13
-                        color: unlockMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.accentSoft
+                        width: 36
+                        height: 36
+                        radius: 11
+                        color: unlockMouse.containsMouse ? RaohaneTheme.surfaceRaised : "transparent"
+                        border.width: unlockMouse.containsMouse ? 1 : 0
+                        border.color: RaohaneTheme.borderStrong
+                        opacity: unlockMouse.enabled ? 1 : 0.45
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: root.context.unlockInProgress ? "hourglass_top" : "arrow_forward"
-                            iconSize: 19
-                            color: root.context.unlockInProgress ? RaohaneTheme.textMuted : RaohaneTheme.text
+                            iconSize: 18
+                            fill: 1
+                            color: root.context.unlockInProgress ? RaohaneTheme.textMuted : RaohaneTheme.accent
                         }
 
                         MouseArea {
                             id: unlockMouse
                             anchors.fill: parent
                             hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
+                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                             enabled: !root.context.unlockInProgress && root.context.currentText.length > 0
                             onClicked: root.context.tryUnlock()
                         }
@@ -176,95 +180,47 @@ Item {
                         ? qsTr("Enter password or use your fingerprint")
                         : qsTr("Enter your password to unlock")
                 color: root.context.showFailure ? RaohaneTheme.critical : RaohaneTheme.textMuted
-                font.pixelSize: 10
+                font.pixelSize: 9
             }
 
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                spacing: 8
+                spacing: 7
 
-                Rectangle {
-                    width: 42
-                    height: 42
-                    radius: 14
-                    color: suspendMouse.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
-                    border.width: 1
-                    border.color: RaohaneTheme.border
-
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        text: "bedtime"
-                        iconSize: 19
-                        color: RaohaneTheme.textMuted
-                    }
-
-                    MouseArea {
-                        id: suspendMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: RaohaneSession.suspend()
-                    }
+                SystemButton {
+                    icon: "bedtime"
+                    onTriggered: RaohaneSession.suspend()
                 }
-
-                Rectangle {
-                    width: 42
-                    height: 42
-                    radius: 14
-                    color: rebootMouse.containsMouse ? "#2dff668c" : "#18ffffff"
-                    border.width: 1
-                    border.color: rebootMouse.containsMouse ? RaohaneTheme.critical : RaohaneTheme.border
-
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        text: "restart_alt"
-                        iconSize: 19
-                        color: rebootMouse.containsMouse ? RaohaneTheme.critical : RaohaneTheme.textMuted
-                    }
-
-                    MouseArea {
-                        id: rebootMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: RaohaneSession.reboot()
-                    }
+                SystemButton {
+                    icon: "restart_alt"
+                    danger: true
+                    onTriggered: RaohaneSession.reboot()
                 }
-
-                Rectangle {
-                    width: 42
-                    height: 42
-                    radius: 14
-                    color: powerMouse.containsMouse ? "#2dff668c" : "#18ffffff"
-                    border.width: 1
-                    border.color: powerMouse.containsMouse ? RaohaneTheme.critical : RaohaneTheme.border
-
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        text: "power_settings_new"
-                        iconSize: 19
-                        color: powerMouse.containsMouse ? RaohaneTheme.critical : RaohaneTheme.textMuted
-                    }
-
-                    MouseArea {
-                        id: powerMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: RaohaneSession.poweroff()
-                    }
+                SystemButton {
+                    icon: "power_settings_new"
+                    danger: true
+                    onTriggered: RaohaneSession.poweroff()
                 }
             }
 
             Item { Layout.fillHeight: true }
 
-            Text {
+            RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                text: "RAOHANE / LOCK"
-                color: RaohaneTheme.textMuted
-                font.pixelSize: 8
-                font.letterSpacing: 1.2
-                font.weight: Font.DemiBold
+                spacing: 6
+
+                Rectangle {
+                    width: 5
+                    height: 5
+                    radius: 3
+                    color: root.context.fingerprintsConfigured ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                }
+
+                Text {
+                    text: root.context.fingerprintsConfigured ? qsTr("Fingerprint ready") : qsTr("Secure session")
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                }
             }
         }
     }
@@ -272,5 +228,34 @@ Item {
     Connections {
         target: root.context
         function onShouldRefocus(): void { passwordInput.forceActiveFocus() }
+    }
+
+    component SystemButton: Rectangle {
+        id: control
+        required property string icon
+        property bool danger: false
+        signal triggered()
+
+        width: 40
+        height: 40
+        radius: 12
+        color: pointer.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+        border.width: pointer.containsMouse ? 1 : 0
+        border.color: control.danger && pointer.containsMouse ? RaohaneTheme.critical : RaohaneTheme.border
+
+        RaohaneIcon {
+            anchors.centerIn: parent
+            text: control.icon
+            iconSize: 18
+            color: control.danger && pointer.containsMouse ? RaohaneTheme.critical : RaohaneTheme.textMuted
+        }
+
+        MouseArea {
+            id: pointer
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: control.triggered()
+        }
     }
 }
