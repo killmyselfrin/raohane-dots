@@ -52,9 +52,16 @@ for contract in \
   'key:[[:space:]]*"barShowOnSuper"' \
   'Reveal on Super' \
   'native\.json' \
-  'Live settings · ~/.config/raohane/native\.json'; do
-  rg -q "$contract" "$content" || fail "Settings lost release UX contract: $contract"
+  'PERSONALIZE' \
+  'SHELL' \
+  'SYSTEM' \
+  'Bar & Dock' \
+  'Media & OSD' \
+  'Desktop & Spaces'; do
+  rg -q "$contract" "$content" || fail "Settings lost grouped minimal UX contract: $contract"
 done
+rg -q 'Open native\.json' "$home" \
+  || fail 'Settings Home no longer exposes the native config entry point'
 
 # Theme Library is a first-class native Settings page, not an external theme
 # switcher. It consumes the central preset catalog and persists selection through
@@ -119,4 +126,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: native routes, Theme Library, global search, keyboard navigation and native config UX are Raohane-owned\n'
+printf 'settings-boundary-audit: grouped native routes, Theme Library, global search, keyboard navigation and native config UX are Raohane-owned\n'
