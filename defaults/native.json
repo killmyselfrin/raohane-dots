@@ -99,6 +99,14 @@
     "accentStrength": 1.0,
     "accentMode": "theme",
     "customAccent": "#657987",
-    "sheenEnabled": true
+    "sheenEnabled": true,
+    "barScale": 1.0,
+    "dockHoverScale": 1.04,
+    "contextIslandScale": 1.0,
+    "contextIslandDetail": true,
+    "contextIslandIndicators": true,
+    "notificationScale": 1.0,
+    "notificationCompact": false,
+    "notificationBodyLines": 4
   }
 }
