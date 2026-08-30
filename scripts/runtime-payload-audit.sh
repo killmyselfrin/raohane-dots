@@ -12,7 +12,8 @@ fail() {
 for path in \
   shell.qml qmldir VERSION assets translations \
   modules/raohane panelFamilies/RaohaneFamily.qml defaults/native.json \
-  install/arch scripts scripts/prune-runtime.sh scripts/validate-runtime-payload.sh; do
+  install/arch scripts scripts/prune-runtime.sh scripts/validate-runtime-payload.sh \
+  scripts/phase4-live-check.sh scripts/release-live-check.sh; do
   [[ -e "$path" ]] || fail "missing source path required for staging: $path"
 done
 
@@ -58,5 +59,7 @@ done
 [[ -f "$runtime/install/arch/required.txt" ]] || fail 'required package manifest was lost'
 [[ -f "$runtime/install/arch/features.txt" ]] || fail 'feature package manifest was lost'
 [[ -f "$runtime/scripts/validate-runtime-payload.sh" ]] || fail 'runtime payload validator was lost'
+[[ -f "$runtime/scripts/phase4-live-check.sh" ]] || fail 'Phase 4 live validator was lost'
+[[ -f "$runtime/scripts/release-live-check.sh" ]] || fail 'release live validator was lost'
 
 printf 'runtime-payload-audit: clean standalone staging and post-prune payload validation succeed\n'
