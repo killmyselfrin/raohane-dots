@@ -13,7 +13,7 @@
 [![Audit](https://img.shields.io/badge/CI-Raohane%20audit-36b37e?style=for-the-badge)](.github/workflows/raohane-audit.yml)
 [![License](https://img.shields.io/badge/License-GPLv3-2f2f2f?style=for-the-badge)](LICENSE)
 
-> **Current phase:** Phase 4 source/static completion · real Hyprland validation pending
+> **Current phase:** standalone source/release boundary complete · real Hyprland/hardware validation pending
 >
 > **`main` is the live integration/testing branch.** We intentionally install and test the current integration graph there so real Hyprland runtime errors are found early.
 
@@ -295,16 +295,16 @@ raohane validate phase4 --full
 
 ## 🧩 What remains after the core framework
 
-Phase 3 no longer has a compatibility/common-framework dependency to remove. Phase 4 source/static implementation is complete; the remaining Phase 4 gates are real-session validation:
+Phase 3 no longer has a compatibility/common-framework dependency to remove. Phase 4 source/static implementation, Phase 5 migration-scaffolding cleanup and the source release boundary are complete. The remaining gates require a real compositor/hardware session:
 
 - exercise Lock/password/fingerprint behavior in a real session;
 - exercise the vertical bar, its IPC/shortcut parity and fullscreen interaction;
 - exercise native screen chrome, capture/OCR/translation and OSK/DropShelf surfaces;
 - validate multi-monitor placement and focus behavior;
 - complete fresh-install and hardware validation across NVIDIA/AMD/Intel;
-- finish release packaging/versioning and the final source-lineage/license audit.
+- validate fullscreen/game-overlay behavior on the installed product.
 
-Static CI proves the source/integration boundaries; real Wayland/PAM/GPU behavior still requires live validation.
+Static CI proves the source/integration/release boundaries; real Wayland/PAM/GPU behavior still requires live validation.
 
 ---
 
@@ -367,7 +367,9 @@ Phase 4 source/static contracts are required by `scripts/phase4-visible-runtime-
 - [x] delete upstream panel-family fallback
 - [x] delete obsolete upstream sync/bootstrap scripts
 - [x] delete obsolete upstream lock files
-- [ ] final source-lineage/license audit
+- [x] final source-lineage/license audit
+
+Phase 5 provenance is guarded by `scripts/source-lineage-audit.sh` and `NOTICE-UPSTREAM.md`. The audit verifies the standalone runtime boundary without pretending retained GPL/data/asset lineage disappeared.
 
 ### Phase 6 — Standalone release validation
 
@@ -377,7 +379,9 @@ Phase 4 source/static contracts are required by `scripts/phase4-visible-runtime-
 - [ ] multi-monitor validation
 - [ ] fullscreen/game overlay validation
 - [x] package/dependency static audit
-- [ ] release packaging/versioning
+- [x] release packaging/versioning
+
+Release packaging/versioning is guarded by `.github/workflows/release-boundary.yml`. Hardware/session items remain intentionally unchecked until exercised on real systems.
 
 ---
 
@@ -411,6 +415,23 @@ git pull --ff-only
 hyprctl reload
 raohane restart
 ```
+
+### Building a source release archive
+
+The committed version lives in `VERSION`. The release helper refuses tracked working-tree changes, validates source lineage and the staged runtime payload, then archives committed `HEAD` and writes a SHA-256 checksum:
+
+```bash
+bash scripts/package-release.sh
+```
+
+Default output:
+
+```text
+dist/Raohane-<VERSION>.tar.gz
+dist/Raohane-<VERSION>.tar.gz.sha256
+```
+
+The same path is exercised in `.github/workflows/release-boundary.yml` so release packaging cannot silently drift from the audited source/runtime boundary.
 
 ---
 
@@ -497,9 +518,9 @@ If something fails, the most useful output is the full `raohane validate phase4 
 
 ## 🛡️ Raohane audit
 
-The repository runs `.github/workflows/raohane-audit.yml`.
+The repository runs `.github/workflows/raohane-audit.yml` for product/source integration and `.github/workflows/release-boundary.yml` for provenance/release packaging.
 
-It validates:
+Together they validate:
 
 - Bash syntax;
 - QML parsing for all Raohane-owned QML;
@@ -520,18 +541,23 @@ It validates:
 - Phase 4 RuntimeProbe/live-validator contracts;
 - installed-runtime pruning while preserving the live validator;
 - installer/dependency independence;
+- source lineage and retained-data provenance notice;
+- source archive/version/checksum generation;
 - integration graph completeness;
 - clean checkout after validation.
 
-Core and visible-runtime regressions are explicitly guarded by:
+Core, visible-runtime and release regressions are explicitly guarded by:
 
 ```text
 scripts/core-framework-audit.sh
 scripts/core-framework-phase3-audit.sh
 scripts/phase4-visible-runtime-audit.sh
+scripts/source-lineage-audit.sh
+scripts/runtime-payload-audit.sh
+scripts/package-release.sh
 ```
 
-These prevent native components from silently drifting back toward a compatibility/common framework and keep Phase 4 live validation reproducible on the installed shell.
+These prevent native components from silently drifting back toward a compatibility/common framework, preserve explicit source provenance and keep Phase 4 live validation plus source packaging reproducible.
 
 ---
 
@@ -555,11 +581,15 @@ raohane-dots/
 │   ├── raohane
 │   ├── phase4-live-check.sh # installed real-session validator
 │   ├── raohane-audit.sh
+│   ├── source-lineage-audit.sh
+│   ├── package-release.sh
 │   ├── core-framework-phase3-audit.sh
 │   ├── phase4-visible-runtime-audit.sh
 │   └── *-boundary-audit.sh
 ├── defaults/
 │   └── native.json
+├── VERSION
+├── NOTICE-UPSTREAM.md
 ├── shell.qml
 └── install-raohane.sh
 ```
@@ -576,7 +606,7 @@ raohane-dots/
 - New filesystem/config/cache/runtime paths belong in `RaohanePaths`.
 - Reusable native UI belongs in Raohane-owned framework primitives rather than ad-hoc compatibility widgets.
 - Normal install/doctor/CI paths must not execute another shell repository.
-- Do not remove legally required attribution while derived code remains.
+- Do not remove legally required attribution while derived code or retained data remains.
 
 ---
 
@@ -584,7 +614,7 @@ raohane-dots/
 
 Raohane is distributed under **GPLv3**.
 
-The repository retains attribution for code with upstream lineage from the migration period. Technical independence does not erase authorship or licensing history.
+The repository retains attribution for source/data/assets with upstream lineage from the migration period. Technical independence does not erase authorship or licensing history. `scripts/source-lineage-audit.sh` guards this boundary and the release workflow executes it before source packaging.
 
 See:
 
@@ -597,7 +627,7 @@ See:
 
 <div align="center">
 
-### Raohane now owns its core framework.
+### Raohane now owns its core framework and release boundary.
 
 **Own the services. Own the state. Own the UI. Validate the product.**
 
