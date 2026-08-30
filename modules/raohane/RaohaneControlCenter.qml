@@ -75,13 +75,13 @@ Scope {
 
         Rectangle {
             anchors.centerIn: panelSurface
-            width: panelSurface.width + 12
-            height: panelSurface.height + 12
-            radius: RaohaneTheme.radiusHero + 6
+            width: panelSurface.width + 10
+            height: panelSurface.height + 10
+            radius: RaohaneTheme.radiusHero + 5
             color: "transparent"
-            border.width: 4
-            border.color: "#1fc56cff"
-            opacity: RaohaneState.controlCenterOpen ? 1 : 0
+            border.width: 1
+            border.color: RaohaneTheme.borderFaint
+            opacity: RaohaneState.controlCenterOpen ? 0.8 : 0
         }
 
         RaohaneSurface {
@@ -94,7 +94,7 @@ Scope {
             }
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
-            border.color: RaohaneTheme.accentBorder
+            border.color: RaohaneTheme.borderStrong
             clip: true
 
             ColumnLayout {
@@ -104,26 +104,26 @@ Scope {
 
                 Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 72
+                    Layout.preferredHeight: 68
 
                     RowLayout {
                         anchors.fill: parent
                         spacing: 11
 
                         Rectangle {
-                            Layout.preferredWidth: 42
-                            Layout.preferredHeight: 42
-                            radius: 15
-                            color: RaohaneTheme.accentSoft
+                            Layout.preferredWidth: 40
+                            Layout.preferredHeight: 40
+                            radius: 14
+                            color: RaohaneTheme.surfaceSubtle
                             border.width: 1
-                            border.color: RaohaneTheme.accentGlow
+                            border.color: RaohaneTheme.border
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "ラ"
-                                color: RaohaneTheme.text
-                                font.pixelSize: 16
-                                font.weight: Font.Bold
+                                color: RaohaneTheme.accent
+                                font.pixelSize: 15
+                                font.weight: Font.DemiBold
                             }
                         }
 
@@ -135,7 +135,7 @@ Scope {
                                 Layout.fillWidth: true
                                 text: qsTr("Control Center")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 17
+                                font.pixelSize: 16
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
@@ -160,7 +160,7 @@ Scope {
                                 text: Qt.formatTime(root.now, "HH:mm")
                                 color: RaohaneTheme.text
                                 font.pixelSize: 15
-                                font.weight: Font.DemiBold
+                                font.weight: Font.Medium
                             }
 
                             Text {
