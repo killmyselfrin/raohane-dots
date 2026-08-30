@@ -109,12 +109,12 @@ Scope {
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: false
-                opacity: status === Image.Ready ? 0.33 : 0
+                opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.24 : 0.18) : 0
             }
 
             Rectangle {
                 anchors.fill: parent
-                color: "#d2080710"
+                color: RaohaneTheme.dark ? "#8a000000" : "#465b5750"
 
                 MouseArea {
                     anchors.fill: parent
@@ -122,15 +122,15 @@ Scope {
                 }
             }
 
-            Rectangle {
+            RaohaneSurface {
                 id: dialog
-                width: Math.min(parent.width - 80, 880)
-                height: Math.min(parent.height - 100, 570)
+                width: Math.min(parent.width - 96, 850)
+                height: Math.min(parent.height - 112, 540)
                 anchors.centerIn: parent
-                radius: 30
-                color: RaohaneTheme.glassStrong
-                border.width: 1
-                border.color: RaohaneTheme.border
+                surfaceRadius: RaohaneTheme.radiusHero
+                raised: true
+                showSheen: false
+                border.color: RaohaneTheme.borderStrong
                 clip: true
 
                 MouseArea {
@@ -166,92 +166,108 @@ Scope {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 22
-                    spacing: 15
+                    anchors.margins: 18
+                    spacing: 11
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 12
+                        Layout.preferredHeight: 44
+                        spacing: 10
 
                         Rectangle {
-                            width: 44
-                            height: 44
-                            radius: 15
-                            color: RaohaneTheme.accentSoft
+                            width: 36
+                            height: 36
+                            radius: 12
+                            color: RaohaneTheme.surfaceSubtle
                             border.width: 1
                             border.color: RaohaneTheme.border
 
-                            Text {
+                            RaohaneIcon {
                                 anchors.centerIn: parent
-                                text: "ラ"
+                                text: "power_settings_new"
+                                iconSize: 18
                                 color: RaohaneTheme.accent
-                                font.pixelSize: 19
-                                font.weight: Font.Bold
                             }
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: -1
+                            spacing: 0
 
                             Text {
                                 text: qsTr("Session")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 20
+                                font.pixelSize: 15
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: qsTr("Choose what Raohane should do next · arrows / Enter / Esc")
+                                text: qsTr("Choose what happens next")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
+                                font.pixelSize: 8
                             }
                         }
 
-                        Rectangle {
-                            width: userText.implicitWidth + 18
-                            height: 29
-                            radius: 15
-                            color: "#1cffffff"
-                            border.width: 1
-                            border.color: RaohaneTheme.border
-
-                            Text {
-                                id: userText
-                                anchors.centerIn: parent
-                                text: RaohaneSystemInfo.username + " @ " + RaohaneSystemInfo.hostname
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
-                                font.weight: Font.DemiBold
-                            }
+                        Text {
+                            text: RaohaneSystemInfo.username + " @ " + RaohaneSystemInfo.hostname
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
                         }
+
+                        RaohaneIconButton {
+                            buttonSize: 30
+                            iconSize: 15
+                            icon: "close"
+                            onClicked: root.close()
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: RaohaneTheme.borderFaint
                     }
 
                     GridLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         columns: 4
-                        columnSpacing: 10
-                        rowSpacing: 10
+                        columnSpacing: 8
+                        rowSpacing: 8
 
                         Repeater {
                             model: root.actions
 
-                            delegate: Rectangle {
+                            delegate: RaohaneSurface {
                                 id: actionCard
                                 required property var modelData
                                 required property int index
 
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
-                                Layout.minimumHeight: 126
+                                Layout.minimumHeight: 118
                                 readonly property bool selected: root.currentIndex === index
                                 readonly property bool confirming: root.pendingAction === modelData.id
-                                radius: 20
-                                color: confirming ? "#32ff668c"
-                                    : selected || actionMouse.containsMouse ? RaohaneTheme.accentSoft : "#63171320"
-                                border.width: 1
+                                surfaceRadius: 16
+                                raised: selected || confirming
+                                hovered: actionMouse.containsMouse
+                                showSheen: false
                                 border.color: confirming ? RaohaneTheme.critical
-                                    : selected || actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+                                    : selected ? RaohaneTheme.borderStrong : RaohaneTheme.border
+
+                                Rectangle {
+                                    visible: actionCard.selected && !actionCard.confirming
+                                    anchors {
+                                        left: parent.left
+                                        top: parent.top
+                                        bottom: parent.bottom
+                                        leftMargin: 3
+                                        topMargin: 11
+                                        bottomMargin: 11
+                                    }
+                                    width: 2
+                                    radius: 1
+                                    color: RaohaneTheme.accent
+                                }
 
                                 ColumnLayout {
                                     anchors.fill: parent
@@ -259,15 +275,17 @@ Scope {
                                     spacing: 5
 
                                     Rectangle {
-                                        width: 42
-                                        height: 42
-                                        radius: 14
-                                        color: actionCard.confirming ? "#35ff668c" : "#20ffffff"
+                                        width: 38
+                                        height: 38
+                                        radius: 12
+                                        color: RaohaneTheme.surfaceSubtle
+                                        border.width: 1
+                                        border.color: actionCard.confirming ? RaohaneTheme.critical : RaohaneTheme.border
 
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: actionCard.confirming ? "priority_high" : actionCard.modelData.icon
-                                            iconSize: 22
+                                            iconSize: 20
                                             color: actionCard.confirming ? RaohaneTheme.critical
                                                 : actionCard.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                         }
@@ -279,7 +297,7 @@ Scope {
                                         Layout.fillWidth: true
                                         text: actionCard.confirming ? qsTr("Confirm %1").arg(actionCard.modelData.title) : actionCard.modelData.title
                                         color: actionCard.confirming ? RaohaneTheme.critical : RaohaneTheme.text
-                                        font.pixelSize: 11
+                                        font.pixelSize: 10
                                         font.weight: Font.DemiBold
                                         elide: Text.ElideRight
                                     }
@@ -308,12 +326,12 @@ Scope {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 6
+                        spacing: 5
 
                         WarningBar {
                             visible: RaohaneSessionWarnings.packageManagerRunning
                             icon: "package_2"
-                            text: qsTr("A package manager appears to be running. Avoid shutdown/reboot until it finishes.")
+                            text: qsTr("A package manager appears to be running. Avoid shutdown or reboot until it finishes.")
                         }
                         WarningBar {
                             visible: RaohaneSessionWarnings.downloadRunning
@@ -329,16 +347,14 @@ Scope {
                             text: root.pendingAction.length > 0
                                 ? qsTr("Confirmation armed for a destructive action")
                                 : qsTr("Destructive actions require a second press")
-                            color: root.pendingAction.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textMuted
-                            font.pixelSize: 8
+                            color: root.pendingAction.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textFaint
+                            font.pixelSize: 7
                         }
                         Item { Layout.fillWidth: true }
                         Text {
-                            text: "RAOHANE / SESSION"
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            font.letterSpacing: 0.9
-                            font.weight: Font.DemiBold
+                            text: qsTr("Arrows navigate · Enter selects · Esc closes")
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
                         }
                     }
                 }
@@ -375,28 +391,28 @@ Scope {
         required property string text
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 34
-        radius: 12
-        color: "#2cff668c"
+        Layout.preferredHeight: 32
+        radius: 10
+        color: RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: "#66ff668c"
+        border.color: RaohaneTheme.warning
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
+            anchors.leftMargin: 9
+            anchors.rightMargin: 9
             spacing: 7
 
             RaohaneIcon {
                 text: warning.icon
-                iconSize: 15
-                color: RaohaneTheme.critical
+                iconSize: 14
+                color: RaohaneTheme.warning
             }
 
             Text {
                 Layout.fillWidth: true
                 text: warning.text
-                color: RaohaneTheme.text
+                color: RaohaneTheme.textMuted
                 font.pixelSize: 8
                 elide: Text.ElideRight
             }
