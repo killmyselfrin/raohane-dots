@@ -21,15 +21,21 @@ Item {
         Repeater {
             model: SystemTray.items
 
-            delegate: Rectangle {
+            delegate: RaohaneSurface {
                 id: trayButton
 
                 required property SystemTrayItem modelData
 
                 Layout.preferredWidth: 28
                 Layout.preferredHeight: 28
-                radius: 9
-                color: trayMouse.containsMouse ? "#24ffffff" : "transparent"
+                surfaceRadius: 9
+                raised: false
+                hovered: trayMouse.containsMouse
+                pressed: trayMouse.pressed
+                interactive: true
+                hoverScale: RaohaneMotion.subtleHoverScale
+                pressedScale: RaohaneMotion.softPressScale
+                showSheen: false
 
                 Image {
                     anchors.centerIn: parent
@@ -41,6 +47,11 @@ Item {
                     fillMode: Image.PreserveAspectFit
                     asynchronous: true
                     smooth: true
+                    scale: trayMouse.pressed ? 0.92 : 1
+
+                    Behavior on scale {
+                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                    }
                 }
 
                 function showMenu(): void {
