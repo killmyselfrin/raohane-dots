@@ -22,6 +22,7 @@ Scope {
 
     Connections {
         target: RaohaneState
+
         function onLeftSidebarOpenChanged(): void {
             if (RaohaneState.leftSidebarOpen)
                 root.now = new Date()
@@ -62,11 +63,28 @@ Scope {
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
         RaohaneSurface {
+            id: panel
+
             anchors.fill: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
+            opacity: RaohaneState.leftSidebarOpen ? 1 : 0
+            scale: RaohaneState.leftSidebarOpen ? 1 : 0.985
+            transform: Translate {
+                x: RaohaneState.leftSidebarOpen ? 0 : -16
+                Behavior on x {
+                    NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
+                }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEnter }
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -78,18 +96,18 @@ Scope {
                     Layout.preferredHeight: 44
                     spacing: 9
 
-                    Rectangle {
-                        width: 34
-                        height: 34
-                        radius: 11
-                        color: RaohaneTheme.surfaceSubtle
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                    RaohaneSurface {
+                        Layout.preferredWidth: 34
+                        Layout.preferredHeight: 34
+                        surfaceRadius: 11
+                        raised: false
+                        showSheen: false
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: "dashboard"
                             iconSize: 17
+                            fill: 1
                             color: RaohaneTheme.accent
                         }
                     }
@@ -114,6 +132,7 @@ Scope {
 
                     ColumnLayout {
                         spacing: -1
+
                         Text {
                             Layout.alignment: Qt.AlignRight
                             text: Qt.formatTime(root.now, "HH:mm")
@@ -121,6 +140,7 @@ Scope {
                             font.pixelSize: 11
                             font.weight: Font.DemiBold
                         }
+
                         Text {
                             Layout.alignment: Qt.AlignRight
                             text: Qt.formatDate(root.now, "ddd, d MMM")
@@ -129,9 +149,11 @@ Scope {
                         }
                     }
 
-                    IconControl {
+                    RaohaneIconButton {
                         icon: "close"
-                        onTriggered: root.close()
+                        buttonSize: 30
+                        iconSize: 15
+                        onClicked: root.close()
                     }
                 }
 
@@ -153,13 +175,12 @@ Scope {
                         anchors.margins: 11
                         spacing: 11
 
-                        Rectangle {
+                        RaohaneSurface {
                             Layout.preferredWidth: 76
                             Layout.preferredHeight: 76
-                            radius: 14
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 14
+                            raised: false
+                            showSheen: false
                             clip: true
 
                             Image {
@@ -209,27 +230,39 @@ Scope {
                             RowLayout {
                                 spacing: 5
 
-                                IconControl {
+                                RaohaneIconButton {
                                     icon: "skip_previous"
+                                    buttonSize: 30
+                                    iconSize: 15
                                     enabled: RaohaneMedia.canGoPrevious
-                                    onTriggered: RaohaneMedia.previous()
+                                    onClicked: RaohaneMedia.previous()
                                 }
-                                IconControl {
+
+                                RaohaneIconButton {
                                     icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
-                                    active: RaohaneMedia.isPlaying
+                                    buttonSize: 30
+                                    iconSize: 15
+                                    emphasized: RaohaneMedia.isPlaying
                                     enabled: RaohaneMedia.canTogglePlaying
-                                    onTriggered: RaohaneMedia.togglePlaying()
+                                    onClicked: RaohaneMedia.togglePlaying()
                                 }
-                                IconControl {
+
+                                RaohaneIconButton {
                                     icon: "skip_next"
+                                    buttonSize: 30
+                                    iconSize: 15
                                     enabled: RaohaneMedia.canGoNext
-                                    onTriggered: RaohaneMedia.next()
+                                    onClicked: RaohaneMedia.next()
                                 }
+
                                 Item { Layout.fillWidth: true }
-                                IconControl {
+
+                                RaohaneIconButton {
                                     icon: "open_in_new"
+                                    buttonSize: 30
+                                    iconSize: 15
                                     enabled: RaohaneMedia.available
-                                    onTriggered: {
+                                    onClicked: {
                                         root.close()
                                         RaohaneState.mediaOverlayOpen = true
                                     }
@@ -251,7 +284,7 @@ Scope {
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 11
-                        spacing: 7
+                        spacing: 5
 
                         RowLayout {
                             Layout.fillWidth: true
@@ -259,15 +292,19 @@ Scope {
                             RaohaneIcon {
                                 text: RaohaneAudio.muted ? "volume_off" : "volume_up"
                                 iconSize: 15
+                                fill: RaohaneAudio.muted ? 0 : 1
                                 color: RaohaneAudio.muted ? RaohaneTheme.textMuted : RaohaneTheme.accent
                             }
+
                             Text {
                                 text: RaohaneAudio.muted ? qsTr("Muted") : qsTr("Volume")
                                 color: RaohaneTheme.text
                                 font.pixelSize: 9
                                 font.weight: Font.DemiBold
                             }
+
                             Item { Layout.fillWidth: true }
+
                             Text {
                                 text: RaohaneAudio.ready ? Math.round(RaohaneAudio.volume * 100) + "%" : "—"
                                 color: RaohaneTheme.textMuted
@@ -275,41 +312,18 @@ Scope {
                             }
                         }
 
-                        Item {
+                        RaohaneSlider {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 18
-
-                            Rectangle {
-                                anchors {
-                                    left: parent.left
-                                    right: parent.right
-                                    verticalCenter: parent.verticalCenter
-                                }
-                                height: 5
-                                radius: 3
-                                color: RaohaneTheme.surfaceDeep
-                                border.width: 1
-                                border.color: RaohaneTheme.borderFaint
-
-                                Rectangle {
-                                    width: parent.width * (RaohaneAudio.muted ? 0 : RaohaneAudio.volume)
-                                    height: parent.height
-                                    radius: parent.radius
-                                    color: RaohaneTheme.accent
-                                }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                enabled: RaohaneAudio.ready
-                                preventStealing: true
-                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                onPressed: mouse => RaohaneAudio.setVolume(mouse.x / width)
-                                onPositionChanged: mouse => {
-                                    if (pressed)
-                                        RaohaneAudio.setVolume(mouse.x / width)
-                                }
-                            }
+                            Layout.preferredHeight: 22
+                            from: 0
+                            to: 1
+                            value: RaohaneAudio.muted ? 0 : RaohaneAudio.volume
+                            stepSize: 0.01
+                            enabled: RaohaneAudio.ready
+                            showHandle: true
+                            handleSize: 13
+                            trackHeight: 5
+                            onMoved: value => RaohaneAudio.setVolume(value)
                         }
                     }
                 }
@@ -334,17 +348,18 @@ Scope {
                             detail: RaohaneNetwork.networkName.length > 0
                                 ? RaohaneNetwork.networkName
                                 : (RaohaneNetwork.wifiEnabled ? qsTr("Not connected") : qsTr("Wi-Fi off"))
-                            active: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
+                            highlighted: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
                             onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                         }
 
                         StatusRow {
-                            icon: RaohaneBluetooth.connected ? "bluetooth_connected" : (RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
+                            icon: RaohaneBluetooth.connected ? "bluetooth_connected"
+                                : (RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
                             title: qsTr("Bluetooth")
                             detail: RaohaneBluetooth.connected
                                 ? RaohaneBluetooth.firstConnectedName
                                 : (RaohaneBluetooth.enabled ? qsTr("Ready") : qsTr("Off"))
-                            active: RaohaneBluetooth.connected
+                            highlighted: RaohaneBluetooth.connected
                             onTriggered: RaohaneBluetooth.toggle()
                         }
 
@@ -354,7 +369,7 @@ Scope {
                             detail: RaohaneNotifications.unread > 0
                                 ? qsTr("%1 unread").arg(RaohaneNotifications.unread)
                                 : qsTr("All caught up")
-                            active: RaohaneNotifications.unread > 0
+                            highlighted: RaohaneNotifications.unread > 0
                             onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                         }
 
@@ -369,7 +384,7 @@ Scope {
                                 : RaohanePrivacy.cameraActive ? qsTr("Camera active")
                                 : RaohanePrivacy.microphoneActive ? qsTr("Microphone active")
                                 : qsTr("No capture devices active")
-                            active: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                            highlighted: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
                             onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                         }
                     }
@@ -383,32 +398,37 @@ Scope {
                     rowSpacing: 6
                     columnSpacing: 6
 
-                    ActionButton {
+                    QuickAction {
                         icon: "search"
                         title: qsTr("Launcher")
                         onTriggered: RaohaneState.setPrimaryOpen("launcher", true)
                     }
-                    ActionButton {
+
+                    QuickAction {
                         icon: "tune"
                         title: qsTr("Control")
                         onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
                     }
-                    ActionButton {
+
+                    QuickAction {
                         icon: "wallpaper"
                         title: qsTr("Wallpaper")
                         onTriggered: RaohaneState.setPrimaryOpen("wallpaper", true)
                     }
-                    ActionButton {
+
+                    QuickAction {
                         icon: "translate"
                         title: qsTr("Translate")
                         onTriggered: RaohaneState.setPrimaryOpen("screenTranslator", true)
                     }
-                    ActionButton {
+
+                    QuickAction {
                         icon: "settings"
                         title: qsTr("Settings")
                         onTriggered: RaohaneState.setPrimaryOpen("settings", true)
                     }
-                    ActionButton {
+
+                    QuickAction {
                         icon: "power_settings_new"
                         title: qsTr("Session")
                         onTriggered: RaohaneState.setPrimaryOpen("session", true)
@@ -440,47 +460,67 @@ Scope {
         font.letterSpacing: 0.7
     }
 
-    component StatusRow: Rectangle {
+    component StatusRow: FocusScope {
         id: statusRow
+
         required property string icon
         required property string title
         required property string detail
-        property bool active: false
+        property bool highlighted: false
         signal triggered()
 
         Layout.fillWidth: true
         Layout.preferredHeight: 32
-        radius: 9
-        color: statusMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
+        activeFocusOnTab: true
 
-        RowLayout {
+        RaohaneSurface {
             anchors.fill: parent
-            anchors.leftMargin: 7
-            anchors.rightMargin: 7
-            spacing: 7
+            surfaceRadius: 9
+            raised: false
+            active: statusRow.highlighted
+            hovered: statusMouse.containsMouse || statusRow.activeFocus
+            pressed: statusMouse.pressed
+            interactive: true
+            hoverScale: RaohaneMotion.subtleHoverScale
+            pressedScale: RaohaneMotion.softPressScale
+            showSheen: false
 
-            RaohaneIcon {
-                text: statusRow.icon
-                iconSize: 14
-                fill: statusRow.active ? 1 : 0
-                color: statusRow.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            }
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 7
+                anchors.rightMargin: 7
+                spacing: 7
 
-            Text {
-                text: statusRow.title
-                color: RaohaneTheme.text
-                font.pixelSize: 9
-                font.weight: Font.DemiBold
-            }
+                RaohaneIcon {
+                    text: statusRow.icon
+                    iconSize: 14
+                    fill: statusRow.highlighted ? 1 : 0
+                    color: statusRow.highlighted ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
 
-            Item { Layout.fillWidth: true }
+                Text {
+                    text: statusRow.title
+                    color: RaohaneTheme.text
+                    font.pixelSize: 9
+                    font.weight: Font.DemiBold
+                }
 
-            Text {
-                Layout.maximumWidth: 166
-                text: statusRow.detail
-                color: RaohaneTheme.textMuted
-                font.pixelSize: 8
-                elide: Text.ElideRight
+                Item { Layout.fillWidth: true }
+
+                Text {
+                    Layout.maximumWidth: 166
+                    text: statusRow.detail
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 8
+                    elide: Text.ElideRight
+                }
+
+                RaohaneIcon {
+                    text: "chevron_right"
+                    iconSize: 12
+                    color: statusMouse.containsMouse || statusRow.activeFocus
+                        ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                }
             }
         }
 
@@ -489,74 +529,60 @@ Scope {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: statusRow.forceActiveFocus()
             onClicked: statusRow.triggered()
         }
-    }
 
-    component IconControl: Rectangle {
-        id: button
-        required property string icon
-        property bool active: false
-        signal triggered()
-
-        implicitWidth: 30
-        implicitHeight: 30
-        radius: 9
-        opacity: button.enabled ? 1 : 0.35
-        color: button.active
-            ? RaohaneTheme.surfaceRaised
-            : buttonMouse.containsMouse && button.enabled ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: button.active || buttonMouse.containsMouse ? 1 : 0
-        border.color: button.active ? RaohaneTheme.borderStrong : RaohaneTheme.border
-
-        RaohaneIcon {
-            anchors.centerIn: parent
-            text: button.icon
-            iconSize: 15
-            fill: button.active ? 1 : 0
-            color: button.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
-        }
-
-        MouseArea {
-            id: buttonMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            enabled: button.enabled
-            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: button.triggered()
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                statusRow.triggered()
+                event.accepted = true
+            }
         }
     }
 
-    component ActionButton: Rectangle {
+    component QuickAction: FocusScope {
         id: action
+
         required property string icon
         required property string title
         signal triggered()
 
         Layout.fillWidth: true
         Layout.preferredHeight: 42
-        radius: 11
-        color: actionMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: 1
-        border.color: actionMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        activeFocusOnTab: true
 
-        Column {
-            anchors.centerIn: parent
-            spacing: 2
+        RaohaneSurface {
+            anchors.fill: parent
+            surfaceRadius: 11
+            raised: false
+            hovered: actionMouse.containsMouse || action.activeFocus
+            pressed: actionMouse.pressed
+            interactive: true
+            hoverScale: RaohaneMotion.subtleHoverScale
+            pressedScale: RaohaneMotion.softPressScale
+            showSheen: false
 
-            RaohaneIcon {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: action.icon
-                iconSize: 15
-                color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            }
+            Column {
+                anchors.centerIn: parent
+                spacing: 2
 
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: action.title
-                color: RaohaneTheme.text
-                font.pixelSize: 7
-                font.weight: Font.Medium
+                RaohaneIcon {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: action.icon
+                    iconSize: 15
+                    fill: actionMouse.containsMouse || action.activeFocus ? 1 : 0
+                    color: actionMouse.containsMouse || action.activeFocus
+                        ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: action.title
+                    color: RaohaneTheme.text
+                    font.pixelSize: 7
+                    font.weight: Font.Medium
+                }
             }
         }
 
@@ -565,7 +591,15 @@ Scope {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: action.forceActiveFocus()
             onClicked: action.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                action.triggered()
+                event.accepted = true
+            }
         }
     }
 }
