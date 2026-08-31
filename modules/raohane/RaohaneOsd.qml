@@ -125,6 +125,7 @@ Scope {
                 opacity: 0
                 scale: 0.965
                 transform: Translate {
+                    id: cardTranslate
                     y: RaohaneConfig.barBottom ? 10 : -10
                 }
 
@@ -148,7 +149,7 @@ Scope {
                         easing.type: RaohaneMotion.easeEnter
                     }
                     NumberAnimation {
-                        target: card.transform
+                        target: cardTranslate
                         property: "y"
                         to: 0
                         duration: RaohaneMotion.enter
@@ -182,13 +183,6 @@ Scope {
                             iconSize: 20
                             fill: 1
                             color: RaohaneTheme.accent
-
-                            Behavior on text {
-                                SequentialAnimation {
-                                    NumberAnimation { target: parent; property: "scale"; to: 0.88; duration: RaohaneMotion.micro }
-                                    NumberAnimation { target: parent; property: "scale"; to: 1; duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeEmphasized }
-                                }
-                            }
                         }
                     }
 
@@ -213,13 +207,6 @@ Scope {
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 9
                                 font.weight: Font.DemiBold
-
-                                Behavior on text {
-                                    SequentialAnimation {
-                                        NumberAnimation { target: parent; property: "opacity"; to: 0.62; duration: RaohaneMotion.micro }
-                                        NumberAnimation { target: parent; property: "opacity"; to: 1; duration: RaohaneMotion.micro }
-                                    }
-                                }
                             }
                         }
 
