@@ -11,7 +11,7 @@ fail() {
 
 settings='modules/raohane/RaohaneSettings.qml'
 search='modules/raohane/RaohaneSettingsSearch.qml'
-content='modules/raohane/RaohaneSettingsContent.qml'
+content='modules/raohane/RaohaneSettingsContentV2.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
@@ -25,11 +25,14 @@ done
 
 for registration in \
   '^RaohaneSettingsSearch .*RaohaneSettingsSearch.qml$' \
+  '^RaohaneSettingsContentV2 .*RaohaneSettingsContentV2.qml$' \
   '^RaohaneSettingsAbout .*RaohaneSettingsAbout.qml$' \
   '^RaohaneSettingsHome .*RaohaneSettingsHome.qml$' \
   '^RaohaneThemeCatalog .*RaohaneThemeCatalog.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
+rg -q 'RaohaneSettingsContentV2[[:space:]]*\{' "$settings" \
+  || fail 'Settings window is not routed through the active flat Settings layout'
 rg -q 'property string settingsPage:' "$state" \
   || fail 'RaohaneState does not own Settings page navigation state'
 
@@ -126,4 +129,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: grouped native routes, Theme Library, global search, keyboard navigation and native config UX are Raohane-owned\n'
+printf 'settings-boundary-audit: active flat Settings routes, Theme Library, global search, keyboard navigation and native config UX are Raohane-owned\n'
