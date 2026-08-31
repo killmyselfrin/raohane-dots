@@ -20,7 +20,7 @@ for contract in \
   rg -q "$contract" "$state" || fail "RaohaneState lost coordinator contract: $contract"
 done
 
-primary_pattern='RaohaneState\.(launcherOpen|wallpaperSelectorOpen|overviewOpen|controlCenterOpen|leftSidebarOpen|overlayOpen|screenTranslatorOpen|settingsOpen|sessionOpen|desktopMenuOpen)[[:space:]]*='
+primary_pattern='RaohaneState\.(launcherOpen|wallpaperSelectorOpen|overviewOpen|controlCenterOpen|leftSidebarOpen|overlayOpen|screenTranslatorOpen|settingsOpen|sessionOpen|taskManagerOpen|desktopMenuOpen)[[:space:]]*='
 mapfile -t qml_files < <(find modules/raohane -type f -name '*.qml' ! -path "$state" -print | sort)
 
 if rg -n "$primary_pattern" "${qml_files[@]}"; then
@@ -37,6 +37,7 @@ coordinated_surfaces=(
   modules/raohane/RaohaneWallpaperSelector.qml
   modules/raohane/RaohaneScreenTranslator.qml
   modules/raohane/RaohaneSessionScreen.qml
+  modules/raohane/RaohaneTaskManager.qml
   modules/raohane/RaohaneDesktopMenu.qml
   modules/raohane/RaohaneBar.qml
   modules/raohane/RaohaneVerticalBar.qml
@@ -48,6 +49,11 @@ for file in "${coordinated_surfaces[@]}"; do
     || fail "$file does not route primary navigation through RaohaneState coordinator"
 done
 
+rg -q 'property bool taskManagerOpen:' "$state" \
+  || fail 'RaohaneState does not own native Task Manager visibility'
+rg -q 'case "taskManager"' "$state" \
+  || fail 'Task Manager is not part of the primary coordinator switch'
+
 rg -q 'RaohaneState\.closePrimarySurfaces\(""\)' modules/raohane/RaohaneRegionSelector.qml \
   || fail 'region capture no longer dismisses primary surfaces before selection'
 
@@ -57,4 +63,4 @@ for property in mediaOverlayOpen oskOpen osdOpen; do
   rg -q "property bool ${property}:" "$state" || fail "missing independent transient state: $property"
 done
 
-printf 'primary-surface-boundary-audit: primary UI is mutually exclusive and capture dismisses it before selection\n'
+printf 'primary-surface-boundary-audit: primary UI including native Task Manager is mutually exclusive and capture dismisses it before selection\n'
