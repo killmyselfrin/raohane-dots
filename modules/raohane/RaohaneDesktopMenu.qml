@@ -63,6 +63,7 @@ Scope {
 
             RaohaneSurface {
                 id: menuCard
+                property bool entered: false
 
                 width: 336
                 implicitHeight: menuContent.implicitHeight + 20
@@ -73,14 +74,19 @@ Scope {
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
                 clip: true
-                scale: RaohaneState.desktopMenuOpen ? 1 : 0.97
-                opacity: RaohaneState.desktopMenuOpen ? 1 : 0
+                scale: entered ? 1 : 0.965
+                opacity: entered ? 1 : 0
 
                 Behavior on scale {
-                    NumberAnimation { duration: RaohaneTheme.animationDuration; easing.type: Easing.OutCubic }
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
                 }
                 Behavior on opacity {
-                    NumberAnimation { duration: RaohaneTheme.animationFast }
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
+
+                Component.onCompleted: {
+                    forceActiveFocus()
+                    Qt.callLater(() => entered = true)
                 }
 
                 MouseArea {
@@ -98,13 +104,12 @@ Scope {
                     }
                     spacing: 6
 
-                    Rectangle {
+                    RaohaneSurface {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 118
-                        radius: 15
-                        color: RaohaneTheme.surfaceDeep
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                        surfaceRadius: 15
+                        raised: false
+                        showSheen: false
                         clip: true
 
                         Image {
@@ -133,20 +138,20 @@ Scope {
                             }
                             spacing: 8
 
-                            Rectangle {
+                            RaohaneSurface {
                                 width: 29
                                 height: 29
-                                radius: 9
-                                color: RaohaneTheme.surfaceSubtle
-                                border.width: 1
-                                border.color: RaohaneTheme.border
+                                surfaceRadius: 9
+                                active: true
+                                showSheen: false
 
-                                Text {
+                                RaohaneIcon {
                                     anchors.centerIn: parent
-                                    text: "ラ"
+                                    text: "desktop_windows"
+                                    iconSize: 15
+                                    fill: 1
+                                    symbolWeight: 540
                                     color: RaohaneTheme.accent
-                                    font.pixelSize: 11
-                                    font.weight: Font.DemiBold
                                 }
                             }
 
@@ -309,7 +314,7 @@ Scope {
         function close(): void { root.close() }
     }
 
-    component MenuAction: Rectangle {
+    component MenuAction: RaohaneSurface {
         id: action
 
         required property string icon
@@ -319,10 +324,15 @@ Scope {
 
         Layout.fillWidth: true
         Layout.preferredHeight: 50
-        radius: 13
-        color: actionMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: actionMouse.containsMouse ? 1 : 0
-        border.color: RaohaneTheme.border
+        surfaceRadius: 13
+        transparentIdle: true
+        showSheen: false
+        interactive: true
+        hovered: actionMouse.containsMouse || activeFocus
+        pressed: actionMouse.pressed
+        hoverScale: 1.008
+        pressedScale: RaohaneMotion.pressScale
+        activeFocusOnTab: true
 
         RowLayout {
             anchors.fill: parent
@@ -330,19 +340,22 @@ Scope {
             anchors.rightMargin: 9
             spacing: 9
 
-            Rectangle {
+            RaohaneSurface {
                 width: 30
                 height: 30
-                radius: 9
-                color: RaohaneTheme.surfaceSubtle
-                border.width: 1
-                border.color: RaohaneTheme.border
+                surfaceRadius: 9
+                active: action.hovered || action.activeFocus
+                showSheen: false
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: action.icon
                     iconSize: 16
-                    color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    fill: action.hovered || action.activeFocus ? 1 : 0
+                    symbolWeight: action.pressed ? 560 : action.hovered || action.activeFocus ? 520 : 430
+                    color: action.hovered || action.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                 }
             }
 
@@ -370,7 +383,10 @@ Scope {
             RaohaneIcon {
                 text: "chevron_right"
                 iconSize: 14
-                color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                symbolWeight: action.hovered || action.activeFocus ? 520 : 430
+                color: action.hovered || action.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textFaint
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
         }
 
@@ -379,11 +395,19 @@ Scope {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: action.forceActiveFocus()
             onClicked: action.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                action.triggered()
+                event.accepted = true
+            }
         }
     }
 
-    component CompactAction: Rectangle {
+    component CompactAction: RaohaneSurface {
         id: compact
 
         required property string icon
@@ -391,10 +415,15 @@ Scope {
         signal triggered()
 
         Layout.preferredHeight: 36
-        radius: 11
-        color: compactMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: 1
-        border.color: compactMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        surfaceRadius: 11
+        transparentIdle: true
+        showSheen: false
+        interactive: true
+        hovered: compactMouse.containsMouse || activeFocus
+        pressed: compactMouse.pressed
+        hoverScale: 1.01
+        pressedScale: RaohaneMotion.pressScale
+        activeFocusOnTab: true
 
         Row {
             anchors.centerIn: parent
@@ -403,7 +432,11 @@ Scope {
             RaohaneIcon {
                 text: compact.icon
                 iconSize: 14
-                color: compactMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                fill: compact.hovered || compact.activeFocus ? 1 : 0
+                symbolWeight: compact.pressed ? 560 : compact.hovered || compact.activeFocus ? 520 : 430
+                color: compact.hovered || compact.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
 
             Text {
@@ -419,7 +452,15 @@ Scope {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: compact.forceActiveFocus()
             onClicked: compact.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                compact.triggered()
+                event.accepted = true
+            }
         }
     }
 }
