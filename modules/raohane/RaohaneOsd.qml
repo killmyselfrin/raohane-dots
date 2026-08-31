@@ -22,7 +22,8 @@ Scope {
         if (currentIndicator === "gamma") {
             const lower = RaohaneDisplay.gammaLowerLimit / 100
             const current = RaohaneDisplay.gamma / 100
-            if (lower >= 1) return current
+            if (lower >= 1)
+                return current
             return Math.max(0, Math.min(1, (current - lower) / (1 - lower)))
         }
         return Math.max(0, Math.min(1, RaohaneAudio.volume))
@@ -66,10 +67,12 @@ Scope {
 
     Connections {
         target: RaohaneAudio
+
         function onVolumeChanged(): void {
             if (RaohaneAudio.ready)
                 root.trigger("volume")
         }
+
         function onMutedChanged(): void {
             if (RaohaneAudio.ready)
                 root.trigger("volume")
@@ -81,13 +84,14 @@ Scope {
 
         sourceComponent: PanelWindow {
             id: panelWindow
+
             screen: root.focusedScreen
             visible: true
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
             implicitWidth: 356
-            implicitHeight: 70
+            implicitHeight: 76
 
             WlrLayershell.namespace: "quickshell:raohane-osd"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -107,13 +111,50 @@ Scope {
 
             RaohaneSurface {
                 id: card
+
                 width: 324
                 height: 64
                 anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: !RaohaneConfig.barBottom ? parent.top : undefined
+                anchors.bottom: RaohaneConfig.barBottom ? parent.bottom : undefined
                 surfaceRadius: 19
                 raised: true
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
+
+                opacity: 0
+                scale: 0.965
+                transform: Translate {
+                    y: RaohaneConfig.barBottom ? 10 : -10
+                }
+
+                Component.onCompleted: enterAnimation.start()
+
+                ParallelAnimation {
+                    id: enterAnimation
+
+                    NumberAnimation {
+                        target: card
+                        property: "opacity"
+                        to: 1
+                        duration: RaohaneMotion.standard
+                        easing.type: RaohaneMotion.easeStandard
+                    }
+                    NumberAnimation {
+                        target: card
+                        property: "scale"
+                        to: 1
+                        duration: RaohaneMotion.enter
+                        easing.type: RaohaneMotion.easeEnter
+                    }
+                    NumberAnimation {
+                        target: card.transform
+                        property: "y"
+                        to: 0
+                        duration: RaohaneMotion.enter
+                        easing.type: RaohaneMotion.easeEmphasized
+                    }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -127,13 +168,13 @@ Scope {
                     anchors.margins: 10
                     spacing: 11
 
-                    Rectangle {
-                        width: 38
-                        height: 38
-                        radius: 12
-                        color: RaohaneTheme.surfaceSubtle
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                    RaohaneSurface {
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        surfaceRadius: 12
+                        raised: false
+                        active: root.currentIndicator === "volume" && RaohaneAudio.muted
+                        showSheen: false
 
                         RaohaneIcon {
                             anchors.centerIn: parent
@@ -141,6 +182,13 @@ Scope {
                             iconSize: 20
                             fill: 1
                             color: RaohaneTheme.accent
+
+                            Behavior on text {
+                                SequentialAnimation {
+                                    NumberAnimation { target: parent; property: "scale"; to: 0.88; duration: RaohaneMotion.micro }
+                                    NumberAnimation { target: parent; property: "scale"; to: 1; duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeEmphasized }
+                                }
+                            }
                         }
                     }
 
@@ -165,6 +213,13 @@ Scope {
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 9
                                 font.weight: Font.DemiBold
+
+                                Behavior on text {
+                                    SequentialAnimation {
+                                        NumberAnimation { target: parent; property: "opacity"; to: 0.62; duration: RaohaneMotion.micro }
+                                        NumberAnimation { target: parent; property: "opacity"; to: 1; duration: RaohaneMotion.micro }
+                                    }
+                                }
                             }
                         }
 
@@ -185,8 +240,8 @@ Scope {
 
                                 Behavior on width {
                                     NumberAnimation {
-                                        duration: RaohaneTheme.animationFast
-                                        easing.type: Easing.OutCubic
+                                        duration: RaohaneMotion.micro
+                                        easing.type: RaohaneMotion.easeStandard
                                     }
                                 }
                             }
