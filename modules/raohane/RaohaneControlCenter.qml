@@ -61,9 +61,12 @@ Scope {
 
         onVisibleChanged: {
             if (visible) {
+                panelSurface.entered = false
+                Qt.callLater(() => panelSurface.entered = true)
                 RaohaneNotifications.markAllRead()
                 RaohaneFocusGrab.addDismissable(panelWindow)
             } else {
+                panelSurface.entered = false
                 RaohaneFocusGrab.removeDismissable(panelWindow)
             }
         }
@@ -75,6 +78,8 @@ Scope {
 
         RaohaneSurface {
             id: panelSurface
+            property bool entered: false
+
             width: root.panelWidth
             anchors {
                 top: parent.top
@@ -86,6 +91,22 @@ Scope {
             showSheen: false
             border.color: RaohaneTheme.borderStrong
             clip: true
+            opacity: entered ? 1 : 0
+            scale: entered ? 1 : 0.992
+
+            transform: Translate {
+                x: panelSurface.entered ? 0 : 18
+                Behavior on x {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -100,20 +121,20 @@ Scope {
                         anchors.fill: parent
                         spacing: 10
 
-                        Rectangle {
+                        RaohaneSurface {
                             Layout.preferredWidth: 36
                             Layout.preferredHeight: 36
-                            radius: 12
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 12
+                            active: true
+                            showSheen: false
 
-                            Text {
+                            RaohaneIcon {
                                 anchors.centerIn: parent
-                                text: "ラ"
+                                text: "tune"
+                                iconSize: 18
+                                fill: 1
+                                symbolWeight: 540
                                 color: RaohaneTheme.accent
-                                font.pixelSize: 14
-                                font.weight: Font.DemiBold
                             }
                         }
 
@@ -231,6 +252,12 @@ Scope {
                         color: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
                             ? RaohaneTheme.critical
                             : RaohaneTheme.success
+                        scale: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive ? 1.15 : 1
+
+                        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                        Behavior on scale {
+                            NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                        }
                     }
 
                     Text {
@@ -285,34 +312,12 @@ Scope {
         }
     }
 
-    component ActionButton: Rectangle {
-        id: action
-
-        required property string icon
-        property bool emphasized: false
-        signal clicked()
-
+    component ActionButton: RaohaneIconButton {
         Layout.preferredWidth: 31
         Layout.preferredHeight: 31
-        radius: 10
-        color: pointer.containsMouse || emphasized ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: emphasized || pointer.containsMouse ? 1 : 0
-        border.color: emphasized ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
-
-        RaohaneIcon {
-            anchors.centerIn: parent
-            text: action.icon
-            iconSize: 16
-            fill: action.emphasized ? 1 : 0
-            color: action.emphasized ? RaohaneTheme.accent : pointer.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
-        }
-
-        MouseArea {
-            id: pointer
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: action.clicked()
-        }
+        buttonSize: 31
+        iconSize: 16
+        transparentIdle: !emphasized
+        showSheen: false
     }
 }
