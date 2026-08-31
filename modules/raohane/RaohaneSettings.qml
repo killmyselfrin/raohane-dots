@@ -35,10 +35,14 @@ Scope {
         }
 
         onVisibleChanged: {
-            if (visible)
+            if (visible) {
+                workspace.entered = false
+                Qt.callLater(() => workspace.entered = true)
                 RaohaneFocusGrab.addDismissable(panelWindow)
-            else
+            } else {
+                workspace.entered = false
                 RaohaneFocusGrab.removeDismissable(panelWindow)
+            }
         }
 
         Connections {
@@ -48,10 +52,13 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            color: RaohaneTheme.dark ? "#70000000" : "#305b5750"
+            color: RaohaneTheme.dark
+                ? Qt.rgba(0, 0, 0, 0.42)
+                : Qt.rgba(0.20, 0.19, 0.17, 0.20)
             opacity: RaohaneState.settingsOpen ? 1 : 0
+
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
 
             MouseArea {
@@ -61,96 +68,99 @@ Scope {
         }
 
         RaohaneSurface {
-            id: window
+            id: workspace
+            property bool entered: false
 
-            width: Math.min(parent.width - 96, 1180)
-            height: Math.min(parent.height - 96, 780)
+            width: Math.min(parent.width - 64, 1120)
+            height: Math.min(parent.height - 72, 760)
             anchors.centerIn: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
             clip: true
-            opacity: RaohaneState.settingsOpen ? 1 : 0
-            scale: RaohaneState.settingsOpen ? 1 : 0.985
+            opacity: entered ? 1 : 0
+            scale: entered ? 1 : 0.988
             focus: RaohaneState.settingsOpen
 
             transform: Translate {
-                y: RaohaneState.settingsOpen ? 0 : 10
+                y: workspace.entered ? 0 : 14
                 Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
                 }
             }
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
+
             Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             Item {
                 id: titleBar
                 z: 20
-
                 anchors {
                     left: parent.left
                     right: parent.right
                     top: parent.top
                 }
-                height: 60
+                height: 68
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 18
-                    anchors.rightMargin: 14
-                    spacing: 11
-
-                    RaohaneSurface {
-                        Layout.preferredWidth: 34
-                        Layout.preferredHeight: 34
-                        surfaceRadius: 11
-                        active: true
-                        showSheen: false
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "settings"
-                            iconSize: 18
-                            fill: 1
-                            symbolWeight: 540
-                            color: RaohaneTheme.accent
-                        }
-                    }
+                    anchors.leftMargin: 22
+                    anchors.rightMargin: 16
+                    spacing: 12
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 0
+                        Layout.preferredWidth: 190
+                        spacing: -1
+
+                        Text {
+                            text: "RAOHANE"
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                            font.weight: Font.DemiBold
+                            font.letterSpacing: 1.2
+                        }
 
                         Text {
                             text: qsTr("Settings")
                             color: RaohaneTheme.text
-                            font.pixelSize: 15
+                            font.pixelSize: 17
                             font.weight: Font.DemiBold
                         }
-
-                        Text {
-                            text: qsTr("Raohane shell configuration")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                        }
                     }
+
+                    Item { Layout.fillWidth: true }
 
                     RaohaneSettingsSearch {
                         id: settingsSearch
-                        Layout.preferredWidth: Math.min(340, Math.max(230, window.width * 0.30))
+                        Layout.preferredWidth: Math.min(390, Math.max(260, workspace.width * 0.35))
                         Layout.preferredHeight: 34
                     }
 
-                    Rectangle {
-                        Layout.preferredWidth: 1
-                        Layout.preferredHeight: 22
-                        color: RaohaneTheme.borderFaint
+                    Item { Layout.fillWidth: true }
+
+                    RowLayout {
+                        spacing: 5
+
+                        Rectangle {
+                            width: 6
+                            height: 6
+                            radius: 3
+                            color: RaohaneTheme.success
+                        }
+
+                        Text {
+                            text: qsTr("LIVE")
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                            font.weight: Font.DemiBold
+                            font.letterSpacing: 0.7
+                        }
                     }
 
                     RaohaneIconButton {
@@ -168,21 +178,18 @@ Scope {
                         left: parent.left
                         right: parent.right
                         bottom: parent.bottom
-                        leftMargin: 18
-                        rightMargin: 18
                     }
                     height: 1
                     color: RaohaneTheme.borderFaint
                 }
             }
 
-            RaohaneSettingsContent {
+            RaohaneSettingsContentV2 {
                 anchors {
                     left: parent.left
                     right: parent.right
                     top: titleBar.bottom
                     bottom: parent.bottom
-                    margins: 10
                 }
             }
 
@@ -193,7 +200,7 @@ Scope {
                 } else if (event.key === Qt.Key_Escape) {
                     if (settingsSearch.query.length > 0) {
                         settingsSearch.clear()
-                        window.forceActiveFocus()
+                        workspace.forceActiveFocus()
                     } else {
                         panelWindow.hide()
                     }
