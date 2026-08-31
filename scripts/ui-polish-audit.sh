@@ -14,10 +14,15 @@ systray='modules/raohane/RaohaneSysTray.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 desktop='modules/raohane/RaohaneDesktopCanvas.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
+settings='modules/raohane/RaohaneSettings.qml'
+settings_v2='modules/raohane/RaohaneSettingsContentV2.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
+control='modules/raohane/RaohaneControlCenter.qml'
+quick='modules/raohane/RaohaneQuickControls.qml'
+notifications='modules/raohane/RaohaneNotificationCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 
-for file in "$sidebar" "$systray" "$about" "$desktop" "$workspaces" "$settings_search" "$osd"; do
+for file in "$sidebar" "$systray" "$about" "$desktop" "$workspaces" "$settings" "$settings_v2" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
   [[ -f "$file" ]] || fail "missing polished UI surface: $file"
 done
 
@@ -55,9 +60,46 @@ if rg -n '#24ffffff|#ff7373|readonly property bool active:' "$workspaces"; then
   fail 'Workspace buttons reintroduced legacy colors or the RaohaneSurface active-property collision'
 fi
 
+# Control Center is one coherent panel now. Quick Controls and notifications are
+# composed directly into it instead of being wrapped in another level of cards.
+rg -q 'RaohaneQuickControls[[:space:]]*\{' "$control" || fail 'Control Center lost the direct Quick Controls composition'
+rg -q 'RaohaneNotificationCenter[[:space:]]*\{' "$control" || fail 'Control Center lost the direct notification composition'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$control" || fail 'Control Center lost shared action buttons'
+rg -q 'RaohaneMotion\.(standard|enter)' "$control" || fail 'Control Center lost the shared entrance motion'
+if rg -n 'shortDuration|mediumDuration|property bool active:[[:space:]]*false' "$control"; then
+  fail 'Control Center reintroduced stale motion names or inherited active-state collisions'
+fi
+
+# Quick Controls deliberately use flat transparent-idle tiles and slim shared
+# sliders rather than the previous card stack.
+rg -q 'component QuickTile:[[:space:]]*RaohaneSurface' "$quick" || fail 'Quick Controls lost shared command-tile surfaces'
+rg -q 'transparentIdle:[[:space:]]*!tile\.active' "$quick" || fail 'Quick Controls lost the flat inactive tile hierarchy'
+rg -q 'RaohaneSlider[[:space:]]*\{' "$quick" || fail 'Quick Controls lost shared sliders'
+rg -q 'RaohaneMotion\.' "$quick" || fail 'Quick Controls lost tactile motion'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls lost the restrained inactive state token'
+rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls lost explicit hover-border hierarchy'
+
+# The active Settings window must route through V2. V2 uses one navigation rail,
+# a divider and flat setting rows instead of nested card-on-card chrome.
+rg -q 'RaohaneSettingsContentV2[[:space:]]*\{' "$settings" || fail 'Settings regressed from the flat V2 workspace'
+rg -q 'RaohaneSettingsSearch[[:space:]]*\{' "$settings" || fail 'Settings lost integrated global search'
+rg -q 'RaohaneMotion\.(standard|enter)' "$settings" || fail 'Settings lost shared window motion'
+rg -q 'RaohaneSurface[[:space:]]*\{' "$settings_v2" || fail 'Settings V2 lost shared navigation surfaces'
+rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_v2" || fail 'Settings V2 lost shared switches'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_v2" || fail 'Settings V2 lost shared number controls'
+rg -q 'color:[[:space:]]*RaohaneTheme\.borderFaint' "$settings_v2" || fail 'Settings V2 lost flat divider hierarchy'
+if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration' "$settings" "$settings_v2"; then
+  fail 'Settings V2 reintroduced retired chrome or stale motion names'
+fi
+
 rg -q 'RaohaneSurface[[:space:]]*\{' "$settings_search" || fail 'Settings Search no longer uses shared surfaces'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_search" || fail 'Settings Search lost the shared clear button'
 rg -q 'RaohaneMotion\.' "$settings_search" || fail 'Settings Search lost shared motion'
+
+rg -q 'RaohaneMotion\.standard' "$notifications" || fail 'Notification Center lost the current shared motion token'
+if rg -n 'shortDuration|mediumDuration|property bool active:[[:space:]]*false' "$notifications"; then
+  fail 'Notification Center reintroduced stale motion names or inherited active-state collisions'
+fi
 
 rg -q 'id:[[:space:]]*cardTranslate' "$osd" || fail 'OSD lost its runtime-safe Translate target'
 rg -q 'RaohaneMotion\.' "$osd" || fail 'OSD no longer follows shared motion'
@@ -66,4 +108,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: Sidebar, tray, About, desktop context, workspaces, Settings Search and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: Control Center, flat Settings V2, Quick Controls, Sidebar, tray, About, desktop context, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
