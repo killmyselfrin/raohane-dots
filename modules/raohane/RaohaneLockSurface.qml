@@ -11,10 +11,13 @@ Item {
 
     required property var context
     property date now: new Date()
+    property bool entered: false
 
     readonly property string wallpaperSource: RaohaneConfig.lockWallpaperPath.length > 0
         ? RaohaneConfig.lockWallpaperPath
         : (RaohaneConfig.wallpaperPath.length > 0 ? RaohaneConfig.wallpaperPath : RaohanePaths.defaultWallpaperUrl)
+
+    Component.onCompleted: Qt.callLater(() => root.entered = true)
 
     Timer {
         interval: 1000
@@ -35,9 +38,15 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: RaohaneTheme.dark ? "#8c000000" : "#785b5750"
+        opacity: root.entered ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+        }
     }
 
     RaohaneSurface {
+        id: lockCard
         width: Math.min(parent.width - 64, 500)
         height: Math.min(parent.height - 86, 560)
         anchors.centerIn: parent
@@ -45,6 +54,22 @@ Item {
         raised: true
         showSheen: false
         border.color: RaohaneTheme.borderStrong
+        opacity: root.entered ? 1 : 0
+        scale: root.entered ? 1 : 0.982
+
+        transform: Translate {
+            y: root.entered ? 0 : 12
+            Behavior on y {
+                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+            }
+        }
+
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+        }
+        Behavior on scale {
+            NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+        }
 
         ColumnLayout {
             anchors.fill: parent
@@ -53,21 +78,21 @@ Item {
 
             Item { Layout.fillHeight: true }
 
-            Rectangle {
+            RaohaneSurface {
                 Layout.alignment: Qt.AlignHCenter
                 width: 64
                 height: 64
-                radius: 20
-                color: RaohaneTheme.surfaceSubtle
-                border.width: 1
-                border.color: RaohaneTheme.border
+                surfaceRadius: 20
+                active: true
+                showSheen: false
 
-                Text {
+                RaohaneIcon {
                     anchors.centerIn: parent
-                    text: "ラ"
+                    text: "lock"
+                    iconSize: 27
+                    fill: 1
+                    symbolWeight: 540
                     color: RaohaneTheme.accent
-                    font.pixelSize: 25
-                    font.weight: Font.DemiBold
                 }
             }
 
@@ -94,15 +119,16 @@ Item {
                 font.weight: Font.DemiBold
             }
 
-            Rectangle {
+            RaohaneSurface {
                 id: passwordBox
                 Layout.fillWidth: true
                 Layout.maximumWidth: 380
                 Layout.alignment: Qt.AlignHCenter
                 height: 50
-                radius: 15
-                color: passwordInput.activeFocus ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-                border.width: 1
+                surfaceRadius: 15
+                raised: false
+                hovered: passwordInput.activeFocus
+                showSheen: false
                 border.color: root.context.showFailure ? RaohaneTheme.critical
                     : passwordInput.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
@@ -115,7 +141,11 @@ Item {
                     RaohaneIcon {
                         text: root.context.showFailure ? "lock_reset" : "lock"
                         iconSize: 18
+                        fill: root.context.showFailure ? 1 : 0
+                        symbolWeight: root.context.showFailure ? 560 : 430
                         color: root.context.showFailure ? RaohaneTheme.critical : RaohaneTheme.textMuted
+
+                        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                     }
 
                     TextInput {
@@ -143,31 +173,15 @@ Item {
                         Component.onCompleted: forceActiveFocus()
                     }
 
-                    Rectangle {
-                        width: 36
-                        height: 36
-                        radius: 11
-                        color: unlockMouse.containsMouse ? RaohaneTheme.surfaceRaised : "transparent"
-                        border.width: unlockMouse.containsMouse ? 1 : 0
-                        border.color: RaohaneTheme.borderStrong
-                        opacity: unlockMouse.enabled ? 1 : 0.45
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: root.context.unlockInProgress ? "hourglass_top" : "arrow_forward"
-                            iconSize: 18
-                            fill: 1
-                            color: root.context.unlockInProgress ? RaohaneTheme.textMuted : RaohaneTheme.accent
-                        }
-
-                        MouseArea {
-                            id: unlockMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            enabled: !root.context.unlockInProgress && root.context.currentText.length > 0
-                            onClicked: root.context.tryUnlock()
-                        }
+                    RaohaneIconButton {
+                        buttonSize: 36
+                        iconSize: 18
+                        icon: root.context.unlockInProgress ? "hourglass_top" : "arrow_forward"
+                        emphasized: !root.context.unlockInProgress && root.context.currentText.length > 0
+                        transparentIdle: !emphasized
+                        showSheen: false
+                        enabled: !root.context.unlockInProgress && root.context.currentText.length > 0
+                        onClicked: root.context.tryUnlock()
                     }
                 }
             }
@@ -181,6 +195,8 @@ Item {
                         : qsTr("Enter your password to unlock")
                 color: root.context.showFailure ? RaohaneTheme.critical : RaohaneTheme.textMuted
                 font.pixelSize: 9
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
 
             RowLayout {
@@ -214,6 +230,12 @@ Item {
                     height: 5
                     radius: 3
                     color: root.context.fingerprintsConfigured ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    scale: root.context.fingerprintsConfigured ? 1.12 : 1
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                    Behavior on scale {
+                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
                 }
 
                 Text {
@@ -230,7 +252,7 @@ Item {
         function onShouldRefocus(): void { passwordInput.forceActiveFocus() }
     }
 
-    component SystemButton: Rectangle {
+    component SystemButton: RaohaneSurface {
         id: control
         required property string icon
         property bool danger: false
@@ -238,16 +260,29 @@ Item {
 
         width: 40
         height: 40
-        radius: 12
-        color: pointer.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: pointer.containsMouse ? 1 : 0
-        border.color: control.danger && pointer.containsMouse ? RaohaneTheme.critical : RaohaneTheme.border
+        surfaceRadius: 12
+        transparentIdle: true
+        showSheen: false
+        interactive: true
+        hovered: pointer.containsMouse || activeFocus
+        pressed: pointer.pressed
+        hoverScale: RaohaneMotion.hoverScale
+        pressedScale: RaohaneMotion.pressScale
+        activeFocusOnTab: true
+        border.color: control.danger && control.hovered ? RaohaneTheme.critical
+            : control.hovered || control.pressed ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         RaohaneIcon {
             anchors.centerIn: parent
             text: control.icon
             iconSize: 18
-            color: control.danger && pointer.containsMouse ? RaohaneTheme.critical : RaohaneTheme.textMuted
+            fill: control.hovered || control.activeFocus ? 1 : 0
+            symbolWeight: control.pressed ? 560 : control.hovered || control.activeFocus ? 520 : 430
+            color: control.danger && (control.hovered || control.activeFocus)
+                ? RaohaneTheme.critical
+                : control.hovered || control.activeFocus ? RaohaneTheme.text : RaohaneTheme.textMuted
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
 
         MouseArea {
@@ -255,7 +290,15 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: control.forceActiveFocus()
             onClicked: control.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                control.triggered()
+                event.accepted = true
+            }
         }
     }
 }
