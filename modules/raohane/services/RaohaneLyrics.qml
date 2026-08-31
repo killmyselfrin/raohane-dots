@@ -2,8 +2,8 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQml
 import Quickshell
+import Quickshell.Io
 
 Singleton {
     id: root
@@ -17,7 +17,6 @@ Singleton {
     property string debugStatus: "idle"
     property int requestSerial: 0
     property var cache: ({})
-    property var activeRequest: null
 
     readonly property bool syncedAvailable: lines.length > 0
     readonly property bool available: instrumental || syncedAvailable || plainLyrics.trim().length > 0
@@ -73,16 +72,9 @@ Singleton {
         ].join("|")
     }
 
-    function cancelRequest(): void {
-        requestWatchdog.stop()
-        if (root.activeRequest) {
-            try { root.activeRequest.abort() } catch (error) {}
-        }
-        root.activeRequest = null
-    }
-
     function clear(): void {
-        root.cancelRequest()
+        resolver.running = false
+        requestWatchdog.stop()
         root.loading = false
         root.instrumental = false
         root.plainLyrics = ""
@@ -108,7 +100,8 @@ Singleton {
         root.requestSerial += 1
         const serial = root.requestSerial
 
-        root.cancelRequest()
+        resolver.running = false
+        requestWatchdog.stop()
 
         if (!RaohaneMedia.available || meta.artist.length === 0 || meta.title.length === 0) {
             root.clear()
@@ -127,90 +120,21 @@ Singleton {
         root.plainLyrics = ""
         root.lines = []
         root.errorText = ""
+        root.debugStatus = "resolving"
 
-        // Browser MPRIS metadata frequently has a useful artist/title but an
-        // unreliable album/channel value. LRCLIB only requires artist/title,
-        // so album is intentionally not part of lookup requests.
-        root.requestExact(serial, key, meta, true)
-    }
-
-    function requestExact(serial: int, key: string, meta, withDuration: bool): void {
-        if (serial !== root.requestSerial)
-            return
-
-        root.debugStatus = withDuration ? "exact-duration" : "exact"
-        const params = [
-            "artist_name=" + encodeURIComponent(meta.artist),
-            "track_name=" + encodeURIComponent(meta.title)
+        resolver.serialToken = serial
+        resolver.keyToken = key
+        resolver.metaToken = meta
+        resolver.command = [
+            "python3",
+            Quickshell.shellPath("scripts/lyrics-resolve.py"),
+            meta.artist,
+            meta.title,
+            meta.album,
+            String(meta.duration)
         ]
-        if (withDuration && meta.duration >= 1 && meta.duration <= 3600)
-            params.push("duration=" + meta.duration)
-
-        root.getJson(
-            "https://lrclib.net/api/get?" + params.join("&"),
-            serial,
-            record => {
-                if (root.recordMatches(record, meta, withDuration)) {
-                    root.applyRecord(record, key, meta)
-                    return
-                }
-                if (withDuration)
-                    root.requestExact(serial, key, meta, false)
-                else
-                    root.requestStructuredSearch(serial, key, meta)
-            },
-            () => {
-                if (withDuration)
-                    root.requestExact(serial, key, meta, false)
-                else
-                    root.requestStructuredSearch(serial, key, meta)
-            }
-        )
-    }
-
-    function requestStructuredSearch(serial: int, key: string, meta): void {
-        if (serial !== root.requestSerial)
-            return
-
-        root.debugStatus = "structured-search"
-        const params = [
-            "track_name=" + encodeURIComponent(meta.title),
-            "artist_name=" + encodeURIComponent(meta.artist)
-        ]
-
-        root.getJson(
-            "https://lrclib.net/api/search?" + params.join("&"),
-            serial,
-            records => {
-                const best = root.chooseBestRecord(records, meta)
-                if (best) {
-                    root.applyRecord(best, key, meta)
-                    return
-                }
-                root.requestLooseSearch(serial, key, meta)
-            },
-            () => root.requestLooseSearch(serial, key, meta)
-        )
-    }
-
-    function requestLooseSearch(serial: int, key: string, meta): void {
-        if (serial !== root.requestSerial)
-            return
-
-        root.debugStatus = "loose-search"
-        const query = root.compactSpaces(meta.artist + " " + meta.title)
-        root.getJson(
-            "https://lrclib.net/api/search?q=" + encodeURIComponent(query),
-            serial,
-            records => {
-                const best = root.chooseBestRecord(records, meta)
-                if (best)
-                    root.applyRecord(best, key, meta)
-                else
-                    root.finishNotFound(serial)
-            },
-            () => root.finishNotFound(serial)
-        )
+        resolver.running = true
+        requestWatchdog.restart()
     }
 
     function hasLyrics(record): bool {
@@ -222,9 +146,6 @@ Singleton {
     function artistMatches(recordArtist: string, wantedArtist: string): bool {
         if (recordArtist === wantedArtist)
             return true
-
-        // Allow collaborator suffixes only when the normalized base artist is
-        // substantial enough to avoid matching unrelated short names.
         return (wantedArtist.length >= 5 && recordArtist.includes(wantedArtist))
             || (recordArtist.length >= 5 && wantedArtist.includes(recordArtist))
     }
@@ -247,98 +168,54 @@ Singleton {
         const recordDuration = Number(record.duration) || 0
         if (strictDuration && wantedDuration > 0 && recordDuration > 0)
             return Math.abs(wantedDuration - recordDuration) <= 4
-
         return true
     }
 
-    function chooseBestRecord(records, meta): var {
-        if (!Array.isArray(records) || records.length === 0)
-            return null
-
-        const wantedAlbum = root.comparable(meta.album)
-        const wantedDuration = Number(meta.duration) || 0
-        let best = null
-        let bestScore = Number.POSITIVE_INFINITY
-
-        for (const record of records) {
-            if (!root.recordMatches(record, meta, false))
-                continue
-
-            const recordAlbum = root.comparable(root.cleanAlbum(record.albumName ?? ""))
-            const recordDuration = Number(record.duration) || 0
-            let score = 0
-
-            if (wantedDuration > 0 && recordDuration > 0) {
-                const diff = Math.abs(wantedDuration - recordDuration)
-                // Search endpoints can return another recording/version of the
-                // same song. Reject large duration mismatches.
-                if (diff > 10)
-                    continue
-                score += diff
-            }
-
-            if (wantedAlbum.length > 0 && recordAlbum === wantedAlbum)
-                score -= 4
-            if (String(record.syncedLyrics ?? "").trim().length > 0)
-                score -= 2
-
-            if (score < bestScore) {
-                bestScore = score
-                best = record
-            }
-        }
-
-        return best
-    }
-
-    function getJson(url: string, serial: int, onSuccess, onNotFound): void {
+    function applyResolverPayload(serial: int, key: string, meta, payload: string): void {
         if (serial !== root.requestSerial)
             return
 
-        root.cancelRequest()
+        requestWatchdog.stop()
+        root.loading = false
 
-        const request = new XMLHttpRequest()
-        root.activeRequest = request
-        request.open("GET", url)
-        request.setRequestHeader("Accept", "application/json")
-        request.setRequestHeader("Lrclib-Client", "Raohane/0.10.0-dev (https://github.com/killmyselfrin/raohane-dots)")
-        request.onreadystatechange = function() {
-            if (request.readyState !== 4 || serial !== root.requestSerial)
-                return
-
-            requestWatchdog.stop()
-            if (root.activeRequest === request)
-                root.activeRequest = null
-
-            if (request.status === 200) {
-                try {
-                    onSuccess(JSON.parse(request.responseText))
-                } catch (error) {
-                    root.loading = false
-                    root.debugStatus = "invalid-response"
-                    root.errorText = qsTr("Lyrics response could not be read")
-                }
-                return
-            }
-
-            if (request.status === 404 || request.status === 400) {
-                onNotFound()
-                return
-            }
-
-            root.loading = false
-            root.debugStatus = "http-error"
-            root.errorText = request.status === 429
-                ? qsTr("Lyrics service is busy. Try again shortly.")
-                : qsTr("Could not load lyrics (HTTP %1)").arg(request.status)
+        let result = null
+        try {
+            result = JSON.parse(String(payload ?? "").trim())
+        } catch (error) {
+            root.debugStatus = "invalid-response"
+            root.errorText = qsTr("Lyrics resolver returned invalid data")
+            return
         }
-        requestWatchdog.restart()
-        request.send()
+
+        root.debugStatus = String(result?.status ?? "resolver-error")
+        if (!result?.ok) {
+            root.instrumental = false
+            root.plainLyrics = ""
+            root.lines = []
+            root.errorText = root.debugStatus === "network-error"
+                ? qsTr("Lyrics service could not be reached. Try refresh.")
+                : qsTr(String(result?.error ?? "Lyrics were not found for this track"))
+            return
+        }
+
+        const record = result.record
+        if (!root.recordMatches(record, meta, false)) {
+            root.instrumental = false
+            root.plainLyrics = ""
+            root.lines = []
+            root.debugStatus = "identity-mismatch"
+            root.errorText = qsTr("Lyrics were not found for this track")
+            return
+        }
+
+        root.applyRecord(record, key, meta)
     }
 
     function applyRecord(record, key: string, meta): void {
         if (!root.recordMatches(record, meta, false)) {
-            root.finishNotFound(root.requestSerial)
+            root.loading = false
+            root.debugStatus = "identity-mismatch"
+            root.errorText = qsTr("Lyrics were not found for this track")
             return
         }
 
@@ -360,19 +237,6 @@ Singleton {
         root.errorText = ""
         root.debugStatus = "matched"
         console.info("[RaohaneLyrics] matched", compact.artistName, "-", compact.trackName, "duration", compact.duration)
-    }
-
-    function finishNotFound(serial: int): void {
-        if (serial !== root.requestSerial)
-            return
-
-        root.cancelRequest()
-        root.loading = false
-        root.instrumental = false
-        root.plainLyrics = ""
-        root.lines = []
-        root.debugStatus = "not-found"
-        root.errorText = qsTr("Lyrics were not found for this track")
     }
 
     function parseSyncedLyrics(value: string): var {
@@ -421,6 +285,34 @@ Singleton {
         return -1
     }
 
+    Process {
+        id: resolver
+        property int serialToken: 0
+        property string keyToken: ""
+        property var metaToken: ({})
+        running: false
+
+        stdout: StdioCollector {
+            onStreamFinished: root.applyResolverPayload(
+                resolver.serialToken,
+                resolver.keyToken,
+                resolver.metaToken,
+                text
+            )
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            if (resolver.serialToken !== root.requestSerial || !root.loading)
+                return
+            if (exitCode !== 0) {
+                requestWatchdog.stop()
+                root.loading = false
+                root.debugStatus = "resolver-failed"
+                root.errorText = qsTr("Lyrics resolver failed to start")
+            }
+        }
+    }
+
     Connections {
         target: RaohaneMedia
 
@@ -440,13 +332,10 @@ Singleton {
 
     Timer {
         id: requestWatchdog
-        interval: 12000
+        interval: 15000
         repeat: false
         onTriggered: {
-            if (root.activeRequest) {
-                try { root.activeRequest.abort() } catch (error) {}
-                root.activeRequest = null
-            }
+            resolver.running = false
             root.loading = false
             root.debugStatus = "timeout"
             root.errorText = qsTr("Lyrics request timed out. Try refresh.")
