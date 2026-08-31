@@ -24,6 +24,8 @@ dock='modules/raohane/RaohaneDock.qml'
 context='modules/raohane/RaohaneContextIsland.qml'
 notification='modules/raohane/RaohaneNotificationCard.qml'
 surface='modules/raohane/RaohaneSurface.qml'
+icon_button='modules/raohane/RaohaneIconButton.qml'
+clock='modules/raohane/RaohaneClock.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 session='modules/raohane/RaohaneSessionScreen.qml'
@@ -38,7 +40,7 @@ osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
   "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" \
-  "$settings_home" "$bar" "$vertical" "$dock" "$context" "$notification" "$surface" "$quick" \
+  "$settings_home" "$bar" "$vertical" "$dock" "$context" "$notification" "$surface" "$icon_button" "$clock" "$quick" \
   "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
 done
@@ -146,6 +148,10 @@ rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the fl
 rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" || fail 'horizontal bar lost safe advanced pod-height bounds'
 rg -q 'barScale' "$bar" || fail 'horizontal bar does not consume persisted advanced scale'
 rg -q 'RaohaneContextIsland[[:space:]]*\{' "$bar" || fail 'horizontal bar lost the centered Context Island'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$bar" || fail 'horizontal bar no longer uses the shared tactile icon-button primitive'
+rg -q 'RaohaneClock[[:space:]]*\{' "$bar" || fail 'horizontal bar lost the shared clock hierarchy'
+rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$icon_button" || fail 'shared icon button lost restrained secondary icon hierarchy'
+rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$clock" || fail 'shared clock lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.islandHeight' "$context" || fail 'Context Island no longer derives from the shared height token'
 
 rg -q 'source:[[:space:]]*RaohaneConfig\.wallpaperPath' "$settings_home" || fail 'Settings home lost its live wallpaper hero'
@@ -155,8 +161,8 @@ if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$medi
   fail 'a primary surface regressed to legacy one-off chrome'
 fi
 
-for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
+for file in "$launcher" "$media" "$control" "$settings" "$vertical" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
 
-printf 'visual-boundary-audit: minimalist themes, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome, shared focal media material and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, shared bar/icon hierarchy, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome, shared focal media material and stable geometry are valid\n'
