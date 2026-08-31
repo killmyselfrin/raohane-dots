@@ -100,35 +100,42 @@ Item {
         onTriggered: acceptSecondTap = false
     }
 
-    Rectangle {
+    RaohaneSurface {
+        id: keySurface
         anchors.fill: parent
-        radius: 11
-        color: {
-            if (root.isEmpty)
-                return "transparent"
-            if (root.toggled)
-                return RaohaneTheme.surfaceRaised
-            if (keyMouse.pressed)
-                return RaohaneTheme.surfacePressed
-            if (keyMouse.containsMouse)
-                return RaohaneTheme.surfaceHover
-            return RaohaneTheme.surfaceSubtle
+        surfaceRadius: 11
+        active: root.toggled
+        hovered: keyMouse.containsMouse
+        pressed: keyMouse.pressed
+        interactive: !root.isEmpty
+        transparentIdle: root.isEmpty
+        showSheen: false
+        hoverScale: 1.015
+        pressedScale: 0.96
+
+        RaohaneIcon {
+            anchors.centerIn: parent
+            visible: !root.isEmpty && (root.isBackspace || root.isEnter)
+            text: root.isBackspace ? "backspace" : "keyboard_return"
+            iconSize: 18
+            fill: root.toggled ? 1 : keyMouse.pressed ? 0.7 : 0
+            symbolWeight: keyMouse.pressed ? 560 : keyMouse.containsMouse || root.toggled ? 520 : 430
+            color: root.toggled ? RaohaneTheme.accent : RaohaneTheme.text
+            scale: keyMouse.pressed ? 0.92 : 1
+
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+            }
         }
-        border.width: root.isEmpty ? 0 : 1
-        border.color: root.toggled ? RaohaneTheme.accentBorder
-            : keyMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         Text {
             anchors.centerIn: parent
             width: parent.width - 8
+            visible: !root.isBackspace && !root.isEnter
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
             text: {
-                if (root.isBackspace)
-                    return "⌫"
-                if (root.isEnter)
-                    return "↵"
                 if (RaohaneYdotool.shiftMode === 2)
                     return root.keyData.labelCaps ?? root.keyData.labelShift ?? root.keyLabel
                 if (RaohaneYdotool.shiftMode === 1)
@@ -138,6 +145,12 @@ Item {
             color: root.isEmpty ? "transparent" : root.toggled ? RaohaneTheme.accent : RaohaneTheme.text
             font.pixelSize: root.shape === "fn" ? 10 : 12
             font.weight: root.toggled ? Font.DemiBold : Font.Normal
+            scale: keyMouse.pressed ? 0.94 : 1
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+            }
         }
 
         MouseArea {
