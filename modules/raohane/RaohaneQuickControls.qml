@@ -106,12 +106,12 @@ Item {
             }
         }
 
-        Rectangle {
+        RaohaneSurface {
             Layout.fillWidth: true
             Layout.preferredHeight: sliderColumn.implicitHeight + 22
-            radius: 20
+            surfaceRadius: RaohaneTheme.radiusLarge
+            showSheen: false
             color: RaohaneTheme.surfaceSubtle
-            border.width: 1
             border.color: RaohaneTheme.border
 
             Rectangle {
@@ -124,7 +124,7 @@ Item {
                 }
                 height: 1
                 color: RaohaneTheme.highlight
-                opacity: 0.22
+                opacity: 0.18
             }
 
             ColumnLayout {
@@ -205,7 +205,7 @@ Item {
         }
     }
 
-    component QuickTile: Rectangle {
+    component QuickTile: RaohaneSurface {
         id: tile
 
         required property string icon
@@ -215,16 +215,13 @@ Item {
         signal primary()
         signal secondary()
 
-        readonly property bool hovered: pointer.containsMouse
-
         Layout.preferredHeight: 66
-        radius: 18
-        color: active ? RaohaneTheme.accentSoft : (hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle)
-        border.width: 1
-        border.color: active ? RaohaneTheme.accentBorder : (hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border)
-
-        Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
-        Behavior on border.color { ColorAnimation { duration: RaohaneTheme.animationFast } }
+        surfaceRadius: RaohaneTheme.radius
+        showSheen: false
+        hovered: pointer.containsMouse || activeFocus
+        pressed: pointer.pressed
+        interactive: true
+        activeFocusOnTab: true
 
         RowLayout {
             anchors {
@@ -234,20 +231,28 @@ Item {
             }
             spacing: 10
 
-            Rectangle {
+            RaohaneSurface {
                 Layout.preferredWidth: 34
                 Layout.preferredHeight: 34
-                radius: 12
-                color: tile.active ? RaohaneTheme.surfaceRaised : RaohaneTheme.surfaceSubtle
-                border.width: 1
-                border.color: tile.active ? RaohaneTheme.accentBorder : RaohaneTheme.border
+                surfaceRadius: 12
+                showSheen: false
+                raised: tile.active
+                active: tile.active
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: tile.icon
-                    iconSize: 17
+                    iconSize: 18
+                    fill: tile.active ? 1 : tile.hovered ? 0.28 : 0
+                    symbolWeight: tile.active ? 560 : tile.hovered ? 500 : 430
+                    grade: tile.active ? 40 : tile.hovered ? 20 : 0
                     color: tile.active || tile.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
+                    scale: pointer.pressed ? 0.92 : 1
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                    Behavior on scale {
+                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                    }
                 }
             }
 
@@ -287,8 +292,15 @@ Item {
                     height: width
                     radius: width / 2
                     color: tile.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    Behavior on width { NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
+                    scale: pointer.pressed ? 0.82 : 1
+
+                    Behavior on width {
+                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                    Behavior on scale {
+                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                    }
                 }
             }
         }
@@ -299,11 +311,19 @@ Item {
             hoverEnabled: true
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             cursorShape: Qt.PointingHandCursor
+            onPressed: tile.forceActiveFocus()
             onClicked: mouse => {
                 if (mouse.button === Qt.RightButton)
                     tile.secondary()
                 else
                     tile.primary()
+            }
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                tile.primary()
+                event.accepted = true
             }
         }
     }
@@ -319,9 +339,7 @@ Item {
         signal iconTriggered()
 
         readonly property real clampedLiveValue: Math.max(0, Math.min(1, Number(liveValue) || 0))
-        readonly property real shownValue: dragArea.pressed ? dragValue : clampedLiveValue
-        readonly property bool hovered: dragArea.containsMouse || iconMouse.containsMouse
-        property real dragValue: clampedLiveValue
+        readonly property bool hovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
 
         implicitHeight: 42
 
@@ -329,37 +347,18 @@ Item {
             anchors.fill: parent
             spacing: 9
 
-            Rectangle {
-                width: 32
-                height: 32
-                radius: 11
-                color: control.hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-                border.width: 1
-                border.color: control.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
-
-                Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
-                Behavior on border.color { ColorAnimation { duration: RaohaneTheme.animationFast } }
-
-                RaohaneIcon {
-                    anchors.centerIn: parent
-                    text: control.icon
-                    iconSize: 17
-                    color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    Behavior on color { ColorAnimation { duration: RaohaneTheme.animationFast } }
-                }
-
-                MouseArea {
-                    id: iconMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: control.iconTriggered()
-                }
+            RaohaneIconButton {
+                id: iconButton
+                buttonSize: 32
+                iconSize: 17
+                icon: control.icon
+                emphasized: control.hovered
+                onClicked: control.iconTriggered()
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 3
+                spacing: 2
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -373,13 +372,12 @@ Item {
 
                     Item { Layout.fillWidth: true }
 
-                    Rectangle {
-                        implicitWidth: valueLabel.implicitWidth + 12
-                        implicitHeight: 17
-                        radius: 8.5
-                        color: control.hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-                        border.width: 1
-                        border.color: control.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                    RaohaneSurface {
+                        implicitWidth: valueLabel.implicitWidth + 14
+                        implicitHeight: 19
+                        surfaceRadius: 9
+                        showSheen: false
+                        hovered: control.hovered
 
                         Text {
                             id: valueLabel
@@ -388,77 +386,21 @@ Item {
                             color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
                             font.pixelSize: 8
                             font.weight: Font.DemiBold
+
+                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                         }
                     }
                 }
 
-                Item {
-                    id: sliderArea
+                RaohaneSlider {
+                    id: valueSlider
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 18
-
-                    Rectangle {
-                        id: track
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            verticalCenter: parent.verticalCenter
-                        }
-                        height: dragArea.pressed ? 7 : 6
-                        radius: height / 2
-                        color: RaohaneTheme.surfaceDeep
-                        border.width: 1
-                        border.color: control.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
-
-                        Rectangle {
-                            width: Math.max(0, Math.min(parent.width, control.shownValue * parent.width))
-                            height: parent.height
-                            radius: parent.radius
-                            color: RaohaneTheme.accent
-                        }
-                    }
-
-                    Rectangle {
-                        id: handle
-                        width: dragArea.pressed ? 17 : (dragArea.containsMouse ? 16 : 14)
-                        height: width
-                        radius: width / 2
-                        x: Math.max(0, Math.min(sliderArea.width - width,
-                            control.shownValue * sliderArea.width - width / 2))
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: RaohaneTheme.surfaceRaised
-                        border.width: 2
-                        border.color: RaohaneTheme.accent
-
-                        Behavior on width { NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic } }
-                    }
-
-                    MouseArea {
-                        id: dragArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        preventStealing: true
-                        acceptedButtons: Qt.LeftButton
-                        cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
-
-                        function valueForX(mouseX: real): real {
-                            if (width <= 0)
-                                return control.clampedLiveValue
-                            return Math.max(0, Math.min(1, mouseX / width))
-                        }
-
-                        function applyPosition(mouseX: real): void {
-                            control.dragValue = valueForX(mouseX)
-                            control.valueChangedByUser(control.dragValue)
-                        }
-
-                        onPressed: mouse => applyPosition(mouse.x)
-                        onPositionChanged: mouse => {
-                            if (pressed)
-                                applyPosition(mouse.x)
-                        }
-                        onReleased: mouse => applyPosition(mouse.x)
-                    }
+                    Layout.preferredHeight: 20
+                    from: 0
+                    to: 1
+                    stepSize: 0.01
+                    value: control.clampedLiveValue
+                    onMoved: value => control.valueChangedByUser(value)
                 }
             }
         }
