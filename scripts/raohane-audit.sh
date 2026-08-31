@@ -24,10 +24,14 @@ required_root=(
   modules/raohane/RaohaneIcon.qml
   modules/raohane/RaohaneRuntimeProbe.qml
   modules/raohane/RaohaneSettingsSearch.qml
+  modules/raohane/RaohaneTaskManager.qml
   modules/raohane/config/RaohaneConfig.qml
   modules/raohane/config/RaohanePaths.qml
+  modules/raohane/services/RaohaneProcesses.qml
+  modules/raohane/services/RaohaneLyrics.qml
   defaults/native.json
   scripts/raohane
+  scripts/lyrics-resolve.py
   scripts/raohane-audit.sh
   scripts/source-lineage-audit.sh
   scripts/runtime-payload-audit.sh
@@ -129,6 +133,7 @@ active_surfaces=(
   RaohaneWallpaperSelector
   RaohaneDesktopMenu
   RaohaneSessionScreen
+  RaohaneTaskManager
   RaohaneDropShelfPanel
   RaohaneScreenFrame
 )
@@ -165,6 +170,10 @@ rg -q '^singleton RaohaneDropShelf .*RaohaneDropShelf.qml$' modules/raohane/serv
   || fail 'RaohaneDropShelf is not registered'
 rg -q '^singleton RaohaneAutostart .*RaohaneAutostart.qml$' modules/raohane/services/qmldir \
   || fail 'RaohaneAutostart is not registered'
+rg -q '^singleton RaohaneProcesses .*RaohaneProcesses.qml$' modules/raohane/services/qmldir \
+  || fail 'RaohaneProcesses is not registered'
+rg -q '^singleton RaohaneLyrics .*RaohaneLyrics.qml$' modules/raohane/services/qmldir \
+  || fail 'RaohaneLyrics is not registered'
 
 if rg -n -i 'inir|\bniri\b|waffle|ricelin' modules/raohane shell.qml "$family"; then
   fail 'Raohane product runtime contains a non-target/legacy identity'
@@ -182,6 +191,20 @@ while IFS= read -r qml; do
       || fail "$qml uses Quickshell.Io types without importing Quickshell.Io"
   fi
 done < <(find modules/raohane -type f -name '*.qml' -print)
+
+# Lyrics network resolution belongs in an owned backend helper. Keep networking
+# out of QML so UI state, request lifecycle and LRCLIB HTTP behavior stay separate.
+rg -q 'Quickshell\.shellPath\("scripts/lyrics-resolve\.py"\)' modules/raohane/services/RaohaneLyrics.qml \
+  || fail 'RaohaneLyrics does not invoke the owned resolver backend'
+if rg -n 'XMLHttpRequest|https://lrclib\.net/api' modules/raohane/services/RaohaneLyrics.qml; then
+  fail 'RaohaneLyrics regressed to direct QML HTTP requests'
+fi
+python3 - scripts/lyrics-resolve.py <<'PY'
+import pathlib
+import sys
+path = pathlib.Path(sys.argv[1])
+compile(path.read_text(encoding="utf-8"), str(path), "exec")
+PY
 
 for route in \
   'ipc raohaneLauncher toggle' \
@@ -264,4 +287,4 @@ bash scripts/bluetooth-performance-audit.sh
 bash scripts/easyeffects-performance-audit.sh
 bash scripts/keyboard-layout-boundary-audit.sh
 
-printf 'raohane-audit: native bootstrap, source lineage, release CLI, Phase 4 runtime contract, coordinated surfaces, overview pointer routing, multi-monitor/fullscreen behavior, event-driven privacy/Bluetooth, on-demand EasyEffects state, idle sidebar timing, EN/RU input switching, capture backends and native release boundaries are valid\n'
+printf 'raohane-audit: native bootstrap, source lineage, release CLI, coordinated Task Manager, owned lyrics resolver, Phase 4 runtime contract, overview routing, multi-monitor/fullscreen behavior and native release boundaries are valid\n'
