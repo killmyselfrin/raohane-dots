@@ -7,7 +7,8 @@ import Quickshell.Wayland
 
 import qs.modules.raohane.services
 
-// Raohane-owned full-screen command overlay.
+// Raohane-owned full-screen command deck. It stays lightweight while hidden
+// and routes feature entry points through the same native surface coordinator.
 Scope {
     id: root
 
@@ -30,25 +31,19 @@ Scope {
 
     function openSurface(name: string): void {
         switch (name) {
-        case "launcher":
-            RaohaneState.setPrimaryOpen("launcher", true)
-            break
-        case "control":
-            RaohaneState.setPrimaryOpen("controlCenter", true)
-            break
+        case "launcher": RaohaneState.setPrimaryOpen("launcher", true); break
+        case "control": RaohaneState.setPrimaryOpen("controlCenter", true); break
+        case "tasks": RaohaneState.setPrimaryOpen("taskManager", true); break
+        case "settings": RaohaneState.setPrimaryOpen("settings", true); break
+        case "translate": RaohaneState.setPrimaryOpen("screenTranslator", true); break
+        case "session": RaohaneState.setPrimaryOpen("session", true); break
         case "media":
             root.close()
             RaohaneState.mediaOverlayOpen = true
             break
-        case "settings":
-            RaohaneState.setPrimaryOpen("settings", true)
-            break
         case "osk":
             root.close()
             RaohaneState.oskOpen = true
-            break
-        case "session":
-            RaohaneState.setPrimaryOpen("session", true)
             break
         }
     }
@@ -67,6 +62,7 @@ Scope {
         screen: root.focusedScreen
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
+        exclusiveZone: 0
 
         anchors {
             top: true
@@ -92,7 +88,8 @@ Scope {
 
             Rectangle {
                 anchors.fill: parent
-                color: "#9908070d"
+                color: RaohaneTheme.background
+                opacity: 0.72
 
                 MouseArea {
                     anchors.fill: parent
@@ -100,107 +97,109 @@ Scope {
                 }
             }
 
-            Rectangle {
+            RaohaneSurface {
                 id: commandDeck
                 anchors.centerIn: parent
-                width: Math.min(parent.width - 48, 860)
-                height: Math.min(parent.height - 80, 430)
-                radius: 30
-                color: RaohaneTheme.glassStrong
-                border.width: 1
-                border.color: RaohaneTheme.border
+                width: Math.min(parent.width - 48, 900)
+                height: Math.min(parent.height - 80, 500)
+                raised: true
+                showSheen: false
+                surfaceRadius: RaohaneTheme.radiusLarge
+                border.color: RaohaneTheme.borderStrong
 
                 MouseArea {
                     anchors.fill: parent
-                    // Consume clicks so the scrim behind the deck does not close it.
+                    acceptedButtons: Qt.AllButtons
                     onClicked: mouse => mouse.accepted = true
-                }
-
-                Rectangle {
-                    width: 4
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        bottom: parent.bottom
-                    }
-                    radius: 2
-                    color: RaohaneTheme.accent
                 }
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 24
-                    spacing: 16
+                    anchors.margins: 22
+                    spacing: 14
 
                     RowLayout {
                         Layout.fillWidth: true
+                        spacing: 12
 
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 2
+                        Rectangle {
+                            width: 42
+                            height: 42
+                            radius: RaohaneTheme.radiusSmall
+                            color: RaohaneTheme.surfaceSubtle
+                            border.width: 1
+                            border.color: RaohaneTheme.border
 
-                            Text {
-                                text: "RAOHANE / OVERLAY"
+                            RaohaneIcon {
+                                anchors.centerIn: parent
+                                text: "dashboard_customize"
+                                iconSize: 20
                                 color: RaohaneTheme.accent
-                                font.pixelSize: 11
-                                font.bold: true
-                                font.letterSpacing: 1.5
-                            }
-
-                            Text {
-                                text: qsTr("Command deck")
-                                color: RaohaneTheme.text
-                                font.pixelSize: 24
-                                font.weight: Font.DemiBold
                             }
                         }
 
                         ColumnLayout {
+                            Layout.fillWidth: true
                             spacing: 0
 
+                            Text {
+                                text: qsTr("Command Deck")
+                                color: RaohaneTheme.text
+                                font.pixelSize: 19
+                                font.weight: Font.DemiBold
+                            }
+
+                            Text {
+                                text: RaohanePrivacy.recordingActive ? qsTr("Screen capture active")
+                                    : RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive ? qsTr("Privacy device active")
+                                    : qsTr("Fast access without leaving the current workspace")
+                                color: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                                    ? RaohaneTheme.warning : RaohaneTheme.textMuted
+                                font.pixelSize: 9
+                            }
+                        }
+
+                        ColumnLayout {
+                            spacing: -1
                             Text {
                                 Layout.alignment: Qt.AlignRight
                                 text: Qt.formatTime(root.now, "HH:mm")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 28
-                                font.weight: Font.Bold
+                                font.pixelSize: 20
+                                font.weight: Font.DemiBold
                             }
-
                             Text {
                                 Layout.alignment: Qt.AlignRight
                                 text: Qt.formatDate(root.now, "ddd, d MMM")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 11
+                                color: RaohaneTheme.textFaint
+                                font.pixelSize: 8
                             }
                         }
                     }
 
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                        color: RaohaneTheme.border
-                    }
+                    RaohaneDivider { Layout.fillWidth: true }
 
                     GridLayout {
                         Layout.fillWidth: true
-                        columns: 3
-                        columnSpacing: 10
-                        rowSpacing: 10
+                        Layout.fillHeight: true
+                        columns: 4
+                        columnSpacing: 9
+                        rowSpacing: 9
 
                         QuickAction {
-                            glyph: "⌕"
+                            icon: "search"
                             title: qsTr("Launcher")
-                            subtitle: qsTr("Apps and commands")
+                            subtitle: qsTr("Apps & commands")
                             onTriggered: root.openSurface("launcher")
                         }
                         QuickAction {
-                            glyph: "◎"
+                            icon: "tune"
                             title: qsTr("Control Center")
-                            subtitle: qsTr("Network, audio, display")
+                            subtitle: qsTr("Audio & devices")
                             onTriggered: root.openSurface("control")
                         }
                         QuickAction {
-                            glyph: "♪"
+                            icon: "music_note"
                             title: qsTr("Media")
                             subtitle: RaohaneMedia.available
                                 ? (RaohaneMedia.title.length > 0 ? RaohaneMedia.title : qsTr("Active player"))
@@ -208,45 +207,76 @@ Scope {
                             onTriggered: root.openSurface("media")
                         }
                         QuickAction {
-                            glyph: "⚙"
+                            icon: "browse_activity"
+                            title: qsTr("Tasks")
+                            subtitle: qsTr("CPU, RAM & processes")
+                            onTriggered: root.openSurface("tasks")
+                        }
+                        QuickAction {
+                            icon: "translate"
+                            title: qsTr("Translate")
+                            subtitle: qsTr("Capture & OCR")
+                            onTriggered: root.openSurface("translate")
+                        }
+                        QuickAction {
+                            icon: "keyboard"
+                            title: qsTr("Keyboard")
+                            subtitle: qsTr("On-screen input")
+                            onTriggered: root.openSurface("osk")
+                        }
+                        QuickAction {
+                            icon: "settings"
                             title: qsTr("Settings")
                             subtitle: qsTr("Configure Raohane")
                             onTriggered: root.openSurface("settings")
                         }
                         QuickAction {
-                            glyph: "⌨"
-                            title: qsTr("Keyboard")
-                            subtitle: qsTr("On-screen keyboard")
-                            onTriggered: root.openSurface("osk")
-                        }
-                        QuickAction {
-                            glyph: "⏻"
+                            icon: "power_settings_new"
                             title: qsTr("Session")
-                            subtitle: qsTr("Lock, logout, power")
+                            subtitle: qsTr("Lock, logout & power")
                             onTriggered: root.openSurface("session")
                         }
                     }
-
-                    Item { Layout.fillHeight: true }
 
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 10
 
+                        RaohaneIcon {
+                            text: RaohaneAudio.muted ? "volume_off" : "volume_up"
+                            iconSize: 14
+                            color: RaohaneTheme.textMuted
+                        }
                         Text {
                             text: RaohaneAudio.ready
-                                ? (RaohaneAudio.muted ? qsTr("Audio muted") : qsTr("Volume %1%").arg(Math.round(RaohaneAudio.volume * 100)))
+                                ? (RaohaneAudio.muted ? qsTr("Muted") : qsTr("%1% volume").arg(Math.round(RaohaneAudio.volume * 100)))
                                 : qsTr("Audio unavailable")
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 11
+                            font.pixelSize: 8
                         }
 
                         Item { Layout.fillWidth: true }
 
+                        RowLayout {
+                            visible: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                            spacing: 5
+                            RaohaneIcon {
+                                text: RaohanePrivacy.recordingActive ? "screen_record"
+                                    : RaohanePrivacy.cameraActive ? "videocam" : "mic"
+                                iconSize: 13
+                                color: RaohaneTheme.warning
+                            }
+                            Text {
+                                text: qsTr("Privacy active")
+                                color: RaohaneTheme.warning
+                                font.pixelSize: 8
+                            }
+                        }
+
                         Text {
                             text: qsTr("Esc to close")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 10
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
                         }
                     }
                 }
@@ -270,58 +300,56 @@ Scope {
     component QuickAction: Rectangle {
         id: action
 
-        required property string glyph
+        required property string icon
         required property string title
         required property string subtitle
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 88
-        radius: 18
-        color: actionMouse.containsMouse ? "#24ffffff" : "#12ffffff"
+        Layout.fillHeight: true
+        Layout.minimumHeight: 92
+        radius: RaohaneTheme.radius
+        color: actionMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: actionMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.border
+        border.color: actionMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
-        RowLayout {
+        ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 12
+            anchors.margins: 12
+            spacing: 7
 
             Rectangle {
-                Layout.preferredWidth: 42
-                Layout.preferredHeight: 42
-                radius: 14
-                color: RaohaneTheme.accentSoft
+                width: 36
+                height: 36
+                radius: 11
+                color: actionMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceRaised
 
-                Text {
+                RaohaneIcon {
                     anchors.centerIn: parent
-                    text: action.glyph
-                    color: RaohaneTheme.accent
-                    font.pixelSize: 20
-                    font.weight: Font.DemiBold
+                    text: action.icon
+                    iconSize: 18
+                    color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
             }
 
-            ColumnLayout {
+            Item { Layout.fillHeight: true }
+
+            Text {
                 Layout.fillWidth: true
-                spacing: 2
+                text: action.title
+                color: RaohaneTheme.text
+                font.pixelSize: 10
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+            }
 
-                Text {
-                    Layout.fillWidth: true
-                    text: action.title
-                    color: RaohaneTheme.text
-                    font.pixelSize: 13
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: action.subtitle
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 10
-                    elide: Text.ElideRight
-                }
+            Text {
+                Layout.fillWidth: true
+                text: action.subtitle
+                color: RaohaneTheme.textFaint
+                font.pixelSize: 8
+                maximumLineCount: 1
+                elide: Text.ElideRight
             }
         }
 
