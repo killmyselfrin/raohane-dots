@@ -211,7 +211,6 @@ Item {
         required property string icon
         required property string title
         property string subtitle: ""
-        property bool active: false
         signal primary()
         signal secondary()
 
@@ -378,6 +377,7 @@ Item {
                         surfaceRadius: 9
                         showSheen: false
                         hovered: control.hovered
+                        border.color: control.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                         Text {
                             id: valueLabel
