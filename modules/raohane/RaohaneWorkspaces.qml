@@ -78,9 +78,6 @@ Item {
                     : hovered ? RaohaneTheme.borderStrong
                     : RaohaneTheme.border
 
-                Behavior on Layout.preferredWidth {
-                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                }
                 Behavior on border.color {
                     ColorAnimation { duration: RaohaneMotion.micro }
                 }
