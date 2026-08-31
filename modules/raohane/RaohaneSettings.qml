@@ -53,8 +53,8 @@ Scope {
         Rectangle {
             anchors.fill: parent
             color: RaohaneTheme.dark
-                ? Qt.rgba(0, 0, 0, 0.42)
-                : Qt.rgba(0.20, 0.19, 0.17, 0.20)
+                ? Qt.rgba(0, 0, 0, 0.40)
+                : Qt.rgba(0.20, 0.19, 0.17, 0.18)
             opacity: RaohaneState.settingsOpen ? 1 : 0
 
             Behavior on opacity {
@@ -71,8 +71,8 @@ Scope {
             id: workspace
             property bool entered: false
 
-            width: Math.min(parent.width - 64, 1120)
-            height: Math.min(parent.height - 72, 760)
+            width: Math.min(parent.width - 80, 1080)
+            height: Math.min(parent.height - 88, 724)
             anchors.centerIn: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
@@ -80,11 +80,11 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.988
+            scale: entered ? 1 : 0.992
             focus: RaohaneState.settingsOpen
 
             transform: Translate {
-                y: workspace.entered ? 0 : 14
+                y: workspace.entered ? 0 : 12
                 Behavior on y {
                     NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
                 }
@@ -98,6 +98,20 @@ Scope {
                 NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
             }
 
+            Rectangle {
+                z: 30
+                anchors {
+                    left: parent.left
+                    top: parent.top
+                    leftMargin: 22
+                }
+                width: 72
+                height: 2
+                radius: 1
+                color: RaohaneTheme.accent
+                opacity: 0.78
+            }
+
             Item {
                 id: titleBar
                 z: 20
@@ -106,7 +120,7 @@ Scope {
                     right: parent.right
                     top: parent.top
                 }
-                height: 68
+                height: 64
 
                 RowLayout {
                     anchors.fill: parent
@@ -115,7 +129,7 @@ Scope {
                     spacing: 12
 
                     ColumnLayout {
-                        Layout.preferredWidth: 190
+                        Layout.preferredWidth: 176
                         spacing: -1
 
                         Text {
@@ -123,13 +137,13 @@ Scope {
                             color: RaohaneTheme.accent
                             font.pixelSize: 7
                             font.weight: Font.DemiBold
-                            font.letterSpacing: 1.2
+                            font.letterSpacing: 1.4
                         }
 
                         Text {
                             text: qsTr("Settings")
                             color: RaohaneTheme.text
-                            font.pixelSize: 17
+                            font.pixelSize: 16
                             font.weight: Font.DemiBold
                         }
                     }
@@ -138,38 +152,28 @@ Scope {
 
                     RaohaneSettingsSearch {
                         id: settingsSearch
-                        Layout.preferredWidth: Math.min(390, Math.max(260, workspace.width * 0.35))
+                        Layout.preferredWidth: Math.min(370, Math.max(260, workspace.width * 0.34))
                         Layout.preferredHeight: 34
                     }
 
                     Item { Layout.fillWidth: true }
 
-                    RowLayout {
-                        spacing: 5
+                    Item {
+                        Layout.preferredWidth: 176
+                        Layout.fillHeight: true
 
-                        Rectangle {
-                            width: 6
-                            height: 6
-                            radius: 3
-                            color: RaohaneTheme.success
+                        RaohaneIconButton {
+                            anchors {
+                                right: parent.right
+                                verticalCenter: parent.verticalCenter
+                            }
+                            buttonSize: 32
+                            iconSize: 16
+                            icon: "close"
+                            transparentIdle: true
+                            showSheen: false
+                            onClicked: panelWindow.hide()
                         }
-
-                        Text {
-                            text: qsTr("LIVE")
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: 0.7
-                        }
-                    }
-
-                    RaohaneIconButton {
-                        buttonSize: 32
-                        iconSize: 16
-                        icon: "close"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: panelWindow.hide()
                     }
                 }
 
@@ -178,6 +182,8 @@ Scope {
                         left: parent.left
                         right: parent.right
                         bottom: parent.bottom
+                        leftMargin: 22
+                        rightMargin: 16
                     }
                     height: 1
                     color: RaohaneTheme.borderFaint
