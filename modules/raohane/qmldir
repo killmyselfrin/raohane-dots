@@ -1,5 +1,6 @@
 module qs.modules.raohane
 singleton RaohaneTheme 1.0 RaohaneTheme.qml
+singleton RaohaneMotion 1.0 RaohaneMotion.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneState 1.0 RaohaneState.qml
 singleton RaohanePrivacy 1.0 RaohanePrivacy.qml
@@ -10,6 +11,8 @@ RaohaneIcon 1.0 RaohaneIcon.qml
 RaohaneSurface 1.0 RaohaneSurface.qml
 RaohaneDivider 1.0 RaohaneDivider.qml
 RaohaneIconButton 1.0 RaohaneIconButton.qml
+RaohaneSlider 1.0 RaohaneSlider.qml
+RaohaneSwitch 1.0 RaohaneSwitch.qml
 RaohaneRuntimeProbe 1.0 RaohaneRuntimeProbe.qml
 RaohaneBackground 1.0 RaohaneBackground.qml
 RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
