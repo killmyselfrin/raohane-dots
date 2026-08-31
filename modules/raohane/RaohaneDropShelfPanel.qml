@@ -37,6 +37,15 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
+        onVisibleChanged: {
+            if (visible) {
+                shelfPanel.entered = false
+                Qt.callLater(() => shelfPanel.entered = true)
+            } else {
+                shelfPanel.entered = false
+            }
+        }
+
         DropArea {
             anchors.fill: parent
             keys: ["text/uri-list"]
@@ -52,11 +61,30 @@ Scope {
         }
 
         RaohaneSurface {
+            id: shelfPanel
+            property bool entered: false
+
             anchors.fill: parent
             surfaceRadius: 20
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
+            opacity: entered ? 1 : 0
+            scale: entered ? 1 : 0.97
+
+            transform: Translate {
+                y: shelfPanel.entered ? 0 : 10
+                Behavior on y {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -67,18 +95,19 @@ Scope {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 30
 
-                    Rectangle {
+                    RaohaneSurface {
                         width: 28
                         height: 28
-                        radius: 9
-                        color: RaohaneTheme.surfaceSubtle
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                        surfaceRadius: 9
+                        active: true
+                        showSheen: false
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: "shelves"
                             iconSize: 15
+                            fill: 1
+                            symbolWeight: 540
                             color: RaohaneTheme.accent
                         }
                     }
@@ -111,6 +140,8 @@ Scope {
                     spacing: 7
                     clip: true
                     model: RaohaneDropShelf.items
+                    boundsBehavior: Flickable.StopAtBounds
+                    flickDeceleration: 2500
 
                     delegate: RaohaneSurface {
                         id: itemCard
@@ -120,8 +151,12 @@ Scope {
                         height: 116
                         surfaceRadius: 14
                         raised: false
+                        interactive: true
                         hovered: itemMouse.containsMouse
+                        pressed: itemMouse.pressed
                         showSheen: false
+                        hoverScale: 1.015
+                        pressedScale: 0.975
 
                         readonly property string entryPath: modelData
                         readonly property bool imageLike: /\.(png|jpe?g|webp|bmp|gif)$/i.test(entryPath)
@@ -136,13 +171,12 @@ Scope {
                             anchors.margins: 7
                             spacing: 5
 
-                            Rectangle {
+                            RaohaneSurface {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 76
-                                radius: 11
-                                color: RaohaneTheme.surfaceSubtle
-                                border.width: 1
-                                border.color: RaohaneTheme.border
+                                surfaceRadius: 11
+                                active: itemMouse.drag.active
+                                showSheen: false
                                 clip: true
 
                                 Image {
@@ -159,7 +193,11 @@ Scope {
                                     visible: !itemCard.imageLike
                                     text: itemCard.entryPath.endsWith("/") ? "folder" : "draft"
                                     iconSize: 24
-                                    color: RaohaneTheme.textMuted
+                                    fill: itemMouse.containsMouse ? 1 : 0
+                                    symbolWeight: itemMouse.containsMouse ? 520 : 430
+                                    color: itemMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                                 }
                             }
 
@@ -178,7 +216,7 @@ Scope {
                             anchors.fill: parent
                             hoverEnabled: true
                             drag.target: itemCard
-                            cursorShape: Qt.OpenHandCursor
+                            cursorShape: drag.active ? Qt.ClosedHandCursor : Qt.OpenHandCursor
                             onReleased: {
                                 if (itemCard.Drag.active)
                                     itemCard.Drag.drop()
@@ -243,7 +281,7 @@ Scope {
         function copyAll(): void { RaohaneDropShelf.copyAll() }
     }
 
-    component ShelfButton: Rectangle {
+    component ShelfButton: RaohaneSurface {
         id: button
         required property string title
         required property string icon
@@ -252,11 +290,16 @@ Scope {
 
         Layout.fillWidth: true
         Layout.preferredHeight: 34
-        radius: 10
-        opacity: button.enabled ? 1 : 0.35
-        color: buttonMouse.containsMouse && button.enabled ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: 1
-        border.color: button.primary ? RaohaneTheme.accentBorder : RaohaneTheme.border
+        surfaceRadius: 10
+        active: primary
+        transparentIdle: !primary
+        showSheen: false
+        interactive: true
+        hovered: buttonMouse.containsMouse
+        pressed: buttonMouse.pressed
+        hoverScale: 1.01
+        pressedScale: RaohaneMotion.pressScale
+        opacity: button.enabled ? 1 : RaohaneMotion.disabledOpacity
 
         Row {
             anchors.centerIn: parent
@@ -265,7 +308,12 @@ Scope {
             RaohaneIcon {
                 text: button.icon
                 iconSize: 13
-                color: button.primary ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                fill: button.primary || button.hovered ? 1 : 0
+                symbolWeight: button.pressed ? 560 : button.primary || button.hovered ? 520 : 430
+                color: button.primary ? RaohaneTheme.accent
+                    : button.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
             Text {
                 text: button.title
@@ -282,6 +330,10 @@ Scope {
             enabled: button.enabled
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: button.triggered()
+        }
+
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
     }
 }
