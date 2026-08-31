@@ -43,6 +43,26 @@ Scope {
             settings: {
                 open: RaohaneState.settingsOpen
             },
+            tasks: {
+                open: RaohaneState.taskManagerOpen,
+                busy: RaohaneProcesses.busy,
+                processCount: RaohaneProcesses.processes.length,
+                generation: RaohaneProcesses.generation
+            },
+            media: {
+                available: RaohaneMedia.available,
+                playing: RaohaneMedia.isPlaying,
+                title: RaohaneMedia.title,
+                artist: RaohaneMedia.artist,
+                player: RaohaneMedia.playerName
+            },
+            lyrics: {
+                loading: RaohaneLyrics.loading,
+                available: RaohaneLyrics.available,
+                synced: RaohaneLyrics.syncedAvailable,
+                status: RaohaneLyrics.debugStatus,
+                error: RaohaneLyrics.errorText
+            },
             chrome: {
                 frameEnabled: RaohaneConfig.frameEnabled,
                 roundingMode: RaohaneConfig.screenRoundingMode,
