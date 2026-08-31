@@ -223,6 +223,7 @@ Item {
                 contentHeight: sectionColumn.implicitHeight + 32
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
+                flickDeceleration: 2500
 
                 Column {
                     id: sectionColumn
@@ -249,13 +250,20 @@ Item {
                             id: settingRow
                             required property var modelData
 
+                            readonly property bool toggleRow: modelData.type === "toggle"
+
                             width: sectionColumn.width - 32
                             height: modelData.type === "text" ? 80 : 64
                             anchors.horizontalCenter: parent.horizontalCenter
                             surfaceRadius: 15
                             raised: false
-                            hovered: settingMouse.containsMouse
+                            interactive: toggleRow
+                            hovered: settingMouse.containsMouse || activeFocus
+                            pressed: toggleRow && settingMouse.pressed
                             showSheen: false
+                            hoverScale: toggleRow ? 1.004 : 1
+                            pressedScale: toggleRow ? 0.996 : 1
+                            activeFocusOnTab: toggleRow
 
                             RowLayout {
                                 anchors.fill: parent
@@ -285,62 +293,61 @@ Item {
                                     }
                                 }
 
-                                Rectangle {
-                                    visible: settingRow.modelData.type === "toggle"
-                                    Layout.preferredWidth: 46
-                                    Layout.preferredHeight: 26
-                                    radius: 13
-                                    color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
-                                    border.width: 1
-                                    border.color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accentBorder : RaohaneTheme.border
-
-                                    Rectangle {
-                                        width: 18
-                                        height: 18
-                                        radius: 9
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        x: Boolean(RaohaneConfig[settingRow.modelData.key]) ? parent.width - width - 4 : 4
-                                        color: Boolean(RaohaneConfig[settingRow.modelData.key]) ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                                        Behavior on x { NumberAnimation { duration: RaohaneTheme.animationFast } }
-                                    }
+                                RaohaneSwitch {
+                                    visible: settingRow.toggleRow
+                                    Layout.preferredWidth: 42
+                                    Layout.preferredHeight: 24
+                                    checked: Boolean(RaohaneConfig[settingRow.modelData.key])
+                                    enabled: false
+                                    opacity: 1
                                 }
 
                                 RowLayout {
                                     visible: settingRow.modelData.type === "number"
-                                    spacing: 5
+                                    spacing: 6
 
                                     RaohaneIconButton {
                                         buttonSize: 28
                                         iconSize: 15
                                         icon: "remove"
+                                        transparentIdle: true
+                                        showSheen: false
                                         onClicked: root.changeNumber(settingRow.modelData.key, -Number(settingRow.modelData.step), Number(settingRow.modelData.min), Number(settingRow.modelData.max))
                                     }
 
-                                    Text {
-                                        Layout.preferredWidth: 62
-                                        horizontalAlignment: Text.AlignHCenter
-                                        text: String(RaohaneConfig[settingRow.modelData.key])
-                                        color: RaohaneTheme.text
-                                        font.pixelSize: 10
-                                        font.weight: Font.DemiBold
+                                    RaohaneSurface {
+                                        Layout.preferredWidth: 66
+                                        Layout.preferredHeight: 28
+                                        surfaceRadius: 9
+                                        showSheen: false
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: String(RaohaneConfig[settingRow.modelData.key])
+                                            color: RaohaneTheme.text
+                                            font.pixelSize: 10
+                                            font.weight: Font.DemiBold
+                                        }
                                     }
 
                                     RaohaneIconButton {
                                         buttonSize: 28
                                         iconSize: 15
                                         icon: "add"
+                                        transparentIdle: true
+                                        showSheen: false
                                         onClicked: root.changeNumber(settingRow.modelData.key, Number(settingRow.modelData.step), Number(settingRow.modelData.min), Number(settingRow.modelData.max))
                                     }
                                 }
 
-                                Rectangle {
+                                RaohaneSurface {
                                     visible: settingRow.modelData.type === "text"
                                     Layout.preferredWidth: Math.min(320, sectionRoot.width * 0.43)
                                     Layout.preferredHeight: 34
-                                    radius: 10
-                                    color: field.activeFocus ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-                                    border.width: 1
-                                    border.color: field.activeFocus ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                                    surfaceRadius: 10
+                                    hovered: field.activeFocus
+                                    showSheen: false
+                                    border.color: field.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                                     TextInput {
                                         id: field
@@ -363,11 +370,21 @@ Item {
                                 id: settingMouse
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                acceptedButtons: settingRow.modelData.type === "toggle" ? Qt.LeftButton : Qt.NoButton
-                                cursorShape: settingRow.modelData.type === "toggle" ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                acceptedButtons: settingRow.toggleRow ? Qt.LeftButton : Qt.NoButton
+                                cursorShape: settingRow.toggleRow ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                onPressed: settingRow.forceActiveFocus()
                                 onClicked: {
-                                    if (settingRow.modelData.type === "toggle")
+                                    if (settingRow.toggleRow)
                                         RaohaneConfig[settingRow.modelData.key] = !Boolean(RaohaneConfig[settingRow.modelData.key])
+                                }
+                            }
+
+                            Keys.onPressed: event => {
+                                if (!settingRow.toggleRow)
+                                    return
+                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    RaohaneConfig[settingRow.modelData.key] = !Boolean(RaohaneConfig[settingRow.modelData.key])
+                                    event.accepted = true
                                 }
                             }
                         }
@@ -395,9 +412,19 @@ Item {
                 anchors.margins: 9
                 spacing: 8
 
-                Item {
+                RaohaneSurface {
+                    id: profileShortcut
                     Layout.fillWidth: true
                     Layout.preferredHeight: root.compactNav ? 48 : 58
+                    surfaceRadius: 13
+                    transparentIdle: true
+                    showSheen: false
+                    interactive: true
+                    hovered: profileMouse.containsMouse || activeFocus
+                    pressed: profileMouse.pressed
+                    hoverScale: 1.01
+                    pressedScale: RaohaneMotion.pressScale
+                    activeFocusOnTab: true
 
                     RowLayout {
                         anchors.fill: parent
@@ -405,13 +432,12 @@ Item {
                         anchors.rightMargin: 5
                         spacing: 10
 
-                        Rectangle {
+                        RaohaneSurface {
                             Layout.preferredWidth: 38
                             Layout.preferredHeight: 38
-                            radius: 13
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 13
+                            active: root.pages[root.currentPage]?.key === "profile"
+                            showSheen: false
                             clip: true
 
                             Image {
@@ -427,7 +453,9 @@ Item {
                                 visible: !avatar.visible
                                 text: "account_circle"
                                 iconSize: 22
-                                color: RaohaneTheme.textMuted
+                                fill: root.pages[root.currentPage]?.key === "profile" ? 1 : 0
+                                symbolWeight: root.pages[root.currentPage]?.key === "profile" ? 540 : 430
+                                color: root.pages[root.currentPage]?.key === "profile" ? RaohaneTheme.accent : RaohaneTheme.textMuted
                             }
                         }
 
@@ -456,9 +484,19 @@ Item {
                     }
 
                     MouseArea {
+                        id: profileMouse
                         anchors.fill: parent
+                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
+                        onPressed: profileShortcut.forceActiveFocus()
                         onClicked: root.currentPage = root.resolvePageIndex("profile")
+                    }
+
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            root.currentPage = root.resolvePageIndex("profile")
+                            event.accepted = true
+                        }
                     }
                 }
 
@@ -476,6 +514,7 @@ Item {
                     contentHeight: navColumn.implicitHeight
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
+                    flickDeceleration: 2500
 
                     Column {
                         id: navColumn
@@ -509,7 +548,7 @@ Item {
                                     font.letterSpacing: 0.8
                                 }
 
-                                Rectangle {
+                                RaohaneSurface {
                                     id: navItem
                                     anchors {
                                         left: parent.left
@@ -517,15 +556,19 @@ Item {
                                         bottom: parent.bottom
                                     }
                                     height: 38
-                                    radius: 12
-                                    color: root.currentPage === navDelegate.index
-                                        ? RaohaneTheme.surfaceRaised
-                                        : navMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-                                    border.width: root.currentPage === navDelegate.index ? 1 : 0
-                                    border.color: root.currentPage === navDelegate.index ? RaohaneTheme.borderStrong : "transparent"
+                                    surfaceRadius: 12
+                                    active: root.currentPage === navDelegate.index
+                                    transparentIdle: !active
+                                    showSheen: false
+                                    interactive: true
+                                    hovered: navMouse.containsMouse || activeFocus
+                                    pressed: navMouse.pressed
+                                    hoverScale: 1.008
+                                    pressedScale: RaohaneMotion.pressScale
+                                    activeFocusOnTab: true
 
                                     Rectangle {
-                                        visible: root.currentPage === navDelegate.index
+                                        visible: navItem.active
                                         anchors {
                                             left: parent.left
                                             verticalCenter: parent.verticalCenter
@@ -547,17 +590,23 @@ Item {
                                             Layout.alignment: root.compactNav ? Qt.AlignCenter : Qt.AlignVCenter
                                             text: navDelegate.modelData.icon
                                             iconSize: 17
-                                            color: root.currentPage === navDelegate.index ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                            fill: navItem.active ? 1 : navItem.hovered ? 0.5 : 0
+                                            symbolWeight: navItem.active ? 540 : navItem.hovered ? 500 : 430
+                                            color: navItem.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                                         }
 
                                         Text {
                                             Layout.fillWidth: true
                                             visible: !root.compactNav
                                             text: navDelegate.modelData.name
-                                            color: root.currentPage === navDelegate.index ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                            color: navItem.active ? RaohaneTheme.text : RaohaneTheme.textMuted
                                             font.pixelSize: 9
-                                            font.weight: root.currentPage === navDelegate.index ? Font.DemiBold : Font.Normal
+                                            font.weight: navItem.active ? Font.DemiBold : Font.Normal
                                             elide: Text.ElideRight
+
+                                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                                         }
                                     }
 
@@ -566,9 +615,18 @@ Item {
                                         anchors.fill: parent
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
+                                        onPressed: navItem.forceActiveFocus()
                                         onClicked: {
                                             root.pendingSearch = ""
                                             root.currentPage = navDelegate.index
+                                        }
+                                    }
+
+                                    Keys.onPressed: event => {
+                                        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                            root.pendingSearch = ""
+                                            root.currentPage = navDelegate.index
+                                            event.accepted = true
                                         }
                                     }
                                 }
@@ -577,13 +635,19 @@ Item {
                     }
                 }
 
-                Rectangle {
+                RaohaneSurface {
+                    id: configButton
                     Layout.fillWidth: true
                     Layout.preferredHeight: 38
-                    radius: 11
-                    color: configMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-                    border.width: 1
-                    border.color: configMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+                    surfaceRadius: 11
+                    transparentIdle: true
+                    showSheen: false
+                    interactive: true
+                    hovered: configMouse.containsMouse || activeFocus
+                    pressed: configMouse.pressed
+                    hoverScale: 1.008
+                    pressedScale: RaohaneMotion.pressScale
+                    activeFocusOnTab: true
 
                     RowLayout {
                         anchors.fill: parent
@@ -593,18 +657,24 @@ Item {
 
                         RaohaneIcon {
                             Layout.alignment: root.compactNav ? Qt.AlignCenter : Qt.AlignVCenter
-                            text: copiedTimer.running ? "check" : "description"
+                            text: copiedTimer.running ? "check_circle" : "description"
                             iconSize: 16
+                            fill: copiedTimer.running ? 1 : 0
+                            symbolWeight: copiedTimer.running ? 540 : configButton.hovered ? 500 : 430
                             color: copiedTimer.running ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                         }
 
                         Text {
                             Layout.fillWidth: true
                             visible: !root.compactNav
                             text: copiedTimer.running ? qsTr("Path copied") : qsTr("native.json")
-                            color: RaohaneTheme.textMuted
+                            color: copiedTimer.running ? RaohaneTheme.text : RaohaneTheme.textMuted
                             font.pixelSize: 8
                             elide: Text.ElideRight
+
+                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                         }
                     }
 
@@ -614,6 +684,7 @@ Item {
                         hoverEnabled: true
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         cursorShape: Qt.PointingHandCursor
+                        onPressed: configButton.forceActiveFocus()
                         onClicked: mouse => {
                             if (mouse.button === Qt.RightButton) {
                                 Quickshell.clipboardText = RaohanePaths.nativeConfigFile
@@ -621,6 +692,12 @@ Item {
                             } else {
                                 Qt.openUrlExternally("file://" + RaohanePaths.nativeConfigFile)
                             }
+                        }
+                    }
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                            Qt.openUrlExternally("file://" + RaohanePaths.nativeConfigFile)
+                            event.accepted = true
                         }
                     }
                     Timer { id: copiedTimer; interval: 1400 }
@@ -650,18 +727,19 @@ Item {
                         anchors.rightMargin: 16
                         spacing: 11
 
-                        Rectangle {
+                        RaohaneSurface {
                             Layout.preferredWidth: 32
                             Layout.preferredHeight: 32
-                            radius: 10
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 10
+                            active: true
+                            showSheen: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: root.pages[root.currentPage]?.icon ?? "settings"
                                 iconSize: 17
+                                fill: 1
+                                symbolWeight: 540
                                 color: RaohaneTheme.accent
                             }
                         }
@@ -687,21 +765,31 @@ Item {
                             }
                         }
 
-                        Rectangle {
+                        RaohaneSurface {
                             visible: !root.compactNav
                             Layout.preferredWidth: liveRow.implicitWidth + 14
                             Layout.preferredHeight: 24
-                            radius: 9
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 9
+                            transparentIdle: true
+                            showSheen: false
 
                             Row {
                                 id: liveRow
                                 anchors.centerIn: parent
                                 spacing: 5
-                                Rectangle { width: 5; height: 5; radius: 3; color: RaohaneTheme.accent; anchors.verticalCenter: parent.verticalCenter }
-                                Text { text: qsTr("LIVE"); color: RaohaneTheme.textMuted; font.pixelSize: 7; font.weight: Font.DemiBold }
+                                Rectangle {
+                                    width: 5
+                                    height: 5
+                                    radius: 3
+                                    color: RaohaneTheme.accent
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                Text {
+                                    text: qsTr("LIVE")
+                                    color: RaohaneTheme.textMuted
+                                    font.pixelSize: 7
+                                    font.weight: Font.DemiBold
+                                }
                             }
                         }
                     }
