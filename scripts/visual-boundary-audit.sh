@@ -27,6 +27,8 @@ surface='modules/raohane/RaohaneSurface.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 session='modules/raohane/RaohaneSessionScreen.qml'
+task_manager='modules/raohane/RaohaneTaskManager.qml'
+overlay='modules/raohane/RaohaneOverlay.qml'
 lock_surface='modules/raohane/RaohaneLockSurface.qml'
 polkit='modules/raohane/RaohanePolkit.qml'
 dropshelf='modules/raohane/RaohaneDropShelfPanel.qml'
@@ -37,7 +39,7 @@ osk_key='modules/raohane/RaohaneOskKey.qml'
 for file in \
   "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" \
   "$settings_home" "$bar" "$vertical" "$dock" "$context" "$notification" "$surface" "$quick" \
-  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
+  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
 done
 
@@ -91,7 +93,7 @@ rg -q 'showSheen' "$surface" || fail 'RaohaneSurface lost the shared glass highl
 
 shared_surfaces=(
   "$launcher" "$media" "$control" "$settings" "$settings_home" "$bar" "$vertical" "$dock"
-  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
+  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
 )
 for file in "${shared_surfaces[@]}"; do
   rg -q 'RaohaneSurface[[:space:]]*\{' "$file" || fail "$file no longer uses the shared RaohaneSurface primitive"
@@ -99,7 +101,7 @@ done
 
 raised_surfaces=(
   "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock"
-  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
+  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
 )
 for file in "${raised_surfaces[@]}"; do
   rg -q 'raised:[[:space:]]*true' "$file" || fail "$file no longer requests a raised primary glass surface"
@@ -110,13 +112,13 @@ done
 # optional sheen without changing the rest of the shell language.
 matte_surfaces=(
   "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
-  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
+  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
 )
 for file in "${matte_surfaces[@]}"; do
   rg -q 'showSheen:[[:space:]]*false' "$file" || fail "$file no longer suppresses decorative sheen on minimal shell chrome"
 done
 
-for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
+for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
 done
 
@@ -126,17 +128,17 @@ fi
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls do not consume minimalist surface tokens'
 rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls do not consume shared minimal borders'
 
-edge_surfaces=("$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key")
+edge_surfaces=("$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key")
 if rg -n '#18ffffff|#20ffffff|#24ffffff|#10ffffff|#12ffffff|#14ffffff|#2affffff|#35ffffff|#63171320|#3814111c|#74120f19|#1fc56cff|#2cff668c|#32ff668c' "${edge_surfaces[@]}"; then
   fail 'a system/edge surface reintroduced retired one-off glass/neon colors'
 fi
 
-for file in "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
+for file in "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneIcon[[:space:]]*\{' "$file" || fail "$file no longer uses the shared Material-symbol icon wrapper"
 done
 
-if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|text:[[:space:]]*"[⌕◎▧文⚙⏻⏮⏭]"' \
-  "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator"; then
+if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|RAOHANE / OVERLAY|text:[[:space:]]*"[⌕◎▧文⚙⏻⏮⏭♪⌨]"' \
+  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; then
   fail 'a system surface regressed to decorative legacy labels or arbitrary glyph controls'
 fi
 
@@ -153,8 +155,8 @@ if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$medi
   fail 'a primary surface regressed to legacy one-off chrome'
 fi
 
-for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock" "$sidebar" "$session" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
+for file in "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
 
-printf 'visual-boundary-audit: minimalist themes, persisted Style Studio/Advanced Surfaces, matte shell/system chrome, shared focal media material and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome, shared focal media material and stable geometry are valid\n'
