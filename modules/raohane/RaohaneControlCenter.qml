@@ -356,13 +356,11 @@ Scope {
         id: pill
         required property string icon
         required property string text
-        property bool active: false
 
         implicitWidth: pillRow.implicitWidth + 16
         implicitHeight: 24
         surfaceRadius: 10
-        transparentIdle: !active
-        active: pill.active
+        transparentIdle: !pill.active
         showSheen: false
 
         Row {
