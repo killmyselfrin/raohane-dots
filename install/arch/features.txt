@@ -6,7 +6,6 @@ bluez-utils
 blueman
 network-manager-applet
 brightnessctl
-btop
 ddcutil
 grim
 slurp
