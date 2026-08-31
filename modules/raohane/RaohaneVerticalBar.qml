@@ -113,8 +113,8 @@ Scope {
 
                 Behavior on x {
                     NumberAnimation {
-                        duration: RaohaneTheme.animationDuration
-                        easing.type: Easing.OutCubic
+                        duration: RaohaneMotion.standard
+                        easing.type: RaohaneMotion.easeEmphasized
                     }
                 }
 
@@ -155,49 +155,58 @@ Scope {
                             Repeater {
                                 model: Math.max(2, Math.min(10, RaohaneConfig.overviewWorkspaceCount))
 
-                                delegate: Rectangle {
+                                delegate: RaohaneSurface {
                                     id: workspaceButton
                                     required property int index
 
                                     readonly property int workspaceId: index + 1
                                     readonly property var monitor: Hyprland.monitorFor(barWindow.screen)
-                                    readonly property bool active: (monitor?.activeWorkspace?.id ?? 1) === workspaceId
+                                    readonly property bool workspaceActive: (monitor?.activeWorkspace?.id ?? 1) === workspaceId
                                     readonly property var workspace: Hyprland.workspaces.values.find(candidate => candidate.id === workspaceId) ?? null
                                     readonly property bool occupied: (workspace?.toplevels?.values?.length ?? 0) > 0
 
                                     Layout.alignment: Qt.AlignHCenter
                                     Layout.preferredWidth: 36
                                     Layout.preferredHeight: 29
-                                    radius: 10
-                                    color: active
-                                        ? RaohaneTheme.surfaceRaised
-                                        : workspaceMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-                                    border.width: active || workspaceMouse.containsMouse ? 1 : 0
-                                    border.color: active ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                                    surfaceRadius: 10
+                                    transparentIdle: true
+                                    showSheen: false
+                                    active: workspaceActive
+                                    hovered: workspaceMouse.containsMouse
+                                    pressed: workspaceMouse.pressed
+                                    interactive: true
+                                    hoverScale: RaohaneMotion.hoverScale
+                                    pressedScale: RaohaneMotion.pressScale
 
                                     Rectangle {
-                                        visible: workspaceButton.active
                                         anchors {
                                             left: parent.left
                                             verticalCenter: parent.verticalCenter
                                             leftMargin: 2
                                         }
                                         width: 2
-                                        height: 15
+                                        height: workspaceButton.workspaceActive ? 15 : 5
                                         radius: 1
                                         color: RaohaneTheme.accent
+                                        opacity: workspaceButton.workspaceActive ? 1 : 0
+
+                                        Behavior on height {
+                                            NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+                                        }
+                                        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
                                     }
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: workspaceButton.workspaceId
-                                        color: workspaceButton.active ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                        color: workspaceButton.workspaceActive ? RaohaneTheme.text : RaohaneTheme.textMuted
                                         font.pixelSize: 9
-                                        font.weight: workspaceButton.active ? Font.DemiBold : Font.Medium
+                                        font.weight: workspaceButton.workspaceActive ? Font.DemiBold : Font.Medium
+
+                                        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                                     }
 
                                     Rectangle {
-                                        visible: workspaceButton.occupied
                                         width: 4
                                         height: 4
                                         radius: 2
@@ -206,7 +215,14 @@ Scope {
                                             rightMargin: 4
                                             verticalCenter: parent.verticalCenter
                                         }
-                                        color: workspaceButton.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                                        color: workspaceButton.workspaceActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                                        opacity: workspaceButton.occupied ? 1 : 0
+                                        scale: workspaceButton.occupied ? 1 : 0.4
+
+                                        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+                                        Behavior on scale {
+                                            NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+                                        }
                                     }
 
                                     MouseArea {
@@ -345,39 +361,20 @@ Scope {
         onPressed: RaohaneState.barOpen = !RaohaneState.barOpen
     }
 
-    component IconButton: Rectangle {
+    component IconButton: RaohaneIconButton {
         id: button
-        required property string icon
+
         property string tooltip: ""
-        property bool emphasized: false
         property int badgeCount: 0
         signal triggered()
 
         Layout.alignment: Qt.AlignHCenter
-        Layout.preferredWidth: 36
-        Layout.preferredHeight: 36
-        radius: 11
-        color: emphasized
-            ? RaohaneTheme.surfaceRaised
-            : buttonMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: emphasized || buttonMouse.containsMouse ? 1 : 0
-        border.color: emphasized ? RaohaneTheme.borderStrong : RaohaneTheme.border
-        scale: buttonMouse.containsMouse ? 1.03 : 1
-
-        Behavior on scale {
-            NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
-        }
-
-        RaohaneIcon {
-            anchors.centerIn: parent
-            text: button.icon
-            iconSize: 16
-            fill: button.emphasized ? 1 : 0
-            color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
-        }
+        buttonSize: 36
+        iconSize: 16
+        transparentIdle: true
+        onClicked: button.triggered()
 
         Rectangle {
-            visible: button.badgeCount > 0
             anchors {
                 right: parent.right
                 top: parent.top
@@ -388,6 +385,8 @@ Scope {
             height: 14
             radius: 7
             color: RaohaneTheme.accent
+            opacity: button.badgeCount > 0 ? 1 : 0
+            scale: button.badgeCount > 0 ? 1 : 0.45
 
             Text {
                 anchors.centerIn: parent
@@ -396,14 +395,11 @@ Scope {
                 font.pixelSize: 6
                 font.weight: Font.Bold
             }
-        }
 
-        MouseArea {
-            id: buttonMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: button.triggered()
+            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+            }
         }
     }
 }
