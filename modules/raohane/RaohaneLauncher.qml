@@ -66,9 +66,12 @@ Scope {
         onVisibleChanged: {
             if (visible) {
                 root.reset()
+                launcherSurface.entered = false
+                Qt.callLater(() => launcherSurface.entered = true)
                 RaohaneFocusGrab.addDismissable(panelWindow)
                 searchInput.forceActiveFocus()
             } else {
+                launcherSurface.entered = false
                 RaohaneFocusGrab.removeDismissable(panelWindow)
             }
         }
@@ -80,6 +83,7 @@ Scope {
 
         RaohaneSurface {
             id: launcherSurface
+            property bool entered: false
 
             anchors.horizontalCenter: parent.horizontalCenter
             width: 640
@@ -89,6 +93,19 @@ Scope {
             showSheen: false
             border.color: RaohaneTheme.borderStrong
             clip: true
+            opacity: entered ? 1 : 0
+            scale: entered ? 1 : 0.985
+            y: entered ? 0 : -10
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+            }
+            Behavior on y {
+                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+            }
 
             ColumnLayout {
                 id: content
@@ -139,20 +156,22 @@ Scope {
                         anchors.rightMargin: 12
                         spacing: 11
 
-                        Rectangle {
+                        RaohaneSurface {
                             Layout.preferredWidth: 34
                             Layout.preferredHeight: 34
-                            radius: 11
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 11
+                            showSheen: false
+                            active: searchInput.activeFocus
 
-                            Text {
+                            RaohaneIcon {
                                 anchors.centerIn: parent
-                                text: "ラ"
-                                color: RaohaneTheme.accent
-                                font.pixelSize: 13
-                                font.weight: Font.DemiBold
+                                text: "search"
+                                iconSize: 18
+                                fill: searchInput.activeFocus ? 1 : 0
+                                symbolWeight: searchInput.activeFocus ? 540 : 440
+                                color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                             }
                         }
 
@@ -190,13 +209,12 @@ Scope {
                             }
                         }
 
-                        Rectangle {
+                        RaohaneSurface {
                             implicitWidth: escText.implicitWidth + 14
                             implicitHeight: 23
-                            radius: 8
-                            color: "transparent"
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 8
+                            transparentIdle: true
+                            showSheen: false
 
                             Text {
                                 id: escText
@@ -228,10 +246,15 @@ Scope {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 50
                             surfaceRadius: 14
-                            raised: selected
-                            hovered: resultMouse.containsMouse
+                            active: selected
+                            hovered: resultMouse.containsMouse || activeFocus
+                            pressed: resultMouse.pressed
+                            interactive: true
+                            transparentIdle: !selected
                             showSheen: false
-                            border.color: selected ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                            hoverScale: 1.006
+                            pressedScale: 0.992
+                            activeFocusOnTab: true
 
                             Rectangle {
                                 visible: resultRow.selected
@@ -244,6 +267,10 @@ Scope {
                                 height: 20
                                 radius: 1
                                 color: RaohaneTheme.accent
+
+                                Behavior on height {
+                                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                                }
                             }
 
                             RowLayout {
@@ -252,13 +279,12 @@ Scope {
                                 anchors.rightMargin: 12
                                 spacing: 10
 
-                                Rectangle {
+                                RaohaneSurface {
                                     Layout.preferredWidth: 32
                                     Layout.preferredHeight: 32
-                                    radius: 10
-                                    color: RaohaneTheme.surfaceSubtle
-                                    border.width: 1
-                                    border.color: resultRow.selected ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                                    surfaceRadius: 10
+                                    active: resultRow.selected
+                                    showSheen: false
 
                                     Loader {
                                         anchors.centerIn: parent
@@ -289,6 +315,8 @@ Scope {
                                             anchors.centerIn: parent
                                             text: resultRow.modelData.iconName
                                             iconSize: 18
+                                            fill: resultRow.selected ? 1 : 0
+                                            symbolWeight: resultRow.selected ? 540 : 430
                                             color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                         }
                                     }
@@ -305,11 +333,11 @@ Scope {
 
                                     Component {
                                         id: fallbackIcon
-                                        Text {
+                                        RaohaneIcon {
                                             anchors.centerIn: parent
-                                            text: "·"
+                                            text: "apps"
+                                            iconSize: 17
                                             color: RaohaneTheme.textMuted
-                                            font.pixelSize: 18
                                         }
                                     }
                                 }
@@ -336,14 +364,14 @@ Scope {
                                     }
                                 }
 
-                                Rectangle {
+                                RaohaneSurface {
                                     visible: verbText.text.length > 0
                                     implicitWidth: verbText.implicitWidth + 13
                                     implicitHeight: 22
-                                    radius: 8
-                                    color: "transparent"
-                                    border.width: 1
-                                    border.color: resultRow.selected ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                                    surfaceRadius: 8
+                                    transparentIdle: true
+                                    showSheen: false
+                                    active: resultRow.selected
 
                                     Text {
                                         id: verbText
@@ -361,10 +389,19 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                onPressed: resultRow.forceActiveFocus()
                                 onEntered: selection.select(resultRow.index)
                                 onClicked: {
                                     selection.select(resultRow.index)
                                     root.executeSelected()
+                                }
+                            }
+
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                                    selection.select(resultRow.index)
+                                    root.executeSelected()
+                                    event.accepted = true
                                 }
                             }
                         }
