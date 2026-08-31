@@ -8,6 +8,7 @@ Rectangle {
     property bool hovered: false
     property bool pressed: false
     property bool interactive: false
+    property bool transparentIdle: false
     property int surfaceRadius: RaohaneTheme.radius
     property bool showSheen: true
     property real hoverScale: RaohaneMotion.subtleHoverScale
@@ -25,8 +26,10 @@ Rectangle {
                 ? RaohaneTheme.surfaceHover
                 : raised
                     ? RaohaneTheme.surfaceRaised
-                    : RaohaneTheme.surface
-    border.width: 1
+                    : transparentIdle
+                        ? "transparent"
+                        : RaohaneTheme.surface
+    border.width: transparentIdle && !active && !hovered && !pressed ? 0 : 1
     border.color: active
         ? RaohaneTheme.accentBorder
         : hovered || pressed
@@ -34,7 +37,7 @@ Rectangle {
             : RaohaneTheme.border
 
     Rectangle {
-        visible: root.showSheen && RaohaneTheme.sheenEnabled
+        visible: root.showSheen && RaohaneTheme.sheenEnabled && !root.transparentIdle
         z: 100
         anchors {
             left: parent.left
@@ -57,6 +60,9 @@ Rectangle {
     }
     Behavior on border.color {
         ColorAnimation { duration: RaohaneMotion.micro }
+    }
+    Behavior on border.width {
+        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
     }
     Behavior on scale {
         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeEmphasized }
