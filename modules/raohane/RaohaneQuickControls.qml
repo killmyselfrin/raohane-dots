@@ -24,14 +24,14 @@ Item {
             left: parent.left
             right: parent.right
         }
-        spacing: 11
+        spacing: 12
 
         GridLayout {
             id: toggleGrid
             Layout.fillWidth: true
-            columns: 2
-            columnSpacing: 10
-            rowSpacing: 10
+            columns: 3
+            columnSpacing: 6
+            rowSpacing: 6
 
             QuickTile {
                 Layout.fillWidth: true
@@ -106,70 +106,48 @@ Item {
             }
         }
 
-        RaohaneSurface {
+        Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: sliderColumn.implicitHeight + 22
-            surfaceRadius: RaohaneTheme.radiusLarge
-            showSheen: false
-            color: RaohaneTheme.surfaceSubtle
-            border.color: RaohaneTheme.border
+            Layout.preferredHeight: 1
+            color: RaohaneTheme.borderFaint
+        }
 
-            Rectangle {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                    leftMargin: 18
-                    rightMargin: 18
-                }
-                height: 1
-                color: RaohaneTheme.highlight
-                opacity: 0.18
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 7
+
+            ControlSlider {
+                Layout.fillWidth: true
+                visible: RaohaneConfig.quickSliderBrightness
+                icon: RaohaneDisplay.gamma === 100 ? "brightness_medium" : "wb_twilight"
+                title: RaohaneDisplay.gamma === 100 ? qsTr("Brightness") : qsTr("Gamma")
+                displayText: RaohaneDisplay.gamma === 100
+                    ? Math.round((root.brightnessMonitor?.brightness ?? 0.5) * 100) + "%"
+                    : Math.round(RaohaneDisplay.gamma) + "%"
+                liveValue: root.brightnessValue
+                onValueChangedByUser: value => RaohaneDisplay.setComposite(root.screen, value)
             }
 
-            ColumnLayout {
-                id: sliderColumn
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                    margins: 11
-                }
-                spacing: 7
+            ControlSlider {
+                Layout.fillWidth: true
+                visible: RaohaneConfig.quickSliderVolume
+                icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
+                title: qsTr("Volume")
+                displayText: Math.round(RaohaneAudio.volume * 100) + "%"
+                liveValue: RaohaneAudio.volume
+                onValueChangedByUser: value => RaohaneAudio.setVolume(value)
+                onIconTriggered: RaohaneAudio.toggleMute()
+            }
 
-                ControlSlider {
-                    Layout.fillWidth: true
-                    visible: RaohaneConfig.quickSliderBrightness
-                    icon: RaohaneDisplay.gamma === 100 ? "brightness_medium" : "wb_twilight"
-                    title: RaohaneDisplay.gamma === 100 ? qsTr("Brightness") : qsTr("Gamma")
-                    displayText: RaohaneDisplay.gamma === 100
-                        ? Math.round((root.brightnessMonitor?.brightness ?? 0.5) * 100) + "%"
-                        : Math.round(RaohaneDisplay.gamma) + "%"
-                    liveValue: root.brightnessValue
-                    onValueChangedByUser: value => RaohaneDisplay.setComposite(root.screen, value)
-                }
-
-                ControlSlider {
-                    Layout.fillWidth: true
-                    visible: RaohaneConfig.quickSliderVolume
-                    icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
-                    title: qsTr("Volume")
-                    displayText: Math.round(RaohaneAudio.volume * 100) + "%"
-                    liveValue: RaohaneAudio.volume
-                    onValueChangedByUser: value => RaohaneAudio.setVolume(value)
-                    onIconTriggered: RaohaneAudio.toggleMute()
-                }
-
-                ControlSlider {
-                    Layout.fillWidth: true
-                    visible: RaohaneConfig.quickSliderMic
-                    icon: RaohaneAudio.microphoneMuted ? "mic_off" : "mic"
-                    title: qsTr("Microphone")
-                    displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
-                    liveValue: RaohaneAudio.microphoneVolume
-                    onValueChangedByUser: value => RaohaneAudio.setMicrophoneVolume(value)
-                    onIconTriggered: RaohaneAudio.toggleMicrophoneMute()
-                }
+            ControlSlider {
+                Layout.fillWidth: true
+                visible: RaohaneConfig.quickSliderMic
+                icon: RaohaneAudio.microphoneMuted ? "mic_off" : "mic"
+                title: qsTr("Microphone")
+                displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
+                liveValue: RaohaneAudio.microphoneVolume
+                onValueChangedByUser: value => RaohaneAudio.setMicrophoneVolume(value)
+                onIconTriggered: RaohaneAudio.toggleMicrophoneMute()
             }
         }
     }
@@ -214,35 +192,33 @@ Item {
         signal primary()
         signal secondary()
 
-        Layout.preferredHeight: 66
-        surfaceRadius: RaohaneTheme.radius
+        Layout.preferredHeight: 58
+        surfaceRadius: 14
         showSheen: false
+        transparentIdle: !tile.active
         hovered: pointer.containsMouse || activeFocus
         pressed: pointer.pressed
         interactive: true
+        hoverScale: RaohaneMotion.subtleHoverScale
+        pressedScale: RaohaneMotion.softPressScale
         activeFocusOnTab: true
 
-        RowLayout {
-            anchors {
-                fill: parent
-                leftMargin: 12
-                rightMargin: 12
-            }
-            spacing: 10
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 9
+            anchors.rightMargin: 9
+            anchors.topMargin: 7
+            anchors.bottomMargin: 7
+            spacing: 2
 
-            RaohaneSurface {
-                Layout.preferredWidth: 34
-                Layout.preferredHeight: 34
-                surfaceRadius: 12
-                showSheen: false
-                raised: tile.active
-                active: tile.active
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 6
 
                 RaohaneIcon {
-                    anchors.centerIn: parent
                     text: tile.icon
-                    iconSize: 18
-                    fill: tile.active ? 1 : tile.hovered ? 0.28 : 0
+                    iconSize: 17
+                    fill: tile.active ? 1 : tile.hovered ? 0.35 : 0
                     symbolWeight: tile.active ? 560 : tile.hovered ? 500 : 430
                     grade: tile.active ? 40 : tile.hovered ? 20 : 0
                     color: tile.active || tile.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -253,54 +229,36 @@ Item {
                         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
                     }
                 }
-            }
 
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 1
-
-                Text {
-                    Layout.fillWidth: true
-                    text: tile.title
-                    color: RaohaneTheme.text
-                    font.pixelSize: 10
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: tile.subtitle
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
-                    elide: Text.ElideRight
-                }
-            }
-
-            Rectangle {
-                Layout.preferredWidth: 18
-                Layout.preferredHeight: 18
-                radius: 9
-                color: tile.active ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
-                border.width: 1
-                border.color: tile.active ? RaohaneTheme.accentBorder : RaohaneTheme.border
+                Item { Layout.fillWidth: true }
 
                 Rectangle {
-                    anchors.centerIn: parent
-                    width: tile.active ? 7 : 5
-                    height: width
-                    radius: width / 2
+                    width: 6
+                    height: 6
+                    radius: 3
                     color: tile.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    scale: pointer.pressed ? 0.82 : 1
+                    opacity: tile.active ? 1 : 0.38
 
-                    Behavior on width {
-                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                    }
                     Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                    Behavior on scale {
-                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-                    }
+                    Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
                 }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: tile.title
+                color: RaohaneTheme.text
+                font.pixelSize: 9
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: tile.subtitle
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 7
+                elide: Text.ElideRight
             }
         }
 
@@ -340,7 +298,7 @@ Item {
         readonly property real clampedLiveValue: Math.max(0, Math.min(1, Number(liveValue) || 0))
         readonly property bool hovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
 
-        implicitHeight: 42
+        implicitHeight: 38
 
         RowLayout {
             anchors.fill: parent
@@ -348,60 +306,45 @@ Item {
 
             RaohaneIconButton {
                 id: iconButton
-                buttonSize: 32
-                iconSize: 17
+                buttonSize: 30
+                iconSize: 16
                 icon: control.icon
                 emphasized: control.hovered
+                transparentIdle: !control.hovered
+                showSheen: false
                 onClicked: control.iconTriggered()
             }
 
-            ColumnLayout {
+            Text {
+                Layout.preferredWidth: 74
+                text: control.title
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 8
+                font.weight: Font.Medium
+                elide: Text.ElideRight
+            }
+
+            RaohaneSlider {
+                id: valueSlider
                 Layout.fillWidth: true
-                spacing: 2
+                Layout.preferredHeight: 22
+                from: 0
+                to: 1
+                stepSize: 0.01
+                value: control.clampedLiveValue
+                showHandle: control.hovered || activeFocus
+                onMoved: value => control.valueChangedByUser(value)
+            }
 
-                RowLayout {
-                    Layout.fillWidth: true
+            Text {
+                Layout.preferredWidth: 34
+                horizontalAlignment: Text.AlignRight
+                text: control.displayText
+                color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                font.pixelSize: 8
+                font.weight: Font.DemiBold
 
-                    Text {
-                        text: control.title
-                        color: RaohaneTheme.text
-                        font.pixelSize: 9
-                        font.weight: Font.DemiBold
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    RaohaneSurface {
-                        implicitWidth: valueLabel.implicitWidth + 14
-                        implicitHeight: 19
-                        surfaceRadius: 9
-                        showSheen: false
-                        hovered: control.hovered
-                        border.color: control.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
-
-                        Text {
-                            id: valueLabel
-                            anchors.centerIn: parent
-                            text: control.displayText
-                            color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            font.weight: Font.DemiBold
-
-                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                        }
-                    }
-                }
-
-                RaohaneSlider {
-                    id: valueSlider
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 20
-                    from: 0
-                    to: 1
-                    stepSize: 0.01
-                    value: control.clampedLiveValue
-                    onMoved: value => control.valueChangedByUser(value)
-                }
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
         }
     }
