@@ -81,12 +81,33 @@ Item {
                 spacing: 7
                 model: root.notifications
                 boundsBehavior: Flickable.StopAtBounds
+                flickDeceleration: 2400
 
-                delegate: RaohaneNotificationCard {
+                delegate: Item {
+                    id: centerEntry
                     required property var modelData
+                    property bool entered: false
+
                     width: listView.width
-                    notification: modelData
-                    compact: true
+                    height: card.implicitHeight
+                    opacity: entered ? 1 : 0
+                    scale: entered ? 1 : 0.985
+
+                    Component.onCompleted: entered = true
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+
+                    RaohaneNotificationCard {
+                        id: card
+                        width: parent.width
+                        notification: centerEntry.modelData
+                        compact: true
+                    }
                 }
             }
 
@@ -95,19 +116,19 @@ Item {
                 spacing: 7
                 visible: RaohaneNotifications.list.length === 0
 
-                Rectangle {
+                RaohaneSurface {
                     width: 48
                     height: 48
-                    radius: 15
+                    surfaceRadius: 15
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: RaohaneTheme.surfaceSubtle
-                    border.width: 1
-                    border.color: RaohaneTheme.border
+                    raised: false
+                    showSheen: false
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: "notifications_none"
                         iconSize: 23
+                        symbolWeight: 420
                         color: RaohaneTheme.textMuted
                     }
                 }
@@ -130,39 +151,18 @@ Item {
         }
     }
 
-    component ActionButton: Rectangle {
+    component ActionButton: RaohaneIconButton {
         id: action
 
-        required property string icon
         property string tooltip: ""
         property bool active: false
         signal triggered()
 
-        width: 28
-        height: 28
-        radius: 9
-        opacity: enabled ? 1 : 0.4
-        color: active
-            ? RaohaneTheme.surfaceRaised
-            : mouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: active || mouse.containsMouse ? 1 : 0
-        border.color: active ? RaohaneTheme.borderStrong : RaohaneTheme.border
-
-        RaohaneIcon {
-            anchors.centerIn: parent
-            text: action.icon
-            iconSize: 15
-            fill: action.active ? 1 : 0
-            color: action.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
-        }
-
-        MouseArea {
-            id: mouse
-            anchors.fill: parent
-            enabled: action.enabled
-            hoverEnabled: true
-            cursorShape: action.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: action.triggered()
-        }
+        buttonSize: 28
+        iconSize: 15
+        emphasized: active
+        transparentIdle: !active
+        showSheen: false
+        onClicked: action.triggered()
     }
 }
