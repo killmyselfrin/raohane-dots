@@ -115,6 +115,11 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 color: RaohaneTheme.dark ? "#8a000000" : "#465b5750"
+                opacity: dialog.entered ? 1 : 0
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -124,6 +129,8 @@ Scope {
 
             RaohaneSurface {
                 id: dialog
+                property bool entered: false
+
                 width: Math.min(parent.width - 96, 850)
                 height: Math.min(parent.height - 112, 540)
                 anchors.centerIn: parent
@@ -132,6 +139,22 @@ Scope {
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
                 clip: true
+                opacity: entered ? 1 : 0
+                scale: entered ? 1 : 0.982
+
+                transform: Translate {
+                    y: dialog.entered ? 0 : 12
+                    Behavior on y {
+                        NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
+                Behavior on scale {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -162,7 +185,10 @@ Scope {
                     }
                 }
 
-                Component.onCompleted: forceActiveFocus()
+                Component.onCompleted: {
+                    forceActiveFocus()
+                    Qt.callLater(() => entered = true)
+                }
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -174,18 +200,19 @@ Scope {
                         Layout.preferredHeight: 44
                         spacing: 10
 
-                        Rectangle {
+                        RaohaneSurface {
                             width: 36
                             height: 36
-                            radius: 12
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 12
+                            active: true
+                            showSheen: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "power_settings_new"
                                 iconSize: 18
+                                fill: 1
+                                symbolWeight: 540
                                 color: RaohaneTheme.accent
                             }
                         }
@@ -217,6 +244,8 @@ Scope {
                             buttonSize: 30
                             iconSize: 15
                             icon: "close"
+                            transparentIdle: true
+                            showSheen: false
                             onClicked: root.close()
                         }
                     }
@@ -248,11 +277,17 @@ Scope {
                                 readonly property bool selected: root.currentIndex === index
                                 readonly property bool confirming: root.pendingAction === modelData.id
                                 surfaceRadius: 16
-                                raised: selected || confirming
-                                hovered: actionMouse.containsMouse
+                                active: selected && !confirming
+                                hovered: actionMouse.containsMouse || activeFocus
+                                pressed: actionMouse.pressed
+                                interactive: true
                                 showSheen: false
+                                hoverScale: 1.012
+                                pressedScale: RaohaneMotion.pressScale
+                                activeFocusOnTab: true
                                 border.color: confirming ? RaohaneTheme.critical
-                                    : selected ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                                    : selected ? RaohaneTheme.accentBorder
+                                    : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                                 Rectangle {
                                     visible: actionCard.selected && !actionCard.confirming
@@ -274,20 +309,24 @@ Scope {
                                     anchors.margins: 12
                                     spacing: 5
 
-                                    Rectangle {
+                                    RaohaneSurface {
                                         width: 38
                                         height: 38
-                                        radius: 12
-                                        color: RaohaneTheme.surfaceSubtle
-                                        border.width: 1
+                                        surfaceRadius: 12
+                                        active: actionCard.selected && !actionCard.confirming
+                                        showSheen: false
                                         border.color: actionCard.confirming ? RaohaneTheme.critical : RaohaneTheme.border
 
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: actionCard.confirming ? "priority_high" : actionCard.modelData.icon
                                             iconSize: 20
+                                            fill: actionCard.confirming || actionCard.selected ? 1 : 0
+                                            symbolWeight: actionCard.confirming ? 600 : actionCard.selected ? 540 : 430
                                             color: actionCard.confirming ? RaohaneTheme.critical
                                                 : actionCard.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                                         }
                                     }
 
@@ -317,6 +356,7 @@ Scope {
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
+                                    onPressed: actionCard.forceActiveFocus()
                                     onEntered: root.currentIndex = actionCard.index
                                     onClicked: root.requestAction(actionCard.modelData.id, actionCard.modelData.danger)
                                 }
@@ -349,6 +389,8 @@ Scope {
                                 : qsTr("Destructive actions require a second press")
                             color: root.pendingAction.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textFaint
                             font.pixelSize: 7
+
+                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                         }
                         Item { Layout.fillWidth: true }
                         Text {
@@ -385,16 +427,15 @@ Scope {
         onPressed: root.close()
     }
 
-    component WarningBar: Rectangle {
+    component WarningBar: RaohaneSurface {
         id: warning
         required property string icon
         required property string text
 
         Layout.fillWidth: true
         Layout.preferredHeight: 32
-        radius: 10
-        color: RaohaneTheme.surfaceSubtle
-        border.width: 1
+        surfaceRadius: 10
+        showSheen: false
         border.color: RaohaneTheme.warning
 
         RowLayout {
@@ -406,6 +447,7 @@ Scope {
             RaohaneIcon {
                 text: warning.icon
                 iconSize: 14
+                fill: 1
                 color: RaohaneTheme.warning
             }
 
