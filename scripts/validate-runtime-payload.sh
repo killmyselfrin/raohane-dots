@@ -32,12 +32,18 @@ required=(
   install/arch/features.txt
   modules/raohane
   modules/raohane/qmldir
+  modules/raohane/RaohaneTaskManager.qml
+  modules/raohane/RaohaneOverlay.qml
+  modules/raohane/services/RaohaneProcesses.qml
+  modules/raohane/services/RaohaneLyrics.qml
   panelFamilies/RaohaneFamily.qml
   scripts/autostart.sh
   scripts/install-deps.sh
   scripts/prune-runtime.sh
   scripts/validate-runtime-payload.sh
   scripts/phase4-live-check.sh
+  scripts/release-live-check.sh
+  scripts/lyrics-resolve.py
   scripts/region-ocr.sh
   scripts/region-search.sh
   scripts/screen-translate.sh
@@ -66,6 +72,13 @@ try:
 except (OSError, json.JSONDecodeError):
     raise SystemExit(1)
 raise SystemExit(0 if data.get("schemaVersion") == 10 else 1)
+PY
+
+python3 - "$TARGET/scripts/lyrics-resolve.py" <<'PY' || fail 'lyrics-resolve.py is not valid Python'
+import pathlib
+import sys
+path = pathlib.Path(sys.argv[1])
+compile(path.read_text(encoding="utf-8"), str(path), "exec")
 PY
 
 source_only=(
