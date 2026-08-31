@@ -115,14 +115,31 @@ Scope {
             right: true
         }
 
+        onVisibleChanged: {
+            if (visible) {
+                dialog.entered = false
+                Qt.callLater(() => dialog.entered = true)
+            } else {
+                dialog.entered = false
+            }
+        }
+
         Rectangle {
             anchors.fill: parent
             color: RaohaneTheme.dark ? "#8a000000" : "#465b5750"
+            opacity: dialog.entered ? 1 : 0
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
+
             MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons }
         }
 
         RaohaneSurface {
             id: dialog
+            property bool entered: false
+
             width: Math.min(parent.width - 72, 450)
             implicitHeight: content.implicitHeight + 40
             height: implicitHeight
@@ -131,6 +148,22 @@ Scope {
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
+            opacity: entered ? 1 : 0
+            scale: entered ? 1 : 0.982
+
+            transform: Translate {
+                y: dialog.entered ? 0 : 10
+                Behavior on y {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+            }
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
@@ -149,19 +182,20 @@ Scope {
                 }
                 spacing: 11
 
-                Rectangle {
+                RaohaneSurface {
                     Layout.alignment: Qt.AlignHCenter
                     width: 48
                     height: 48
-                    radius: 15
-                    color: RaohaneTheme.surfaceSubtle
-                    border.width: 1
-                    border.color: RaohaneTheme.border
+                    surfaceRadius: 15
+                    active: true
+                    showSheen: false
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: "security"
                         iconSize: 23
+                        fill: 1
+                        symbolWeight: 540
                         color: RaohaneTheme.accent
                     }
                 }
@@ -185,13 +219,12 @@ Scope {
                     font.pixelSize: 9
                 }
 
-                Rectangle {
+                RaohaneSurface {
                     Layout.fillWidth: true
                     Layout.preferredHeight: supplementaryText.implicitHeight + 16
                     visible: root.supplementaryMessage.length > 0
-                    radius: 10
-                    color: RaohaneTheme.surfaceSubtle
-                    border.width: 1
+                    surfaceRadius: 10
+                    showSheen: false
                     border.color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.border
 
                     Text {
@@ -206,6 +239,8 @@ Scope {
                         color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.textMuted
                         wrapMode: Text.Wrap
                         font.pixelSize: 8
+
+                        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                     }
                 }
 
@@ -217,12 +252,12 @@ Scope {
                     font.weight: Font.DemiBold
                 }
 
-                Rectangle {
+                RaohaneSurface {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 44
-                    radius: 13
-                    color: inputField.activeFocus ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-                    border.width: 1
+                    surfaceRadius: 13
+                    hovered: inputField.activeFocus
+                    showSheen: false
                     border.color: inputField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                     TextInput {
@@ -282,7 +317,7 @@ Scope {
         }
     }
 
-    component AuthButton: Rectangle {
+    component AuthButton: RaohaneSurface {
         id: button
         required property string title
         property bool primary: false
@@ -290,18 +325,27 @@ Scope {
 
         Layout.preferredWidth: primary ? 126 : 96
         Layout.preferredHeight: 36
-        radius: 11
-        opacity: enabled ? 1 : 0.45
-        color: pointer.containsMouse && enabled ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: 1
-        border.color: primary ? RaohaneTheme.accentBorder : RaohaneTheme.border
+        surfaceRadius: 11
+        active: primary
+        transparentIdle: !primary
+        showSheen: false
+        interactive: true
+        hovered: pointer.containsMouse || activeFocus
+        pressed: pointer.pressed
+        hoverScale: 1.015
+        pressedScale: RaohaneMotion.pressScale
+        activeFocusOnTab: enabled
+        opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
         Text {
             anchors.centerIn: parent
             text: button.title
-            color: button.primary ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            color: button.primary ? RaohaneTheme.accent
+                : button.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
             font.pixelSize: 9
             font.weight: Font.DemiBold
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
 
         MouseArea {
@@ -310,7 +354,21 @@ Scope {
             enabled: button.enabled
             hoverEnabled: true
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onPressed: button.forceActiveFocus()
             onClicked: button.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (!button.enabled)
+                return
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                button.triggered()
+                event.accepted = true
+            }
+        }
+
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
     }
 }
