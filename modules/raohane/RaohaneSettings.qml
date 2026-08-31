@@ -120,7 +120,7 @@ Scope {
 
                         Text {
                             text: "RAOHANE"
-                            color: RaohaneTheme.textFaint
+                            color: RaohaneTheme.accent
                             font.pixelSize: 7
                             font.weight: Font.DemiBold
                             font.letterSpacing: 1.2
