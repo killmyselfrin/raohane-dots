@@ -155,7 +155,6 @@ Item {
         id: action
 
         property string tooltip: ""
-        property bool active: false
         signal triggered()
 
         buttonSize: 28
