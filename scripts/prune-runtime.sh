@@ -155,6 +155,14 @@ fi
   echo 'Pruning removed native autostart backend unexpectedly.' >&2
   exit 1
 }
+[[ -f "$TARGET/scripts/lyrics-resolve.py" ]] || {
+  echo 'Pruning removed the native lyrics resolver unexpectedly.' >&2
+  exit 1
+}
+[[ -f "$TARGET/scripts/product-live-check.sh" ]] || {
+  echo 'Pruning removed the current product live validator unexpectedly.' >&2
+  exit 1
+}
 [[ -f "$TARGET/scripts/phase4-live-check.sh" ]] || {
   echo 'Pruning removed the Phase 4 live validator unexpectedly.' >&2
   exit 1
