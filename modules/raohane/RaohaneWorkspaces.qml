@@ -50,7 +50,7 @@ Item {
         Repeater {
             model: root.workspaceIds
 
-            delegate: Rectangle {
+            delegate: RaohaneSurface {
                 id: workspaceButton
 
                 required property var modelData
@@ -58,31 +58,47 @@ Item {
 
                 readonly property int workspaceId: Number(modelData)
                 readonly property var workspaceObject: root.workspaceForId(workspaceId)
-                readonly property bool active: root.activeWorkspaceId === workspaceId
+                readonly property bool selected: root.activeWorkspaceId === workspaceId
                 readonly property bool occupied: (workspaceObject?.toplevels?.values?.length ?? 0) > 0
                 readonly property bool urgent: workspaceObject?.urgent ?? false
 
-                Layout.preferredWidth: active ? 31 : 25
+                Layout.preferredWidth: selected ? 31 : 25
                 Layout.preferredHeight: 28
-                radius: 10
-                color: active
-                    ? RaohaneTheme.accentSoft
-                    : workspaceMouse.containsMouse ? "#24ffffff" : "transparent"
-                border.width: active || urgent ? 1 : 0
-                border.color: urgent ? "#ff7373" : RaohaneTheme.border
+                surfaceRadius: 10
+                raised: false
+                active: selected
+                hovered: workspaceMouse.containsMouse
+                pressed: workspaceMouse.pressed
+                interactive: true
+                hoverScale: RaohaneMotion.subtleHoverScale
+                pressedScale: RaohaneMotion.softPressScale
+                showSheen: false
+                border.color: urgent ? RaohaneTheme.critical
+                    : selected ? RaohaneTheme.accentBorder
+                    : hovered ? RaohaneTheme.borderStrong
+                    : RaohaneTheme.border
+
+                Behavior on Layout.preferredWidth {
+                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+                }
+                Behavior on border.color {
+                    ColorAnimation { duration: RaohaneMotion.micro }
+                }
 
                 Text {
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: workspaceButton.occupied ? -2 : 0
                     text: workspaceButton.workspaceId
-                    color: workspaceButton.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    color: workspaceButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     font.pixelSize: 9
-                    font.weight: workspaceButton.active ? Font.DemiBold : Font.Medium
+                    font.weight: workspaceButton.selected ? Font.DemiBold : Font.Medium
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                 }
 
                 Rectangle {
                     visible: workspaceButton.occupied
-                    width: workspaceButton.active ? 8 : 5
+                    width: workspaceButton.selected ? 8 : 5
                     height: 2
                     radius: 1
                     anchors {
@@ -90,8 +106,15 @@ Item {
                         bottom: parent.bottom
                         bottomMargin: 4
                     }
-                    color: workspaceButton.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    opacity: workspaceButton.active ? 1 : 0.7
+                    color: workspaceButton.urgent ? RaohaneTheme.critical
+                        : workspaceButton.selected ? RaohaneTheme.accent
+                        : RaohaneTheme.textMuted
+                    opacity: workspaceButton.selected || workspaceButton.urgent ? 1 : 0.7
+
+                    Behavior on width {
+                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                    }
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                 }
 
                 MouseArea {
