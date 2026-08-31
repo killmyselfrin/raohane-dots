@@ -21,6 +21,7 @@ QtObject {
     property bool settingsOpen: false
     property string settingsPage: ""
     property bool sessionOpen: false
+    property bool taskManagerOpen: false
     property bool osdOpen: false
     property bool screenLocked: false
     property bool superDown: false
@@ -41,6 +42,7 @@ QtObject {
         case "screenTranslator": return screenTranslatorOpen
         case "settings": return settingsOpen
         case "session": return sessionOpen
+        case "taskManager": return taskManagerOpen
         case "desktopMenu": return desktopMenuOpen
         default: return false
         }
@@ -56,6 +58,7 @@ QtObject {
         if (except !== "screenTranslator") screenTranslatorOpen = false
         if (except !== "settings") settingsOpen = false
         if (except !== "session") sessionOpen = false
+        if (except !== "taskManager") taskManagerOpen = false
         if (except !== "desktopMenu") desktopMenuOpen = false
     }
 
@@ -73,6 +76,7 @@ QtObject {
         case "screenTranslator": screenTranslatorOpen = open; break
         case "settings": settingsOpen = open; break
         case "session": sessionOpen = open; break
+        case "taskManager": taskManagerOpen = open; break
         case "desktopMenu": desktopMenuOpen = open; break
         default:
             console.warn("[RaohaneState] Unknown primary surface:", name)
@@ -127,6 +131,9 @@ QtObject {
             break
         case "sessionOpen":
             togglePrimary("session")
+            break
+        case "taskManagerOpen":
+            togglePrimary("taskManager")
             break
         case "desktopMenuOpen":
             togglePrimary("desktopMenu")
