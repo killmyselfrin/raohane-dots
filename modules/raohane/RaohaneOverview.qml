@@ -99,9 +99,26 @@ Scope {
             right: true
         }
 
+        onVisibleChanged: {
+            if (visible) {
+                overviewPanel.entered = false
+                Qt.callLater(() => {
+                    overviewPanel.entered = true
+                    overviewPanel.forceActiveFocus()
+                })
+            } else {
+                overviewPanel.entered = false
+            }
+        }
+
         Rectangle {
             anchors.fill: parent
             color: RaohaneTheme.dark ? "#72000000" : "#345b5750"
+            opacity: overviewPanel.entered ? 1 : 0
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
 
             MouseArea {
                 anchors.fill: parent
@@ -111,6 +128,8 @@ Scope {
 
         RaohaneSurface {
             id: overviewPanel
+            property bool entered: false
+
             width: Math.min(parent.width - 96, 1040)
             height: Math.min(parent.height - 112, 680)
             anchors.centerIn: parent
@@ -119,6 +138,22 @@ Scope {
             showSheen: false
             border.color: RaohaneTheme.borderStrong
             clip: true
+            opacity: entered ? 1 : 0
+            scale: entered ? 1 : 0.982
+
+            transform: Translate {
+                y: overviewPanel.entered ? 0 : 12
+                Behavior on y {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+            }
 
             MouseArea {
                 anchors.fill: parent
@@ -147,12 +182,6 @@ Scope {
                 }
             }
 
-            Component.onCompleted: forceActiveFocus()
-            onVisibleChanged: {
-                if (visible)
-                    forceActiveFocus()
-            }
-
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 18
@@ -163,18 +192,19 @@ Scope {
                     Layout.preferredHeight: 44
                     spacing: 10
 
-                    Rectangle {
+                    RaohaneSurface {
                         width: 36
                         height: 36
-                        radius: 12
-                        color: RaohaneTheme.surfaceSubtle
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                        surfaceRadius: 12
+                        active: true
+                        showSheen: false
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: "space_dashboard"
                             iconSize: 18
+                            fill: 1
+                            symbolWeight: 540
                             color: RaohaneTheme.accent
                         }
                     }
@@ -196,13 +226,12 @@ Scope {
                         }
                     }
 
-                    Rectangle {
+                    RaohaneSurface {
                         width: groupText.implicitWidth + 16
                         height: 26
-                        radius: 9
-                        color: "transparent"
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                        surfaceRadius: 9
+                        transparentIdle: true
+                        showSheen: false
 
                         Text {
                             id: groupText
@@ -218,6 +247,8 @@ Scope {
                         buttonSize: 30
                         iconSize: 15
                         icon: "close"
+                        transparentIdle: true
+                        showSheen: false
                         onClicked: root.close()
                     }
                 }
@@ -247,21 +278,27 @@ Scope {
                             readonly property int workspaceId: Number(modelData)
                             readonly property var workspaceObject: root.workspaceForId(workspaceId)
                             readonly property var windows: workspaceObject?.toplevels.values ?? []
-                            readonly property bool active: workspaceId === root.activeWorkspaceId
+                            readonly property bool activeWorkspace: workspaceId === root.activeWorkspaceId
                             readonly property bool selected: index === root.selectedIndex
 
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             Layout.minimumHeight: 128
                             surfaceRadius: 17
-                            raised: active || selected
-                            hovered: workspaceMouse.containsMouse
+                            raised: activeWorkspace || selected
+                            hovered: workspaceMouse.containsMouse || activeFocus
+                            pressed: workspaceMouse.pressed
+                            interactive: true
                             showSheen: false
-                            border.color: active ? RaohaneTheme.accentBorder
-                                : selected || workspaceMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                            hoverScale: 1.008
+                            pressedScale: 0.994
+                            activeFocusOnTab: true
+                            border.color: activeWorkspace ? RaohaneTheme.accentBorder
+                                : selected ? RaohaneTheme.borderStrong
+                                : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                             Rectangle {
-                                visible: workspaceCard.active
+                                visible: workspaceCard.activeWorkspace
                                 anchors {
                                     left: parent.left
                                     top: parent.top
@@ -286,21 +323,22 @@ Scope {
 
                                     Text {
                                         text: String(workspaceCard.workspaceId).padStart(2, "0")
-                                        color: workspaceCard.active ? RaohaneTheme.accent : RaohaneTheme.text
+                                        color: workspaceCard.activeWorkspace ? RaohaneTheme.accent : RaohaneTheme.text
                                         font.pixelSize: 18
                                         font.weight: Font.Medium
+
+                                        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                                     }
 
                                     Item { Layout.fillWidth: true }
 
-                                    Rectangle {
-                                        visible: workspaceCard.active
+                                    RaohaneSurface {
+                                        visible: workspaceCard.activeWorkspace
                                         implicitWidth: activeText.implicitWidth + 12
                                         implicitHeight: 21
-                                        radius: 7
-                                        color: RaohaneTheme.surfaceSubtle
-                                        border.width: 1
-                                        border.color: RaohaneTheme.border
+                                        surfaceRadius: 7
+                                        active: true
+                                        showSheen: false
 
                                         Text {
                                             id: activeText
@@ -327,15 +365,21 @@ Scope {
                                     Repeater {
                                         model: workspaceCard.windows.slice(0, 4)
 
-                                        delegate: Rectangle {
+                                        delegate: RaohaneSurface {
                                             id: windowRow
                                             required property var modelData
 
                                             Layout.fillWidth: true
                                             Layout.preferredHeight: 26
-                                            radius: 8
-                                            color: windowMouse.containsMouse || windowRow.modelData?.activated
-                                                ? RaohaneTheme.surfaceHover : "transparent"
+                                            surfaceRadius: 8
+                                            transparentIdle: !Boolean(windowRow.modelData?.activated)
+                                            active: Boolean(windowRow.modelData?.activated)
+                                            hovered: windowMouse.containsMouse
+                                            pressed: windowMouse.pressed
+                                            interactive: true
+                                            showSheen: false
+                                            hoverScale: 1.004
+                                            pressedScale: 0.992
                                             opacity: modelData?.wayland ? 1 : 0.65
 
                                             RowLayout {
@@ -351,6 +395,8 @@ Scope {
                                                     color: windowRow.modelData?.urgent
                                                         ? RaohaneTheme.critical
                                                         : windowRow.modelData?.activated ? RaohaneTheme.accent : RaohaneTheme.textFaint
+
+                                                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                                                 }
 
                                                 Text {
@@ -413,6 +459,7 @@ Scope {
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 acceptedButtons: Qt.LeftButton
+                                onPressed: workspaceCard.forceActiveFocus()
                                 onEntered: root.selectedIndex = workspaceCard.index
                                 onClicked: root.activateWorkspace(workspaceCard.workspaceId)
                             }
