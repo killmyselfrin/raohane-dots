@@ -52,10 +52,37 @@ Scope {
                 Repeater {
                     model: root.popupNotifications
 
-                    delegate: RaohaneNotificationCard {
+                    delegate: Item {
+                        id: popupEntry
                         required property var modelData
+                        required property int index
+                        property bool entered: false
+
                         width: notificationStack.width
-                        notification: modelData
+                        height: card.implicitHeight
+                        opacity: entered ? 1 : 0
+                        x: entered ? 0 : 24
+
+                        Component.onCompleted: entered = true
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: RaohaneMotion.mediumDuration
+                                easing.type: RaohaneMotion.easeEmphasized
+                            }
+                        }
+                        Behavior on x {
+                            NumberAnimation {
+                                duration: RaohaneMotion.mediumDuration
+                                easing.type: RaohaneMotion.easeEmphasized
+                            }
+                        }
+
+                        RaohaneNotificationCard {
+                            id: card
+                            width: parent.width
+                            notification: popupEntry.modelData
+                        }
                     }
                 }
             }
