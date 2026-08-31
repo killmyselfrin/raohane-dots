@@ -18,6 +18,7 @@ Singleton {
     readonly property var builtInActions: [
         { name: qsTr("Open Settings"), icon: "settings", command: ["raohane", "settings"], keywords: "preferences config settings" },
         { name: qsTr("Open Control Center"), icon: "tune", command: ["raohane", "control"], keywords: "quick settings wifi audio bluetooth" },
+        { name: qsTr("Open Task Manager"), icon: "browse_activity", command: ["qs", "-c", "raohane", "ipc", "call", "taskManager", "open"], keywords: "processes cpu ram memory system monitor tasks" },
         { name: qsTr("Choose Wallpaper"), icon: "wallpaper", command: ["raohane", "wallpaper"], keywords: "background wallpaper image" },
         { name: qsTr("Random Wallpaper"), icon: "casino", command: ["raohane", "wallpaper", "random"], keywords: "background random wallpaper" },
         { name: qsTr("Session / Power"), icon: "power_settings_new", command: ["raohane", "session"], keywords: "logout reboot shutdown power" },
