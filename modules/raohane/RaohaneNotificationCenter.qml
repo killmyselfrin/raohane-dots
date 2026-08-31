@@ -96,10 +96,10 @@ Item {
                     Component.onCompleted: entered = true
 
                     Behavior on opacity {
-                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
                     }
                     Behavior on scale {
-                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
                     }
 
                     RaohaneNotificationCard {
