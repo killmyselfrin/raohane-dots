@@ -19,10 +19,11 @@ Usage:
   release-live-check.sh [--phase4] [--full] [--report PATH]
 
 Modes:
-  default     Collect non-destructive live environment/runtime evidence.
+  default     Collect live environment/runtime evidence and run the current
+              non-destructive product probe (Task Manager, Command Deck, MPRIS/Lyrics state).
   --phase4    Also run the safe Phase 4 live probe.
-  --full      Run `phase4-live-check.sh --full` and ask for the remaining
-              release/hardware confirmations that CI cannot establish.
+  --full      Run `phase4-live-check.sh --full`, the product probe and ask for
+              remaining hardware/visual confirmations that CI cannot establish.
 
 The full mode can enter the real WlSessionLock/PAM path and interactive
 capture/translation flows through the existing Phase 4 validator.
@@ -69,6 +70,7 @@ exec > >(tee "$report") 2>&1
 failures=0
 partial=0
 phase4_status='not-run'
+product_status='not-run'
 monitor_count=0
 
 section() {
@@ -104,6 +106,19 @@ find_phase4_validator() {
   for candidate in \
     "$RUNTIME/scripts/phase4-live-check.sh" \
     "$SCRIPT_DIR/phase4-live-check.sh"; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+find_product_validator() {
+  local candidate
+  for candidate in \
+    "$RUNTIME/scripts/product-live-check.sh" \
+    "$SCRIPT_DIR/product-live-check.sh"; do
     if [[ -f "$candidate" ]]; then
       printf '%s\n' "$candidate"
       return 0
@@ -180,8 +195,15 @@ for path in \
   "$RUNTIME/shell.qml" \
   "$RUNTIME/qmldir" \
   "$RUNTIME/modules/raohane" \
+  "$RUNTIME/modules/raohane/RaohaneTaskManager.qml" \
+  "$RUNTIME/modules/raohane/RaohaneOverlay.qml" \
+  "$RUNTIME/modules/raohane/services/RaohaneProcesses.qml" \
+  "$RUNTIME/modules/raohane/services/RaohaneLyrics.qml" \
   "$RUNTIME/panelFamilies/RaohaneFamily.qml" \
+  "$RUNTIME/scripts/lyrics-resolve.py" \
+  "$RUNTIME/scripts/product-live-check.sh" \
   "$RUNTIME/scripts/phase4-live-check.sh" \
+  "$RUNTIME/scripts/release-live-check.sh" \
   "$RUNTIME/scripts/validate-runtime-payload.sh"; do
   if [[ -e "$path" ]]; then
     ok "${path#$RUNTIME/}"
@@ -240,6 +262,20 @@ if command -v hyprctl >/dev/null 2>&1 && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}
   hyprctl -j activewindow 2>/dev/null || warn 'active-window JSON unavailable'
 fi
 
+section 'Current product live probe'
+if product_validator="$(find_product_validator)"; then
+  if bash "$product_validator"; then
+    product_status='pass'
+    ok 'Task Manager / Command Deck / current media runtime probe passed'
+  else
+    product_status='failed'
+    fail 'current product live probe failed'
+  fi
+else
+  product_status='missing'
+  fail 'product-live-check.sh could not be found'
+fi
+
 if ((run_phase4)); then
   section 'Phase 4 live validator'
   if validator="$(find_phase4_validator)"; then
@@ -270,6 +306,8 @@ if ((full)); then
   section 'Release gates that require human observation'
   ask_gate fresh-install 'Is this validation running on a fresh/clean Arch + Hyprland installation or an intentionally tested clean reinstall?'
   ask_gate graphics-session 'Did the desktop complete this run without visible GPU/render corruption, repeated shell crashes or unacceptable GPU behavior?'
+  ask_gate task-manager 'Did the native Task Manager render correctly, refresh processes and keep End/Force stop confirmations clear and safe?'
+  ask_gate media-lyrics 'With a known lyrics-supported track, did Media show the correct lyrics and keep synchronized lyrics aligned with playback?'
 
   if ((monitor_count >= 2)); then
     ask_gate multi-monitor 'With all detected monitors connected, did Raohane placement, focus and input behavior work correctly?'
@@ -277,10 +315,11 @@ if ((full)); then
     warn 'multi-monitor: fewer than two monitors detected; multi-monitor release gate remains unvalidated'
   fi
 
-  ask_gate fullscreen-game 'Did fullscreen/game behavior and the Raohane media/overlay path work correctly in a real fullscreen application?'
+  ask_gate fullscreen-game 'Did a real fullscreen/game workload keep Bar/Dock behavior correct and allow the Command Deck / Media Overlay to open, interact and close cleanly?'
 fi
 
 section 'Result'
+printf 'product:  %s\n' "$product_status"
 printf 'phase4:   %s\n' "$phase4_status"
 printf 'failures: %d\n' "$failures"
 printf 'partial:  %d\n' "$partial"
