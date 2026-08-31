@@ -50,7 +50,9 @@ Scope {
             anchors.fill: parent
             color: RaohaneTheme.dark ? "#70000000" : "#305b5750"
             opacity: RaohaneState.settingsOpen ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: RaohaneTheme.animationDuration } }
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
 
             MouseArea {
                 anchors.fill: parent
@@ -73,12 +75,18 @@ Scope {
             scale: RaohaneState.settingsOpen ? 1 : 0.985
             focus: RaohaneState.settingsOpen
 
-            Behavior on opacity { NumberAnimation { duration: RaohaneTheme.animationDuration } }
-            Behavior on scale {
-                NumberAnimation {
-                    duration: RaohaneTheme.animationSlow
-                    easing.type: Easing.OutCubic
+            transform: Translate {
+                y: RaohaneState.settingsOpen ? 0 : 10
+                Behavior on y {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
                 }
+            }
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             Item {
@@ -98,20 +106,20 @@ Scope {
                     anchors.rightMargin: 14
                     spacing: 11
 
-                    Rectangle {
+                    RaohaneSurface {
                         Layout.preferredWidth: 34
                         Layout.preferredHeight: 34
-                        radius: 11
-                        color: RaohaneTheme.surfaceSubtle
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                        surfaceRadius: 11
+                        active: true
+                        showSheen: false
 
-                        Text {
+                        RaohaneIcon {
                             anchors.centerIn: parent
-                            text: "ラ"
+                            text: "settings"
+                            iconSize: 18
+                            fill: 1
+                            symbolWeight: 540
                             color: RaohaneTheme.accent
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
                         }
                     }
 
@@ -149,6 +157,8 @@ Scope {
                         buttonSize: 32
                         iconSize: 16
                         icon: "close"
+                        transparentIdle: true
+                        showSheen: false
                         onClicked: panelWindow.hide()
                     }
                 }
