@@ -109,8 +109,8 @@ Scope {
 
                 Behavior on y {
                     NumberAnimation {
-                        duration: RaohaneTheme.animationDuration
-                        easing.type: Easing.OutCubic
+                        duration: RaohaneMotion.standard
+                        easing.type: RaohaneMotion.easeEmphasized
                     }
                 }
 
@@ -136,29 +136,11 @@ Scope {
                         }
                         spacing: 7
 
-                        Rectangle {
-                            width: 30
-                            height: 30
-                            radius: 11
-                            color: launcherMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-                            border.width: 1
-                            border.color: launcherMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "ラ"
-                                color: launcherMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.text
-                                font.pixelSize: 13
-                                font.weight: Font.DemiBold
-                            }
-
-                            MouseArea {
-                                id: launcherMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: RaohaneState.togglePrimary("launcher")
-                            }
+                        RaohaneIconButton {
+                            icon: "apps"
+                            buttonSize: 30
+                            iconSize: 17
+                            onClicked: RaohaneState.togglePrimary("launcher")
                         }
 
                         Rectangle {
@@ -254,28 +236,11 @@ Scope {
                             active: barWindow.visible
                         }
 
-                        Rectangle {
-                            width: 30
-                            height: 30
-                            radius: 11
-                            color: controlMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-                            border.width: 1
-                            border.color: controlMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
-
-                            RaohaneIcon {
-                                anchors.centerIn: parent
-                                text: "tune"
-                                iconSize: 15
-                                color: controlMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                            }
-
-                            MouseArea {
-                                id: controlMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: RaohaneState.togglePrimary("controlCenter")
-                            }
+                        RaohaneIconButton {
+                            icon: "tune"
+                            buttonSize: 30
+                            iconSize: 16
+                            onClicked: RaohaneState.togglePrimary("controlCenter")
                         }
                     }
                 }
