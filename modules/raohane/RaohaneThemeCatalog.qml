@@ -72,6 +72,7 @@ Item {
         contentHeight: content.implicitHeight + 24
         clip: true
         boundsBehavior: Flickable.StopAtBounds
+        flickDeceleration: 2400
 
         ColumnLayout {
             id: content
@@ -98,13 +99,12 @@ Item {
                     }
                 }
 
-                Rectangle {
+                RaohaneSurface {
                     Layout.preferredWidth: activeLabel.implicitWidth + 24
                     Layout.preferredHeight: 30
-                    radius: 15
-                    color: RaohaneTheme.surfaceSubtle
-                    border.width: 1
-                    border.color: RaohaneTheme.border
+                    surfaceRadius: 15
+                    showSheen: false
+                    raised: true
                     Text {
                         id: activeLabel
                         anchors.centerIn: parent
@@ -137,8 +137,14 @@ Item {
                         radius: 18
                         color: modelData.surfaceRaised
                         border.width: selected ? 2 : 1
-                        border.color: selected ? modelData.accent : modelData.border
+                        border.color: selected ? modelData.accent : themeMouse.containsMouse ? modelData.textMuted : modelData.border
                         clip: true
+                        scale: themeMouse.pressed ? RaohaneMotion.pressScale : themeMouse.containsMouse ? RaohaneMotion.hoverScale : 1
+
+                        Behavior on scale {
+                            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeEmphasized }
+                        }
+                        Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
 
                         ColumnLayout {
                             anchors.fill: parent
@@ -222,11 +228,28 @@ Item {
                                     Text { Layout.fillWidth: true; text: themeCard.modelData.name; color: themeCard.modelData.text; font.pixelSize: 10; font.weight: Font.DemiBold; elide: Text.ElideRight }
                                     Text { Layout.fillWidth: true; text: themeCard.modelData.tone; color: themeCard.modelData.textMuted; font.pixelSize: 7; elide: Text.ElideRight }
                                 }
-                                Text { text: themeCard.selected ? "✓" : ""; color: themeCard.modelData.accent; font.pixelSize: 12; font.weight: Font.Bold }
+                                RaohaneIcon {
+                                    visible: themeCard.selected
+                                    text: "check_circle"
+                                    iconSize: 17
+                                    fill: 1
+                                    symbolWeight: 560
+                                    color: themeCard.modelData.accent
+                                    scale: themeCard.selected ? 1 : 0.6
+                                    Behavior on scale {
+                                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEnter }
+                                    }
+                                }
                             }
                         }
 
-                        MouseArea { anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: RaohaneConfig.themePreset = String(themeCard.modelData.id) }
+                        MouseArea {
+                            id: themeMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: RaohaneConfig.themePreset = String(themeCard.modelData.id)
+                        }
                     }
                 }
             }
@@ -257,14 +280,14 @@ Item {
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Accent intensity"); detail: qsTr("Strength of active states and selection"); value: Number(root.styleValue("accentStrength", 1.0)); minimum: 0.45; maximum: 1.5; step: 0.05; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("accentStrength", value) }
             }
 
-            Rectangle {
+            RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
                 Layout.preferredHeight: accentBlock.implicitHeight + 24
-                radius: 18
+                surfaceRadius: 18
+                showSheen: false
                 color: RaohaneTheme.surfaceSubtle
-                border.width: 1
                 border.color: RaohaneTheme.border
 
                 ColumnLayout {
@@ -286,23 +309,31 @@ Item {
                         rowSpacing: 7
                         Repeater {
                             model: root.accents
-                            delegate: Rectangle {
+                            delegate: RaohaneSurface {
                                 id: accentButton
                                 required property var modelData
                                 readonly property bool selected: String(root.styleValue("accentMode", "theme")) === String(modelData.id)
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 30
-                                radius: 12
-                                color: selected ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceRaised
-                                border.width: 1
-                                border.color: selected ? RaohaneTheme.accentBorder : RaohaneTheme.border
+                                surfaceRadius: 12
+                                showSheen: false
+                                active: selected
+                                hovered: accentMouse.containsMouse
+                                pressed: accentMouse.pressed
+                                interactive: true
                                 Row {
                                     anchors.centerIn: parent
                                     spacing: 6
                                     Rectangle { width: 10; height: 10; radius: 5; anchors.verticalCenter: parent.verticalCenter; color: root.accentColor(String(accentButton.modelData.id)); border.width: 1; border.color: RaohaneTheme.borderStrong }
                                     Text { anchors.verticalCenter: parent.verticalCenter; text: accentButton.modelData.name; color: accentButton.selected ? RaohaneTheme.text : RaohaneTheme.textMuted; font.pixelSize: 8 }
                                 }
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.setStyle("accentMode", String(accentButton.modelData.id)) }
+                                MouseArea {
+                                    id: accentMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.setStyle("accentMode", String(accentButton.modelData.id))
+                                }
                             }
                         }
                     }
@@ -325,7 +356,17 @@ Item {
                                 color: String(modelData)
                                 border.width: selected ? 3 : 1
                                 border.color: selected ? RaohaneTheme.text : RaohaneTheme.borderStrong
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.applyCustomAccent(String(swatch.modelData)) }
+                                scale: swatchMouse.pressed ? 0.90 : swatchMouse.containsMouse ? 1.10 : 1
+                                Behavior on scale {
+                                    NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeEmphasized }
+                                }
+                                MouseArea {
+                                    id: swatchMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.applyCustomAccent(String(swatch.modelData))
+                                }
                             }
                         }
                     }
@@ -334,13 +375,12 @@ Item {
                         Layout.fillWidth: true
                         spacing: 8
                         Rectangle { width: 30; height: 30; radius: 10; color: String(root.styleValue("customAccent", "#657987")); border.width: 1; border.color: RaohaneTheme.borderStrong }
-                        Rectangle {
+                        RaohaneSurface {
                             Layout.preferredWidth: 150
                             Layout.preferredHeight: 32
-                            radius: 10
-                            color: RaohaneTheme.surfaceRaised
-                            border.width: 1
-                            border.color: customHex.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
+                            surfaceRadius: 10
+                            showSheen: false
+                            active: customHex.activeFocus
                             TextInput {
                                 id: customHex
                                 anchors.fill: parent
@@ -396,14 +436,14 @@ Item {
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Notification body lines"); detail: qsTr("Maximum body lines before text is elided"); value: Number(root.styleValue("notificationBodyLines", 4)); minimum: 1; maximum: 6; step: 1; multiplier: 1; suffix: ""; onUserChanged: value => root.setStyle("notificationBodyLines", Math.round(value)) }
             }
 
-            Rectangle {
+            RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
                 Layout.preferredHeight: advancedToggles.implicitHeight + 22
-                radius: 18
+                surfaceRadius: 18
+                showSheen: false
                 color: RaohaneTheme.surfaceSubtle
-                border.width: 1
                 border.color: RaohaneTheme.border
 
                 ColumnLayout {
@@ -444,20 +484,22 @@ Item {
             Text { Layout.fillWidth: true; text: header.detail; color: RaohaneTheme.textMuted; font.pixelSize: 9; wrapMode: Text.WordWrap }
         }
 
-        Rectangle {
+        RaohaneSurface {
+            id: actionButton
             visible: header.actionText !== ""
             implicitWidth: actionLabel.implicitWidth + 22
             implicitHeight: 30
-            radius: 12
-            color: actionMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-            border.width: 1
-            border.color: RaohaneTheme.border
-            Text { id: actionLabel; anchors.centerIn: parent; text: header.actionText; color: RaohaneTheme.textMuted; font.pixelSize: 8; font.weight: Font.DemiBold }
+            surfaceRadius: 12
+            showSheen: false
+            hovered: actionMouse.containsMouse
+            pressed: actionMouse.pressed
+            interactive: true
+            Text { id: actionLabel; anchors.centerIn: parent; text: header.actionText; color: actionButton.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted; font.pixelSize: 8; font.weight: Font.DemiBold }
             MouseArea { id: actionMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: header.action() }
         }
     }
 
-    component StyleToggle: Rectangle {
+    component StyleToggle: RaohaneSurface {
         id: toggle
         required property string title
         required property string detail
@@ -465,10 +507,9 @@ Item {
         signal userToggled(bool value)
 
         Layout.preferredHeight: 50
-        radius: 14
-        color: RaohaneTheme.surfaceRaised
-        border.width: 1
-        border.color: RaohaneTheme.border
+        surfaceRadius: 14
+        raised: true
+        showSheen: false
 
         RowLayout {
             anchors.fill: parent
@@ -480,28 +521,14 @@ Item {
                 Text { Layout.fillWidth: true; text: toggle.title; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold; elide: Text.ElideRight }
                 Text { Layout.fillWidth: true; text: toggle.detail; color: RaohaneTheme.textMuted; font.pixelSize: 7; elide: Text.ElideRight }
             }
-            Rectangle {
-                width: 46
-                height: 26
-                radius: 13
-                color: toggle.checked ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
-                border.width: 1
-                border.color: toggle.checked ? RaohaneTheme.accentBorder : RaohaneTheme.border
-                Rectangle {
-                    width: 18
-                    height: 18
-                    radius: 9
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: toggle.checked ? parent.width - width - 4 : 4
-                    color: toggle.checked ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    Behavior on x { NumberAnimation { duration: RaohaneTheme.animationFast } }
-                }
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: toggle.userToggled(!toggle.checked) }
+            RaohaneSwitch {
+                checked: toggle.checked
+                onToggled: value => toggle.userToggled(value)
             }
         }
     }
 
-    component StyleSlider: Rectangle {
+    component StyleSlider: RaohaneSurface {
         id: control
         required property string title
         required property string detail
@@ -513,14 +540,13 @@ Item {
         property string suffix: ""
         signal userChanged(real nextValue)
 
-        readonly property real normalized: maximum <= minimum ? 0 : Math.max(0, Math.min(1, (value - minimum) / (maximum - minimum)))
         readonly property string shownValue: String(Math.round(value * multiplier)) + suffix
 
         Layout.preferredHeight: 78
-        radius: 18
+        surfaceRadius: 18
+        showSheen: false
         color: RaohaneTheme.surfaceSubtle
-        border.width: 1
-        border.color: sliderMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        border.color: studioSlider.hovered || studioSlider.activeFocus ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
         ColumnLayout {
             anchors.fill: parent
@@ -535,48 +561,33 @@ Item {
                     Text { Layout.fillWidth: true; text: control.title; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold; elide: Text.ElideRight }
                     Text { Layout.fillWidth: true; text: control.detail; color: RaohaneTheme.textMuted; font.pixelSize: 7; elide: Text.ElideRight }
                 }
-                Text { text: control.shownValue; color: RaohaneTheme.textMuted; font.pixelSize: 8; font.weight: Font.DemiBold }
+                RaohaneSurface {
+                    implicitWidth: styleValueLabel.implicitWidth + 14
+                    implicitHeight: 20
+                    surfaceRadius: 10
+                    showSheen: false
+                    hovered: studioSlider.hovered || studioSlider.activeFocus
+                    Text {
+                        id: styleValueLabel
+                        anchors.centerIn: parent
+                        text: control.shownValue
+                        color: studioSlider.hovered || studioSlider.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                        font.weight: Font.DemiBold
+                        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                    }
+                }
             }
 
-            Item {
-                id: trackArea
+            RaohaneSlider {
+                id: studioSlider
                 Layout.fillWidth: true
-                Layout.preferredHeight: 18
-                Rectangle {
-                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
-                    height: 5
-                    radius: 3
-                    color: RaohaneTheme.borderFaint
-                    Rectangle { width: parent.width * control.normalized; height: parent.height; radius: parent.radius; color: RaohaneTheme.accent; opacity: 0.7 }
-                }
-                Rectangle {
-                    width: sliderMouse.pressed ? 16 : 14
-                    height: width
-                    radius: width / 2
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: Math.max(0, Math.min(trackArea.width - width, control.normalized * trackArea.width - width / 2))
-                    color: RaohaneTheme.surfaceRaised
-                    border.width: 2
-                    border.color: RaohaneTheme.accent
-                    Behavior on width { NumberAnimation { duration: RaohaneTheme.animationFast } }
-                }
-                MouseArea {
-                    id: sliderMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    preventStealing: true
-                    cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
-                    function applyPosition(mouseX: real): void {
-                        if (width <= 0 || control.maximum <= control.minimum)
-                            return
-                        const ratio = Math.max(0, Math.min(1, mouseX / width))
-                        const raw = control.minimum + ratio * (control.maximum - control.minimum)
-                        const snapped = control.step > 0 ? control.minimum + Math.round((raw - control.minimum) / control.step) * control.step : raw
-                        control.userChanged(Math.max(control.minimum, Math.min(control.maximum, Number(snapped.toFixed(3)))))
-                    }
-                    onPressed: mouse => applyPosition(mouse.x)
-                    onPositionChanged: mouse => { if (pressed) applyPosition(mouse.x) }
-                }
+                Layout.preferredHeight: 20
+                from: control.minimum
+                to: control.maximum
+                value: control.value
+                stepSize: control.step
+                onMoved: nextValue => control.userChanged(Number(nextValue.toFixed(3)))
             }
         }
     }
