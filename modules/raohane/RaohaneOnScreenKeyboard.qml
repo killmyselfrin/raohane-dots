@@ -63,6 +63,7 @@ Scope {
 
             RaohaneSurface {
                 id: keyboardPanel
+                property bool entered: false
 
                 anchors {
                     horizontalCenter: parent.horizontalCenter
@@ -76,6 +77,24 @@ Scope {
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
                 clip: true
+                opacity: entered ? 1 : 0
+                scale: entered ? 1 : 0.985
+
+                transform: Translate {
+                    y: keyboardPanel.entered ? 0 : 16
+                    Behavior on y {
+                        NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
+                Behavior on scale {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
+
+                Component.onCompleted: Qt.callLater(() => entered = true)
 
                 RowLayout {
                     id: keyboardRow
@@ -89,24 +108,32 @@ Scope {
 
                         ControlButton {
                             icon: "keep"
-                            active: root.pinned
+                            toggled: root.pinned
                             onTriggered: RaohaneConfig.oskPinned = !RaohaneConfig.oskPinned
                         }
 
-                        Rectangle {
+                        RaohaneSurface {
+                            id: layoutButton
                             width: 40
                             height: 40
-                            radius: 11
-                            color: layoutMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-                            border.width: 1
-                            border.color: layoutMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                            surfaceRadius: 11
+                            transparentIdle: true
+                            showSheen: false
+                            interactive: true
+                            hovered: layoutMouse.containsMouse || activeFocus
+                            pressed: layoutMouse.pressed
+                            hoverScale: RaohaneMotion.hoverScale
+                            pressedScale: RaohaneMotion.pressScale
+                            activeFocusOnTab: true
 
                             Text {
                                 anchors.centerIn: parent
                                 text: oskContent.currentLayout?.name_short ?? "KB"
-                                color: RaohaneTheme.text
+                                color: layoutButton.hovered ? RaohaneTheme.accent : RaohaneTheme.text
                                 font.pixelSize: 9
                                 font.weight: Font.DemiBold
+
+                                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                             }
 
                             MouseArea {
@@ -114,9 +141,18 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                onPressed: layoutButton.forceActiveFocus()
                                 onClicked: {
                                     oskContent.cycleLayout()
                                     RaohaneConfig.oskLayout = oskContent.layoutName
+                                }
+                            }
+
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    oskContent.cycleLayout()
+                                    RaohaneConfig.oskLayout = oskContent.layoutName
+                                    event.accepted = true
                                 }
                             }
                         }
@@ -166,34 +202,16 @@ Scope {
         onPressed: RaohaneState.oskOpen = false
     }
 
-    component ControlButton: Rectangle {
+    component ControlButton: RaohaneIconButton {
         id: control
-        required property string icon
-        property bool active: false
+        property bool toggled: false
         signal triggered()
 
-        width: 40
-        height: 40
-        radius: 11
-        color: active ? RaohaneTheme.surfaceRaised
-            : pointer.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: 1
-        border.color: active ? RaohaneTheme.borderStrong : RaohaneTheme.border
-
-        RaohaneIcon {
-            anchors.centerIn: parent
-            text: control.icon
-            iconSize: 18
-            fill: control.active ? 1 : 0
-            color: control.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
-        }
-
-        MouseArea {
-            id: pointer
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: control.triggered()
-        }
+        buttonSize: 40
+        iconSize: 18
+        emphasized: toggled
+        transparentIdle: !toggled
+        showSheen: false
+        onClicked: control.triggered()
     }
 }
