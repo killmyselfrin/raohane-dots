@@ -6,7 +6,10 @@ QtObject {
     id: root
 
     // One motion language for the entire shell. Durations still respect the
-    // persisted Style Studio motion scale through RaohaneTheme.
+    // persisted Style Studio motion scale through RaohaneTheme. Expose the
+    // scale here too so shared interaction primitives have an explicit motion
+    // contract without duplicating duration math.
+    readonly property real motionScale: RaohaneTheme.motionScale
     readonly property int micro: RaohaneTheme.animationFast
     readonly property int standard: RaohaneTheme.animationDuration
     readonly property int relaxed: RaohaneTheme.animationSlow
