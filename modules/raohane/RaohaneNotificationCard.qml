@@ -24,8 +24,12 @@ RaohaneSurface {
     implicitHeight: Math.round(Math.max(effectiveCompact ? 90 : 104, content.implicitHeight + 24) * notificationScale)
     surfaceRadius: Math.round((effectiveCompact ? 17 : 20) * notificationScale)
     raised: true
-    border.color: criticalNotification ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+    border.color: criticalNotification ? RaohaneTheme.critical : (hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border)
     clip: true
+
+    Behavior on implicitHeight {
+        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+    }
 
     ColumnLayout {
         id: content
@@ -65,6 +69,8 @@ RaohaneSurface {
                     visible: !appIcon.visible
                     text: root.criticalNotification ? "warning" : "notifications"
                     iconSize: root.effectiveCompact ? 16 : 18
+                    fill: root.criticalNotification ? 1 : 0
+                    symbolWeight: root.criticalNotification ? 560 : 430
                     color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.textMuted
                 }
             }
@@ -105,28 +111,13 @@ RaohaneSurface {
                 }
             }
 
-            Rectangle {
-                width: root.effectiveCompact ? 26 : 28
-                height: width
-                radius: 10
-                color: closeMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-                border.width: closeMouse.containsMouse ? 1 : 0
-                border.color: RaohaneTheme.border
-
-                RaohaneIcon {
-                    anchors.centerIn: parent
-                    text: "close"
-                    iconSize: 14
-                    color: RaohaneTheme.textMuted
-                }
-
-                MouseArea {
-                    id: closeMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: RaohaneNotifications.discardNotification(root.notification.notificationId)
-                }
+            RaohaneIconButton {
+                buttonSize: root.effectiveCompact ? 26 : 28
+                iconSize: 14
+                icon: "close"
+                transparentIdle: true
+                showSheen: false
+                onClicked: RaohaneNotifications.discardNotification(root.notification.notificationId)
             }
         }
 
@@ -153,24 +144,31 @@ RaohaneSurface {
             Repeater {
                 model: root.notification.actions.slice(0, root.effectiveCompact ? 1 : 2)
 
-                delegate: Rectangle {
+                delegate: RaohaneSurface {
                     id: actionButton
                     required property var modelData
 
                     width: Math.max(68, actionLabel.implicitWidth + 22)
                     height: root.effectiveCompact ? 27 : 29
-                    radius: 11
-                    color: actionMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-                    border.width: 1
-                    border.color: actionMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                    surfaceRadius: 11
+                    raised: false
+                    showSheen: false
+                    interactive: true
+                    hovered: actionMouse.containsMouse || activeFocus
+                    pressed: actionMouse.pressed
+                    hoverScale: 1.015
+                    pressedScale: RaohaneMotion.pressScale
+                    activeFocusOnTab: true
 
                     Text {
                         id: actionLabel
                         anchors.centerIn: parent
                         text: actionButton.modelData.text
-                        color: actionMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
+                        color: actionButton.pressed || actionButton.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
                         font.pixelSize: 9
                         font.weight: Font.Medium
+
+                        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                     }
 
                     MouseArea {
@@ -178,10 +176,21 @@ RaohaneSurface {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
+                        onPressed: actionButton.forceActiveFocus()
                         onClicked: RaohaneNotifications.attemptInvokeAction(
                             root.notification.notificationId,
                             actionButton.modelData.identifier
                         )
+                    }
+
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            RaohaneNotifications.attemptInvokeAction(
+                                root.notification.notificationId,
+                                actionButton.modelData.identifier
+                            )
+                            event.accepted = true
+                        }
                     }
                 }
             }
