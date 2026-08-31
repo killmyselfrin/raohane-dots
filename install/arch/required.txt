@@ -19,6 +19,7 @@ git
 rsync
 ripgrep
 jq
+procps-ng
 libnotify
 wl-clipboard
 xdg-utils
