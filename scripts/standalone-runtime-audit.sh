@@ -22,8 +22,14 @@ required=(
   modules/raohane
   modules/raohane/config
   modules/raohane/services
+  modules/raohane/RaohaneTaskManager.qml
+  modules/raohane/RaohaneOverlay.qml
+  modules/raohane/services/RaohaneProcesses.qml
+  modules/raohane/services/RaohaneLyrics.qml
   scripts/raohane
   scripts/prune-runtime.sh
+  scripts/lyrics-resolve.py
+  scripts/product-live-check.sh
   scripts/phase4-live-check.sh
   scripts/release-live-check.sh
   scripts/validate-runtime-payload.sh
@@ -107,8 +113,7 @@ staged_contracts=(
   'cp -a "\$ROOT/scripts" "\$RUNTIME/"'
 )
 for contract in "${staged_contracts[@]}"; do
-  rg -q "$contract" install-raohane.sh \
-    || fail "installer lost explicit runtime staging contract: $contract"
+  rg -q "$contract" install-raohane.sh || fail "installer lost explicit runtime staging contract: $contract"
 done
 
 for source_only in docs patches .github AGENTS.md ARCHITECTURE.md INDEPENDENCE-PLAN.md; do
@@ -117,33 +122,20 @@ for source_only in docs patches .github AGENTS.md ARCHITECTURE.md INDEPENDENCE-P
   fi
 done
 
-rg -q '"scripts/prune-runtime\.sh"' install-raohane.sh \
-  || fail 'installer does not require the runtime pruner'
-rg -q 'bash "\$ROOT/scripts/prune-runtime\.sh" "\$RUNTIME"' install-raohane.sh \
-  || fail 'installer does not prune/normalize the staged runtime before startup'
-rg -q 'bash "\$ROOT/scripts/validate-runtime-payload\.sh" "\$RUNTIME"' install-raohane.sh \
-  || fail 'installer does not validate the final staged runtime before startup'
-rg -q '^prune_runtime_if_needed\(\)' scripts/raohane \
-  || fail 'Raohane CLI does not define installed-runtime pruning'
-rg -q '^[[:space:]]*prune_runtime_if_needed$' scripts/raohane \
-  || fail 'raohane run does not maintain runtime before qs starts'
-rg -q 'bash "\$pruner" "\$RUNTIME"' scripts/raohane \
-  || fail 'Raohane CLI does not route pruning through the dedicated script'
+rg -q '"scripts/prune-runtime\.sh"' install-raohane.sh || fail 'installer does not require the runtime pruner'
+rg -q 'bash "\$ROOT/scripts/prune-runtime\.sh" "\$RUNTIME"' install-raohane.sh || fail 'installer does not prune/normalize the staged runtime before startup'
+rg -q 'bash "\$ROOT/scripts/validate-runtime-payload\.sh" "\$RUNTIME"' install-raohane.sh || fail 'installer does not validate the final staged runtime before startup'
+rg -q '^prune_runtime_if_needed\(\)' scripts/raohane || fail 'Raohane CLI does not define installed-runtime pruning'
+rg -q '^[[:space:]]*prune_runtime_if_needed$' scripts/raohane || fail 'raohane run does not maintain runtime before qs starts'
+rg -q 'bash "\$pruner" "\$RUNTIME"' scripts/raohane || fail 'Raohane CLI does not route pruning through the dedicated script'
 
-rg -q 'doctor \[[^]]*runtime[^]]*\]' scripts/raohane \
-  || fail 'CLI usage does not expose doctor runtime'
-rg -q '^print_runtime_integrity\(\)' scripts/raohane \
-  || fail 'CLI lost installed-runtime integrity diagnostics'
-rg -q '^[[:space:]]*runtime\)' scripts/raohane \
-  || fail 'doctor runtime route is missing'
-rg -q 'native\.json.*schema v10|schemaVersion.*10' scripts/raohane \
-  || fail 'doctor runtime no longer validates native config schema v10'
-rg -q '^find_runtime_payload_validator\(\)' scripts/raohane \
-  || fail 'doctor runtime no longer resolves the strict runtime payload validator'
-rg -q '\$RUNTIME/scripts/validate-runtime-payload\.sh' scripts/raohane \
-  || fail 'doctor runtime does not prefer the validator installed with the runtime'
-rg -q 'bash "\$payload_validator" "\$RUNTIME"' scripts/raohane \
-  || fail 'doctor runtime does not execute strict payload validation against the installed runtime'
+rg -q 'doctor \[[^]]*runtime[^]]*\]' scripts/raohane || fail 'CLI usage does not expose doctor runtime'
+rg -q '^print_runtime_integrity\(\)' scripts/raohane || fail 'CLI lost installed-runtime integrity diagnostics'
+rg -q '^[[:space:]]*runtime\)' scripts/raohane || fail 'doctor runtime route is missing'
+rg -q 'native\.json.*schema v10|schemaVersion.*10' scripts/raohane || fail 'doctor runtime no longer validates native config schema v10'
+rg -q '^find_runtime_payload_validator\(\)' scripts/raohane || fail 'doctor runtime no longer resolves the strict runtime payload validator'
+rg -q '\$RUNTIME/scripts/validate-runtime-payload\.sh' scripts/raohane || fail 'doctor runtime does not prefer the validator installed with the runtime'
+rg -q 'bash "\$payload_validator" "\$RUNTIME"' scripts/raohane || fail 'doctor runtime does not execute strict payload validation against the installed runtime'
 
 # Exercise both runtime pruning and the native schema upgrade against disposable
 # state. This reproduces real upgrades from an existing v9 native.json without
@@ -164,7 +156,15 @@ cp shell.qml qmldir "$tmp_runtime/"
 cp -a modules/raohane "$tmp_runtime/modules/"
 cp panelFamilies/RaohaneFamily.qml "$tmp_runtime/panelFamilies/"
 cp defaults/native.json "$tmp_runtime/defaults/native.json"
-cp scripts/install-deps.sh scripts/prune-runtime.sh scripts/autostart.sh scripts/phase4-live-check.sh scripts/release-live-check.sh "$tmp_runtime/scripts/"
+cp \
+  scripts/install-deps.sh \
+  scripts/prune-runtime.sh \
+  scripts/autostart.sh \
+  scripts/lyrics-resolve.py \
+  scripts/product-live-check.sh \
+  scripts/phase4-live-check.sh \
+  scripts/release-live-check.sh \
+  "$tmp_runtime/scripts/"
 mkdir -p "$tmp_runtime/modules/common" "$tmp_runtime/modules/ii"
 for name in "${retired_script_dirs[@]}"; do
   mkdir -p "$tmp_runtime/scripts/$name"
@@ -252,12 +252,18 @@ fi
 
 for preserved in \
   "$tmp_runtime/modules/raohane" \
+  "$tmp_runtime/modules/raohane/RaohaneTaskManager.qml" \
+  "$tmp_runtime/modules/raohane/RaohaneOverlay.qml" \
+  "$tmp_runtime/modules/raohane/services/RaohaneProcesses.qml" \
+  "$tmp_runtime/modules/raohane/services/RaohaneLyrics.qml" \
   "$tmp_runtime/shell.qml" \
   "$tmp_runtime/panelFamilies/RaohaneFamily.qml" \
   "$tmp_runtime/defaults/native.json" \
   "$tmp_runtime/scripts/install-deps.sh" \
   "$tmp_runtime/scripts/prune-runtime.sh" \
   "$tmp_runtime/scripts/autostart.sh" \
+  "$tmp_runtime/scripts/lyrics-resolve.py" \
+  "$tmp_runtime/scripts/product-live-check.sh" \
   "$tmp_runtime/scripts/phase4-live-check.sh" \
   "$tmp_runtime/scripts/release-live-check.sh"; do
   [[ -e "$preserved" ]] || fail "pruner removed required native path: $preserved"
@@ -269,4 +275,4 @@ root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.q
 
 bash scripts/runtime-payload-audit.sh
 
-printf 'standalone-runtime-audit: source/runtime are native-only, clean staging validates, doctor reuses strict payload validation, live validators are retained and v9 settings upgrade safely to schema v10\n'
+printf 'standalone-runtime-audit: source/runtime are native-only, current Task/Lyrics/product validators survive clean staging, doctor reuses strict payload validation and v9 settings upgrade safely to schema v10\n'
