@@ -17,6 +17,7 @@ launcher='modules/raohane/RaohaneLauncher.qml'
 media='modules/raohane/RaohaneMediaOverlay.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
+settings_content='modules/raohane/RaohaneSettingsContent.qml'
 settings_home='modules/raohane/RaohaneSettingsHome.qml'
 bar='modules/raohane/RaohaneBar.qml'
 vertical='modules/raohane/RaohaneVerticalBar.qml'
@@ -25,6 +26,9 @@ context='modules/raohane/RaohaneContextIsland.qml'
 notification='modules/raohane/RaohaneNotificationCard.qml'
 surface='modules/raohane/RaohaneSurface.qml'
 icon_button='modules/raohane/RaohaneIconButton.qml'
+motion='modules/raohane/RaohaneMotion.qml'
+slider='modules/raohane/RaohaneSlider.qml'
+switch='modules/raohane/RaohaneSwitch.qml'
 clock='modules/raohane/RaohaneClock.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 sidebar='modules/raohane/RaohaneSidebarLeft.qml'
@@ -39,9 +43,10 @@ osk='modules/raohane/RaohaneOnScreenKeyboard.qml'
 osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
-  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" \
-  "$settings_home" "$bar" "$vertical" "$dock" "$context" "$notification" "$surface" "$icon_button" "$clock" "$quick" \
-  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
+  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" "$settings_content" \
+  "$settings_home" "$bar" "$vertical" "$dock" "$context" "$notification" "$surface" "$icon_button" \
+  "$motion" "$slider" "$switch" "$clock" "$quick" "$sidebar" "$session" "$task_manager" "$overlay" \
+  "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
 done
 
@@ -93,6 +98,22 @@ rg -q 'RaohaneTheme\.surfaceRaised' "$surface" || fail 'RaohaneSurface no longer
 rg -q 'RaohaneTheme\.accentBorder' "$surface" || fail 'RaohaneSurface no longer owns the active accent-border token'
 rg -q 'showSheen' "$surface" || fail 'RaohaneSurface lost the shared glass highlight contract'
 
+# Shared interaction primitives are product contracts now, not one-off helpers.
+rg -q 'motionScale' "$motion" || fail 'shared motion system no longer consumes persisted motion scale'
+rg -q 'RaohaneMotion\.' "$surface" || fail 'shared surface no longer consumes the motion system'
+rg -q 'RaohaneIcon[[:space:]]*\{' "$icon_button" || fail 'shared icon button no longer renders through RaohaneIcon'
+rg -q 'RaohaneMotion\.' "$icon_button" || fail 'shared icon button lost tactile motion'
+rg -q 'RaohaneMotion\.' "$slider" || fail 'shared slider lost tactile motion'
+rg -q 'RaohaneMotion\.' "$switch" || fail 'shared switch lost tactile motion'
+rg -q 'RaohaneSlider[[:space:]]*\{' "$quick" || fail 'Quick Controls regressed from the shared slider'
+rg -q 'RaohaneSlider[[:space:]]*\{' "$media" || fail 'Media Player regressed from the shared slider'
+rg -q 'RaohaneSlider[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed from the shared slider'
+rg -q 'RaohaneSwitch[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed from the shared switch'
+rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_content" || fail 'Settings rows regressed from the shared switch'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$media" || fail 'Media Player regressed from shared tactile icon buttons'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$control" || fail 'Control Center regressed from shared tactile icon buttons'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$osk" || fail 'OSK shell regressed from shared tactile icon buttons'
+
 shared_surfaces=(
   "$launcher" "$media" "$control" "$settings" "$settings_home" "$bar" "$vertical" "$dock"
   "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
@@ -135,13 +156,16 @@ if rg -n '#18ffffff|#20ffffff|#24ffffff|#10ffffff|#12ffffff|#14ffffff|#2affffff|
   fail 'a system/edge surface reintroduced retired one-off glass/neon colors'
 fi
 
+# A surface may own Material symbols directly or compose the shared icon button,
+# which itself owns RaohaneIcon. Do not force implementation details back into
+# every caller after componentization.
 for file in "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
-  rg -q 'RaohaneIcon[[:space:]]*\{' "$file" || fail "$file no longer uses the shared Material-symbol icon wrapper"
+  rg -q 'RaohaneIcon(Button)?[[:space:]]*\{' "$file" || fail "$file no longer uses the shared Material-symbol icon system"
 done
 
-if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|RAOHANE / OVERLAY|text:[[:space:]]*"[⌕◎▧文⚙⏻⏮⏭♪⌨]"' \
-  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; then
-  fail 'a system surface regressed to decorative legacy labels or arbitrary glyph controls'
+if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|RAOHANE / OVERLAY|text:[[:space:]]*"[⌕◎▧文⚙⏻⏮⏭♪⌨ラ⌫↵]"' \
+  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key" "$launcher" "$bar" "$vertical"; then
+  fail 'an active surface regressed to decorative legacy labels or arbitrary glyph controls'
 fi
 
 rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the floating-pod compositor height contract'
@@ -165,4 +189,4 @@ for file in "$launcher" "$media" "$control" "$settings" "$vertical" "$dock" "$si
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
 
-printf 'visual-boundary-audit: minimalist themes, shared bar/icon hierarchy, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome, shared focal media material and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, shared motion/slider/switch/icon controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome, shared focal media material and stable geometry are valid\n'
