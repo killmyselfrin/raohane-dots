@@ -75,6 +75,15 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
+        onVisibleChanged: {
+            if (visible) {
+                commandDeck.entered = false
+                Qt.callLater(() => commandDeck.entered = true)
+            } else {
+                commandDeck.entered = false
+            }
+        }
+
         FocusScope {
             anchors.fill: parent
             focus: overlayWindow.visible
@@ -89,7 +98,11 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 color: RaohaneTheme.background
-                opacity: 0.72
+                opacity: commandDeck.entered ? 0.72 : 0
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -99,6 +112,8 @@ Scope {
 
             RaohaneSurface {
                 id: commandDeck
+                property bool entered: false
+
                 anchors.centerIn: parent
                 width: Math.min(parent.width - 48, 900)
                 height: Math.min(parent.height - 80, 500)
@@ -106,6 +121,22 @@ Scope {
                 showSheen: false
                 surfaceRadius: RaohaneTheme.radiusLarge
                 border.color: RaohaneTheme.borderStrong
+                opacity: entered ? 1 : 0
+                scale: entered ? 1 : 0.98
+
+                transform: Translate {
+                    y: commandDeck.entered ? 0 : 12
+                    Behavior on y {
+                        NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
+                Behavior on scale {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -122,18 +153,19 @@ Scope {
                         Layout.fillWidth: true
                         spacing: 12
 
-                        Rectangle {
+                        RaohaneSurface {
                             width: 42
                             height: 42
-                            radius: RaohaneTheme.radiusSmall
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: RaohaneTheme.radiusSmall
+                            active: true
+                            showSheen: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "dashboard_customize"
                                 iconSize: 20
+                                fill: 1
+                                symbolWeight: 540
                                 color: RaohaneTheme.accent
                             }
                         }
@@ -264,6 +296,7 @@ Scope {
                                 text: RaohanePrivacy.recordingActive ? "screen_record"
                                     : RaohanePrivacy.cameraActive ? "videocam" : "mic"
                                 iconSize: 13
+                                fill: 1
                                 color: RaohaneTheme.warning
                             }
                             Text {
@@ -297,7 +330,7 @@ Scope {
         onPressed: root.toggle()
     }
 
-    component QuickAction: Rectangle {
+    component QuickAction: RaohaneSurface {
         id: action
 
         required property string icon
@@ -308,27 +341,36 @@ Scope {
         Layout.fillWidth: true
         Layout.fillHeight: true
         Layout.minimumHeight: 92
-        radius: RaohaneTheme.radius
-        color: actionMouse.containsMouse ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-        border.width: 1
-        border.color: actionMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.border
+        surfaceRadius: RaohaneTheme.radius
+        showSheen: false
+        interactive: true
+        hovered: actionMouse.containsMouse || activeFocus
+        pressed: actionMouse.pressed
+        hoverScale: 1.012
+        pressedScale: RaohaneMotion.pressScale
+        activeFocusOnTab: true
 
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 12
             spacing: 7
 
-            Rectangle {
+            RaohaneSurface {
                 width: 36
                 height: 36
-                radius: 11
-                color: actionMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceRaised
+                surfaceRadius: 11
+                active: action.hovered || action.activeFocus
+                showSheen: false
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: action.icon
                     iconSize: 18
-                    color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    fill: action.pressed ? 0.75 : action.hovered || action.activeFocus ? 1 : 0
+                    symbolWeight: action.pressed ? 560 : action.hovered || action.activeFocus ? 520 : 430
+                    color: action.hovered || action.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                 }
             }
 
@@ -358,7 +400,15 @@ Scope {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: action.forceActiveFocus()
             onClicked: action.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                action.triggered()
+                event.accepted = true
+            }
         }
     }
 }
