@@ -58,8 +58,8 @@ Variants {
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.OutCubic
+                    duration: RaohaneMotion.standard
+                    easing.type: RaohaneMotion.easeStandard
                 }
             }
 
@@ -85,7 +85,7 @@ Variants {
                     }
 
                     Text {
-                        text: "ラオハネ  /  RAOHANE"
+                        text: "ラオハネ  ·  RAOHANE"
                         color: RaohaneTheme.textMuted
                         font.pixelSize: 9
                         font.weight: Font.DemiBold
@@ -122,20 +122,22 @@ Variants {
                     Layout.fillWidth: true
                     spacing: 10
 
-                    Rectangle {
-                        width: 34
-                        height: 34
-                        radius: 12
-                        color: RaohaneTheme.accentSoft
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                    RaohaneSurface {
+                        Layout.preferredWidth: 34
+                        Layout.preferredHeight: 34
+                        surfaceRadius: 12
+                        raised: false
+                        active: RaohaneContext.mode === "privacy" || RaohaneContext.mode === "recording"
+                        showSheen: false
 
-                        Text {
+                        RaohaneIcon {
                             anchors.centerIn: parent
                             text: RaohaneContext.icon
+                            iconSize: 16
+                            fill: RaohaneContext.mode === "media"
+                                || RaohaneContext.mode === "privacy"
+                                || RaohaneContext.mode === "recording" ? 1 : 0
                             color: RaohaneTheme.accent
-                            font.pixelSize: 15
-                            font.weight: Font.DemiBold
                         }
                     }
 
