@@ -1,198 +1,196 @@
-# Raohane Roadmap
+# Raohane roadmap
 
-This file tracks product-level work that should survive beyond the current standalone/release cleanup.
+Raohane is no longer in a framework-migration phase. The active shell, services, configuration, visible runtime and release packaging are Raohane-owned.
 
-## Expanded media player
+This roadmap therefore separates **0.10 completion gates** from later product expansion. A future idea is not automatically a blocker for the first standalone release.
 
-Goal: turn the current media overlay into a full Raohane media surface that can be opened from a compositor shortcut without leaving a fullscreen/game workflow.
+## 0.10.0 — standalone release target
 
-Planned capabilities:
+### Source and architecture
 
-- Dedicated global shortcut and IPC target for the expanded player.
-- Large album-art view with smooth enter/exit, track-change and progress animations.
-- MPRIS-backed transport controls: previous, play/pause, next, seek and player selection.
-- Volume/output controls without duplicating the system audio service.
-- Raohane-owned equalizer UI, initially targeting an 8-band layout.
-- Equalizer backend through PipeWire/EasyEffects rather than shell-specific legacy services.
-- Presets, reset/bypass and per-band gain feedback.
-- Optional audio-reactive visualization, implemented so it can be disabled completely for fullscreen/game performance.
-- Compact mode and expanded mode should share one media service/state model.
+- [x] Standalone Quickshell bootstrap and `RaohaneFamily` composition.
+- [x] Raohane-owned service graph for media, audio, network, Bluetooth, display, notifications, wallpapers, session, search, privacy and system information.
+- [x] Raohane-owned persisted configuration and path APIs.
+- [x] Remove active `modules/ii`, `modules/common` and inherited root-service runtime dependencies.
+- [x] Deterministic installed-runtime pruning and payload validation.
+- [x] Source-lineage/license boundary and deterministic source packaging.
 
-## Lyrics
+### Desktop shell
 
-The expanded player should expose a small lyrics affordance near an edge/corner instead of forcing lyrics into the main layout.
+- [x] Horizontal and vertical Bar.
+- [x] Context Island.
+- [x] Native workspaces / Spaces overview.
+- [x] Native application Dock.
+- [x] Launcher with application, action, command, calculator and clipboard modes.
+- [x] Control Center and Quick Controls.
+- [x] Notifications, history and actions.
+- [x] Wallpaper selector with image/video background path.
+- [x] Desktop canvas and context menu.
+- [x] OSD, screen frame and screen corners.
+- [x] Session / power screen.
+- [x] Native WlSessionLock + PAM + optional fingerprint flow.
+- [x] Native Polkit prompt.
+- [x] Native on-screen keyboard.
+- [x] Screen capture, OCR, image-search handoff and recording.
+- [x] Screen translator.
+- [x] DropShelf and left Sidebar.
 
-Planned behavior:
+### Visual system
 
-- Lyrics button opens a dedicated lyrics layer/panel.
-- Support synchronized lyrics when timing data exists and plain lyrics as a fallback.
-- Current line emphasis and smooth line-to-line motion.
-- Manual offset correction for badly synchronized tracks.
-- Lyrics panel can be pinned, click-through, moved to another monitor, or hidden independently of the expanded player.
-- Lyrics lookup/cache must be separate from playback state so loss of network access does not break the player.
+- [x] Shared minimalist `RaohaneTheme` token system.
+- [x] `Zen Mist` default plus Paper, Sakura, Matcha, Slate, Sand, Sumi and Midnight presets.
+- [x] Live Theme Library.
+- [x] Persisted Style Studio controls for glass, borders, radius, density, motion and accent.
+- [x] Advanced surface controls for Bar, Dock, Context Island and notifications.
+- [x] Unified minimalist treatment for shell, auth/system and utility surfaces.
+- [x] Visual regression audit preventing retired cyber-noir/hardcoded chrome from returning.
 
-## Private lyrics while streaming
+### Media
 
-Desired user experience: lyrics remain visible locally while a stream/screen-share does not expose them.
+- [x] Native Quickshell MPRIS service.
+- [x] Expanded fullscreen-friendly media surface.
+- [x] Multiple-player selection.
+- [x] Seek, previous/next, play/pause, replay/forward and volume controls.
+- [x] Compact Context Island media interactions.
+- [x] Synchronized LRC and plain-lyrics UI.
+- [x] Current-line tracking and seek-on-line-click.
+- [x] Raohane-owned LRCLIB resolver separated from QML networking.
+- [ ] Confirm lyrics lookup/synchronization against real browser + native MPRIS players on the installed shell.
+- [ ] Confirm media overlay interaction over at least one real fullscreen/game workload.
 
-Hyprland currently provides `no_screen_share` for both regular windows and layer-shell namespaces. Raohane can therefore give the lyrics overlay its own namespace and apply a capture-protection layer rule.
+### Native Task Manager
 
-Important capture behavior:
+- [x] Replace the external terminal `btop/htop/top` fallback with a Raohane-native surface.
+- [x] Current-user process snapshots and application grouping.
+- [x] CPU / RAM sorting, search and per-process details.
+- [x] Graceful terminate and explicit two-step force-stop actions.
+- [x] Poll only while the Task Manager is visible.
+- [x] Integrate with Session, Launcher, IPC and the fullscreen Command Deck.
+- [ ] Confirm live process refresh and TERM/KILL UX on the installed shell.
 
-- When a specific game/application window is shared, a separate Raohane lyrics layer is not part of that window capture. This is the preferred private-lyrics mode because viewers see the original application without a lyrics overlay.
-- When the entire monitor/output is shared, Hyprland's `no_screen_share` protection intentionally replaces the protected layer area in the capture instead of revealing the pixels underneath it. This protects the text, but can appear as a black protected region to viewers.
-- For full-monitor sharing Raohane should therefore offer policies such as: `protected`, `auto-hide`, or `move-to-private-monitor` when a second display exists.
-- The player itself and the lyrics layer must use different namespaces so only lyrics can be protected while the media controls remain shareable if desired.
+### Fullscreen Command Deck
 
-## Theme engine
+- [x] Native overlay surface with isolated compositor namespace.
+- [x] Launcher, Control Center, Media, Task Manager, Translator, OSK, Settings and Session entry points.
+- [x] Audio and privacy context.
+- [x] Unified minimalist Material-symbol presentation.
+- [ ] Confirm focus/interaction behavior in a real fullscreen application.
 
-Theme switching is a required product feature, but Raohane should not stop at a generic preset picker. The theme system should keep the Japanese/living Raohane identity while supporting deep customization.
+### Installation and diagnostics
 
-Planned capabilities:
+- [x] Raohane-owned Arch required/feature manifests.
+- [x] Independent dependency installer.
+- [x] No silent GPU-driver installation/replacement.
+- [x] Native runtime doctor commands.
+- [x] Phase-4 live validator.
+- [x] Full release live validator and report output.
+- [x] Release archive + SHA-256 generation in CI.
 
-- Native Settings page for live theme switching with no shell restart.
-- Light, dark and auto modes.
-- Raohane-owned presets plus user-defined presets.
-- Wallpaper palette extraction as an optional source, not the only source of truth.
-- Independent accent, surface, text, border, glow and danger colors.
-- Blur/transparency intensity, corner radius, border treatment and animation personality as theme-level tokens.
-- Per-surface overrides for bar, dock, launcher, control center, settings, media and overlays.
-- Theme import/export using a documented Raohane JSON schema.
-- Preview mode that can be cancelled without permanently writing config.
-- Optional external-app theming must remain modular and opt-in rather than silently rewriting unrelated application configs.
+## 0.10 release gates that require real hardware
 
-### Living themes
+Static CI cannot truthfully close these items. A stable release requires live evidence as documented in [`RELEASE-VALIDATION.md`](RELEASE-VALIDATION.md).
 
-A Raohane-specific extension should allow a theme to evolve without looking random or distracting:
+- [ ] Fresh Arch + Hyprland install from the release candidate.
+- [ ] Password unlock through the real WlSessionLock/PAM path.
+- [ ] Fingerprint behavior on hardware with configured fingerprints.
+- [ ] NVIDIA render/fullscreen validation.
+- [ ] AMD or Intel render validation.
+- [ ] Multi-monitor placement/focus validation on at least two active outputs.
+- [ ] Horizontal and vertical Bar validation in normal and fullscreen states.
+- [ ] Dock autohide/reveal and Overview focus behavior on a real compositor.
+- [ ] Capture/OCR/translation/recording interactive pass.
+- [ ] OSK and DropShelf interactive pass.
+- [ ] Media + lyrics pass with real MPRIS players.
+- [ ] Fullscreen/game Command Deck and Media Overlay pass.
 
-- Optional time-of-day variants such as dawn/day/evening/night.
-- Optional album-art accent while the expanded media player is active.
-- Optional workspace-specific accent identity.
-- Smooth palette transitions instead of instant global color jumps.
-- A strict low-motion/game mode that freezes dynamic theme work while fullscreen applications are active.
+Run the complete installed release sequence with:
 
-## Raohane Task Manager
+```bash
+raohane validate release --full
+```
 
-Goal: build a native application/resource control surface rather than a QML clone of a terminal process list.
+A machine that cannot exercise a capability should report it as partial/unsupported rather than marking it passed.
 
-Planned capabilities:
+---
 
-- Group Linux processes into recognizable applications where possible instead of showing only raw PIDs.
-- Search and sort by application, CPU, RAM, GPU, VRAM and network activity.
-- Expand an application into its process tree.
-- CPU/RAM history sparklines with bounded sampling so the shell does not become the resource problem it is measuring.
-- NVIDIA GPU/VRAM metrics through supported runtime probes, with AMD/Intel paths kept separate and optional.
-- Per-application network throughput when a reliable lightweight source is available.
-- Actions: graceful terminate, force kill, freeze/resume, change process priority and open application details.
-- Clear warnings before destructive actions; never silently kill system-critical processes.
-- Highlight runaway applications and unexpected background resource use.
-- Compact system HUD mode for games, with the full manager opened only on demand.
-- No privileged daemon should be required for normal read-only monitoring.
+# After 0.10
 
-### Resource intelligence
+The following are product-expansion ideas. They are valuable, but they do **not** prevent Raohane 0.10 from being a complete standalone desktop shell.
 
-Raohane can differentiate the task manager with higher-level summaries:
+## 0.11 — personalization and media depth
 
-- Explain which application is currently responsible for the largest CPU/RAM/GPU load.
-- Detect sudden sustained spikes rather than reacting to one sample.
-- Show a lightweight `game pressure` indicator combining GPU, VRAM, CPU and memory pressure.
-- Optional recommendations such as closing a heavy background application, without automatically killing anything.
+Candidate work:
 
-## Signature Raohane features
+- User-defined theme presets.
+- Theme import/export with a documented Raohane JSON format.
+- Preview/revert transactions for theme editing.
+- Optional wallpaper palette extraction.
+- Light/dark/auto policy independent of preset selection.
+- Per-surface theme overrides where they add real value.
+- Optional lyrics offset adjustment.
+- Optional detachable/private lyrics surface.
+- Optional EasyEffects equalizer controls inside Media.
+- Optional low-cost audio visualization that fully disables in game/low-motion mode.
 
-These are candidate features that should make the shell feel like a coherent product instead of a collection of common Hyprland widgets.
+## 0.12 — Scenes and private UI
 
-### Raohane Scenes
+### Scenes
 
-A Scene is a user-selectable or context-triggered desktop state. One action can coordinate theme, wallpaper, bar/dock behavior, audio profile, equalizer preset, notification policy, privacy overlays and performance behavior.
+A Scene coordinates several existing Raohane systems through one user-selected state. Possible initial scenes:
 
-Initial scene ideas:
+- `Normal`
+- `Game`
+- `Stream`
+- `Focus`
+- `Night`
 
-- `Normal` — everyday desktop behavior.
-- `Game` — low-motion UI, suppressed persistent panels, lightweight HUD and game-friendly media overlay.
-- `Stream` — capture-aware notifications/lyrics/translator/private layers and safe overlay policies.
-- `Focus` — minimal shell, reduced notifications and selected workspace layout.
-- `Night` — warmer display, quieter theme and reduced visual intensity.
-
-Scenes should be manually selectable first. Automatic activation can later use fullscreen application, active workspace, screen sharing or user-defined application rules.
+A Scene may coordinate theme, wallpaper, bar/dock behavior, audio/equalizer profile, notification policy and performance behavior. Manual activation should come before automatic rules.
 
 ### Private UI plane
 
-Extend the private-lyrics concept into a Raohane-wide privacy layer:
+Capture-aware privacy can later expand beyond lyrics:
 
-- Lyrics, private notes, clipboard previews, translations and selected notifications can opt into capture protection.
-- Surfaces must show an explicit local indicator when protection is active.
-- Stream mode can hide or relocate private surfaces depending on whether a window, monitor or another output is being captured.
-- Privacy behavior should be driven by RaohanePrivacy/PipeWire state and compositor rules, not by per-application hacks.
+- private lyrics;
+- notes;
+- clipboard previews;
+- translations;
+- selected notifications.
 
-### Fullscreen command deck
+Protection must be explicit in the local UI and driven through Raohane privacy/compositor state rather than per-application hacks.
 
-Build one game-safe command deck that is intentionally useful while another fullscreen application owns the desktop:
+For full-output sharing, protected surfaces may need `protected`, `auto-hide` or `move-to-private-monitor` policies because compositor capture protection can obscure the protected region rather than reveal pixels underneath it.
 
-- Media and equalizer.
-- Volume/output/microphone controls.
-- Performance HUD and Task Manager shortcut.
-- Screen translator/OCR.
-- Private lyrics and notes.
-- Quick scene switching.
-- Recording controls.
+## 0.13 — Task Manager depth and workspace memory
 
-The deck must avoid keyboard focus unless explicitly requested and should have a minimal click-through/peek mode.
+The 0.10 Task Manager intentionally prioritizes safe, lightweight user-process control. Later versions may add capability-specific metrics without turning the shell into the workload it measures:
 
-### Workspace memory
+- CPU/RAM history sparklines with bounded sampling;
+- application/process trees;
+- NVIDIA GPU/VRAM metrics;
+- separate AMD/Intel metric paths;
+- optional per-application network throughput;
+- freeze/resume and priority controls;
+- sustained-spike detection and a lightweight game-pressure indicator.
 
-Let workspaces carry identity instead of being anonymous numbers:
+Workspace memory may later add names/icons, Scene association and user-defined application/workspace restoration rules.
 
-- Optional names/icons/colors for workspaces.
-- Remember a workspace's preferred Scene and visual accent.
-- Later, optionally restore a user-defined application/workspace arrangement without pretending arbitrary application state can always be reconstructed perfectly.
+## Context Island evolution
 
-### Context Island evolution
+Context Island should remain a short-lived contextual surface, not a second Notification Center. Appropriate future events include:
 
-Keep Context Island as a Raohane signature surface rather than a generic status pill. It should surface only short-lived context that benefits from immediate attention, for example:
-
-- media track transition;
-- microphone/camera/screen-share privacy state;
+- media transitions;
+- microphone/camera/screen-share state;
 - recording state;
 - device connect/disconnect;
-- scene changes;
+- Scene changes;
 - copy/translation completion;
-- temporary resource warning.
+- temporary resource warnings.
 
-It should not become a second notification center.
+## Product rule
 
-## Product differentiation rule
+New large work should be classified before implementation:
 
-Before adding a large feature, classify it as one of:
+1. **Foundation** — functionality expected from a complete desktop shell.
+2. **Raohane signature** — functionality differentiated by integration between Raohane systems.
 
-1. **Foundation** — expected desktop-shell functionality such as settings, themes, task management, notifications and wallpaper controls.
-2. **Raohane signature** — functionality whose behavior is meaningfully different because it integrates multiple Raohane systems, such as Scenes, private UI, fullscreen command deck or context-aware overlays.
-
-Foundation features should be polished and complete, but product identity should come from signature features rather than adding more copies of common widgets.
-
-## Implementation boundary
-
-Do not build this on top of retired `modules/common`, `modules/ii`, old media-control aliases, or upstream shell services. New work belongs under `modules/raohane` and should reuse the native RaohaneMedia/RaohaneAudio/RaohaneEasyEffects services where appropriate.
-
-Before considering the expanded media/private-lyrics feature complete, validate:
-
-- normal desktop playback;
-- fullscreen/game overlay behavior;
-- NVIDIA fullscreen performance;
-- multi-monitor placement;
-- player switching;
-- synchronized and unsynchronized lyrics;
-- specific-window streaming;
-- full-monitor streaming with each private-lyrics policy;
-- capture behavior through xdg-desktop-portal-hyprland/PipeWire.
-
-Before considering Theme Engine or Task Manager complete, validate:
-
-- clean-install defaults and schema migration;
-- no restart required for ordinary theme changes;
-- bounded idle CPU/memory overhead;
-- multi-monitor behavior;
-- NVIDIA/AMD/Intel graceful capability detection;
-- safe process-control UX;
-- fullscreen/game performance with monitoring surfaces hidden;
-- failure behavior when an optional backend is unavailable.
+0.10 closes the standalone foundation. Later releases should deepen Raohane's identity without reopening retired compatibility architecture or treating every brainstorm as a release blocker.
