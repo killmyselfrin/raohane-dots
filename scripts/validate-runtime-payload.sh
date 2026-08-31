@@ -42,6 +42,7 @@ required=(
   scripts/prune-runtime.sh
   scripts/validate-runtime-payload.sh
   scripts/phase4-live-check.sh
+  scripts/product-live-check.sh
   scripts/release-live-check.sh
   scripts/lyrics-resolve.py
   scripts/region-ocr.sh
@@ -80,6 +81,10 @@ import sys
 path = pathlib.Path(sys.argv[1])
 compile(path.read_text(encoding="utf-8"), str(path), "exec")
 PY
+
+bash -n "$TARGET/scripts/phase4-live-check.sh" || fail 'phase4-live-check.sh has invalid shell syntax'
+bash -n "$TARGET/scripts/product-live-check.sh" || fail 'product-live-check.sh has invalid shell syntax'
+bash -n "$TARGET/scripts/release-live-check.sh" || fail 'release-live-check.sh has invalid shell syntax'
 
 source_only=(
   .git
