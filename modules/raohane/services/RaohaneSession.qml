@@ -24,10 +24,13 @@ Singleton {
         root.runShell(RaohaneConfig.changePasswordCommand || "passwd")
     }
 
-    function lock(): void {
+    function configName(): string {
         const configured = String(Quickshell.env("RAOHANE_QS_CONFIG") ?? "raohane")
-        const configName = configured.trim().length > 0 ? configured.trim() : "raohane"
-        root.run(["qs", "-c", configName, "ipc", "call", "lock", "activate"])
+        return configured.trim().length > 0 ? configured.trim() : "raohane"
+    }
+
+    function lock(): void {
+        root.run(["qs", "-c", root.configName(), "ipc", "call", "lock", "activate"])
     }
 
     function suspend(): void {
@@ -39,26 +42,13 @@ Singleton {
     }
 
     function launchTaskManager(): void {
-        const configured = RaohaneConfig.taskManagerCommand
-        if (configured.trim().length > 0) {
+        const configured = String(RaohaneConfig.taskManagerCommand ?? "").trim()
+        if (configured.length > 0) {
             root.runShell(configured)
             return
         }
 
-        root.runShell(
-            "monitor='if command -v btop >/dev/null 2>&1; then exec btop; "
-                + "elif command -v htop >/dev/null 2>&1; then exec htop; else exec top; fi'; "
-                + "if command -v xdg-terminal-exec >/dev/null 2>&1; then exec xdg-terminal-exec bash -lc \"$monitor\"; "
-                + "elif command -v foot >/dev/null 2>&1; then exec foot -e bash -lc \"$monitor\"; "
-                + "elif command -v kitty >/dev/null 2>&1; then exec kitty bash -lc \"$monitor\"; "
-                + "elif command -v alacritty >/dev/null 2>&1; then exec alacritty -e bash -lc \"$monitor\"; "
-                + "elif command -v wezterm >/dev/null 2>&1; then exec wezterm start --always-new-process -- bash -lc \"$monitor\"; "
-                + "elif command -v ghostty >/dev/null 2>&1; then exec ghostty -e bash -lc \"$monitor\"; "
-                + "elif command -v konsole >/dev/null 2>&1; then exec konsole -e bash -lc \"$monitor\"; "
-                + "elif command -v gnome-terminal >/dev/null 2>&1; then exec gnome-terminal -- bash -lc \"$monitor\"; "
-                + "elif command -v xterm >/dev/null 2>&1; then exec xterm -e bash -lc \"$monitor\"; "
-                + "elif command -v notify-send >/dev/null 2>&1; then notify-send 'Raohane Task Manager' 'No supported terminal emulator was found.'; fi"
-        )
+        root.run(["qs", "-c", root.configName(), "ipc", "call", "taskManager", "open"])
     }
 
     function hibernate(): void {
