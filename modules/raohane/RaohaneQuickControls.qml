@@ -202,6 +202,9 @@ Item {
         hoverScale: RaohaneMotion.subtleHoverScale
         pressedScale: RaohaneMotion.softPressScale
         activeFocusOnTab: true
+        border.color: tile.active ? RaohaneTheme.accentBorder
+            : tile.hovered ? RaohaneTheme.borderStrong
+            : RaohaneTheme.border
 
         ColumnLayout {
             anchors.fill: parent
@@ -236,8 +239,10 @@ Item {
                     width: 6
                     height: 6
                     radius: 3
-                    color: tile.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    opacity: tile.active ? 1 : 0.38
+                    color: tile.active ? RaohaneTheme.accent : RaohaneTheme.surfaceSubtle
+                    border.width: tile.active ? 0 : 1
+                    border.color: RaohaneTheme.border
+                    opacity: tile.active ? 1 : 0.72
 
                     Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                     Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
