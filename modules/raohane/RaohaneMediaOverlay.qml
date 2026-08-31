@@ -74,6 +74,9 @@ Scope {
             color: "transparent"
             border.width: 1
             border.color: RaohaneTheme.borderFaint
+            opacity: panelWindow.visible ? 1 : 0
+
+            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
         }
 
         RaohaneSurface {
@@ -83,6 +86,21 @@ Scope {
             raised: true
             border.color: RaohaneTheme.borderStrong
             clip: true
+            opacity: panelWindow.visible ? 1 : 0
+            scale: panelWindow.visible ? 1 : 0.985
+
+            transform: Translate {
+                y: panelWindow.visible ? 0 : -7
+                Behavior on y {
+                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+                }
+            }
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+            }
 
             MouseArea {
                 id: surfacePointerGuard
@@ -177,13 +195,12 @@ Scope {
                                     Layout.fillWidth: true
                                     spacing: 7
 
-                                    Rectangle {
+                                    RaohaneSurface {
                                         implicitWidth: playerLabel.implicitWidth + 16
                                         implicitHeight: 27
-                                        radius: 10
-                                        color: RaohaneTheme.surfaceSubtle
-                                        border.width: 1
-                                        border.color: RaohaneTheme.border
+                                        surfaceRadius: 10
+                                        showSheen: false
+                                        raised: true
 
                                         Text {
                                             id: playerLabel
@@ -278,67 +295,17 @@ Scope {
                             Layout.fillWidth: true
                             spacing: 4
 
-                            Item {
-                                id: timelineArea
+                            RaohaneSlider {
+                                id: timelineSlider
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 20
-
-                                Rectangle {
-                                    anchors {
-                                        left: parent.left
-                                        right: parent.right
-                                        verticalCenter: parent.verticalCenter
-                                    }
-                                    height: 6
-                                    radius: 3
-                                    color: RaohaneTheme.surfaceDeep
-                                    border.width: 1
-                                    border.color: RaohaneTheme.border
-
-                                    Rectangle {
-                                        width: parent.width * RaohaneMedia.progress
-                                        height: parent.height
-                                        radius: parent.radius
-                                        color: RaohaneTheme.accent
-                                    }
-                                }
-
-                                Rectangle {
-                                    visible: RaohaneMedia.canSeek
-                                    width: timelineMouse.pressed ? 15 : 12
-                                    height: width
-                                    radius: width / 2
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: Math.max(0, Math.min(timelineArea.width - width, timelineArea.width * RaohaneMedia.progress - width / 2))
-                                    color: RaohaneTheme.surfaceRaised
-                                    border.width: 2
-                                    border.color: RaohaneTheme.accent
-
-                                    Behavior on width {
-                                        NumberAnimation { duration: RaohaneTheme.animationFast }
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: timelineMouse
-                                    anchors.fill: parent
-                                    enabled: RaohaneMedia.canSeek
-                                    acceptedButtons: Qt.LeftButton
-                                    preventStealing: true
-                                    hoverEnabled: true
-                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-
-                                    function seekAt(mouseX: real): void {
-                                        if (width > 0)
-                                            RaohaneMedia.seekRatio(mouseX / width)
-                                    }
-
-                                    onPressed: mouse => seekAt(mouse.x)
-                                    onPositionChanged: mouse => {
-                                        if (pressed)
-                                            seekAt(mouse.x)
-                                    }
-                                }
+                                from: 0
+                                to: 1
+                                stepSize: 0.001
+                                value: RaohaneMedia.progress
+                                enabled: RaohaneMedia.canSeek
+                                showHandle: RaohaneMedia.canSeek
+                                onMoved: ratio => RaohaneMedia.seekRatio(ratio)
                             }
 
                             RowLayout {
@@ -359,13 +326,13 @@ Scope {
                         }
                     }
 
-                    Rectangle {
+                    RaohaneSurface {
                         id: lyricsPage
                         anchors.fill: parent
                         visible: root.lyricsOpen
-                        radius: 18
+                        surfaceRadius: 18
+                        showSheen: false
                         color: RaohaneTheme.surfaceSubtle
-                        border.width: 1
                         border.color: RaohaneTheme.border
                         clip: true
 
@@ -525,6 +492,11 @@ Scope {
                                             color: lyricLine.current ? RaohaneTheme.accentSoft : "transparent"
                                             border.width: lyricLine.current ? 1 : 0
                                             border.color: RaohaneTheme.accentBorder
+
+                                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                                            Behavior on border.width {
+                                                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                                            }
                                         }
 
                                         Text {
@@ -544,7 +516,10 @@ Scope {
                                             horizontalAlignment: Text.AlignHCenter
 
                                             Behavior on color {
-                                                ColorAnimation { duration: RaohaneTheme.animationFast }
+                                                ColorAnimation { duration: RaohaneMotion.micro }
+                                            }
+                                            Behavior on font.pixelSize {
+                                                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
                                             }
                                         }
 
@@ -568,13 +543,13 @@ Scope {
                     }
                 }
 
-                Rectangle {
+                RaohaneSurface {
                     id: transportRail
                     Layout.fillWidth: true
                     Layout.preferredHeight: 54
-                    radius: 18
+                    surfaceRadius: 18
+                    showSheen: false
                     color: RaohaneTheme.surfaceSubtle
-                    border.width: 1
                     border.color: RaohaneTheme.border
 
                     RowLayout {
@@ -594,7 +569,7 @@ Scope {
                             icon: "shuffle"
                             tooltip: qsTr("Shuffle")
                             enabled: RaohaneMedia.shuffleSupported
-                            active: RaohaneMedia.shuffle
+                            emphasized: RaohaneMedia.shuffle
                             onClicked: RaohaneMedia.toggleShuffle()
                         }
 
@@ -623,7 +598,7 @@ Scope {
                             icon: "lyrics"
                             tooltip: root.lyricsOpen ? qsTr("Back to player") : qsTr("Lyrics")
                             enabled: RaohaneMedia.available
-                            active: root.lyricsOpen
+                            emphasized: root.lyricsOpen
                             onClicked: {
                                 if (root.lyricsOpen)
                                     root.lyricsOpen = false
@@ -648,64 +623,22 @@ Scope {
                             RaohaneIcon {
                                 text: RaohaneMedia.volume <= 0.01 ? "volume_off" : "volume_up"
                                 iconSize: 17
-                                color: RaohaneTheme.textMuted
+                                symbolWeight: volumeSlider.hovered ? 500 : 430
+                                color: volumeSlider.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                             }
 
-                            Item {
-                                id: volumeArea
+                            RaohaneSlider {
+                                id: volumeSlider
                                 Layout.preferredWidth: 86
                                 Layout.preferredHeight: 22
-
-                                Rectangle {
-                                    anchors {
-                                        left: parent.left
-                                        right: parent.right
-                                        verticalCenter: parent.verticalCenter
-                                    }
-                                    height: 5
-                                    radius: 3
-                                    color: RaohaneTheme.surfaceDeep
-                                    border.width: 1
-                                    border.color: RaohaneTheme.borderFaint
-
-                                    Rectangle {
-                                        width: parent.width * RaohaneMedia.volume
-                                        height: parent.height
-                                        radius: parent.radius
-                                        color: RaohaneTheme.accent
-                                        opacity: 0.88
-                                    }
-                                }
-
-                                Rectangle {
-                                    width: 10
-                                    height: 10
-                                    radius: 5
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: Math.max(0, Math.min(volumeArea.width - width, volumeArea.width * RaohaneMedia.volume - width / 2))
-                                    color: RaohaneTheme.surfaceRaised
-                                    border.width: 2
-                                    border.color: RaohaneTheme.accent
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    acceptedButtons: Qt.LeftButton
-                                    preventStealing: true
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-
-                                    function setAt(mouseX: real): void {
-                                        if (width > 0)
-                                            RaohaneMedia.setVolume(mouseX / width)
-                                    }
-
-                                    onPressed: mouse => setAt(mouse.x)
-                                    onPositionChanged: mouse => {
-                                        if (pressed)
-                                            setAt(mouse.x)
-                                    }
-                                }
+                                from: 0
+                                to: 1
+                                stepSize: 0.01
+                                value: RaohaneMedia.volume
+                                handleSize: 12
+                                trackHeight: 5
+                                onMoved: nextVolume => RaohaneMedia.setVolume(nextVolume)
                             }
                         }
                     }
@@ -728,92 +661,25 @@ Scope {
         onPressed: root.toggle()
     }
 
-    component MiniButton: Rectangle {
+    component MiniButton: RaohaneIconButton {
         id: control
 
-        required property string icon
         property string tooltip: ""
-        property bool active: false
-        signal clicked()
-
-        implicitWidth: 36
-        implicitHeight: 36
-        radius: 12
-        opacity: control.enabled ? 1 : 0.46
-        color: control.active
-            ? RaohaneTheme.accentSoft
-            : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceRaised
-        border.width: 1
-        border.color: control.active
-            ? RaohaneTheme.accentBorder
-            : mouse.containsMouse && control.enabled ? RaohaneTheme.borderStrong : RaohaneTheme.border
-        scale: mouse.containsMouse && control.enabled ? 1.04 : 1
-
-        Behavior on scale {
-            NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
-        }
-
-        RaohaneIcon {
-            anchors.centerIn: parent
-            text: control.icon
-            iconSize: 18
-            fill: control.active ? 1 : 0
-            color: control.active ? RaohaneTheme.accent : (control.enabled ? RaohaneTheme.text : RaohaneTheme.textFaint)
-        }
-
-        MouseArea {
-            id: mouse
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
-            preventStealing: true
-            hoverEnabled: true
-            enabled: control.enabled
-            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: control.clicked()
-        }
+        buttonSize: 36
+        iconSize: 18
+        showSheen: false
+        hoverScale: RaohaneMotion.hoverScale
+        pressedScale: RaohaneMotion.pressScale
     }
 
-    component MainButton: Rectangle {
+    component MainButton: RaohaneIconButton {
         id: control
 
-        required property string icon
-        property bool emphasized: false
-        signal clicked()
-
-        implicitWidth: control.emphasized ? 48 : 40
-        implicitHeight: control.emphasized ? 48 : 40
-        radius: control.emphasized ? 17 : 14
-        opacity: control.enabled ? 1 : 0.46
-        color: control.emphasized
-            ? RaohaneTheme.accentSoft
-            : mouse.containsMouse && control.enabled ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceRaised
-        border.width: 1
-        border.color: control.emphasized
-            ? RaohaneTheme.accentBorder
-            : mouse.containsMouse && control.enabled ? RaohaneTheme.borderStrong : RaohaneTheme.border
-        scale: mouse.containsMouse && control.enabled ? 1.05 : 1
-
-        Behavior on scale {
-            NumberAnimation { duration: RaohaneTheme.animationFast; easing.type: Easing.OutCubic }
-        }
-
-        RaohaneIcon {
-            anchors.centerIn: parent
-            text: control.icon
-            iconSize: control.emphasized ? 24 : 21
-            fill: control.emphasized ? 1 : 0
-            color: control.emphasized ? RaohaneTheme.accent : (control.enabled ? RaohaneTheme.text : RaohaneTheme.textFaint)
-        }
-
-        MouseArea {
-            id: mouse
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
-            preventStealing: true
-            hoverEnabled: true
-            enabled: control.enabled
-            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: control.clicked()
-        }
+        buttonSize: control.emphasized ? 48 : 40
+        iconSize: control.emphasized ? 24 : 21
+        surfaceRadius: control.emphasized ? 17 : 14
+        showSheen: false
+        hoverScale: control.emphasized ? 1.035 : RaohaneMotion.hoverScale
+        pressedScale: RaohaneMotion.pressScale
     }
 }
