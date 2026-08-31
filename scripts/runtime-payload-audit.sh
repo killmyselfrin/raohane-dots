@@ -13,6 +13,7 @@ for path in \
   shell.qml qmldir VERSION assets translations \
   modules/raohane panelFamilies/RaohaneFamily.qml defaults/native.json \
   install/arch scripts scripts/prune-runtime.sh scripts/validate-runtime-payload.sh \
+  scripts/lyrics-resolve.py scripts/product-live-check.sh \
   scripts/phase4-live-check.sh scripts/release-live-check.sh; do
   [[ -e "$path" ]] || fail "missing source path required for staging: $path"
 done
@@ -58,8 +59,14 @@ done
 [[ -d "$runtime/translations" ]] || fail 'translations were lost from staged runtime'
 [[ -f "$runtime/install/arch/required.txt" ]] || fail 'required package manifest was lost'
 [[ -f "$runtime/install/arch/features.txt" ]] || fail 'feature package manifest was lost'
+[[ -f "$runtime/modules/raohane/RaohaneTaskManager.qml" ]] || fail 'native Task Manager was lost'
+[[ -f "$runtime/modules/raohane/RaohaneOverlay.qml" ]] || fail 'Command Deck was lost'
+[[ -f "$runtime/modules/raohane/services/RaohaneProcesses.qml" ]] || fail 'native process service was lost'
+[[ -f "$runtime/modules/raohane/services/RaohaneLyrics.qml" ]] || fail 'native lyrics service was lost'
+[[ -f "$runtime/scripts/lyrics-resolve.py" ]] || fail 'lyrics resolver was lost'
+[[ -f "$runtime/scripts/product-live-check.sh" ]] || fail 'current product live validator was lost'
 [[ -f "$runtime/scripts/validate-runtime-payload.sh" ]] || fail 'runtime payload validator was lost'
 [[ -f "$runtime/scripts/phase4-live-check.sh" ]] || fail 'Phase 4 live validator was lost'
 [[ -f "$runtime/scripts/release-live-check.sh" ]] || fail 'release live validator was lost'
 
-printf 'runtime-payload-audit: clean standalone staging and post-prune payload validation succeed\n'
+printf 'runtime-payload-audit: clean standalone staging retains current Task/Lyrics/product validators and post-prune payload validation succeeds\n'
