@@ -83,7 +83,11 @@ Scope {
             Component.onCompleted: {
                 RaohaneWallpapers.load()
                 RaohaneFocusGrab.addDismissable(panelWindow)
-                searchField.forceActiveFocus()
+                selector.entered = false
+                Qt.callLater(() => {
+                    selector.entered = true
+                    searchField.forceActiveFocus()
+                })
             }
             Component.onDestruction: RaohaneFocusGrab.removeDismissable(panelWindow)
 
@@ -95,6 +99,11 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 color: RaohaneTheme.dark ? "#70000000" : "#305b5750"
+                opacity: selector.entered ? 1 : 0
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -104,6 +113,8 @@ Scope {
 
             RaohaneSurface {
                 id: selector
+                property bool entered: false
+
                 width: Math.min(parent.width - 96, 1080)
                 height: Math.min(parent.height - 104, 700)
                 anchors.centerIn: parent
@@ -112,6 +123,22 @@ Scope {
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
                 clip: true
+                opacity: entered ? 1 : 0
+                scale: entered ? 1 : 0.982
+
+                transform: Translate {
+                    y: selector.entered ? 0 : 12
+                    Behavior on y {
+                        NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
+                Behavior on scale {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -147,18 +174,19 @@ Scope {
                         Layout.preferredHeight: 44
                         spacing: 7
 
-                        Rectangle {
+                        RaohaneSurface {
                             width: 34
                             height: 34
-                            radius: 11
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 11
+                            active: true
+                            showSheen: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "wallpaper"
                                 iconSize: 18
+                                fill: 1
+                                symbolWeight: 540
                                 color: RaohaneTheme.accent
                             }
                         }
@@ -212,13 +240,13 @@ Scope {
                         Layout.preferredHeight: 38
                         spacing: 7
 
-                        Rectangle {
+                        RaohaneSurface {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 34
-                            radius: 11
-                            color: searchField.activeFocus ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: searchField.activeFocus ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                            surfaceRadius: 11
+                            hovered: searchField.activeFocus
+                            showSheen: false
+                            border.color: searchField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
                             RowLayout {
                                 anchors.fill: parent
@@ -229,7 +257,11 @@ Scope {
                                 RaohaneIcon {
                                     text: "search"
                                     iconSize: 15
+                                    fill: searchField.activeFocus ? 1 : 0
+                                    symbolWeight: searchField.activeFocus ? 520 : 430
                                     color: searchField.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                                 }
 
                                 TextField {
@@ -304,14 +336,18 @@ Scope {
                                     ? RaohaneConfig.lockWallpaperPath
                                     : RaohaneConfig.wallpaperPath)
 
-                                Rectangle {
+                                RaohaneSurface {
+                                    id: cellSurface
                                     anchors.fill: parent
                                     anchors.margins: 4
-                                    radius: 13
-                                    color: RaohaneTheme.surfaceSubtle
-                                    border.width: cell.selected || cellMouse.containsMouse ? 2 : 1
-                                    border.color: cell.selected ? RaohaneTheme.accentBorder
-                                        : cellMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                                    surfaceRadius: 13
+                                    active: cell.selected
+                                    hovered: cellMouse.containsMouse
+                                    pressed: cellMouse.pressed
+                                    interactive: true
+                                    showSheen: false
+                                    hoverScale: 1.015
+                                    pressedScale: 0.985
                                     clip: true
 
                                     Image {
@@ -345,21 +381,22 @@ Scope {
                                         }
                                     }
 
-                                    Rectangle {
+                                    RaohaneSurface {
                                         anchors.centerIn: parent
                                         visible: cell.isDirectory
                                         width: 48
                                         height: 48
-                                        radius: 14
-                                        color: RaohaneTheme.surfaceRaised
-                                        border.width: 1
-                                        border.color: RaohaneTheme.border
+                                        surfaceRadius: 14
+                                        active: cellMouse.containsMouse
+                                        showSheen: false
 
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: "folder"
                                             iconSize: 24
-                                            color: RaohaneTheme.textMuted
+                                            fill: cellMouse.containsMouse ? 1 : 0
+                                            symbolWeight: cellMouse.containsMouse ? 520 : 430
+                                            color: cellMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                         }
                                     }
 
@@ -377,6 +414,8 @@ Scope {
                                                 : cell.selected ? "check_circle"
                                                 : cell.isVideo ? "movie" : "image"
                                             iconSize: 14
+                                            fill: cell.selected ? 1 : 0
+                                            symbolWeight: cell.selected ? 540 : 430
                                             color: cell.selected ? RaohaneTheme.accent : RaohaneTheme.text
                                         }
 
@@ -409,7 +448,23 @@ Scope {
                                 }
                             }
 
-                            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+                            ScrollBar.vertical: ScrollBar {
+                                id: wallpaperScroll
+                                policy: ScrollBar.AsNeeded
+                                width: 7
+                                background: Item {}
+                                contentItem: Rectangle {
+                                    implicitWidth: 5
+                                    radius: width / 2
+                                    color: wallpaperScroll.pressed ? RaohaneTheme.accent : RaohaneTheme.borderStrong
+                                    opacity: wallpaperScroll.active ? 0.8 : 0.35
+
+                                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                                    Behavior on opacity {
+                                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                                    }
+                                }
+                            }
                         }
 
                         Column {
@@ -471,35 +526,18 @@ Scope {
         onPressed: RaohaneWallpapers.randomFromCurrentFolder()
     }
 
-    component NavButton: Rectangle {
+    component NavButton: RaohaneIconButton {
         id: button
-        required property string icon
         signal triggered()
 
-        width: 32
-        height: 32
-        radius: 10
-        color: pointer.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: pointer.containsMouse ? 1 : 0
-        border.color: RaohaneTheme.border
-
-        RaohaneIcon {
-            anchors.centerIn: parent
-            text: button.icon
-            iconSize: 16
-            color: pointer.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
-        }
-
-        MouseArea {
-            id: pointer
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: button.triggered()
-        }
+        buttonSize: 32
+        iconSize: 16
+        transparentIdle: true
+        showSheen: false
+        onClicked: button.triggered()
     }
 
-    component QuickDir: Rectangle {
+    component QuickDir: RaohaneSurface {
         id: dir
         required property string icon
         required property string title
@@ -507,10 +545,16 @@ Scope {
 
         Layout.preferredWidth: label.implicitWidth + 42
         Layout.preferredHeight: 32
-        radius: 10
-        color: dirMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: 1
-        border.color: dirMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        surfaceRadius: 10
+        active: RaohaneWallpapers.effectiveDirectory === dir.path
+        transparentIdle: !active
+        showSheen: false
+        interactive: true
+        hovered: dirMouse.containsMouse || activeFocus
+        pressed: dirMouse.pressed
+        hoverScale: 1.012
+        pressedScale: RaohaneMotion.pressScale
+        activeFocusOnTab: true
 
         Row {
             anchors.centerIn: parent
@@ -519,7 +563,9 @@ Scope {
             RaohaneIcon {
                 text: dir.icon
                 iconSize: 13
-                color: dirMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                fill: dir.active ? 1 : dir.hovered ? 0.5 : 0
+                symbolWeight: dir.active ? 540 : dir.hovered ? 500 : 430
+                color: dir.active || dir.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
@@ -536,7 +582,15 @@ Scope {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: dir.forceActiveFocus()
             onClicked: RaohaneWallpapers.setDirectory(dir.path)
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                RaohaneWallpapers.setDirectory(dir.path)
+                event.accepted = true
+            }
         }
     }
 }
