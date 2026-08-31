@@ -32,6 +32,7 @@ RaohaneNotificationCenter 1.0 RaohaneNotificationCenter.qml
 RaohaneSettings 1.0 RaohaneSettings.qml
 RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
 RaohaneSettingsContent 1.0 RaohaneSettingsContent.qml
+RaohaneSettingsContentV2 1.0 RaohaneSettingsContentV2.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneThemeCatalog 1.0 RaohaneThemeCatalog.qml
 RaohaneSettingsAbout 1.0 RaohaneSettingsAbout.qml
