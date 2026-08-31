@@ -71,33 +71,34 @@ Item {
             anchors.rightMargin: 16
             spacing: 12
 
-            Rectangle {
+            RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 154
-                radius: 24
-                color: "#79191523"
-                border.width: 1
-                border.color: RaohaneTheme.border
+                surfaceRadius: RaohaneTheme.radiusLarge
+                raised: true
+                showSheen: false
 
                 RowLayout {
                     anchors.fill: parent
                     anchors.margins: 22
                     spacing: 18
 
-                    Rectangle {
-                        width: 82
-                        height: 82
-                        radius: 27
-                        color: RaohaneTheme.accentSoft
-                        border.width: 1
-                        border.color: RaohaneTheme.border
+                    RaohaneSurface {
+                        Layout.preferredWidth: 82
+                        Layout.preferredHeight: 82
+                        surfaceRadius: 27
+                        raised: false
+                        active: true
+                        showSheen: false
 
-                        Text {
+                        RaohaneIcon {
                             anchors.centerIn: parent
-                            text: "ラ"
+                            text: "dashboard_customize"
+                            iconSize: 35
+                            fill: 1
+                            symbolWeight: 470
+                            grade: 25
                             color: RaohaneTheme.accent
-                            font.pixelSize: 34
-                            font.weight: Font.Bold
                         }
                     }
 
@@ -113,19 +114,18 @@ Item {
                         }
 
                         Text {
-                            text: qsTr("A living desktop shell for Hyprland")
+                            text: qsTr("A quiet, living desktop shell for Hyprland")
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 11
                         }
 
-                        Rectangle {
+                        RaohaneSurface {
                             Layout.topMargin: 5
-                            width: versionText.implicitWidth + 18
-                            height: 27
-                            radius: 14
-                            color: "#20ffffff"
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            Layout.preferredWidth: versionText.implicitWidth + 18
+                            Layout.preferredHeight: 27
+                            surfaceRadius: 14
+                            raised: false
+                            showSheen: false
 
                             Text {
                                 id: versionText
@@ -150,6 +150,7 @@ Item {
                         ActionButton {
                             icon: root.copied ? "check" : "content_copy"
                             label: root.copied ? qsTr("Copied") : qsTr("Diagnostics")
+                            emphasized: root.copied
                             onClicked: {
                                 Quickshell.clipboardText = root.diagnosticsText()
                                 root.copied = true
@@ -184,29 +185,31 @@ Item {
                 InfoCard { icon: "package_2"; label: qsTr("Packages"); value: RaohaneSystemInfo.packages }
             }
 
-            Rectangle {
+            RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 130
-                radius: 20
-                color: "#61171320"
-                border.width: 1
-                border.color: RaohaneTheme.border
+                surfaceRadius: 20
+                raised: false
+                showSheen: false
 
                 RowLayout {
                     anchors.fill: parent
                     anchors.margins: 17
                     spacing: 14
 
-                    Rectangle {
-                        width: 46
-                        height: 46
-                        radius: 15
-                        color: RaohaneTheme.accentSoft
+                    RaohaneSurface {
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
+                        surfaceRadius: 15
+                        raised: false
+                        active: true
+                        showSheen: false
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: "deployed_code"
                             iconSize: 23
+                            fill: 1
                             color: RaohaneTheme.accent
                         }
                     }
@@ -264,42 +267,51 @@ Item {
                 }
             }
 
-            Text {
-                Layout.fillWidth: true
+            Row {
+                Layout.alignment: Qt.AlignHCenter
                 Layout.bottomMargin: 8
-                horizontalAlignment: Text.AlignHCenter
-                text: "RAOHANE / HYPRLAND / QUICKSHELL"
-                color: RaohaneTheme.textMuted
-                font.pixelSize: 8
-                font.letterSpacing: 1.0
-                font.weight: Font.DemiBold
+                spacing: 7
+
+                RaohaneIcon {
+                    text: "desktop_windows"
+                    iconSize: 12
+                    color: RaohaneTheme.textFaint
+                }
+
+                Text {
+                    text: qsTr("Hyprland · Quickshell")
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 8
+                    font.weight: Font.Medium
+                }
             }
         }
     }
 
-    component InfoCard: Rectangle {
+    component InfoCard: RaohaneSurface {
         id: card
+
         required property string icon
         required property string label
         required property string value
 
         Layout.fillWidth: true
         Layout.preferredHeight: 72
-        radius: 17
-        color: "#5c17141f"
-        border.width: 1
-        border.color: RaohaneTheme.border
+        surfaceRadius: 17
+        raised: false
+        showSheen: false
 
         RowLayout {
             anchors.fill: parent
             anchors.margins: 12
             spacing: 10
 
-            Rectangle {
-                width: 38
-                height: 38
-                radius: 13
-                color: "#1cffffff"
+            RaohaneSurface {
+                Layout.preferredWidth: 38
+                Layout.preferredHeight: 38
+                surfaceRadius: 13
+                raised: false
+                showSheen: false
 
                 RaohaneIcon {
                     anchors.centerIn: parent
@@ -331,34 +343,48 @@ Item {
         }
     }
 
-    component ActionButton: Rectangle {
+    component ActionButton: FocusScope {
         id: action
+
         required property string icon
         required property string label
+        property bool emphasized: false
         signal clicked()
 
-        width: 118
-        height: 38
-        radius: 13
-        color: actionMouse.containsMouse ? RaohaneTheme.accentSoft : "#18ffffff"
-        border.width: 1
-        border.color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        implicitWidth: 118
+        implicitHeight: 38
+        activeFocusOnTab: true
 
-        RowLayout {
-            anchors.centerIn: parent
-            spacing: 6
+        RaohaneSurface {
+            anchors.fill: parent
+            surfaceRadius: 13
+            raised: false
+            active: action.emphasized
+            hovered: actionMouse.containsMouse || action.activeFocus
+            pressed: actionMouse.pressed
+            interactive: true
+            hoverScale: RaohaneMotion.subtleHoverScale
+            pressedScale: RaohaneMotion.softPressScale
+            showSheen: false
 
-            RaohaneIcon {
-                text: action.icon
-                iconSize: 15
-                color: actionMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            }
+            RowLayout {
+                anchors.centerIn: parent
+                spacing: 6
 
-            Text {
-                text: action.label
-                color: RaohaneTheme.text
-                font.pixelSize: 9
-                font.weight: Font.DemiBold
+                RaohaneIcon {
+                    text: action.icon
+                    iconSize: 15
+                    fill: action.emphasized || actionMouse.containsMouse || action.activeFocus ? 1 : 0
+                    color: action.emphasized || actionMouse.containsMouse || action.activeFocus
+                        ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+
+                Text {
+                    text: action.label
+                    color: RaohaneTheme.text
+                    font.pixelSize: 9
+                    font.weight: Font.DemiBold
+                }
             }
         }
 
@@ -367,37 +393,57 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: action.forceActiveFocus()
             onClicked: action.clicked()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                action.clicked()
+                event.accepted = true
+            }
         }
     }
 
-    component LinkButton: Rectangle {
+    component LinkButton: FocusScope {
         id: link
+
         required property string icon
         required property string label
         signal clicked()
 
         Layout.preferredHeight: 48
-        radius: 15
-        color: linkMouse.containsMouse ? RaohaneTheme.accentSoft : "#4c17141f"
-        border.width: 1
-        border.color: linkMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.border
+        activeFocusOnTab: true
 
-        RowLayout {
-            anchors.centerIn: parent
-            spacing: 8
+        RaohaneSurface {
+            anchors.fill: parent
+            surfaceRadius: 15
+            raised: false
+            hovered: linkMouse.containsMouse || link.activeFocus
+            pressed: linkMouse.pressed
+            interactive: true
+            hoverScale: RaohaneMotion.subtleHoverScale
+            pressedScale: RaohaneMotion.softPressScale
+            showSheen: false
 
-            RaohaneIcon {
-                text: link.icon
-                iconSize: 17
-                color: linkMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            }
+            RowLayout {
+                anchors.centerIn: parent
+                spacing: 8
 
-            Text {
-                text: link.label
-                color: RaohaneTheme.text
-                font.pixelSize: 9
-                font.weight: Font.DemiBold
+                RaohaneIcon {
+                    text: link.icon
+                    iconSize: 17
+                    fill: linkMouse.containsMouse || link.activeFocus ? 1 : 0
+                    color: linkMouse.containsMouse || link.activeFocus
+                        ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+
+                Text {
+                    text: link.label
+                    color: RaohaneTheme.text
+                    font.pixelSize: 9
+                    font.weight: Font.DemiBold
+                }
             }
         }
 
@@ -406,7 +452,15 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: link.forceActiveFocus()
             onClicked: link.clicked()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                link.clicked()
+                event.accepted = true
+            }
         }
     }
 }
