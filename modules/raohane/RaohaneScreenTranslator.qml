@@ -98,6 +98,15 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
+        onVisibleChanged: {
+            if (visible) {
+                translatorPanel.entered = false
+                Qt.callLater(() => translatorPanel.entered = true)
+            } else {
+                translatorPanel.entered = false
+            }
+        }
+
         FocusScope {
             anchors.fill: parent
             focus: translatorWindow.visible
@@ -118,9 +127,17 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 color: RaohaneTheme.dark ? "#66000000" : "#385b5750"
+                opacity: translatorPanel.entered ? 1 : 0
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
             }
 
             RaohaneSurface {
+                id: translatorPanel
+                property bool entered: false
+
                 anchors.centerIn: parent
                 width: Math.min(parent.width - 64, 820)
                 height: Math.min(parent.height - 72, 520)
@@ -129,6 +146,22 @@ Scope {
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
                 clip: true
+                opacity: entered ? 1 : 0
+                scale: entered ? 1 : 0.982
+
+                transform: Translate {
+                    y: translatorPanel.entered ? 0 : 12
+                    Behavior on y {
+                        NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                }
+                Behavior on scale {
+                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                }
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -140,18 +173,19 @@ Scope {
                         Layout.preferredHeight: 42
                         spacing: 9
 
-                        Rectangle {
+                        RaohaneSurface {
                             width: 34
                             height: 34
-                            radius: 11
-                            color: RaohaneTheme.surfaceSubtle
-                            border.width: 1
-                            border.color: RaohaneTheme.border
+                            surfaceRadius: 11
+                            active: true
+                            showSheen: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "translate"
                                 iconSize: 18
+                                fill: 1
+                                symbolWeight: 540
                                 color: RaohaneTheme.accent
                             }
                         }
@@ -175,23 +209,33 @@ Scope {
                                 color: root.errorText.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textMuted
                                 font.pixelSize: 8
                                 elide: Text.ElideRight
+
+                                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                             }
                         }
 
-                        Rectangle {
+                        RaohaneSurface {
+                            id: languageButton
                             width: 58
                             height: 30
-                            radius: 9
-                            color: languageMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-                            border.width: 1
-                            border.color: languageMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+                            surfaceRadius: 9
+                            transparentIdle: true
+                            showSheen: false
+                            interactive: true
+                            hovered: languageMouse.containsMouse || activeFocus
+                            pressed: languageMouse.pressed
+                            hoverScale: 1.015
+                            pressedScale: RaohaneMotion.pressScale
+                            activeFocusOnTab: true
 
                             Text {
                                 anchors.centerIn: parent
                                 text: root.targetLanguage === "ru" ? "→ RU" : "→ EN"
-                                color: RaohaneTheme.text
+                                color: languageButton.hovered ? RaohaneTheme.accent : RaohaneTheme.text
                                 font.pixelSize: 8
                                 font.weight: Font.DemiBold
+
+                                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                             }
 
                             MouseArea {
@@ -199,7 +243,15 @@ Scope {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                onPressed: languageButton.forceActiveFocus()
                                 onClicked: root.targetLanguage = root.targetLanguage === "ru" ? "en" : "ru"
+                            }
+
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    root.targetLanguage = root.targetLanguage === "ru" ? "en" : "ru"
+                                    event.accepted = true
+                                }
                             }
                         }
 
@@ -207,6 +259,8 @@ Scope {
                             buttonSize: 30
                             iconSize: 15
                             icon: "close"
+                            transparentIdle: true
+                            showSheen: false
                             onClicked: root.close()
                         }
                     }
@@ -255,7 +309,7 @@ Scope {
 
                         TranslateButton {
                             Layout.preferredWidth: 158
-                            icon: root.copied ? "check" : "content_copy"
+                            icon: root.copied ? "check_circle" : "content_copy"
                             title: root.copied ? qsTr("Copied") : qsTr("Copy translation")
                             enabled: root.translatedText.length > 0
                             onTriggered: {
@@ -292,7 +346,7 @@ Scope {
         surfaceRadius: 15
         raised: false
         showSheen: false
-        border.color: highlighted ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        border.color: highlighted ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
         ColumnLayout {
             anchors.fill: parent
@@ -301,9 +355,11 @@ Scope {
 
             Text {
                 text: panel.title
-                color: RaohaneTheme.textMuted
+                color: panel.highlighted ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 font.pixelSize: 8
                 font.weight: Font.DemiBold
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
 
             TextEdit {
@@ -323,7 +379,7 @@ Scope {
         }
     }
 
-    component TranslateButton: Rectangle {
+    component TranslateButton: RaohaneSurface {
         id: button
         required property string icon
         required property string title
@@ -331,11 +387,17 @@ Scope {
         signal triggered()
 
         Layout.preferredHeight: 38
-        radius: 11
-        opacity: enabled ? 1 : 0.4
-        color: pointer.containsMouse && enabled ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: 1
-        border.color: button.primary ? RaohaneTheme.accentBorder : RaohaneTheme.border
+        surfaceRadius: 11
+        active: primary
+        transparentIdle: !primary
+        showSheen: false
+        interactive: true
+        hovered: pointer.containsMouse || activeFocus
+        pressed: pointer.pressed
+        hoverScale: 1.01
+        pressedScale: RaohaneMotion.pressScale
+        activeFocusOnTab: enabled
+        opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
         Row {
             anchors.centerIn: parent
@@ -344,7 +406,12 @@ Scope {
             RaohaneIcon {
                 text: button.icon
                 iconSize: 14
-                color: button.primary ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                fill: button.primary || button.hovered ? 1 : 0
+                symbolWeight: button.pressed ? 560 : button.primary || button.hovered ? 520 : 430
+                color: button.primary ? RaohaneTheme.accent
+                    : button.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
             Text {
                 text: button.title
@@ -360,7 +427,21 @@ Scope {
             enabled: button.enabled
             hoverEnabled: true
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onPressed: button.forceActiveFocus()
             onClicked: button.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (!button.enabled)
+                return
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                button.triggered()
+                event.accepted = true
+            }
+        }
+
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
     }
 }
