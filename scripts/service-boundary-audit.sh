@@ -15,6 +15,8 @@ CONFIG_MODULE=modules/raohane/config
 FAMILY=panelFamilies/RaohaneFamily.qml
 SEARCH="$MODULE/RaohaneSearch.qml"
 SESSION="$MODULE/RaohaneSession.qml"
+PROCESSES="$MODULE/RaohaneProcesses.qml"
+TASK_MANAGER=modules/raohane/RaohaneTaskManager.qml
 AUDIO="$MODULE/RaohaneAudio.qml"
 EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
 CONTROL_CENTER=modules/raohane/RaohaneControlCenter.qml
@@ -25,9 +27,14 @@ CLI=scripts/raohane
 FEATURES=install/arch/features.txt
 REQUIRED=install/arch/required.txt
 
-for path in "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" "$SEARCH" "$SESSION" "$AUDIO" "$EASY_EFFECTS" "$CONTROL_CENTER" "$QUICK_CONTROLS" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" "$FEATURES" "$REQUIRED"; do
+for path in \
+  "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" \
+  "$SEARCH" "$SESSION" "$PROCESSES" "$TASK_MANAGER" "$AUDIO" "$EASY_EFFECTS" \
+  "$CONTROL_CENTER" "$QUICK_CONTROLS" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" \
+  "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
 done
+
 rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' "$CONFIG_MODULE/qmldir" \
   || fail 'RaohaneConfig is not registered in the native config module'
 if rg -n '^import qs$|modules\.common|JsonAdapter|\bConfig\.' "$CONFIG_MODULE/RaohaneConfig.qml"; then
@@ -56,30 +63,63 @@ require_service RaohaneSession 'hyprctl.*dispatch.*exit'
 require_service RaohaneSessionWarnings 'pacman|/var/lib/pacman/db\.lck'
 require_service RaohaneSystemInfo '/etc/os-release'
 require_service RaohaneSearch 'DesktopEntries'
+require_service RaohaneProcesses '/proc/meminfo|ps -u'
 require_service RaohaneIdle 'IdleInhibitor'
 require_service RaohaneEasyEffects 'easyeffects'
 require_service RaohaneYdotool 'ydotool'
 require_service RaohaneDropShelf 'wl-copy --type text/uri-list'
 require_service RaohaneAutostart 'scripts/autostart\.sh'
 
-for package in bluez-utils brightnessctl btop ddcutil hyprsunset easyeffects ydotool libqalculate; do
+for package in bluez-utils brightnessctl ddcutil hyprsunset easyeffects ydotool libqalculate; do
   rg -q "^${package}$" "$FEATURES" \
     || fail "native service/backend package missing from feature manifest: $package"
 done
+rg -q '^procps-ng$' "$REQUIRED" \
+  || fail 'native Task Manager requires procps-ng in the required manifest'
+if rg -q '^btop$' "$FEATURES"; then
+  fail 'retired external Task Manager dependency btop is still required by the feature manifest'
+fi
 
-# The current task-manager fallback is terminal UI until the native Raohane
-# manager lands. It must create a visible terminal instead of detaching btop/top
-# directly from Quickshell with no TTY.
-rg -q 'command -v btop' "$SESSION" \
-  || fail 'session task-manager fallback no longer prefers btop'
-rg -q 'xdg-terminal-exec' "$SESSION" \
-  || fail 'session task-manager fallback lost the standard terminal launcher path'
-for terminal in foot kitty alacritty wezterm ghostty konsole gnome-terminal xterm; do
-  rg -q "command -v ${terminal}" "$SESSION" \
-    || fail "session task-manager fallback lost terminal backend: $terminal"
+# Native Task Manager: process collection is on-demand, UI refreshes only while
+# visible, Session opens the native surface by default, and destructive actions
+# require an explicit second press in the UI.
+rg -q '^singleton RaohaneProcesses .*RaohaneProcesses.qml$' "$QMLDIR" \
+  || fail 'RaohaneProcesses is not registered in native services'
+for contract in \
+  '/proc/meminfo' \
+  'ps -u' \
+  'property var processes:' \
+  'function refresh\(\): void' \
+  'function terminate\(pids\): void' \
+  'function forceKill\(pids\): void' \
+  '\$8 != \\"quickshell\\"' \
+  '\$8 != \\"qs\\"'; do
+  rg -q "$contract" "$PROCESSES" || fail "native process service lost contract: $contract"
 done
-if rg -n 'runShell\("command -v btop[^\n]*&& btop' "$SESSION"; then
-  fail 'session task manager regressed to launching a TUI without a terminal'
+if rg -n 'Timer[[:space:]]*\{[^}]*repeat:[[:space:]]*true' "$PROCESSES"; then
+  fail 'process service contains permanent background polling'
+fi
+
+for contract in \
+  'RaohaneProcesses\.' \
+  'running:[[:space:]]*RaohaneState\.taskManagerOpen' \
+  'interval:[[:space:]]*1500' \
+  'target:[[:space:]]*"taskManager"' \
+  'pendingAction' \
+  'requestSignal\(' \
+  'RaohaneState\.(setPrimaryOpen|togglePrimary)\("taskManager"'; do
+  rg -q "$contract" "$TASK_MANAGER" || fail "native Task Manager lost UI/safety contract: $contract"
+done
+rg -q '^RaohaneTaskManager .*RaohaneTaskManager.qml$' modules/raohane/qmldir \
+  || fail 'RaohaneTaskManager is not registered in native UI module'
+rg -q 'component:[[:space:]]*RaohaneTaskManager[[:space:]]*\{' "$FAMILY" \
+  || fail 'RaohaneFamily does not load native Task Manager'
+rg -q 'taskManagerCommand' "$SESSION" \
+  || fail 'custom Task Manager command override was lost'
+rg -q 'ipc", "call", "taskManager", "open"' "$SESSION" \
+  || fail 'Session does not route default Task Manager action to native IPC'
+if rg -n 'command -v (btop|htop)|exec (btop|htop|top)' "$SESSION"; then
+  fail 'Session still contains the retired terminal Task Manager fallback'
 fi
 
 # Audio must react to PipeWire changes without repeatedly spawning wpctl/sed
@@ -98,8 +138,7 @@ fi
 rg -q '^pipewire$' "$REQUIRED" \
   || fail 'audio event monitor requires pipewire in the required manifest'
 
-# EasyEffects state is only needed when its controls are surfaced. Avoid a
-# permanent pgrep/flatpak polling loop when Control Center is closed.
+# EasyEffects state is only needed when its controls are surfaced.
 if rg -n 'interval:[[:space:]]*5000|running:[[:space:]]*root\.available' "$EASY_EFFECTS"; then
   fail 'EasyEffects service regressed to permanent background state polling'
 fi
@@ -108,8 +147,7 @@ rg -q 'RaohaneEasyEffects\.refresh\(\)' "$CONTROL_CENTER" \
 rg -q 'refreshTimer\.restart\(\)' "$EASY_EFFECTS" \
   || fail 'EasyEffects actions lost their one-shot post-action state refresh'
 
-# Game Mode is compositor state, so a shell-start snapshot becomes stale after
-# external hyprctl/reload changes. Refresh only when Control Center is surfaced.
+# Game Mode is compositor state, so refresh only when Control Center is surfaced.
 rg -q 'function refreshGameMode\(\): void' "$QUICK_CONTROLS" \
   || fail 'Quick Controls lost on-demand Game Mode refresh'
 rg -q 'if \(!gameModeProbe\.running\)' "$QUICK_CONTROLS" \
@@ -134,6 +172,7 @@ for pair in \
   'modules/raohane/RaohaneOsd.qml:RaohaneAudio\.' \
   'modules/raohane/RaohaneOsd.qml:RaohaneDisplay\.' \
   'modules/raohane/RaohaneLauncher.qml:RaohaneSearch\.' \
+  'modules/raohane/RaohaneTaskManager.qml:RaohaneProcesses\.' \
   'modules/raohane/RaohaneWallpaperSelector.qml:RaohaneWallpapers\.'; do
   file="${pair%%:*}"
   pattern="${pair#*:}"
@@ -201,8 +240,8 @@ for probe in \
   'check_cmd fprintd-list fprintd optional'; do
   rg -Fq "$probe" "$CLI" || fail "doctor deps lost native backend probe: $probe"
 done
-if rg -n 'check_cmd (cava|ffplay)\b' "$CLI"; then
-  fail 'doctor deps still advertises retired/non-runtime cava or ffplay probes'
+if rg -n 'check_cmd (cava|ffplay|btop)\b' "$CLI"; then
+  fail 'doctor deps still advertises retired/non-runtime cava, ffplay or btop probes'
 fi
 
 for service in RaohaneSession.qml RaohaneDisplay.qml RaohaneWallpapers.qml; do
@@ -255,4 +294,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, event-driven audio, task-manager terminal fallback, on-demand EasyEffects/Game Mode state, launcher modes, doctor probes, backend packages, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, on-demand Task Manager, event-driven audio, on-demand EasyEffects/Game Mode, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
