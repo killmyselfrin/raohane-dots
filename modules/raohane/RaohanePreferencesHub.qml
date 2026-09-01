@@ -23,6 +23,7 @@ Item {
         { key: "randomWallpaper", icon: "shuffle", category: qsTr("DESKTOP"), label: qsTr("Random wallpaper"), detail: qsTr("Apply a random wallpaper") },
         { key: "mediaOverlay", icon: "music_note", category: qsTr("SHELL"), label: qsTr("Media overlay"), detail: qsTr("Open the fullscreen-friendly media controls") },
         { key: "session", icon: "power_settings_new", category: qsTr("SYSTEM"), label: qsTr("Session controls"), detail: qsTr("Open lock, logout and power actions") },
+        { key: "lock", icon: "lock", category: qsTr("SYSTEM"), label: qsTr("Lock screen"), detail: qsTr("Secure the current Raohane session immediately") },
         { key: "taskManager", icon: "browse_activity", category: qsTr("SYSTEM"), label: qsTr("Task Manager"), detail: qsTr("Open the Raohane process manager") },
         { key: "osk", icon: "keyboard", category: qsTr("TOOLS"), label: qsTr("On-screen keyboard"), detail: qsTr("Toggle the Raohane on-screen keyboard") },
         { key: "screenTranslate", icon: "translate", category: qsTr("TOOLS"), label: qsTr("Screen Translator"), detail: qsTr("Select an area and translate recognized text") },
