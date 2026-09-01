@@ -113,12 +113,15 @@ Singleton {
         root.recordingApp = recordingApp
     }
 
-    function refresh(force: bool = false): void {
+    // Keep the optional force flag untyped and without a default initializer.
+    // Older Quickshell runtime parsers reject typed parameters with defaults.
+    function refresh(force) {
         if (graphProbe.running)
             return
 
+        const forced = force === true
         const now = Date.now()
-        if (!force && root.lastRefreshMs > 0
+        if (!forced && root.lastRefreshMs > 0
                 && now - root.lastRefreshMs < root.minimumRefreshInterval)
             return
 
