@@ -1,5 +1,7 @@
 import QtQuick
 
+import qs.modules.raohane.services
+
 Rectangle {
     id: root
 
@@ -13,6 +15,7 @@ Rectangle {
     property bool showSheen: true
     property real hoverScale: RaohaneMotion.subtleHoverScale
     property real pressedScale: RaohaneMotion.softPressScale
+    property string feedback: "tap"
 
     radius: surfaceRadius
     scale: interactive
@@ -35,6 +38,11 @@ Rectangle {
         : hovered || pressed
             ? RaohaneTheme.borderStrong
             : RaohaneTheme.border
+
+    onPressedChanged: {
+        if (root.interactive && root.pressed && root.feedback.length > 0)
+            RaohaneUiFeedback.play(root.feedback)
+    }
 
     Rectangle {
         visible: root.showSheen && RaohaneTheme.sheenEnabled && !root.transparentIdle
