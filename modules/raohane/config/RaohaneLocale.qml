@@ -11,7 +11,10 @@ Singleton {
     property string language: "en_US"
     property int revision: 0
     property var russianBase: ({})
-    property var russianRuntime: ({})
+    property var russianA: ({})
+    property var russianGN: ({})
+    property var russianOS: ({})
+    property var russianTZ: ({})
 
     function parse(contents: string): var {
         try {
@@ -33,33 +36,52 @@ Singleton {
         const text = String(source ?? "")
         if (root.language !== "ru_RU")
             return text
-        return root.russianRuntime?.[text] ?? root.russianBase?.[text] ?? text
+        return root.russianTZ?.[text]
+            ?? root.russianOS?.[text]
+            ?? root.russianGN?.[text]
+            ?? root.russianA?.[text]
+            ?? root.russianBase?.[text]
+            ?? text
     }
 
     FileView {
         id: baseFile
         path: Quickshell.shellPath("translations/ru_RU.json")
         watchChanges: true
-        onLoaded: {
-            root.russianBase = root.parse(baseFile.text())
-            root.revision++
-        }
+        onLoaded: { root.russianBase = root.parse(baseFile.text()); root.revision++ }
         onFileChanged: reload()
     }
 
     FileView {
-        id: runtimeFile
+        id: runtimeAFile
         path: Quickshell.shellPath("translations/raohane/ru_RU.json")
         watchChanges: true
-        onLoaded: {
-            root.russianRuntime = root.parse(runtimeFile.text())
-            root.revision++
-        }
+        onLoaded: { root.russianA = root.parse(runtimeAFile.text()); root.revision++ }
         onFileChanged: reload()
-        onLoadFailed: error => {
-            if (error !== FileViewError.FileNotFound)
-                console.warn("[RaohaneLocale] Runtime Russian catalog unavailable:", error)
-        }
+    }
+
+    FileView {
+        id: runtimeGNFile
+        path: Quickshell.shellPath("translations/raohane/ru_RU_gn.json")
+        watchChanges: true
+        onLoaded: { root.russianGN = root.parse(runtimeGNFile.text()); root.revision++ }
+        onFileChanged: reload()
+    }
+
+    FileView {
+        id: runtimeOSFile
+        path: Quickshell.shellPath("translations/raohane/ru_RU_os.json")
+        watchChanges: true
+        onLoaded: { root.russianOS = root.parse(runtimeOSFile.text()); root.revision++ }
+        onFileChanged: reload()
+    }
+
+    FileView {
+        id: runtimeTZFile
+        path: Quickshell.shellPath("translations/raohane/ru_RU_tz.json")
+        watchChanges: true
+        onLoaded: { root.russianTZ = root.parse(runtimeTZFile.text()); root.revision++ }
+        onFileChanged: reload()
     }
 
     FileView {
@@ -81,7 +103,10 @@ Singleton {
 
     Component.onCompleted: {
         baseFile.reload()
-        runtimeFile.reload()
+        runtimeAFile.reload()
+        runtimeGNFile.reload()
+        runtimeOSFile.reload()
+        runtimeTZFile.reload()
         languageFile.reload()
     }
 }
