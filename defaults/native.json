@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 10,
+  "schemaVersion": 11,
   "wallpaper": {
     "path": "",
     "lockPath": "",
@@ -88,7 +88,26 @@
     "contextIsland": true,
     "mediaOverlay": true,
     "integrationMode": true,
-    "themePreset": "zen-mist"
+    "themePreset": "zen-mist",
+    "welcomeCompleted": false
+  },
+  "desktop": {
+    "widgets": [
+      {
+        "id": "clock",
+        "type": "clock",
+        "screen": "",
+        "x": 0.045,
+        "y": 0.12
+      },
+      {
+        "id": "context",
+        "type": "context",
+        "screen": "",
+        "x": 0.045,
+        "y": 0.46
+      }
+    ]
   },
   "style": {
     "glassOpacity": 1.0,

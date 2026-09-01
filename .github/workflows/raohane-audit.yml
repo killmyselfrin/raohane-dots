@@ -66,6 +66,7 @@ jobs:
           bash -n scripts/process-performance-audit.sh
           bash -n scripts/bluetooth-performance-audit.sh
           bash -n scripts/keyboard-layout-boundary-audit.sh
+          bash -n scripts/welcome-widgets-boundary-audit.sh
           bash -n scripts/wallpaper-boundary-audit.sh
           bash -n scripts/notification-boundary-audit.sh
           bash -n scripts/lock-boundary-audit.sh
@@ -123,6 +124,7 @@ jobs:
           bash scripts/process-performance-audit.sh
           bash scripts/bluetooth-performance-audit.sh
           bash scripts/keyboard-layout-boundary-audit.sh
+          bash scripts/welcome-widgets-boundary-audit.sh
           bash scripts/wallpaper-boundary-audit.sh
           bash scripts/notification-boundary-audit.sh
           bash scripts/lock-boundary-audit.sh

@@ -13,6 +13,7 @@ sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 systray='modules/raohane/RaohaneSysTray.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 desktop='modules/raohane/RaohaneDesktopCanvas.qml'
+desktop_widget='modules/raohane/RaohaneDesktopWidget.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_v3='modules/raohane/RaohaneSettingsContentV3.qml'
@@ -47,8 +48,8 @@ if rg -n 'text:[[:space:]]*"ラ"|#79191523|#61171320|#5c17141f|#4c17141f|#20ffff
 fi
 
 rg -q 'RaohaneMotion\.' "$desktop" || fail 'Desktop canvas no longer follows the shared motion scale'
-rg -q 'text:[[:space:]]*RaohaneContext\.icon' "$desktop" || fail 'Desktop context icon lost its live context binding'
-rg -q 'RaohaneIcon[[:space:]]*\{' "$desktop" || fail 'Desktop context no longer renders through the Material icon wrapper'
+rg -q 'text:[[:space:]]*RaohaneContext\.icon' "$desktop_widget" || fail 'Desktop context icon lost its live context binding'
+rg -q 'RaohaneIcon[[:space:]]*\{' "$desktop_widget" || fail 'Desktop context no longer renders through the Material icon wrapper'
 if rg -n 'duration:[[:space:]]*180' "$desktop"; then
   fail 'Desktop canvas reintroduced a fixed animation duration outside RaohaneMotion'
 fi

@@ -15,7 +15,7 @@ The following gates are complete:
 - upstream synchronizer/bootstrap scripts and source lock files are removed;
 - retired helper script families and the inherited default config are removed;
 - Raohane owns its Arch dependency manifests and dependency installer;
-- Raohane owns persistent schema v10 and native state/path contracts;
+- Raohane owns persistent schema v11 and native state/path contracts;
 - older native schema documents are upgraded before shell startup without discarding user values;
 - Raohane owns audio, media, network, Bluetooth, display, notifications, wallpaper, session, idle, search, autostart, OSK and DropShelf service boundaries;
 - all active visible surfaces are Raohane-owned;

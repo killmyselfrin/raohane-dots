@@ -251,11 +251,18 @@ Scope {
                     MenuAction {
                         icon: "space_dashboard"
                         title: qsTr("Desktop & Spaces")
-                        detail: qsTr("Wallpaper and workspace configuration")
+                        detail: qsTr("Wallpaper, widgets and workspace configuration")
                         onTriggered: {
                             RaohaneState.settingsPage = "Desktop & Spaces"
                             RaohaneState.setPrimaryOpen("settings", true)
                         }
+                    }
+
+                    MenuAction {
+                        icon: "widgets"
+                        title: qsTr("Desktop Widgets")
+                        detail: qsTr("Add, remove and arrange native widgets")
+                        onTriggered: RaohaneState.setPrimaryOpen("widgetStudio", true)
                     }
 
                     MenuAction {

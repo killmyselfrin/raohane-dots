@@ -15,7 +15,8 @@ Usage: raohane <command> [args]
 
 Shell:
   run | start | stop | restart | status | logs
-  launcher | control | settings | media | desktop | session | translate
+  launcher | control | settings | media | desktop | session | translate | welcome
+  widgets [open|edit|done|reset|status]
   wallpaper [toggle|random]
   theme [list|import FILE|import-serpantinum PATH|remove ID|export ID FILE]
 
@@ -364,12 +365,12 @@ try:
     data = json.loads(path.read_text(encoding="utf-8"))
 except (OSError, json.JSONDecodeError):
     raise SystemExit(1)
-raise SystemExit(0 if data.get("schemaVersion") == 10 else 1)
+raise SystemExit(0 if data.get("schemaVersion") == 11 else 1)
 PY
     then
-      echo '  [ok] ~/.config/raohane/native.json schema v10'
+      echo '  [ok] ~/.config/raohane/native.json schema v11'
     else
-      echo '  [!!] ~/.config/raohane/native.json is missing/invalid schema v10'
+      echo '  [!!] ~/.config/raohane/native.json is missing/invalid schema v11'
       failures=$((failures + 1))
     fi
   else
@@ -487,6 +488,19 @@ case "${1:-help}" in
     ;;
   settings)
     ipc settings toggle
+    ;;
+  welcome)
+    ipc welcome open
+    ;;
+  widgets)
+    case "${2:-open}" in
+      open) ipc desktopWidgets open ;;
+      edit) ipc desktopWidgets edit ;;
+      done) ipc desktopWidgets done ;;
+      reset) ipc desktopWidgets reset ;;
+      status) ipc desktopWidgets status ;;
+      *) echo "Unknown widgets command: ${2:-}" >&2; exit 2 ;;
+    esac
     ;;
   media)
     ipc raohaneMedia toggle

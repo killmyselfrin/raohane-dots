@@ -7,8 +7,8 @@
 **Quickshell · Qt/QML · Arch focused · standalone runtime**
 
 [![Version](https://img.shields.io/badge/version-0.10.0--dev-8b7cf6?style=flat-square)](VERSION)
-[![Raohane audit](https://github.com/snuskidau/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](.github/workflows/raohane-audit.yml)
-[![Release boundary](https://github.com/snuskidau/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
+[![Raohane audit](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](.github/workflows/raohane-audit.yml)
+[![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
 [![Hyprland](https://img.shields.io/badge/Hyprland-only-1f6feb?style=flat-square)](https://hypr.land/)
 [![License](https://img.shields.io/badge/license-GPLv3-2f2f2f?style=flat-square)](LICENSE)
 
@@ -45,6 +45,7 @@ Raohane owns its active UI, configuration, services and runtime paths. A normal 
 | Floating application Dock | Bluetooth | Clipboard history search |
 | Spaces / workspace Overview | Brightness / DDC / gamma | Screen translation |
 | Wallpaper & video background | Privacy / capture state | Region screenshot / OCR / recording |
+| Desktop widgets + editor | First-run welcome setup | Theme and layout onboarding |
 | Desktop context menu | Notifications & history | DropShelf |
 | Screen frame & corners | Lock / PAM / fingerprint | On-screen keyboard |
 | Media overlay | Polkit authentication | Session / power controls |
@@ -61,6 +62,8 @@ Raohane currently includes:
 - **Launcher** — apps, built-in actions, commands, calculator and clipboard search;
 - **Control Center** — network, Bluetooth, audio, display, privacy and notifications;
 - **Settings** — grouped navigation, global search, Theme Library and native configuration;
+- **Welcome Setup** — first-run theme, bar/dock and profile configuration;
+- **Desktop Widgets** — persistent clock, live context, MPRIS media and system cards with an arrange mode;
 - **Media Overlay** — MPRIS controls and lyrics in a fullscreen-friendly overlay;
 - **Notifications** — popup cards, history and actions;
 - **Wallpaper Selector** — image/video browsing, preview, random selection and slideshow support;
@@ -99,6 +102,12 @@ raohane theme remove my-theme
 ```
 
 Advanced styling is also centralized rather than hard-coded per component, including glass opacity, border strength, radius/density scale, motion, accent behavior and selected shell-surface sizing.
+
+## Welcome setup and widgets
+
+On a fresh configuration, Raohane opens a four-step welcome surface automatically. It previews themes live, configures the horizontal/vertical bar and Dock, seeds the desktop widget layout and optionally records a display name.
+
+The desktop starts with Clock and Context widgets on the primary monitor. Widget Studio can add Media and System cards, remove existing widgets, reset the starter layout and enter an arrange mode where cards can be dragged between positions. Positions and monitor ownership are saved in `~/.config/raohane/native.json`.
 
 ---
 
@@ -161,7 +170,7 @@ For the deeper runtime and ownership model, see [`ARCHITECTURE.md`](ARCHITECTURE
 Clone the current development branch:
 
 ```bash
-git clone https://github.com/snuskidau/raohane-dots.git
+git clone https://github.com/killmyselfrin/raohane-dots.git
 cd raohane-dots
 ```
 
@@ -187,7 +196,7 @@ Raohane exposes both NixOS and Home Manager modules. The NixOS module enables th
 
 ```nix
 {
-  inputs.raohane.url = "github:snuskidau/raohane-dots";
+  inputs.raohane.url = "github:killmyselfrin/raohane-dots";
 
   outputs = { nixpkgs, home-manager, raohane, ... }: {
     nixosConfigurations.yourHost = nixpkgs.lib.nixosSystem {
@@ -243,12 +252,17 @@ raohane logs
 raohane launcher
 raohane control
 raohane settings
+raohane welcome
+raohane widgets open
+raohane widgets edit
 raohane media
 raohane desktop
 raohane wallpaper
 raohane session
 raohane translate
 ```
+
+Widget layout commands also include `raohane widgets done`, `reset` and `status`.
 
 Random wallpaper:
 

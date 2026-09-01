@@ -16,7 +16,7 @@ import urllib.request
 from typing import Any
 
 BASE = "https://lrclib.net/api"
-CLIENT = "Raohane/0.10.0-dev (https://github.com/snuskidau/raohane-dots)"
+CLIENT = "Raohane/0.10.0-dev (https://github.com/killmyselfrin/raohane-dots)"
 TIMEOUT = 6.0
 
 

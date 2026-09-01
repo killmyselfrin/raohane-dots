@@ -7,7 +7,10 @@
 - Load bundled and user themes live in the existing Theme Library; user overrides live in `~/.config/raohane/themes.json`.
 - Preserve GPLv3 provenance for converted Serpantinum palette data.
 - Replace the stale iNiR/Niri flake with native Raohane packages plus NixOS and Home Manager modules adapted from Serpantinum's deployment model.
-- Correct active repository links to `snuskidau/raohane-dots`.
+- Add an automatic four-step Welcome Setup for theme, shell layout, Dock and profile choices, persisted through native schema v11.
+- Replace the fixed desktop clock block with persistent Clock, Context, Media and System widgets plus a native add/remove/reset/arrange studio.
+- Add Settings, desktop-menu and CLI entry points for reopening onboarding and managing widgets.
+- Correct active repository links to the canonical `killmyselfrin/raohane-dots` repository.
 
 ## 0.10.0-dev — Standalone + Minimal Theme System
 

@@ -26,6 +26,9 @@ required_root=(
   modules/raohane/RaohaneRuntimeProbe.qml
   modules/raohane/RaohaneSettingsSearch.qml
   modules/raohane/RaohaneTaskManager.qml
+  modules/raohane/RaohaneWelcome.qml
+  modules/raohane/RaohaneWidgetStudio.qml
+  modules/raohane/RaohaneDesktopWidget.qml
   modules/raohane/config/RaohaneConfig.qml
   modules/raohane/config/RaohanePaths.qml
   modules/raohane/services/RaohaneProcesses.qml
@@ -38,6 +41,7 @@ required_root=(
   scripts/raohane-audit.sh
   scripts/source-lineage-audit.sh
   scripts/theme-library-audit.sh
+  scripts/welcome-widgets-boundary-audit.sh
   scripts/nix-boundary-audit.sh
   scripts/runtime-payload-audit.sh
   scripts/package-release.sh
@@ -139,6 +143,8 @@ active_surfaces=(
   RaohaneDesktopMenu
   RaohaneSessionScreen
   RaohaneTaskManager
+  RaohaneWidgetStudio
+  RaohaneWelcome
   RaohaneDropShelfPanel
   RaohaneScreenFrame
 )
@@ -251,14 +257,15 @@ if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' ins
   fail 'normal install/doctor path executes upstream shell infrastructure'
 fi
 
-rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*10' defaults/native.json \
-  || fail 'native defaults are not schema v10'
+rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*11' defaults/native.json \
+  || fail 'native defaults are not schema v11'
 python3 scripts/migrate-legacy-config.py --help >/dev/null
 
 bash -n scripts/raohane
 bash -n scripts/raohane-audit.sh
 bash -n scripts/source-lineage-audit.sh
 bash -n scripts/theme-library-audit.sh
+bash -n scripts/welcome-widgets-boundary-audit.sh
 bash -n scripts/nix-boundary-audit.sh
 bash -n scripts/runtime-payload-audit.sh
 bash -n scripts/package-release.sh
@@ -284,6 +291,7 @@ bash -n install-raohane.sh
 
 bash scripts/source-lineage-audit.sh
 bash scripts/theme-library-audit.sh
+bash scripts/welcome-widgets-boundary-audit.sh
 bash scripts/nix-boundary-audit.sh
 bash scripts/phase4-visible-runtime-audit.sh
 bash scripts/multimonitor-boundary-audit.sh

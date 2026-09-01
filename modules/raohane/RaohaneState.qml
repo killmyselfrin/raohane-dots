@@ -20,6 +20,9 @@ QtObject {
     property bool oskOpen: false
     property bool settingsOpen: false
     property string settingsPage: ""
+    property bool welcomeOpen: false
+    property bool widgetStudioOpen: false
+    property bool desktopWidgetEditMode: false
     property bool sessionOpen: false
     property bool taskManagerOpen: false
     property bool osdOpen: false
@@ -41,6 +44,8 @@ QtObject {
         case "overlay": return overlayOpen
         case "screenTranslator": return screenTranslatorOpen
         case "settings": return settingsOpen
+        case "welcome": return welcomeOpen
+        case "widgetStudio": return widgetStudioOpen
         case "session": return sessionOpen
         case "taskManager": return taskManagerOpen
         case "desktopMenu": return desktopMenuOpen
@@ -57,14 +62,18 @@ QtObject {
         if (except !== "overlay") overlayOpen = false
         if (except !== "screenTranslator") screenTranslatorOpen = false
         if (except !== "settings") settingsOpen = false
+        if (except !== "welcome") welcomeOpen = false
+        if (except !== "widgetStudio") widgetStudioOpen = false
         if (except !== "session") sessionOpen = false
         if (except !== "taskManager") taskManagerOpen = false
         if (except !== "desktopMenu") desktopMenuOpen = false
     }
 
     function setPrimaryOpen(name: string, open: bool): void {
-        if (open)
+        if (open) {
+            desktopWidgetEditMode = false
             closePrimarySurfaces(name)
+        }
 
         switch (name) {
         case "launcher": launcherOpen = open; break
@@ -75,6 +84,8 @@ QtObject {
         case "overlay": overlayOpen = open; break
         case "screenTranslator": screenTranslatorOpen = open; break
         case "settings": settingsOpen = open; break
+        case "welcome": welcomeOpen = open; break
+        case "widgetStudio": widgetStudioOpen = open; break
         case "session": sessionOpen = open; break
         case "taskManager": taskManagerOpen = open; break
         case "desktopMenu": desktopMenuOpen = open; break
@@ -90,6 +101,15 @@ QtObject {
             setPrimaryOpen(name, true)
         else
             setPrimaryOpen(name, false)
+    }
+
+    function beginDesktopWidgetEdit(): void {
+        closePrimarySurfaces("")
+        desktopWidgetEditMode = true
+    }
+
+    function endDesktopWidgetEdit(): void {
+        desktopWidgetEditMode = false
     }
 
     function toggleAction(name: string): void {
@@ -138,6 +158,12 @@ QtObject {
         case "desktopMenuOpen":
             togglePrimary("desktopMenu")
             break
+        case "welcomeOpen":
+            togglePrimary("welcome")
+            break
+        case "widgetStudioOpen":
+            togglePrimary("widgetStudio")
+            break
         default:
             console.warn("[RaohaneState] Unknown transient action:", name)
             break
@@ -150,5 +176,6 @@ QtObject {
         regionSelectorOpen = false
         oskOpen = false
         osdOpen = false
+        desktopWidgetEditMode = false
     }
 }

@@ -32,7 +32,7 @@ Options:
   --deps            Install the Raohane-owned Arch dependency manifest first.
                     No other shell repository is cloned or executed.
   --migrate-legacy  Import the directly supported subset of an existing
-                    illogical-impulse config into Raohane native schema v10.
+                    illogical-impulse config into Raohane native schema v11.
   --no-start        Install files and systemd integration without starting Raohane.
   -h, --help        Show this help.
 
@@ -156,7 +156,7 @@ if [[ ! -f "$RAOHANE_CONFIG_FILE" ]]; then
     printf '[Raohane] Migrated supported settings from %s\n' "$migration_source"
   else
     cp -a "$ROOT/defaults/native.json" "$RAOHANE_CONFIG_FILE"
-    printf '[Raohane] Seeded native schema v10 settings.\n'
+    printf '[Raohane] Seeded native schema v11 settings.\n'
   fi
 fi
 

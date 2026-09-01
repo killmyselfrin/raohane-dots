@@ -132,7 +132,7 @@ rg -q 'bash "\$pruner" "\$RUNTIME"' scripts/raohane || fail 'Raohane CLI does no
 rg -q 'doctor \[[^]]*runtime[^]]*\]' scripts/raohane || fail 'CLI usage does not expose doctor runtime'
 rg -q '^print_runtime_integrity\(\)' scripts/raohane || fail 'CLI lost installed-runtime integrity diagnostics'
 rg -q '^[[:space:]]*runtime\)' scripts/raohane || fail 'doctor runtime route is missing'
-rg -q 'native\.json.*schema v10|schemaVersion.*10' scripts/raohane || fail 'doctor runtime no longer validates native config schema v10'
+rg -q 'native\.json.*schema v11|schemaVersion.*11' scripts/raohane || fail 'doctor runtime no longer validates native config schema v11'
 rg -q '^find_runtime_payload_validator\(\)' scripts/raohane || fail 'doctor runtime no longer resolves the strict runtime payload validator'
 rg -q '\$RUNTIME/scripts/validate-runtime-payload\.sh' scripts/raohane || fail 'doctor runtime does not prefer the validator installed with the runtime'
 rg -q 'bash "\$payload_validator" "\$RUNTIME"' scripts/raohane || fail 'doctor runtime does not execute strict payload validation against the installed runtime'
@@ -213,12 +213,14 @@ import sys
 
 path = pathlib.Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
-assert data["schemaVersion"] == 10
+assert data["schemaVersion"] == 11
 assert data["wallpaper"]["path"] == "/tmp/keep-wallpaper.png"
 assert data["wallpaper"]["preview"] is False
 assert data["dock"]["iconSize"] == 51
 assert data["osk"]["pinned"] is False
 assert data["osk"]["layout"] == "English (US)"
+assert data["features"]["welcomeCompleted"] is False
+assert len(data["desktop"]["widgets"]) == 2
 assert data["customFutureSection"]["keepMe"] is True
 PY
 
@@ -275,4 +277,4 @@ root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.q
 
 bash scripts/runtime-payload-audit.sh
 
-printf 'standalone-runtime-audit: source/runtime are native-only, current Task/Lyrics/product validators survive clean staging, doctor reuses strict payload validation and v9 settings upgrade safely to schema v10\n'
+printf 'standalone-runtime-audit: source/runtime are native-only, current Task/Lyrics/product validators survive clean staging, doctor reuses strict payload validation and older settings upgrade safely to schema v11\n'

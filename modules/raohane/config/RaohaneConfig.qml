@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 10
+    readonly property int schemaVersion: 11
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -92,6 +92,8 @@ Singleton {
     property bool mediaOverlayEnabled: true
     property bool integrationMode: true
     property string themePreset: "zen-mist"
+    property bool welcomeCompleted: false
+    property var desktopWidgets: root.defaultDesktopWidgets()
 
     // Style Studio is persisted as one object so new visual controls can be
     // added without scattering a separate save signal across the config API.
@@ -117,6 +119,70 @@ Singleton {
 
     signal reloaded()
     signal saved()
+
+    function defaultDesktopWidgets(): var {
+        return [
+            { id: "clock", type: "clock", screen: "", x: 0.045, y: 0.12 },
+            { id: "context", type: "context", screen: "", x: 0.045, y: 0.46 }
+        ]
+    }
+
+    function sanitizeDesktopWidgets(value): var {
+        const input = Array.isArray(value) ? value : root.defaultDesktopWidgets()
+        const allowedTypes = ["clock", "context", "media", "system"]
+        const seen = {}
+        const result = []
+        for (let index = 0; index < input.length; index++) {
+            const raw = input[index] && typeof input[index] === "object" ? input[index] : {}
+            const type = String(raw.type ?? "")
+            if (allowedTypes.indexOf(type) < 0)
+                continue
+            let id = String(raw.id ?? (type + "-" + index)).replace(/[^a-zA-Z0-9_-]/g, "-")
+            if (id.length === 0)
+                id = type + "-" + index
+            while (seen[id])
+                id += "-copy"
+            seen[id] = true
+            result.push({
+                id: id,
+                type: type,
+                screen: String(raw.screen ?? ""),
+                x: root.clampNumber(raw.x, 0, 0.92, 0.05),
+                y: root.clampNumber(raw.y, 0, 0.90, 0.12)
+            })
+        }
+        return result
+    }
+
+    function addDesktopWidget(type: string, screenName: string): void {
+        const allowedTypes = ["clock", "context", "media", "system"]
+        if (allowedTypes.indexOf(type) < 0)
+            return
+        const items = root.sanitizeDesktopWidgets(root.desktopWidgets).slice()
+        const id = type + "-" + Date.now()
+        const offset = Math.min(0.32, items.length * 0.035)
+        items.push({ id: id, type: type, screen: String(screenName ?? ""), x: 0.08 + offset, y: 0.14 + offset })
+        root.desktopWidgets = items
+    }
+
+    function removeDesktopWidget(id: string): void {
+        root.desktopWidgets = root.sanitizeDesktopWidgets(root.desktopWidgets).filter(item => item.id !== id)
+    }
+
+    function moveDesktopWidget(id: string, x: real, y: real, screenName: string): void {
+        const items = root.sanitizeDesktopWidgets(root.desktopWidgets).map(item => item.id === id ? {
+            id: item.id,
+            type: item.type,
+            screen: String(screenName ?? item.screen),
+            x: root.clampNumber(x, 0, 0.92, item.x),
+            y: root.clampNumber(y, 0, 0.90, item.y)
+        } : item)
+        root.desktopWidgets = items
+    }
+
+    function resetDesktopWidgets(): void {
+        root.desktopWidgets = root.defaultDesktopWidgets()
+    }
 
     function defaultStyle(): var {
         return {
@@ -264,7 +330,11 @@ Singleton {
                 contextIsland: root.contextIslandEnabled,
                 mediaOverlay: root.mediaOverlayEnabled,
                 integrationMode: root.integrationMode,
-                themePreset: root.themePreset
+                themePreset: root.themePreset,
+                welcomeCompleted: root.welcomeCompleted
+            },
+            desktop: {
+                widgets: root.sanitizeDesktopWidgets(root.desktopWidgets)
             },
             style: root.sanitizeStyle(root.style)
         }
@@ -291,6 +361,7 @@ Singleton {
         const profile = document?.profile ?? {}
         const quickControls = document?.quickControls ?? {}
         const features = document?.features ?? {}
+        const desktop = document?.desktop ?? {}
         const style = document?.style ?? root.defaultStyle()
 
         root.assignIfPresent(wallpaper, "path", value => root.wallpaperPath = String(value ?? ""))
@@ -369,6 +440,9 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlay", value => root.mediaOverlayEnabled = Boolean(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
         root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "zen-mist"))
+        root.assignIfPresent(features, "welcomeCompleted", value => root.welcomeCompleted = Boolean(value))
+
+        root.assignIfPresent(desktop, "widgets", value => root.desktopWidgets = root.sanitizeDesktopWidgets(value))
 
         root.style = root.sanitizeStyle(style)
 
@@ -467,6 +541,8 @@ Singleton {
     onMediaOverlayEnabledChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
     onThemePresetChanged: scheduleSave()
+    onWelcomeCompletedChanged: scheduleSave()
+    onDesktopWidgetsChanged: scheduleSave()
     onStyleChanged: scheduleSave()
 
     Timer {

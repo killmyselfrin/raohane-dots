@@ -57,7 +57,7 @@ if rg -n '^import qs\.|\bDirectories\.' "$paths"; then
   fail 'RaohanePaths depends on inherited path framework'
 fi
 
-rg -q 'schemaVersion:[[:space:]]*10' "$config" || fail 'RaohaneConfig schema is not v10'
+rg -q 'schemaVersion:[[:space:]]*11' "$config" || fail 'RaohaneConfig schema is not v11'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig does not use RaohanePaths'
 if rg -n '\bStandardPaths\.|\bDirectories\.|^import qs$|^import qs\.modules\.common|\bConfig\.' "$config"; then
   fail 'RaohaneConfig depends on inherited config/path framework'

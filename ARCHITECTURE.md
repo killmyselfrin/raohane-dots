@@ -48,15 +48,15 @@ The first common primitives are `RaohaneSurface`, `RaohaneDivider` and `RaohaneI
 
 ## Persistent state and product schema
 
-Raohane owns schema v10 in:
+Raohane owns schema v11 in:
 
 ```text
 ~/.config/raohane/native.json
 ```
 
-`RaohaneConfig.qml` owns runtime serialization and reload behavior. The current persisted product contract covers wallpaper/lock wallpaper, Overview, Dock, horizontal/vertical Bar, screen frame/corners, OSK, OSD, display/night light, helper application commands, profile identity, Quick Controls and current feature flags. Every Settings control resolves directly into a `RaohaneConfig` property.
+`RaohaneConfig.qml` owns runtime serialization and reload behavior. The current persisted product contract covers wallpaper/lock wallpaper, Overview, Dock, horizontal/vertical Bar, screen frame/corners, OSK, OSD, display/night light, helper application commands, profile identity, Quick Controls, welcome completion and desktop-widget composition. Every Settings control resolves directly into a `RaohaneConfig` property.
 
-The installer seeds `defaults/native.json`. During upgrades, `scripts/prune-runtime.sh` deep-merges an older native document with current defaults before Quickshell starts, preserving existing values and forward-compatible unknown keys while moving the schema to v10.
+The installer seeds `defaults/native.json`. During upgrades, `scripts/prune-runtime.sh` deep-merges an older native document with current defaults before Quickshell starts, preserving existing values and forward-compatible unknown keys while moving the schema to v11.
 
 The optional `scripts/migrate-legacy-config.py` exists only as an install-time importer for users explicitly migrating supported values from an older shell configuration; it is removed from the installed runtime and is not a runtime dependency.
 
@@ -203,7 +203,7 @@ raohane doctor graphics
 raohane doctor runtime
 ```
 
-`raohane doctor runtime` is the live boundary check for the user's installed copy. It is distinct from CI and verifies that the installed tree is native-only and that `native.json` is schema v10.
+`raohane doctor runtime` is the live boundary check for the user's installed copy. It is distinct from CI and verifies that the installed tree is native-only and that `native.json` is schema v11.
 
 ## Standalone source boundary
 

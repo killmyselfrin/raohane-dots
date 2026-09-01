@@ -16,6 +16,10 @@ Raohane development studied, imported and/or modified material from:
     schema under `defaults/themes/serpantinum.json`;
   - its Nix deployment model informed the Raohane-owned package, NixOS module
     and Home Manager module under `nix/`;
+  - its first-launch and desktop-widget product areas informed Raohane-owned
+    implementations under `modules/raohane/RaohaneWelcome.qml` and the native
+    desktop widget files; those implementations use Raohane state, services,
+    configuration and presentation primitives rather than Serpantinum runtime code;
   - no Serpantinum QML namespace, service, installer or runtime path is used.
 
 Those projects are provenance/reference sources. They are not required as cloned repositories to install, start or update the current Raohane runtime.

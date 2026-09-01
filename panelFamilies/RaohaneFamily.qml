@@ -13,6 +13,8 @@ Scope {
     RaohanePanelLoader { component: RaohaneRuntimeProbe {} }
     RaohanePanelLoader { component: RaohaneBackground {} }
     RaohanePanelLoader { component: RaohaneDesktopCanvas {} }
+    RaohanePanelLoader { component: RaohaneWidgetStudio {} }
+    RaohanePanelLoader { component: RaohaneWelcome {} }
     RaohanePanelLoader { extraCondition: !RaohaneConfig.barVertical; component: RaohaneBar {} }
     RaohanePanelLoader { extraCondition: RaohaneConfig.barVertical; component: RaohaneVerticalBar {} }
     RaohanePanelLoader { extraCondition: RaohaneConfig.dockEnabled; component: RaohaneDock {} }

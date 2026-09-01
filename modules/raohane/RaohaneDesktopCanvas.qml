@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
@@ -21,6 +22,19 @@ Variants {
         onTriggered: root.now = new Date()
     }
 
+    IpcHandler {
+        target: "desktopWidgets"
+
+        function open(): void { RaohaneState.setPrimaryOpen("widgetStudio", true) }
+        function edit(): void { RaohaneState.beginDesktopWidgetEdit() }
+        function done(): void { RaohaneState.endDesktopWidgetEdit() }
+        function reset(): void { RaohaneConfig.resetDesktopWidgets() }
+        function status(): string {
+            return RaohaneConfig.desktopWidgets.length + " widgets · "
+                + (RaohaneState.desktopWidgetEditMode ? "editing" : "locked")
+        }
+    }
+
     PanelWindow {
         id: desktopWindow
 
@@ -37,12 +51,19 @@ Variants {
         )
         readonly property bool canvasVisible: !RaohaneState.screenLocked
             && !(RaohaneConfig.wallpaperHideWhenFullscreen && fullscreenActive)
+        readonly property bool primaryScreen: Quickshell.screens.length > 0
+            && Quickshell.screens[0].name === modelData.name
+        readonly property var visibleWidgets: RaohaneConfig.desktopWidgets.filter(widget =>
+            String(widget.screen ?? "") === modelData.name
+            || (String(widget.screen ?? "") === "" && desktopWindow.primaryScreen)
+        )
 
         screen: modelData
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
+        exclusiveZone: 0
         WlrLayershell.namespace: "quickshell:raohane-desktop-canvas"
-        WlrLayershell.layer: WlrLayer.Bottom
+        WlrLayershell.layer: RaohaneState.desktopWidgetEditMode ? WlrLayer.Overlay : WlrLayer.Bottom
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
         anchors {
@@ -54,7 +75,8 @@ Variants {
 
         Item {
             anchors.fill: parent
-            opacity: desktopWindow.canvasVisible ? 1 : 0
+            visible: desktopWindow.canvasVisible || RaohaneState.desktopWidgetEditMode
+            opacity: visible ? 1 : 0
 
             Behavior on opacity {
                 NumberAnimation {
@@ -63,120 +85,114 @@ Variants {
                 }
             }
 
-            ColumnLayout {
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    leftMargin: 54
-                    topMargin: 92
+            Rectangle {
+                visible: RaohaneState.desktopWidgetEditMode
+                anchors.fill: parent
+                color: RaohaneTheme.dark ? "#4a000000" : "#2affffff"
+            }
+
+            MouseArea {
+                visible: RaohaneState.desktopWidgetEditMode
+                anchors.fill: parent
+                acceptedButtons: Qt.AllButtons
+            }
+
+            Repeater {
+                model: desktopWindow.visibleWidgets
+
+                delegate: RaohaneDesktopWidget {
+                    required property var modelData
+                    widgetData: modelData
+                    now: root.now
+                    screenName: desktopWindow.modelData.name
                 }
-                width: Math.min(520, parent.width * 0.42)
-                spacing: 3
+            }
+
+            RaohaneSurface {
+                visible: RaohaneState.desktopWidgetEditMode
+                z: 80
+                anchors {
+                    horizontalCenter: parent.horizontalCenter
+                    top: parent.top
+                    topMargin: 22
+                }
+                width: editRow.implicitWidth + 20
+                height: 46
+                surfaceRadius: 16
+                raised: true
+                active: true
+                border.color: RaohaneTheme.accentBorder
 
                 RowLayout {
-                    spacing: 9
+                    id: editRow
+                    anchors.centerIn: parent
+                    spacing: 7
 
-                    Rectangle {
-                        width: 8
-                        height: 8
-                        radius: 4
+                    RaohaneIcon {
+                        text: "drag_pan"
+                        iconSize: 16
                         color: RaohaneTheme.accent
-                        opacity: 0.9
                     }
 
                     Text {
-                        text: "ラオハネ  ·  RAOHANE"
-                        color: RaohaneTheme.textMuted
+                        text: qsTr("Arrange desktop widgets")
+                        color: RaohaneTheme.text
                         font.pixelSize: 9
                         font.weight: Font.DemiBold
-                        font.letterSpacing: 1.4
                     }
-                }
 
-                Text {
-                    Layout.topMargin: 5
-                    text: Qt.formatTime(root.now, "HH:mm")
-                    color: RaohaneTheme.text
-                    font.pixelSize: 70
-                    font.weight: Font.Light
-                    font.letterSpacing: -2.8
-                }
-
-                Text {
-                    text: Qt.formatDate(root.now, "dddd, d MMMM")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 13
-                    font.weight: Font.Medium
-                }
-
-                Rectangle {
-                    Layout.topMargin: 14
-                    Layout.bottomMargin: 12
-                    Layout.preferredWidth: 118
-                    Layout.preferredHeight: 1
-                    color: RaohaneTheme.accent
-                    opacity: 0.58
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 10
-
-                    RaohaneSurface {
-                        Layout.preferredWidth: 34
-                        Layout.preferredHeight: 34
-                        surfaceRadius: 12
-                        raised: false
-                        active: RaohaneContext.mode === "privacy" || RaohaneContext.mode === "recording"
-                        showSheen: false
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: RaohaneContext.icon
-                            iconSize: 16
-                            fill: RaohaneContext.mode === "media"
-                                || RaohaneContext.mode === "privacy"
-                                || RaohaneContext.mode === "recording" ? 1 : 0
-                            color: RaohaneTheme.accent
+                    EditAction {
+                        icon: "add"
+                        label: qsTr("Add")
+                        onTriggered: {
+                            RaohaneState.endDesktopWidgetEdit()
+                            RaohaneState.setPrimaryOpen("widgetStudio", true)
                         }
                     }
 
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 0
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: RaohaneContext.title
-                            color: RaohaneTheme.text
-                            font.pixelSize: 12
-                            font.weight: Font.DemiBold
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: RaohaneContext.detail
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
-                            elide: Text.ElideRight
-                        }
+                    EditAction {
+                        icon: "done"
+                        label: qsTr("Done")
+                        selected: true
+                        onTriggered: RaohaneState.endDesktopWidgetEdit()
                     }
-                }
-
-                Text {
-                    Layout.topMargin: 14
-                    text: RaohaneContext.mode === "media"
-                        ? qsTr("music is part of the room")
-                        : RaohaneContext.mode === "privacy" || RaohaneContext.mode === "recording"
-                            ? qsTr("privacy state is visible")
-                            : qsTr("静けさの中で動く")
-                    color: RaohaneTheme.textMuted
-                    opacity: 0.72
-                    font.pixelSize: 8
-                    font.letterSpacing: 0.7
                 }
             }
+        }
+    }
+
+    component EditAction: RaohaneSurface {
+        id: action
+
+        required property string icon
+        required property string label
+        property bool selected: false
+        signal triggered()
+
+        Layout.preferredWidth: actionRow.implicitWidth + 16
+        Layout.preferredHeight: 30
+        surfaceRadius: 10
+        active: action.selected
+        interactive: true
+        hovered: actionMouse.containsMouse
+        pressed: actionMouse.pressed
+        showSheen: false
+
+        RowLayout {
+            id: actionRow
+            anchors.centerIn: parent
+            spacing: 5
+
+            RaohaneIcon { text: action.icon; iconSize: 13; color: RaohaneTheme.accent }
+            Text { text: action.label; color: RaohaneTheme.text; font.pixelSize: 8; font.weight: Font.Medium }
+        }
+
+        MouseArea {
+            id: actionMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: action.triggered()
         }
     }
 }

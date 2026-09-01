@@ -102,7 +102,7 @@ stdenvNoCC.mkDerivation {
 
   meta = {
     description = "Japanese-minimal Quickshell desktop shell for Hyprland";
-    homepage = "https://github.com/snuskidau/raohane-dots";
+    homepage = "https://github.com/killmyselfrin/raohane-dots";
     license = lib.licenses.gpl3Plus;
     platforms = lib.platforms.linux;
     mainProgram = "raohane";

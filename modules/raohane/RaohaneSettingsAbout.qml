@@ -252,7 +252,7 @@ Item {
                     Layout.fillWidth: true
                     icon: "code"
                     label: qsTr("Raohane repository")
-                    onClicked: Qt.openUrlExternally("https://github.com/snuskidau/raohane-dots")
+                    onClicked: Qt.openUrlExternally("https://github.com/killmyselfrin/raohane-dots")
                 }
 
                 LinkButton {

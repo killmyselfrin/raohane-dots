@@ -174,6 +174,26 @@ Item {
             DeckCard {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                icon: "celebration"
+                title: qsTr("Welcome Setup")
+                detail: qsTr("Run the guided theme, layout and profile setup again")
+                page: ""
+                action: "welcome"
+            }
+
+            DeckCard {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                icon: "widgets"
+                title: qsTr("Desktop Widgets")
+                detail: qsTr("Add, remove and arrange native desktop cards")
+                page: ""
+                action: "widgets"
+            }
+
+            DeckCard {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
                 icon: "wand_stars"
                 title: qsTr("Appearance")
                 detail: qsTr("Screen framing, rounding and interaction chrome")
@@ -272,6 +292,7 @@ Item {
         required property string title
         required property string detail
         required property string page
+        property string action: "page"
 
         Layout.minimumHeight: 108
         surfaceRadius: 17
@@ -336,7 +357,17 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.openPage(card.page)
+            onClicked: {
+                if (card.action === "welcome") {
+                    RaohaneState.setPrimaryOpen("settings", false)
+                    RaohaneState.setPrimaryOpen("welcome", true)
+                } else if (card.action === "widgets") {
+                    RaohaneState.setPrimaryOpen("settings", false)
+                    RaohaneState.setPrimaryOpen("widgetStudio", true)
+                } else {
+                    root.openPage(card.page)
+                }
+            }
         }
     }
 

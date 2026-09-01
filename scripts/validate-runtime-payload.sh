@@ -65,7 +65,7 @@ done
   || fail 'root qmldir must contain only module qs'
 [[ -s "$TARGET/VERSION" ]] || fail 'VERSION is empty'
 
-python3 - "$TARGET/defaults/native.json" <<'PY' || fail 'defaults/native.json is not valid schema v10'
+python3 - "$TARGET/defaults/native.json" <<'PY' || fail 'defaults/native.json is not valid schema v11'
 import json
 import pathlib
 import sys
@@ -75,7 +75,7 @@ try:
     data = json.loads(path.read_text(encoding="utf-8"))
 except (OSError, json.JSONDecodeError):
     raise SystemExit(1)
-raise SystemExit(0 if data.get("schemaVersion") == 10 else 1)
+raise SystemExit(0 if data.get("schemaVersion") == 11 else 1)
 PY
 
 python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/theme-catalog.py" <<'PY' || fail 'native Python runtime helper is invalid'
