@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Validate that every Raohane runtime translation call exists in EN/RU catalogs."""
+"""Validate Russian coverage for every user-facing Raohane runtime translation call.
+
+English source literals in QML are canonical. Russian resolution is layered:
+legacy translations/ru_RU.json first, then the Raohane-owned runtime overlay.
+The overlay lets the standalone shell evolve without pretending the inherited
+catalog is the product's source-of-truth.
+"""
 
 from __future__ import annotations
 
@@ -13,9 +19,10 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 CATALOG_DIR = ROOT / "translations"
 
 CALL_RE = re.compile(
-    r"(?:\bqsTr|\bRaohaneI18n\.tr)\(\s*(\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')",
+    r"(?:\bqsTr|\bRaohaneI18n\.tr|\bRaohaneLocale\.tr)\(\s*(\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')",
     re.DOTALL,
 )
+PLACEHOLDER_RE = re.compile(r"%\d+")
 
 
 def runtime_qml_files() -> list[pathlib.Path]:
@@ -43,8 +50,7 @@ def extract_keys(path: pathlib.Path) -> set[str]:
     return keys
 
 
-def load_catalog(locale: str) -> dict[str, str]:
-    path = CATALOG_DIR / f"{locale}.json"
+def load_json(path: pathlib.Path) -> dict[str, str]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
@@ -61,17 +67,24 @@ def main() -> int:
         for key in extract_keys(path):
             locations.setdefault(key, set()).add(rel)
 
-    english = load_catalog("en_US")
-    russian = load_catalog("ru_RU")
+    russian = load_json(CATALOG_DIR / "ru_RU.json")
+    runtime_overlay = load_json(CATALOG_DIR / "raohane" / "ru_RU.json")
+    russian.update(runtime_overlay)
 
-    missing_en = sorted(key for key in locations if key not in english)
-    missing_ru = sorted(key for key in locations if key not in russian)
-    empty_ru = sorted(key for key in locations if key in russian and not russian[key].strip())
+    missing = sorted(key for key in locations if key not in russian)
+    empty = sorted(key for key in locations if key in russian and not russian[key].strip())
+    placeholder_errors = sorted(
+        key
+        for key in locations
+        if key in russian
+        and sorted(PLACEHOLDER_RE.findall(key)) != sorted(PLACEHOLDER_RE.findall(russian[key]))
+    )
 
     print(f"Raohane runtime localization keys: {len(locations)}")
-    print(f"Missing en_US keys: {len(missing_en)}")
-    print(f"Missing ru_RU keys: {len(missing_ru)}")
-    print(f"Empty ru_RU values: {len(empty_ru)}")
+    print(f"Russian runtime overlay keys: {len(runtime_overlay)}")
+    print(f"Missing Russian keys: {len(missing)}")
+    print(f"Empty Russian values: {len(empty)}")
+    print(f"Placeholder mismatches: {len(placeholder_errors)}")
 
     def report(label: str, keys: list[str]) -> None:
         if not keys:
@@ -81,14 +94,14 @@ def main() -> int:
             where = ", ".join(sorted(locations.get(key, ())))
             print(f"  {json.dumps(key, ensure_ascii=False)}  [{where}]")
 
-    report("Missing en_US", missing_en)
-    report("Missing ru_RU", missing_ru)
-    report("Empty ru_RU", empty_ru)
+    report("Missing Russian", missing)
+    report("Empty Russian", empty)
+    report("Placeholder mismatch", placeholder_errors)
 
-    if missing_en or missing_ru or empty_ru:
+    if missing or empty or placeholder_errors:
         return 1
 
-    print("Raohane EN/RU runtime localization coverage: success")
+    print("Raohane Russian runtime localization coverage: success")
     return 0
 
 
