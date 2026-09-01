@@ -54,6 +54,7 @@ Singleton {
 
     readonly property string configDirectory: root.join(root.configRoot, "raohane")
     readonly property string nativeConfigFile: root.join(root.configDirectory, "native.json")
+    readonly property string monitorConfigFile: root.join(root.configDirectory, "monitors.json")
     readonly property string themeCatalogFile: root.join(root.configDirectory, "themes.json")
     readonly property string autostartFile: root.join(root.configDirectory, "autostart.conf")
     readonly property string notificationsFile: root.join(root.configDirectory, "notifications.json")
