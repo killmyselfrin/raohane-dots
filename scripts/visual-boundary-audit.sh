@@ -17,7 +17,7 @@ launcher='modules/raohane/RaohaneLauncher.qml'
 media='modules/raohane/RaohaneMediaOverlay.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
-settings_content='modules/raohane/RaohaneSettingsContent.qml'
+settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
 settings_home='modules/raohane/RaohaneSettingsHome.qml'
 bar='modules/raohane/RaohaneBar.qml'
 vertical='modules/raohane/RaohaneVerticalBar.qml'
@@ -98,7 +98,6 @@ rg -q 'RaohaneTheme\.surfaceRaised' "$surface" || fail 'RaohaneSurface no longer
 rg -q 'RaohaneTheme\.accentBorder' "$surface" || fail 'RaohaneSurface no longer owns the active accent-border token'
 rg -q 'showSheen' "$surface" || fail 'RaohaneSurface lost the shared glass highlight contract'
 
-# Shared interaction primitives are product contracts now, not one-off helpers.
 rg -q 'motionScale' "$motion" || fail 'shared motion system no longer consumes persisted motion scale'
 rg -q 'RaohaneMotion\.' "$surface" || fail 'shared surface no longer consumes the motion system'
 rg -q 'RaohaneIcon[[:space:]]*\{' "$icon_button" || fail 'shared icon button no longer renders through RaohaneIcon'
@@ -109,7 +108,7 @@ rg -q 'RaohaneSlider[[:space:]]*\{' "$quick" || fail 'Quick Controls regressed f
 rg -q 'RaohaneSlider[[:space:]]*\{' "$media" || fail 'Media Player regressed from the shared slider'
 rg -q 'RaohaneSlider[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed from the shared slider'
 rg -q 'RaohaneSwitch[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed from the shared switch'
-rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_content" || fail 'Settings rows regressed from the shared switch'
+rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_content" || fail 'Settings V3 rows regressed from the shared switch'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$media" || fail 'Media Player regressed from shared tactile icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$control" || fail 'Control Center regressed from shared tactile icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$osk" || fail 'OSK shell regressed from shared tactile icon buttons'
@@ -130,9 +129,6 @@ for file in "${raised_surfaces[@]}"; do
   rg -q 'raised:[[:space:]]*true' "$file" || fail "$file no longer requests a raised primary glass surface"
 done
 
-# Shell/system chrome is deliberately matte. Media is the single content-heavy
-# focal-surface exception: its artwork/lyrics presentation may keep the shared
-# optional sheen without changing the rest of the shell language.
 matte_surfaces=(
   "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
   "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
@@ -145,7 +141,7 @@ for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sid
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
 done
 
-if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$control" "$settings"; then
+if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$control" "$settings" "$settings_content"; then
   fail 'minimal primary controls contain retired cyber-noir hard-coded colors'
 fi
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls do not consume minimalist surface tokens'
@@ -156,9 +152,6 @@ if rg -n '#18ffffff|#20ffffff|#24ffffff|#10ffffff|#12ffffff|#14ffffff|#2affffff|
   fail 'a system/edge surface reintroduced retired one-off glass/neon colors'
 fi
 
-# A surface may own Material symbols directly or compose the shared icon button,
-# which itself owns RaohaneIcon. Do not force implementation details back into
-# every caller after componentization.
 for file in "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneIcon(Button)?[[:space:]]*\{' "$file" || fail "$file no longer uses the shared Material-symbol icon system"
 done
@@ -185,8 +178,9 @@ if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$medi
   fail 'a primary surface regressed to legacy one-off chrome'
 fi
 
-for file in "$launcher" "$media" "$control" "$settings" "$vertical" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
+for file in "$launcher" "$media" "$control" "$vertical" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
+rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_content" || fail 'Settings V3 lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, shared motion/slider/switch/icon controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome, shared focal media material and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, active Settings V3, shared motion/slider/switch/icon controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
