@@ -17,7 +17,12 @@ for path in "$service" "$task_manager" "$helper"; do
   [[ -f "$path" ]] || fail "missing process runtime path: $path"
 done
 
-python3 -m py_compile "$helper"
+python3 - "$helper" <<'PY'
+import pathlib
+import sys
+path = pathlib.Path(sys.argv[1])
+compile(path.read_text(encoding="utf-8"), str(path), "exec")
+PY
 
 rg -q 'Quickshell\.shellPath\("scripts/process-snapshot\.py"\)' "$service" \
   || fail 'process service no longer invokes the procfs snapshot helper'
