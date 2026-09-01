@@ -23,6 +23,7 @@ Item {
         { key: "quick", name: qsTr("Quick Controls"), icon: "instant_mix", group: qsTr("SHELL"), subtitle: qsTr("Choose controls shown in the compact command surface") },
         { key: "general", name: qsTr("Media & OSD"), icon: "music_note", group: qsTr("SHELL"), subtitle: qsTr("Context Island, media overlay and display feedback") },
         { key: "desktop", name: qsTr("Desktop & Spaces"), icon: "view_quilt", group: qsTr("SHELL"), subtitle: qsTr("Wallpaper, transitions and workspace overview") },
+        { key: "displays", name: qsTr("Displays"), icon: "monitor", group: qsTr("SYSTEM"), subtitle: qsTr("Resolution, refresh rate, scale and multi-monitor layout") },
         { key: "hyprland", name: qsTr("Hyprland"), icon: "select_window_2", group: qsTr("SYSTEM"), subtitle: qsTr("Compositor-facing behavior and interaction boundaries") },
         { key: "services", name: qsTr("Integrations"), icon: "hub", group: qsTr("SYSTEM"), subtitle: qsTr("External commands and native system helpers") },
         { key: "profile", name: qsTr("Profile"), icon: "account_circle", group: qsTr("SYSTEM"), subtitle: qsTr("Local identity used by Raohane surfaces") },
@@ -37,7 +38,9 @@ Item {
         let requested = String(requestedValue ?? "").trim().toLowerCase()
         const aliases = {
             "appearance": "interface",
-            "display": "interface",
+            "display": "displays",
+            "monitor": "displays",
+            "monitors": "displays",
             "bar & dock": "bar",
             "dock": "bar",
             "quick controls": "quick",
@@ -50,6 +53,18 @@ Item {
         }
         requested = aliases[requested] ?? requested
         return root.pages.findIndex(page => page.key === requested || page.name.toLowerCase() === requested)
+    }
+
+    function activatePage(index: int): void {
+        if (index < 0 || index >= root.pages.length)
+            return
+        root.pendingSearch = ""
+        const page = root.pages[index]
+        if (page?.key === "displays") {
+            RaohaneState.setPrimaryOpen("displaySettings", true)
+            return
+        }
+        root.currentPage = index
     }
 
     function sectionDescription(key: string): string {
@@ -173,7 +188,7 @@ Item {
             root.pendingSearch = parts.length > 1 ? parts.slice(1).join(":") : ""
             const index = root.resolvePageIndex(requested)
             if (index >= 0)
-                root.currentPage = index
+                root.activatePage(index)
             RaohaneState.settingsPage = ""
         }
     }
@@ -614,16 +629,12 @@ Item {
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
                                         onPressed: navItem.forceActiveFocus()
-                                        onClicked: {
-                                            root.pendingSearch = ""
-                                            root.currentPage = navDelegate.index
-                                        }
+                                        onClicked: root.activatePage(navDelegate.index)
                                     }
 
                                     Keys.onPressed: event => {
                                         if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                            root.pendingSearch = ""
-                                            root.currentPage = navDelegate.index
+                                            root.activatePage(navDelegate.index)
                                             event.accepted = true
                                         }
                                     }
