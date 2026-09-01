@@ -185,6 +185,73 @@ Item {
                 InfoCard { icon: "package_2"; label: qsTr("Packages"); value: RaohaneSystemInfo.packages }
             }
 
+            Text {
+                text: qsTr("Introduction")
+                color: RaohaneTheme.text
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+                Layout.leftMargin: 3
+            }
+
+            RaohaneSurface {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 92
+                surfaceRadius: 18
+                raised: false
+                showSheen: false
+                border.color: RaohaneTheme.borderFaint
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 16
+                    spacing: 13
+
+                    RaohaneSurface {
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
+                        surfaceRadius: 15
+                        raised: false
+                        active: true
+                        showSheen: false
+
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "waving_hand"
+                            iconSize: 22
+                            fill: 1
+                            color: RaohaneTheme.accent
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 2
+
+                        Text {
+                            text: qsTr("Welcome to Raohane")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 11
+                            font.weight: Font.DemiBold
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Replay the animated welcome and guided interface tour from the beginning.")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 8
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+
+                    ActionButton {
+                        icon: "replay"
+                        label: qsTr("Show again")
+                        emphasized: true
+                        onClicked: RaohaneOnboardingState.reset()
+                    }
+                }
+            }
+
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 130
