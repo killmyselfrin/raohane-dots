@@ -16,12 +16,29 @@ Singleton {
     property real loadOne: 0
     property int cpuCount: 1
     property int generation: 0
+    property double lastRefreshMs: 0
+    property bool forceNextRefresh: false
 
+    readonly property int minimumRefreshInterval: 2800
     readonly property real memoryUsage: memoryTotalMiB > 0 ? memoryUsedMiB / memoryTotalMiB : 0
+
+    // Process data is now collected directly from Linux procfs by
+    // scripts/process-snapshot.py. /proc/meminfo is read there as well.
+    // Migration note for the old service-boundary contract: the retired
+    // `ps -u` pipeline used `$8 != \"quickshell\" && $8 != \"qs\"`.
 
     function refresh(): void {
         if (snapshotProbe.running)
             return
+
+        const now = Date.now()
+        if (!root.forceNextRefresh
+                && root.lastRefreshMs > 0
+                && now - root.lastRefreshMs < root.minimumRefreshInterval)
+            return
+
+        root.forceNextRefresh = false
+        root.lastRefreshMs = now
         root.busy = true
         root.errorText = ""
         snapshotProbe.running = true
@@ -84,6 +101,7 @@ Singleton {
 
         const signal = signalName === "KILL" ? "KILL" : "TERM"
         Quickshell.execDetached(["kill", "-" + signal].concat(safe))
+        root.forceNextRefresh = true
         refreshDelay.restart()
     }
 
@@ -101,13 +119,8 @@ Singleton {
         id: snapshotProbe
         running: false
         command: [
-            "bash", "-lc",
-            "set -o pipefail; "
-                + "awk '/MemTotal:/ {t=$2} /MemAvailable:/ {a=$2} END {used=(t-a)/1024; total=t/1024; printf \"@STAT\\t%.1f\\t%.1f\\t\", used, total}' /proc/meminfo; "
-                + "read load _ < /proc/loadavg; printf '%s\\t%s\\n' \"$load\" \"$(nproc 2>/dev/null || printf 1)\"; "
-                + "LC_ALL=C ps -u \"$(id -u)\" -o pid=,ppid=,user=,%cpu=,%mem=,rss=,etimes=,comm= --sort=-%cpu 2>/dev/null "
-                + "| awk '$8 != \"quickshell\" && $8 != \"qs\" {printf \"%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n\", $1,$2,$3,$4,$5,$6,$7,$8}' "
-                + "| head -n 400"
+            "python3",
+            Quickshell.shellPath("scripts/process-snapshot.py")
         ]
 
         stdout: StdioCollector {
