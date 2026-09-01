@@ -12,7 +12,7 @@ Singleton {
     id: root
 
     property bool enabled: true
-    property real volume: 0.16
+    property real volume: 0.09
     property bool ready: false
     property double lastPlayedAt: 0
 
@@ -57,13 +57,13 @@ Singleton {
     SoundEffect {
         id: navigateSound
         source: root.ready ? RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-navigate.wav")) : ""
-        volume: Math.max(0, root.volume * 0.84)
+        volume: Math.max(0, root.volume * 0.82)
     }
 
     SoundEffect {
         id: confirmSound
         source: root.ready ? RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-confirm.wav")) : ""
-        volume: Math.max(0, root.volume * 0.92)
+        volume: Math.max(0, root.volume * 0.88)
     }
 
     Process {
