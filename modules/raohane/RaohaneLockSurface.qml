@@ -49,7 +49,6 @@ Item {
         }
     }
 
-    // Quiet atmospheric depth without relying on graphical-effect plugins.
     Rectangle {
         width: Math.max(root.width, root.height) * 0.72
         height: width
@@ -185,9 +184,8 @@ Item {
             id: authCard
             width: root.compact ? Math.min(stage.width, 500) : 430
             height: root.compact ? Math.min(stage.height, 590) : Math.min(stage.height, 610)
+            x: root.compact ? (stage.width - width) / 2 : stage.width - width
             anchors.verticalCenter: parent.verticalCenter
-            anchors.horizontalCenter: root.compact ? parent.horizontalCenter : undefined
-            anchors.right: root.compact ? undefined : parent.right
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
             showSheen: true
@@ -354,7 +352,6 @@ Item {
                     raised: false
                     hovered: passwordInput.activeFocus
                     showSheen: false
-                    border.width: root.context.showFailure || passwordInput.activeFocus ? 1 : 1
                     border.color: root.context.showFailure ? RaohaneTheme.critical
                         : passwordInput.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
 
@@ -477,18 +474,15 @@ Item {
 
                     SystemButton {
                         icon: "bedtime"
-                        tooltip: qsTr("Suspend")
                         onTriggered: RaohaneSession.suspend()
                     }
                     SystemButton {
                         icon: "restart_alt"
-                        tooltip: qsTr("Reboot")
                         danger: true
                         onTriggered: RaohaneSession.reboot()
                     }
                     SystemButton {
                         icon: "power_settings_new"
-                        tooltip: qsTr("Power off")
                         danger: true
                         onTriggered: RaohaneSession.poweroff()
                     }
@@ -523,7 +517,6 @@ Item {
     component SystemButton: RaohaneSurface {
         id: control
         required property string icon
-        property string tooltip: ""
         property bool danger: false
         signal triggered()
 
