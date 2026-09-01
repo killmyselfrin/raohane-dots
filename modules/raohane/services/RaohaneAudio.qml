@@ -93,12 +93,16 @@ Singleton {
         }
     }
 
-    function refresh(force: bool = false): void {
+    // Keep the optional force flag untyped and without a default initializer.
+    // Older Quickshell runtime parsers accept typed QML functions, but reject
+    // a typed parameter that also has a JavaScript default value.
+    function refresh(force) {
         if (volumeProbe.running)
             return
 
+        const forced = force === true
         const now = Date.now()
-        if (!force && root.lastRefreshMs > 0
+        if (!forced && root.lastRefreshMs > 0
                 && now - root.lastRefreshMs < root.minimumRefreshInterval)
             return
 
