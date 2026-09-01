@@ -24,8 +24,40 @@ EOF
   fi
 }
 
+install_managed_keybinds() {
+  command -v hyprctl >/dev/null 2>&1 || return 0
+
+  # Hyprland 0.55+ uses Lua configuration. Apply Raohane's small set of
+  # shell-owned emergency/workflow binds at runtime as well as through the
+  # installer-generated config so an upgraded shell can self-heal stale binds.
+  local lua_code
+  lua_code="$(cat <<'LUA'
+hl.unbind("ALT + Q")
+hl.unbind("SUPER + SHIFT + S")
+hl.bind("ALT + Q", hl.dsp.window.close(), { description = "Raohane: Close active window" })
+hl.bind("SUPER + SHIFT + S", hl.dsp.global("quickshell:regionScreenshot"), { description = "Raohane: Region screenshot" })
+LUA
+)"
+
+  if hyprctl eval "$lua_code" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  # Hyprland <=0.54 fallback. Ignore individual failures so user autostart is
+  # never blocked merely because the compositor changed one keyword shape.
+  hyprctl keyword unbind "ALT,Q" >/dev/null 2>&1 || true
+  hyprctl keyword unbind "SUPER SHIFT,S" >/dev/null 2>&1 || true
+  hyprctl keyword bind "ALT,Q,killactive," >/dev/null 2>&1 || true
+  hyprctl keyword bind "SUPER SHIFT,S,global,quickshell:regionScreenshot" >/dev/null 2>&1 || true
+}
+
 run_once() {
   ensure_config
+
+  # Managed compositor binds are deliberately refreshed on every Raohane start,
+  # even when normal user autostart commands already ran earlier this session.
+  install_managed_keybinds
+
   [[ -e "$MARKER" ]] && exit 0
 
   # Claim the session before spawning commands so simultaneous shell starts do
