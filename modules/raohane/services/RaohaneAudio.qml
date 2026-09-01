@@ -17,7 +17,11 @@ Singleton {
     property string sinkName: ""
     property string sourceName: ""
     property string lastError: ""
+    property double lastRefreshMs: 0
+    property double ignoreGraphEventsUntilMs: 0
 
+    readonly property int minimumRefreshInterval: 800
+    readonly property int selfEventGuardInterval: 1100
     readonly property var outputStreams: []
     readonly property var inputStreams: []
     readonly property var outputDevices: []
@@ -89,16 +93,26 @@ Singleton {
         }
     }
 
-    function refresh(): void {
-        if (!volumeProbe.running) {
-            volumeProbe.exec([
-                "bash", "-lc",
-                "printf 'SINK '; wpctl get-volume @DEFAULT_SINK@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
-                    + "printf 'SOURCE '; wpctl get-volume @DEFAULT_SOURCE@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
-                    + "printf 'SINK_NAME '; wpctl inspect @DEFAULT_SINK@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1; "
-                    + "printf 'SOURCE_NAME '; wpctl inspect @DEFAULT_SOURCE@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1"
-            ])
-        }
+    function refresh(force: bool = false): void {
+        if (volumeProbe.running)
+            return
+
+        const now = Date.now()
+        if (!force && root.lastRefreshMs > 0
+                && now - root.lastRefreshMs < root.minimumRefreshInterval)
+            return
+
+        root.lastRefreshMs = now
+        // wpctl itself connects to PipeWire. Ignore the resulting client/graph
+        // churn long enough that pw-mon cannot recursively trigger this probe.
+        root.ignoreGraphEventsUntilMs = now + root.selfEventGuardInterval
+        volumeProbe.exec([
+            "bash", "-c",
+            "printf 'SINK '; wpctl get-volume @DEFAULT_SINK@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
+                + "printf 'SOURCE '; wpctl get-volume @DEFAULT_SOURCE@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
+                + "printf 'SINK_NAME '; wpctl inspect @DEFAULT_SINK@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1; "
+                + "printf 'SOURCE_NAME '; wpctl inspect @DEFAULT_SOURCE@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1"
+        ])
     }
 
     function refreshSoon(): void {
@@ -109,11 +123,9 @@ Singleton {
         const next = root.clampVolume(value)
         root.volume = next
 
-        // A user moving the output slider above zero expects audible output.
-        // Keep the operation ordered so a stale mute state cannot win a race.
         const numeric = next.toFixed(4)
         Quickshell.execDetached([
-            "bash", "-lc",
+            "bash", "-c",
             `wpctl set-volume @DEFAULT_SINK@ ${numeric} && `
                 + (next > 0 ? "wpctl set-mute @DEFAULT_SINK@ 0" : "true")
         ])
@@ -138,7 +150,7 @@ Singleton {
         root.microphoneVolume = next
         const numeric = next.toFixed(4)
         Quickshell.execDetached([
-            "bash", "-lc",
+            "bash", "-c",
             `wpctl set-volume @DEFAULT_SOURCE@ ${numeric} && `
                 + (next > 0 ? "wpctl set-mute @DEFAULT_SOURCE@ 0" : "true")
         ])
@@ -172,10 +184,9 @@ Singleton {
         }
     }
 
-    // Keep one lightweight PipeWire registry monitor alive instead of spawning
-    // a shell plus multiple wpctl commands every 750 ms. Any graph/object change
-    // is collapsed into one refresh, while direct Raohane actions still use the
-    // short refreshTimer below for immediate confirmation.
+    // Keep one lightweight PipeWire registry monitor alive. Probe processes also
+    // appear briefly in that registry, so their own events are explicitly
+    // suppressed above instead of recursively refreshing the audio service.
     Process {
         id: audioMonitor
         command: ["pw-mon", "--color=never"]
@@ -183,7 +194,7 @@ Singleton {
 
         stdout: SplitParser {
             onRead: data => {
-                if (data.length > 0)
+                if (data.length > 0 && Date.now() >= root.ignoreGraphEventsUntilMs)
                     audioGraphDebounce.restart()
             }
         }
@@ -193,7 +204,7 @@ Singleton {
 
     Timer {
         id: audioGraphDebounce
-        interval: 150
+        interval: 220
         repeat: false
         onTriggered: root.refresh()
     }
@@ -215,19 +226,19 @@ Singleton {
 
     Timer {
         id: refreshTimer
-        interval: 120
+        interval: 160
         repeat: false
-        onTriggered: root.refresh()
+        onTriggered: root.refresh(true)
     }
 
     // Slow health fallback covers monitor failure/unusual PipeWire behavior
-    // without restoring the old continuous subprocess polling.
+    // without restoring continuous subprocess polling.
     Timer {
         interval: 15000
         repeat: true
         running: true
-        onTriggered: root.refresh()
+        onTriggered: root.refresh(true)
     }
 
-    Component.onCompleted: root.refresh()
+    Component.onCompleted: root.refresh(true)
 }
