@@ -15,6 +15,7 @@ Singleton {
     property bool ready: false
     property bool loading: false
     property bool pendingInitialWrite: false
+    property bool hyprlandApplyPending: false
 
     property string wallpaperPath: ""
     property string lockWallpaperPath: ""
@@ -93,6 +94,9 @@ Singleton {
     property bool integrationMode: true
     property string themePreset: "zen-mist"
 
+    property var keybinds: root.defaultKeybinds()
+    property var animations: root.defaultAnimations()
+
     // Style Studio is persisted as one object so new visual controls can be
     // added without scattering a separate save signal across the config API.
     property var style: ({
@@ -100,7 +104,7 @@ Singleton {
         borderStrength: 1.0,
         radiusScale: 1.0,
         densityScale: 1.0,
-        motionScale: 1.0,
+        motionScale: 0.92,
         accentStrength: 1.0,
         accentMode: "theme",
         customAccent: "#657987",
@@ -118,13 +122,71 @@ Singleton {
     signal reloaded()
     signal saved()
 
+    function defaultKeybinds(): var {
+        return {
+            closeWindow: "ALT + Q",
+            launcher: "SUPER + R",
+            settings: "SUPER + Escape",
+            controlCenter: "SUPER + C",
+            mediaOverlay: "SUPER + SHIFT + M",
+            screenshot: "SUPER + SHIFT + S",
+            app1Name: "Application 1",
+            app1Keys: "",
+            app1Command: "",
+            app2Name: "Application 2",
+            app2Keys: "",
+            app2Command: "",
+            app3Name: "Application 3",
+            app3Keys: "",
+            app3Command: "",
+            app4Name: "Application 4",
+            app4Keys: "",
+            app4Command: ""
+        }
+    }
+
+    function defaultAnimations(): var {
+        return {
+            enabled: true,
+            windowMs: 240,
+            workspaceMs: 300,
+            layerMs: 220,
+            fadeMs: 170,
+            workspaceDistance: 14
+        }
+    }
+
+    function sanitizeKeybinds(value): var {
+        const input = value && typeof value === "object" ? value : {}
+        const defaults = root.defaultKeybinds()
+        const result = ({})
+        for (const key of Object.keys(defaults)) {
+            const fallback = defaults[key]
+            const raw = Object.prototype.hasOwnProperty.call(input, key) ? input[key] : fallback
+            result[key] = String(raw ?? fallback).trim()
+        }
+        return result
+    }
+
+    function sanitizeAnimations(value): var {
+        const input = value && typeof value === "object" ? value : {}
+        return {
+            enabled: input.enabled === undefined ? true : Boolean(input.enabled),
+            windowMs: Math.round(root.clampNumber(input.windowMs, 80, 1200, 240)),
+            workspaceMs: Math.round(root.clampNumber(input.workspaceMs, 80, 1600, 300)),
+            layerMs: Math.round(root.clampNumber(input.layerMs, 80, 1200, 220)),
+            fadeMs: Math.round(root.clampNumber(input.fadeMs, 60, 1000, 170)),
+            workspaceDistance: Math.round(root.clampNumber(input.workspaceDistance, 4, 40, 14))
+        }
+    }
+
     function defaultStyle(): var {
         return {
             glassOpacity: 1.0,
             borderStrength: 1.0,
             radiusScale: 1.0,
             densityScale: 1.0,
-            motionScale: 1.0,
+            motionScale: 0.92,
             accentStrength: 1.0,
             accentMode: "theme",
             customAccent: "#657987",
@@ -157,7 +219,7 @@ Singleton {
             borderStrength: root.clampNumber(input.borderStrength, 0.45, 1.5, 1.0),
             radiusScale: root.clampNumber(input.radiusScale, 0.7, 1.4, 1.0),
             densityScale: root.clampNumber(input.densityScale, 0.82, 1.18, 1.0),
-            motionScale: root.clampNumber(input.motionScale, 0.0, 1.4, 1.0),
+            motionScale: root.clampNumber(input.motionScale, 0.0, 1.4, 0.92),
             accentStrength: root.clampNumber(input.accentStrength, 0.45, 1.5, 1.0),
             accentMode: allowedModes.indexOf(requestedMode) >= 0 ? requestedMode : "theme",
             customAccent: /^#[0-9a-fA-F]{6}$/.test(requestedAccent) ? requestedAccent : "#657987",
@@ -266,6 +328,8 @@ Singleton {
                 integrationMode: root.integrationMode,
                 themePreset: root.themePreset
             },
+            keybinds: root.sanitizeKeybinds(root.keybinds),
+            animations: root.sanitizeAnimations(root.animations),
             style: root.sanitizeStyle(root.style)
         }
     }
@@ -291,6 +355,8 @@ Singleton {
         const profile = document?.profile ?? {}
         const quickControls = document?.quickControls ?? {}
         const features = document?.features ?? {}
+        const keybinds = document?.keybinds ?? root.defaultKeybinds()
+        const animations = document?.animations ?? root.defaultAnimations()
         const style = document?.style ?? root.defaultStyle()
 
         root.assignIfPresent(wallpaper, "path", value => root.wallpaperPath = String(value ?? ""))
@@ -370,11 +436,14 @@ Singleton {
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
         root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "zen-mist"))
 
+        root.keybinds = root.sanitizeKeybinds(keybinds)
+        root.animations = root.sanitizeAnimations(animations)
         root.style = root.sanitizeStyle(style)
 
         root.loading = false
         root.ready = true
         root.reloaded()
+        root.scheduleHyprlandApply()
     }
 
     function parseAndApply(text: string): void {
@@ -390,11 +459,19 @@ Singleton {
 
         root.ready = true
         root.scheduleSave()
+        root.scheduleHyprlandApply()
     }
 
     function scheduleSave(): void {
         if (!root.loading && root.ready)
             saveTimer.restart()
+    }
+
+    function scheduleHyprlandApply(): void {
+        if (root.loading || !root.ready)
+            return
+        root.hyprlandApplyPending = true
+        hyprlandApplyTimer.restart()
     }
 
     function saveNow(): void {
@@ -467,6 +544,14 @@ Singleton {
     onMediaOverlayEnabledChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
     onThemePresetChanged: scheduleSave()
+    onKeybindsChanged: {
+        scheduleSave()
+        scheduleHyprlandApply()
+    }
+    onAnimationsChanged: {
+        scheduleSave()
+        scheduleHyprlandApply()
+    }
     onStyleChanged: scheduleSave()
 
     Timer {
@@ -481,6 +566,34 @@ Singleton {
         interval: 80
         repeat: false
         onTriggered: configFile.reload()
+    }
+
+    Timer {
+        id: hyprlandApplyTimer
+        interval: 420
+        repeat: false
+        onTriggered: {
+            if (hyprlandSync.running) {
+                hyprlandApplyTimer.restart()
+                return
+            }
+            root.hyprlandApplyPending = false
+            hyprlandSync.exec([
+                "python3",
+                Quickshell.shellPath("scripts/hyprland-sync.py"),
+                "--apply"
+            ])
+        }
+    }
+
+    Process {
+        id: hyprlandSync
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0)
+                console.warn("[RaohaneConfig] Hyprland preference sync exited with", exitCode)
+            if (root.hyprlandApplyPending)
+                hyprlandApplyTimer.restart()
+        }
     }
 
     Process {
@@ -508,6 +621,7 @@ Singleton {
                 root.ready = true
                 root.pendingInitialWrite = true
                 saveTimer.restart()
+                root.scheduleHyprlandApply()
             } else {
                 console.warn("[RaohaneConfig] Failed to load native config:", error)
                 root.ready = true
