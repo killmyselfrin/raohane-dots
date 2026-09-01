@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
@@ -53,8 +52,8 @@ Scope {
         Rectangle {
             anchors.fill: parent
             color: RaohaneTheme.dark
-                ? Qt.rgba(0, 0, 0, 0.40)
-                : Qt.rgba(0.20, 0.19, 0.17, 0.18)
+                ? Qt.rgba(0, 0, 0, 0.46)
+                : Qt.rgba(0.18, 0.17, 0.15, 0.18)
             opacity: RaohaneState.settingsOpen ? 1 : 0
 
             Behavior on opacity {
@@ -71,8 +70,8 @@ Scope {
             id: workspace
             property bool entered: false
 
-            width: Math.min(parent.width - 80, 1080)
-            height: Math.min(parent.height - 88, 724)
+            width: Math.min(parent.width - 96, 1040)
+            height: Math.min(parent.height - 96, 700)
             anchors.centerIn: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
@@ -80,11 +79,11 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.992
+            scale: entered ? 1 : 0.994
             focus: RaohaneState.settingsOpen
 
             transform: Translate {
-                y: workspace.entered ? 0 : 12
+                y: workspace.entered ? 0 : 10
                 Behavior on y {
                     NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
                 }
@@ -99,104 +98,50 @@ Scope {
             }
 
             Rectangle {
-                z: 30
+                z: 40
                 anchors {
                     left: parent.left
                     top: parent.top
-                    leftMargin: 22
+                    leftMargin: 18
                 }
-                width: 72
+                width: 54
                 height: 2
                 radius: 1
                 color: RaohaneTheme.accent
-                opacity: 0.78
-            }
-
-            Item {
-                id: titleBar
-                z: 20
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                }
-                height: 64
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 22
-                    anchors.rightMargin: 16
-                    spacing: 12
-
-                    ColumnLayout {
-                        Layout.preferredWidth: 176
-                        spacing: -1
-
-                        Text {
-                            text: "RAOHANE"
-                            color: RaohaneTheme.accent
-                            font.pixelSize: 7
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: 1.4
-                        }
-
-                        Text {
-                            text: qsTr("Settings")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 16
-                            font.weight: Font.DemiBold
-                        }
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    RaohaneSettingsSearch {
-                        id: settingsSearch
-                        Layout.preferredWidth: Math.min(370, Math.max(260, workspace.width * 0.34))
-                        Layout.preferredHeight: 34
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    Item {
-                        Layout.preferredWidth: 176
-                        Layout.fillHeight: true
-
-                        RaohaneIconButton {
-                            anchors {
-                                right: parent.right
-                                verticalCenter: parent.verticalCenter
-                            }
-                            buttonSize: 32
-                            iconSize: 16
-                            icon: "close"
-                            transparentIdle: true
-                            showSheen: false
-                            onClicked: panelWindow.hide()
-                        }
-                    }
-                }
-
-                Rectangle {
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        bottom: parent.bottom
-                        leftMargin: 22
-                        rightMargin: 16
-                    }
-                    height: 1
-                    color: RaohaneTheme.borderFaint
-                }
+                opacity: 0.72
             }
 
             RaohaneSettingsContentV2 {
+                anchors.fill: parent
+            }
+
+            RaohaneSettingsSearch {
+                id: settingsSearch
+                z: 50
+                width: Math.min(320, Math.max(250, workspace.width * 0.30))
+                height: 34
                 anchors {
-                    left: parent.left
+                    top: parent.top
                     right: parent.right
-                    top: titleBar.bottom
-                    bottom: parent.bottom
+                    topMargin: 19
+                    rightMargin: 54
                 }
+            }
+
+            RaohaneIconButton {
+                z: 50
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                    topMargin: 20
+                    rightMargin: 16
+                }
+                buttonSize: 30
+                iconSize: 15
+                icon: "close"
+                transparentIdle: true
+                showSheen: false
+                onClicked: panelWindow.hide()
             }
 
             Keys.onPressed: event => {
