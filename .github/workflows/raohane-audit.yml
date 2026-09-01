@@ -84,7 +84,7 @@ jobs:
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
           python3 scripts/migrate-legacy-config.py --help >/dev/null
-          python3 -m py_compile scripts/process-snapshot.py scripts/lyrics-resolve.py
+          python3 -c 'import pathlib,sys; [compile(pathlib.Path(p).read_text(encoding="utf-8"), p, "exec") for p in sys.argv[1:]]' scripts/process-snapshot.py scripts/lyrics-resolve.py
 
       - name: Parse Raohane QML
         shell: bash
