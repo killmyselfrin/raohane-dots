@@ -20,6 +20,7 @@ QtObject {
     property bool oskOpen: false
     property bool settingsOpen: false
     property string settingsPage: ""
+    property bool displaySettingsOpen: false
     property bool welcomeOpen: false
     property bool sessionOpen: false
     property bool taskManagerOpen: false
@@ -42,6 +43,7 @@ QtObject {
         case "overlay": return overlayOpen
         case "screenTranslator": return screenTranslatorOpen
         case "settings": return settingsOpen
+        case "displaySettings": return displaySettingsOpen
         case "welcome": return welcomeOpen
         case "session": return sessionOpen
         case "taskManager": return taskManagerOpen
@@ -59,6 +61,7 @@ QtObject {
         if (except !== "overlay") overlayOpen = false
         if (except !== "screenTranslator") screenTranslatorOpen = false
         if (except !== "settings") settingsOpen = false
+        if (except !== "displaySettings") displaySettingsOpen = false
         if (except !== "welcome") welcomeOpen = false
         if (except !== "session") sessionOpen = false
         if (except !== "taskManager") taskManagerOpen = false
@@ -78,6 +81,7 @@ QtObject {
         case "overlay": overlayOpen = open; break
         case "screenTranslator": screenTranslatorOpen = open; break
         case "settings": settingsOpen = open; break
+        case "displaySettings": displaySettingsOpen = open; break
         case "welcome": welcomeOpen = open; break
         case "session": sessionOpen = open; break
         case "taskManager": taskManagerOpen = open; break
