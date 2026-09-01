@@ -44,6 +44,7 @@ required=(
   scripts/phase4-live-check.sh
   scripts/product-live-check.sh
   scripts/release-live-check.sh
+  scripts/process-snapshot.py
   scripts/lyrics-resolve.py
   scripts/region-ocr.sh
   scripts/region-search.sh
@@ -75,11 +76,12 @@ except (OSError, json.JSONDecodeError):
 raise SystemExit(0 if data.get("schemaVersion") == 10 else 1)
 PY
 
-python3 - "$TARGET/scripts/lyrics-resolve.py" <<'PY' || fail 'lyrics-resolve.py is not valid Python'
+python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" <<'PY' || fail 'native Python runtime helper is invalid'
 import pathlib
 import sys
-path = pathlib.Path(sys.argv[1])
-compile(path.read_text(encoding="utf-8"), str(path), "exec")
+for raw in sys.argv[1:]:
+    path = pathlib.Path(raw)
+    compile(path.read_text(encoding="utf-8"), str(path), "exec")
 PY
 
 bash -n "$TARGET/scripts/phase4-live-check.sh" || fail 'phase4-live-check.sh has invalid shell syntax'
