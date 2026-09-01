@@ -11,7 +11,7 @@ fail() {
 
 settings='modules/raohane/RaohaneSettings.qml'
 search='modules/raohane/RaohaneSettingsSearch.qml'
-content='modules/raohane/RaohaneSettingsContentV2.qml'
+content='modules/raohane/RaohaneSettingsContentV3.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
@@ -25,23 +25,24 @@ done
 
 for registration in \
   '^RaohaneSettingsSearch .*RaohaneSettingsSearch.qml$' \
-  '^RaohaneSettingsContentV2 .*RaohaneSettingsContentV2.qml$' \
+  '^RaohaneSettingsContentV3 .*RaohaneSettingsContentV3.qml$' \
   '^RaohaneSettingsAbout .*RaohaneSettingsAbout.qml$' \
   '^RaohaneSettingsHome .*RaohaneSettingsHome.qml$' \
   '^RaohaneThemeCatalog .*RaohaneThemeCatalog.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
-rg -q 'RaohaneSettingsContentV2[[:space:]]*\{' "$settings" \
-  || fail 'Settings window is not routed through the active flat Settings layout'
+rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" \
+  || fail 'Settings window is not routed through the active grouped Settings V3 layout'
 rg -q 'property string settingsPage:' "$state" \
   || fail 'RaohaneState does not own Settings page navigation state'
 
 for symbol in \
   'RaohaneState\.settingsPage' \
-  'RaohanePaths\.nativeConfigFile' \
   'RaohaneConfig\[' \
   'sectionEntries' \
   'nativeSectionPage' \
+  'RaohaneSurface[[:space:]]*\{' \
+  'RaohaneSwitch[[:space:]]*\{' \
   'RaohaneIcon[[:space:]]*\{' \
   'RaohaneSystemInfo\.'; do
   rg -q "$symbol" "$content" || fail "Settings navigation lost native dependency: $symbol"
@@ -54,21 +55,18 @@ done
 for contract in \
   'key:[[:space:]]*"barShowOnSuper"' \
   'Reveal on Super' \
-  'native\.json' \
   'PERSONALIZE' \
   'SHELL' \
   'SYSTEM' \
   'Bar & Dock' \
   'Media & OSD' \
-  'Desktop & Spaces'; do
+  'Desktop & Spaces' \
+  'System settings'; do
   rg -q "$contract" "$content" || fail "Settings lost grouped minimal UX contract: $contract"
 done
 rg -q 'Open native\.json' "$home" \
   || fail 'Settings Home no longer exposes the native config entry point'
 
-# Theme Library is a first-class native Settings page, not an external theme
-# switcher. It consumes the central preset catalog and persists selection through
-# RaohaneConfig so the active shell updates live.
 rg -q 'RaohaneThemeCatalog[[:space:]]*\{' "$content" \
   || fail 'Settings does not load the native Theme Library'
 rg -q 'RaohaneTheme\.presets' "$catalog" \
@@ -87,8 +85,6 @@ if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.
   fail 'Settings still exposes the retired compatibility config path/name'
 fi
 
-# Final visible Settings pass: global search, keyboard focus, exact page/control
-# routing and runtime status are all first-class native UX.
 for symbol in \
   'RaohaneSettingsSearch[[:space:]]*\{' \
   'Qt\.ControlModifier' \
@@ -129,4 +125,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: active flat Settings routes, Theme Library, global search, keyboard navigation and native config UX are Raohane-owned\n'
+printf 'settings-boundary-audit: active grouped Settings V3 routes, Theme Library, global search, keyboard navigation and native config UX are Raohane-owned\n'
