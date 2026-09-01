@@ -32,6 +32,7 @@ RaohaneQuickControls 1.0 RaohaneQuickControls.qml
 RaohaneNotificationCard 1.0 RaohaneNotificationCard.qml
 RaohaneNotificationCenter 1.0 RaohaneNotificationCenter.qml
 RaohaneSettings 1.0 RaohaneSettings.qml
+RaohaneDisplaySettings 1.0 RaohaneDisplaySettings.qml
 RaohaneWelcome 1.0 RaohaneWelcome.qml
 RaohaneOnboarding 1.0 RaohaneOnboarding.qml
 RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
