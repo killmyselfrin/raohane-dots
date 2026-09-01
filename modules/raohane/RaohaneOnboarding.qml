@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -128,112 +130,106 @@ Scope {
 
     readonly property var stepData: root.steps[Math.max(0, Math.min(root.steps.length - 1, RaohaneOnboardingState.step))]
 
+    function clamp(value: real, minimum: real, maximum: real): real {
+        return Math.max(minimum, Math.min(maximum, value))
+    }
+
+    function centeredRect(width: real, height: real, radius: real): var {
+        return {
+            x: (overlayWindow.width - width) / 2,
+            y: (overlayWindow.height - height) / 2,
+            width: width,
+            height: height,
+            radius: radius
+        }
+    }
+
     function targetRectFor(target: string): var {
         const w = overlayWindow.width
         const h = overlayWindow.height
-        const settingsW = Math.min(w - 96, 1040)
-        const settingsH = Math.min(h - 96, 700)
-        const wallpaperW = Math.min(w - 96, 1080)
-        const wallpaperH = Math.min(h - 104, 700)
 
         switch (target) {
         case "bar":
             return {
-                x: 8,
-                y: RaohaneConfig.barBottom ? h - 68 : 0,
-                width: Math.max(0, w - 16),
-                height: 68,
-                radius: 26
+                x: 6,
+                y: RaohaneConfig.barBottom ? Math.max(0, h - 64) : 0,
+                width: Math.max(0, w - 12),
+                height: Math.min(64, h),
+                radius: 25
             }
         case "dock": {
-            const dockW = Math.min(580, Math.max(300, w * 0.58))
+            const dockW = Math.min(640, Math.max(300, w * 0.58))
+            const dockH = Math.min(h, RaohaneConfig.dockHeight + RaohaneConfig.dockBottomMargin + 20)
             return {
                 x: (w - dockW) / 2,
-                y: h - RaohaneConfig.dockHeight - RaohaneConfig.dockBottomMargin - 24,
+                y: Math.max(0, h - dockH),
                 width: dockW,
-                height: RaohaneConfig.dockHeight + 20,
-                radius: 32
+                height: dockH,
+                radius: Math.min(34, dockH / 2)
             }
         }
         case "launcher": {
-            const launcherW = Math.min(660, w - 56)
+            const launcherW = Math.min(640, Math.max(360, w - 56))
+            const launcherH = Math.min(560, Math.max(360, h * 0.61))
             return {
-                x: (w - launcherW) / 2,
+                x: (w - launcherW) / 2 - 5,
                 y: 72,
-                width: launcherW,
-                height: Math.min(560, Math.max(360, h * 0.61)),
-                radius: 30
+                width: launcherW + 10,
+                height: Math.min(launcherH + 12, h - 82),
+                radius: 31
             }
         }
-        case "controlCenter":
+        case "controlCenter": {
+            const panelW = Math.min(404, Math.max(300, w - 28))
+            const panelH = Math.min(640, Math.max(540, h - 44))
             return {
-                x: Math.max(8, w - 448),
+                x: Math.max(8, w - panelW - 20),
                 y: 8,
-                width: Math.min(440, w - 16),
-                height: Math.min(680, h - 16),
-                radius: 30
+                width: Math.min(w - 8, panelW + 12),
+                height: Math.min(h - 16, panelH + 12),
+                radius: 31
             }
+        }
         case "sidebar":
             return {
                 x: 8,
                 y: 8,
-                width: Math.min(386, w - 16),
+                width: Math.min(384, w - 16),
                 height: Math.max(0, h - 16),
-                radius: 30
+                radius: 31
             }
-        case "overview":
-            return {
-                x: Math.max(24, w * 0.06),
-                y: Math.max(72, h * 0.08),
-                width: Math.max(0, w * 0.88),
-                height: Math.max(0, h * 0.76),
-                radius: 34
-            }
-        case "wallpaper":
-            return {
-                x: (w - wallpaperW) / 2,
-                y: (h - wallpaperH) / 2,
-                width: wallpaperW,
-                height: wallpaperH,
-                radius: 30
-            }
-        case "settings":
-            return {
-                x: (w - settingsW) / 2,
-                y: (h - settingsH) / 2,
-                width: settingsW,
-                height: settingsH,
-                radius: 30
-            }
+        case "overview": {
+            const overviewW = Math.min(w - 96, 1040)
+            const overviewH = Math.min(h - 112, 680)
+            return root.centeredRect(Math.max(0, overviewW + 12), Math.max(0, overviewH + 12), 34)
+        }
+        case "wallpaper": {
+            const wallpaperW = Math.min(w - 96, 1080)
+            const wallpaperH = Math.min(h - 104, 700)
+            return root.centeredRect(Math.max(0, wallpaperW + 12), Math.max(0, wallpaperH + 12), 31)
+        }
+        case "settings": {
+            const settingsW = Math.min(w - 96, 1040)
+            const settingsH = Math.min(h - 96, 700)
+            return root.centeredRect(Math.max(0, settingsW + 12), Math.max(0, settingsH + 12), 31)
+        }
         case "context": {
             const islandW = Math.min(520, Math.max(240, w * 0.38))
             return {
                 x: (w - islandW) / 2,
-                y: RaohaneConfig.barBottom ? h - 60 : 7,
+                y: RaohaneConfig.barBottom ? Math.max(6, h - 58) : 6,
                 width: islandW,
-                height: 48,
-                radius: 26
+                height: 50,
+                radius: 25
             }
         }
         case "session": {
-            const sessionW = Math.min(760, w - 80)
-            const sessionH = Math.min(520, h - 80)
-            return {
-                x: (w - sessionW) / 2,
-                y: (h - sessionH) / 2,
-                width: sessionW,
-                height: sessionH,
-                radius: 34
-            }
+            const sessionW = Math.min(w - 96, 850)
+            const sessionH = Math.min(h - 112, 540)
+            return root.centeredRect(Math.max(0, sessionW + 12), Math.max(0, sessionH + 12), 35)
         }
         default:
-            return {
-                x: w * 0.22,
-                y: h * 0.18,
-                width: w * 0.56,
-                height: h * 0.58,
-                radius: 34
-            }
+            return root.centeredRect(w * 0.56, h * 0.58, 34)
         }
     }
 
@@ -243,21 +239,86 @@ Scope {
         const margin = 28
 
         switch (place) {
-        case "topRight":
-            return { x: w - cardWidth - margin, y: 92 }
-        case "bottomRight":
-            return { x: w - cardWidth - margin, y: h - cardHeight - 34 }
-        case "bottomLeft":
-            return { x: margin, y: h - cardHeight - 34 }
-        case "leftCenter":
-            return { x: margin, y: (h - cardHeight) / 2 }
-        case "rightCenter":
-            return { x: w - cardWidth - margin, y: (h - cardHeight) / 2 }
-        case "bottomCenter":
-            return { x: (w - cardWidth) / 2, y: h - cardHeight - 30 }
-        default:
-            return { x: (w - cardWidth) / 2, y: (h - cardHeight) / 2 }
+        case "topRight": return { x: w - cardWidth - margin, y: 92 }
+        case "bottomRight": return { x: w - cardWidth - margin, y: h - cardHeight - 34 }
+        case "bottomLeft": return { x: margin, y: h - cardHeight - 34 }
+        case "leftCenter": return { x: margin, y: (h - cardHeight) / 2 }
+        case "rightCenter": return { x: w - cardWidth - margin, y: (h - cardHeight) / 2 }
+        case "bottomCenter": return { x: (w - cardWidth) / 2, y: h - cardHeight - 30 }
+        default: return { x: (w - cardWidth) / 2, y: (h - cardHeight) / 2 }
         }
+    }
+
+    function overlaps(first, second, padding: real): bool {
+        return first.x < second.x + second.width + padding
+            && first.x + first.width + padding > second.x
+            && first.y < second.y + second.height + padding
+            && first.y + first.height + padding > second.y
+    }
+
+    function safeCardPosition(place: string, cardWidth: real, cardHeight: real): var {
+        const preferred = root.cardPosition(place, cardWidth, cardHeight)
+        const margin = 28
+        const gap = 24
+        const w = overlayWindow.width
+        const h = overlayWindow.height
+        const target = overlayWindow.targetRect
+        const preferredRect = { x: preferred.x, y: preferred.y, width: cardWidth, height: cardHeight }
+
+        if (!overlayWindow.hasSpotlight || !root.overlaps(preferredRect, target, 12))
+            return preferred
+
+        const candidates = [
+            {
+                score: w - (target.x + target.width),
+                x: target.x + target.width + gap,
+                y: root.clamp(target.y + target.height / 2 - cardHeight / 2, margin, h - cardHeight - margin)
+            },
+            {
+                score: target.x,
+                x: target.x - cardWidth - gap,
+                y: root.clamp(target.y + target.height / 2 - cardHeight / 2, margin, h - cardHeight - margin)
+            },
+            {
+                score: h - (target.y + target.height),
+                x: root.clamp(target.x + target.width / 2 - cardWidth / 2, margin, w - cardWidth - margin),
+                y: target.y + target.height + gap
+            },
+            {
+                score: target.y,
+                x: root.clamp(target.x + target.width / 2 - cardWidth / 2, margin, w - cardWidth - margin),
+                y: target.y - cardHeight - gap
+            }
+        ]
+        candidates.sort((left, right) => right.score - left.score)
+
+        for (const candidate of candidates) {
+            const validX = candidate.x >= margin && candidate.x + cardWidth <= w - margin
+            const validY = candidate.y >= margin && candidate.y + cardHeight <= h - margin
+            const rect = { x: candidate.x, y: candidate.y, width: cardWidth, height: cardHeight }
+            if (validX && validY && !root.overlaps(rect, target, 10))
+                return { x: candidate.x, y: candidate.y }
+        }
+
+        return {
+            x: root.clamp(preferred.x, margin, Math.max(margin, w - cardWidth - margin)),
+            y: root.clamp(preferred.y, margin, Math.max(margin, h - cardHeight - margin))
+        }
+    }
+
+    function roundedRectPath(context, x: real, y: real, width: real, height: real, radius: real): void {
+        const r = Math.max(0, Math.min(radius, Math.min(width, height) / 2))
+        context.beginPath()
+        context.moveTo(x + r, y)
+        context.lineTo(x + width - r, y)
+        context.quadraticCurveTo(x + width, y, x + width, y + r)
+        context.lineTo(x + width, y + height - r)
+        context.quadraticCurveTo(x + width, y + height, x + width - r, y + height)
+        context.lineTo(x + r, y + height)
+        context.quadraticCurveTo(x, y + height, x, y + height - r)
+        context.lineTo(x, y + r)
+        context.quadraticCurveTo(x, y, x + r, y)
+        context.closePath()
     }
 
     PanelWindow {
@@ -267,8 +328,8 @@ Scope {
         readonly property var targetRect: root.targetRectFor(root.stepData.target)
         readonly property bool hasSpotlight: root.stepData.target !== "finish"
         readonly property color scrimColor: RaohaneTheme.dark
-            ? Qt.rgba(0, 0, 0, 0.50)
-            : Qt.rgba(0.12, 0.12, 0.11, 0.29)
+            ? Qt.rgba(0, 0, 0, 0.54)
+            : Qt.rgba(0.12, 0.12, 0.11, 0.31)
 
         visible: RaohaneOnboardingState.active
         screen: root.focusedScreen
@@ -285,71 +346,64 @@ Scope {
             right: true
         }
 
-        mask: Region {
-            item: coachCard
-        }
+        mask: Region { item: coachCard }
 
         onVisibleChanged: {
             if (!visible)
                 return
             cardEntered = false
             Qt.callLater(() => cardEntered = true)
+            scrimCanvas.requestPaint()
         }
 
         Connections {
             target: RaohaneOnboardingState
-
             function onStepChanged(): void {
                 overlayWindow.cardEntered = false
                 Qt.callLater(() => overlayWindow.cardEntered = true)
+                scrimCanvas.requestPaint()
             }
         }
 
-        Rectangle {
-            visible: !overlayWindow.hasSpotlight
+        Canvas {
+            id: scrimCanvas
+            z: 0
             anchors.fill: parent
-            color: overlayWindow.scrimColor
+            antialiasing: true
+
+            onWidthChanged: requestPaint()
+            onHeightChanged: requestPaint()
+
+            onPaint: {
+                const context = getContext("2d")
+                context.clearRect(0, 0, width, height)
+                context.save()
+                context.globalCompositeOperation = "source-over"
+                context.fillStyle = overlayWindow.scrimColor
+                context.fillRect(0, 0, width, height)
+
+                if (overlayWindow.hasSpotlight && spotlight.width > 0 && spotlight.height > 0) {
+                    context.globalCompositeOperation = "destination-out"
+                    root.roundedRectPath(context, spotlight.x, spotlight.y, spotlight.width, spotlight.height, spotlight.radius)
+                    context.fillStyle = "#ffffff"
+                    context.fill()
+                }
+                context.restore()
+            }
         }
 
-        Rectangle {
-            visible: overlayWindow.hasSpotlight
-            x: 0
-            y: 0
-            width: parent.width
-            height: Math.max(0, spotlight.y)
-            color: overlayWindow.scrimColor
-        }
-
-        Rectangle {
-            visible: overlayWindow.hasSpotlight
-            x: 0
-            y: spotlight.y + spotlight.height
-            width: parent.width
-            height: Math.max(0, parent.height - y)
-            color: overlayWindow.scrimColor
-        }
-
-        Rectangle {
-            visible: overlayWindow.hasSpotlight
-            x: 0
-            y: spotlight.y
-            width: Math.max(0, spotlight.x)
-            height: spotlight.height
-            color: overlayWindow.scrimColor
-        }
-
-        Rectangle {
-            visible: overlayWindow.hasSpotlight
-            x: spotlight.x + spotlight.width
-            y: spotlight.y
-            width: Math.max(0, parent.width - x)
-            height: spotlight.height
-            color: overlayWindow.scrimColor
+        Connections {
+            target: spotlight
+            function onXChanged(): void { scrimCanvas.requestPaint() }
+            function onYChanged(): void { scrimCanvas.requestPaint() }
+            function onWidthChanged(): void { scrimCanvas.requestPaint() }
+            function onHeightChanged(): void { scrimCanvas.requestPaint() }
+            function onRadiusChanged(): void { scrimCanvas.requestPaint() }
         }
 
         Rectangle {
             id: spotlight
-
+            z: 2
             visible: overlayWindow.hasSpotlight
             x: overlayWindow.targetRect.x
             y: overlayWindow.targetRect.y
@@ -360,21 +414,11 @@ Scope {
             border.width: 2
             border.color: RaohaneTheme.accentBorder
 
-            Behavior on x {
-                NumberAnimation { duration: 360; easing.type: RaohaneMotion.easeEmphasized }
-            }
-            Behavior on y {
-                NumberAnimation { duration: 360; easing.type: RaohaneMotion.easeEmphasized }
-            }
-            Behavior on width {
-                NumberAnimation { duration: 360; easing.type: RaohaneMotion.easeEmphasized }
-            }
-            Behavior on height {
-                NumberAnimation { duration: 360; easing.type: RaohaneMotion.easeEmphasized }
-            }
-            Behavior on radius {
-                NumberAnimation { duration: 300; easing.type: RaohaneMotion.easeStandard }
-            }
+            Behavior on x { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
+            Behavior on y { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
+            Behavior on width { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
+            Behavior on height { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
+            Behavior on radius { NumberAnimation { duration: 280; easing.type: RaohaneMotion.easeStandard } }
 
             Rectangle {
                 anchors.fill: parent
@@ -387,85 +431,133 @@ Scope {
                 SequentialAnimation on opacity {
                     running: overlayWindow.visible && overlayWindow.hasSpotlight
                     loops: Animation.Infinite
-                    NumberAnimation { from: 0.24; to: 0.72; duration: 950; easing.type: Easing.InOutSine }
-                    NumberAnimation { from: 0.72; to: 0.24; duration: 950; easing.type: Easing.InOutSine }
+                    NumberAnimation { from: 0.18; to: 0.56; duration: 1150; easing.type: Easing.InOutSine }
+                    NumberAnimation { from: 0.56; to: 0.18; duration: 1150; easing.type: Easing.InOutSine }
                 }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: 5
+                radius: Math.max(0, parent.radius - 5)
+                color: "transparent"
+                border.width: 1
+                border.color: Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g, RaohaneTheme.accent.b, 0.16)
             }
         }
 
         RaohaneSurface {
             id: coachCard
+            z: 10
 
-            readonly property var desiredPosition: root.cardPosition(root.stepData.card, width, height)
+            readonly property var desiredPosition: root.safeCardPosition(root.stepData.card, width, height)
 
-            width: Math.min(430, overlayWindow.width - 48)
-            height: 380
+            width: Math.min(444, overlayWindow.width - 48)
+            height: Math.min(398, overlayWindow.height - 56)
             x: desiredPosition.x
             y: desiredPosition.y
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
+            clip: true
             opacity: overlayWindow.cardEntered ? 1 : 0
-            scale: overlayWindow.cardEntered ? 1 : 0.975
+            scale: overlayWindow.cardEntered ? 1 : 0.976
 
             transform: Translate {
-                y: overlayWindow.cardEntered ? 0 : 12
+                y: overlayWindow.cardEntered ? 0 : 10
+                Behavior on y { NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized } }
+            }
 
-                Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
+            Behavior on x { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
+            Behavior on y { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
+            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard } }
+            Behavior on scale { NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized } }
+
+            Rectangle {
+                anchors {
+                    left: parent.left
+                    top: parent.top
+                    bottom: parent.bottom
+                    leftMargin: 1
+                    topMargin: 20
+                    bottomMargin: 20
                 }
+                width: 2
+                radius: 1
+                color: RaohaneTheme.accent
+                opacity: 0.74
             }
 
-            Behavior on x {
-                NumberAnimation { duration: 360; easing.type: RaohaneMotion.easeEmphasized }
-            }
-            Behavior on y {
-                NumberAnimation { duration: 360; easing.type: RaohaneMotion.easeEmphasized }
-            }
-            Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-            }
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
+            Rectangle {
+                anchors {
+                    right: parent.right
+                    top: parent.top
+                    rightMargin: -42
+                    topMargin: -58
+                }
+                width: 158
+                height: 158
+                radius: 79
+                color: "transparent"
+                border.width: 1
+                border.color: RaohaneTheme.accentGlow
+                opacity: 0.22
             }
 
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 22
-                spacing: 12
+                spacing: 11
 
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 12
 
-                    Rectangle {
-                        Layout.preferredWidth: 44
-                        Layout.preferredHeight: 44
-                        radius: 15
-                        color: RaohaneTheme.accentSoft
-                        border.width: 1
-                        border.color: RaohaneTheme.accentBorder
+                    Item {
+                        Layout.preferredWidth: 48
+                        Layout.preferredHeight: 48
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 48
+                            height: 48
+                            radius: 16
+                            color: RaohaneTheme.accentSoft
+                            border.width: 1
+                            border.color: RaohaneTheme.accentBorder
+                        }
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 36
+                            height: 36
+                            radius: 13
+                            color: "transparent"
+                            border.width: 1
+                            border.color: RaohaneTheme.accentGlow
+                            opacity: 0.6
+                        }
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: root.stepData.icon
                             iconSize: 22
-                            fill: root.stepData.key === "finish" ? 1 : 0.15
+                            fill: root.stepData.key === "finish" ? 1 : 0.18
                             color: RaohaneTheme.accent
                         }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 1
+                        spacing: 2
 
                         Text {
                             text: root.stepData.eyebrow
                             color: RaohaneTheme.textFaint
                             font.pixelSize: 9
                             font.weight: Font.DemiBold
-                            font.letterSpacing: 1.5
+                            font.letterSpacing: 1.45
                         }
 
                         Text {
@@ -517,7 +609,7 @@ Scope {
                     text: root.stepData.description
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 13
-                    lineHeight: 1.35
+                    lineHeight: 1.34
                     wrapMode: Text.WordWrap
                 }
 
@@ -525,6 +617,7 @@ Scope {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 62
                     surfaceRadius: RaohaneTheme.radiusSmall
+                    raised: false
                     showSheen: false
 
                     RowLayout {
@@ -532,11 +625,19 @@ Scope {
                         anchors.margins: 12
                         spacing: 10
 
-                        RaohaneIcon {
-                            Layout.preferredWidth: 20
-                            text: root.stepData.key === "dock" ? "mouse" : "lightbulb"
-                            iconSize: 17
-                            color: RaohaneTheme.accentSecondary
+                        RaohaneSurface {
+                            Layout.preferredWidth: 30
+                            Layout.preferredHeight: 30
+                            surfaceRadius: 10
+                            active: true
+                            showSheen: false
+
+                            RaohaneIcon {
+                                anchors.centerIn: parent
+                                text: root.stepData.key === "dock" ? "mouse" : "lightbulb"
+                                iconSize: 15
+                                color: RaohaneTheme.accentSecondary
+                            }
                         }
 
                         Text {
@@ -558,19 +659,15 @@ Scope {
 
                     Repeater {
                         model: root.steps.length
-
                         Rectangle {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 3
+                            Layout.preferredHeight: index === RaohaneOnboardingState.step ? 4 : 3
                             radius: 2
-                            color: index <= RaohaneOnboardingState.step
-                                ? RaohaneTheme.accent
-                                : RaohaneTheme.border
-                            opacity: index === RaohaneOnboardingState.step ? 1 : 0.62
+                            color: index <= RaohaneOnboardingState.step ? RaohaneTheme.accent : RaohaneTheme.border
+                            opacity: index === RaohaneOnboardingState.step ? 1 : 0.55
 
-                            Behavior on color {
-                                ColorAnimation { duration: RaohaneMotion.micro }
-                            }
+                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                            Behavior on height { NumberAnimation { duration: RaohaneMotion.micro } }
                         }
                     }
                 }
@@ -589,23 +686,13 @@ Scope {
                         hovered: backPointer.containsMouse
                         pressed: backPointer.pressed
                         showSheen: false
+                        feedback: "navigate"
 
                         Row {
                             anchors.centerIn: parent
                             spacing: 6
-
-                            RaohaneIcon {
-                                text: "arrow_back"
-                                iconSize: 15
-                                color: RaohaneTheme.textMuted
-                            }
-
-                            Text {
-                                text: qsTr("Back")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 11
-                                font.weight: Font.DemiBold
-                            }
+                            RaohaneIcon { text: "arrow_back"; iconSize: 15; color: RaohaneTheme.textMuted }
+                            Text { text: qsTr("Back"); color: RaohaneTheme.textMuted; font.pixelSize: 11; font.weight: Font.DemiBold }
                         }
 
                         MouseArea {
@@ -629,18 +716,17 @@ Scope {
                         hovered: nextPointer.containsMouse
                         pressed: nextPointer.pressed
                         showSheen: false
+                        feedback: root.stepData.key === "finish" ? "confirm" : "navigate"
 
                         Row {
                             anchors.centerIn: parent
                             spacing: 7
-
                             Text {
                                 text: root.stepData.key === "finish" ? qsTr("Enter Raohane") : qsTr("Next")
                                 color: RaohaneTheme.text
                                 font.pixelSize: 11
                                 font.weight: Font.DemiBold
                             }
-
                             RaohaneIcon {
                                 text: root.stepData.key === "finish" ? "check" : "arrow_forward"
                                 iconSize: 15
@@ -663,7 +749,6 @@ Scope {
 
     IpcHandler {
         target: "onboarding"
-
         function open(): void { RaohaneOnboardingState.replay() }
         function reset(): void { RaohaneOnboardingState.reset() }
         function next(): void { RaohaneOnboardingState.next() }

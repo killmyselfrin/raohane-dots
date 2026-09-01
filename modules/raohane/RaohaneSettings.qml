@@ -126,7 +126,7 @@ Scope {
                 visible: !workspace.preferencesOpen
             }
 
-            RaohaneHyprlandPreferences {
+            RaohanePreferencesHub {
                 id: preferences
                 anchors.fill: parent
                 visible: workspace.preferencesOpen

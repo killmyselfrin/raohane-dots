@@ -45,6 +45,7 @@ RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneThemeCatalog 1.0 RaohaneThemeCatalog.qml
 RaohaneSettingsAbout 1.0 RaohaneSettingsAbout.qml
 RaohaneHyprlandPreferences 1.0 RaohaneHyprlandPreferences.qml
+RaohanePreferencesHub 1.0 RaohanePreferencesHub.qml
 RaohaneMediaOverlay 1.0 RaohaneMediaOverlay.qml
 RaohaneOverlay 1.0 RaohaneOverlay.qml
 RaohaneSidebarLeft 1.0 RaohaneSidebarLeft.qml

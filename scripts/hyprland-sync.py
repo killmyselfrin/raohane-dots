@@ -37,8 +37,21 @@ DEFAULT_KEYBINDS: dict[str, str] = {
     "launcher": "SUPER + R",
     "settings": "SUPER + Escape",
     "controlCenter": "SUPER + C",
+    "leftSidebar": "SUPER + A",
+    "overview": "SUPER + Tab",
+    "clipboardSearch": "SUPER + V",
+    "wallpaper": "SUPER + W",
+    "randomWallpaper": "",
     "mediaOverlay": "SUPER + SHIFT + M",
+    "session": "SUPER + X",
+    "taskManager": "SUPER + SHIFT + Escape",
+    "osk": "",
+    "screenTranslate": "SUPER + T",
     "screenshot": "SUPER + SHIFT + S",
+    "regionSearch": "",
+    "regionOcr": "",
+    "regionRecord": "",
+    "regionRecordWithSound": "",
 }
 
 DEFAULT_APPLICATIONS: dict[str, str] = {}
@@ -145,7 +158,7 @@ def legacy_parts(combo: str) -> tuple[str, str] | None:
 
 
 def all_managed_combos(config: dict[str, str]) -> list[str]:
-    combos = set(DEFAULT_KEYBINDS.values())
+    combos = {value for value in DEFAULT_KEYBINDS.values() if value}
     combos.update(value for key, value in config.items() if key in DEFAULT_KEYBINDS and value)
     combos.update(config.get(f"app{index}Keys", "") for index in range(1, 5))
     return sorted(combo for combo in combos if combo)
@@ -161,8 +174,21 @@ def lua_bind_lines(config: dict[str, str]) -> list[str]:
         "launcher": ('hl.dsp.global("quickshell:raohaneLauncherToggle")', "Launcher"),
         "settings": ('hl.dsp.global("quickshell:settingsToggle")', "Settings"),
         "controlCenter": ('hl.dsp.global("quickshell:sidebarRightToggle")', "Control Center"),
+        "leftSidebar": ('hl.dsp.global("quickshell:sidebarLeftToggle")', "Left sidebar"),
+        "overview": ('hl.dsp.global("quickshell:overviewWorkspacesToggle")', "Overview"),
+        "clipboardSearch": ('hl.dsp.global("quickshell:overviewClipboardToggle")', "Clipboard search"),
+        "wallpaper": ('hl.dsp.global("quickshell:wallpaperSelectorToggle")', "Wallpaper selector"),
+        "randomWallpaper": ('hl.dsp.global("quickshell:wallpaperSelectorRandom")', "Random wallpaper"),
         "mediaOverlay": ('hl.dsp.global("quickshell:raohaneMediaOverlayToggle")', "Media overlay"),
+        "session": ('hl.dsp.global("quickshell:sessionToggle")', "Session controls"),
+        "taskManager": ('hl.dsp.global("quickshell:taskManagerToggle")', "Task Manager"),
+        "osk": ('hl.dsp.global("quickshell:oskToggle")', "On-screen keyboard"),
+        "screenTranslate": ('hl.dsp.global("quickshell:screenTranslate")', "Screen Translator"),
         "screenshot": ('hl.dsp.global("quickshell:regionScreenshot")', "Region screenshot"),
+        "regionSearch": ('hl.dsp.global("quickshell:regionSearch")', "Region image search"),
+        "regionOcr": ('hl.dsp.global("quickshell:regionOcr")', "Region OCR"),
+        "regionRecord": ('hl.dsp.global("quickshell:regionRecord")', "Region recording"),
+        "regionRecordWithSound": ('hl.dsp.global("quickshell:regionRecordWithSound")', "Region recording with sound"),
     }
     lines: list[str] = []
     seen: set[str] = set()
@@ -235,8 +261,21 @@ def legacy_bind_lines(config: dict[str, str]) -> list[str]:
         "launcher": ("global", "quickshell:raohaneLauncherToggle"),
         "settings": ("global", "quickshell:settingsToggle"),
         "controlCenter": ("global", "quickshell:sidebarRightToggle"),
+        "leftSidebar": ("global", "quickshell:sidebarLeftToggle"),
+        "overview": ("global", "quickshell:overviewWorkspacesToggle"),
+        "clipboardSearch": ("global", "quickshell:overviewClipboardToggle"),
+        "wallpaper": ("global", "quickshell:wallpaperSelectorToggle"),
+        "randomWallpaper": ("global", "quickshell:wallpaperSelectorRandom"),
         "mediaOverlay": ("global", "quickshell:raohaneMediaOverlayToggle"),
+        "session": ("global", "quickshell:sessionToggle"),
+        "taskManager": ("global", "quickshell:taskManagerToggle"),
+        "osk": ("global", "quickshell:oskToggle"),
+        "screenTranslate": ("global", "quickshell:screenTranslate"),
         "screenshot": ("global", "quickshell:regionScreenshot"),
+        "regionSearch": ("global", "quickshell:regionSearch"),
+        "regionOcr": ("global", "quickshell:regionOcr"),
+        "regionRecord": ("global", "quickshell:regionRecord"),
+        "regionRecordWithSound": ("global", "quickshell:regionRecordWithSound"),
     }
     lines: list[str] = []
     seen: set[str] = set()

@@ -15,6 +15,7 @@ Singleton {
     property var russianGN: ({})
     property var russianOS: ({})
     property var russianTZ: ({})
+    property var russianUI: ({})
 
     function parse(contents: string): var {
         try {
@@ -36,7 +37,8 @@ Singleton {
         const text = String(source ?? "")
         if (root.language !== "ru_RU")
             return text
-        return root.russianTZ?.[text]
+        return root.russianUI?.[text]
+            ?? root.russianTZ?.[text]
             ?? root.russianOS?.[text]
             ?? root.russianGN?.[text]
             ?? root.russianA?.[text]
@@ -85,6 +87,14 @@ Singleton {
     }
 
     FileView {
+        id: runtimeUIFile
+        path: Quickshell.shellPath("translations/raohane/ru_RU_ui.json")
+        watchChanges: true
+        onLoaded: { root.russianUI = root.parse(runtimeUIFile.text()); root.revision++ }
+        onFileChanged: reload()
+    }
+
+    FileView {
         id: languageFile
         path: RaohanePaths.configDirectory + "/language"
         watchChanges: true
@@ -107,6 +117,7 @@ Singleton {
         runtimeGNFile.reload()
         runtimeOSFile.reload()
         runtimeTZFile.reload()
+        runtimeUIFile.reload()
         languageFile.reload()
     }
 }
