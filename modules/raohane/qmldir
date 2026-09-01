@@ -4,6 +4,7 @@ singleton RaohaneThemeLibrary 1.0 RaohaneThemeLibrary.qml
 singleton RaohaneMotion 1.0 RaohaneMotion.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneState 1.0 RaohaneState.qml
+singleton RaohaneOnboardingState 1.0 RaohaneOnboardingState.qml
 singleton RaohanePrivacy 1.0 RaohanePrivacy.qml
 singleton RaohaneFocusGrab 1.0 RaohaneFocusGrab.qml
 CompositorGlobalShortcut 1.0 CompositorGlobalShortcut.qml
@@ -32,6 +33,7 @@ RaohaneNotificationCard 1.0 RaohaneNotificationCard.qml
 RaohaneNotificationCenter 1.0 RaohaneNotificationCenter.qml
 RaohaneSettings 1.0 RaohaneSettings.qml
 RaohaneWelcome 1.0 RaohaneWelcome.qml
+RaohaneOnboarding 1.0 RaohaneOnboarding.qml
 RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
 RaohaneSettingsContent 1.0 RaohaneSettingsContent.qml
 RaohaneSettingsContentV2 1.0 RaohaneSettingsContentV2.qml

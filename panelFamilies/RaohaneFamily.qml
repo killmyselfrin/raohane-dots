@@ -32,6 +32,7 @@ Scope {
     RaohanePanelLoader { component: RaohaneControlCenter {} }
     RaohanePanelLoader { component: RaohaneSettings {} }
     RaohanePanelLoader { component: RaohaneWelcome {} }
+    RaohanePanelLoader { component: RaohaneOnboarding {} }
     RaohanePanelLoader { component: RaohaneMediaOverlay {} }
     RaohanePanelLoader { component: RaohaneWallpaperSelector {} }
     RaohanePanelLoader { component: RaohaneDesktopMenu {} }

@@ -59,7 +59,7 @@ Singleton {
     readonly property string notificationsFile: root.join(root.configDirectory, "notifications.json")
 
     readonly property string stateDirectory: root.join(root.stateRoot, "raohane")
-    readonly property string welcomeStateFile: root.join(root.stateDirectory, "welcome-v1.state")
+    readonly property string welcomeStateFile: root.join(root.stateDirectory, "welcome-v2.state")
     readonly property string cacheDirectory: root.join(root.cacheRoot, "raohane")
     readonly property string wallpaperCacheDirectory: root.join(root.cacheDirectory, "wallpapers")
     readonly property string thumbnailDirectory: root.join(root.wallpaperCacheDirectory, "thumbnails")
