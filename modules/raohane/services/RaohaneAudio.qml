@@ -19,12 +19,14 @@ Singleton {
     property string lastError: ""
     property double lastRefreshMs: 0
 
+    property var outputDevices: []
+    property var inputDevices: []
+    property bool devicesRefreshing: false
+
     readonly property int minimumRefreshInterval: 1000
     readonly property int selfEventGuardInterval: 1300
     readonly property var outputStreams: []
     readonly property var inputStreams: []
-    readonly property var outputDevices: []
-    readonly property var inputDevices: []
 
     function clampVolume(value: real): real {
         return Math.max(0, Math.min(1, Number(value) || 0))
@@ -92,6 +94,66 @@ Singleton {
         }
     }
 
+    function cleanStatusLine(rawLine: string): string {
+        return String(rawLine ?? "")
+            .replace(/[│├└─]/g, " ")
+            .trim()
+    }
+
+    function parseDeviceLine(rawLine: string): var {
+        const line = root.cleanStatusLine(rawLine)
+        const match = line.match(/^(\*)?\s*([0-9]+)\.\s+(.+)$/)
+        if (!match)
+            return null
+
+        const rawName = String(match[3] ?? "")
+        const name = rawName.replace(/\s+\[vol:.*$/i, "").trim()
+        if (!name.length)
+            return null
+
+        return {
+            id: Number(match[2]),
+            name: name,
+            active: Boolean(match[1])
+        }
+    }
+
+    function parseStatus(text): void {
+        let section = ""
+        const outputs = []
+        const inputs = []
+
+        for (const rawLine of String(text ?? "").split("\n")) {
+            const line = root.cleanStatusLine(rawLine)
+            if (line.endsWith("Sinks:")) {
+                section = "sinks"
+                continue
+            }
+            if (line.endsWith("Sources:")) {
+                section = "sources"
+                continue
+            }
+            if (line.endsWith("Filters:") || line.endsWith("Streams:") || line === "Video" || line.endsWith("Devices:")) {
+                if (section === "sinks" || section === "sources")
+                    section = ""
+                continue
+            }
+            if (section !== "sinks" && section !== "sources")
+                continue
+
+            const item = root.parseDeviceLine(rawLine)
+            if (!item)
+                continue
+            if (section === "sinks")
+                outputs.push(item)
+            else
+                inputs.push(item)
+        }
+
+        root.outputDevices = outputs
+        root.inputDevices = inputs
+    }
+
     // Keep the optional force flag untyped for older deployed Quickshell builds.
     function refresh(force) {
         if (volumeProbe.running)
@@ -114,6 +176,14 @@ Singleton {
                 + "printf 'SINK_NAME '; wpctl inspect @DEFAULT_SINK@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1; "
                 + "printf 'SOURCE_NAME '; wpctl inspect @DEFAULT_SOURCE@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1"
         ])
+    }
+
+    function refreshDevices(force): void {
+        if (deviceProbe.running)
+            return
+        root.devicesRefreshing = true
+        RaohanePipeWire.suppressEventsFor(root.selfEventGuardInterval)
+        deviceProbe.exec(["wpctl", "status"])
     }
 
     function refreshSoon(): void {
@@ -175,6 +245,7 @@ Singleton {
         if (node?.id !== undefined && Number(node.id) >= 0) {
             Quickshell.execDetached(["wpctl", "set-default", String(node.id)])
             root.refreshSoon()
+            deviceRefreshTimer.restart()
         }
     }
 
@@ -182,6 +253,7 @@ Singleton {
         if (node?.id !== undefined && Number(node.id) >= 0) {
             Quickshell.execDetached(["wpctl", "set-default", String(node.id)])
             root.refreshSoon()
+            deviceRefreshTimer.restart()
         }
     }
 
@@ -201,11 +273,27 @@ Singleton {
         }
     }
 
+    Process {
+        id: deviceProbe
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        stdout: StdioCollector {
+            onStreamFinished: root.parseStatus(text)
+        }
+        onExited: root.devicesRefreshing = false
+    }
+
     Timer {
         id: refreshTimer
         interval: 180
         repeat: false
         onTriggered: root.refresh(true)
+    }
+
+    Timer {
+        id: deviceRefreshTimer
+        interval: 320
+        repeat: false
+        onTriggered: root.refreshDevices(true)
     }
 
     // A slow fallback only repairs missed events; normal updates are event driven.
@@ -216,5 +304,8 @@ Singleton {
         onTriggered: root.refresh(true)
     }
 
-    Component.onCompleted: root.refresh(true)
+    Component.onCompleted: {
+        root.refresh(true)
+        root.refreshDevices(true)
+    }
 }
