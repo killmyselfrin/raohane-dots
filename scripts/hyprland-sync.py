@@ -15,7 +15,6 @@ import pathlib
 import re
 import shutil
 import subprocess
-import sys
 from typing import Any
 
 CONFIG_HOME = pathlib.Path(os.environ.get("XDG_CONFIG_HOME", pathlib.Path.home() / ".config"))
@@ -28,6 +27,10 @@ LUA_START = "-- Raohane managed user preferences"
 LUA_END = "-- End Raohane managed user preferences"
 LEGACY_START = "# Raohane managed user preferences"
 LEGACY_END = "# End Raohane managed user preferences"
+OLD_LUA_START = "-- Raohane managed core shortcuts"
+OLD_LUA_END = "-- End Raohane managed core shortcuts"
+OLD_LEGACY_START = "# Raohane managed core shortcuts"
+OLD_LEGACY_END = "# End Raohane managed core shortcuts"
 
 DEFAULT_KEYBINDS: dict[str, str] = {
     "closeWindow": "ALT + Q",
@@ -141,11 +144,15 @@ def legacy_parts(combo: str) -> tuple[str, str] | None:
     return modifiers, key
 
 
-def lua_unbind_lines(config: dict[str, str]) -> list[str]:
+def all_managed_combos(config: dict[str, str]) -> list[str]:
     combos = set(DEFAULT_KEYBINDS.values())
     combos.update(value for key, value in config.items() if key in DEFAULT_KEYBINDS and value)
     combos.update(config.get(f"app{index}Keys", "") for index in range(1, 5))
-    return [f"hl.unbind({lua_string(combo)})" for combo in sorted(combo for combo in combos if combo)]
+    return sorted(combo for combo in combos if combo)
+
+
+def lua_unbind_lines(config: dict[str, str]) -> list[str]:
+    return [f"hl.unbind({lua_string(combo)})" for combo in all_managed_combos(config)]
 
 
 def lua_bind_lines(config: dict[str, str]) -> list[str]:
@@ -193,25 +200,28 @@ def lua_animation_lines(config: dict[str, Any]) -> list[str]:
     def ds(ms: int) -> str:
         return f"{max(0.5, ms / 100.0):.2f}"
 
+    window_ms = int(config["windowMs"])
+    workspace_ms = int(config["workspaceMs"])
+    layer_ms = int(config["layerMs"])
+    fade_ms = int(config["fadeMs"])
+    distance = int(config["workspaceDistance"])
+
     lines.extend(
         [
             'hl.curve("raohaneEase", { type = "bezier", points = { {0.22, 1.0}, {0.36, 1.0} } })',
             'hl.curve("raohaneFade", { type = "bezier", points = { {0.20, 0.0}, {0.0, 1.0} } })',
-            f'hl.animation({{ leaf = "windows", enabled = true, speed = {ds(config["windowMs"])}, bezier = "raohaneEase", style = "popin 96%" }})',
-            f'hl.animation({{ leaf = "layers", enabled = true, speed = {ds(config["layerMs"])}, bezier = "raohaneEase", style = "popin 98%" }})',
-            f'hl.animation({{ leaf = "workspaces", enabled = true, speed = {ds(config["workspaceMs"])}, bezier = "raohaneEase", style = "slidefade {config["workspaceDistance"]}%" }})',
-            f'hl.animation({{ leaf = "fade", enabled = true, speed = {ds(config["fadeMs"])}, bezier = "raohaneFade" }})',
+            f'hl.animation({{ leaf = "windows", enabled = true, speed = {ds(window_ms)}, bezier = "raohaneEase", style = "popin 96%" }})',
+            f'hl.animation({{ leaf = "layers", enabled = true, speed = {ds(layer_ms)}, bezier = "raohaneEase", style = "popin 98%" }})',
+            f'hl.animation({{ leaf = "workspaces", enabled = true, speed = {ds(workspace_ms)}, bezier = "raohaneEase", style = "slidefade {distance}%" }})',
+            f'hl.animation({{ leaf = "fade", enabled = true, speed = {ds(fade_ms)}, bezier = "raohaneFade" }})',
         ]
     )
     return lines
 
 
 def legacy_unbind_lines(config: dict[str, str]) -> list[str]:
-    combos = set(DEFAULT_KEYBINDS.values())
-    combos.update(value for key, value in config.items() if key in DEFAULT_KEYBINDS and value)
-    combos.update(config.get(f"app{index}Keys", "") for index in range(1, 5))
     lines: list[str] = []
-    for combo in sorted(combo for combo in combos if combo):
+    for combo in all_managed_combos(config):
         parts = legacy_parts(combo)
         if parts:
             modifiers, key = parts
@@ -259,36 +269,56 @@ def legacy_animation_lines(config: dict[str, Any]) -> list[str]:
     def ds(ms: int) -> str:
         return f"{max(0.5, ms / 100.0):.2f}"
 
+    window_ms = int(config["windowMs"])
+    workspace_ms = int(config["workspaceMs"])
+    layer_ms = int(config["layerMs"])
+    fade_ms = int(config["fadeMs"])
+    distance = int(config["workspaceDistance"])
+
     return [
         "animations {",
         "    enabled = true",
         "    bezier = raohaneEase, 0.22, 1.0, 0.36, 1.0",
         "    bezier = raohaneFade, 0.20, 0.0, 0.0, 1.0",
-        f'    animation = windows, 1, {ds(config["windowMs"])}, raohaneEase, popin 96%',
-        f'    animation = layers, 1, {ds(config["layerMs"])}, raohaneEase, popin 98%',
-        f'    animation = workspaces, 1, {ds(config["workspaceMs"])}, raohaneEase, slidefade {config["workspaceDistance"]}%',
-        f'    animation = fade, 1, {ds(config["fadeMs"])}, raohaneFade',
+        f"    animation = windows, 1, {ds(window_ms)}, raohaneEase, popin 96%",
+        f"    animation = layers, 1, {ds(layer_ms)}, raohaneEase, popin 98%",
+        f"    animation = workspaces, 1, {ds(workspace_ms)}, raohaneEase, slidefade {distance}%",
+        f"    animation = fade, 1, {ds(fade_ms)}, raohaneFade",
         "}",
     ]
 
 
-def replace_block(path: pathlib.Path, start: str, end: str, block_lines: list[str]) -> None:
+def strip_marked_blocks(text: str, markers: list[tuple[str, str]]) -> str:
+    output: list[str] = []
+    active_end: str | None = None
+    starts = {start: end for start, end in markers}
+    for line in text.splitlines():
+        stripped = line.strip()
+        if active_end is None and stripped in starts:
+            active_end = starts[stripped]
+            continue
+        if active_end is not None:
+            if stripped == active_end:
+                active_end = None
+            continue
+        output.append(line)
+    return "\n".join(output).rstrip()
+
+
+def replace_block(
+    path: pathlib.Path,
+    start: str,
+    end: str,
+    old_start: str,
+    old_end: str,
+    block_lines: list[str],
+) -> None:
     if not path.exists():
         return
     text = path.read_text(encoding="utf-8")
-    output: list[str] = []
-    skipping = False
-    for line in text.splitlines():
-        if line.strip() == start:
-            skipping = True
-            continue
-        if skipping:
-            if line.strip() == end:
-                skipping = False
-            continue
-        output.append(line)
+    clean = strip_marked_blocks(text, [(start, end), (old_start, old_end)])
     block = "\n".join([start, *block_lines, end])
-    content = "\n".join(output).rstrip() + "\n\n" + block + "\n"
+    content = clean + "\n\n" + block + "\n"
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(content, encoding="utf-8")
     temporary.replace(path)
@@ -307,7 +337,7 @@ def sync() -> pathlib.Path | None:
             "",
             *lua_animation_lines(animations),
         ]
-        replace_block(LUA_SNIPPET, LUA_START, LUA_END, lines)
+        replace_block(LUA_SNIPPET, LUA_START, LUA_END, OLD_LUA_START, OLD_LUA_END, lines)
         return LUA_SNIPPET
 
     if LEGACY_SNIPPET.exists():
@@ -318,7 +348,14 @@ def sync() -> pathlib.Path | None:
             "",
             *legacy_animation_lines(animations),
         ]
-        replace_block(LEGACY_SNIPPET, LEGACY_START, LEGACY_END, lines)
+        replace_block(
+            LEGACY_SNIPPET,
+            LEGACY_START,
+            LEGACY_END,
+            OLD_LEGACY_START,
+            OLD_LEGACY_END,
+            lines,
+        )
         return LEGACY_SNIPPET
 
     return None
