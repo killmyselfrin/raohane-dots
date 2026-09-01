@@ -11,6 +11,10 @@ Item {
     id: root
 
     function openPage(page: string): void {
+        if (page === "Displays") {
+            RaohaneState.setPrimaryOpen("displaySettings", true)
+            return
+        }
         RaohaneState.settingsPage = page
     }
 
@@ -178,6 +182,15 @@ Item {
                 title: qsTr("Appearance")
                 detail: qsTr("Screen framing, rounding and interaction chrome")
                 page: "Appearance"
+            }
+
+            DeckCard {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                icon: "monitor"
+                title: qsTr("Displays")
+                detail: qsTr("Resolution, refresh rate, scale, rotation and VRR")
+                page: "Displays"
             }
 
             DeckCard {
