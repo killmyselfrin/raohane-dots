@@ -13,10 +13,15 @@ Item {
 
     property var screen
     property bool gameModeActive: false
+    property string pickerMode: ""
     readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(screen)
     readonly property real brightnessValue: RaohaneDisplay.compositeValue(screen)
 
     implicitHeight: content.implicitHeight
+
+    function togglePicker(mode: string): void {
+        root.pickerMode = root.pickerMode === mode ? "" : mode
+    }
 
     ColumnLayout {
         id: content
@@ -39,12 +44,10 @@ Item {
                 title: qsTr("Network")
                 subtitle: RaohaneNetwork.networkName || qsTr("Disconnected")
                 active: RaohaneNetwork.wifiStatus !== "disabled"
-                onPrimary: RaohaneNetwork.toggleWifi()
-                onSecondary: {
-                    const command = RaohaneNetwork.ethernet ? RaohaneConfig.networkEthernetCommand : RaohaneConfig.networkCommand
-                    if (command && command.length > 0)
-                        Quickshell.execDetached(["bash", "-c", command])
-                }
+                showMenu: true
+                menuOpen: root.pickerMode === "wifi"
+                onPrimary: root.togglePicker("wifi")
+                onSecondary: RaohaneNetwork.toggleWifi()
             }
 
             QuickTile {
@@ -135,8 +138,11 @@ Item {
                 title: qsTr("Volume")
                 displayText: Math.round(RaohaneAudio.volume * 100) + "%"
                 liveValue: RaohaneAudio.volume
+                pickerEnabled: true
+                pickerActive: root.pickerMode === "output"
                 onValueChangedByUser: value => RaohaneAudio.setVolume(value)
                 onIconTriggered: RaohaneAudio.toggleMute()
+                onPickerTriggered: root.togglePicker("output")
             }
 
             ControlSlider {
@@ -146,9 +152,19 @@ Item {
                 title: qsTr("Microphone")
                 displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
                 liveValue: RaohaneAudio.microphoneVolume
+                pickerEnabled: true
+                pickerActive: root.pickerMode === "input"
                 onValueChangedByUser: value => RaohaneAudio.setMicrophoneVolume(value)
                 onIconTriggered: RaohaneAudio.toggleMicrophoneMute()
+                onPickerTriggered: root.togglePicker("input")
             }
+        }
+
+        RaohaneDevicePicker {
+            Layout.fillWidth: true
+            Layout.preferredHeight: implicitHeight
+            mode: root.pickerMode
+            onCloseRequested: root.pickerMode = ""
         }
     }
 
@@ -189,20 +205,24 @@ Item {
         required property string icon
         required property string title
         property string subtitle: ""
+        property bool showMenu: false
+        property bool menuOpen: false
         signal primary()
         signal secondary()
 
         Layout.preferredHeight: 58
         surfaceRadius: 14
         showSheen: false
-        transparentIdle: !tile.active
+        transparentIdle: !tile.active && !tile.menuOpen
         hovered: pointer.containsMouse || activeFocus
         pressed: pointer.pressed
         interactive: true
         hoverScale: RaohaneMotion.subtleHoverScale
         pressedScale: RaohaneMotion.softPressScale
         activeFocusOnTab: true
-        border.color: tile.active ? RaohaneTheme.accentBorder
+        feedback: tile.showMenu ? "navigate" : "tap"
+        border.color: tile.menuOpen ? RaohaneTheme.accentBorder
+            : tile.active ? RaohaneTheme.accentBorder
             : tile.hovered ? RaohaneTheme.borderStrong
             : RaohaneTheme.border
 
@@ -224,7 +244,7 @@ Item {
                     fill: tile.active ? 1 : tile.hovered ? 0.35 : 0
                     symbolWeight: tile.active ? 560 : tile.hovered ? 500 : 430
                     grade: tile.active ? 40 : tile.hovered ? 20 : 0
-                    color: tile.active || tile.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    color: tile.active || tile.hovered || tile.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     scale: pointer.pressed ? 0.92 : 1
 
                     Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
@@ -246,6 +266,17 @@ Item {
 
                     Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                     Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+                }
+
+                RaohaneIcon {
+                    visible: tile.showMenu
+                    text: "expand_more"
+                    iconSize: 12
+                    color: tile.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    rotation: tile.menuOpen ? 180 : 0
+                    Behavior on rotation {
+                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                    }
                 }
             }
 
@@ -297,11 +328,15 @@ Item {
         required property string title
         property string displayText: ""
         property real liveValue: 0
+        property bool pickerEnabled: false
+        property bool pickerActive: false
         signal valueChangedByUser(real value)
         signal iconTriggered()
+        signal pickerTriggered()
 
         readonly property real clampedLiveValue: Math.max(0, Math.min(1, Number(liveValue) || 0))
         readonly property bool hovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
+            || (control.pickerEnabled && pickerButton.hovered)
 
         implicitHeight: 38
 
@@ -314,19 +349,21 @@ Item {
                 buttonSize: 30
                 iconSize: 16
                 icon: control.icon
-                emphasized: control.hovered
-                transparentIdle: !control.hovered
+                emphasized: control.hovered && !control.pickerActive
+                transparentIdle: !control.hovered || control.pickerActive
                 showSheen: false
                 onClicked: control.iconTriggered()
             }
 
             Text {
-                Layout.preferredWidth: 74
+                Layout.preferredWidth: 68
                 text: control.title
-                color: RaohaneTheme.textMuted
+                color: control.pickerActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 font.pixelSize: 8
                 font.weight: Font.Medium
                 elide: Text.ElideRight
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
 
             RaohaneSlider {
@@ -342,7 +379,7 @@ Item {
             }
 
             Text {
-                Layout.preferredWidth: 34
+                Layout.preferredWidth: 31
                 horizontalAlignment: Text.AlignRight
                 text: control.displayText
                 color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -350,6 +387,25 @@ Item {
                 font.weight: Font.DemiBold
 
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            }
+
+            RaohaneIconButton {
+                id: pickerButton
+                visible: control.pickerEnabled
+                Layout.preferredWidth: control.pickerEnabled ? 24 : 0
+                Layout.preferredHeight: 24
+                buttonSize: 24
+                iconSize: 12
+                icon: "expand_more"
+                emphasized: control.pickerActive
+                transparentIdle: !control.pickerActive
+                showSheen: false
+                rotation: control.pickerActive ? 180 : 0
+                onClicked: control.pickerTriggered()
+
+                Behavior on rotation {
+                    NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                }
             }
         }
     }
