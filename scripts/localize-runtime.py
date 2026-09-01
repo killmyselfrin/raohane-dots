@@ -15,6 +15,7 @@ import sys
 from urllib.parse import unquote, urlparse
 
 CALL = re.compile(r"\bqsTr\(")
+SKIPPED_OUTSIDE_RUNTIME = 4
 
 
 def normalize_path(value: str) -> pathlib.Path:
@@ -51,7 +52,7 @@ def main() -> int:
     expected = expected_runtime()
     if runtime != expected:
         print(f"[Raohane] Runtime localization skipped outside installed runtime: {runtime}")
-        return 0
+        return SKIPPED_OUTSIDE_RUNTIME
 
     module = runtime / "modules" / "raohane"
     if not module.is_dir() or not (runtime / "shell.qml").is_file():

@@ -13,6 +13,7 @@ Singleton {
     property string language: "en_US"
     property bool languageChosen: false
     property bool pickerOpen: false
+    property bool restartAfterLocalization: false
     property int revision: 0
     property var english: ({})
     property var russian: ({})
@@ -56,12 +57,19 @@ Singleton {
 
     function setLanguage(value: string): void {
         const code = root.normalizeLanguage(value)
+        if (root.languageChosen && root.language === code) {
+            root.pickerOpen = false
+            return
+        }
         root.language = code
         root.languageChosen = true
         root.pickerOpen = false
+        root.restartAfterLocalization = true
         languageFile.setText(code + "\n")
         root.revision++
         Qt.uiLanguage = code
+        if (!runtimeLocalizer.running)
+            runtimeLocalizer.running = true
     }
 
     function openPicker(): void {
@@ -132,8 +140,19 @@ Singleton {
         id: runtimeLocalizer
         command: ["python3", Quickshell.shellPath("scripts/localize-runtime.py"), Quickshell.shellPath(".")]
         onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0)
+            if (exitCode === 4) {
+                root.restartAfterLocalization = false
+                return
+            }
+            if (exitCode !== 0) {
+                root.restartAfterLocalization = false
                 console.warn("[RaohaneI18n] Runtime localization preparation failed")
+                return
+            }
+            if (root.restartAfterLocalization) {
+                root.restartAfterLocalization = false
+                Quickshell.execDetached(["systemctl", "--user", "restart", "raohane.service"])
+            }
         }
     }
 
