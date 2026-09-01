@@ -1,0 +1,39 @@
+name: Localization audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/**'
+      - 'panelFamilies/**'
+      - 'shell.qml'
+      - 'translations/en_US.json'
+      - 'translations/ru_RU.json'
+      - 'scripts/localization-boundary-audit.py'
+      - '.github/workflows/localization-audit.yml'
+  pull_request:
+    paths:
+      - 'modules/**'
+      - 'panelFamilies/**'
+      - 'shell.qml'
+      - 'translations/en_US.json'
+      - 'translations/ru_RU.json'
+      - 'scripts/localization-boundary-audit.py'
+      - '.github/workflows/localization-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  en-ru-runtime-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Validate localization audit syntax
+        run: python3 -m py_compile scripts/localization-boundary-audit.py
+
+      - name: Require EN and RU coverage
+        run: python3 scripts/localization-boundary-audit.py
