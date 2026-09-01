@@ -2,9 +2,8 @@
 """Validate Russian coverage for every user-facing Raohane runtime translation call.
 
 English source literals in QML are canonical. Russian resolution is layered:
-legacy translations/ru_RU.json first, then the Raohane-owned runtime overlay.
-The overlay lets the standalone shell evolve without pretending the inherited
-catalog is the product's source-of-truth.
+legacy translations/ru_RU.json first, then all Raohane-owned runtime catalog
+fragments under translations/raohane/.
 """
 
 from __future__ import annotations
@@ -68,7 +67,19 @@ def main() -> int:
             locations.setdefault(key, set()).add(rel)
 
     russian = load_json(CATALOG_DIR / "ru_RU.json")
-    runtime_overlay = load_json(CATALOG_DIR / "raohane" / "ru_RU.json")
+    runtime_overlay: dict[str, str] = {}
+    fragment_paths = sorted((CATALOG_DIR / "raohane").glob("ru_RU*.json"))
+    if not fragment_paths:
+        raise SystemExit("No Raohane Russian runtime catalogs found")
+    for path in fragment_paths:
+        fragment = load_json(path)
+        duplicates = sorted(set(runtime_overlay).intersection(fragment))
+        if duplicates:
+            raise SystemExit(
+                f"Duplicate Raohane Russian keys in {path.relative_to(ROOT)}: "
+                + ", ".join(duplicates[:20])
+            )
+        runtime_overlay.update(fragment)
     russian.update(runtime_overlay)
 
     missing = sorted(key for key in locations if key not in russian)
@@ -81,6 +92,7 @@ def main() -> int:
     )
 
     print(f"Raohane runtime localization keys: {len(locations)}")
+    print(f"Russian runtime catalog fragments: {len(fragment_paths)}")
     print(f"Russian runtime overlay keys: {len(runtime_overlay)}")
     print(f"Missing Russian keys: {len(missing)}")
     print(f"Empty Russian values: {len(empty)}")
