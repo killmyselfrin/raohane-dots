@@ -17,10 +17,17 @@ Singleton {
     property bool refreshQueued: false
     property double lastRefreshMs: 0
 
+    property var availableNetworks: []
+    property var savedNetworkNames: []
+    property bool scanning: false
+    property string connectingSsid: ""
+    property string lastActionError: ""
+    property bool scanWhenEnabled: false
+
     readonly property int minimumRefreshInterval: 1400
     readonly property string wifiStatus: !wifiEnabled
         ? "disabled"
-        : connecting
+        : connecting || connectingSsid.length > 0
             ? "connecting"
             : wifiConnected
                 ? "connected"
@@ -29,20 +36,31 @@ Singleton {
     readonly property string materialSymbol: ethernet
         ? "lan"
         : wifiStatus === "connected"
-            ? (networkStrength > 83 ? "signal_wifi_4_bar"
-                : networkStrength > 67 ? "network_wifi"
-                : networkStrength > 50 ? "network_wifi_3_bar"
-                : networkStrength > 33 ? "network_wifi_2_bar"
-                : networkStrength > 17 ? "network_wifi_1_bar"
-                : "signal_wifi_0_bar")
+            ? root.signalIcon(networkStrength)
             : wifiStatus === "connecting"
                 ? "signal_wifi_statusbar_not_connected"
                 : wifiStatus === "disabled"
                     ? "signal_wifi_off"
                     : "wifi_find"
 
+    function signalIcon(strength): string {
+        const value = Number(strength) || 0
+        return value > 83 ? "signal_wifi_4_bar"
+            : value > 67 ? "network_wifi"
+            : value > 50 ? "network_wifi_3_bar"
+            : value > 33 ? "network_wifi_2_bar"
+            : value > 17 ? "network_wifi_1_bar"
+            : "signal_wifi_0_bar"
+    }
+
     function unescapeNmcli(value): string {
-        return String(value ?? "").replace(/\\:/g, ":")
+        return String(value ?? "")
+            .replace(/\\:/g, ":")
+            .replace(/\\\\/g, "\\")
+    }
+
+    function isSaved(ssid: string): bool {
+        return root.savedNetworkNames.indexOf(String(ssid ?? "")) >= 0
     }
 
     function probesRunning(): bool {
@@ -73,6 +91,29 @@ Singleton {
         wifiProbe.exec(["nmcli", "-t", "-f", "ACTIVE,SIGNAL,SSID", "device", "wifi"])
     }
 
+    function scanNetworks(): void {
+        if (!root.wifiEnabled || networkScan.running)
+            return
+        root.lastActionError = ""
+        root.scanning = true
+        savedProbe.exec(["nmcli", "-t", "-f", "NAME,TYPE", "connection", "show"])
+        networkScan.exec(["nmcli", "-t", "-f", "IN-USE,SIGNAL,SECURITY,SSID", "device", "wifi", "list", "--rescan", "yes"])
+    }
+
+    function connectNetwork(ssid: string, password: string): void {
+        const cleanSsid = String(ssid ?? "").trim()
+        if (!cleanSsid.length || networkConnect.running)
+            return
+
+        root.lastActionError = ""
+        root.connectingSsid = cleanSsid
+        const command = ["nmcli", "--wait", "15", "device", "wifi", "connect", cleanSsid]
+        const secret = String(password ?? "")
+        if (secret.length > 0)
+            command.push("password", secret)
+        networkConnect.exec(command)
+    }
+
     function finishProbeCycle(): void {
         if (root.probesRunning() || !root.refreshQueued)
             return
@@ -81,6 +122,7 @@ Singleton {
     }
 
     function setWifiEnabled(enabled: bool): void {
+        root.scanWhenEnabled = enabled
         wifiToggle.exec(["nmcli", "radio", "wifi", enabled ? "on" : "off"])
     }
 
@@ -95,7 +137,19 @@ Singleton {
         environment: ({ LANG: "C", LC_ALL: "C" })
 
         stdout: StdioCollector {
-            onStreamFinished: root.wifiEnabled = text.trim() === "enabled"
+            onStreamFinished: {
+                const enabled = text.trim() === "enabled"
+                const becameEnabled = enabled && !root.wifiEnabled
+                root.wifiEnabled = enabled
+
+                if (!enabled) {
+                    root.scanWhenEnabled = false
+                    root.availableNetworks = []
+                } else if (becameEnabled || root.scanWhenEnabled) {
+                    root.scanWhenEnabled = false
+                    scanDelay.restart()
+                }
+            }
         }
         onExited: root.finishProbeCycle()
     }
@@ -173,6 +227,86 @@ Singleton {
     }
 
     Process {
+        id: savedProbe
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const names = []
+                for (const line of text.trim().split("\n")) {
+                    if (!line.length)
+                        continue
+                    const parts = line.split(":")
+                    const type = parts[parts.length - 1] ?? ""
+                    if (type !== "802-11-wireless" && type !== "wifi")
+                        continue
+                    const name = root.unescapeNmcli(parts.slice(0, -1).join(":"))
+                    if (name.length && names.indexOf(name) < 0)
+                        names.push(name)
+                }
+                root.savedNetworkNames = names
+            }
+        }
+    }
+
+    Process {
+        id: networkScan
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const bySsid = ({})
+                for (const line of text.trim().split("\n")) {
+                    if (!line.length)
+                        continue
+                    const parts = line.split(":")
+                    if (parts.length < 4)
+                        continue
+                    const active = (parts[0] ?? "") === "*"
+                    const strength = Math.max(0, Math.min(100, Number(parts[1] ?? 0) || 0))
+                    const security = String(parts[2] ?? "").trim()
+                    const ssid = root.unescapeNmcli(parts.slice(3).join(":"))
+                    if (!ssid.length)
+                        continue
+                    const open = security.length === 0 || security === "--"
+                    const candidate = {
+                        ssid: ssid,
+                        strength: strength,
+                        security: security,
+                        secure: !open,
+                        active: active,
+                        saved: root.isSaved(ssid)
+                    }
+                    if (!bySsid[ssid] || active || strength > Number(bySsid[ssid].strength ?? 0))
+                        bySsid[ssid] = candidate
+                }
+
+                const networks = Object.keys(bySsid).map(key => bySsid[key])
+                networks.sort((left, right) => {
+                    if (left.active !== right.active)
+                        return left.active ? -1 : 1
+                    return Number(right.strength) - Number(left.strength)
+                })
+                root.availableNetworks = networks
+            }
+        }
+        onExited: {
+            root.scanning = false
+            root.refresh(true)
+        }
+    }
+
+    Process {
+        id: networkConnect
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0)
+                root.lastActionError = "Connection failed"
+            root.connectingSsid = ""
+            root.refresh(true)
+            scanDelay.restart()
+        }
+    }
+
+    Process {
         id: wifiToggle
         environment: ({ LANG: "C", LC_ALL: "C" })
         onExited: root.refresh(true)
@@ -201,6 +335,13 @@ Singleton {
         interval: 450
         repeat: false
         onTriggered: root.refresh()
+    }
+
+    Timer {
+        id: scanDelay
+        interval: 700
+        repeat: false
+        onTriggered: root.scanNetworks()
     }
 
     Timer {

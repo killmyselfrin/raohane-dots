@@ -275,12 +275,14 @@ Scope {
                 }
 
                 RaohaneNotificationCenter {
+                    visible: !quickControls.pickerOpen
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.minimumHeight: 150
+                    Layout.minimumHeight: quickControls.pickerOpen ? 0 : 150
                 }
 
                 Rectangle {
+                    visible: !quickControls.pickerOpen
                     Layout.fillWidth: true
                     Layout.preferredHeight: 1
                     Layout.topMargin: 8
