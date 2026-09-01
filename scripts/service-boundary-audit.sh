@@ -18,6 +18,7 @@ SESSION="$MODULE/RaohaneSession.qml"
 PROCESSES="$MODULE/RaohaneProcesses.qml"
 TASK_MANAGER=modules/raohane/RaohaneTaskManager.qml
 AUDIO="$MODULE/RaohaneAudio.qml"
+PIPEWIRE="$MODULE/RaohanePipeWire.qml"
 EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
 CONTROL_CENTER=modules/raohane/RaohaneControlCenter.qml
 QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
@@ -29,7 +30,7 @@ REQUIRED=install/arch/required.txt
 
 for path in \
   "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" \
-  "$SEARCH" "$SESSION" "$PROCESSES" "$TASK_MANAGER" "$AUDIO" "$EASY_EFFECTS" \
+  "$SEARCH" "$SESSION" "$PROCESSES" "$TASK_MANAGER" "$AUDIO" "$PIPEWIRE" "$EASY_EFFECTS" \
   "$CONTROL_CENTER" "$QUICK_CONTROLS" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" \
   "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
@@ -56,6 +57,7 @@ require_service RaohaneMedia 'Quickshell\.Services\.Mpris'
 require_service RaohaneBluetooth '\bbluetoothctl\b'
 require_service RaohaneAudio '\bwpctl\b'
 require_service RaohaneNetwork '\bnmcli\b'
+require_service RaohanePipeWire '\bpw-mon\b'
 require_service RaohaneDisplay 'brightnessctl|ddcutil|hyprsunset'
 require_service RaohaneNotifications 'Quickshell\.Services\.Notifications'
 require_service RaohaneWallpapers 'Qt\.labs\.folderlistmodel'
@@ -122,18 +124,23 @@ if rg -n 'command -v (btop|htop)|exec (btop|htop|top)' "$SESSION"; then
   fail 'Session still contains the retired terminal Task Manager fallback'
 fi
 
-# Audio must react to PipeWire changes without repeatedly spawning wpctl/sed
-# subprocesses throughout the desktop session.
-rg -Fq 'command: ["pw-mon", "--color=never"]' "$AUDIO" \
-  || fail 'audio service lost its PipeWire event monitor'
-rg -q 'id:[[:space:]]*audioGraphDebounce' "$AUDIO" \
-  || fail 'audio service lost graph-change debounce'
-rg -q 'id:[[:space:]]*audioMonitorRestart' "$AUDIO" \
-  || fail 'audio service lost PipeWire monitor restart handling'
-rg -q 'interval:[[:space:]]*15000' "$AUDIO" \
+# Audio and privacy share one PipeWire registry watcher. This prevents two
+# permanent pw-mon clients and prevents their snapshot probes from waking one
+# another during graph churn.
+rg -Fq 'command: ["pw-mon", "--color=never"]' "$PIPEWIRE" \
+  || fail 'shared PipeWire service lost its registry event monitor'
+rg -q 'id:[[:space:]]*graphDebounce' "$PIPEWIRE" \
+  || fail 'shared PipeWire service lost graph-change debounce'
+rg -q 'id:[[:space:]]*monitorRestart' "$PIPEWIRE" \
+  || fail 'shared PipeWire service lost monitor restart handling'
+rg -q 'target:[[:space:]]*RaohanePipeWire' "$AUDIO" \
+  || fail 'audio service no longer consumes shared PipeWire events'
+rg -q 'RaohanePipeWire\.suppressEventsFor' "$AUDIO" \
+  || fail 'audio service no longer suppresses self-generated graph churn'
+rg -q 'interval:[[:space:]]*30000' "$AUDIO" \
   || fail 'audio service lost its slow health fallback'
-if rg -n 'interval:[[:space:]]*750' "$AUDIO"; then
-  fail 'audio service regressed to subsecond wpctl polling'
+if rg -n '"pw-mon"|interval:[[:space:]]*750' "$AUDIO"; then
+  fail 'audio service regressed to a duplicate watcher or subsecond wpctl polling'
 fi
 rg -q '^pipewire$' "$REQUIRED" \
   || fail 'audio event monitor requires pipewire in the required manifest'
@@ -294,4 +301,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, on-demand Task Manager, event-driven audio, on-demand EasyEffects/Game Mode, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, on-demand Task Manager, shared event-driven PipeWire monitoring, on-demand EasyEffects/Game Mode, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
