@@ -6,7 +6,7 @@ import Quickshell.Io
 
 import qs.modules.raohane.config
 
-QtObject {
+Singleton {
     id: root
 
     property bool ready: false
