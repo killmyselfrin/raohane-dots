@@ -50,19 +50,19 @@ Singleton {
 
     SoundEffect {
         id: tapSound
-        source: RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-tap.wav"))
+        source: root.ready ? RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-tap.wav")) : ""
         volume: root.volume
     }
 
     SoundEffect {
         id: navigateSound
-        source: RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-navigate.wav"))
+        source: root.ready ? RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-navigate.wav")) : ""
         volume: Math.max(0, root.volume * 0.84)
     }
 
     SoundEffect {
         id: confirmSound
-        source: RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-confirm.wav"))
+        source: root.ready ? RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-confirm.wav")) : ""
         volume: Math.max(0, root.volume * 0.92)
     }
 
