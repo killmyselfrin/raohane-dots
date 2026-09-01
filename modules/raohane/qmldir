@@ -30,6 +30,7 @@ RaohaneSysTray 1.0 RaohaneSysTray.qml
 RaohaneContextIsland 1.0 RaohaneContextIsland.qml
 RaohaneControlCenter 1.0 RaohaneControlCenter.qml
 RaohaneQuickControls 1.0 RaohaneQuickControls.qml
+RaohaneDevicePicker 1.0 RaohaneDevicePicker.qml
 RaohaneNotificationCard 1.0 RaohaneNotificationCard.qml
 RaohaneNotificationCenter 1.0 RaohaneNotificationCenter.qml
 RaohaneSettings 1.0 RaohaneSettings.qml
