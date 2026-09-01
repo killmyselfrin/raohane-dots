@@ -2,6 +2,7 @@ module qs.modules.raohane
 singleton RaohaneTheme 1.0 RaohaneTheme.qml
 singleton RaohaneThemeLibrary 1.0 RaohaneThemeLibrary.qml
 singleton RaohaneMotion 1.0 RaohaneMotion.qml
+singleton RaohaneI18n 1.0 RaohaneI18n.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneState 1.0 RaohaneState.qml
 singleton RaohaneOnboardingState 1.0 RaohaneOnboardingState.qml
@@ -34,6 +35,7 @@ RaohaneNotificationCenter 1.0 RaohaneNotificationCenter.qml
 RaohaneSettings 1.0 RaohaneSettings.qml
 RaohaneDisplaySettings 1.0 RaohaneDisplaySettings.qml
 RaohaneWelcome 1.0 RaohaneWelcome.qml
+RaohaneLanguageWelcome 1.0 RaohaneLanguageWelcome.qml
 RaohaneOnboarding 1.0 RaohaneOnboarding.qml
 RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
 RaohaneSettingsContent 1.0 RaohaneSettingsContent.qml

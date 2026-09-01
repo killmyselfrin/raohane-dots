@@ -141,13 +141,13 @@ Scope {
                 id: settingsSearch
                 visible: !workspace.preferencesOpen
                 z: 50
-                width: Math.min(300, Math.max(230, workspace.width * 0.28))
+                width: Math.min(300, Math.max(220, workspace.width * 0.27))
                 height: 34
                 anchors {
                     top: parent.top
                     right: parent.right
                     topMargin: 19
-                    rightMargin: 130
+                    rightMargin: 167
                 }
             }
 
@@ -158,7 +158,7 @@ Scope {
                     top: parent.top
                     right: parent.right
                     topMargin: 20
-                    rightMargin: 90
+                    rightMargin: 127
                 }
                 buttonSize: 30
                 iconSize: 15
@@ -175,7 +175,7 @@ Scope {
                     top: parent.top
                     right: parent.right
                     topMargin: 20
-                    rightMargin: 53
+                    rightMargin: 90
                 }
                 buttonSize: 30
                 iconSize: 15
@@ -183,6 +183,23 @@ Scope {
                 transparentIdle: true
                 showSheen: false
                 onClicked: panelWindow.openPreferences("motion")
+            }
+
+            RaohaneIconButton {
+                visible: !workspace.preferencesOpen
+                z: 50
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                    topMargin: 20
+                    rightMargin: 53
+                }
+                buttonSize: 30
+                iconSize: 15
+                icon: "language"
+                transparentIdle: true
+                showSheen: false
+                onClicked: RaohaneI18n.openPicker()
             }
 
             RaohaneIconButton {
@@ -236,6 +253,10 @@ Scope {
                 }
                 if (requested === "motion" || requested === "animations" || requested === "animation") {
                     panelWindow.openPreferences("motion")
+                    return
+                }
+                if (requested === "language" || requested === "locale") {
+                    RaohaneI18n.openPicker()
                     return
                 }
                 workspace.preferencesOpen = false
