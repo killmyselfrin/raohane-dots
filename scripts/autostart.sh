@@ -4,6 +4,9 @@ set -euo pipefail
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 CONFIG_DIR="$CONFIG_HOME/raohane"
 CONFIG_FILE="$CONFIG_DIR/autostart.conf"
+HYPR_DIR="$CONFIG_HOME/hypr"
+HYPR_LUA_SNIPPET="$HYPR_DIR/raohane.lua"
+HYPR_LEGACY_SNIPPET="$HYPR_DIR/raohane.conf"
 RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 SESSION_KEY="${HYPRLAND_INSTANCE_SIGNATURE:-${WAYLAND_DISPLAY:-session}}"
 SESSION_KEY="${SESSION_KEY//[^A-Za-z0-9_.-]/_}"
@@ -24,12 +27,87 @@ EOF
   fi
 }
 
+persist_managed_keybinds() {
+  command -v python3 >/dev/null 2>&1 || return 0
+
+  if [[ -f "$HYPR_LUA_SNIPPET" ]]; then
+    python3 - "$HYPR_LUA_SNIPPET" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+start = "-- Raohane managed core shortcuts"
+end = "-- End Raohane managed core shortcuts"
+block = """-- Raohane managed core shortcuts
+hl.unbind(\"ALT + Q\")
+hl.unbind(\"SUPER + SHIFT + S\")
+hl.bind(\"ALT + Q\", hl.dsp.window.close(), { description = \"Raohane: Close active window\" })
+hl.bind(\"SUPER + SHIFT + S\", hl.dsp.global(\"quickshell:regionScreenshot\"), { description = \"Raohane: Region screenshot\" })
+-- End Raohane managed core shortcuts"""
+text = path.read_text(encoding="utf-8")
+lines = text.splitlines()
+out = []
+skipping = False
+for line in lines:
+    if line.strip() == start:
+        skipping = True
+        continue
+    if skipping:
+        if line.strip() == end:
+            skipping = False
+        continue
+    out.append(line)
+content = "\n".join(out).rstrip() + "\n\n" + block + "\n"
+tmp = path.with_suffix(path.suffix + ".tmp")
+tmp.write_text(content, encoding="utf-8")
+tmp.replace(path)
+PY
+    return 0
+  fi
+
+  if [[ -f "$HYPR_LEGACY_SNIPPET" ]]; then
+    python3 - "$HYPR_LEGACY_SNIPPET" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+start = "# Raohane managed core shortcuts"
+end = "# End Raohane managed core shortcuts"
+block = """# Raohane managed core shortcuts
+unbind = ALT, Q
+unbind = SUPER SHIFT, S
+bind = ALT, Q, killactive
+bind = SUPER SHIFT, S, global, quickshell:regionScreenshot
+# End Raohane managed core shortcuts"""
+text = path.read_text(encoding="utf-8")
+lines = text.splitlines()
+out = []
+skipping = False
+for line in lines:
+    if line.strip() == start:
+        skipping = True
+        continue
+    if skipping:
+        if line.strip() == end:
+            skipping = False
+        continue
+    out.append(line)
+content = "\n".join(out).rstrip() + "\n\n" + block + "\n"
+tmp = path.with_suffix(path.suffix + ".tmp")
+tmp.write_text(content, encoding="utf-8")
+tmp.replace(path)
+PY
+  fi
+}
+
 install_managed_keybinds() {
   command -v hyprctl >/dev/null 2>&1 || return 0
 
+  persist_managed_keybinds
+
   # Hyprland 0.55+ uses Lua configuration. Apply Raohane's small set of
-  # shell-owned emergency/workflow binds at runtime as well as through the
-  # installer-generated config so an upgraded shell can self-heal stale binds.
+  # shell-owned workflow binds at runtime as well so an upgraded shell can
+  # self-heal immediately without requiring a compositor reload.
   local lua_code
   lua_code="$(cat <<'LUA'
 hl.unbind("ALT + Q")
