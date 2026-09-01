@@ -16,6 +16,7 @@ Singleton {
     property bool loading: false
     property bool pendingInitialWrite: false
     property bool hyprlandApplyPending: false
+    property string lastHyprlandSignature: ""
 
     property string wallpaperPath: ""
     property string lockWallpaperPath: ""
@@ -339,6 +340,13 @@ Singleton {
             setter(object[key])
     }
 
+    function hyprlandSignature(): string {
+        return JSON.stringify({
+            keybinds: root.sanitizeKeybinds(root.keybinds),
+            animations: root.sanitizeAnimations(root.animations)
+        })
+    }
+
     function applyDocument(document): void {
         root.loading = true
 
@@ -470,6 +478,10 @@ Singleton {
     function scheduleHyprlandApply(): void {
         if (root.loading || !root.ready)
             return
+        const signature = root.hyprlandSignature()
+        if (signature === root.lastHyprlandSignature)
+            return
+        root.lastHyprlandSignature = signature
         root.hyprlandApplyPending = true
         hyprlandApplyTimer.restart()
     }
