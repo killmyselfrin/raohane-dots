@@ -555,8 +555,32 @@ Scope {
                                     pressed: applyMouse.pressed
                                     showSheen: false
 
-                                    Row { anchors.centerIn: parent; spacing: 7; RaohaneIcon { text: "check"; iconSize: 15; color: RaohaneTheme.accent }; Text { text: qsTr("Test changes"); color: RaohaneTheme.text; font.pixelSize: 10; font.weight: Font.DemiBold } }
-                                    MouseArea { id: applyMouse; anchors.fill: parent; enabled: !!root.selectedMonitor && !RaohaneMonitorManager.pending; hoverEnabled: true; cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor; onClicked: RaohaneMonitorManager.applyTemporary(root.draftConfiguration()) }
+                                    Row {
+                                        anchors.centerIn: parent
+                                        spacing: 7
+
+                                        RaohaneIcon {
+                                            text: "check"
+                                            iconSize: 15
+                                            color: RaohaneTheme.accent
+                                        }
+
+                                        Text {
+                                            text: qsTr("Test changes")
+                                            color: RaohaneTheme.text
+                                            font.pixelSize: 10
+                                            font.weight: Font.DemiBold
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        id: applyMouse
+                                        anchors.fill: parent
+                                        enabled: !!root.selectedMonitor && !RaohaneMonitorManager.pending
+                                        hoverEnabled: true
+                                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                        onClicked: RaohaneMonitorManager.applyTemporary(root.draftConfiguration())
+                                    }
                                 }
 
                                 RaohaneSurface {
@@ -568,8 +592,33 @@ Scope {
                                     hovered: resetMouse.containsMouse
                                     pressed: resetMouse.pressed
                                     showSheen: false
-                                    Row { anchors.centerIn: parent; spacing: 7; RaohaneIcon { text: "restart_alt"; iconSize: 15; color: RaohaneTheme.textMuted }; Text { text: qsTr("Preferred"); color: RaohaneTheme.textMuted; font.pixelSize: 10; font.weight: Font.Medium } }
-                                    MouseArea { id: resetMouse; anchors.fill: parent; enabled: !!root.selectedMonitor && !RaohaneMonitorManager.pending; hoverEnabled: true; cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor; onClicked: RaohaneMonitorManager.resetToPreferred(root.selectedMonitor.name) }
+
+                                    Row {
+                                        anchors.centerIn: parent
+                                        spacing: 7
+
+                                        RaohaneIcon {
+                                            text: "restart_alt"
+                                            iconSize: 15
+                                            color: RaohaneTheme.textMuted
+                                        }
+
+                                        Text {
+                                            text: qsTr("Preferred")
+                                            color: RaohaneTheme.textMuted
+                                            font.pixelSize: 10
+                                            font.weight: Font.Medium
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        id: resetMouse
+                                        anchors.fill: parent
+                                        enabled: !!root.selectedMonitor && !RaohaneMonitorManager.pending
+                                        hoverEnabled: true
+                                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                        onClicked: RaohaneMonitorManager.resetToPreferred(root.selectedMonitor.name)
+                                    }
                                 }
 
                                 Item { Layout.fillWidth: true }
@@ -584,8 +633,33 @@ Scope {
                                     hovered: sleepMouse.containsMouse
                                     pressed: sleepMouse.pressed
                                     showSheen: false
-                                    Row { anchors.centerIn: parent; spacing: 7; RaohaneIcon { text: root.selectedMonitor?.dpmsStatus ? "bedtime" : "light_mode"; iconSize: 15; color: RaohaneTheme.textMuted }; Text { text: root.selectedMonitor?.dpmsStatus ? qsTr("Sleep") : qsTr("Wake"); color: RaohaneTheme.textMuted; font.pixelSize: 10; font.weight: Font.Medium } }
-                                    MouseArea { id: sleepMouse; anchors.fill: parent; enabled: !!root.selectedMonitor; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: RaohaneMonitorManager.dpms(root.selectedMonitor.name, !root.selectedMonitor.dpmsStatus) }
+
+                                    Row {
+                                        anchors.centerIn: parent
+                                        spacing: 7
+
+                                        RaohaneIcon {
+                                            text: root.selectedMonitor?.dpmsStatus ? "bedtime" : "light_mode"
+                                            iconSize: 15
+                                            color: RaohaneTheme.textMuted
+                                        }
+
+                                        Text {
+                                            text: root.selectedMonitor?.dpmsStatus ? qsTr("Sleep") : qsTr("Wake")
+                                            color: RaohaneTheme.textMuted
+                                            font.pixelSize: 10
+                                            font.weight: Font.Medium
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        id: sleepMouse
+                                        anchors.fill: parent
+                                        enabled: !!root.selectedMonitor
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: RaohaneMonitorManager.dpms(root.selectedMonitor.name, !root.selectedMonitor.dpmsStatus)
+                                    }
                                 }
                             }
 
