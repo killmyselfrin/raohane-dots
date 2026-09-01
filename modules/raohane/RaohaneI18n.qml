@@ -16,8 +16,6 @@ Singleton {
     property bool restartAfterLocalization: false
     property int revision: 0
     property var english: ({})
-    property var russian: ({})
-    property var russianRuntime: ({})
 
     readonly property var supportedLanguages: [
         { code: "en_US", name: "English", nativeName: "English" },
@@ -87,7 +85,7 @@ Singleton {
         const text = String(source ?? "")
         if (root.language !== "ru_RU")
             return root.english?.[text] ?? text
-        return root.russianOverrides?.[text] ?? root.russianRuntime?.[text] ?? root.russian?.[text] ?? text
+        return root.russianOverrides?.[text] ?? RaohaneLocale.tr(text)
     }
 
     function languageName(code: string): string {
@@ -103,32 +101,6 @@ Singleton {
             root.revision++
         }
         onFileChanged: reload()
-    }
-
-    FileView {
-        id: russianFile
-        path: Quickshell.shellPath("translations/ru_RU.json")
-        watchChanges: true
-        onLoaded: {
-            root.russian = root.parse(russianFile.text(), ({}))
-            root.revision++
-        }
-        onFileChanged: reload()
-    }
-
-    FileView {
-        id: russianRuntimeFile
-        path: Quickshell.shellPath("translations/raohane/ru_RU.json")
-        watchChanges: true
-        onLoaded: {
-            root.russianRuntime = root.parse(russianRuntimeFile.text(), ({}))
-            root.revision++
-        }
-        onFileChanged: reload()
-        onLoadFailed: error => {
-            if (error !== FileViewError.FileNotFound)
-                console.warn("[RaohaneI18n] Runtime Russian catalog unavailable:", error)
-        }
     }
 
     FileView {
@@ -174,8 +146,6 @@ Singleton {
 
     Component.onCompleted: {
         englishFile.reload()
-        russianFile.reload()
-        russianRuntimeFile.reload()
         languageFile.reload()
         runtimeLocalizer.running = true
     }
