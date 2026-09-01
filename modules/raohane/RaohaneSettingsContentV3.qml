@@ -58,7 +58,6 @@ Item {
     function activatePage(index: int): void {
         if (index < 0 || index >= root.pages.length)
             return
-        root.pendingSearch = ""
         const page = root.pages[index]
         if (page?.key === "displays") {
             RaohaneState.setPrimaryOpen("displaySettings", true)
@@ -629,11 +628,15 @@ Item {
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
                                         onPressed: navItem.forceActiveFocus()
-                                        onClicked: root.activatePage(navDelegate.index)
+                                        onClicked: {
+                                            root.pendingSearch = ""
+                                            root.activatePage(navDelegate.index)
+                                        }
                                     }
 
                                     Keys.onPressed: event => {
                                         if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                            root.pendingSearch = ""
                                             root.activatePage(navDelegate.index)
                                             event.accepted = true
                                         }
