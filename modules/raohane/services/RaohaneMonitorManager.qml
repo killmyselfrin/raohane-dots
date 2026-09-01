@@ -81,7 +81,7 @@ Singleton {
             scale: Number(monitor.scale ?? 1),
             transform: Number(monitor.transform ?? 0),
             vrr: saved ? Number(saved.vrr ?? 0) : (monitor.vrr ? 1 : 0),
-            bitdepth: saved ? Number(saved.bitdepth ?? 8) : (format.includes("2101010") || format.includes("101010" ) ? 10 : 8)
+            bitdepth: saved ? Number(saved.bitdepth ?? 8) : (format.includes("2101010") || format.includes("101010") ? 10 : 8)
         })
     }
 
@@ -92,12 +92,27 @@ Singleton {
         return `${config.name},${config.mode},${config.position},${config.scale},transform,${config.transform},vrr,${config.vrr},bitdepth,${config.bitdepth}`
     }
 
+    function luaString(value): string {
+        return `"${String(value ?? "")
+            .replace(/\\/g, "\\\\")
+            .replace(/"/g, "\\\"")
+            .replace(/\r/g, "\\r")
+            .replace(/\n/g, "\\n")}"`
+    }
+
+    function buildLuaRule(value): string {
+        const config = root.sanitizeConfig(value)
+        if (config.name.length === 0)
+            return ""
+        return `hl.monitor({ output = ${root.luaString(config.name)}, mode = ${root.luaString(config.mode)}, position = ${root.luaString(config.position)}, scale = ${config.scale}, transform = ${config.transform}, vrr = ${config.vrr}, bitdepth = ${config.bitdepth} })`
+    }
+
     function applyRule(value): void {
-        const rule = root.buildRule(value)
-        if (rule.length === 0)
+        const code = root.buildLuaRule(value)
+        if (code.length === 0)
             return
         root.errorMessage = ""
-        Quickshell.execDetached(["hyprctl", "keyword", "monitor", rule])
+        Quickshell.execDetached(["hyprctl", "eval", code])
         refreshDelay.restart()
     }
 
@@ -198,8 +213,9 @@ Singleton {
         root.bootProfilesApplied = true
         for (const name of Object.keys(root.profiles ?? {})) {
             const config = root.sanitizeConfig(root.profiles[name])
-            if (config.name.length > 0)
-                Quickshell.execDetached(["hyprctl", "keyword", "monitor", root.buildRule(config)])
+            const code = root.buildLuaRule(config)
+            if (code.length > 0)
+                Quickshell.execDetached(["hyprctl", "eval", code])
         }
         refreshDelay.restart()
     }
@@ -214,7 +230,9 @@ Singleton {
     function dpms(name: string, enabled: bool): void {
         if (name.length === 0)
             return
-        Quickshell.execDetached(["hyprctl", "dispatch", "dpms", enabled ? "on" : "off", name])
+        const action = enabled ? "enable" : "disable"
+        const code = `hl.dispatch(hl.dsp.dpms({ action = ${root.luaString(action)}, monitor = ${root.luaString(name)} }))`
+        Quickshell.execDetached(["hyprctl", "eval", code])
         refreshDelay.restart()
     }
 
