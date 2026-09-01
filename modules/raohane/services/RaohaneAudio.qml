@@ -18,10 +18,9 @@ Singleton {
     property string sourceName: ""
     property string lastError: ""
     property double lastRefreshMs: 0
-    property double ignoreGraphEventsUntilMs: 0
 
-    readonly property int minimumRefreshInterval: 800
-    readonly property int selfEventGuardInterval: 1100
+    readonly property int minimumRefreshInterval: 1000
+    readonly property int selfEventGuardInterval: 1300
     readonly property var outputStreams: []
     readonly property var inputStreams: []
     readonly property var outputDevices: []
@@ -93,9 +92,7 @@ Singleton {
         }
     }
 
-    // Keep the optional force flag untyped and without a default initializer.
-    // Older Quickshell runtime parsers accept typed QML functions, but reject
-    // a typed parameter that also has a JavaScript default value.
+    // Keep the optional force flag untyped for older deployed Quickshell builds.
     function refresh(force) {
         if (volumeProbe.running)
             return
@@ -107,9 +104,9 @@ Singleton {
             return
 
         root.lastRefreshMs = now
-        // wpctl itself connects to PipeWire. Ignore the resulting client/graph
-        // churn long enough that pw-mon cannot recursively trigger this probe.
-        root.ignoreGraphEventsUntilMs = now + root.selfEventGuardInterval
+        // wpctl creates short-lived PipeWire graph events. Suppress them at the
+        // shared registry monitor so Audio and Privacy cannot wake each other.
+        RaohanePipeWire.suppressEventsFor(root.selfEventGuardInterval)
         volumeProbe.exec([
             "bash", "-c",
             "printf 'SINK '; wpctl get-volume @DEFAULT_SINK@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
@@ -188,36 +185,12 @@ Singleton {
         }
     }
 
-    // Keep one lightweight PipeWire registry monitor alive. Probe processes also
-    // appear briefly in that registry, so their own events are explicitly
-    // suppressed above instead of recursively refreshing the audio service.
-    Process {
-        id: audioMonitor
-        command: ["pw-mon", "--color=never"]
-        running: true
+    Connections {
+        target: RaohanePipeWire
 
-        stdout: SplitParser {
-            onRead: data => {
-                if (data.length > 0 && Date.now() >= root.ignoreGraphEventsUntilMs)
-                    audioGraphDebounce.restart()
-            }
+        function onGraphChanged(): void {
+            root.refresh()
         }
-
-        onExited: audioMonitorRestart.restart()
-    }
-
-    Timer {
-        id: audioGraphDebounce
-        interval: 220
-        repeat: false
-        onTriggered: root.refresh()
-    }
-
-    Timer {
-        id: audioMonitorRestart
-        interval: 2500
-        repeat: false
-        onTriggered: audioMonitor.running = true
     }
 
     Process {
@@ -230,15 +203,14 @@ Singleton {
 
     Timer {
         id: refreshTimer
-        interval: 160
+        interval: 180
         repeat: false
         onTriggered: root.refresh(true)
     }
 
-    // Slow health fallback covers monitor failure/unusual PipeWire behavior
-    // without restoring continuous subprocess polling.
+    // A slow fallback only repairs missed events; normal updates are event driven.
     Timer {
-        interval: 15000
+        interval: 30000
         repeat: true
         running: true
         onTriggered: root.refresh(true)
