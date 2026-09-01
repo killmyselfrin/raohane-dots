@@ -15,14 +15,14 @@ about='modules/raohane/RaohaneSettingsAbout.qml'
 desktop='modules/raohane/RaohaneDesktopCanvas.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 settings='modules/raohane/RaohaneSettings.qml'
-settings_v2='modules/raohane/RaohaneSettingsContentV2.qml'
+settings_v3='modules/raohane/RaohaneSettingsContentV3.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 notifications='modules/raohane/RaohaneNotificationCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 
-for file in "$sidebar" "$systray" "$about" "$desktop" "$workspaces" "$settings" "$settings_v2" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
+for file in "$sidebar" "$systray" "$about" "$desktop" "$workspaces" "$settings" "$settings_v3" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
   [[ -f "$file" ]] || fail "missing polished UI surface: $file"
 done
 
@@ -60,18 +60,17 @@ if rg -n '#24ffffff|#ff7373|readonly property bool active:' "$workspaces"; then
   fail 'Workspace buttons reintroduced legacy colors or the RaohaneSurface active-property collision'
 fi
 
-# Control Center is one coherent panel now. Quick Controls and notifications are
-# composed directly into it instead of being wrapped in another level of cards.
+# Control Center is a compact floating command surface, not a full-height sidebar.
+rg -q 'readonly property int panelHeight:' "$control" || fail 'Control Center lost bounded floating height'
+rg -q 'implicitHeight:[[:space:]]*root\.panelHeight' "$control" || fail 'Control Center window no longer follows its floating height'
 rg -q 'RaohaneQuickControls[[:space:]]*\{' "$control" || fail 'Control Center lost the direct Quick Controls composition'
 rg -q 'RaohaneNotificationCenter[[:space:]]*\{' "$control" || fail 'Control Center lost the direct notification composition'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$control" || fail 'Control Center lost shared action buttons'
 rg -q 'RaohaneMotion\.(standard|enter)' "$control" || fail 'Control Center lost the shared entrance motion'
-if rg -n 'shortDuration|mediumDuration|property bool active:[[:space:]]*false' "$control"; then
-  fail 'Control Center reintroduced stale motion names or inherited active-state collisions'
+if rg -n 'anchors[[:space:]]*\{[^}]*bottom:[[:space:]]*true|shortDuration|mediumDuration|property bool active:[[:space:]]*false' "$control"; then
+  fail 'Control Center regressed to a full-height/stale interaction contract'
 fi
 
-# Quick Controls deliberately use flat transparent-idle tiles and slim shared
-# sliders rather than the previous card stack.
 rg -q 'component QuickTile:[[:space:]]*RaohaneSurface' "$quick" || fail 'Quick Controls lost shared command-tile surfaces'
 rg -q 'transparentIdle:[[:space:]]*!tile\.active' "$quick" || fail 'Quick Controls lost the flat inactive tile hierarchy'
 rg -q 'RaohaneSlider[[:space:]]*\{' "$quick" || fail 'Quick Controls lost shared sliders'
@@ -79,17 +78,20 @@ rg -q 'RaohaneMotion\.' "$quick" || fail 'Quick Controls lost tactile motion'
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls lost the restrained inactive state token'
 rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls lost explicit hover-border hierarchy'
 
-# The active Settings window must route through V2. V2 uses one navigation rail,
-# a divider and flat setting rows instead of nested card-on-card chrome.
-rg -q 'RaohaneSettingsContentV2[[:space:]]*\{' "$settings" || fail 'Settings regressed from the flat V2 workspace'
+# Settings V3 is one application surface with a quiet navigation plane and one
+# grouped control panel per native section. The old duplicated title bar/card
+# stack must not become active again.
+rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" || fail 'Settings regressed from the active V3 workspace'
 rg -q 'RaohaneSettingsSearch[[:space:]]*\{' "$settings" || fail 'Settings lost integrated global search'
 rg -q 'RaohaneMotion\.(standard|enter)' "$settings" || fail 'Settings lost shared window motion'
-rg -q 'RaohaneSurface[[:space:]]*\{' "$settings_v2" || fail 'Settings V2 lost shared navigation surfaces'
-rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_v2" || fail 'Settings V2 lost shared switches'
-rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_v2" || fail 'Settings V2 lost shared number controls'
-rg -q 'color:[[:space:]]*RaohaneTheme\.borderFaint' "$settings_v2" || fail 'Settings V2 lost flat divider hierarchy'
-if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration' "$settings" "$settings_v2"; then
-  fail 'Settings V2 reintroduced retired chrome or stale motion names'
+rg -q 'text:[[:space:]]*"RAOHANE"' "$settings_v3" || fail 'Settings V3 lost its restrained product identity'
+rg -q 'text:[[:space:]]*qsTr\("System settings"\)' "$settings_v3" || fail 'Settings V3 lost the sidebar hierarchy'
+rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_v3" || fail 'Settings V3 lost shared switches'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_v3" || fail 'Settings V3 lost shared number controls'
+rg -q 'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' "$settings_v3" || fail 'Settings V3 lost grouped native-control surface'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$settings_v3" || fail 'Settings V3 lost the quiet sidebar plane'
+if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3"; then
+  fail 'Settings V3 reintroduced retired chrome, stale motion or the previous active layout'
 fi
 
 rg -q 'RaohaneSurface[[:space:]]*\{' "$settings_search" || fail 'Settings Search no longer uses shared surfaces'
@@ -108,4 +110,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: Control Center, flat Settings V2, Quick Controls, Sidebar, tray, About, desktop context, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: floating Control Center, grouped Settings V3, Quick Controls, Sidebar, tray, About, desktop context, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
