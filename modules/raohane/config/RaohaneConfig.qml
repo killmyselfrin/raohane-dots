@@ -136,6 +136,7 @@ Singleton {
             randomWallpaper: "",
             mediaOverlay: "SUPER + SHIFT + M",
             session: "SUPER + X",
+            lock: "SUPER + SHIFT + L",
             taskManager: "SUPER + SHIFT + Escape",
             osk: "",
             screenTranslate: "SUPER + T",
