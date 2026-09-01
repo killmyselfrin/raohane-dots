@@ -14,6 +14,7 @@ Item {
     property var screen
     property bool gameModeActive: false
     property string pickerMode: ""
+    readonly property bool pickerOpen: root.pickerMode.length > 0
     readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(screen)
     readonly property real brightnessValue: RaohaneDisplay.compositeValue(screen)
 
@@ -33,6 +34,7 @@ Item {
 
         GridLayout {
             id: toggleGrid
+            visible: !root.pickerOpen
             Layout.fillWidth: true
             columns: 3
             columnSpacing: 6
@@ -110,12 +112,14 @@ Item {
         }
 
         Rectangle {
+            visible: !root.pickerOpen
             Layout.fillWidth: true
             Layout.preferredHeight: 1
             color: RaohaneTheme.borderFaint
         }
 
         ColumnLayout {
+            visible: !root.pickerOpen
             Layout.fillWidth: true
             spacing: 7
 
