@@ -62,6 +62,7 @@ jobs:
           bash -n scripts/overview-pointer-boundary-audit.sh
           bash -n scripts/privacy-performance-audit.sh
           bash -n scripts/sidebar-performance-audit.sh
+          bash -n scripts/process-performance-audit.sh
           bash -n scripts/bluetooth-performance-audit.sh
           bash -n scripts/keyboard-layout-boundary-audit.sh
           bash -n scripts/wallpaper-boundary-audit.sh
@@ -83,6 +84,7 @@ jobs:
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
           python3 scripts/migrate-legacy-config.py --help >/dev/null
+          python3 -m py_compile scripts/process-snapshot.py scripts/lyrics-resolve.py
 
       - name: Parse Raohane QML
         shell: bash
@@ -116,6 +118,7 @@ jobs:
           bash scripts/overview-pointer-boundary-audit.sh
           bash scripts/privacy-performance-audit.sh
           bash scripts/sidebar-performance-audit.sh
+          bash scripts/process-performance-audit.sh
           bash scripts/bluetooth-performance-audit.sh
           bash scripts/keyboard-layout-boundary-audit.sh
           bash scripts/wallpaper-boundary-audit.sh
@@ -182,6 +185,7 @@ jobs:
             modules/raohane/RaohaneSettings.qml
             modules/raohane/RaohaneSettingsSearch.qml
             modules/raohane/RaohaneSettingsContent.qml
+            modules/raohane/RaohaneSettingsContentV3.qml
             modules/raohane/RaohaneSettingsAbout.qml
             modules/raohane/services/RaohaneMedia.qml
             modules/raohane/services/RaohaneBluetooth.qml
@@ -189,6 +193,7 @@ jobs:
             modules/raohane/services/RaohaneNetwork.qml
             modules/raohane/services/RaohaneDisplay.qml
             modules/raohane/services/RaohaneNotifications.qml
+            modules/raohane/services/RaohaneProcesses.qml
             modules/raohane/services/RaohaneWallpapers.qml
             modules/raohane/services/RaohaneSession.qml
             modules/raohane/services/RaohaneSessionWarnings.qml
@@ -201,6 +206,9 @@ jobs:
             panelFamilies/RaohaneFamily.qml
             translations
             scripts/raohane
+            scripts/process-snapshot.py
+            scripts/process-performance-audit.sh
+            scripts/lyrics-resolve.py
             scripts/phase4-visible-runtime-audit.sh
             scripts/phase4-live-check.sh
             scripts/multimonitor-boundary-audit.sh
