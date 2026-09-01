@@ -17,6 +17,13 @@ for path in "$audio" "$privacy"; do
   if rg -n '"bash",[[:space:]]*"-lc"' "$path"; then
     fail "$path invokes a login shell for a PipeWire probe/action"
   fi
+  if rg -n 'function[[:space:]]+[A-Za-z0-9_]+\([^)]*:[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=' "$path"; then
+    fail "$path uses a typed function parameter with a default value; deployed Quickshell rejects this syntax"
+  fi
+  rg -q 'function[[:space:]]+refresh\(force\)' "$path" \
+    || fail "$path lost the runtime-compatible optional force signature"
+  rg -q 'const forced = force === true' "$path" \
+    || fail "$path lost explicit optional-force normalization"
   rg -q 'ignoreGraphEventsUntilMs' "$path" \
     || fail "$path lost self-generated PipeWire event suppression"
   rg -q 'minimumRefreshInterval' "$path" \
@@ -39,4 +46,4 @@ rg -q 'graphProbe\.exec\(\["pw-dump"\]\)' "$privacy" \
 rg -q 'Date\.now\(\)[[:space:]]*>=[[:space:]]*root\.ignoreGraphEventsUntilMs' "$privacy" \
   || fail 'privacy monitor no longer ignores its own pw-dump events'
 
-printf 'pipewire-probe-performance-audit: audio/privacy probes are throttled, self-loop guarded and login-shell free\n'
+printf 'pipewire-probe-performance-audit: audio/privacy probes are throttled, self-loop guarded, login-shell free and runtime-QML compatible\n'
