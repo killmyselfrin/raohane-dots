@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import Quickshell.Wayland
 
 import qs.modules.raohane.config
@@ -135,6 +136,7 @@ Scope {
 
         Item {
             id: hero
+
             anchors.fill: parent
             focus: panelWindow.visible
 
@@ -158,6 +160,7 @@ Scope {
                         Layout.fillWidth: true
                         spacing: 11
                         opacity: root.phase(panelWindow.reveal, 0.02, 0.26)
+
                         transform: Translate {
                             y: 12 * (1 - root.phase(panelWindow.reveal, 0.02, 0.26))
                         }
@@ -181,6 +184,7 @@ Scope {
 
                         ColumnLayout {
                             spacing: -1
+
                             Text {
                                 text: "RAOHANE"
                                 color: RaohaneTheme.text
@@ -188,6 +192,7 @@ Scope {
                                 font.weight: Font.DemiBold
                                 font.letterSpacing: 2.4
                             }
+
                             Text {
                                 text: qsTr("Hyprland · Quickshell")
                                 color: RaohaneTheme.textFaint
@@ -207,6 +212,7 @@ Scope {
                         font.weight: Font.Medium
                         font.letterSpacing: 1.2
                         opacity: root.phase(panelWindow.reveal, 0.12, 0.36)
+
                         transform: Translate {
                             y: 14 * (1 - root.phase(panelWindow.reveal, 0.12, 0.36))
                         }
@@ -223,6 +229,7 @@ Scope {
                         lineHeight: 0.91
                         wrapMode: Text.WordWrap
                         opacity: root.phase(panelWindow.reveal, 0.19, 0.47)
+
                         transform: Translate {
                             y: 22 * (1 - root.phase(panelWindow.reveal, 0.19, 0.47))
                         }
@@ -247,6 +254,7 @@ Scope {
                         lineHeight: 1.35
                         wrapMode: Text.WordWrap
                         opacity: root.phase(panelWindow.reveal, 0.36, 0.64)
+
                         transform: Translate {
                             y: 16 * (1 - root.phase(panelWindow.reveal, 0.36, 0.64))
                         }
@@ -267,13 +275,13 @@ Scope {
                             ]
 
                             RaohaneSurface {
-                                Layout.preferredWidth: Math.max(124, chipText.implicitWidth + 24)
+                                Layout.preferredWidth: Math.max(124, chipLabel.implicitWidth + 24)
                                 Layout.preferredHeight: 32
                                 surfaceRadius: 12
                                 showSheen: false
 
                                 Text {
-                                    id: chipText
+                                    id: chipLabel
                                     anchors.centerIn: parent
                                     text: modelData
                                     color: RaohaneTheme.textMuted
@@ -290,6 +298,7 @@ Scope {
                         Layout.topMargin: 30
                         spacing: 12
                         opacity: root.phase(panelWindow.reveal, 0.55, 0.84)
+
                         transform: Translate {
                             y: 14 * (1 - root.phase(panelWindow.reveal, 0.55, 0.84))
                         }
@@ -372,16 +381,20 @@ Scope {
 
                 Item {
                     id: previewStage
+
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.minimumWidth: 420
                     visible: panelWindow.width >= 960
                     opacity: root.phase(panelWindow.reveal, 0.24, 0.76)
+
                     transform: Translate {
                         x: 32 * (1 - root.phase(panelWindow.reveal, 0.24, 0.76))
                     }
 
                     Rectangle {
+                        id: previewFrame
+
                         anchors.centerIn: parent
                         width: Math.min(parent.width * 0.94, 570)
                         height: Math.min(parent.height * 0.80, 620)
@@ -424,26 +437,62 @@ Scope {
                                     Layout.preferredHeight: 28
                                     radius: 10
                                     color: RaohaneTheme.accentSoft
-                                    RaohaneIcon { anchors.centerIn: parent; text: "apps"; iconSize: 14; color: RaohaneTheme.accent }
+
+                                    RaohaneIcon {
+                                        anchors.centerIn: parent
+                                        text: "apps"
+                                        iconSize: 14
+                                        color: RaohaneTheme.accent
+                                    }
                                 }
-                                Rectangle { Layout.preferredWidth: 48; Layout.preferredHeight: 7; radius: 4; color: RaohaneTheme.borderStrong }
+
+                                Rectangle {
+                                    Layout.preferredWidth: 48
+                                    Layout.preferredHeight: 7
+                                    radius: 4
+                                    color: RaohaneTheme.borderStrong
+                                }
+
                                 Item { Layout.fillWidth: true }
+
                                 RaohaneSurface {
                                     Layout.preferredWidth: 142
                                     Layout.preferredHeight: 30
                                     surfaceRadius: 15
                                     active: true
                                     showSheen: false
+
                                     Row {
                                         anchors.centerIn: parent
                                         spacing: 6
-                                        RaohaneIcon { text: "spa"; iconSize: 13; color: RaohaneTheme.accent }
-                                        Text { text: qsTr("Context Island"); color: RaohaneTheme.textMuted; font.pixelSize: 9 }
+
+                                        RaohaneIcon {
+                                            text: "spa"
+                                            iconSize: 13
+                                            color: RaohaneTheme.accent
+                                        }
+
+                                        Text {
+                                            text: qsTr("Context Island")
+                                            color: RaohaneTheme.textMuted
+                                            font.pixelSize: 9
+                                        }
                                     }
                                 }
+
                                 Item { Layout.fillWidth: true }
-                                RaohaneIcon { text: "wifi"; iconSize: 15; color: RaohaneTheme.textMuted }
-                                RaohaneIcon { text: "volume_up"; iconSize: 15; color: RaohaneTheme.textMuted }
+
+                                RaohaneIcon {
+                                    text: "wifi"
+                                    iconSize: 15
+                                    color: RaohaneTheme.textMuted
+                                }
+
+                                RaohaneIcon {
+                                    text: "volume_up"
+                                    iconSize: 15
+                                    color: RaohaneTheme.textMuted
+                                }
                             }
                         }
 
@@ -455,6 +504,13 @@ Scope {
                             raised: true
                             showSheen: false
 
+                            SequentialAnimation on scale {
+                                running: panelWindow.visible
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.985; to: 1.015; duration: 2300; easing.type: Easing.InOutSine }
+                                NumberAnimation { from: 1.015; to: 0.985; duration: 2300; easing.type: Easing.InOutSine }
+                            }
+
                             ColumnLayout {
                                 anchors.fill: parent
                                 anchors.margins: 18
@@ -462,31 +518,59 @@ Scope {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    RaohaneIcon { text: "search"; iconSize: 18; color: RaohaneTheme.accent }
-                                    Text { text: qsTr("Launcher"); color: RaohaneTheme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
+
+                                    RaohaneIcon {
+                                        text: "search"
+                                        iconSize: 18
+                                        color: RaohaneTheme.accent
+                                    }
+
+                                    Text {
+                                        text: qsTr("Launcher")
+                                        color: RaohaneTheme.text
+                                        font.pixelSize: 12
+                                        font.weight: Font.DemiBold
+                                    }
+
                                     Item { Layout.fillWidth: true }
-                                    Text { text: "⌘"; color: RaohaneTheme.textFaint; font.pixelSize: 11 }
+
+                                    Text {
+                                        text: "⌘"
+                                        color: RaohaneTheme.textFaint
+                                        font.pixelSize: 11
+                                    }
                                 }
 
-                                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: RaohaneTheme.borderFaint }
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 1
+                                    color: RaohaneTheme.borderFaint
+                                }
 
                                 Repeater {
                                     model: 3
+
                                     RowLayout {
                                         Layout.fillWidth: true
                                         spacing: 9
-                                        Rectangle { Layout.preferredWidth: 26; Layout.preferredHeight: 26; radius: 9; color: RaohaneTheme.surfaceSubtle }
-                                        Rectangle { Layout.preferredWidth: 90 + index * 24; Layout.preferredHeight: 7; radius: 4; color: index === 0 ? RaohaneTheme.accentSoft : RaohaneTheme.border }
+
+                                        Rectangle {
+                                            Layout.preferredWidth: 26
+                                            Layout.preferredHeight: 26
+                                            radius: 9
+                                            color: RaohaneTheme.surfaceSubtle
+                                        }
+
+                                        Rectangle {
+                                            Layout.preferredWidth: 90 + index * 24
+                                            Layout.preferredHeight: 7
+                                            radius: 4
+                                            color: index === 0 ? RaohaneTheme.accentSoft : RaohaneTheme.border
+                                        }
+
                                         Item { Layout.fillWidth: true }
                                     }
                                 }
-                            }
-
-                            SequentialAnimation on y {
-                                running: panelWindow.visible
-                                loops: Animation.Infinite
-                                NumberAnimation { from: -4; to: 4; duration: 2200; easing.type: Easing.InOutSine }
-                                NumberAnimation { from: 4; to: -4; duration: 2200; easing.type: Easing.InOutSine }
                             }
                         }
 
@@ -508,20 +592,40 @@ Scope {
                                 anchors.fill: parent
                                 anchors.margins: 14
                                 spacing: 9
-                                Text { text: qsTr("Quick Controls"); color: RaohaneTheme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
+
+                                Text {
+                                    text: qsTr("Quick Controls")
+                                    color: RaohaneTheme.text
+                                    font.pixelSize: 10
+                                    font.weight: Font.DemiBold
+                                }
+
                                 Repeater {
                                     model: ["wifi", "bluetooth", "dark_mode", "volume_up"]
+
                                     RaohaneSurface {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 34
                                         surfaceRadius: 11
                                         active: index === 0
                                         showSheen: false
+
                                         Row {
                                             anchors.centerIn: parent
                                             spacing: 7
-                                            RaohaneIcon { text: modelData; iconSize: 14; color: index === 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted }
-                                            Rectangle { width: 45; height: 6; radius: 3; color: index === 0 ? RaohaneTheme.accentSoft : RaohaneTheme.border }
+
+                                            RaohaneIcon {
+                                                text: modelData
+                                                iconSize: 14
+                                                color: index === 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                            }
+
+                                            Rectangle {
+                                                width: 45
+                                                height: 6
+                                                radius: 3
+                                                color: index === 0 ? RaohaneTheme.accentSoft : RaohaneTheme.border
+                                            }
                                         }
                                     }
                                 }
@@ -543,13 +647,16 @@ Scope {
                             Row {
                                 anchors.centerIn: parent
                                 spacing: 12
+
                                 Repeater {
                                     model: ["folder", "language", "terminal", "music_note", "settings"]
+
                                     Rectangle {
                                         width: 36
                                         height: 36
                                         radius: 12
                                         color: index === 2 ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
+
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: modelData
