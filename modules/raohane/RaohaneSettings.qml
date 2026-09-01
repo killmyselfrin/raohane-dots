@@ -111,7 +111,7 @@ Scope {
                 opacity: 0.72
             }
 
-            RaohaneSettingsContentV2 {
+            RaohaneSettingsContentV3 {
                 anchors.fill: parent
             }
 
