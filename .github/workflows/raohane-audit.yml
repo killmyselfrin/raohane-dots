@@ -61,6 +61,7 @@ jobs:
           bash -n scripts/primary-surface-boundary-audit.sh
           bash -n scripts/overview-pointer-boundary-audit.sh
           bash -n scripts/privacy-performance-audit.sh
+          bash -n scripts/pipewire-probe-performance-audit.sh
           bash -n scripts/sidebar-performance-audit.sh
           bash -n scripts/process-performance-audit.sh
           bash -n scripts/bluetooth-performance-audit.sh
@@ -117,6 +118,7 @@ jobs:
           bash scripts/primary-surface-boundary-audit.sh
           bash scripts/overview-pointer-boundary-audit.sh
           bash scripts/privacy-performance-audit.sh
+          bash scripts/pipewire-probe-performance-audit.sh
           bash scripts/sidebar-performance-audit.sh
           bash scripts/process-performance-audit.sh
           bash scripts/bluetooth-performance-audit.sh
@@ -208,6 +210,7 @@ jobs:
             scripts/raohane
             scripts/process-snapshot.py
             scripts/process-performance-audit.sh
+            scripts/pipewire-probe-performance-audit.sh
             scripts/lyrics-resolve.py
             scripts/phase4-visible-runtime-audit.sh
             scripts/phase4-live-check.sh
