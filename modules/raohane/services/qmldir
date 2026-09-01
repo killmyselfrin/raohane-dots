@@ -4,6 +4,7 @@ singleton RaohaneLyrics 1.0 RaohaneLyrics.qml
 singleton RaohaneBluetooth 1.0 RaohaneBluetooth.qml
 singleton RaohaneAudio 1.0 RaohaneAudio.qml
 singleton RaohaneNetwork 1.0 RaohaneNetwork.qml
+singleton RaohanePipeWire 1.0 RaohanePipeWire.qml
 singleton RaohaneDisplay 1.0 RaohaneDisplay.qml
 singleton RaohaneMonitorManager 1.0 RaohaneMonitorManager.qml
 singleton RaohaneNotifications 1.0 RaohaneNotifications.qml
