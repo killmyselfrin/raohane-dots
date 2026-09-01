@@ -22,6 +22,7 @@ Singleton {
     property bool scanning: false
     property string connectingSsid: ""
     property string lastActionError: ""
+    property bool scanWhenEnabled: false
 
     readonly property int minimumRefreshInterval: 1400
     readonly property string wifiStatus: !wifiEnabled
@@ -121,6 +122,7 @@ Singleton {
     }
 
     function setWifiEnabled(enabled: bool): void {
+        root.scanWhenEnabled = enabled
         wifiToggle.exec(["nmcli", "radio", "wifi", enabled ? "on" : "off"])
     }
 
@@ -135,7 +137,19 @@ Singleton {
         environment: ({ LANG: "C", LC_ALL: "C" })
 
         stdout: StdioCollector {
-            onStreamFinished: root.wifiEnabled = text.trim() === "enabled"
+            onStreamFinished: {
+                const enabled = text.trim() === "enabled"
+                const becameEnabled = enabled && !root.wifiEnabled
+                root.wifiEnabled = enabled
+
+                if (!enabled) {
+                    root.scanWhenEnabled = false
+                    root.availableNetworks = []
+                } else if (becameEnabled || root.scanWhenEnabled) {
+                    root.scanWhenEnabled = false
+                    scanDelay.restart()
+                }
+            }
         }
         onExited: root.finishProbeCycle()
     }
@@ -295,13 +309,7 @@ Singleton {
     Process {
         id: wifiToggle
         environment: ({ LANG: "C", LC_ALL: "C" })
-        onExited: {
-            root.refresh(true)
-            if (root.wifiEnabled)
-                scanDelay.restart()
-            else
-                root.availableNetworks = []
-        }
+        onExited: root.refresh(true)
     }
 
     // NetworkManager can emit several monitor lines for one state transition.
