@@ -5,6 +5,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import qs.modules.raohane.services
+
 Singleton {
     id: root
 
@@ -17,10 +19,9 @@ Singleton {
     property string cameraApp: ""
     property string recordingApp: ""
     property double lastRefreshMs: 0
-    property double ignoreGraphEventsUntilMs: 0
 
-    readonly property int minimumRefreshInterval: 1200
-    readonly property int selfEventGuardInterval: 1500
+    readonly property int minimumRefreshInterval: 1600
+    readonly property int selfEventGuardInterval: 1800
 
     function stringProp(props, key): string {
         return String(props?.[key] ?? "")
@@ -113,8 +114,7 @@ Singleton {
         root.recordingApp = recordingApp
     }
 
-    // Keep the optional force flag untyped and without a default initializer.
-    // Older Quickshell runtime parsers reject typed parameters with defaults.
+    // Keep the optional force flag untyped for older deployed Quickshell builds.
     function refresh(force) {
         if (graphProbe.running)
             return
@@ -126,48 +126,23 @@ Singleton {
             return
 
         root.lastRefreshMs = now
-        // pw-dump is itself a PipeWire client. Suppress its own registry churn
-        // so the monitor cannot recursively launch another dump.
-        root.ignoreGraphEventsUntilMs = now + root.selfEventGuardInterval
+        // pw-dump is itself a PipeWire client. Suppress its short-lived graph
+        // churn at the shared monitor so it cannot wake Audio or itself again.
+        RaohanePipeWire.suppressEventsFor(root.selfEventGuardInterval)
         graphProbe.exec(["pw-dump"])
     }
 
-    // pw-mon stays attached to the PipeWire registry and emits when the graph
-    // changes. Self-generated events from pw-dump are ignored for a short guard
-    // window, preventing a monitor -> dump -> monitor feedback loop.
-    Process {
-        id: graphMonitor
-        command: ["pw-mon", "--color=never"]
-        running: true
+    Connections {
+        target: RaohanePipeWire
 
-        stdout: SplitParser {
-            onRead: data => {
-                if (data.length > 0 && Date.now() >= root.ignoreGraphEventsUntilMs)
-                    graphChangeDebounce.restart()
-            }
+        function onGraphChanged(): void {
+            root.refresh()
         }
-
-        onExited: monitorRestart.restart()
     }
 
+    // Slow fallback covers missed monitor events without continuous polling.
     Timer {
-        id: graphChangeDebounce
-        interval: 220
-        repeat: false
-        onTriggered: root.refresh()
-    }
-
-    Timer {
-        id: monitorRestart
-        interval: 2500
-        repeat: false
-        onTriggered: graphMonitor.running = true
-    }
-
-    // Fallback health refresh is deliberately slow. It covers a crashed monitor
-    // or unusual PipeWire implementation without restoring aggressive polling.
-    Timer {
-        interval: 15000
+        interval: 30000
         repeat: true
         running: true
         onTriggered: root.refresh(true)
