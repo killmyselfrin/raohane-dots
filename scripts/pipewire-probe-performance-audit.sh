@@ -23,8 +23,10 @@ for path in "$audio" "$privacy"; do
     || fail "$path lost probe throttling"
 done
 
-rg -q 'volumeProbe\.exec\(\[[[:space:]]*"bash",[[:space:]]*"-c"' "$audio" \
-  || fail 'audio snapshot is no longer using a non-login probe shell'
+rg -q 'volumeProbe\.exec\(' "$audio" \
+  || fail 'audio snapshot no longer uses the dedicated probe process'
+rg -q '"bash",[[:space:]]*"-c"' "$audio" \
+  || fail 'audio snapshot/action shell is no longer explicitly non-login'
 rg -q 'selfEventGuardInterval:[[:space:]]*1100' "$audio" \
   || fail 'audio self-event guard interval changed unexpectedly'
 rg -q 'minimumRefreshInterval:[[:space:]]*800' "$audio" \
