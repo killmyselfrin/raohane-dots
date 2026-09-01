@@ -30,7 +30,15 @@ Scope {
 
         function hide(): void {
             settingsSearch.clear()
+            workspace.preferencesOpen = false
             RaohaneState.setPrimaryOpen("settings", false)
+        }
+
+        function openPreferences(section: string): void {
+            settingsSearch.clear()
+            preferences.section = section
+            workspace.preferencesOpen = true
+            preferences.forceActiveFocus()
         }
 
         onVisibleChanged: {
@@ -40,6 +48,7 @@ Scope {
                 RaohaneFocusGrab.addDismissable(panelWindow)
             } else {
                 workspace.entered = false
+                workspace.preferencesOpen = false
                 RaohaneFocusGrab.removeDismissable(panelWindow)
             }
         }
@@ -69,6 +78,7 @@ Scope {
         RaohaneSurface {
             id: workspace
             property bool entered: false
+            property bool preferencesOpen: false
 
             width: Math.min(parent.width - 96, 1040)
             height: Math.min(parent.height - 96, 700)
@@ -113,19 +123,66 @@ Scope {
 
             RaohaneSettingsContentV3 {
                 anchors.fill: parent
+                visible: !workspace.preferencesOpen
+            }
+
+            RaohaneHyprlandPreferences {
+                id: preferences
+                anchors.fill: parent
+                visible: workspace.preferencesOpen
+                z: 45
+                onCloseRequested: {
+                    workspace.preferencesOpen = false
+                    workspace.forceActiveFocus()
+                }
             }
 
             RaohaneSettingsSearch {
                 id: settingsSearch
+                visible: !workspace.preferencesOpen
                 z: 50
-                width: Math.min(320, Math.max(250, workspace.width * 0.30))
+                width: Math.min(300, Math.max(230, workspace.width * 0.28))
                 height: 34
                 anchors {
                     top: parent.top
                     right: parent.right
                     topMargin: 19
-                    rightMargin: 54
+                    rightMargin: 130
                 }
+            }
+
+            RaohaneIconButton {
+                visible: !workspace.preferencesOpen
+                z: 50
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                    topMargin: 20
+                    rightMargin: 90
+                }
+                buttonSize: 30
+                iconSize: 15
+                icon: "keyboard"
+                transparentIdle: true
+                showSheen: false
+                onClicked: panelWindow.openPreferences("keybinds")
+            }
+
+            RaohaneIconButton {
+                visible: !workspace.preferencesOpen
+                z: 50
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                    topMargin: 20
+                    rightMargin: 53
+                }
+                buttonSize: 30
+                iconSize: 15
+                icon: "animation"
+                transparentIdle: true
+                showSheen: false
+                onClicked: panelWindow.openPreferences("motion")
             }
 
             RaohaneIconButton {
@@ -145,10 +202,14 @@ Scope {
             }
 
             Keys.onPressed: event => {
-                if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
+                if (workspace.preferencesOpen && event.key === Qt.Key_Escape) {
+                    workspace.preferencesOpen = false
+                    workspace.forceActiveFocus()
+                    event.accepted = true
+                } else if (!workspace.preferencesOpen && (event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
                     settingsSearch.focusSearch()
                     event.accepted = true
-                } else if (event.key === Qt.Key_Escape) {
+                } else if (!workspace.preferencesOpen && event.key === Qt.Key_Escape) {
                     if (settingsSearch.query.length > 0) {
                         settingsSearch.clear()
                         workspace.forceActiveFocus()
@@ -167,8 +228,18 @@ Scope {
             function close(): void { panelWindow.hide() }
             function status(): string { return RaohaneState.settingsOpen ? "open" : "closed" }
             function page(page: string): void {
-                RaohaneState.settingsPage = page
+                const requested = String(page ?? "").trim().toLowerCase()
                 RaohaneState.setPrimaryOpen("settings", true)
+                if (requested === "keybinds" || requested === "shortcuts" || requested === "keyboard") {
+                    panelWindow.openPreferences("keybinds")
+                    return
+                }
+                if (requested === "motion" || requested === "animations" || requested === "animation") {
+                    panelWindow.openPreferences("motion")
+                    return
+                }
+                workspace.preferencesOpen = false
+                RaohaneState.settingsPage = page
             }
         }
 
