@@ -22,23 +22,6 @@ Singleton {
         { code: "ru_RU", name: "Russian", nativeName: "Русский" }
     ]
 
-    readonly property var russianOverrides: ({
-        "Welcome to\nRaohane": "Добро пожаловать в\nRaohane",
-        "A calm desktop shell that keeps the interface close when you need it — and quiet when you do not.": "Спокойная оболочка рабочего стола: всё нужное рядом, а когда оно не требуется — ничто не отвлекает.",
-        "11 guided stops": "11 шагов знакомства",
-        "Live interface tour": "Живой тур по интерфейсу",
-        "Show me around": "Показать интерфейс",
-        "Explore myself": "Разобраться самому",
-        "The tour uses the real Raohane surfaces, not screenshots.": "Тур использует настоящий интерфейс Raohane, а не скриншоты.",
-        "Choose your language": "Выберите язык",
-        "This language will be used across the entire Raohane shell.": "Этот язык будет использоваться во всей оболочке Raohane.",
-        "You can change it later in Settings.": "Позже язык можно изменить в настройках.",
-        "Continue": "Продолжить",
-        "Language": "Язык",
-        "Shell language": "Язык оболочки",
-        "Choose the language used by Raohane surfaces": "Выберите язык интерфейса Raohane"
-    })
-
     function parse(contents: string, fallback): var {
         try {
             const value = JSON.parse(contents)
@@ -85,7 +68,7 @@ Singleton {
         const text = String(source ?? "")
         if (root.language !== "ru_RU")
             return root.english?.[text] ?? text
-        return root.russianOverrides?.[text] ?? RaohaneLocale.tr(text)
+        return RaohaneLocale.tr(text)
     }
 
     function languageName(code: string): string {
