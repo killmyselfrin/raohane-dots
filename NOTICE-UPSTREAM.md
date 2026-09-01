@@ -11,6 +11,12 @@ Raohane development studied, imported and/or modified material from:
 - `end-4/dots-hyprland` / illogical-impulse
   - system/dependency foundation pin used during migration: `42d0aae17b744a38cd05c9044c189bfc9b13869a`
 - `snowarch/iNiR`
+- `ilyamiro/serpantinum`
+  - its GPLv3 color-preset data is converted into Raohane's native theme-token
+    schema under `defaults/themes/serpantinum.json`;
+  - its Nix deployment model informed the Raohane-owned package, NixOS module
+    and Home Manager module under `nix/`;
+  - no Serpantinum QML namespace, service, installer or runtime path is used.
 
 Those projects are provenance/reference sources. They are not required as cloned repositories to install, start or update the current Raohane runtime.
 

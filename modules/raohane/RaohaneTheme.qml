@@ -8,7 +8,7 @@ QtObject {
 
     // Theme presets own the base mood. Style Studio applies global persisted
     // overrides on top without changing Raohane's information architecture.
-    readonly property var presets: [
+    readonly property var builtInPresets: [
         {
             id: "zen-mist", name: qsTr("Zen Mist"), description: qsTr("Warm ivory glass and charcoal details"), tone: qsTr("Light"), dark: false,
             background: "#ece9e3", backgroundElevated: "#f5f2ed", surface: "#d9f6f2ec", surfaceRaised: "#eefaf7f2", surfaceDeep: "#f2e6e2dc", surfaceSubtle: "#8fffffff", surfaceHover: "#e6ece8e1", surfacePressed: "#eedfdad2",
@@ -66,6 +66,7 @@ QtObject {
             success: "#7d9986", warning: "#b3986b", critical: "#bb777c", info: "#87a3b2"
         }
     ]
+    readonly property var presets: root.builtInPresets.concat(RaohaneThemeLibrary.presets)
 
     function presetFor(id): var {
         const match = root.presets.find(item => item.id === String(id ?? ""))

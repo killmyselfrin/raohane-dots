@@ -17,6 +17,7 @@ Shell:
   run | start | stop | restart | status | logs
   launcher | control | settings | media | desktop | session | translate
   wallpaper [toggle|random]
+  theme [list|import FILE|import-serpantinum PATH|remove ID|export ID FILE]
 
 Diagnostics:
   doctor [all|graphics|deps|services|runtime|phase4]
@@ -504,6 +505,38 @@ case "${1:-help}" in
       toggle) ipc wallpaperSelector toggle ;;
       random) ipc wallpaperSelector random ;;
       *) echo "Unknown wallpaper command: ${2:-}" >&2; exit 2 ;;
+    esac
+    ;;
+  theme)
+    theme_tool="$RUNTIME/scripts/theme-catalog.py"
+    if [[ ! -f "$theme_tool" ]]; then
+      theme_tool="$SCRIPT_DIR/theme-catalog.py"
+    fi
+    [[ -f "$theme_tool" ]] || {
+      echo '[Raohane] Theme catalog tool is missing. Reinstall from an up-to-date checkout.' >&2
+      exit 1
+    }
+    case "${2:-list}" in
+      list)
+        python3 "$theme_tool" list
+        ;;
+      import)
+        [[ -n "${3:-}" ]] || { echo 'Usage: raohane theme import FILE' >&2; exit 2; }
+        python3 "$theme_tool" import "$3"
+        ;;
+      import-serpantinum)
+        [[ -n "${3:-}" ]] || { echo 'Usage: raohane theme import-serpantinum PATH' >&2; exit 2; }
+        python3 "$theme_tool" import-serpantinum "$3"
+        ;;
+      remove)
+        [[ -n "${3:-}" ]] || { echo 'Usage: raohane theme remove ID' >&2; exit 2; }
+        python3 "$theme_tool" remove "$3"
+        ;;
+      export)
+        [[ -n "${3:-}" && -n "${4:-}" ]] || { echo 'Usage: raohane theme export ID FILE' >&2; exit 2; }
+        python3 "$theme_tool" export "$3" "$4"
+        ;;
+      *) echo "Unknown theme command: ${2:-}" >&2; exit 2 ;;
     esac
     ;;
   validate)

@@ -28,6 +28,7 @@ required=(
   assets
   translations
   defaults/native.json
+  defaults/themes/serpantinum.json
   install/arch/required.txt
   install/arch/features.txt
   modules/raohane
@@ -46,6 +47,7 @@ required=(
   scripts/release-live-check.sh
   scripts/process-snapshot.py
   scripts/lyrics-resolve.py
+  scripts/theme-catalog.py
   scripts/region-ocr.sh
   scripts/region-search.sh
   scripts/screen-translate.sh
@@ -76,7 +78,7 @@ except (OSError, json.JSONDecodeError):
 raise SystemExit(0 if data.get("schemaVersion") == 10 else 1)
 PY
 
-python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" <<'PY' || fail 'native Python runtime helper is invalid'
+python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/theme-catalog.py" <<'PY' || fail 'native Python runtime helper is invalid'
 import pathlib
 import sys
 for raw in sys.argv[1:]:

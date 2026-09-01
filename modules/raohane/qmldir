@@ -1,5 +1,6 @@
 module qs.modules.raohane
 singleton RaohaneTheme 1.0 RaohaneTheme.qml
+singleton RaohaneThemeLibrary 1.0 RaohaneThemeLibrary.qml
 singleton RaohaneMotion 1.0 RaohaneMotion.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneState 1.0 RaohaneState.qml

@@ -21,6 +21,7 @@ required_root=(
   modules/raohane/services/qmldir
   modules/raohane/RaohaneState.qml
   modules/raohane/RaohaneTheme.qml
+  modules/raohane/RaohaneThemeLibrary.qml
   modules/raohane/RaohaneIcon.qml
   modules/raohane/RaohaneRuntimeProbe.qml
   modules/raohane/RaohaneSettingsSearch.qml
@@ -30,10 +31,14 @@ required_root=(
   modules/raohane/services/RaohaneProcesses.qml
   modules/raohane/services/RaohaneLyrics.qml
   defaults/native.json
+  defaults/themes/serpantinum.json
   scripts/raohane
   scripts/lyrics-resolve.py
+  scripts/theme-catalog.py
   scripts/raohane-audit.sh
   scripts/source-lineage-audit.sh
+  scripts/theme-library-audit.sh
+  scripts/nix-boundary-audit.sh
   scripts/runtime-payload-audit.sh
   scripts/package-release.sh
   scripts/release-live-check.sh
@@ -253,6 +258,8 @@ python3 scripts/migrate-legacy-config.py --help >/dev/null
 bash -n scripts/raohane
 bash -n scripts/raohane-audit.sh
 bash -n scripts/source-lineage-audit.sh
+bash -n scripts/theme-library-audit.sh
+bash -n scripts/nix-boundary-audit.sh
 bash -n scripts/runtime-payload-audit.sh
 bash -n scripts/package-release.sh
 bash -n scripts/release-live-check.sh
@@ -276,6 +283,8 @@ bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
 bash scripts/source-lineage-audit.sh
+bash scripts/theme-library-audit.sh
+bash scripts/nix-boundary-audit.sh
 bash scripts/phase4-visible-runtime-audit.sh
 bash scripts/multimonitor-boundary-audit.sh
 bash scripts/fullscreen-boundary-audit.sh

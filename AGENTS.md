@@ -24,6 +24,7 @@ Historical migration/provenance sources include:
 - `pctrade/end4-pC`
 - `end-4/dots-hyprland` / illogical-impulse
 - `snowarch/iNiR`
+- `ilyamiro/serpantinum`
 
 Preserve GNU GPLv3 obligations for covered derivative work. Runtime independence does not mean every retained asset, translation, default or historical implementation became independently authored.
 

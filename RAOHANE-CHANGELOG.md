@@ -1,5 +1,14 @@
 # Raohane changelog
 
+## Unreleased — Native Serpantinum adoption
+
+- Add a Raohane-owned theme catalog loader and deterministic CLI importer/exporter.
+- Convert the Serpantinum color-preset library into complete Raohane surface tokens while keeping the active runtime independent from Serpantinum code and paths.
+- Load bundled and user themes live in the existing Theme Library; user overrides live in `~/.config/raohane/themes.json`.
+- Preserve GPLv3 provenance for converted Serpantinum palette data.
+- Replace the stale iNiR/Niri flake with native Raohane packages plus NixOS and Home Manager modules adapted from Serpantinum's deployment model.
+- Correct active repository links to `snuskidau/raohane-dots`.
+
 ## 0.10.0-dev — Standalone + Minimal Theme System
 
 - Shift the active Raohane visual direction from cyber-noir/neon toward Japanese minimalism while preserving the established UI layout and interaction model.

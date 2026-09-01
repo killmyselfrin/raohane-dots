@@ -8,7 +8,14 @@ import qs.modules.raohane.config
 Item {
     id: root
 
-    readonly property var themes: RaohaneTheme.presets
+    property string themeQuery: ""
+    readonly property var themes: {
+        const query = root.themeQuery.trim().toLowerCase()
+        if (query.length === 0)
+            return RaohaneTheme.presets
+        return RaohaneTheme.presets.filter(theme => [theme.name, theme.tone, theme.description, theme.source]
+            .some(value => String(value ?? "").toLowerCase().includes(query)))
+    }
     readonly property var accents: [
         { id: "theme", name: qsTr("Theme") },
         { id: "ink", name: qsTr("Ink") },
@@ -96,6 +103,63 @@ Item {
                         color: RaohaneTheme.textMuted
                         font.pixelSize: 9
                         wrapMode: Text.WordWrap
+                    }
+                }
+
+                RaohaneSurface {
+                    Layout.preferredWidth: Math.min(230, Math.max(170, root.width * 0.23))
+                    Layout.preferredHeight: 30
+                    surfaceRadius: 15
+                    showSheen: false
+                    active: themeSearch.activeFocus
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 10
+                        spacing: 7
+
+                        RaohaneIcon {
+                            text: "search"
+                            fill: 0
+                            color: themeSearch.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                            iconSize: 14
+                        }
+
+                        TextInput {
+                            id: themeSearch
+                            Layout.fillWidth: true
+                            text: root.themeQuery
+                            color: RaohaneTheme.text
+                            selectionColor: RaohaneTheme.accentSoft
+                            selectedTextColor: RaohaneTheme.text
+                            font.pixelSize: 9
+                            clip: true
+                            onTextEdited: root.themeQuery = text
+
+                            Text {
+                                anchors.fill: parent
+                                visible: themeSearch.text.length === 0
+                                text: qsTr("Search themes")
+                                color: RaohaneTheme.textFaint
+                                font: themeSearch.font
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+
+                        RaohaneIconButton {
+                            visible: root.themeQuery.length > 0
+                            buttonSize: 20
+                            iconSize: 11
+                            icon: "close"
+                            transparentIdle: true
+                            showSheen: false
+                            onClicked: {
+                                root.themeQuery = ""
+                                themeSearch.text = ""
+                                themeSearch.forceActiveFocus()
+                            }
+                        }
                     }
                 }
 

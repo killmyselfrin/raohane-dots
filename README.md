@@ -7,8 +7,8 @@
 **Quickshell · Qt/QML · Arch focused · standalone runtime**
 
 [![Version](https://img.shields.io/badge/version-0.10.0--dev-8b7cf6?style=flat-square)](VERSION)
-[![Raohane audit](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](.github/workflows/raohane-audit.yml)
-[![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
+[![Raohane audit](https://github.com/snuskidau/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](.github/workflows/raohane-audit.yml)
+[![Release boundary](https://github.com/snuskidau/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
 [![Hyprland](https://img.shields.io/badge/Hyprland-only-1f6feb?style=flat-square)](https://hypr.land/)
 [![License](https://img.shields.io/badge/license-GPLv3-2f2f2f?style=flat-square)](LICENSE)
 
@@ -73,7 +73,7 @@ Raohane currently includes:
 
 Raohane uses one shared shell-wide theme engine. Theme selection is persisted through `RaohaneConfig` and applies live across the active UI.
 
-Eight presets currently ship with the shell:
+Eight Raohane signature presets ship with the shell:
 
 | Light / soft | Dark / muted |
 | --- | --- |
@@ -85,6 +85,18 @@ Eight presets currently ship with the shell:
 **Zen Mist** is the current default: warm off-white frosted surfaces, charcoal text, thin borders, quiet accents and restrained motion.
 
 The Settings **Theme Library** provides live miniature previews and instant preset switching.
+
+Raohane also ships Serpantinum's palette collection converted into the complete native Raohane token schema. The conversion retains palette provenance but does not load Serpantinum QML, services or configuration at runtime.
+
+Custom native themes and additional Serpantinum palettes can be managed with:
+
+```bash
+raohane theme list
+raohane theme import ./my-raohane-theme.json
+raohane theme import-serpantinum ./serpantinum/src/assets/themes
+raohane theme export serp-kanagawa ./kanagawa-raohane.json
+raohane theme remove my-theme
+```
 
 Advanced styling is also centralized rather than hard-coded per component, including glass opacity, border strength, radius/density scale, motion, accent behavior and selected shell-surface sizing.
 
@@ -149,7 +161,7 @@ For the deeper runtime and ownership model, see [`ARCHITECTURE.md`](ARCHITECTURE
 Clone the current development branch:
 
 ```bash
-git clone https://github.com/killmyselfrin/raohane-dots.git
+git clone https://github.com/snuskidau/raohane-dots.git
 cd raohane-dots
 ```
 
@@ -168,6 +180,33 @@ raohane restart
 ```
 
 > The installer does not silently replace GPU drivers and does not vendor font binaries into the repository.
+
+### NixOS + Home Manager
+
+Raohane exposes both NixOS and Home Manager modules. The NixOS module enables the system services and package set; Home Manager installs the immutable runtime, seeds mutable native settings and owns the user service.
+
+```nix
+{
+  inputs.raohane.url = "github:snuskidau/raohane-dots";
+
+  outputs = { nixpkgs, home-manager, raohane, ... }: {
+    nixosConfigurations.yourHost = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        raohane.nixosModules.default
+        home-manager.nixosModules.home-manager
+        {
+          programs.raohane.enable = true;
+          home-manager.users.yourName = {
+            imports = [ raohane.homeModules.default ];
+            programs.raohane.enable = true;
+          };
+        }
+      ];
+    };
+  };
+}
+```
 
 ### Update an existing installation
 

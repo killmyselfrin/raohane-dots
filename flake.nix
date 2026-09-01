@@ -1,41 +1,38 @@
 {
-  description = "iNiR desktop shell for Niri, packaged for NixOS and Home Manager";
+  description = "Raohane desktop shell for Hyprland, packaged for NixOS and Home Manager";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { nixpkgs, ... }:
+  outputs = { self, nixpkgs, ... }:
     let
       lib = nixpkgs.lib;
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
-      forAllSystems = f: lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
-      nixosModule = import ./nix/nixos-module.nix;
-      homeModule = import ./nix/home-module.nix;
+      systems = [ "x86_64-linux" "aarch64-linux" ];
+      forAllSystems = function: lib.genAttrs systems (system: function nixpkgs.legacyPackages.${system});
+      nixosModule = import ./nix/nixos-module.nix { inherit self; };
+      homeModule = import ./nix/home-module.nix { inherit self; };
     in
     {
       packages = forAllSystems (pkgs:
-        let
-          package = pkgs.callPackage ./nix/package.nix { inherit pkgs; };
-        in
-        {
+        let package = pkgs.callPackage ./nix/package.nix { };
+        in {
           default = package;
-          inir = package;
+          raohane = package;
         });
 
-      nixosModules.default = nixosModule;
-      nixosModules.inir = nixosModule;
+      nixosModules = {
+        default = nixosModule;
+        raohane = nixosModule;
+      };
 
-      homeModules.default = homeModule;
-      homeModules.inir = homeModule;
+      homeModules = {
+        default = homeModule;
+        raohane = homeModule;
+      };
 
-      # Conventional alias most Home Manager setups look for.
-      homeManagerModules.default = homeModule;
-      homeManagerModules.inir = homeModule;
-
-      formatter = forAllSystems (pkgs: pkgs.nixpkgs-fmt);
+      homeManagerModules = {
+        default = homeModule;
+        raohane = homeModule;
+      };
+      formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
     };
 }

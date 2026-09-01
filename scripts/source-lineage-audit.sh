@@ -20,6 +20,7 @@ for marker in \
   'pctrade/end4-pC' \
   'end-4/dots-hyprland' \
   'snowarch/iNiR' \
+  'ilyamiro/serpantinum' \
   'retained data' \
   'assets' \
   'translations' \
