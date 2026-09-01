@@ -1,3 +1,4 @@
 module qs.modules.raohane.config
 singleton RaohaneConfig 1.0 RaohaneConfig.qml
 singleton RaohanePaths 1.0 RaohanePaths.qml
+singleton RaohaneLocale 1.0 RaohaneLocale.qml
