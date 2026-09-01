@@ -16,6 +16,11 @@ Singleton {
     property string microphoneApp: ""
     property string cameraApp: ""
     property string recordingApp: ""
+    property double lastRefreshMs: 0
+    property double ignoreGraphEventsUntilMs: 0
+
+    readonly property int minimumRefreshInterval: 1200
+    readonly property int selfEventGuardInterval: 1500
 
     function stringProp(props, key): string {
         return String(props?.[key] ?? "")
@@ -108,15 +113,25 @@ Singleton {
         root.recordingApp = recordingApp
     }
 
-    function refresh(): void {
-        if (!graphProbe.running)
-            graphProbe.exec(["bash", "-lc", "command -v pw-dump >/dev/null 2>&1 && pw-dump || printf '[]'"])
+    function refresh(force: bool = false): void {
+        if (graphProbe.running)
+            return
+
+        const now = Date.now()
+        if (!force && root.lastRefreshMs > 0
+                && now - root.lastRefreshMs < root.minimumRefreshInterval)
+            return
+
+        root.lastRefreshMs = now
+        // pw-dump is itself a PipeWire client. Suppress its own registry churn
+        // so the monitor cannot recursively launch another dump.
+        root.ignoreGraphEventsUntilMs = now + root.selfEventGuardInterval
+        graphProbe.exec(["pw-dump"])
     }
 
-    // pw-mon stays attached to the PipeWire registry and emits only when the
-    // graph changes. Debouncing those events avoids spawning pw-dump every
-    // second for the entire desktop session while keeping privacy indicators
-    // responsive when capture streams appear or disappear.
+    // pw-mon stays attached to the PipeWire registry and emits when the graph
+    // changes. Self-generated events from pw-dump are ignored for a short guard
+    // window, preventing a monitor -> dump -> monitor feedback loop.
     Process {
         id: graphMonitor
         command: ["pw-mon", "--color=never"]
@@ -124,7 +139,7 @@ Singleton {
 
         stdout: SplitParser {
             onRead: data => {
-                if (data.length > 0)
+                if (data.length > 0 && Date.now() >= root.ignoreGraphEventsUntilMs)
                     graphChangeDebounce.restart()
             }
         }
@@ -134,7 +149,7 @@ Singleton {
 
     Timer {
         id: graphChangeDebounce
-        interval: 140
+        interval: 220
         repeat: false
         onTriggered: root.refresh()
     }
@@ -147,12 +162,12 @@ Singleton {
     }
 
     // Fallback health refresh is deliberately slow. It covers a crashed monitor
-    // or unusual PipeWire implementation without restoring the old 1.2s poll.
+    // or unusual PipeWire implementation without restoring aggressive polling.
     Timer {
         interval: 15000
         repeat: true
         running: true
-        onTriggered: root.refresh()
+        onTriggered: root.refresh(true)
     }
 
     Process {
@@ -161,7 +176,11 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: root.applyDump(text)
         }
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0)
+                root.reset()
+        }
     }
 
-    Component.onCompleted: root.refresh()
+    Component.onCompleted: root.refresh(true)
 }
