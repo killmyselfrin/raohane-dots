@@ -7,8 +7,7 @@ on:
       - 'modules/**'
       - 'panelFamilies/**'
       - 'shell.qml'
-      - 'translations/en_US.json'
-      - 'translations/ru_RU.json'
+      - 'translations/**'
       - 'scripts/localization-boundary-audit.py'
       - '.github/workflows/localization-audit.yml'
   pull_request:
@@ -16,8 +15,7 @@ on:
       - 'modules/**'
       - 'panelFamilies/**'
       - 'shell.qml'
-      - 'translations/en_US.json'
-      - 'translations/ru_RU.json'
+      - 'translations/**'
       - 'scripts/localization-boundary-audit.py'
       - '.github/workflows/localization-audit.yml'
   workflow_dispatch:
