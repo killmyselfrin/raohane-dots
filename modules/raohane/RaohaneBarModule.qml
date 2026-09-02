@@ -8,7 +8,8 @@ import qs.modules.raohane.services
 
 // One reusable renderer for a registered bar module. This keeps module behavior
 // out of the horizontal bar geometry so ordering can come entirely from the
-// persisted layout.
+// persisted layout. Hosts may inject navigation callbacks while the renderer
+// retains native fallbacks for standalone reuse.
 Item {
     id: root
 
@@ -16,6 +17,9 @@ Item {
     property var screen: null
     property var parentWindow: null
     property bool hostActive: true
+    property bool showDate: RaohaneConfig.barShowDate
+    property var primaryAction: null
+    property var transientAction: null
 
     readonly property bool known: RaohaneBarModuleRegistry.isKnown(moduleId)
 
@@ -24,6 +28,30 @@ Item {
     width: implicitWidth
     height: implicitHeight
     visible: known && contentLoader.status === Loader.Ready
+
+    function requestPrimary(surfaceId: string): void {
+        if (typeof root.primaryAction === "function") {
+            root.primaryAction(surfaceId)
+            return
+        }
+        RaohaneState.togglePrimary(surfaceId)
+    }
+
+    function requestControlCenter(): void {
+        if (typeof root.primaryAction === "function") {
+            root.primaryAction("controlCenter")
+            return
+        }
+        RaohaneState.togglePrimary("controlCenter")
+    }
+
+    function requestTransient(surfaceId: string): void {
+        if (typeof root.transientAction === "function") {
+            root.transientAction(surfaceId)
+            return
+        }
+        RaohaneState.toggleSurface(surfaceId)
+    }
 
     function componentFor(id: string): Component {
         switch (id) {
@@ -55,7 +83,7 @@ Item {
             buttonSize: 30
             iconSize: 17
             icon: "apps"
-            onClicked: RaohaneState.togglePrimary("launcher")
+            onClicked: root.requestPrimary("launcher")
         }
     }
 
@@ -80,7 +108,7 @@ Item {
                 onClicked: mouse => {
                     if (RaohaneContext.mode !== "media") {
                         if (mouse.button === Qt.LeftButton)
-                            RaohaneState.togglePrimary("controlCenter")
+                            root.requestControlCenter()
                         return
                     }
 
@@ -89,7 +117,7 @@ Item {
                     } else if (mouse.button === Qt.RightButton) {
                         RaohaneMedia.cyclePlayer(1)
                     } else {
-                        RaohaneState.toggleSurface("mediaOverlay")
+                        root.requestTransient("mediaOverlay")
                     }
                 }
 
@@ -116,7 +144,7 @@ Item {
         id: systemComponent
 
         RaohaneSystemIcons {
-            onActivated: RaohaneState.togglePrimary("controlCenter")
+            onActivated: root.requestControlCenter()
         }
     }
 
@@ -124,7 +152,7 @@ Item {
         id: clockComponent
 
         RaohaneClock {
-            showDate: RaohaneConfig.barShowDate
+            showDate: root.showDate
             active: root.hostActive
         }
     }
@@ -138,7 +166,7 @@ Item {
             buttonSize: 30
             iconSize: 16
             icon: "tune"
-            onClicked: RaohaneState.togglePrimary("controlCenter")
+            onClicked: root.requestControlCenter()
         }
     }
 
