@@ -34,12 +34,15 @@ jobs:
         run: |
           set -euo pipefail
           export HOME="$RUNNER_TEMP/raohane-home"
-          mkdir -p "$HOME/.config/raohane" "$HOME/Pictures" "$HOME/Downloads"
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_STATE_HOME="$HOME/.local/state"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          mkdir -p "$XDG_CONFIG_HOME/raohane" "$HOME/Pictures" "$HOME/Downloads"
 
           printf 'wallpaper-bytes' > "$HOME/Pictures/current-wallpaper.png"
           printf 'avatar-bytes' > "$HOME/Pictures/avatar.png"
 
-          cat > "$HOME/.config/raohane/native.json" <<EOF
+          cat > "$XDG_CONFIG_HOME/raohane/native.json" <<EOF
           {
             "schemaVersion": 10,
             "wallpaper": {
@@ -60,7 +63,7 @@ jobs:
           }
           EOF
 
-          cat > "$HOME/.config/raohane/monitors.json" <<'EOF'
+          cat > "$XDG_CONFIG_HOME/raohane/monitors.json" <<'EOF'
           {
             "schemaVersion": 1,
             "monitors": {
@@ -83,23 +86,26 @@ jobs:
 
           python3 - <<'PY'
           import json
+          import os
           import pathlib
-          path = pathlib.Path.home() / '.config/raohane/native.json'
+          config = pathlib.Path(os.environ['XDG_CONFIG_HOME']) / 'raohane'
+          path = config / 'native.json'
           data = json.loads(path.read_text())
           data['style']['customAccent'] = '#ffffff'
           data['keybinds']['launcher'] = 'SUPER + X'
           path.write_text(json.dumps(data))
-          (pathlib.Path.home() / '.config/raohane/monitors.json').unlink()
+          (config / 'monitors.json').unlink()
           PY
 
           python3 scripts/raohane-backup.py restore --input "$HOME/Downloads/test.raohane-backup"
 
           python3 - <<'PY'
           import json
+          import os
           import pathlib
-          home = pathlib.Path.home()
-          native = json.loads((home / '.config/raohane/native.json').read_text())
-          monitors = json.loads((home / '.config/raohane/monitors.json').read_text())
+          config = pathlib.Path(os.environ['XDG_CONFIG_HOME']) / 'raohane'
+          native = json.loads((config / 'native.json').read_text())
+          monitors = json.loads((config / 'monitors.json').read_text())
           assert native['style']['customAccent'] == '#657987'
           assert native['keybinds']['launcher'] == 'SUPER + R'
           assert monitors['monitors']['DP-1']['vrr'] == 1
@@ -107,6 +113,7 @@ jobs:
           avatar = pathlib.Path(native['profile']['avatarPath'])
           assert wallpaper.is_file() and wallpaper.read_bytes() == b'wallpaper-bytes'
           assert avatar.is_file() and avatar.read_bytes() == b'avatar-bytes'
-          restore_points = list((home / '.local/state/raohane/restore-points').glob('*.raohane-backup'))
+          state = pathlib.Path(os.environ['XDG_STATE_HOME']) / 'raohane'
+          restore_points = list((state / 'restore-points').glob('*.raohane-backup'))
           assert restore_points, 'pre-restore safety archive was not created'
           PY
