@@ -21,7 +21,7 @@ Item {
         { key: "themes", name: qsTr("Themes"), icon: "palette", group: qsTr("PERSONALIZE"), subtitle: qsTr("Theme library and Style Studio") },
         { key: "widgets", name: qsTr("Desktop Widgets"), icon: "widgets", group: qsTr("PERSONALIZE"), subtitle: qsTr("Choose the quiet information shown on your wallpaper") },
         { key: "interface", name: qsTr("Appearance"), icon: "wand_stars", group: qsTr("PERSONALIZE"), subtitle: qsTr("Screen chrome, corners and visual framing") },
-        { key: "bar", name: qsTr("Bar & Dock"), icon: "dock_to_bottom", group: qsTr("SHELL"), subtitle: qsTr("Placement, reveal behavior and dock sizing") },
+        { key: "bar", name: qsTr("Bar & Dock"), icon: "dock_to_bottom", group: qsTr("SHELL"), subtitle: qsTr("Placement, reveal behavior, modules and dock sizing") },
         { key: "quick", name: qsTr("Quick Controls"), icon: "instant_mix", group: qsTr("SHELL"), subtitle: qsTr("Choose controls shown in the compact command surface") },
         { key: "general", name: qsTr("Media & OSD"), icon: "music_note", group: qsTr("SHELL"), subtitle: qsTr("Context Island, media overlay and display feedback") },
         { key: "desktop", name: qsTr("Desktop & Spaces"), icon: "view_quilt", group: qsTr("SHELL"), subtitle: qsTr("Wallpaper, transitions and workspace overview") },
@@ -72,7 +72,7 @@ Item {
         switch (key) {
         case "quick": return qsTr("Choose the controls that belong in the compact Control Center surface.")
         case "general": return qsTr("Tune Context Island, media presentation, OSD timing and night-light behavior.")
-        case "bar": return qsTr("Control the bar and dock while preserving Raohane's spatial rhythm.")
+        case "bar": return qsTr("Control placement, reveal behavior and module composition while preserving Raohane's spatial rhythm.")
         case "desktop": return qsTr("Configure wallpaper browsing, transitions and the Spaces overview grid.")
         case "widgets": return qsTr("Build a calm desktop composition from native Raohane widgets.")
         case "interface": return qsTr("Refine screen framing, rounding and hot-corner presentation.")
@@ -248,6 +248,10 @@ Item {
                 const needle = String(search ?? "").toLowerCase()
                 if (needle === "")
                     return
+                if (sectionRoot.sectionKey === "bar" && (needle.includes("module") || needle.includes("studio") || needle.includes("layout"))) {
+                    settingsFlick.contentY = Math.max(0, settingsList.implicitHeight + 118)
+                    return
+                }
                 const entries = root.sectionEntries(sectionRoot.sectionKey)
                 const index = entries.findIndex(entry => String(entry.label).toLowerCase().includes(needle) || entry.key.toLowerCase().includes(needle))
                 if (index >= 0)
@@ -527,6 +531,11 @@ Item {
                                 }
                             }
                         }
+                    }
+
+                    RaohaneBarStudio {
+                        visible: sectionRoot.sectionKey === "bar"
+                        width: parent.width
                     }
                 }
             }
