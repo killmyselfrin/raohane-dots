@@ -15,6 +15,8 @@ root_qmldir='modules/raohane/qmldir'
 state='modules/raohane/RaohaneState.qml'
 surface_registry='modules/raohane/RaohaneSurfaceRegistry.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
+settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
+settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 helper_qmldir='modules/raohane/helpers/qmldir'
 helpers='modules/raohane/helpers/RaohaneUtils.qml'
 model_qmldir='modules/raohane/models/qmldir'
@@ -30,6 +32,8 @@ required_files=(
   "$state"
   "$surface_registry"
   "$settings_registry"
+  "$settings_navigation"
+  "$settings_header"
   "$helper_qmldir"
   "$helpers"
   "$model_qmldir"
@@ -74,8 +78,6 @@ for property_name in "${product_properties[@]}"; do
     || fail "persisted property lost save handler: $property_name"
 done
 
-# Every generic Settings control key is declared once in the native page
-# registry and resolves directly into RaohaneConfig.
 mapfile -t settings_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings_registry" \
   | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
 [[ "${#settings_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys from registry'
@@ -139,9 +141,20 @@ fi
 
 rg -q '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' "$root_qmldir" \
   || fail 'native Settings page registry is not registered'
+for registration in \
+  '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' \
+  '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$'; do
+  rg -q "$registration" "$root_qmldir" || fail "missing Settings architecture registration: $registration"
+done
 for contract in pages aliases resolvePageIndex sectionEntries searchEntries; do
   rg -q "$contract" "$settings_registry" || fail "Settings page registry lost contract: $contract"
 done
+rg -q 'RaohaneSettingsPageRegistry\.isFirstInGroup' "$settings_navigation" \
+  || fail 'Settings navigation does not consume registry group ownership'
+rg -q 'RaohaneConfig\.profileDisplayName' "$settings_navigation" \
+  || fail 'Settings navigation lost profile ownership'
+rg -q 'root\.pageInfo\?\.name' "$settings_header" \
+  || fail 'Settings page header lost page metadata ownership'
 
 rg -q '^module qs\.modules\.raohane\.models$' "$model_qmldir" \
   || fail 'native models module is not declared'
@@ -173,4 +186,4 @@ if rg -n 'IllogicalImpulse|illogical-impulse|end4-pC' "$family" shell.qml; then
   fail 'startup graph contains upstream family/runtime identity'
 fi
 
-printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface/settings registries, persisted theme selection and compatibility-free active UI are valid\n'
+printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface/settings registries plus extracted navigation/header, persisted theme selection and compatibility-free active UI are valid\n'
