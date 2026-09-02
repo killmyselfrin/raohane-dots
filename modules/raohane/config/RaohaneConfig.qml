@@ -50,6 +50,7 @@ Singleton {
     property var barScreenList: []
     property bool barShowDate: true
     property var barModuleLayout: root.defaultBarModuleLayout()
+    property var barVerticalModuleLayout: root.defaultVerticalBarModuleLayout()
 
     property bool frameEnabled: false
     property int frameThickness: 4
@@ -214,6 +215,14 @@ Singleton {
         }
     }
 
+    function defaultVerticalBarModuleLayout(): var {
+        return {
+            left: ["launcher", "separator", "workspaces"],
+            center: ["context"],
+            right: ["network", "bluetooth", "notifications", "separator", "clock", "separator", "audio", "control", "session"]
+        }
+    }
+
     function sanitizeBarModuleZone(value, fallback): var {
         if (!Array.isArray(value))
             return fallback.slice()
@@ -229,6 +238,16 @@ Singleton {
     function sanitizeBarModuleLayout(value): var {
         const input = value && typeof value === "object" ? value : {}
         const defaults = root.defaultBarModuleLayout()
+        return {
+            left: root.sanitizeBarModuleZone(input.left, defaults.left),
+            center: root.sanitizeBarModuleZone(input.center, defaults.center),
+            right: root.sanitizeBarModuleZone(input.right, defaults.right)
+        }
+    }
+
+    function sanitizeVerticalBarModuleLayout(value): var {
+        const input = value && typeof value === "object" ? value : {}
+        const defaults = root.defaultVerticalBarModuleLayout()
         return {
             left: root.sanitizeBarModuleZone(input.left, defaults.left),
             center: root.sanitizeBarModuleZone(input.center, defaults.center),
@@ -329,7 +348,8 @@ Singleton {
                 showOnSuperDelay: root.barShowOnSuperDelay,
                 screenList: root.barScreenList,
                 showDate: root.barShowDate,
-                modules: root.sanitizeBarModuleLayout(root.barModuleLayout)
+                modules: root.sanitizeBarModuleLayout(root.barModuleLayout),
+                verticalModules: root.sanitizeVerticalBarModuleLayout(root.barVerticalModuleLayout)
             },
             frame: {
                 enabled: root.frameEnabled,
@@ -467,6 +487,7 @@ Singleton {
         root.assignIfPresent(bar, "screenList", value => root.barScreenList = Array.isArray(value) ? value.map(item => String(item)) : [])
         root.assignIfPresent(bar, "showDate", value => root.barShowDate = Boolean(value))
         root.assignIfPresent(bar, "modules", value => root.barModuleLayout = root.sanitizeBarModuleLayout(value))
+        root.assignIfPresent(bar, "verticalModules", value => root.barVerticalModuleLayout = root.sanitizeVerticalBarModuleLayout(value))
 
         root.assignIfPresent(frame, "enabled", value => root.frameEnabled = Boolean(value))
         root.assignIfPresent(frame, "thickness", value => root.frameThickness = Math.max(1, Math.min(24, Number(value) || 4)))
@@ -603,6 +624,7 @@ Singleton {
     onBarScreenListChanged: scheduleSave()
     onBarShowDateChanged: scheduleSave()
     onBarModuleLayoutChanged: scheduleSave()
+    onBarVerticalModuleLayoutChanged: scheduleSave()
     onFrameEnabledChanged: scheduleSave()
     onFrameThicknessChanged: scheduleSave()
     onFrameColorChanged: scheduleSave()
