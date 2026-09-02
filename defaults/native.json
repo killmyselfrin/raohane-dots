@@ -84,6 +84,14 @@
     "showVolume": true,
     "showMic": false
   },
+  "desktopWidgets": {
+    "enabled": true,
+    "showClock": true,
+    "showContext": true,
+    "showSystem": true,
+    "showMotto": true,
+    "compact": false
+  },
   "features": {
     "contextIsland": true,
     "mediaOverlay": true,

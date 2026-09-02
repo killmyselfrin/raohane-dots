@@ -7,6 +7,7 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 
 import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Variants {
     id: root
@@ -54,7 +55,8 @@ Variants {
 
         Item {
             anchors.fill: parent
-            opacity: desktopWindow.canvasVisible ? 1 : 0
+            opacity: desktopWindow.canvasVisible && RaohaneConfig.desktopWidgetsEnabled ? 1 : 0
+            visible: opacity > 0
 
             Behavior on opacity {
                 NumberAnimation {
@@ -70,7 +72,7 @@ Variants {
                     leftMargin: 54
                     topMargin: 92
                 }
-                width: Math.min(520, parent.width * 0.42)
+                width: Math.min(RaohaneConfig.desktopWidgetsCompact ? 390 : 520, parent.width * 0.42)
                 spacing: 3
 
                 RowLayout {
@@ -94,6 +96,7 @@ Variants {
                 }
 
                 Text {
+                    visible: RaohaneConfig.desktopWidgetClock
                     Layout.topMargin: 5
                     text: Qt.formatTime(root.now, "HH:mm")
                     color: RaohaneTheme.text
@@ -103,6 +106,7 @@ Variants {
                 }
 
                 Text {
+                    visible: RaohaneConfig.desktopWidgetClock
                     text: Qt.formatDate(root.now, "dddd, d MMMM")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 13
@@ -110,6 +114,7 @@ Variants {
                 }
 
                 Rectangle {
+                    visible: RaohaneConfig.desktopWidgetClock && RaohaneConfig.desktopWidgetContext
                     Layout.topMargin: 14
                     Layout.bottomMargin: 12
                     Layout.preferredWidth: 118
@@ -119,6 +124,7 @@ Variants {
                 }
 
                 RowLayout {
+                    visible: RaohaneConfig.desktopWidgetContext
                     Layout.fillWidth: true
                     spacing: 10
 
@@ -165,6 +171,7 @@ Variants {
                 }
 
                 Text {
+                    visible: RaohaneConfig.desktopWidgetContext
                     Layout.topMargin: 14
                     text: RaohaneContext.mode === "media"
                         ? qsTr("music is part of the room")
@@ -177,6 +184,137 @@ Variants {
                     font.letterSpacing: 0.7
                 }
             }
+
+            ColumnLayout {
+                anchors {
+                    right: parent.right
+                    bottom: parent.bottom
+                    rightMargin: 54
+                    bottomMargin: RaohaneConfig.dockEnabled ? 116 : 54
+                }
+                width: RaohaneConfig.desktopWidgetsCompact ? 220 : 276
+                spacing: 10
+
+                RaohaneSurface {
+                    visible: RaohaneConfig.desktopWidgetSystem
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: RaohaneConfig.desktopWidgetsCompact ? 72 : 86
+                    surfaceRadius: 20
+                    raised: false
+                    showSheen: false
+                    opacity: visible ? 0.92 : 0
+
+                    Behavior on opacity { NumberAnimation { duration: RaohaneMotion.standard } }
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 14
+                        spacing: 8
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Text {
+                                text: qsTr("SYSTEM")
+                                color: RaohaneTheme.textFaint
+                                font.pixelSize: 8
+                                font.weight: Font.DemiBold
+                                font.letterSpacing: 1.1
+                            }
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                text: RaohaneSystemInfo.hostname
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+                            StatusItem {
+                                Layout.fillWidth: true
+                                icon: RaohaneNetwork.materialSymbol
+                                label: RaohaneNetwork.networkName || (RaohaneNetwork.ethernet ? qsTr("Ethernet") : qsTr("Offline"))
+                                active: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
+                            }
+                            StatusItem {
+                                Layout.fillWidth: true
+                                icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
+                                label: RaohaneAudio.muted ? qsTr("Muted") : Math.round(RaohaneAudio.volume * 100) + "%"
+                                active: !RaohaneAudio.muted
+                            }
+                        }
+                    }
+                }
+
+                RaohaneSurface {
+                    visible: RaohaneConfig.desktopWidgetMotto
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: RaohaneConfig.desktopWidgetsCompact ? 48 : 58
+                    surfaceRadius: 18
+                    raised: false
+                    showSheen: false
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 14
+                        spacing: 10
+
+                        Rectangle {
+                            Layout.preferredWidth: 2
+                            Layout.preferredHeight: 24
+                            radius: 1
+                            color: RaohaneTheme.accent
+                            opacity: 0.68
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+                            Text {
+                                text: qsTr("Move gently. Stay present.")
+                                color: RaohaneTheme.text
+                                font.pixelSize: 10
+                                font.weight: Font.Medium
+                            }
+                            Text {
+                                visible: !RaohaneConfig.desktopWidgetsCompact
+                                text: "静かに、前へ"
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                                font.letterSpacing: 0.8
+                            }
+                        }
+                        RaohaneIcon {
+                            text: "spa"
+                            iconSize: 17
+                            fill: 0.16
+                            color: RaohaneTheme.accent
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    component StatusItem: RowLayout {
+        id: statusItem
+        required property string icon
+        required property string label
+        property bool active: false
+        spacing: 5
+
+        RaohaneIcon {
+            text: statusItem.icon
+            iconSize: 13
+            color: statusItem.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
+        }
+        Text {
+            Layout.fillWidth: true
+            text: statusItem.label
+            color: RaohaneTheme.textMuted
+            font.pixelSize: 9
+            elide: Text.ElideRight
         }
     }
 }

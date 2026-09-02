@@ -36,9 +36,9 @@ Item {
             id: toggleGrid
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            columns: 3
-            columnSpacing: 6
-            rowSpacing: 6
+            columns: 2
+            columnSpacing: 8
+            rowSpacing: 8
 
             QuickTile {
                 Layout.fillWidth: true
@@ -214,8 +214,8 @@ Item {
         signal primary()
         signal secondary()
 
-        Layout.preferredHeight: 58
-        surfaceRadius: 14
+        Layout.preferredHeight: 64
+        surfaceRadius: 16
         showSheen: false
         transparentIdle: !tile.active && !tile.menuOpen
         hovered: pointer.containsMouse || activeFocus
@@ -232,11 +232,11 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.leftMargin: 9
-            anchors.rightMargin: 9
-            anchors.topMargin: 7
-            anchors.bottomMargin: 7
-            spacing: 2
+            anchors.leftMargin: 11
+            anchors.rightMargin: 11
+            anchors.topMargin: 9
+            anchors.bottomMargin: 9
+            spacing: 3
 
             RowLayout {
                 Layout.fillWidth: true
@@ -244,7 +244,7 @@ Item {
 
                 RaohaneIcon {
                     text: tile.icon
-                    iconSize: 17
+                    iconSize: 18
                     fill: tile.active ? 1 : tile.hovered ? 0.35 : 0
                     symbolWeight: tile.active ? 560 : tile.hovered ? 500 : 430
                     grade: tile.active ? 40 : tile.hovered ? 20 : 0
@@ -288,7 +288,7 @@ Item {
                 Layout.fillWidth: true
                 text: tile.title
                 color: RaohaneTheme.text
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
