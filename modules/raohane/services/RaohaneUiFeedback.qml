@@ -12,9 +12,12 @@ Singleton {
     id: root
 
     property bool enabled: true
-    property real volume: 0.09
+    // Keep the Qt path intentionally quiet. The primary PipeWire path plays the
+    // pre-mastered WAV directly; this value only applies if that path fails.
+    property real volume: 0.32
     property bool ready: false
     property double lastPlayedAt: 0
+    property string pendingExternalKind: "tap"
 
     readonly property string soundDirectory: RaohanePaths.join(RaohanePaths.cacheDirectory, "sounds")
 
@@ -22,15 +25,24 @@ Singleton {
         if (!root.enabled || !root.ready)
             return false
         const now = Date.now()
-        if (now - root.lastPlayedAt < 24)
+        if (now - root.lastPlayedAt < 32)
             return false
         root.lastPlayedAt = now
         return true
     }
 
-    function play(kind: string): void {
-        if (!root.canPlay())
-            return
+    function soundFile(kind: string): string {
+        switch (kind) {
+        case "navigate":
+            return RaohanePaths.join(root.soundDirectory, "ui-navigate.wav")
+        case "confirm":
+            return RaohanePaths.join(root.soundDirectory, "ui-confirm.wav")
+        default:
+            return RaohanePaths.join(root.soundDirectory, "ui-tap.wav")
+        }
+    }
+
+    function playQt(kind: string): void {
         switch (kind) {
         case "navigate":
             navigateSound.play()
@@ -44,9 +56,29 @@ Singleton {
         }
     }
 
-    function tap(): void { root.play("tap") }
-    function navigate(): void { root.play("navigate") }
-    function confirm(): void { root.play("confirm") }
+    function play(kind: string): void {
+        const normalizedKind = kind === "navigate" || kind === "confirm" ? kind : "tap"
+        if (!root.canPlay())
+            return
+
+        // QtMultimedia can be silent on otherwise healthy PipeWire sessions when
+        // its platform/backend plugin is unavailable. Prefer the native PipeWire
+        // player and only fall back to SoundEffect if the helper cannot play.
+        if (!externalPlayer.running) {
+            root.pendingExternalKind = normalizedKind
+            externalPlayer.command = [
+                "bash",
+                Quickshell.shellPath("scripts/play-ui-sound.sh"),
+                root.soundFile(normalizedKind)
+            ]
+            externalPlayer.running = true
+            return
+        }
+
+        // Do not spawn an unbounded number of short players during rapid input.
+        // A click that lands while pw-play is still finishing uses Qt instead.
+        root.playQt(normalizedKind)
+    }
 
     SoundEffect {
         id: tapSound
@@ -67,16 +99,26 @@ Singleton {
     }
 
     Process {
+        id: externalPlayer
+
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0 && root.enabled && root.ready)
+                root.playQt(root.pendingExternalKind)
+        }
+    }
+
+    Process {
         id: generator
         command: [
             "python3",
             Quickshell.shellPath("scripts/generate-ui-sounds.py"),
             root.soundDirectory
         ]
+
         onExited: (exitCode, exitStatus) => {
             root.ready = exitCode === 0
-            if (exitCode !== 0)
-                console.warn("[RaohaneUiFeedback] Could not prepare UI sounds")
+            if (!root.ready)
+                console.warn("RaohaneUiFeedback: failed to prepare UI sounds")
         }
     }
 

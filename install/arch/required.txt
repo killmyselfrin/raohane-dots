@@ -9,6 +9,7 @@ qt6-5compat
 qt6-multimedia
 networkmanager
 pipewire
+pipewire-audio
 pipewire-pulse
 wireplumber
 polkit
