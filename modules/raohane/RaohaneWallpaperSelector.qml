@@ -309,25 +309,49 @@ Scope {
                         showSheen: false
                         clip: true
 
-                        GridView {
-                            id: grid
+                        ListView {
+                            id: carousel
                             anchors.fill: parent
-                            anchors.margins: 7
+                            anchors.margins: 12
                             model: RaohaneWallpapers.folderModel
                             clip: true
+                            orientation: ListView.Horizontal
+                            spacing: 12
                             boundsBehavior: Flickable.StopAtBounds
-                            cellWidth: width / Math.max(2, Math.min(6, RaohaneConfig.wallpaperColumns || 4))
-                            cellHeight: cellWidth * 0.70
+                            flickDeceleration: 2100
+                            maximumFlickVelocity: 4200
+                            snapMode: ListView.SnapToItem
+                            highlightMoveDuration: RaohaneMotion.relaxed
+                            highlightMoveVelocity: -1
+                            preferredHighlightBegin: Math.max(0, width * 0.5 - 170)
+                            preferredHighlightEnd: Math.max(0, width * 0.5 + 170)
+                            highlightRangeMode: ListView.ApplyRange
                             keyNavigationWraps: true
                             focus: true
+
+                            Keys.onLeftPressed: decrementCurrentIndex()
+                            Keys.onRightPressed: incrementCurrentIndex()
+
+                            WheelHandler {
+                                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                                onWheel: event => {
+                                    const step = event.angleDelta.y !== 0 ? event.angleDelta.y : -event.angleDelta.x
+                                    if (step < 0)
+                                        carousel.incrementCurrentIndex()
+                                    else if (step > 0)
+                                        carousel.decrementCurrentIndex()
+                                    carousel.positionViewAtIndex(carousel.currentIndex, ListView.Center)
+                                    event.accepted = true
+                                }
+                            }
 
                             delegate: Item {
                                 id: cell
                                 required property var modelData
                                 required property int index
 
-                                width: grid.cellWidth
-                                height: grid.cellHeight
+                                width: Math.min(390, Math.max(270, carousel.width * 0.42))
+                                height: carousel.height
                                 readonly property bool isDirectory: modelData.fileIsDir ?? false
                                 readonly property string filePath: modelData.filePath ?? ""
                                 readonly property string fileName: modelData.fileName ?? filePath.split("/").pop()
@@ -339,14 +363,17 @@ Scope {
                                 RaohaneSurface {
                                     id: cellSurface
                                     anchors.fill: parent
-                                    anchors.margins: 4
-                                    surfaceRadius: 13
+                                    anchors.topMargin: cell.index === carousel.currentIndex ? 4 : 18
+                                    anchors.bottomMargin: cell.index === carousel.currentIndex ? 4 : 18
+                                    anchors.leftMargin: 2
+                                    anchors.rightMargin: 2
+                                    surfaceRadius: 22
                                     active: cell.selected
                                     hovered: cellMouse.containsMouse
                                     pressed: cellMouse.pressed
                                     interactive: true
                                     showSheen: false
-                                    hoverScale: 1.015
+                                    hoverScale: 1.008
                                     pressedScale: 0.985
                                     clip: true
 
@@ -435,7 +462,7 @@ Scope {
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
                                         onEntered: {
-                                            grid.currentIndex = cell.index
+                                            carousel.currentIndex = cell.index
                                             if (!cell.isDirectory && !cell.isVideo && RaohaneConfig.wallpaperPreview)
                                                 RaohaneWallpapers.startPreview(cell.filePath)
                                         }
@@ -448,14 +475,14 @@ Scope {
                                 }
                             }
 
-                            ScrollBar.vertical: ScrollBar {
+                            ScrollBar.horizontal: ScrollBar {
                                 id: wallpaperScroll
                                 policy: ScrollBar.AsNeeded
-                                width: 7
+                                height: 7
                                 background: Item {}
                                 contentItem: Rectangle {
-                                    implicitWidth: 5
-                                    radius: width / 2
+                                    implicitHeight: 5
+                                    radius: height / 2
                                     color: wallpaperScroll.pressed ? RaohaneTheme.accent : RaohaneTheme.borderStrong
                                     opacity: wallpaperScroll.active ? 0.8 : 0.35
 

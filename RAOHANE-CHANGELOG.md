@@ -9,6 +9,8 @@
 - Correct active project links to `killmyselfrin/raohane-dots`.
 - Remove obsolete Settings V1/V2 implementations and point architecture/CI validation at the sole active Settings V3 surface.
 - Advance config and audit contracts to schema v11 for the native desktop-widget settings.
+- Keep Desktop Widgets visible near the top of Settings navigation and expose a clear scroll indicator on shorter displays.
+- Replace the wallpaper grid with a large horizontal snap carousel supporting mouse-wheel, touchpad and keyboard browsing while preserving folders, previews and video entries.
 
 - Add a Raohane-owned theme catalog loader and deterministic CLI importer/exporter.
 - Convert the Serpantinum color-preset library into complete Raohane surface tokens while keeping the active runtime independent from Serpantinum code and paths.

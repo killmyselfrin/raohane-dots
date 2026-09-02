@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 
@@ -18,12 +19,12 @@ Item {
     readonly property var pages: [
         { key: "home", name: qsTr("Home"), icon: "home", group: qsTr("PERSONALIZE"), subtitle: qsTr("Raohane at a glance") },
         { key: "themes", name: qsTr("Themes"), icon: "palette", group: qsTr("PERSONALIZE"), subtitle: qsTr("Theme library and Style Studio") },
+        { key: "widgets", name: qsTr("Desktop Widgets"), icon: "widgets", group: qsTr("PERSONALIZE"), subtitle: qsTr("Choose the quiet information shown on your wallpaper") },
         { key: "interface", name: qsTr("Appearance"), icon: "wand_stars", group: qsTr("PERSONALIZE"), subtitle: qsTr("Screen chrome, corners and visual framing") },
         { key: "bar", name: qsTr("Bar & Dock"), icon: "dock_to_bottom", group: qsTr("SHELL"), subtitle: qsTr("Placement, reveal behavior and dock sizing") },
         { key: "quick", name: qsTr("Quick Controls"), icon: "instant_mix", group: qsTr("SHELL"), subtitle: qsTr("Choose controls shown in the compact command surface") },
         { key: "general", name: qsTr("Media & OSD"), icon: "music_note", group: qsTr("SHELL"), subtitle: qsTr("Context Island, media overlay and display feedback") },
         { key: "desktop", name: qsTr("Desktop & Spaces"), icon: "view_quilt", group: qsTr("SHELL"), subtitle: qsTr("Wallpaper, transitions and workspace overview") },
-        { key: "widgets", name: qsTr("Desktop Widgets"), icon: "widgets", group: qsTr("SHELL"), subtitle: qsTr("Choose the quiet information shown on your wallpaper") },
         { key: "displays", name: qsTr("Displays"), icon: "monitor", group: qsTr("SYSTEM"), subtitle: qsTr("Resolution, refresh rate, scale and multi-monitor layout") },
         { key: "hyprland", name: qsTr("Hyprland"), icon: "select_window_2", group: qsTr("SYSTEM"), subtitle: qsTr("Compositor-facing behavior and interaction boundaries") },
         { key: "services", name: qsTr("Integrations"), icon: "hub", group: qsTr("SYSTEM"), subtitle: qsTr("External commands and native system helpers") },
@@ -543,6 +544,17 @@ Item {
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
                     flickDeceleration: 2600
+
+                    ScrollBar.vertical: ScrollBar {
+                        policy: ScrollBar.AsNeeded
+                        width: 3
+                        contentItem: Rectangle {
+                            implicitWidth: 3
+                            radius: 2
+                            color: RaohaneTheme.accent
+                            opacity: 0.48
+                        }
+                    }
 
                     Column {
                         id: navColumn
