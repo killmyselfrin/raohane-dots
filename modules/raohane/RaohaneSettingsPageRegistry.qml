@@ -2,26 +2,25 @@ pragma Singleton
 
 import QtQuick
 
-// Single source of truth for Settings navigation, route aliases and generic
-// native setting schemas. Rendering belongs to RaohaneSettingsContentV3 and
-// RaohaneSettingsSectionPage; persistent values remain owned by RaohaneConfig.
+// Single source of truth for Settings navigation, routing, page loading and
+// generic native setting schemas. Persistent values remain owned by RaohaneConfig.
 QtObject {
     id: root
 
     readonly property var pages: [
-        { key: "home", name: qsTr("Home"), icon: "home", group: qsTr("PERSONALIZE"), subtitle: qsTr("Raohane at a glance"), kind: "home" },
-        { key: "themes", name: qsTr("Themes"), icon: "palette", group: qsTr("PERSONALIZE"), subtitle: qsTr("Theme library and Style Studio"), kind: "themes" },
-        { key: "widgets", name: qsTr("Desktop Widgets"), icon: "widgets", group: qsTr("PERSONALIZE"), subtitle: qsTr("Choose the quiet information shown on your wallpaper"), kind: "widgets" },
-        { key: "interface", name: qsTr("Appearance"), icon: "wand_stars", group: qsTr("PERSONALIZE"), subtitle: qsTr("Screen chrome, corners and visual framing"), kind: "section" },
-        { key: "bar", name: qsTr("Bar & Dock"), icon: "dock_to_bottom", group: qsTr("SHELL"), subtitle: qsTr("Placement, reveal behavior, modules and dock sizing"), kind: "section" },
-        { key: "quick", name: qsTr("Quick Controls"), icon: "instant_mix", group: qsTr("SHELL"), subtitle: qsTr("Choose controls shown in the compact command surface"), kind: "section" },
-        { key: "general", name: qsTr("Media & OSD"), icon: "music_note", group: qsTr("SHELL"), subtitle: qsTr("Context Island, media overlay and display feedback"), kind: "section" },
-        { key: "desktop", name: qsTr("Desktop & Spaces"), icon: "view_quilt", group: qsTr("SHELL"), subtitle: qsTr("Wallpaper, transitions and workspace overview"), kind: "section" },
-        { key: "displays", name: qsTr("Displays"), icon: "monitor", group: qsTr("SYSTEM"), subtitle: qsTr("Resolution, refresh rate, scale and multi-monitor layout"), kind: "external", surface: "displaySettings" },
-        { key: "hyprland", name: qsTr("Hyprland"), icon: "select_window_2", group: qsTr("SYSTEM"), subtitle: qsTr("Compositor-facing behavior and interaction boundaries"), kind: "section" },
-        { key: "services", name: qsTr("Integrations"), icon: "hub", group: qsTr("SYSTEM"), subtitle: qsTr("External commands and native system helpers"), kind: "section" },
-        { key: "profile", name: qsTr("Profile"), icon: "account_circle", group: qsTr("SYSTEM"), subtitle: qsTr("Local identity used by Raohane surfaces"), kind: "section" },
-        { key: "about", name: qsTr("About"), icon: "info", group: qsTr("SYSTEM"), subtitle: qsTr("Version, runtime and system information"), kind: "about" }
+        { key: "home", name: qsTr("Home"), icon: "home", group: qsTr("PERSONALIZE"), subtitle: qsTr("Raohane at a glance"), source: "RaohaneSettingsHome.qml" },
+        { key: "themes", name: qsTr("Themes"), icon: "palette", group: qsTr("PERSONALIZE"), subtitle: qsTr("Theme library and Style Studio"), source: "RaohaneThemeCatalog.qml" },
+        { key: "widgets", name: qsTr("Desktop Widgets"), icon: "widgets", group: qsTr("PERSONALIZE"), subtitle: qsTr("Choose the quiet information shown on your wallpaper"), source: "RaohaneWidgetStudio.qml" },
+        { key: "interface", name: qsTr("Appearance"), icon: "wand_stars", group: qsTr("PERSONALIZE"), subtitle: qsTr("Screen chrome, corners and visual framing"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "bar", name: qsTr("Bar & Dock"), icon: "dock_to_bottom", group: qsTr("SHELL"), subtitle: qsTr("Placement, reveal behavior, modules and dock sizing"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "quick", name: qsTr("Quick Controls"), icon: "instant_mix", group: qsTr("SHELL"), subtitle: qsTr("Choose controls shown in the compact command surface"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "general", name: qsTr("Media & OSD"), icon: "music_note", group: qsTr("SHELL"), subtitle: qsTr("Context Island, media overlay and display feedback"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "desktop", name: qsTr("Desktop & Spaces"), icon: "view_quilt", group: qsTr("SHELL"), subtitle: qsTr("Wallpaper, transitions and workspace overview"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "displays", name: qsTr("Displays"), icon: "monitor", group: qsTr("SYSTEM"), subtitle: qsTr("Resolution, refresh rate, scale and multi-monitor layout"), source: "", externalSurface: "displaySettings" },
+        { key: "hyprland", name: qsTr("Hyprland"), icon: "select_window_2", group: qsTr("SYSTEM"), subtitle: qsTr("Compositor-facing behavior and interaction boundaries"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "services", name: qsTr("Integrations"), icon: "hub", group: qsTr("SYSTEM"), subtitle: qsTr("External commands and native system helpers"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "profile", name: qsTr("Profile"), icon: "account_circle", group: qsTr("SYSTEM"), subtitle: qsTr("Local identity used by Raohane surfaces"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "about", name: qsTr("About"), icon: "info", group: qsTr("SYSTEM"), subtitle: qsTr("Version, runtime and system information"), source: "RaohaneSettingsAbout.qml" }
     ]
 
     readonly property var aliases: ({
