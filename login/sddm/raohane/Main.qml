@@ -72,25 +72,17 @@ Rectangle {
     }
 
     Rectangle {
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            right: parent.right
-        }
-        width: root.width * 0.34
-        color: "#050706"
-        opacity: 0.10
-    }
-
-    Repeater {
-        model: 8
-        Rectangle {
-            x: loginPanel.x + loginPanel.width - 1 + index * 18
-            y: 0
-            width: 20
-            height: root.height
-            color: "#09100d"
-            opacity: 0.26 * Math.pow(0.72, index)
+        id: panelBlend
+        x: loginPanel.x + loginPanel.width - 2
+        y: loginPanel.y + 1
+        width: Math.max(110, root.width * 0.085)
+        height: loginPanel.height - 2
+        color: "transparent"
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0.00; color: Qt.rgba(0.035, 0.055, 0.052, 0.32) }
+            GradientStop { position: 0.42; color: Qt.rgba(0.035, 0.055, 0.052, 0.12) }
+            GradientStop { position: 1.00; color: Qt.rgba(0.035, 0.055, 0.052, 0.0) }
         }
     }
 
@@ -313,8 +305,15 @@ Rectangle {
             orientation: ListView.Horizontal
             spacing: 10
             clip: true
+            interactive: contentWidth > width
+            boundsBehavior: Flickable.StopAtBounds
             model: sessionModel
             currentIndex: root.selectedSession
+
+            onCurrentIndexChanged: {
+                if (currentIndex >= 0)
+                    positionViewAtIndex(currentIndex, ListView.Contain)
+            }
 
             delegate: Rectangle {
                 id: sessionChip
@@ -379,6 +378,70 @@ Rectangle {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.selectedSession = index
                 }
+            }
+        }
+
+        Rectangle {
+            id: sessionPrevious
+            visible: sessionList.contentWidth > sessionList.width + 2 && sessionList.contentX > 4
+            anchors {
+                left: sessionList.left
+                verticalCenter: sessionList.verticalCenter
+                leftMargin: 3
+            }
+            width: 30
+            height: 30
+            radius: 15
+            color: Qt.rgba(0.035, 0.055, 0.052, 0.88)
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.13)
+
+            Text {
+                anchors.centerIn: parent
+                text: "‹"
+                color: root.textColor
+                opacity: 0.80
+                font.pixelSize: 18
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: sessionList.contentX = Math.max(0, sessionList.contentX - 170)
+            }
+        }
+
+        Rectangle {
+            id: sessionNext
+            visible: sessionList.contentWidth > sessionList.width + 2
+                && sessionList.contentX < sessionList.contentWidth - sessionList.width - 4
+            anchors {
+                right: sessionList.right
+                verticalCenter: sessionList.verticalCenter
+                rightMargin: 3
+            }
+            width: 30
+            height: 30
+            radius: 15
+            color: Qt.rgba(0.035, 0.055, 0.052, 0.88)
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.13)
+
+            Text {
+                anchors.centerIn: parent
+                text: "›"
+                color: root.textColor
+                opacity: 0.80
+                font.pixelSize: 18
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: sessionList.contentX = Math.min(
+                    Math.max(0, sessionList.contentWidth - sessionList.width),
+                    sessionList.contentX + 170
+                )
             }
         }
 
@@ -599,8 +662,8 @@ Rectangle {
         }
         text: "静"
         color: root.textColor
-        opacity: 0.045
-        font.pixelSize: 150
+        opacity: 0.035
+        font.pixelSize: 146
         font.weight: Font.Light
     }
 
@@ -613,7 +676,7 @@ Rectangle {
         }
         text: "静\nけ\nさ\nの\n中\nに"
         color: root.textColor
-        opacity: 0.11
+        opacity: 0.085
         font.pixelSize: 10
         lineHeight: 1.20
         horizontalAlignment: Text.AlignHCenter
