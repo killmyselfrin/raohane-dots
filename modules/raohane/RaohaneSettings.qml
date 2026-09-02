@@ -31,14 +31,23 @@ Scope {
         function hide(): void {
             settingsSearch.clear()
             workspace.preferencesOpen = false
+            workspace.backupOpen = false
             RaohaneState.setPrimaryOpen("settings", false)
         }
 
         function openPreferences(section: string): void {
             settingsSearch.clear()
+            workspace.backupOpen = false
             preferences.section = section
             workspace.preferencesOpen = true
             preferences.forceActiveFocus()
+        }
+
+        function openBackup(): void {
+            settingsSearch.clear()
+            workspace.preferencesOpen = false
+            workspace.backupOpen = true
+            backupPage.forceActiveFocus()
         }
 
         onVisibleChanged: {
@@ -49,6 +58,7 @@ Scope {
             } else {
                 workspace.entered = false
                 workspace.preferencesOpen = false
+                workspace.backupOpen = false
                 RaohaneFocusGrab.removeDismissable(panelWindow)
             }
         }
@@ -79,6 +89,7 @@ Scope {
             id: workspace
             property bool entered: false
             property bool preferencesOpen: false
+            property bool backupOpen: false
 
             width: Math.min(parent.width - 96, 1040)
             height: Math.min(parent.height - 96, 700)
@@ -123,7 +134,7 @@ Scope {
 
             RaohaneSettingsContentV3 {
                 anchors.fill: parent
-                visible: !workspace.preferencesOpen
+                visible: !workspace.preferencesOpen && !workspace.backupOpen
             }
 
             RaohanePreferencesHub {
@@ -137,9 +148,98 @@ Scope {
                 }
             }
 
+            Item {
+                id: backupPage
+                anchors.fill: parent
+                visible: workspace.backupOpen
+                z: 45
+                focus: visible
+
+                Item {
+                    id: backupHeader
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        top: parent.top
+                    }
+                    height: 66
+
+                    RaohaneIconButton {
+                        anchors {
+                            left: parent.left
+                            verticalCenter: parent.verticalCenter
+                            leftMargin: 16
+                        }
+                        buttonSize: 32
+                        iconSize: 16
+                        icon: "arrow_back"
+                        transparentIdle: true
+                        showSheen: false
+                        onClicked: {
+                            workspace.backupOpen = false
+                            workspace.forceActiveFocus()
+                        }
+                    }
+
+                    Column {
+                        anchors {
+                            left: parent.left
+                            verticalCenter: parent.verticalCenter
+                            leftMargin: 60
+                        }
+                        spacing: 1
+
+                        Text {
+                            text: qsTr("Backup & Restore")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 17
+                            font.weight: Font.DemiBold
+                        }
+
+                        Text {
+                            text: qsTr("Portable Raohane settings, wallpapers and monitor profiles")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 8
+                        }
+                    }
+
+                    Rectangle {
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            bottom: parent.bottom
+                            leftMargin: 18
+                            rightMargin: 18
+                        }
+                        height: 1
+                        color: RaohaneTheme.borderFaint
+                    }
+                }
+
+                RaohaneBackupSettings {
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        top: backupHeader.bottom
+                        bottom: parent.bottom
+                        leftMargin: 16
+                        rightMargin: 16
+                        bottomMargin: 8
+                    }
+                }
+
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_Escape) {
+                        workspace.backupOpen = false
+                        workspace.forceActiveFocus()
+                        event.accepted = true
+                    }
+                }
+            }
+
             RaohaneSettingsSearch {
                 id: settingsSearch
-                visible: !workspace.preferencesOpen
+                visible: !workspace.preferencesOpen && !workspace.backupOpen
                 z: 50
                 width: Math.min(300, Math.max(220, workspace.width * 0.27))
                 height: 34
@@ -147,12 +247,29 @@ Scope {
                     top: parent.top
                     right: parent.right
                     topMargin: 19
-                    rightMargin: 167
+                    rightMargin: 204
                 }
             }
 
             RaohaneIconButton {
-                visible: !workspace.preferencesOpen
+                visible: !workspace.preferencesOpen && !workspace.backupOpen
+                z: 50
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                    topMargin: 20
+                    rightMargin: 164
+                }
+                buttonSize: 30
+                iconSize: 15
+                icon: "inventory_2"
+                transparentIdle: true
+                showSheen: false
+                onClicked: panelWindow.openBackup()
+            }
+
+            RaohaneIconButton {
+                visible: !workspace.preferencesOpen && !workspace.backupOpen
                 z: 50
                 anchors {
                     top: parent.top
@@ -169,7 +286,7 @@ Scope {
             }
 
             RaohaneIconButton {
-                visible: !workspace.preferencesOpen
+                visible: !workspace.preferencesOpen && !workspace.backupOpen
                 z: 50
                 anchors {
                     top: parent.top
@@ -186,7 +303,7 @@ Scope {
             }
 
             RaohaneIconButton {
-                visible: !workspace.preferencesOpen
+                visible: !workspace.preferencesOpen && !workspace.backupOpen
                 z: 50
                 anchors {
                     top: parent.top
@@ -219,14 +336,18 @@ Scope {
             }
 
             Keys.onPressed: event => {
-                if (workspace.preferencesOpen && event.key === Qt.Key_Escape) {
+                if (workspace.backupOpen && event.key === Qt.Key_Escape) {
+                    workspace.backupOpen = false
+                    workspace.forceActiveFocus()
+                    event.accepted = true
+                } else if (workspace.preferencesOpen && event.key === Qt.Key_Escape) {
                     workspace.preferencesOpen = false
                     workspace.forceActiveFocus()
                     event.accepted = true
-                } else if (!workspace.preferencesOpen && (event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
+                } else if (!workspace.preferencesOpen && !workspace.backupOpen && (event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
                     settingsSearch.focusSearch()
                     event.accepted = true
-                } else if (!workspace.preferencesOpen && event.key === Qt.Key_Escape) {
+                } else if (!workspace.preferencesOpen && !workspace.backupOpen && event.key === Qt.Key_Escape) {
                     if (settingsSearch.query.length > 0) {
                         settingsSearch.clear()
                         workspace.forceActiveFocus()
@@ -255,11 +376,16 @@ Scope {
                     panelWindow.openPreferences("motion")
                     return
                 }
+                if (requested === "backup" || requested === "restore" || requested === "backup & restore") {
+                    panelWindow.openBackup()
+                    return
+                }
                 if (requested === "language" || requested === "locale") {
                     RaohaneI18n.openPicker()
                     return
                 }
                 workspace.preferencesOpen = false
+                workspace.backupOpen = false
                 RaohaneState.settingsPage = page
             }
         }
