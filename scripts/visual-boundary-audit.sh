@@ -18,6 +18,8 @@ media='modules/raohane/RaohaneMediaOverlay.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
+settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_home='modules/raohane/RaohaneSettingsHome.qml'
 bar='modules/raohane/RaohaneBar.qml'
@@ -46,9 +48,9 @@ osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
   "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" "$settings_content" \
-  "$settings_section" "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" "$context" "$notification" "$surface" "$icon_button" \
-  "$motion" "$slider" "$switch" "$clock" "$quick" "$sidebar" "$session" "$task_manager" "$overlay" \
-  "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
+  "$settings_navigation" "$settings_header" "$settings_section" "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" \
+  "$context" "$notification" "$surface" "$icon_button" "$motion" "$slider" "$switch" "$clock" "$quick" "$sidebar" \
+  "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
 done
 
@@ -116,9 +118,11 @@ rg -q 'RaohaneIconButton[[:space:]]*\{' "$media" || fail 'Media Player regressed
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$control" || fail 'Control Center regressed from shared tactile icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$osk" || fail 'OSK shell regressed from shared tactile icon buttons'
 
+# The coordinator is intentionally presentation-light. Shared surfaces for
+# Settings live in the extracted navigation/header/section implementations.
 shared_surfaces=(
-  "$launcher" "$media" "$control" "$settings" "$settings_content" "$settings_section" "$settings_home" "$bar" "$vertical" "$dock"
-  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
+  "$launcher" "$media" "$control" "$settings" "$settings_navigation" "$settings_header" "$settings_section" "$settings_home" \
+  "$bar" "$vertical" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
 )
 for file in "${shared_surfaces[@]}"; do
   rg -q 'RaohaneSurface[[:space:]]*\{' "$file" || fail "$file no longer uses the shared RaohaneSurface primitive"
@@ -144,11 +148,14 @@ for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sid
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
 done
 
-if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$control" "$settings" "$settings_content" "$settings_section"; then
+if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$control" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_section"; then
   fail 'minimal primary controls contain retired cyber-noir hard-coded colors'
 fi
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls do not consume minimalist surface tokens'
 rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls do not consume shared minimal borders'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
+rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted navigation'
+rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted page header'
 
 edge_surfaces=("$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key")
 if rg -n '#18ffffff|#20ffffff|#24ffffff|#10ffffff|#12ffffff|#14ffffff|#2affffff|#35ffffff|#63171320|#3814111c|#74120f19|#1fc56cff|#2cff668c|#32ff668c' "${edge_surfaces[@]}"; then
@@ -188,7 +195,8 @@ fi
 for file in "$launcher" "$media" "$control" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
-rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_content" || fail 'Settings V3 shell lost restrained secondary text hierarchy'
+rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_navigation" || fail 'Settings navigation lost restrained secondary text hierarchy'
+rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings page header lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, registry-backed Settings V3, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, coordinator-based Settings V3 with extracted navigation/header, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
