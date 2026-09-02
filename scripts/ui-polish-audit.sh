@@ -55,9 +55,12 @@ if rg -n 'duration:[[:space:]]*180' "$desktop" "$desktop_widgets"; then
 fi
 
 rg -q 'component WorkspaceButton:[[:space:]]*RaohaneSurface[[:space:]]*\{' "$workspaces" || fail 'Workspace buttons no longer use the shared reusable surface component'
-for orientation in horizontal vertical; do
-  rg -q "orientation:[[:space:]]*\"${orientation}\"" "$workspaces" || fail "Workspace renderer lost ${orientation} composition"
-done
+rg -q 'property string orientation:[[:space:]]*"horizontal"' "$workspaces" || fail 'Workspace renderer lost orientation state'
+rg -q 'sourceComponent:[[:space:]]*root\.vertical[[:space:]]*\?[[:space:]]*verticalWorkspaces[[:space:]]*:[[:space:]]*horizontalWorkspaces' "$workspaces" || fail 'Workspace renderer no longer switches orientation through one loader'
+rg -q 'id:[[:space:]]*horizontalWorkspaces' "$workspaces" || fail 'Workspace renderer lost horizontal composition'
+rg -q 'id:[[:space:]]*verticalWorkspaces' "$workspaces" || fail 'Workspace renderer lost vertical composition'
+rg -q 'verticalMode:[[:space:]]*false' "$workspaces" || fail 'Workspace renderer lost horizontal button mode'
+rg -q 'verticalMode:[[:space:]]*true' "$workspaces" || fail 'Workspace renderer lost vertical button mode'
 rg -q 'RaohaneTheme\.critical' "$workspaces" || fail 'Workspace urgency no longer uses the semantic critical token'
 rg -q 'RaohaneMotion\.' "$workspaces" || fail 'Workspace buttons lost shared motion'
 if rg -n '#24ffffff|#ff7373|readonly property bool active:' "$workspaces"; then
