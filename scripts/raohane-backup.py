@@ -109,10 +109,25 @@ def iter_owned_files(root: pathlib.Path):
             yield path
 
 
+def same_path(left: pathlib.Path, right: pathlib.Path) -> bool:
+    try:
+        return left.resolve(strict=False) == right.resolve(strict=False)
+    except OSError:
+        return left.absolute() == right.absolute()
+
+
 def ensure_output_suffix(path: pathlib.Path) -> pathlib.Path:
     if path.name.endswith(".raohane-backup"):
         return path
     return path.with_name(path.name + ".raohane-backup")
+
+
+def validate_native_document(document: dict, *, context: str) -> None:
+    if not isinstance(document, dict) or not document:
+        raise ValueError(f"{context} does not contain a valid native.json")
+    schema = document.get("schemaVersion")
+    if not isinstance(schema, int) or schema <= 0:
+        raise ValueError(f"{context} native.json does not contain a valid schemaVersion")
 
 
 def create_archive(output: pathlib.Path, *, include_state: bool = True) -> pathlib.Path:
@@ -123,6 +138,7 @@ def create_archive(output: pathlib.Path, *, include_state: bool = True) -> pathl
     state = state_dir()
     native_path = cfg / "native.json"
     native = read_json(native_path)
+    validate_native_document(native, context="Current Raohane configuration")
 
     timestamp = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
     backup_id = dt.datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8]
@@ -149,6 +165,10 @@ def create_archive(output: pathlib.Path, *, include_state: bool = True) -> pathl
         temporary.unlink(missing_ok=True)
         with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
             for path in iter_owned_files(cfg) or []:
+                # A user may deliberately save an archive inside ~/.config/raohane.
+                # Never recursively archive the output or its in-progress temp file.
+                if same_path(path, output) or same_path(path, temporary):
+                    continue
                 archive.write(path, "config/" + path.relative_to(cfg).as_posix())
 
             if include_state:
@@ -202,6 +222,49 @@ def validate_member_name(name: str) -> None:
         raise ValueError(f"Unsafe archive entry: {name}")
 
 
+def validate_archive(archive: zipfile.ZipFile) -> tuple[dict, dict]:
+    names = set(archive.namelist())
+    for member in archive.infolist():
+        validate_member_name(member.filename)
+
+    try:
+        manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
+    except (KeyError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("Backup does not contain a valid manifest.json") from error
+
+    if not isinstance(manifest, dict) or manifest.get("format") != FORMAT_NAME:
+        raise ValueError("This file is not a Raohane backup")
+
+    version = int(manifest.get("version", 0))
+    if version <= 0:
+        raise ValueError("Backup format version is invalid")
+    if version > FORMAT_VERSION:
+        raise ValueError("Backup was created by a newer Raohane backup format")
+
+    if "config/native.json" not in names:
+        raise ValueError("Backup is incomplete: config/native.json is missing")
+    try:
+        native = json.loads(archive.read("config/native.json").decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("Backup contains an invalid config/native.json") from error
+    validate_native_document(native, context="Backup")
+
+    assets = manifest.get("assets", [])
+    if not isinstance(assets, list):
+        raise ValueError("Backup manifest assets field is invalid")
+    for asset in assets:
+        if not isinstance(asset, dict):
+            raise ValueError("Backup manifest contains an invalid asset entry")
+        archive_path = str(asset.get("archivePath") or "")
+        if not archive_path:
+            raise ValueError("Backup manifest contains an asset without archivePath")
+        validate_member_name(archive_path)
+        if archive_path not in names:
+            raise ValueError(f"Backup asset is missing: {archive_path}")
+
+    return manifest, native
+
+
 def restore_archive(source: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path | None]:
     source = source.expanduser()
     if not source.is_file():
@@ -215,26 +278,16 @@ def restore_archive(source: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path | 
     state.mkdir(parents=True, exist_ok=True)
     data.mkdir(parents=True, exist_ok=True)
 
-    restore_point: pathlib.Path | None = None
-    if cfg.exists():
-        restore_points = state / "restore-points"
-        restore_points.mkdir(parents=True, exist_ok=True)
-        name = "before-restore-" + dt.datetime.now().strftime("%Y%m%d-%H%M%S") + ".raohane-backup"
-        restore_point = create_archive(restore_points / name, include_state=False)
-
     with zipfile.ZipFile(source, "r") as archive:
-        for member in archive.infolist():
-            validate_member_name(member.filename)
+        # Validate the incoming archive completely before touching current state.
+        manifest, _ = validate_archive(archive)
 
-        try:
-            manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
-        except (KeyError, UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise ValueError("Backup does not contain a valid manifest.json") from error
-
-        if manifest.get("format") != FORMAT_NAME:
-            raise ValueError("This file is not a Raohane backup")
-        if int(manifest.get("version", 0)) > FORMAT_VERSION:
-            raise ValueError("Backup was created by a newer Raohane backup format")
+        restore_point: pathlib.Path | None = None
+        if cfg.exists() and (cfg / "native.json").is_file():
+            restore_points = state / "restore-points"
+            restore_points.mkdir(parents=True, exist_ok=True)
+            name = "before-restore-" + dt.datetime.now().strftime("%Y%m%d-%H%M%S") + ".raohane-backup"
+            restore_point = create_archive(restore_points / name, include_state=False)
 
         backup_id = str(manifest.get("backupId") or uuid.uuid4().hex[:12])
         asset_target = data / "restored-assets" / backup_id
@@ -263,18 +316,14 @@ def restore_archive(source: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path | 
 
             restored_native_path = restored_cfg / "native.json"
             restored_native = read_json(restored_native_path)
+            validate_native_document(restored_native, context="Extracted backup")
             restored_assets: dict[str, pathlib.Path] = {}
 
             for asset in manifest.get("assets", []):
-                if not isinstance(asset, dict):
-                    continue
                 archive_path = str(asset.get("archivePath") or "")
                 keys = asset.get("configPath")
                 kind = str(asset.get("kind") or "asset")
-                if not archive_path or not isinstance(keys, list) or not keys:
-                    continue
-                validate_member_name(archive_path)
-                if archive_path not in archive.namelist():
+                if not isinstance(keys, list) or not keys:
                     continue
 
                 target_name = pathlib.Path(archive_path).name
@@ -287,8 +336,7 @@ def restore_archive(source: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path | 
 
             if "wallpaper" in restored_assets:
                 nested_set(restored_native, ("wallpaper", "directory"), str(asset_target))
-            if restored_native:
-                write_json(restored_native_path, restored_native)
+            write_json(restored_native_path, restored_native)
 
             old_cfg = cfg_parent / (".raohane-old-" + uuid.uuid4().hex[:8])
             if cfg.exists():
@@ -322,9 +370,7 @@ def restore_archive(source: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path | 
 
 def inspect_archive(source: pathlib.Path) -> dict:
     with zipfile.ZipFile(source.expanduser(), "r") as archive:
-        manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
-        if manifest.get("format") != FORMAT_NAME:
-            raise ValueError("This file is not a Raohane backup")
+        manifest, _ = validate_archive(archive)
         return manifest
 
 
