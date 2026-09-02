@@ -12,6 +12,8 @@ fail() {
 config='modules/raohane/config/RaohaneConfig.qml'
 paths='modules/raohane/config/RaohanePaths.qml'
 root_qmldir='modules/raohane/qmldir'
+state='modules/raohane/RaohaneState.qml'
+surface_registry='modules/raohane/RaohaneSurfaceRegistry.qml'
 helper_qmldir='modules/raohane/helpers/qmldir'
 helpers='modules/raohane/helpers/RaohaneUtils.qml'
 model_qmldir='modules/raohane/models/qmldir'
@@ -25,6 +27,8 @@ required_files=(
   "$config"
   "$paths"
   "$root_qmldir"
+  "$state"
+  "$surface_registry"
   "$helper_qmldir"
   "$helpers"
   "$model_qmldir"
@@ -118,6 +122,28 @@ done
 rg -q 'RaohaneSurface[[:space:]]*\{' "$launcher" \
   || fail 'active Launcher is not consuming Raohane common widgets'
 
+# Cross-surface state must resolve through one Raohane-owned registry so new
+# panels do not grow another duplicated switch table or legacy GlobalStates-like
+# routing layer.
+rg -q '^singleton RaohaneSurfaceRegistry .*RaohaneSurfaceRegistry.qml$' "$root_qmldir" \
+  || fail 'native surface registry is not registered'
+for surface_id in launcher wallpaper overview controlCenter leftSidebar overlay screenTranslator settings displaySettings welcome session taskManager desktopMenu mediaOverlay regionSelector osk osd; do
+  rg -q "\"${surface_id}\"[[:space:]]*:" "$surface_registry" \
+    || fail "surface registry lost product surface: $surface_id"
+done
+for contract in primarySurfaceIds transientSurfaceIds actionAliases normalizeId definition stateProperty isPrimary isTransient; do
+  rg -q "$contract" "$surface_registry" \
+    || fail "surface registry lost contract: $contract"
+done
+for consumer in surfaceOpen setSurfaceOpen toggleSurface closePrimarySurfaces closeTransientSurfaces; do
+  rg -q "$consumer" "$state" || fail "RaohaneState lost registry-backed API: $consumer"
+done
+rg -q 'RaohaneSurfaceRegistry\.' "$state" \
+  || fail 'RaohaneState does not consume the native surface registry'
+if rg -n 'case[[:space:]]+"(launcher|wallpaper|overview|controlCenter|settings|session|desktopMenu)"' "$state"; then
+  fail 'RaohaneState regressed to a duplicated primary-surface switch table'
+fi
+
 # Models and helpers are separate native modules and have an active consumer
 # chain: Launcher -> SelectionModel -> Utils.
 rg -q '^module qs\.modules\.raohane\.models$' "$model_qmldir" \
@@ -151,4 +177,4 @@ if rg -n 'IllogicalImpulse|illogical-impulse|end4-pC' "$family" shell.qml; then
   fail 'startup graph contains upstream family/runtime identity'
 fi
 
-printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers, persisted theme selection and compatibility-free active UI are valid\n'
+printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface registry, persisted theme selection and compatibility-free active UI are valid\n'
