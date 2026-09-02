@@ -34,7 +34,12 @@
     "showOnSuper": false,
     "showOnSuperDelay": 140,
     "screenList": [],
-    "showDate": true
+    "showDate": true,
+    "modules": {
+      "left": ["launcher", "separator", "workspaces"],
+      "center": ["context"],
+      "right": ["tray", "system", "separator", "clock", "control"]
+    }
   },
   "frame": {
     "enabled": false,

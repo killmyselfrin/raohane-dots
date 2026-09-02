@@ -14,12 +14,13 @@ search='modules/raohane/RaohaneSettingsSearch.qml'
 content='modules/raohane/RaohaneSettingsContentV3.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
+bar_studio='modules/raohane/RaohaneBarStudio.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 state='modules/raohane/RaohaneState.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$settings" "$search" "$content" "$home" "$catalog" "$about" "$config" "$state" "$qmldir"; do
+for path in "$settings" "$search" "$content" "$home" "$catalog" "$bar_studio" "$about" "$config" "$state" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
 done
 
@@ -28,7 +29,8 @@ for registration in \
   '^RaohaneSettingsContentV3 .*RaohaneSettingsContentV3.qml$' \
   '^RaohaneSettingsAbout .*RaohaneSettingsAbout.qml$' \
   '^RaohaneSettingsHome .*RaohaneSettingsHome.qml$' \
-  '^RaohaneThemeCatalog .*RaohaneThemeCatalog.qml$'; do
+  '^RaohaneThemeCatalog .*RaohaneThemeCatalog.qml$' \
+  '^RaohaneBarStudio .*RaohaneBarStudio.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" \
@@ -41,6 +43,7 @@ for symbol in \
   'RaohaneConfig\[' \
   'sectionEntries' \
   'nativeSectionPage' \
+  'RaohaneBarStudio[[:space:]]*\{' \
   'RaohaneSurface[[:space:]]*\{' \
   'RaohaneSwitch[[:space:]]*\{' \
   'RaohaneIcon[[:space:]]*\{' \
@@ -55,6 +58,7 @@ done
 for contract in \
   'key:[[:space:]]*"barShowOnSuper"' \
   'Reveal on Super' \
+  'module composition' \
   'PERSONALIZE' \
   'SHELL' \
   'SYSTEM' \
@@ -79,10 +83,21 @@ rg -q 'property string themePreset:' "$config" \
 rg -q 'key:[[:space:]]*"themePreset"' "$search" \
   || fail 'global Settings search does not expose the Theme Library'
 
-if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bMaterialSymbol[[:space:]]*\{|\bGlobalStates\.|\bContentPage[[:space:]]*\{' "$content" "$settings" "$search" "$catalog"; then
+for contract in \
+  'RaohaneConfig\.barModuleLayout' \
+  'RaohaneBarModuleRegistry\.sanitizeLayout' \
+  'function resetLayout\(\): void'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native Settings contract: $contract"
+done
+rg -q 'key:[[:space:]]*"barModuleLayout"' "$search" \
+  || fail 'global Settings search does not expose Bar Studio'
+rg -q 'needle\.includes\("module"\)' "$content" \
+  || fail 'Settings route cannot focus Bar Studio from global search'
+
+if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bMaterialSymbol[[:space:]]*\{|\bGlobalStates\.|\bContentPage[[:space:]]*\{' "$content" "$settings" "$search" "$catalog" "$bar_studio"; then
   fail 'Settings navigation resolves inherited settings/common/root types'
 fi
-if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.json"\)' "$content" "$settings" "$search" "$catalog"; then
+if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.json"\)' "$content" "$settings" "$search" "$catalog" "$bar_studio"; then
   fail 'Settings still exposes the retired compatibility config path/name'
 fi
 
@@ -126,4 +141,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: active grouped Settings V3 routes, Theme Library, global search, keyboard navigation and native config UX are Raohane-owned\n'
+printf 'settings-boundary-audit: grouped Settings V3, Theme Library, Bar Studio, global search, keyboard navigation and native config UX are Raohane-owned\n'

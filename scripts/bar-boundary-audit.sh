@@ -13,13 +13,16 @@ bar='modules/raohane/RaohaneBar.qml'
 vertical='modules/raohane/RaohaneVerticalBar.qml'
 module_host='modules/raohane/RaohaneBarModule.qml'
 module_registry='modules/raohane/RaohaneBarModuleRegistry.qml'
+bar_studio='modules/raohane/RaohaneBarStudio.qml'
+config='modules/raohane/config/RaohaneConfig.qml'
+defaults='defaults/native.json'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 tray='modules/raohane/RaohaneSysTray.qml'
 status='modules/raohane/RaohaneSystemIcons.qml'
 clock='modules/raohane/RaohaneClock.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$bar" "$vertical" "$module_host" "$module_registry" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
+for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing native bar path: $path"
 done
 
@@ -27,6 +30,7 @@ for registration in \
   'RaohaneVerticalBar .*RaohaneVerticalBar.qml' \
   'singleton RaohaneBarModuleRegistry .*RaohaneBarModuleRegistry.qml' \
   'RaohaneBarModule .*RaohaneBarModule.qml' \
+  'RaohaneBarStudio .*RaohaneBarStudio.qml' \
   'RaohaneWorkspaces .*RaohaneWorkspaces.qml' \
   'RaohaneSysTray .*RaohaneSysTray.qml' \
   'RaohaneSystemIcons .*RaohaneSystemIcons.qml' \
@@ -42,24 +46,55 @@ for zone in left center right; do
   rg -q "${zone}:[[:space:]]*\[" "$module_registry" \
     || fail "bar module registry lost default zone: $zone"
 done
-for contract in defaultLayout sanitizeZone sanitizeLayout supports; do
+for contract in moduleIds defaultLayout sanitizeZone sanitizeLayout supports isRepeatable preferredZone label description; do
   rg -q "$contract" "$module_registry" || fail "bar module registry lost contract: $contract"
 done
 
-rg -q 'RaohaneBarModuleRegistry\.defaultLayout' "$bar" \
-  || fail 'horizontal bar does not consume the native module registry'
+for contract in \
+  'property var barModuleLayout:[[:space:]]*root\.defaultBarModuleLayout\(\)' \
+  'function defaultBarModuleLayout\(\): var' \
+  'function sanitizeBarModuleLayout\(value\): var' \
+  'modules:[[:space:]]*root\.sanitizeBarModuleLayout\(root\.barModuleLayout\)' \
+  'root\.barModuleLayout[[:space:]]*=[[:space:]]*root\.sanitizeBarModuleLayout\(value\)' \
+  'onBarModuleLayoutChanged:[[:space:]]*scheduleSave\(\)'; do
+  rg -q "$contract" "$config" || fail "native config lost persisted bar-module contract: $contract"
+done
+for module_id in launcher workspaces context tray system clock control separator; do
+  rg -q "\"${module_id}\"" "$defaults" || fail "native defaults lost bar module id: $module_id"
+done
+rg -q '"modules"[[:space:]]*:' "$defaults" || fail 'native defaults do not persist bar modules'
+
+rg -q 'RaohaneConfig\.barModuleLayout' "$bar" \
+  || fail 'horizontal bar does not consume persisted module layout'
+rg -q 'readonly property var activeLayout:[[:space:]]*RaohaneBarModuleRegistry\.sanitizeLayout' "$bar" \
+  || fail 'horizontal bar does not validate persisted layout through the native registry'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" \
   || fail 'horizontal bar does not compose registered module hosts'
+for zone in left center right; do
+  rg -q "root\.activeLayout\.${zone}" "$bar" || fail "horizontal bar does not render persisted $zone zone"
+done
 for component in RaohaneWorkspaces RaohaneSysTray RaohaneSystemIcons RaohaneClock RaohaneContextIsland; do
   rg -q "${component}[[:space:]]*\\{" "$module_host" \
     || fail "RaohaneBarModule does not render $component"
+done
+
+for contract in \
+  'RaohaneConfig\.barModuleLayout' \
+  'function commit\(layout\): void' \
+  'function addModule\(id: string\): void' \
+  'function removeAt\(zone: string, index: int\): void' \
+  'function moveWithin\(zone: string, index: int, delta: int\): void' \
+  'function moveAcross\(zone: string, index: int, delta: int\): void' \
+  'function resetLayout\(\): void' \
+  'RaohaneBarModuleRegistry\.preferredZone'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost composition contract: $contract"
 done
 
 for symbol in 'RaohaneConfig\.' 'RaohaneState\.'; do
   rg -q "$symbol" "$bar" || fail "RaohaneBar lost native framework dependency: $symbol"
 done
 
-if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.' "$bar" "$module_host" "$module_registry"; then
+if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.' "$bar" "$module_host" "$module_registry" "$bar_studio"; then
   fail 'Raohane bar runtime regressed to inherited config/state/common/ii framework'
 fi
 
@@ -148,4 +183,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: native bars preserve fullscreen behavior and the horizontal bar composes through the Raohane module registry\n'
+printf 'bar-boundary-audit: native bars preserve fullscreen behavior and horizontal composition is registry-validated, persisted and Settings-editable\n'

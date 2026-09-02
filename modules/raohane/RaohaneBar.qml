@@ -14,8 +14,8 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
-    readonly property var defaultLayout: RaohaneBarModuleRegistry.sanitizeLayout(
-        RaohaneBarModuleRegistry.defaultLayout,
+    readonly property var activeLayout: RaohaneBarModuleRegistry.sanitizeLayout(
+        RaohaneConfig.barModuleLayout,
         "horizontal"
     )
     readonly property bool showDateConfigured: RaohaneConfig.barShowDate
@@ -155,7 +155,7 @@ Scope {
                         spacing: 7
 
                         Repeater {
-                            model: root.defaultLayout.left
+                            model: root.activeLayout.left
 
                             delegate: RaohaneBarModule {
                                 required property var modelData
@@ -179,7 +179,7 @@ Scope {
                     spacing: 7
 
                     Repeater {
-                        model: root.defaultLayout.center
+                        model: root.activeLayout.center
 
                         delegate: RaohaneBarModule {
                             required property var modelData
@@ -219,7 +219,7 @@ Scope {
                         spacing: 7
 
                         Repeater {
-                            model: root.defaultLayout.right
+                            model: root.activeLayout.right
 
                             delegate: RaohaneBarModule {
                                 required property var modelData
