@@ -45,6 +45,8 @@ RaohaneLanguageWelcome 1.0 RaohaneLanguageWelcome.qml
 RaohaneOnboarding 1.0 RaohaneOnboarding.qml
 RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
 RaohaneSettingsContentV3 1.0 RaohaneSettingsContentV3.qml
+RaohaneSettingsNavigation 1.0 RaohaneSettingsNavigation.qml
+RaohaneSettingsPageHeader 1.0 RaohaneSettingsPageHeader.qml
 RaohaneSettingsSectionPage 1.0 RaohaneSettingsSectionPage.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneWidgetStudio 1.0 RaohaneWidgetStudio.qml
