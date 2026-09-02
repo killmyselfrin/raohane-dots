@@ -18,12 +18,25 @@ Scope {
         RaohaneBarModuleRegistry.defaultLayout,
         "horizontal"
     )
+    readonly property bool showDateConfigured: RaohaneConfig.barShowDate
 
     function styleValue(key: string, fallback): var {
         const style = RaohaneConfig.style
         if (!style || !Object.prototype.hasOwnProperty.call(style, key))
             return fallback
         return style[key]
+    }
+
+    function togglePrimarySurface(surfaceId: string): void {
+        if (surfaceId === "controlCenter") {
+            RaohaneState.togglePrimary("controlCenter")
+            return
+        }
+        RaohaneState.togglePrimary(surfaceId)
+    }
+
+    function toggleTransientSurface(surfaceId: string): void {
+        RaohaneState.toggleSurface(surfaceId)
     }
 
     Variants {
@@ -151,6 +164,9 @@ Scope {
                                 screen: barWindow.screen
                                 parentWindow: barWindow
                                 hostActive: barWindow.visible
+                                showDate: root.showDateConfigured
+                                primaryAction: root.togglePrimarySurface
+                                transientAction: root.toggleTransientSurface
                                 Layout.alignment: Qt.AlignVCenter
                             }
                         }
@@ -172,6 +188,9 @@ Scope {
                             screen: barWindow.screen
                             parentWindow: barWindow
                             hostActive: barWindow.visible
+                            showDate: root.showDateConfigured
+                            primaryAction: root.togglePrimarySurface
+                            transientAction: root.toggleTransientSurface
                             Layout.alignment: Qt.AlignVCenter
                         }
                     }
@@ -209,6 +228,9 @@ Scope {
                                 screen: barWindow.screen
                                 parentWindow: barWindow
                                 hostActive: barWindow.visible
+                                showDate: root.showDateConfigured
+                                primaryAction: root.togglePrimarySurface
+                                transientAction: root.toggleTransientSurface
                                 Layout.alignment: Qt.AlignVCenter
                             }
                         }
