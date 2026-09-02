@@ -13,21 +13,27 @@ canvas='modules/raohane/RaohaneDesktopCanvas.qml'
 widgets='modules/raohane/RaohaneDesktopWidgets.qml'
 studio='modules/raohane/RaohaneWidgetStudio.qml'
 settings='modules/raohane/RaohaneSettingsContentV3.qml'
+registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 search='modules/raohane/RaohaneSettingsSearch.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 
-for path in "$canvas" "$widgets" "$studio" "$settings" "$search" "$config" "$defaults"; do
+for path in "$canvas" "$widgets" "$studio" "$settings" "$registry" "$search" "$config" "$defaults"; do
   [[ -f "$path" ]] || fail "missing native widget path: $path"
 done
+
+rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" \
+  || fail 'Settings search is not driven by the native page registry'
+rg -q 'kind:[[:space:]]*"widgets"' "$registry" \
+  || fail 'Settings registry does not route the visual Widget Studio'
 
 for property_name in desktopWidgetsLayout desktopWidgetsScale desktopWidgetsOpacity; do
   rg -q "property (string|real) ${property_name}:" "$config" \
     || fail "native config is missing $property_name"
   rg -q "on${property_name^}Changed:[[:space:]]*scheduleSave\(\)" "$config" \
     || fail "$property_name is not persisted"
-  rg -q "key:[[:space:]]*\"${property_name}\"" "$search" \
-    || fail "Settings search does not expose $property_name"
+  rg -q "key:[[:space:]]*\"${property_name}\"" "$registry" \
+    || fail "Settings registry/search schema does not expose $property_name"
 done
 
 rg -q 'readonly property var layouts:' "$studio" \
@@ -44,10 +50,8 @@ for property_name in "${properties[@]}"; do
     || fail "native config is missing $property_name"
   rg -q "on${property_name^}Changed:[[:space:]]*scheduleSave\(\)" "$config" \
     || fail "$property_name is not persisted"
-  rg -q "key:[[:space:]]*\"${property_name}\"" "$settings" \
-    || fail "Settings does not expose $property_name"
-  rg -q "key:[[:space:]]*\"${property_name}\"" "$search" \
-    || fail "Settings search does not expose $property_name"
+  rg -q "key:[[:space:]]*\"${property_name}\"" "$registry" \
+    || fail "Settings registry does not expose $property_name"
 done
 
 jq -e '
@@ -88,8 +92,8 @@ if [[ -e defaults/widgets ]]; then
   find defaults/widgets -type f -print -quit | grep -q . \
     && fail 'retired inherited widget SDK returned'
 fi
-if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWidget|~/.config/inir/widgets' "$canvas" "$widgets" "$studio" "$settings" "$search"; then
+if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWidget|~/.config/inir/widgets' "$canvas" "$widgets" "$studio" "$settings" "$registry" "$search"; then
   fail 'desktop widgets depend on retired inherited APIs'
 fi
 
-printf 'desktop-widget-boundary-audit: native widget config, Settings/search and desktop service boundaries are valid\n'
+printf 'desktop-widget-boundary-audit: native widget config, registry-backed Settings/search and desktop service boundaries are valid\n'
