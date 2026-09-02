@@ -46,6 +46,7 @@ RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
 RaohaneSettingsContentV3 1.0 RaohaneSettingsContentV3.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneWidgetStudio 1.0 RaohaneWidgetStudio.qml
+RaohaneBarStudio 1.0 RaohaneBarStudio.qml
 RaohaneThemeCatalog 1.0 RaohaneThemeCatalog.qml
 RaohaneSettingsAbout 1.0 RaohaneSettingsAbout.qml
 RaohaneBackupSettings 1.0 RaohaneBackupSettings.qml
