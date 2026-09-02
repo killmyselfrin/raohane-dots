@@ -66,6 +66,7 @@ jobs:
           bash -n scripts/process-performance-audit.sh
           bash -n scripts/bluetooth-performance-audit.sh
           bash -n scripts/keyboard-layout-boundary-audit.sh
+          bash -n scripts/desktop-widget-boundary-audit.sh
           bash -n scripts/wallpaper-boundary-audit.sh
           bash -n scripts/notification-boundary-audit.sh
           bash -n scripts/lock-boundary-audit.sh
@@ -123,6 +124,7 @@ jobs:
           bash scripts/process-performance-audit.sh
           bash scripts/bluetooth-performance-audit.sh
           bash scripts/keyboard-layout-boundary-audit.sh
+          bash scripts/desktop-widget-boundary-audit.sh
           bash scripts/wallpaper-boundary-audit.sh
           bash scripts/notification-boundary-audit.sh
           bash scripts/lock-boundary-audit.sh
@@ -186,7 +188,6 @@ jobs:
             modules/raohane/RaohaneDropShelfPanel.qml
             modules/raohane/RaohaneSettings.qml
             modules/raohane/RaohaneSettingsSearch.qml
-            modules/raohane/RaohaneSettingsContent.qml
             modules/raohane/RaohaneSettingsContentV3.qml
             modules/raohane/RaohaneSettingsAbout.qml
             modules/raohane/services/RaohaneMedia.qml
@@ -247,8 +248,8 @@ jobs:
             [[ -e "$path" ]] || { echo "Missing integration path: $path" >&2; exit 1; }
           done
 
-          jq -e '.schemaVersion == 10' defaults/native.json >/dev/null || {
-            echo 'defaults/native.json is not Raohane schema v10.' >&2
+          jq -e '.schemaVersion == 11' defaults/native.json >/dev/null || {
+            echo 'defaults/native.json is not Raohane schema v11.' >&2
             exit 1
           }
 

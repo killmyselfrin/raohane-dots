@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 10
+    readonly property int schemaVersion: 11
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -89,6 +89,13 @@ Singleton {
     property bool quickSliderBrightness: true
     property bool quickSliderVolume: true
     property bool quickSliderMic: false
+
+    property bool desktopWidgetsEnabled: true
+    property bool desktopWidgetClock: true
+    property bool desktopWidgetContext: true
+    property bool desktopWidgetSystem: true
+    property bool desktopWidgetMotto: true
+    property bool desktopWidgetsCompact: false
 
     property bool contextIslandEnabled: true
     property bool mediaOverlayEnabled: true
@@ -337,6 +344,14 @@ Singleton {
                 showVolume: root.quickSliderVolume,
                 showMic: root.quickSliderMic
             },
+            desktopWidgets: {
+                enabled: root.desktopWidgetsEnabled,
+                showClock: root.desktopWidgetClock,
+                showContext: root.desktopWidgetContext,
+                showSystem: root.desktopWidgetSystem,
+                showMotto: root.desktopWidgetMotto,
+                compact: root.desktopWidgetsCompact
+            },
             features: {
                 contextIsland: root.contextIslandEnabled,
                 mediaOverlay: root.mediaOverlayEnabled,
@@ -376,6 +391,7 @@ Singleton {
         const apps = document?.apps ?? {}
         const profile = document?.profile ?? {}
         const quickControls = document?.quickControls ?? {}
+        const desktopWidgets = document?.desktopWidgets ?? {}
         const features = document?.features ?? {}
         const keybinds = document?.keybinds ?? root.defaultKeybinds()
         const animations = document?.animations ?? root.defaultAnimations()
@@ -452,6 +468,13 @@ Singleton {
         root.assignIfPresent(quickControls, "showBrightness", value => root.quickSliderBrightness = Boolean(value))
         root.assignIfPresent(quickControls, "showVolume", value => root.quickSliderVolume = Boolean(value))
         root.assignIfPresent(quickControls, "showMic", value => root.quickSliderMic = Boolean(value))
+
+        root.assignIfPresent(desktopWidgets, "enabled", value => root.desktopWidgetsEnabled = Boolean(value))
+        root.assignIfPresent(desktopWidgets, "showClock", value => root.desktopWidgetClock = Boolean(value))
+        root.assignIfPresent(desktopWidgets, "showContext", value => root.desktopWidgetContext = Boolean(value))
+        root.assignIfPresent(desktopWidgets, "showSystem", value => root.desktopWidgetSystem = Boolean(value))
+        root.assignIfPresent(desktopWidgets, "showMotto", value => root.desktopWidgetMotto = Boolean(value))
+        root.assignIfPresent(desktopWidgets, "compact", value => root.desktopWidgetsCompact = Boolean(value))
 
         root.assignIfPresent(features, "contextIsland", value => root.contextIslandEnabled = Boolean(value))
         root.assignIfPresent(features, "mediaOverlay", value => root.mediaOverlayEnabled = Boolean(value))
@@ -566,6 +589,12 @@ Singleton {
     onQuickSliderBrightnessChanged: scheduleSave()
     onQuickSliderVolumeChanged: scheduleSave()
     onQuickSliderMicChanged: scheduleSave()
+    onDesktopWidgetsEnabledChanged: scheduleSave()
+    onDesktopWidgetClockChanged: scheduleSave()
+    onDesktopWidgetContextChanged: scheduleSave()
+    onDesktopWidgetSystemChanged: scheduleSave()
+    onDesktopWidgetMottoChanged: scheduleSave()
+    onDesktopWidgetsCompactChanged: scheduleSave()
     onContextIslandEnabledChanged: scheduleSave()
     onMediaOverlayEnabledChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()

@@ -18,7 +18,7 @@ model_qmldir='modules/raohane/models/qmldir'
 selection='modules/raohane/models/RaohaneSelectionModel.qml'
 launcher='modules/raohane/RaohaneLauncher.qml'
 notifications='modules/raohane/services/RaohaneNotifications.qml'
-settings='modules/raohane/RaohaneSettingsContent.qml'
+settings='modules/raohane/RaohaneSettingsContentV3.qml'
 family='panelFamilies/RaohaneFamily.qml'
 
 required_files=(
@@ -61,6 +61,8 @@ product_properties=(
   networkCommand networkEthernetCommand bluetoothCommand taskManagerCommand
   changePasswordCommand profileDisplayName profileAvatarPath
   quickSliderBrightness quickSliderVolume quickSliderMic
+  desktopWidgetsEnabled desktopWidgetClock desktopWidgetContext
+  desktopWidgetSystem desktopWidgetMotto desktopWidgetsCompact
   contextIslandEnabled mediaOverlayEnabled integrationMode themePreset
 )
 for property_name in "${product_properties[@]}"; do
@@ -80,11 +82,11 @@ for key in "${settings_keys[@]}"; do
     || fail "Settings control key is not owned by RaohaneConfig: $key"
 done
 
-for section in wallpaper overview dock bar frame corners osk osd display apps profile quickControls features; do
+for section in wallpaper overview dock bar frame corners osk osd display apps profile quickControls desktopWidgets features; do
   rg -q "${section}:[[:space:]]*\{" "$config" \
     || fail "snapshot lost product section: $section"
 done
-rg -q 'schemaVersion:[[:space:]]*10' "$config" || fail 'RaohaneConfig schema contract is not v10'
+rg -q 'schemaVersion:[[:space:]]*11' "$config" || fail 'RaohaneConfig schema contract is not v11'
 rg -q 'themePreset:[[:space:]]*root\.themePreset' "$config" || fail 'theme selection is not persisted in the native document'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig bypasses RaohanePaths'
 

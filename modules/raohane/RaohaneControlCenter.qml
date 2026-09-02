@@ -13,8 +13,8 @@ Scope {
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
-    readonly property int panelWidth: 404
-    readonly property int panelHeight: Math.min(640, Math.max(540, Math.round((root.focusedScreen?.height ?? 760) - 44)))
+    readonly property int panelWidth: Math.min(426, Math.max(376, Math.round((root.focusedScreen?.width ?? 1280) * 0.30)))
+    readonly property int panelHeight: Math.min(700, Math.max(610, Math.round((root.focusedScreen?.height ?? 800) - 44)))
     property date now: new Date()
 
     Timer {
@@ -111,6 +111,31 @@ Scope {
             }
             Behavior on scale {
                 NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
+            }
+
+            Rectangle {
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                    topMargin: -76
+                    rightMargin: -58
+                }
+                width: 190
+                height: 190
+                radius: 95
+                color: RaohaneTheme.accentSoft
+                opacity: panelSurface.entered ? 0.32 : 0
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.relaxed * 2; easing.type: RaohaneMotion.easeStandard }
+                }
+
+                SequentialAnimation on scale {
+                    running: panelWindow.visible
+                    loops: Animation.Infinite
+                    NumberAnimation { from: 0.96; to: 1.04; duration: 3200; easing.type: Easing.InOutSine }
+                    NumberAnimation { from: 1.04; to: 0.96; duration: 3200; easing.type: Easing.InOutSine }
+                }
             }
 
             Rectangle {

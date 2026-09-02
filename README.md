@@ -7,8 +7,8 @@
 **Quickshell · Qt/QML · Arch focused · standalone runtime**
 
 [![Version](https://img.shields.io/badge/version-0.10.0--dev-8b7cf6?style=flat-square)](VERSION)
-[![Raohane audit](https://github.com/snuskidau/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](.github/workflows/raohane-audit.yml)
-[![Release boundary](https://github.com/snuskidau/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
+[![Raohane audit](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](.github/workflows/raohane-audit.yml)
+[![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
 [![Hyprland](https://img.shields.io/badge/Hyprland-only-1f6feb?style=flat-square)](https://hypr.land/)
 [![License](https://img.shields.io/badge/license-GPLv3-2f2f2f?style=flat-square)](LICENSE)
 
@@ -161,7 +161,7 @@ For the deeper runtime and ownership model, see [`ARCHITECTURE.md`](ARCHITECTURE
 Clone the current development branch:
 
 ```bash
-git clone https://github.com/snuskidau/raohane-dots.git
+git clone https://github.com/killmyselfrin/raohane-dots.git
 cd raohane-dots
 ```
 
@@ -187,7 +187,7 @@ Raohane exposes both NixOS and Home Manager modules. The NixOS module enables th
 
 ```nix
 {
-  inputs.raohane.url = "github:snuskidau/raohane-dots";
+  inputs.raohane.url = "github:killmyselfrin/raohane-dots";
 
   outputs = { nixpkgs, home-manager, raohane, ... }: {
     nixosConfigurations.yourHost = nixpkgs.lib.nixosSystem {

@@ -23,6 +23,7 @@ Item {
         { key: "quick", name: qsTr("Quick Controls"), icon: "instant_mix", group: qsTr("SHELL"), subtitle: qsTr("Choose controls shown in the compact command surface") },
         { key: "general", name: qsTr("Media & OSD"), icon: "music_note", group: qsTr("SHELL"), subtitle: qsTr("Context Island, media overlay and display feedback") },
         { key: "desktop", name: qsTr("Desktop & Spaces"), icon: "view_quilt", group: qsTr("SHELL"), subtitle: qsTr("Wallpaper, transitions and workspace overview") },
+        { key: "widgets", name: qsTr("Desktop Widgets"), icon: "widgets", group: qsTr("SHELL"), subtitle: qsTr("Choose the quiet information shown on your wallpaper") },
         { key: "displays", name: qsTr("Displays"), icon: "monitor", group: qsTr("SYSTEM"), subtitle: qsTr("Resolution, refresh rate, scale and multi-monitor layout") },
         { key: "hyprland", name: qsTr("Hyprland"), icon: "select_window_2", group: qsTr("SYSTEM"), subtitle: qsTr("Compositor-facing behavior and interaction boundaries") },
         { key: "services", name: qsTr("Integrations"), icon: "hub", group: qsTr("SYSTEM"), subtitle: qsTr("External commands and native system helpers") },
@@ -72,6 +73,7 @@ Item {
         case "general": return qsTr("Tune Context Island, media presentation, OSD timing and night-light behavior.")
         case "bar": return qsTr("Control the bar and dock while preserving Raohane's spatial rhythm.")
         case "desktop": return qsTr("Configure wallpaper browsing, transitions and the Spaces overview grid.")
+        case "widgets": return qsTr("Build a calm desktop composition from native Raohane widgets.")
         case "interface": return qsTr("Refine screen framing, rounding and hot-corner presentation.")
         case "services": return qsTr("Choose commands Raohane launches for system configuration and helper tools.")
         case "hyprland": return qsTr("Configure Hyprland-facing interaction behavior owned by Raohane.")
@@ -116,6 +118,15 @@ Item {
                 { type: "number", key: "wallpaperTransitionDuration", label: qsTr("Transition duration"), detail: qsTr("Wallpaper transition duration in milliseconds"), min: 0, max: 3000, step: 100 },
                 { type: "number", key: "overviewWorkspaceCount", label: qsTr("Overview workspaces"), detail: qsTr("Workspace count represented in Overview"), min: 2, max: 12, step: 1 },
                 { type: "number", key: "overviewColumns", label: qsTr("Overview columns"), detail: qsTr("Workspace grid columns"), min: 1, max: 4, step: 1 }
+            ]
+        case "widgets":
+            return [
+                { type: "toggle", key: "desktopWidgetsEnabled", label: qsTr("Desktop widgets"), detail: qsTr("Show the native widget layer on the wallpaper") },
+                { type: "toggle", key: "desktopWidgetClock", label: qsTr("Clock and date"), detail: qsTr("Large time with a restrained Japanese label") },
+                { type: "toggle", key: "desktopWidgetContext", label: qsTr("Live context"), detail: qsTr("Show media, privacy or active-window context") },
+                { type: "toggle", key: "desktopWidgetSystem", label: qsTr("System status"), detail: qsTr("Show network, audio and host status") },
+                { type: "toggle", key: "desktopWidgetMotto", label: qsTr("Quiet motto"), detail: qsTr("Add a small Japanese-inspired ambient card") },
+                { type: "toggle", key: "desktopWidgetsCompact", label: qsTr("Compact layout"), detail: qsTr("Reduce spacing and card sizes on smaller screens") }
             ]
         case "interface":
             return [

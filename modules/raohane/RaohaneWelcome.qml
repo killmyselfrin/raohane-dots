@@ -57,7 +57,7 @@ Scope {
             property: "reveal"
             from: 0
             to: 1
-            duration: 1450
+            duration: Math.max(620, RaohaneMotion.relaxed * 4)
             easing.type: Easing.OutCubic
         }
 
@@ -269,7 +269,7 @@ Scope {
 
                         Repeater {
                             model: [
-                                qsTr("11 guided stops"),
+                                qsTr("%1 guided stops").arg(RaohaneOnboardingState.totalSteps),
                                 qsTr("Live interface tour"),
                                 RaohaneTheme.presetName
                             ]

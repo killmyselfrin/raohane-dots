@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 10,
+  "schemaVersion": 11,
   "wallpaper": {
     "path": "",
     "lockPath": "",
@@ -83,6 +83,14 @@
     "showBrightness": true,
     "showVolume": true,
     "showMic": false
+  },
+  "desktopWidgets": {
+    "enabled": true,
+    "showClock": true,
+    "showContext": true,
+    "showSystem": true,
+    "showMotto": true,
+    "compact": false
   },
   "features": {
     "contextIsland": true,

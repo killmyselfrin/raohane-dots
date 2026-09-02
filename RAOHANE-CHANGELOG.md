@@ -2,12 +2,19 @@
 
 ## Unreleased — Native Serpantinum adoption
 
+- Add native configurable desktop widgets for clock/date, live context, system status and ambient copy, with a dedicated searchable Settings page and compact layout.
+- Rework Control Center quick tiles into a roomier two-column composition with softer entrance and ambient motion.
+- Make the Welcome reveal follow the shared motion scale and derive its tour count from the onboarding model.
+- Remove the obsolete iNiR custom-widget SDK and example that referenced retired runtime namespaces.
+- Correct active project links to `killmyselfrin/raohane-dots`.
+- Remove obsolete Settings V1/V2 implementations and point architecture/CI validation at the sole active Settings V3 surface.
+- Advance config and audit contracts to schema v11 for the native desktop-widget settings.
+
 - Add a Raohane-owned theme catalog loader and deterministic CLI importer/exporter.
 - Convert the Serpantinum color-preset library into complete Raohane surface tokens while keeping the active runtime independent from Serpantinum code and paths.
 - Load bundled and user themes live in the existing Theme Library; user overrides live in `~/.config/raohane/themes.json`.
 - Preserve GPLv3 provenance for converted Serpantinum palette data.
 - Replace the stale iNiR/Niri flake with native Raohane packages plus NixOS and Home Manager modules adapted from Serpantinum's deployment model.
-- Correct active repository links to `snuskidau/raohane-dots`.
 
 ## 0.10.0-dev — Standalone + Minimal Theme System
 
