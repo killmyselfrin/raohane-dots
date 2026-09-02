@@ -43,21 +43,27 @@ rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" \
 rg -q 'property string settingsPage:' "$state" \
   || fail 'RaohaneState does not own Settings page navigation state'
 
-# Content owns navigation and loading only; page metadata/schema live in the
-# registry and generic controls render in the extracted section page.
+# Content is only the navigation/loading shell. Concrete page classes and
+# generic schemas belong to the registry / page implementations.
 for symbol in \
   'RaohaneState\.settingsPage' \
   'RaohaneSettingsPageRegistry\.pages' \
   'RaohaneSettingsPageRegistry\.resolvePageIndex' \
   'RaohaneSettingsPageRegistry\.isFirstInGroup' \
-  'RaohaneSettingsSectionPage[[:space:]]*\{' \
-  'componentForKind' \
+  'pageLoader\.item\.hasOwnProperty\("sectionKey"\)' \
+  'source:[[:space:]]*root\.currentPageInfo\?\.source' \
+  'externalSurface' \
   'RaohaneSystemInfo\.'; do
-  rg -q "$symbol" "$content" || fail "Settings shell lost registry-backed dependency: $symbol"
+  rg -q "$symbol" "$content" || fail "Settings shell lost declarative registry dependency: $symbol"
 done
-if rg -q 'function sectionEntries\(|function sectionDescription\(' "$content"; then
-  fail 'Settings shell reabsorbed section schema owned by the registry'
+if rg -q 'function sectionEntries\(|function sectionDescription\(|function componentForKind\(|sourceComponent:' "$content"; then
+  fail 'Settings shell reabsorbed schema or imperative component routing'
 fi
+for type in RaohaneSettingsHome RaohaneThemeCatalog RaohaneWidgetStudio RaohaneSettingsAbout RaohaneSettingsSectionPage; do
+  if rg -q "${type}[[:space:]]*\\{" "$content"; then
+    fail "Settings shell directly embeds page type instead of registry loading: $type"
+  fi
+done
 
 for contract in \
   'readonly property var pages:' \
@@ -84,6 +90,20 @@ for contract in \
   'Desktop Widgets'; do
   rg -q "$contract" "$registry" || fail "Settings registry lost grouped UX contract: $contract"
 done
+rg -q 'externalSurface:[[:space:]]*"displaySettings"' "$registry" \
+  || fail 'Display Settings route lost external surface ownership'
+
+mapfile -t page_sources < <(rg -o 'source:[[:space:]]*"[A-Za-z0-9_/-]+\.qml"' "$registry" \
+  | sed -E 's/.*"([^"]+)"/\1/' | sort -u)
+[[ "${#page_sources[@]}" -ge 5 ]] || fail 'Settings registry exposes too few declarative page sources'
+for source in "${page_sources[@]}"; do
+  [[ -f "modules/raohane/$source" ]] || fail "Settings registry points to missing page source: $source"
+done
+for source in RaohaneSettingsHome.qml RaohaneThemeCatalog.qml RaohaneWidgetStudio.qml RaohaneSettingsSectionPage.qml RaohaneSettingsAbout.qml; do
+  rg -q "source:[[:space:]]*\"${source}\"" "$registry" \
+    || fail "Settings registry lost declarative page source: $source"
+done
+
 rg -q 'text:[[:space:]]*qsTr\("System settings"\)' "$content" \
   || fail 'Settings shell lost sidebar hierarchy'
 
@@ -99,9 +119,8 @@ done
 
 rg -q 'Open native\.json' "$home" \
   || fail 'Settings Home no longer exposes the native config entry point'
-
-rg -q 'RaohaneThemeCatalog[[:space:]]*\{' "$content" \
-  || fail 'Settings shell does not load the native Theme Library'
+rg -q 'source:[[:space:]]*"RaohaneThemeCatalog\.qml"' "$registry" \
+  || fail 'Settings registry does not load the native Theme Library'
 rg -q 'RaohaneTheme\.presets' "$catalog" \
   || fail 'Theme Library does not consume the shared Raohane preset catalog'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" \
@@ -117,8 +136,6 @@ for contract in \
   rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native Settings contract: $contract"
 done
 
-# Search and rendered controls consume the same registry schema. Search-only
-# routes are explicitly listed in the registry rather than duplicated in UI.
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" \
   || fail 'global Settings search is not registry-backed'
 for key in themePreset barModuleLayout desktopWidgetsLayout; do
@@ -176,4 +193,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: registry-backed Settings V3, extracted native sections, Theme Library, Bar Studio, global search and keyboard navigation are Raohane-owned\n'
+printf 'settings-boundary-audit: declarative registry-loaded Settings V3, extracted native sections, Theme Library, Bar Studio, global search and keyboard navigation are Raohane-owned\n'
