@@ -10,15 +10,17 @@ Item {
     id: root
 
     property var screen: null
+    property string orientation: "horizontal"
 
+    readonly property bool vertical: orientation === "vertical"
     readonly property var monitor: root.screen ? Hyprland.monitorFor(root.screen) : Hyprland.focusedMonitor
     readonly property int activeWorkspaceId: Math.max(1, root.monitor?.activeWorkspace?.id ?? 1)
     readonly property int workspaceCount: Math.max(2, Math.min(10, RaohaneConfig.overviewWorkspaceCount))
     readonly property int groupStart: Math.floor((root.activeWorkspaceId - 1) / root.workspaceCount) * root.workspaceCount + 1
     readonly property var workspaceIds: Array.from({ length: root.workspaceCount }, (_, index) => root.groupStart + index)
 
-    implicitWidth: workspaceRow.implicitWidth
-    implicitHeight: workspaceRow.implicitHeight
+    implicitWidth: workspaceLoader.item?.implicitWidth ?? workspaceLoader.item?.width ?? 0
+    implicitHeight: workspaceLoader.item?.implicitHeight ?? workspaceLoader.item?.height ?? 0
 
     function workspaceForId(workspaceId: int): var {
         return Hyprland.workspaces.values.find(workspace => workspace.id === workspaceId) ?? null
@@ -43,90 +45,137 @@ Item {
         root.activateWorkspace(root.groupStart + nextOffset)
     }
 
-    RowLayout {
-        id: workspaceRow
-        spacing: 3
+    Loader {
+        id: workspaceLoader
+        anchors.centerIn: parent
+        sourceComponent: root.vertical ? verticalWorkspaces : horizontalWorkspaces
+    }
 
-        Repeater {
-            model: root.workspaceIds
+    Component {
+        id: horizontalWorkspaces
 
-            delegate: RaohaneSurface {
-                id: workspaceButton
+        RowLayout {
+            spacing: 3
 
-                required property var modelData
-                required property int index
-
-                readonly property int workspaceId: Number(modelData)
-                readonly property var workspaceObject: root.workspaceForId(workspaceId)
-                readonly property bool selected: root.activeWorkspaceId === workspaceId
-                readonly property bool occupied: (workspaceObject?.toplevels?.values?.length ?? 0) > 0
-                readonly property bool urgent: workspaceObject?.urgent ?? false
-
-                Layout.preferredWidth: selected ? 31 : 25
-                Layout.preferredHeight: 28
-                surfaceRadius: 10
-                raised: false
-                active: selected
-                hovered: workspaceMouse.containsMouse
-                pressed: workspaceMouse.pressed
-                interactive: true
-                hoverScale: RaohaneMotion.subtleHoverScale
-                pressedScale: RaohaneMotion.softPressScale
-                showSheen: false
-                border.color: urgent ? RaohaneTheme.critical
-                    : selected ? RaohaneTheme.accentBorder
-                    : hovered ? RaohaneTheme.borderStrong
-                    : RaohaneTheme.border
-
-                Behavior on border.color {
-                    ColorAnimation { duration: RaohaneMotion.micro }
+            Repeater {
+                model: root.workspaceIds
+                delegate: WorkspaceButton {
+                    required property var modelData
+                    workspaceId: Number(modelData)
+                    verticalMode: false
                 }
+            }
+        }
+    }
 
-                Text {
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: workspaceButton.occupied ? -2 : 0
-                    text: workspaceButton.workspaceId
-                    color: workspaceButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    font.pixelSize: 9
-                    font.weight: workspaceButton.selected ? Font.DemiBold : Font.Medium
+    Component {
+        id: verticalWorkspaces
 
-                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+        ColumnLayout {
+            spacing: 3
+
+            Repeater {
+                model: root.workspaceIds
+                delegate: WorkspaceButton {
+                    required property var modelData
+                    workspaceId: Number(modelData)
+                    verticalMode: true
                 }
+            }
+        }
+    }
 
-                Rectangle {
-                    visible: workspaceButton.occupied
-                    width: workspaceButton.selected ? 8 : 5
-                    height: 2
-                    radius: 1
-                    anchors {
-                        horizontalCenter: parent.horizontalCenter
-                        bottom: parent.bottom
-                        bottomMargin: 4
-                    }
-                    color: workspaceButton.urgent ? RaohaneTheme.critical
-                        : workspaceButton.selected ? RaohaneTheme.accent
-                        : RaohaneTheme.textMuted
-                    opacity: workspaceButton.selected || workspaceButton.urgent ? 1 : 0.7
+    component WorkspaceButton: RaohaneSurface {
+        id: workspaceButton
 
-                    Behavior on width {
-                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-                    }
-                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                }
+        required property int workspaceId
+        property bool verticalMode: false
 
-                MouseArea {
-                    id: workspaceMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.activateWorkspace(workspaceButton.workspaceId)
-                    onWheel: wheel => {
-                        if (wheel.angleDelta.y === 0)
-                            return
-                        root.moveRelative(wheel.angleDelta.y > 0 ? -1 : 1)
-                        wheel.accepted = true
-                    }
-                }
+        readonly property var workspaceObject: root.workspaceForId(workspaceId)
+        readonly property bool selected: root.activeWorkspaceId === workspaceId
+        readonly property bool occupied: (workspaceObject?.toplevels?.values?.length ?? 0) > 0
+        readonly property bool urgent: workspaceObject?.urgent ?? false
+
+        Layout.alignment: Qt.AlignCenter
+        Layout.preferredWidth: verticalMode ? 36 : (selected ? 31 : 25)
+        Layout.preferredHeight: verticalMode ? 29 : 28
+        surfaceRadius: 10
+        raised: false
+        active: selected
+        hovered: workspaceMouse.containsMouse
+        pressed: workspaceMouse.pressed
+        interactive: true
+        hoverScale: RaohaneMotion.subtleHoverScale
+        pressedScale: RaohaneMotion.softPressScale
+        showSheen: false
+        border.color: urgent ? RaohaneTheme.critical
+            : selected ? RaohaneTheme.accentBorder
+            : hovered ? RaohaneTheme.borderStrong
+            : RaohaneTheme.border
+
+        Behavior on border.color {
+            ColorAnimation { duration: RaohaneMotion.micro }
+        }
+
+        Rectangle {
+            visible: workspaceButton.verticalMode && workspaceButton.selected
+            anchors {
+                left: parent.left
+                verticalCenter: parent.verticalCenter
+                leftMargin: 2
+            }
+            width: 2
+            height: 15
+            radius: 1
+            color: RaohaneTheme.accent
+        }
+
+        Text {
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: !workspaceButton.verticalMode && workspaceButton.occupied ? -2 : 0
+            text: workspaceButton.workspaceId
+            color: workspaceButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            font.pixelSize: 9
+            font.weight: workspaceButton.selected ? Font.DemiBold : Font.Medium
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+        }
+
+        Rectangle {
+            visible: workspaceButton.occupied
+            width: workspaceButton.verticalMode ? 4 : (workspaceButton.selected ? 8 : 5)
+            height: workspaceButton.verticalMode ? 4 : 2
+            radius: workspaceButton.verticalMode ? 2 : 1
+            anchors {
+                horizontalCenter: workspaceButton.verticalMode ? undefined : parent.horizontalCenter
+                bottom: workspaceButton.verticalMode ? undefined : parent.bottom
+                bottomMargin: workspaceButton.verticalMode ? 0 : 4
+                right: workspaceButton.verticalMode ? parent.right : undefined
+                rightMargin: workspaceButton.verticalMode ? 4 : 0
+                verticalCenter: workspaceButton.verticalMode ? parent.verticalCenter : undefined
+            }
+            color: workspaceButton.urgent ? RaohaneTheme.critical
+                : workspaceButton.selected ? RaohaneTheme.accent
+                : RaohaneTheme.textMuted
+            opacity: workspaceButton.selected || workspaceButton.urgent ? 1 : 0.7
+
+            Behavior on width {
+                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+        }
+
+        MouseArea {
+            id: workspaceMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.activateWorkspace(workspaceButton.workspaceId)
+            onWheel: wheel => {
+                if (wheel.angleDelta.y === 0)
+                    return
+                root.moveRelative(wheel.angleDelta.y > 0 ? -1 : 1)
+                wheel.accepted = true
             }
         }
     }
