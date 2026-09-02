@@ -1,0 +1,14 @@
+[SddmGreeterTheme]
+Name=Raohane
+Description=Raohane login greeter for Wayland desktop sessions
+Author=Raohane contributors
+Copyright=2026 Raohane contributors
+License=GPL-3.0-or-later
+Type=sddm-theme
+Version=1.0
+Website=https://github.com/killmyselfrin/raohane-dots
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=raohane
+Theme-API=2.0
+QtVersion=6

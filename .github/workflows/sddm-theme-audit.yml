@@ -1,0 +1,40 @@
+name: SDDM theme audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'display-manager/**'
+      - 'modules/raohane/services/RaohaneUiFeedback.qml'
+      - 'scripts/play-ui-sound.sh'
+      - 'scripts/install-sddm-theme.sh'
+      - 'scripts/sddm-theme-audit.sh'
+      - 'install/arch/**'
+      - '.github/workflows/sddm-theme-audit.yml'
+  pull_request:
+    paths:
+      - 'display-manager/**'
+      - 'modules/raohane/services/RaohaneUiFeedback.qml'
+      - 'scripts/play-ui-sound.sh'
+      - 'scripts/install-sddm-theme.sh'
+      - 'scripts/sddm-theme-audit.sh'
+      - 'install/arch/**'
+      - '.github/workflows/sddm-theme-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Install audit dependencies
+        run: sudo apt-get update && sudo apt-get install -y ripgrep qt6-declarative-dev-tools
+
+      - name: Validate Raohane SDDM theme and UI audio fallback
+        shell: bash
+        run: bash scripts/sddm-theme-audit.sh
