@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 11,
+  "schemaVersion": 12,
   "wallpaper": {
     "path": "",
     "lockPath": "",
@@ -90,7 +90,10 @@
     "showContext": true,
     "showSystem": true,
     "showMotto": true,
-    "compact": false
+    "compact": false,
+    "layout": "balanced",
+    "scale": 1.0,
+    "opacity": 0.94
   },
   "features": {
     "contextIsland": true,

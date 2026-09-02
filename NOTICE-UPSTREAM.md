@@ -8,6 +8,9 @@ Raohane development studied, imported and/or modified material from:
 
 - `pctrade/end4-pC`
   - foundation pin used during migration: `369554b62de8d659875de828c779b83b28ae9ada`
+  - its widget-canvas grid, snap-guide and placement concepts informed the
+    Raohane-owned composition presets and motion; no widget-canvas QML or
+    background service is imported at runtime.
 - `end-4/dots-hyprland` / illogical-impulse
   - system/dependency foundation pin used during migration: `42d0aae17b744a38cd05c9044c189bfc9b13869a`
 - `snowarch/iNiR`
@@ -16,6 +19,8 @@ Raohane development studied, imported and/or modified material from:
     schema under `defaults/themes/serpantinum.json`;
   - its Nix deployment model informed the Raohane-owned package, NixOS module
     and Home Manager module under `nix/`;
+  - its per-monitor widget editor and type-registry interaction model informed
+    the simpler Raohane Widget Studio composition controls;
   - no Serpantinum QML namespace, service, installer or runtime path is used.
 
 Those projects are provenance/reference sources. They are not required as cloned repositories to install, start or update the current Raohane runtime.

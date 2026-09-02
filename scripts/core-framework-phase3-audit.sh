@@ -86,7 +86,7 @@ for section in wallpaper overview dock bar frame corners osk osd display apps pr
   rg -q "${section}:[[:space:]]*\{" "$config" \
     || fail "snapshot lost product section: $section"
 done
-rg -q 'schemaVersion:[[:space:]]*11' "$config" || fail 'RaohaneConfig schema contract is not v11'
+rg -q 'schemaVersion:[[:space:]]*12' "$config" || fail 'RaohaneConfig schema contract is not v12'
 rg -q 'themePreset:[[:space:]]*root\.themePreset' "$config" || fail 'theme selection is not persisted in the native document'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig bypasses RaohanePaths'
 

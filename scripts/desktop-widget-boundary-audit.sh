@@ -21,6 +21,20 @@ for path in "$canvas" "$widgets" "$studio" "$settings" "$search" "$config" "$def
   [[ -f "$path" ]] || fail "missing native widget path: $path"
 done
 
+for property_name in desktopWidgetsLayout desktopWidgetsScale desktopWidgetsOpacity; do
+  rg -q "property (string|real) ${property_name}:" "$config" \
+    || fail "native config is missing $property_name"
+  rg -q "on${property_name^}Changed:[[:space:]]*scheduleSave\(\)" "$config" \
+    || fail "$property_name is not persisted"
+  rg -q "key:[[:space:]]*\"${property_name}\"" "$search" \
+    || fail "Settings search does not expose $property_name"
+done
+
+rg -q 'readonly property var layouts:' "$studio" \
+  || fail 'Widget Studio is missing native composition presets'
+rg -q 'desktopWidgetsLayout === modelData\.key' "$studio" \
+  || fail 'Widget Studio presets are not connected to native config'
+
 properties=(
   desktopWidgetsEnabled desktopWidgetClock desktopWidgetContext
   desktopWidgetSystem desktopWidgetMotto desktopWidgetsCompact
@@ -37,14 +51,17 @@ for property_name in "${properties[@]}"; do
 done
 
 jq -e '
-  .schemaVersion == 11 and
+  .schemaVersion == 12 and
   (.desktopWidgets | type == "object") and
   (.desktopWidgets.enabled | type == "boolean") and
   (.desktopWidgets.showClock | type == "boolean") and
   (.desktopWidgets.showContext | type == "boolean") and
   (.desktopWidgets.showSystem | type == "boolean") and
   (.desktopWidgets.showMotto | type == "boolean") and
-  (.desktopWidgets.compact | type == "boolean")
+  (.desktopWidgets.compact | type == "boolean") and
+  (.desktopWidgets.layout == "balanced") and
+  (.desktopWidgets.scale | type == "number") and
+  (.desktopWidgets.opacity | type == "number")
 ' "$defaults" >/dev/null || fail 'native widget defaults are invalid'
 
 for symbol in \
@@ -53,6 +70,9 @@ for symbol in \
   'RaohaneConfig\.desktopWidgetSystem' \
   'RaohaneConfig\.desktopWidgetMotto' \
   'RaohaneConfig\.desktopWidgetsCompact' \
+  'RaohaneConfig\.desktopWidgetsLayout' \
+  'RaohaneConfig\.desktopWidgetsScale' \
+  'RaohaneConfig\.desktopWidgetsOpacity' \
   'RaohaneNetwork\.' 'RaohaneAudio\.' 'RaohaneSystemInfo\.'; do
   rg -q "$symbol" "$widgets" || fail "desktop widgets lost native contract: $symbol"
 done

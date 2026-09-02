@@ -128,5 +128,17 @@
   "Wi-Fi is turned off": "Wi-Fi выключен",
   "Wi-Fi networks": "Сети Wi-Fi",
   "WINDOW": "ОКНО",
-  "Your workspace is protected. Authenticate to continue where you left off.": "Рабочее пространство защищено. Подтвердите личность, чтобы продолжить с того места, где остановились."
+  "Your workspace is protected. Authenticate to continue where you left off.": "Рабочее пространство защищено. Подтвердите личность, чтобы продолжить с того места, где остановились.",
+  "Balanced": "Сбалансированно",
+  "Blend widgets softly into the wallpaper": "Мягко вписывать виджеты в обои",
+  "COMPOSITION": "КОМПОЗИЦИЯ",
+  "Composition preset": "Пресет композиции",
+  "Clock left, status right": "Часы слева, состояние справа",
+  "Keep the composition together on the left": "Собрать композицию у левого края",
+  "Keep the composition together on the right": "Собрать композицию у правого края",
+  "Left rail": "Слева",
+  "Resize the complete desktop composition": "Изменить размер всей композиции рабочего стола",
+  "Right rail": "Справа",
+  "Surface opacity": "Прозрачность виджетов",
+  "Widget scale": "Масштаб виджетов"
 }

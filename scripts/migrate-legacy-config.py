@@ -76,7 +76,7 @@ def main() -> int:
             if isinstance(value, str) and value.strip():
                 assign(native, "apps", native_key, value)
 
-    native["schemaVersion"] = 11
+    native["schemaVersion"] = 12
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_suffix(args.output.suffix + ".tmp")
     temporary.write_text(json.dumps(native, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

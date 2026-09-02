@@ -44,7 +44,7 @@ jobs:
 
           cat > "$XDG_CONFIG_HOME/raohane/native.json" <<EOF
           {
-            "schemaVersion": 11,
+            "schemaVersion": 12,
             "wallpaper": {
               "path": "$HOME/Pictures/current-wallpaper.png",
               "lockPath": "$HOME/Pictures/current-wallpaper.png",
