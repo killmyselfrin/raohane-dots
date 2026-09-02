@@ -2,9 +2,9 @@ pragma Singleton
 
 import QtQuick
 
-// Declarative catalog for the composable Raohane bar. The registry owns stable
-// module ids and validation only; rendering stays in RaohaneBarModule and the
-// persisted layout stays in RaohaneConfig.
+// Declarative catalog for both Raohane bar orientations. Stable ids live here;
+// rendering stays in RaohaneBarModule and each orientation persists its own
+// left/center/right (start/center/end) composition in RaohaneConfig.
 QtObject {
     id: root
 
@@ -14,8 +14,13 @@ QtObject {
         "context",
         "tray",
         "system",
+        "network",
+        "bluetooth",
+        "notifications",
         "clock",
+        "audio",
         "control",
+        "session",
         "separator"
     ]
 
@@ -53,6 +58,27 @@ QtObject {
             role: "system",
             preferredZone: "right",
             horizontal: true,
+            vertical: false
+        },
+        "network": {
+            icon: "wifi",
+            role: "system",
+            preferredZone: "right",
+            horizontal: false,
+            vertical: true
+        },
+        "bluetooth": {
+            icon: "bluetooth",
+            role: "system",
+            preferredZone: "right",
+            horizontal: false,
+            vertical: true
+        },
+        "notifications": {
+            icon: "notifications",
+            role: "system",
+            preferredZone: "right",
+            horizontal: false,
             vertical: true
         },
         "clock": {
@@ -62,11 +88,25 @@ QtObject {
             horizontal: true,
             vertical: true
         },
+        "audio": {
+            icon: "volume_up",
+            role: "system",
+            preferredZone: "right",
+            horizontal: false,
+            vertical: true
+        },
         "control": {
             icon: "tune",
             role: "action",
             preferredZone: "right",
             horizontal: true,
+            vertical: true
+        },
+        "session": {
+            icon: "power_settings_new",
+            role: "action",
+            preferredZone: "right",
+            horizontal: false,
             vertical: true
         },
         "separator": {
@@ -83,6 +123,12 @@ QtObject {
         left: ["launcher", "separator", "workspaces"],
         center: ["context"],
         right: ["tray", "system", "separator", "clock", "control"]
+    })
+
+    readonly property var defaultVerticalLayout: ({
+        left: ["launcher", "separator", "workspaces"],
+        center: ["context"],
+        right: ["network", "bluetooth", "notifications", "separator", "clock", "separator", "audio", "control", "session"]
     })
 
     function definition(id: string): var {
@@ -116,8 +162,13 @@ QtObject {
         case "context": return qsTr("Context Island")
         case "tray": return qsTr("System tray")
         case "system": return qsTr("System status")
+        case "network": return qsTr("Network")
+        case "bluetooth": return qsTr("Bluetooth")
+        case "notifications": return qsTr("Notifications")
         case "clock": return qsTr("Clock")
+        case "audio": return qsTr("Audio")
         case "control": return qsTr("Control Center")
+        case "session": return qsTr("Session")
         case "separator": return qsTr("Separator")
         default: return String(id ?? "")
         }
@@ -130,11 +181,20 @@ QtObject {
         case "context": return qsTr("Media, privacy and active-window context")
         case "tray": return qsTr("StatusNotifier system tray items")
         case "system": return qsTr("Network, Bluetooth, audio and notifications")
+        case "network": return qsTr("Show network state and open Control Center")
+        case "bluetooth": return qsTr("Show Bluetooth state and toggle the adapter")
+        case "notifications": return qsTr("Show notification state and unread count")
         case "clock": return qsTr("Time and optional date")
+        case "audio": return qsTr("Show volume state and toggle mute")
         case "control": return qsTr("Open the compact Control Center")
+        case "session": return qsTr("Open session and power actions")
         case "separator": return qsTr("Visual spacing divider; can be added more than once")
         default: return ""
         }
+    }
+
+    function defaultLayoutFor(orientation: string): var {
+        return orientation === "vertical" ? root.defaultVerticalLayout : root.defaultLayout
     }
 
     function sanitizeZone(value, fallback, orientation: string): var {
@@ -157,7 +217,7 @@ QtObject {
 
     function sanitizeLayout(value, orientation: string): var {
         const source = value && typeof value === "object" ? value : ({})
-        const defaults = root.defaultLayout
+        const defaults = root.defaultLayoutFor(orientation)
         const zones = ["left", "center", "right"]
         const result = ({ left: [], center: [], right: [] })
         const seen = ({})

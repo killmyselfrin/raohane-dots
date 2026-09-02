@@ -6,14 +6,14 @@ import QtQuick.Layouts
 import qs.modules.raohane.config
 import qs.modules.raohane.services
 
-// One reusable renderer for a registered bar module. This keeps module behavior
-// out of the horizontal bar geometry so ordering can come entirely from the
-// persisted layout. Hosts may inject navigation callbacks while the renderer
-// retains native fallbacks for standalone reuse.
+// Shared renderer for horizontal and vertical registered bar modules. Geometry
+// stays in the host bars; this component owns orientation-specific presentation
+// and native service interaction for each stable module id.
 Item {
     id: root
 
     required property string moduleId
+    property string orientation: "horizontal"
     property var screen: null
     property var parentWindow: null
     property bool hostActive: true
@@ -21,13 +21,14 @@ Item {
     property var primaryAction: null
     property var transientAction: null
 
-    readonly property bool known: RaohaneBarModuleRegistry.isKnown(moduleId)
+    readonly property bool vertical: orientation === "vertical"
+    readonly property bool known: RaohaneBarModuleRegistry.supports(moduleId, orientation)
 
     implicitWidth: contentLoader.item?.implicitWidth ?? contentLoader.item?.width ?? 0
     implicitHeight: contentLoader.item?.implicitHeight ?? contentLoader.item?.height ?? 0
     width: implicitWidth
     height: implicitHeight
-    visible: known && contentLoader.status === Loader.Ready
+    visible: known && contentLoader.status === Loader.Ready && (contentLoader.item?.visible ?? true)
 
     function requestPrimary(surfaceId: string): void {
         if (typeof root.primaryAction === "function") {
@@ -38,11 +39,7 @@ Item {
     }
 
     function requestControlCenter(): void {
-        if (typeof root.primaryAction === "function") {
-            root.primaryAction("controlCenter")
-            return
-        }
-        RaohaneState.togglePrimary("controlCenter")
+        root.requestPrimary("controlCenter")
     }
 
     function requestTransient(surfaceId: string): void {
@@ -54,6 +51,23 @@ Item {
     }
 
     function componentFor(id: string): Component {
+        if (root.vertical) {
+            switch (id) {
+            case "launcher": return verticalLauncherComponent
+            case "workspaces": return verticalWorkspacesComponent
+            case "context": return verticalContextComponent
+            case "network": return verticalNetworkComponent
+            case "bluetooth": return verticalBluetoothComponent
+            case "notifications": return verticalNotificationsComponent
+            case "clock": return verticalClockComponent
+            case "audio": return verticalAudioComponent
+            case "control": return verticalControlComponent
+            case "session": return verticalSessionComponent
+            case "separator": return verticalSeparatorComponent
+            default: return null
+            }
+        }
+
         switch (id) {
         case "launcher": return launcherComponent
         case "workspaces": return workspacesComponent
@@ -92,6 +106,7 @@ Item {
 
         RaohaneWorkspaces {
             screen: root.screen
+            orientation: "horizontal"
         }
     }
 
@@ -180,6 +195,222 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 color: RaohaneTheme.borderFaint
+            }
+        }
+    }
+
+    Component {
+        id: verticalLauncherComponent
+
+        VerticalButton {
+            icon: "apps"
+            emphasized: RaohaneState.launcherOpen
+            onTriggered: root.requestPrimary("launcher")
+        }
+    }
+
+    Component {
+        id: verticalWorkspacesComponent
+
+        RaohaneWorkspaces {
+            screen: root.screen
+            orientation: "vertical"
+        }
+    }
+
+    Component {
+        id: verticalContextComponent
+
+        VerticalButton {
+            icon: RaohanePrivacy.recordingActive ? "screen_record"
+                : RaohanePrivacy.cameraActive ? "videocam"
+                : RaohanePrivacy.microphoneActive ? "mic"
+                : (RaohaneContext.mode === "media" ? "music_note" : "circle")
+            emphasized: RaohanePrivacy.recordingActive
+                || RaohanePrivacy.cameraActive
+                || RaohanePrivacy.microphoneActive
+                || RaohaneContext.mode === "media"
+            onTriggered: {
+                if (RaohaneContext.mode === "media")
+                    root.requestTransient("mediaOverlay")
+                else
+                    root.requestControlCenter()
+            }
+        }
+    }
+
+    Component {
+        id: verticalNetworkComponent
+
+        VerticalButton {
+            icon: RaohaneNetwork.materialSymbol
+            emphasized: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
+            onTriggered: root.requestControlCenter()
+        }
+    }
+
+    Component {
+        id: verticalBluetoothComponent
+
+        Item {
+            visible: RaohaneBluetooth.available
+            implicitWidth: visible ? 36 : 0
+            implicitHeight: visible ? 36 : 0
+
+            VerticalButton {
+                anchors.centerIn: parent
+                icon: RaohaneBluetooth.connected
+                    ? "bluetooth_connected"
+                    : (RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
+                emphasized: RaohaneBluetooth.connected
+                onTriggered: RaohaneBluetooth.toggle()
+            }
+        }
+    }
+
+    Component {
+        id: verticalNotificationsComponent
+
+        VerticalButton {
+            icon: RaohaneNotifications.silent ? "notifications_off" : "notifications"
+            emphasized: RaohaneNotifications.unread > 0
+            badgeCount: RaohaneNotifications.unread
+            onTriggered: root.requestControlCenter()
+        }
+    }
+
+    Component {
+        id: verticalClockComponent
+
+        Item {
+            id: verticalClock
+            property date now: new Date()
+
+            implicitWidth: 38
+            implicitHeight: root.showDate ? 48 : 36
+
+            Timer {
+                interval: 1000
+                repeat: true
+                running: root.hostActive
+                triggeredOnStart: true
+                onTriggered: verticalClock.now = new Date()
+            }
+
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: -2
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: Qt.formatTime(verticalClock.now, "HH")
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: Qt.formatTime(verticalClock.now, "mm")
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
+
+                Text {
+                    visible: root.showDate
+                    Layout.alignment: Qt.AlignHCenter
+                    text: Qt.formatDate(verticalClock.now, "dd")
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 7
+                }
+            }
+        }
+    }
+
+    Component {
+        id: verticalAudioComponent
+
+        VerticalButton {
+            icon: RaohaneAudio.muted ? "volume_off"
+                : (RaohaneAudio.volume > 0.66 ? "volume_up"
+                    : RaohaneAudio.volume > 0.05 ? "volume_down" : "volume_mute")
+            emphasized: !RaohaneAudio.muted && RaohaneAudio.volume > 0
+            onTriggered: RaohaneAudio.toggleMute()
+        }
+    }
+
+    Component {
+        id: verticalControlComponent
+
+        VerticalButton {
+            icon: "tune"
+            emphasized: RaohaneState.controlCenterOpen
+            onTriggered: root.requestControlCenter()
+        }
+    }
+
+    Component {
+        id: verticalSessionComponent
+
+        VerticalButton {
+            icon: "power_settings_new"
+            onTriggered: RaohaneState.setPrimaryOpen("session", true)
+        }
+    }
+
+    Component {
+        id: verticalSeparatorComponent
+
+        Item {
+            implicitWidth: 36
+            implicitHeight: 1
+
+            Rectangle {
+                anchors.fill: parent
+                color: RaohaneTheme.borderFaint
+            }
+        }
+    }
+
+    component VerticalButton: RaohaneIconButton {
+        id: button
+
+        property int badgeCount: 0
+        signal triggered()
+
+        implicitWidth: 36
+        implicitHeight: 36
+        buttonSize: 36
+        iconSize: 16
+        transparentIdle: true
+        onClicked: button.triggered()
+
+        Rectangle {
+            anchors {
+                right: parent.right
+                top: parent.top
+                rightMargin: 1
+                topMargin: 1
+            }
+            width: 14
+            height: 14
+            radius: 7
+            color: RaohaneTheme.accent
+            opacity: button.badgeCount > 0 ? 1 : 0
+            scale: button.badgeCount > 0 ? 1 : 0.45
+
+            Text {
+                anchors.centerIn: parent
+                text: Math.min(9, button.badgeCount) + (button.badgeCount > 9 ? "+" : "")
+                color: RaohaneTheme.background
+                font.pixelSize: 6
+                font.weight: Font.Bold
+            }
+
+            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+            Behavior on scale {
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
             }
         }
     }

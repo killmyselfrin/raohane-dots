@@ -54,7 +54,13 @@ if rg -n 'duration:[[:space:]]*180' "$desktop" "$desktop_widgets"; then
   fail 'Desktop canvas reintroduced a fixed animation duration outside RaohaneMotion'
 fi
 
-rg -q 'delegate:[[:space:]]*RaohaneSurface[[:space:]]*\{' "$workspaces" || fail 'Workspace buttons no longer use shared surfaces'
+rg -q 'component WorkspaceButton:[[:space:]]*RaohaneSurface[[:space:]]*\{' "$workspaces" || fail 'Workspace buttons no longer use the shared reusable surface component'
+rg -q 'property string orientation:[[:space:]]*"horizontal"' "$workspaces" || fail 'Workspace renderer lost orientation state'
+rg -q 'sourceComponent:[[:space:]]*root\.vertical[[:space:]]*\?[[:space:]]*verticalWorkspaces[[:space:]]*:[[:space:]]*horizontalWorkspaces' "$workspaces" || fail 'Workspace renderer no longer switches orientation through one loader'
+rg -q 'id:[[:space:]]*horizontalWorkspaces' "$workspaces" || fail 'Workspace renderer lost horizontal composition'
+rg -q 'id:[[:space:]]*verticalWorkspaces' "$workspaces" || fail 'Workspace renderer lost vertical composition'
+rg -q 'verticalMode:[[:space:]]*false' "$workspaces" || fail 'Workspace renderer lost horizontal button mode'
+rg -q 'verticalMode:[[:space:]]*true' "$workspaces" || fail 'Workspace renderer lost vertical button mode'
 rg -q 'RaohaneTheme\.critical' "$workspaces" || fail 'Workspace urgency no longer uses the semantic critical token'
 rg -q 'RaohaneMotion\.' "$workspaces" || fail 'Workspace buttons lost shared motion'
 if rg -n '#24ffffff|#ff7373|readonly property bool active:' "$workspaces"; then
@@ -111,4 +117,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: floating Control Center, grouped Settings V3, Quick Controls, Sidebar, tray, About, desktop context, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: floating Control Center, grouped Settings V3, Quick Controls, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
