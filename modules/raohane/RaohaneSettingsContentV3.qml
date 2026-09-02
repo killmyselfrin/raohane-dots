@@ -25,9 +25,8 @@ Item {
         if (index < 0 || index >= root.pages.length)
             return
         const page = root.pages[index]
-        if (page?.kind === "external") {
-            if (page.surface)
-                RaohaneState.setPrimaryOpen(page.surface, true)
+        if (page?.externalSurface) {
+            RaohaneState.setPrimaryOpen(page.externalSurface, true)
             root.pendingSearch = ""
             return
         }
@@ -47,16 +46,6 @@ Item {
         if (root.pendingSearch !== "" && typeof pageLoader.item.goTo === "function")
             pageLoader.item.goTo(root.pendingSearch)
         root.pendingSearch = ""
-    }
-
-    function componentForKind(kind: string): Component {
-        switch (kind) {
-        case "home": return homePage
-        case "themes": return themesPage
-        case "widgets": return widgetsPage
-        case "about": return aboutPage
-        default: return nativeSectionPage
-        }
     }
 
     onCurrentPageChanged: {
@@ -88,31 +77,6 @@ Item {
                 root.activatePage(index)
             RaohaneState.settingsPage = ""
         }
-    }
-
-    Component {
-        id: homePage
-        RaohaneSettingsHome {}
-    }
-
-    Component {
-        id: themesPage
-        RaohaneThemeCatalog {}
-    }
-
-    Component {
-        id: widgetsPage
-        RaohaneWidgetStudio {}
-    }
-
-    Component {
-        id: aboutPage
-        RaohaneSettingsAbout {}
-    }
-
-    Component {
-        id: nativeSectionPage
-        RaohaneSettingsSectionPage {}
     }
 
     RowLayout {
@@ -498,7 +462,7 @@ Item {
                         anchors.leftMargin: 12
                         anchors.rightMargin: 12
                         anchors.bottomMargin: 10
-                        sourceComponent: root.componentForKind(root.currentPageInfo?.kind ?? "section")
+                        source: root.currentPageInfo?.source ?? ""
                         onLoaded: Qt.callLater(root.configureLoadedPage)
                     }
                 }

@@ -163,13 +163,23 @@ for symbol in \
   'RaohanePaths\.defaultAvatarUrl' \
   'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath' \
   'RaohaneSettingsPageRegistry\.pages' 'RaohaneSettingsPageRegistry\.resolvePageIndex' \
-  'RaohaneSettingsSectionPage[[:space:]]*\{'; do
-  rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost registry-backed contract: $symbol"
+  'source:[[:space:]]*root\.currentPageInfo\?\.source' \
+  'externalSurface'; do
+  rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost declarative registry contract: $symbol"
 done
+if rg -q 'function componentForKind\(|sourceComponent:|RaohaneSettingsSectionPage[[:space:]]*\{' "$settings_content"; then
+  fail 'RaohaneSettingsContent regressed to imperative or embedded page routing'
+fi
 for symbol in \
   'readonly property var pages:' 'readonly property var aliases:' \
+  'source:[[:space:]]*"RaohaneSettingsHome\.qml"' \
+  'source:[[:space:]]*"RaohaneThemeCatalog\.qml"' \
+  'source:[[:space:]]*"RaohaneWidgetStudio\.qml"' \
+  'source:[[:space:]]*"RaohaneSettingsSectionPage\.qml"' \
+  'source:[[:space:]]*"RaohaneSettingsAbout\.qml"' \
+  'externalSurface:[[:space:]]*"displaySettings"' \
   'desktopWidgetsEnabled' 'function sectionEntries\(' 'function searchEntries\('; do
-  rg -q "$symbol" "$settings_registry" || fail "RaohaneSettingsPageRegistry lost native contract: $symbol"
+  rg -q "$symbol" "$settings_registry" || fail "RaohaneSettingsPageRegistry lost declarative native contract: $symbol"
 done
 for symbol in 'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneConfig\[' 'RaohaneBarStudio[[:space:]]*\{'; do
   rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost native config/rendering contract: $symbol"
@@ -205,4 +215,4 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+E
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost move-window workspace binds'
 
-printf 'core-framework-audit: native paths/config/state/focus/settings registry/composition, primary coordinator and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus/declarative settings registry/composition, primary coordinator and boot boundaries are valid\n'
