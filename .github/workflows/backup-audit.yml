@@ -1,0 +1,112 @@
+name: Raohane backup audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/raohane-backup.py'
+      - 'modules/raohane/services/RaohaneBackup.qml'
+      - 'modules/raohane/RaohaneBackupSettings.qml'
+      - '.github/workflows/backup-audit.yml'
+  pull_request:
+    paths:
+      - 'scripts/raohane-backup.py'
+      - 'modules/raohane/services/RaohaneBackup.qml'
+      - 'modules/raohane/RaohaneBackupSettings.qml'
+      - '.github/workflows/backup-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable-round-trip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Validate backup script syntax
+        run: python3 -m py_compile scripts/raohane-backup.py
+
+      - name: Exercise portable export and restore
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOME="$RUNNER_TEMP/raohane-home"
+          mkdir -p "$HOME/.config/raohane" "$HOME/Pictures" "$HOME/Downloads"
+
+          printf 'wallpaper-bytes' > "$HOME/Pictures/current-wallpaper.png"
+          printf 'avatar-bytes' > "$HOME/Pictures/avatar.png"
+
+          cat > "$HOME/.config/raohane/native.json" <<EOF
+          {
+            "schemaVersion": 10,
+            "wallpaper": {
+              "path": "$HOME/Pictures/current-wallpaper.png",
+              "lockPath": "$HOME/Pictures/current-wallpaper.png",
+              "directory": "$HOME/Pictures"
+            },
+            "profile": {
+              "avatarPath": "$HOME/Pictures/avatar.png"
+            },
+            "keybinds": {
+              "launcher": "SUPER + R"
+            },
+            "style": {
+              "accentMode": "custom",
+              "customAccent": "#657987"
+            }
+          }
+          EOF
+
+          cat > "$HOME/.config/raohane/monitors.json" <<'EOF'
+          {
+            "schemaVersion": 1,
+            "monitors": {
+              "DP-1": {
+                "name": "DP-1",
+                "mode": "1920x1080@144.00",
+                "position": "0x0",
+                "scale": 1,
+                "transform": 0,
+                "vrr": 1,
+                "bitdepth": 8
+              }
+            }
+          }
+          EOF
+
+          python3 scripts/raohane-backup.py export --output "$HOME/Downloads/test"
+          test -f "$HOME/Downloads/test.raohane-backup"
+          python3 scripts/raohane-backup.py inspect --input "$HOME/Downloads/test.raohane-backup" >/dev/null
+
+          python3 - <<'PY'
+          import json
+          import pathlib
+          path = pathlib.Path.home() / '.config/raohane/native.json'
+          data = json.loads(path.read_text())
+          data['style']['customAccent'] = '#ffffff'
+          data['keybinds']['launcher'] = 'SUPER + X'
+          path.write_text(json.dumps(data))
+          (pathlib.Path.home() / '.config/raohane/monitors.json').unlink()
+          PY
+
+          python3 scripts/raohane-backup.py restore --input "$HOME/Downloads/test.raohane-backup"
+
+          python3 - <<'PY'
+          import json
+          import pathlib
+          home = pathlib.Path.home()
+          native = json.loads((home / '.config/raohane/native.json').read_text())
+          monitors = json.loads((home / '.config/raohane/monitors.json').read_text())
+          assert native['style']['customAccent'] == '#657987'
+          assert native['keybinds']['launcher'] == 'SUPER + R'
+          assert monitors['monitors']['DP-1']['vrr'] == 1
+          wallpaper = pathlib.Path(native['wallpaper']['path'])
+          avatar = pathlib.Path(native['profile']['avatarPath'])
+          assert wallpaper.is_file() and wallpaper.read_bytes() == b'wallpaper-bytes'
+          assert avatar.is_file() and avatar.read_bytes() == b'avatar-bytes'
+          restore_points = list((home / '.local/state/raohane/restore-points').glob('*.raohane-backup'))
+          assert restore_points, 'pre-restore safety archive was not created'
+          PY
