@@ -59,10 +59,23 @@ for contract in \
   'onBarModuleLayoutChanged:[[:space:]]*scheduleSave\(\)'; do
   rg -q "$contract" "$config" || fail "native config lost persisted horizontal bar-module contract: $contract"
 done
+for contract in \
+  'property var barVerticalModuleLayout:[[:space:]]*root\.defaultVerticalBarModuleLayout\(\)' \
+  'function defaultVerticalBarModuleLayout\(\): var' \
+  'function sanitizeVerticalBarModuleLayout\(value\): var' \
+  'verticalModules:[[:space:]]*root\.sanitizeVerticalBarModuleLayout\(root\.barVerticalModuleLayout\)' \
+  'root\.barVerticalModuleLayout[[:space:]]*=[[:space:]]*root\.sanitizeVerticalBarModuleLayout\(value\)' \
+  'onBarVerticalModuleLayoutChanged:[[:space:]]*scheduleSave\(\)'; do
+  rg -q "$contract" "$config" || fail "native config lost persisted vertical bar-module contract: $contract"
+done
 for module_id in launcher workspaces context tray system clock control separator; do
   rg -q "\"${module_id}\"" "$defaults" || fail "native defaults lost horizontal bar module id: $module_id"
 done
+for module_id in network bluetooth notifications audio session; do
+  rg -q "\"${module_id}\"" "$defaults" || fail "native defaults lost vertical bar module id: $module_id"
+done
 rg -q '"modules"[[:space:]]*:' "$defaults" || fail 'native defaults do not persist horizontal bar modules'
+rg -q '"verticalModules"[[:space:]]*:' "$defaults" || fail 'native defaults do not persist vertical bar modules'
 
 rg -q 'RaohaneConfig\.barModuleLayout' "$bar" \
   || fail 'horizontal bar does not consume persisted module layout'
@@ -74,14 +87,14 @@ for zone in left center right; do
   rg -q "root\.activeLayout\.${zone}" "$bar" || fail "horizontal bar does not render persisted $zone zone"
 done
 
-rg -q 'RaohaneBarModuleRegistry\.defaultVerticalLayout' "$vertical" \
-  || fail 'vertical bar does not consume its native registry default layout'
+rg -q 'RaohaneConfig\.barVerticalModuleLayout' "$vertical" \
+  || fail 'vertical bar does not consume persisted vertical module layout'
 rg -q 'readonly property var activeLayout:[[:space:]]*RaohaneBarModuleRegistry\.sanitizeLayout' "$vertical" \
-  || fail 'vertical bar does not validate composition through the native registry'
+  || fail 'vertical bar does not validate persisted composition through the native registry'
 rg -q 'orientation:[[:space:]]*"vertical"' "$vertical" \
   || fail 'vertical bar does not request vertical module rendering'
 for zone in left center right; do
-  rg -q "root\.activeLayout\.${zone}" "$vertical" || fail "vertical bar does not render registry $zone zone"
+  rg -q "root\.activeLayout\.${zone}" "$vertical" || fail "vertical bar does not render persisted $zone zone"
 done
 
 for component in RaohaneWorkspaces RaohaneSysTray RaohaneSystemIcons RaohaneClock RaohaneContextIsland; do
@@ -105,7 +118,11 @@ for contract in \
 done
 
 for contract in \
+  'property string orientation:' \
   'RaohaneConfig\.barModuleLayout' \
+  'RaohaneConfig\.barVerticalModuleLayout' \
+  'RaohaneBarModuleRegistry\.supports\(id, root\.orientation\)' \
+  'RaohaneBarModuleRegistry\.defaultLayoutFor\(root\.orientation\)' \
   'function commit\(layout\): void' \
   'function addModule\(id: string\): void' \
   'function removeAt\(zone: string, index: int\): void' \
@@ -113,7 +130,10 @@ for contract in \
   'function moveAcross\(zone: string, index: int, delta: int\): void' \
   'function resetLayout\(\): void' \
   'RaohaneBarModuleRegistry\.preferredZone'; do
-  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost horizontal composition contract: $contract"
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost dual-orientation composition contract: $contract"
+done
+for label in Horizontal Vertical Top Middle Bottom; do
+  rg -q "qsTr\(\"${label}\"\)" "$bar_studio" || fail "Bar Studio lost orientation UX label: $label"
 done
 
 for symbol in 'RaohaneConfig\.' 'RaohaneState\.'; do
@@ -208,7 +228,7 @@ for symbol in \
   'RaohaneConfig\.barShowOnSuper' \
   'RaohaneState\.superDown' \
   'Behavior on x' \
-  'RaohaneBarModuleRegistry\.defaultVerticalLayout' \
+  'RaohaneConfig\.barVerticalModuleLayout' \
   'orientation:[[:space:]]*"vertical"'; do
   rg -q "$symbol" "$vertical" || fail "native vertical bar lost host/runtime contract: $symbol"
 done
@@ -216,4 +236,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: horizontal and vertical bars share registry-backed modules while preserving fullscreen, lifecycle and native service boundaries\n'
+printf 'bar-boundary-audit: horizontal and vertical bars share registry-backed modules with independent persisted layouts and a dual-orientation Bar Studio\n'

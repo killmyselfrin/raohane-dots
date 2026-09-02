@@ -13,7 +13,7 @@ Scope {
     id: root
 
     readonly property var activeLayout: RaohaneBarModuleRegistry.sanitizeLayout(
-        RaohaneBarModuleRegistry.defaultVerticalLayout,
+        RaohaneConfig.barVerticalModuleLayout,
         "vertical"
     )
     readonly property bool showDateConfigured: RaohaneConfig.barShowDate

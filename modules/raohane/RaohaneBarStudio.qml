@@ -8,23 +8,58 @@ import qs.modules.raohane.config
 Item {
     id: root
 
+    property string orientation: RaohaneConfig.barVertical ? "vertical" : "horizontal"
+
+    readonly property bool vertical: orientation === "vertical"
     readonly property var zones: ["left", "center", "right"]
+    readonly property var sourceLayout: vertical
+        ? RaohaneConfig.barVerticalModuleLayout
+        : RaohaneConfig.barModuleLayout
     readonly property var layout: RaohaneBarModuleRegistry.sanitizeLayout(
-        RaohaneConfig.barModuleLayout,
-        "horizontal"
+        root.sourceLayout,
+        root.orientation
     )
     readonly property var availableModules: RaohaneBarModuleRegistry.moduleIds.filter(id => {
+        if (!RaohaneBarModuleRegistry.supports(id, root.orientation))
+            return false
         return RaohaneBarModuleRegistry.isRepeatable(id) || !root.containsModule(id)
     })
 
     implicitHeight: studioColumn.implicitHeight
 
     function zoneLabel(zone: string): string {
+        if (root.vertical) {
+            switch (zone) {
+            case "left": return qsTr("Top")
+            case "center": return qsTr("Middle")
+            case "right": return qsTr("Bottom")
+            default: return zone
+            }
+        }
+
         switch (zone) {
         case "left": return qsTr("Left")
         case "center": return qsTr("Center")
         case "right": return qsTr("Right")
         default: return zone
+        }
+    }
+
+    function zoneIcon(zone: string): string {
+        if (root.vertical) {
+            switch (zone) {
+            case "left": return "vertical_align_top"
+            case "center": return "vertical_align_center"
+            case "right": return "vertical_align_bottom"
+            default: return "drag_handle"
+            }
+        }
+
+        switch (zone) {
+        case "left": return "align_horizontal_left"
+        case "center": return "align_horizontal_center"
+        case "right": return "align_horizontal_right"
+        default: return "drag_handle"
         }
     }
 
@@ -41,7 +76,11 @@ Item {
     }
 
     function commit(layout): void {
-        RaohaneConfig.barModuleLayout = RaohaneBarModuleRegistry.sanitizeLayout(layout, "horizontal")
+        const sanitized = RaohaneBarModuleRegistry.sanitizeLayout(layout, root.orientation)
+        if (root.vertical)
+            RaohaneConfig.barVerticalModuleLayout = sanitized
+        else
+            RaohaneConfig.barModuleLayout = sanitized
     }
 
     function containsModule(id: string): bool {
@@ -88,7 +127,7 @@ Item {
     }
 
     function addModule(id: string): void {
-        if (!RaohaneBarModuleRegistry.supports(id, "horizontal"))
+        if (!RaohaneBarModuleRegistry.supports(id, root.orientation))
             return
         if (!RaohaneBarModuleRegistry.isRepeatable(id) && root.containsModule(id))
             return
@@ -100,7 +139,7 @@ Item {
     }
 
     function resetLayout(): void {
-        root.commit(RaohaneBarModuleRegistry.defaultLayout)
+        root.commit(RaohaneBarModuleRegistry.defaultLayoutFor(root.orientation))
     }
 
     ColumnLayout {
@@ -125,7 +164,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Compose the horizontal bar from native modules. Changes apply live and are saved automatically.")
+                    text: qsTr("Compose the selected bar orientation from native modules. Changes apply live and are saved automatically.")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 8
                     wrapMode: Text.WordWrap
@@ -171,6 +210,84 @@ Item {
             }
         }
 
+        RaohaneSurface {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 46
+            surfaceRadius: 12
+            raised: false
+            showSheen: false
+            border.color: RaohaneTheme.borderFaint
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 6
+                spacing: 6
+
+                Text {
+                    Layout.leftMargin: 5
+                    text: qsTr("Editing layout")
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 8
+                    font.weight: Font.Medium
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Repeater {
+                    model: [
+                        { id: "horizontal", label: qsTr("Horizontal"), icon: "horizontal_rule" },
+                        { id: "vertical", label: qsTr("Vertical"), icon: "more_vert" }
+                    ]
+
+                    delegate: RaohaneSurface {
+                        id: modeButton
+                        required property var modelData
+
+                        readonly property bool selected: root.orientation === String(modelData.id)
+
+                        Layout.preferredWidth: modeRow.implicitWidth + 18
+                        Layout.preferredHeight: 32
+                        surfaceRadius: 10
+                        raised: false
+                        active: selected
+                        transparentIdle: !selected
+                        interactive: true
+                        hovered: modeMouse.containsMouse
+                        pressed: modeMouse.pressed
+                        showSheen: false
+
+                        RowLayout {
+                            id: modeRow
+                            anchors.centerIn: parent
+                            spacing: 5
+
+                            RaohaneIcon {
+                                text: modeButton.modelData.icon
+                                iconSize: 13
+                                fill: modeButton.selected ? 1 : 0
+                                color: modeButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                            }
+
+                            Text {
+                                text: modeButton.modelData.label
+                                color: modeButton.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                                font.weight: modeButton.selected ? Font.DemiBold : Font.Medium
+                            }
+                        }
+
+                        MouseArea {
+                            id: modeMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.orientation = String(modeButton.modelData.id)
+                        }
+                    }
+                }
+            }
+        }
+
         Repeater {
             model: root.zones
 
@@ -204,9 +321,7 @@ Item {
                         spacing: 8
 
                         RaohaneIcon {
-                            text: zoneCard.zoneId === "left" ? "align_horizontal_left"
-                                : zoneCard.zoneId === "center" ? "align_horizontal_center"
-                                : "align_horizontal_right"
+                            text: root.zoneIcon(zoneCard.zoneId)
                             iconSize: 15
                             color: RaohaneTheme.accent
                         }
@@ -290,7 +405,7 @@ Item {
                                     visible: zoneCard.index > 0
                                     buttonSize: 27
                                     iconSize: 13
-                                    icon: "west"
+                                    icon: root.vertical ? "north" : "west"
                                     transparentIdle: true
                                     showSheen: false
                                     onClicked: root.moveAcross(zoneCard.zoneId, moduleRow.index, -1)
@@ -322,7 +437,7 @@ Item {
                                     visible: zoneCard.index < root.zones.length - 1
                                     buttonSize: 27
                                     iconSize: 13
-                                    icon: "east"
+                                    icon: root.vertical ? "south" : "east"
                                     transparentIdle: true
                                     showSheen: false
                                     onClicked: root.moveAcross(zoneCard.zoneId, moduleRow.index, 1)

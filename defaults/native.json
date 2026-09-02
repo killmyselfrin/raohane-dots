@@ -39,6 +39,11 @@
       "left": ["launcher", "separator", "workspaces"],
       "center": ["context"],
       "right": ["tray", "system", "separator", "clock", "control"]
+    },
+    "verticalModules": {
+      "left": ["launcher", "separator", "workspaces"],
+      "center": ["context"],
+      "right": ["network", "bluetooth", "notifications", "separator", "clock", "separator", "audio", "control", "session"]
     }
   },
   "frame": {
