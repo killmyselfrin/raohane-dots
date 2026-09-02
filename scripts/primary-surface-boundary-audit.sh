@@ -10,7 +10,9 @@ fail() {
 }
 
 state="modules/raohane/RaohaneState.qml"
+registry="modules/raohane/RaohaneSurfaceRegistry.qml"
 [[ -f "$state" ]] || fail "missing $state"
+[[ -f "$registry" ]] || fail "missing $registry"
 
 for contract in \
   'function primaryOpen\(name: string\): bool' \
@@ -51,8 +53,12 @@ done
 
 rg -q 'property bool taskManagerOpen:' "$state" \
   || fail 'RaohaneState does not own native Task Manager visibility'
-rg -q 'case "taskManager"' "$state" \
-  || fail 'Task Manager is not part of the primary coordinator switch'
+rg -q '"taskManager"[[:space:]]*:' "$registry" \
+  || fail 'Task Manager is not registered as a coordinated surface'
+rg -q 'stateProperty:[[:space:]]*"taskManagerOpen"' "$registry" \
+  || fail 'Task Manager registry entry lost its RaohaneState binding'
+rg -q 'RaohaneSurfaceRegistry\.primarySurfaceIds' "$state" \
+  || fail 'primary coordinator no longer derives exclusivity from the surface registry'
 
 rg -q 'RaohaneState\.closePrimarySurfaces\(""\)' modules/raohane/RaohaneRegionSelector.qml \
   || fail 'region capture no longer dismisses primary surfaces before selection'
@@ -62,5 +68,9 @@ rg -q 'RaohaneState\.closePrimarySurfaces\(""\)' modules/raohane/RaohaneRegionSe
 for property in mediaOverlayOpen oskOpen osdOpen; do
   rg -q "property bool ${property}:" "$state" || fail "missing independent transient state: $property"
 done
+for surface in mediaOverlay osk osd; do
+  rg -q "\"${surface}\"[[:space:]]*:" "$registry" \
+    || fail "transient surface is missing from registry: $surface"
+done
 
-printf 'primary-surface-boundary-audit: primary UI including native Task Manager is mutually exclusive and capture dismisses it before selection\n'
+printf 'primary-surface-boundary-audit: registry-backed primary UI including native Task Manager is mutually exclusive and capture dismisses it before selection\n'
