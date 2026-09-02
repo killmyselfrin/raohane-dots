@@ -17,6 +17,8 @@ desktop_widgets='modules/raohane/RaohaneDesktopWidgets.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_v3='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
+settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
@@ -25,7 +27,7 @@ quick='modules/raohane/RaohaneQuickControls.qml'
 notifications='modules/raohane/RaohaneNotificationCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 
-for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_registry" "$settings_section" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
+for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
   [[ -f "$file" ]] || fail "missing polished UI surface: $file"
 done
 
@@ -86,24 +88,28 @@ rg -q 'RaohaneMotion\.' "$quick" || fail 'Quick Controls lost tactile motion'
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls lost the restrained inactive state token'
 rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls lost explicit hover-border hierarchy'
 
-# Settings V3 keeps one quiet navigation shell. Page implementation selection
-# is declarative in the registry; generic native controls stay in SectionPage.
+# Settings V3 is a coordinator around extracted navigation/header plus a
+# declarative registry loader. Generic native controls stay in SectionPage.
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" || fail 'Settings regressed from the active V3 workspace'
 rg -q 'RaohaneSettingsSearch[[:space:]]*\{' "$settings" || fail 'Settings lost integrated global search'
 rg -q 'RaohaneMotion\.(standard|enter)' "$settings" || fail 'Settings lost shared window motion'
-rg -q 'text:[[:space:]]*"RAOHANE"' "$settings_v3" || fail 'Settings V3 lost its restrained product identity'
-rg -q 'text:[[:space:]]*qsTr\("System settings"\)' "$settings_v3" || fail 'Settings V3 lost the sidebar hierarchy'
-rg -q 'RaohaneSettingsPageRegistry\.pages' "$settings_v3" || fail 'Settings V3 lost registry-backed navigation'
-rg -q 'source:[[:space:]]*root\.currentPageInfo\?\.source' "$settings_v3" || fail 'Settings V3 lost declarative registry page loading'
+rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_v3" || fail 'Settings coordinator lost extracted navigation'
+rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_v3" || fail 'Settings coordinator lost extracted page header'
+rg -q 'RaohaneSettingsPageRegistry\.pages' "$settings_v3" || fail 'Settings coordinator lost registry-backed navigation state'
+rg -q 'source:[[:space:]]*root\.currentPageInfo\?\.source' "$settings_v3" || fail 'Settings coordinator lost declarative registry page loading'
+rg -q 'text:[[:space:]]*"RAOHANE"' "$settings_navigation" || fail 'Settings navigation lost its restrained product identity'
+rg -q 'text:[[:space:]]*qsTr\("System settings"\)' "$settings_navigation" || fail 'Settings navigation lost the sidebar hierarchy'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
+rg -q 'root\.pageInfo\?\.name' "$settings_header" || fail 'Settings page header lost active page name'
+rg -q 'root\.pageInfo\?\.subtitle' "$settings_header" || fail 'Settings page header lost active page subtitle'
 rg -q 'source:[[:space:]]*"RaohaneSettingsSectionPage\.qml"' "$settings_registry" || fail 'Settings registry lost extracted generic section source'
-if rg -q 'function componentForKind\(|sourceComponent:' "$settings_v3"; then
-  fail 'Settings V3 reintroduced imperative page component routing'
+if rg -q 'function componentForKind\(|sourceComponent:|text:[[:space:]]*"RAOHANE"|RaohaneConfig\.profile' "$settings_v3"; then
+  fail 'Settings coordinator reintroduced imperative routing or navigation/profile presentation'
 fi
 rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_section" || fail 'Settings section renderer lost shared switches'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_section" || fail 'Settings section renderer lost shared number controls'
 rg -q 'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' "$settings_section" || fail 'Settings section renderer lost grouped native-control surface'
-rg -q 'RaohaneTheme\.surfaceSubtle' "$settings_v3" || fail 'Settings V3 lost the quiet sidebar plane'
-if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3" "$settings_section"; then
+if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_section"; then
   fail 'Settings V3 reintroduced retired chrome, stale motion or the previous active layout'
 fi
 
@@ -123,4 +129,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: floating Control Center, declarative registry-loaded Settings V3, extracted native sections, Quick Controls, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: floating Control Center, coordinator-based Settings V3 with extracted navigation/header, Quick Controls, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
