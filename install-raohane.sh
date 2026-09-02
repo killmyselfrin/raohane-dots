@@ -16,10 +16,12 @@ RAOHANE_AUTOSTART_FILE="$RAOHANE_CONFIG/autostart.conf"
 PREVIOUS_RAOHANE_CONFIG="$RAOHANE_CONFIG/config.json"
 LEGACY_CONFIG_FILE="$CONFIG_HOME/illogical-impulse/config.json"
 LEGACY_HYPR_AUTOSTART="$HYPR_DIR/raohane-autostart.conf"
-INSTALL_DEPS=0
+INSTALL_DEPS=1
+INSTALL_LOGIN_THEME=1
 START_AFTER_INSTALL=1
 MIGRATE_LEGACY=0
 START_FAILED=0
+LOGIN_THEME_STATUS="skipped"
 
 usage() {
   cat <<'EOF'
@@ -28,24 +30,33 @@ Raohane installer
 Usage:
   ./install-raohane.sh [OPTIONS]
 
+By default this is a complete Raohane desktop installation: it installs the
+Raohane-owned dependency set, shell/runtime integration and the Raohane SDDM
+login theme. Re-running the installer is safe and updates the same installation.
+
 Options:
-  --deps            Install the Raohane-owned Arch dependency manifest first.
-                    No other shell repository is cloned or executed.
+  --deps            Install the full Raohane dependency set (default; retained
+                    for backwards compatibility).
+  --no-deps         Skip automatic dependency installation.
+  --no-login-theme  Skip automatic Raohane SDDM login-theme installation.
   --migrate-legacy  Import the directly supported subset of an existing
                     illogical-impulse config into Raohane native schema v10.
   --no-start        Install files and systemd integration without starting Raohane.
   -h, --help        Show this help.
 
 Examples:
-  ./install-raohane.sh --deps
-  ./install-raohane.sh --deps --no-start
+  ./install-raohane.sh
+  ./install-raohane.sh --no-start
   ./install-raohane.sh --migrate-legacy
+  ./install-raohane.sh --no-deps --no-login-theme
 EOF
 }
 
 while (($#)); do
   case "$1" in
     --deps) INSTALL_DEPS=1 ;;
+    --no-deps) INSTALL_DEPS=0 ;;
+    --no-login-theme) INSTALL_LOGIN_THEME=0 ;;
     --migrate-legacy) MIGRATE_LEGACY=1 ;;
     --no-start) START_AFTER_INSTALL=0 ;;
     -h|--help) usage; exit 0 ;;
@@ -68,7 +79,7 @@ if ((INSTALL_DEPS)); then
     echo '[Raohane] scripts/install-deps.sh is missing.' >&2
     exit 1
   }
-  printf '[Raohane] Installing Raohane dependency manifest...\n\n'
+  printf '[Raohane] Installing complete Raohane dependency set...\n\n'
   bash "$ROOT/scripts/install-deps.sh" --full
   printf '\n[Raohane] Raohane dependencies installed.\n\n'
 fi
@@ -89,8 +100,7 @@ if ((${#missing_core[@]})); then
   done
   if ((INSTALL_DEPS == 0)); then
     echo >&2
-    echo '[Raohane] On Arch-based systems retry with:' >&2
-    echo '  ./install-raohane.sh --deps' >&2
+    echo '[Raohane] Re-run without --no-deps to install the complete dependency set.' >&2
   fi
   exit 1
 fi
@@ -101,9 +111,13 @@ required_runtime=(
   "VERSION"
   "assets"
   "translations"
+  "login/sddm/raohane/Main.qml"
+  "login/sddm/raohane/metadata.desktop"
   "scripts/raohane"
   "scripts/raohane-audit.sh"
   "scripts/install-deps.sh"
+  "scripts/install-login-theme.sh"
+  "scripts/sync-login-wallpaper.sh"
   "scripts/migrate-legacy-config.py"
   "scripts/prune-runtime.sh"
   "scripts/validate-runtime-payload.sh"
@@ -389,6 +403,25 @@ PY
   printf '[Raohane] Legacy Hyprland config detected; installed hyprlang integration.\n'
 fi
 
+# The login theme is part of the normal Raohane installation. The helper stays
+# reusable for preview/wallpaper-sync operations, but users do not need to run
+# a second installer after installing the shell.
+if ((INSTALL_LOGIN_THEME)); then
+  if command -v sddm >/dev/null 2>&1; then
+    printf '\n[Raohane] Installing integrated Raohane login theme...\n'
+    if bash "$ROOT/scripts/install-login-theme.sh"; then
+      LOGIN_THEME_STATUS="installed"
+    else
+      LOGIN_THEME_STATUS="failed"
+      echo '[Raohane] Warning: login theme installation failed; the shell installation will continue.' >&2
+    fi
+  else
+    LOGIN_THEME_STATUS="unavailable"
+    echo '[Raohane] SDDM is unavailable; skipping login theme.' >&2
+    echo '[Raohane] Re-run without --no-deps, or install SDDM, then re-run install-raohane.sh.' >&2
+  fi
+fi
+
 systemctl --user daemon-reload
 systemctl --user enable raohane.service >/dev/null 2>&1 || true
 systemctl --user reset-failed raohane.service >/dev/null 2>&1 || true
@@ -405,7 +438,8 @@ printf 'Runtime: %s\n' "$RUNTIME"
 printf 'Settings: %s\n' "$RAOHANE_CONFIG_FILE"
 printf 'Autostart: %s\n' "$RAOHANE_AUTOSTART_FILE"
 printf 'Launcher: %s\n' "$BIN_DIR/raohane"
-printf 'Hyprland integration: %s\n\n' "$HYPR_INTEGRATION"
+printf 'Hyprland integration: %s\n' "$HYPR_INTEGRATION"
+printf 'Login theme: %s\n\n' "$LOGIN_THEME_STATUS"
 if ((START_AFTER_INSTALL == 0)); then
   printf 'Start manually with: raohane start\n'
 elif ((START_FAILED)); then
