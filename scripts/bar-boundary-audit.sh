@@ -38,7 +38,7 @@ for registration in \
   rg -q "^${registration}$" "$qmldir" || fail "missing qmldir registration: $registration"
 done
 
-for module_id in launcher workspaces context tray system clock control separator; do
+for module_id in launcher workspaces context tray system network bluetooth notifications clock audio control session separator; do
   rg -q "\"${module_id}\"[[:space:]]*:" "$module_registry" \
     || fail "bar module registry lost module id: $module_id"
 done
@@ -46,7 +46,7 @@ for zone in left center right; do
   rg -q "${zone}:[[:space:]]*\[" "$module_registry" \
     || fail "bar module registry lost default zone: $zone"
 done
-for contract in moduleIds defaultLayout sanitizeZone sanitizeLayout supports isRepeatable preferredZone label description; do
+for contract in moduleIds defaultLayout defaultVerticalLayout defaultLayoutFor sanitizeZone sanitizeLayout supports isRepeatable preferredZone label description; do
   rg -q "$contract" "$module_registry" || fail "bar module registry lost contract: $contract"
 done
 
@@ -57,12 +57,12 @@ for contract in \
   'modules:[[:space:]]*root\.sanitizeBarModuleLayout\(root\.barModuleLayout\)' \
   'root\.barModuleLayout[[:space:]]*=[[:space:]]*root\.sanitizeBarModuleLayout\(value\)' \
   'onBarModuleLayoutChanged:[[:space:]]*scheduleSave\(\)'; do
-  rg -q "$contract" "$config" || fail "native config lost persisted bar-module contract: $contract"
+  rg -q "$contract" "$config" || fail "native config lost persisted horizontal bar-module contract: $contract"
 done
 for module_id in launcher workspaces context tray system clock control separator; do
-  rg -q "\"${module_id}\"" "$defaults" || fail "native defaults lost bar module id: $module_id"
+  rg -q "\"${module_id}\"" "$defaults" || fail "native defaults lost horizontal bar module id: $module_id"
 done
-rg -q '"modules"[[:space:]]*:' "$defaults" || fail 'native defaults do not persist bar modules'
+rg -q '"modules"[[:space:]]*:' "$defaults" || fail 'native defaults do not persist horizontal bar modules'
 
 rg -q 'RaohaneConfig\.barModuleLayout' "$bar" \
   || fail 'horizontal bar does not consume persisted module layout'
@@ -73,9 +73,35 @@ rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" \
 for zone in left center right; do
   rg -q "root\.activeLayout\.${zone}" "$bar" || fail "horizontal bar does not render persisted $zone zone"
 done
+
+rg -q 'RaohaneBarModuleRegistry\.defaultVerticalLayout' "$vertical" \
+  || fail 'vertical bar does not consume its native registry default layout'
+rg -q 'readonly property var activeLayout:[[:space:]]*RaohaneBarModuleRegistry\.sanitizeLayout' "$vertical" \
+  || fail 'vertical bar does not validate composition through the native registry'
+rg -q 'orientation:[[:space:]]*"vertical"' "$vertical" \
+  || fail 'vertical bar does not request vertical module rendering'
+for zone in left center right; do
+  rg -q "root\.activeLayout\.${zone}" "$vertical" || fail "vertical bar does not render registry $zone zone"
+done
+
 for component in RaohaneWorkspaces RaohaneSysTray RaohaneSystemIcons RaohaneClock RaohaneContextIsland; do
   rg -q "${component}[[:space:]]*\\{" "$module_host" \
     || fail "RaohaneBarModule does not render $component"
+done
+for service in RaohaneNetwork RaohaneBluetooth RaohaneNotifications RaohanePrivacy RaohaneAudio RaohaneContext; do
+  rg -q "${service}\." "$module_host" || fail "vertical module renderer lost native service: $service"
+done
+for contract in \
+  'property string orientation:[[:space:]]*"horizontal"' \
+  'readonly property bool vertical:' \
+  'verticalNetworkComponent' \
+  'verticalBluetoothComponent' \
+  'verticalNotificationsComponent' \
+  'verticalClockComponent' \
+  'verticalAudioComponent' \
+  'verticalSessionComponent' \
+  'verticalSeparatorComponent'; do
+  rg -q "$contract" "$module_host" || fail "orientation-aware module renderer lost contract: $contract"
 done
 
 for contract in \
@@ -87,23 +113,31 @@ for contract in \
   'function moveAcross\(zone: string, index: int, delta: int\): void' \
   'function resetLayout\(\): void' \
   'RaohaneBarModuleRegistry\.preferredZone'; do
-  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost composition contract: $contract"
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost horizontal composition contract: $contract"
 done
 
 for symbol in 'RaohaneConfig\.' 'RaohaneState\.'; do
   rg -q "$symbol" "$bar" || fail "RaohaneBar lost native framework dependency: $symbol"
+  rg -q "$symbol" "$vertical" || fail "RaohaneVerticalBar lost native framework dependency: $symbol"
 done
 
-if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.' "$bar" "$module_host" "$module_registry" "$bar_studio"; then
+if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.' "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio"; then
   fail 'Raohane bar runtime regressed to inherited config/state/common/ii framework'
 fi
 
-if rg -n '^[[:space:]]*(Workspaces|SysTray|SystemIcons)[[:space:]]*\{|\bDateTime\.|\bHyprlandData\.' "$bar" "$module_host"; then
+if rg -n '^[[:space:]]*(Workspaces|SysTray|SystemIcons)[[:space:]]*\{|\bDateTime\.|\bHyprlandData\.' "$bar" "$vertical" "$module_host"; then
   fail 'Raohane bar runtime regressed to inherited workspace/tray/status/time backends'
 fi
 
 for symbol in 'Hyprland\.workspaces' 'Hyprland\.monitorFor' 'workspace\.activate\(\)' 'Hyprland\.usingLua'; do
   rg -q "$symbol" "$workspaces" || fail "native workspaces lost required Hyprland contract: $symbol"
+done
+for contract in \
+  'property string orientation:[[:space:]]*"horizontal"' \
+  'orientation === "vertical"' \
+  'verticalWorkspaces' \
+  'horizontalWorkspaces'; do
+  rg -q "$contract" "$workspaces" || fail "native workspaces lost orientation contract: $contract"
 done
 if rg -n '^import qs\.(services|modules\.ii|modules\.common)$|\bWorkspaceModel\b' "$workspaces"; then
   fail 'RaohaneWorkspaces regressed to inherited workspace plumbing'
@@ -131,9 +165,13 @@ for symbol in \
   rg -q "$symbol" "$clock" || fail "RaohaneClock lost idle-safe timer contract: $symbol"
 done
 rg -q 'active:[[:space:]]*root\.hostActive' "$module_host" \
-  || fail 'horizontal bar module host does not suspend RaohaneClock while fullscreen/hidden'
-rg -q 'hostActive:[[:space:]]*barWindow\.visible' "$bar" \
-  || fail 'horizontal bar does not forward visibility to module timers'
+  || fail 'horizontal module renderer does not suspend RaohaneClock while hidden'
+rg -q 'running:[[:space:]]*root\.hostActive' "$module_host" \
+  || fail 'vertical module renderer does not suspend its clock while hidden'
+for host in "$bar" "$vertical"; do
+  rg -q 'hostActive:[[:space:]]*barWindow\.visible' "$host" \
+    || fail "$host does not forward visibility to module timers"
+done
 if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
@@ -169,18 +207,13 @@ for symbol in \
   'RaohaneConfig\.barAutoHidePushWindows' \
   'RaohaneConfig\.barShowOnSuper' \
   'RaohaneState\.superDown' \
-  'running:[[:space:]]*RaohaneConfig\.barVertical && RaohaneState\.barOpen && !RaohaneState\.screenLocked' \
   'Behavior on x' \
-  'RaohaneNetwork\.' \
-  'RaohaneBluetooth\.' \
-  'RaohaneNotifications\.' \
-  'RaohanePrivacy\.' \
-  'RaohaneAudio\.' \
-  'RaohaneContext\.'; do
-  rg -q "$symbol" "$vertical" || fail "native vertical bar lost parity contract: $symbol"
+  'RaohaneBarModuleRegistry\.defaultVerticalLayout' \
+  'orientation:[[:space:]]*"vertical"'; do
+  rg -q "$symbol" "$vertical" || fail "native vertical bar lost host/runtime contract: $symbol"
 done
 if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|Minimal native vertical|richer parity can evolve' "$vertical"; then
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: native bars preserve fullscreen behavior and horizontal composition is registry-validated, persisted and Settings-editable\n'
+printf 'bar-boundary-audit: horizontal and vertical bars share registry-backed modules while preserving fullscreen, lifecycle and native service boundaries\n'
