@@ -166,9 +166,12 @@ rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the fl
 rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" || fail 'horizontal bar lost safe advanced pod-height bounds'
 rg -q 'barScale' "$bar" || fail 'horizontal bar does not consume persisted advanced scale'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" || fail 'horizontal bar no longer composes through the native module host'
+rg -q 'RaohaneBarModule[[:space:]]*\{' "$vertical" || fail 'vertical bar no longer composes through the native module host'
+rg -q 'orientation:[[:space:]]*"vertical"' "$vertical" || fail 'vertical bar does not request vertical module presentation'
 rg -q 'RaohaneContextIsland[[:space:]]*\{' "$bar_module" || fail 'horizontal bar module host lost the centered Context Island'
-rg -q 'RaohaneIconButton[[:space:]]*\{' "$bar_module" || fail 'horizontal bar module host no longer uses the shared tactile icon-button primitive'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$bar_module" || fail 'shared bar module host no longer uses tactile icon buttons'
 rg -q 'RaohaneClock[[:space:]]*\{' "$bar_module" || fail 'horizontal bar module host lost the shared clock hierarchy'
+rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$bar_module" || fail 'shared bar module host lost restrained vertical text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$icon_button" || fail 'shared icon button lost restrained secondary icon hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$clock" || fail 'shared clock lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.islandHeight' "$context" || fail 'Context Island no longer derives from the shared height token'
@@ -180,9 +183,9 @@ if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$medi
   fail 'a primary surface regressed to legacy one-off chrome'
 fi
 
-for file in "$launcher" "$media" "$control" "$vertical" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
+for file in "$launcher" "$media" "$control" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_content" || fail 'Settings V3 lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, active Settings V3, shared motion/slider/switch/icon controls, composable horizontal bar, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, active Settings V3, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
