@@ -11,6 +11,10 @@
 - Advance config and audit contracts to schema v11 for the native desktop-widget settings.
 - Keep Desktop Widgets visible near the top of Settings navigation and expose a clear scroll indicator on shorter displays.
 - Replace the wallpaper grid with a large horizontal snap carousel supporting mouse-wheel, touchpad and keyboard browsing while preserving folders, previews and video entries.
+- Replace the placeholder desktop composition with a dedicated native widget module containing responsive clock, media/context, system and ambient cards.
+- Guarantee widget stacking by separating wallpaper (`Background`) and widget (`Bottom`) layer-shell levels.
+- Turn the Desktop Widgets settings page into a visual Widget Studio with a live composition preview and large per-widget controls.
+- Give every native Settings section a consistent visual hero with identity, description and control count instead of opening on an anonymous flat list.
 
 - Add a Raohane-owned theme catalog loader and deterministic CLI importer/exporter.
 - Convert the Serpantinum color-preset library into complete Raohane surface tokens while keeping the active runtime independent from Serpantinum code and paths.
