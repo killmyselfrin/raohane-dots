@@ -24,8 +24,10 @@ done
 
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" \
   || fail 'Settings search is not driven by the native page registry'
-rg -q 'kind:[[:space:]]*"widgets"' "$registry" \
-  || fail 'Settings registry does not route the visual Widget Studio'
+rg -q 'key:[[:space:]]*"widgets".*source:[[:space:]]*"RaohaneWidgetStudio\.qml"' "$registry" \
+  || fail 'Settings registry does not declaratively route the visual Widget Studio'
+rg -q 'source:[[:space:]]*root\.currentPageInfo\?\.source' "$settings" \
+  || fail 'Settings shell does not load widget pages through registry sources'
 
 for property_name in desktopWidgetsLayout desktopWidgetsScale desktopWidgetsOpacity; do
   rg -q "property (string|real) ${property_name}:" "$config" \
@@ -85,8 +87,6 @@ rg -q 'RaohaneConfig\.desktopWidgetsEnabled' "$canvas" \
   || fail 'desktop canvas does not honor the widget master switch'
 rg -q 'RaohaneDesktopWidgets[[:space:]]*\{' "$canvas" \
   || fail 'desktop canvas does not load the native widget composition'
-rg -q 'RaohaneWidgetStudio[[:space:]]*\{' "$settings" \
-  || fail 'Settings does not route through the visual Widget Studio'
 
 if [[ -e defaults/widgets ]]; then
   find defaults/widgets -type f -print -quit | grep -q . \
@@ -96,4 +96,4 @@ if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWi
   fail 'desktop widgets depend on retired inherited APIs'
 fi
 
-printf 'desktop-widget-boundary-audit: native widget config, registry-backed Settings/search and desktop service boundaries are valid\n'
+printf 'desktop-widget-boundary-audit: native widget config, declarative registry-backed Settings/search and desktop service boundaries are valid\n'
