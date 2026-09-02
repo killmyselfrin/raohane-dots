@@ -4,6 +4,7 @@ singleton RaohaneThemeLibrary 1.0 RaohaneThemeLibrary.qml
 singleton RaohaneMotion 1.0 RaohaneMotion.qml
 singleton RaohaneI18n 1.0 RaohaneI18n.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
+singleton RaohaneSurfaceRegistry 1.0 RaohaneSurfaceRegistry.qml
 singleton RaohaneState 1.0 RaohaneState.qml
 singleton RaohaneOnboardingState 1.0 RaohaneOnboardingState.qml
 singleton RaohanePrivacy 1.0 RaohanePrivacy.qml

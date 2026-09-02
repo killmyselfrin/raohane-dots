@@ -3,8 +3,12 @@ pragma Singleton
 import QtQuick
 
 // Raohane-owned cross-surface state. All ephemeral product state lives here;
-// the active runtime has no legacy global-state bridge.
+// the active runtime has no legacy global-state bridge. Surface identity and
+// exclusivity rules are described by RaohaneSurfaceRegistry rather than being
+// repeated as switch tables across the shell.
 QtObject {
+    id: root
+
     property bool launcherOpen: false
     property bool mediaOverlayOpen: false
     property bool wallpaperSelectorOpen: false
@@ -33,130 +37,104 @@ QtObject {
     property real desktopMenuX: 0
     property real desktopMenuY: 0
 
-    function primaryOpen(name: string): bool {
-        switch (name) {
-        case "launcher": return launcherOpen
-        case "wallpaper": return wallpaperSelectorOpen
-        case "overview": return overviewOpen
-        case "controlCenter": return controlCenterOpen
-        case "leftSidebar": return leftSidebarOpen
-        case "overlay": return overlayOpen
-        case "screenTranslator": return screenTranslatorOpen
-        case "settings": return settingsOpen
-        case "displaySettings": return displaySettingsOpen
-        case "welcome": return welcomeOpen
-        case "session": return sessionOpen
-        case "taskManager": return taskManagerOpen
-        case "desktopMenu": return desktopMenuOpen
-        default: return false
+    function surfaceOpen(name: string): bool {
+        const stateProperty = RaohaneSurfaceRegistry.stateProperty(name)
+        if (!stateProperty)
+            return false
+        return !!root[stateProperty]
+    }
+
+    function setSurfaceOpen(name: string, open: bool): void {
+        const id = RaohaneSurfaceRegistry.normalizeId(name)
+        const metadata = RaohaneSurfaceRegistry.definition(id)
+        if (!metadata || !metadata.stateProperty) {
+            console.warn("[RaohaneState] Unknown surface:", name)
+            return
         }
+
+        if (metadata.kind === "primary") {
+            if (open)
+                root.closePrimarySurfaces(id)
+            root[metadata.stateProperty] = open
+            return
+        }
+
+        if (metadata.kind === "transient") {
+            if (open && metadata.closePrimaryOnOpen === true)
+                root.closePrimarySurfaces("")
+            root[metadata.stateProperty] = open
+            return
+        }
+
+        console.warn("[RaohaneState] Surface has no state policy:", id)
+    }
+
+    function toggleSurface(name: string): void {
+        const id = RaohaneSurfaceRegistry.normalizeId(name)
+        if (!id) {
+            console.warn("[RaohaneState] Unknown surface:", name)
+            return
+        }
+        root.setSurfaceOpen(id, !root.surfaceOpen(id))
+    }
+
+    function primaryOpen(name: string): bool {
+        if (!RaohaneSurfaceRegistry.isPrimary(name))
+            return false
+        return root.surfaceOpen(name)
     }
 
     function closePrimarySurfaces(except: string): void {
-        if (except !== "launcher") launcherOpen = false
-        if (except !== "wallpaper") wallpaperSelectorOpen = false
-        if (except !== "overview") overviewOpen = false
-        if (except !== "controlCenter") controlCenterOpen = false
-        if (except !== "leftSidebar") leftSidebarOpen = false
-        if (except !== "overlay") overlayOpen = false
-        if (except !== "screenTranslator") screenTranslatorOpen = false
-        if (except !== "settings") settingsOpen = false
-        if (except !== "displaySettings") displaySettingsOpen = false
-        if (except !== "welcome") welcomeOpen = false
-        if (except !== "session") sessionOpen = false
-        if (except !== "taskManager") taskManagerOpen = false
-        if (except !== "desktopMenu") desktopMenuOpen = false
-    }
-
-    function setPrimaryOpen(name: string, open: bool): void {
-        if (open)
-            closePrimarySurfaces(name)
-
-        switch (name) {
-        case "launcher": launcherOpen = open; break
-        case "wallpaper": wallpaperSelectorOpen = open; break
-        case "overview": overviewOpen = open; break
-        case "controlCenter": controlCenterOpen = open; break
-        case "leftSidebar": leftSidebarOpen = open; break
-        case "overlay": overlayOpen = open; break
-        case "screenTranslator": screenTranslatorOpen = open; break
-        case "settings": settingsOpen = open; break
-        case "displaySettings": displaySettingsOpen = open; break
-        case "welcome": welcomeOpen = open; break
-        case "session": sessionOpen = open; break
-        case "taskManager": taskManagerOpen = open; break
-        case "desktopMenu": desktopMenuOpen = open; break
-        default:
-            console.warn("[RaohaneState] Unknown primary surface:", name)
-            break
+        const keep = RaohaneSurfaceRegistry.normalizeId(except)
+        const ids = RaohaneSurfaceRegistry.primarySurfaceIds
+        for (let i = 0; i < ids.length; ++i) {
+            const id = ids[i]
+            if (id === keep)
+                continue
+            const stateProperty = RaohaneSurfaceRegistry.stateProperty(id)
+            if (stateProperty)
+                root[stateProperty] = false
         }
     }
 
+    function setPrimaryOpen(name: string, open: bool): void {
+        const id = RaohaneSurfaceRegistry.normalizeId(name)
+        if (!id || !RaohaneSurfaceRegistry.isPrimary(id)) {
+            console.warn("[RaohaneState] Unknown primary surface:", name)
+            return
+        }
+        root.setSurfaceOpen(id, open)
+    }
+
     function togglePrimary(name: string): void {
-        const nextOpen = !primaryOpen(name)
-        if (nextOpen)
-            setPrimaryOpen(name, true)
-        else
-            setPrimaryOpen(name, false)
+        const id = RaohaneSurfaceRegistry.normalizeId(name)
+        if (!id || !RaohaneSurfaceRegistry.isPrimary(id)) {
+            console.warn("[RaohaneState] Unknown primary surface:", name)
+            return
+        }
+        root.toggleSurface(id)
     }
 
     function toggleAction(name: string): void {
         if (!name || name === "none")
             return
 
-        switch (name) {
-        case "sidebarLeftOpen":
-            togglePrimary("leftSidebar")
-            break
-        case "sidebarRightOpen":
-            togglePrimary("controlCenter")
-            break
-        case "overviewOpen":
-            togglePrimary("overview")
-            break
-        case "wallpaperSelectorOpen":
-            togglePrimary("wallpaper")
-            break
-        case "mediaOverlayOpen":
-        case "mediaControlsOpen": // v10 config compatibility alias
-            mediaOverlayOpen = !mediaOverlayOpen
-            break
-        case "overlayOpen":
-            togglePrimary("overlay")
-            break
-        case "regionSelectorOpen": {
-            const opening = !regionSelectorOpen
-            if (opening)
-                closePrimarySurfaces("")
-            regionSelectorOpen = opening
-            break
-        }
-        case "screenTranslatorOpen":
-            togglePrimary("screenTranslator")
-            break
-        case "oskOpen":
-            oskOpen = !oskOpen
-            break
-        case "sessionOpen":
-            togglePrimary("session")
-            break
-        case "taskManagerOpen":
-            togglePrimary("taskManager")
-            break
-        case "desktopMenuOpen":
-            togglePrimary("desktopMenu")
-            break
-        default:
+        const id = RaohaneSurfaceRegistry.normalizeId(name)
+        if (!id) {
             console.warn("[RaohaneState] Unknown transient action:", name)
-            break
+            return
         }
+        root.toggleSurface(id)
     }
 
     function closeTransientSurfaces(): void {
-        closePrimarySurfaces("")
-        mediaOverlayOpen = false
-        regionSelectorOpen = false
-        oskOpen = false
-        osdOpen = false
+        root.closePrimarySurfaces("")
+
+        const ids = RaohaneSurfaceRegistry.transientSurfaceIds
+        for (let i = 0; i < ids.length; ++i) {
+            const stateProperty = RaohaneSurfaceRegistry.stateProperty(ids[i])
+            if (stateProperty)
+                root[stateProperty] = false
+        }
     }
 }
