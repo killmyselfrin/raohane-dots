@@ -14,7 +14,7 @@ Rectangle {
     property date now: new Date()
     property string currentUser: String(userModel.lastUser || "")
     property int selectedSession: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
-    readonly property real panelWidth: Math.max(500, root.width * 0.325)
+    readonly property real panelWidth: Math.max(480, root.width * 0.31)
 
     function submitLogin() {
         if (root.loginBusy || root.currentUser.length === 0 || passwordInput.text.length === 0)
@@ -24,11 +24,19 @@ Rectangle {
         sddm.login(root.currentUser, passwordInput.text, root.selectedSession)
     }
 
+    function sessionDisplayName(value): string {
+        let label = String(value ?? "").trim()
+        label = label.replace(/\s*\(uwsm-managed\)/gi, " · UWSM")
+        label = label.replace(/\s*\(wayland\)/gi, "")
+        return label
+    }
+
     Connections {
         target: sddm
         function onLoginFailed() {
             root.loginBusy = false
             errorText.text = qsTr("Wrong password")
+            passwordShakeAnimation.restart()
             passwordInput.selectAll()
             passwordInput.forceActiveFocus()
         }
@@ -68,20 +76,20 @@ Rectangle {
     Rectangle {
         anchors.fill: parent
         color: "#050706"
-        opacity: wallpaperImage.status === Image.Ready ? 0.18 : 0.0
+        opacity: wallpaperImage.status === Image.Ready ? 0.14 : 0.0
     }
 
     Rectangle {
         id: panelBlend
         x: loginPanel.x + loginPanel.width - 2
         y: loginPanel.y + 1
-        width: Math.max(110, root.width * 0.085)
+        width: Math.max(132, root.width * 0.10)
         height: loginPanel.height - 2
         color: "transparent"
         gradient: Gradient {
             orientation: Gradient.Horizontal
-            GradientStop { position: 0.00; color: Qt.rgba(0.035, 0.055, 0.052, 0.32) }
-            GradientStop { position: 0.42; color: Qt.rgba(0.035, 0.055, 0.052, 0.12) }
+            GradientStop { position: 0.00; color: Qt.rgba(0.035, 0.055, 0.052, 0.22) }
+            GradientStop { position: 0.45; color: Qt.rgba(0.035, 0.055, 0.052, 0.07) }
             GradientStop { position: 1.00; color: Qt.rgba(0.035, 0.055, 0.052, 0.0) }
         }
     }
@@ -92,10 +100,10 @@ Rectangle {
         y: 20
         width: root.panelWidth
         height: root.height - 40
-        radius: 28
-        color: Qt.rgba(0.035, 0.055, 0.052, 0.94)
+        radius: 26
+        color: Qt.rgba(0.028, 0.045, 0.043, 0.78)
         border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.12)
+        border.color: Qt.rgba(1, 1, 1, 0.08)
 
         Rectangle {
             anchors.fill: parent
@@ -103,7 +111,7 @@ Rectangle {
             radius: parent.radius - 1
             color: "transparent"
             border.width: 1
-            border.color: Qt.rgba(0.72, 0.76, 0.68, 0.05)
+            border.color: Qt.rgba(0.72, 0.76, 0.68, 0.025)
         }
 
         Row {
@@ -121,12 +129,13 @@ Rectangle {
                 radius: 4
                 anchors.verticalCenter: parent.verticalCenter
                 color: root.accent
-                opacity: 0.92
+                opacity: 0.82
             }
 
             Text {
                 text: "RAOHANE"
                 color: root.textColor
+                opacity: 0.92
                 font.pixelSize: 12
                 font.bold: true
                 font.letterSpacing: 4.6
@@ -135,7 +144,7 @@ Rectangle {
             Text {
                 text: "静寂"
                 color: root.mutedColor
-                opacity: 0.58
+                opacity: 0.46
                 font.pixelSize: 12
                 font.letterSpacing: 2.4
             }
@@ -156,7 +165,7 @@ Rectangle {
             Text {
                 text: qsTr("Welcome back")
                 color: root.mutedColor
-                opacity: 0.78
+                opacity: 0.72
                 font.pixelSize: 18
                 font.weight: Font.Light
             }
@@ -165,7 +174,8 @@ Rectangle {
                 width: parent.width
                 text: root.currentUser.length > 0 ? root.currentUser : qsTr("Raohane")
                 color: root.textColor
-                font.pixelSize: 58
+                opacity: 0.94
+                font.pixelSize: 56
                 font.weight: Font.Light
                 elide: Text.ElideRight
             }
@@ -183,9 +193,17 @@ Rectangle {
             }
             height: 66
             radius: 19
-            color: passwordInput.activeFocus ? Qt.rgba(0.12, 0.15, 0.14, 0.76) : Qt.rgba(0.09, 0.12, 0.11, 0.70)
+            color: passwordInput.activeFocus
+                ? Qt.rgba(0.11, 0.14, 0.13, 0.58)
+                : Qt.rgba(0.07, 0.10, 0.09, 0.48)
             border.width: 1
-            border.color: passwordInput.activeFocus ? root.accent : Qt.rgba(1, 1, 1, 0.15)
+            border.color: passwordInput.activeFocus ? root.accent : Qt.rgba(1, 1, 1, 0.12)
+
+            transform: Translate { id: passwordShake }
+
+            Behavior on color {
+                ColorAnimation { duration: 150; easing.type: Easing.OutCubic }
+            }
 
             Text {
                 anchors {
@@ -195,8 +213,10 @@ Rectangle {
                 }
                 text: "⌑"
                 color: root.textColor
-                opacity: 0.72
+                opacity: passwordInput.activeFocus ? 0.72 : 0.48
                 font.pixelSize: 20
+
+                Behavior on opacity { NumberAnimation { duration: 130 } }
             }
 
             Text {
@@ -208,8 +228,68 @@ Rectangle {
                 visible: passwordInput.text.length === 0
                 text: qsTr("Password")
                 color: root.mutedColor
-                opacity: passwordInput.activeFocus ? 0.66 : 0.46
+                opacity: passwordInput.activeFocus ? 0.60 : 0.40
                 font.pixelSize: 15
+
+                Behavior on opacity { NumberAnimation { duration: 130 } }
+            }
+
+            Row {
+                id: passwordDots
+                anchors {
+                    left: parent.left
+                    verticalCenter: parent.verticalCenter
+                    leftMargin: 56
+                }
+                spacing: 7
+                visible: passwordInput.text.length > 0
+
+                Repeater {
+                    model: Math.min(passwordInput.text.length, 12)
+
+                    delegate: Rectangle {
+                        id: passwordDot
+                        width: 7
+                        height: 7
+                        radius: 3.5
+                        color: root.loginBusy ? root.accent : root.textColor
+                        opacity: 0
+                        scale: 0.35
+
+                        ParallelAnimation {
+                            id: dotEntrance
+                            NumberAnimation {
+                                target: passwordDot
+                                property: "opacity"
+                                from: 0
+                                to: 0.86
+                                duration: 115
+                                easing.type: Easing.OutCubic
+                            }
+                            NumberAnimation {
+                                target: passwordDot
+                                property: "scale"
+                                from: 0.35
+                                to: 1.0
+                                duration: 170
+                                easing.type: Easing.OutBack
+                            }
+                        }
+
+                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Component.onCompleted: dotEntrance.start()
+                    }
+                }
+
+                Text {
+                    visible: passwordInput.text.length > 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "···"
+                    color: root.textColor
+                    opacity: 0.48
+                    font.pixelSize: 11
+                    font.letterSpacing: 1.5
+                }
             }
 
             TextInput {
@@ -222,13 +302,16 @@ Rectangle {
                     leftMargin: 55
                     rightMargin: 12
                 }
-                color: root.textColor
-                echoMode: TextInput.Password
+                color: "transparent"
+                selectionColor: "transparent"
+                selectedTextColor: "transparent"
+                echoMode: TextInput.NoEcho
                 font.pixelSize: 17
                 verticalAlignment: TextInput.AlignVCenter
                 selectByMouse: true
                 focus: true
                 enabled: !root.loginBusy
+                onTextChanged: typingPulse.restart()
                 Keys.onReturnPressed: root.submitLogin()
                 Keys.onEnterPressed: root.submitLogin()
             }
@@ -244,7 +327,11 @@ Rectangle {
                     rightMargin: 8
                 }
                 color: submitMouse.pressed ? Qt.darker(root.accent, 1.13) : root.accent
-                opacity: root.loginBusy ? 0.50 : submitMouse.containsMouse ? 1.0 : 0.88
+                opacity: root.loginBusy ? 0.50 : submitMouse.containsMouse ? 0.96 : 0.80
+                scale: submitMouse.pressed ? 0.96 : 1
+
+                Behavior on opacity { NumberAnimation { duration: 120 } }
+                Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
 
                 Text {
                     anchors.centerIn: parent
@@ -263,6 +350,35 @@ Rectangle {
                     onClicked: root.submitLogin()
                 }
             }
+        }
+
+        SequentialAnimation {
+            id: typingPulse
+            running: false
+            NumberAnimation {
+                target: passwordShell
+                property: "scale"
+                to: 1.006
+                duration: 45
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: passwordShell
+                property: "scale"
+                to: 1.0
+                duration: 115
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        SequentialAnimation {
+            id: passwordShakeAnimation
+            running: false
+            NumberAnimation { target: passwordShake; property: "x"; to: -8; duration: 45; easing.type: Easing.OutCubic }
+            NumberAnimation { target: passwordShake; property: "x"; to: 7; duration: 55; easing.type: Easing.InOutCubic }
+            NumberAnimation { target: passwordShake; property: "x"; to: -5; duration: 50; easing.type: Easing.InOutCubic }
+            NumberAnimation { target: passwordShake; property: "x"; to: 3; duration: 45; easing.type: Easing.InOutCubic }
+            NumberAnimation { target: passwordShake; property: "x"; to: 0; duration: 65; easing.type: Easing.OutCubic }
         }
 
         Text {
@@ -289,7 +405,7 @@ Rectangle {
             }
             text: qsTr("Session")
             color: root.mutedColor
-            opacity: 0.76
+            opacity: 0.68
             font.pixelSize: 13
         }
 
@@ -317,16 +433,16 @@ Rectangle {
 
             delegate: Rectangle {
                 id: sessionChip
-                width: Math.max(126, Math.min(194, sessionLabel.implicitWidth + 62))
+                width: Math.max(126, Math.min(188, sessionLabel.implicitWidth + 62))
                 height: 52
                 radius: 16
                 color: index === root.selectedSession
-                    ? Qt.rgba(0.20, 0.24, 0.21, 0.74)
+                    ? Qt.rgba(0.18, 0.22, 0.19, 0.58)
                     : sessionMouse.containsMouse
-                        ? Qt.rgba(0.12, 0.15, 0.14, 0.72)
-                        : Qt.rgba(0.09, 0.12, 0.11, 0.62)
+                        ? Qt.rgba(0.11, 0.14, 0.13, 0.54)
+                        : Qt.rgba(0.07, 0.10, 0.09, 0.46)
                 border.width: 1
-                border.color: index === root.selectedSession ? root.accent : Qt.rgba(1, 1, 1, 0.12)
+                border.color: index === root.selectedSession ? root.accent : Qt.rgba(1, 1, 1, 0.09)
 
                 Text {
                     anchors {
@@ -336,7 +452,7 @@ Rectangle {
                     }
                     text: "◈"
                     color: index === root.selectedSession ? root.accent : root.mutedColor
-                    opacity: index === root.selectedSession ? 0.96 : 0.66
+                    opacity: index === root.selectedSession ? 0.82 : 0.50
                     font.pixelSize: 13
                 }
 
@@ -349,9 +465,9 @@ Rectangle {
                         leftMargin: 42
                         rightMargin: 10
                     }
-                    text: name
+                    text: root.sessionDisplayName(name)
                     color: root.textColor
-                    opacity: index === root.selectedSession ? 0.96 : 0.76
+                    opacity: index === root.selectedSession ? 0.92 : 0.68
                     font.pixelSize: 13
                     elide: Text.ElideRight
                 }
@@ -368,7 +484,8 @@ Rectangle {
                     radius: 4
                     color: index === root.selectedSession ? root.accent : "transparent"
                     border.width: 1
-                    border.color: index === root.selectedSession ? root.accent : Qt.rgba(1, 1, 1, 0.28)
+                    border.color: index === root.selectedSession ? root.accent : Qt.rgba(1, 1, 1, 0.22)
+                    opacity: 0.82
                 }
 
                 MouseArea {
@@ -392,15 +509,15 @@ Rectangle {
             width: 30
             height: 30
             radius: 15
-            color: Qt.rgba(0.035, 0.055, 0.052, 0.88)
+            color: Qt.rgba(0.035, 0.055, 0.052, 0.72)
             border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.13)
+            border.color: Qt.rgba(1, 1, 1, 0.10)
 
             Text {
                 anchors.centerIn: parent
                 text: "‹"
                 color: root.textColor
-                opacity: 0.80
+                opacity: 0.72
                 font.pixelSize: 18
             }
 
@@ -423,15 +540,15 @@ Rectangle {
             width: 30
             height: 30
             radius: 15
-            color: Qt.rgba(0.035, 0.055, 0.052, 0.88)
+            color: Qt.rgba(0.035, 0.055, 0.052, 0.72)
             border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.13)
+            border.color: Qt.rgba(1, 1, 1, 0.10)
 
             Text {
                 anchors.centerIn: parent
                 text: "›"
                 color: root.textColor
-                opacity: 0.80
+                opacity: 0.72
                 font.pixelSize: 18
             }
 
@@ -453,7 +570,7 @@ Rectangle {
                 bottomMargin: 32
             }
             height: 1
-            color: Qt.rgba(1, 1, 1, 0.07)
+            color: Qt.rgba(1, 1, 1, 0.055)
         }
 
         Row {
@@ -474,15 +591,15 @@ Rectangle {
                     height: 48
                     radius: 24
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: suspendMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(1, 1, 1, 0.025)
+                    color: suspendMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.055) : Qt.rgba(1, 1, 1, 0.018)
                     border.width: 1
-                    border.color: Qt.rgba(1, 1, 1, 0.14)
+                    border.color: Qt.rgba(1, 1, 1, 0.10)
 
                     Text {
                         anchors.centerIn: parent
                         text: "◔"
                         color: root.textColor
-                        opacity: 0.84
+                        opacity: 0.76
                         font.pixelSize: 22
                     }
 
@@ -502,7 +619,7 @@ Rectangle {
                     }
                     text: qsTr("Suspend")
                     color: root.mutedColor
-                    opacity: 0.72
+                    opacity: 0.62
                     font.pixelSize: 11
                 }
             }
@@ -516,15 +633,15 @@ Rectangle {
                     height: 48
                     radius: 24
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: restartMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(1, 1, 1, 0.025)
+                    color: restartMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.055) : Qt.rgba(1, 1, 1, 0.018)
                     border.width: 1
-                    border.color: Qt.rgba(1, 1, 1, 0.14)
+                    border.color: Qt.rgba(1, 1, 1, 0.10)
 
                     Text {
                         anchors.centerIn: parent
                         text: "↻"
                         color: root.textColor
-                        opacity: 0.84
+                        opacity: 0.76
                         font.pixelSize: 20
                     }
 
@@ -544,7 +661,7 @@ Rectangle {
                     }
                     text: qsTr("Restart")
                     color: root.mutedColor
-                    opacity: 0.72
+                    opacity: 0.62
                     font.pixelSize: 11
                 }
             }
@@ -558,15 +675,15 @@ Rectangle {
                     height: 48
                     radius: 24
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: powerMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(1, 1, 1, 0.025)
+                    color: powerMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.055) : Qt.rgba(1, 1, 1, 0.018)
                     border.width: 1
-                    border.color: Qt.rgba(1, 1, 1, 0.14)
+                    border.color: Qt.rgba(1, 1, 1, 0.10)
 
                     Text {
                         anchors.centerIn: parent
                         text: "⏻"
                         color: root.textColor
-                        opacity: 0.84
+                        opacity: 0.76
                         font.pixelSize: 19
                     }
 
@@ -586,7 +703,7 @@ Rectangle {
                     }
                     text: qsTr("Power off")
                     color: root.mutedColor
-                    opacity: 0.72
+                    opacity: 0.62
                     font.pixelSize: 11
                 }
             }
@@ -604,7 +721,7 @@ Rectangle {
             Text {
                 text: "›"
                 color: root.accent
-                opacity: 0.70
+                opacity: 0.58
                 font.pixelSize: 18
             }
 
@@ -612,7 +729,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Enter to continue")
                 color: root.mutedColor
-                opacity: 0.46
+                opacity: 0.38
                 font.pixelSize: 11
                 font.letterSpacing: 0.7
             }
@@ -639,7 +756,7 @@ Rectangle {
         Text {
             text: Qt.formatDate(root.now, "dddd, d MMMM")
             color: root.accent
-            opacity: 0.84
+            opacity: 0.80
             font.pixelSize: 17
             font.weight: Font.Light
         }
@@ -649,7 +766,7 @@ Rectangle {
             height: 2
             radius: 1
             color: root.accent
-            opacity: 0.80
+            opacity: 0.70
         }
     }
 
@@ -662,7 +779,7 @@ Rectangle {
         }
         text: "静"
         color: root.textColor
-        opacity: 0.035
+        opacity: 0.030
         font.pixelSize: 146
         font.weight: Font.Light
     }
@@ -676,7 +793,7 @@ Rectangle {
         }
         text: "静\nけ\nさ\nの\n中\nに"
         color: root.textColor
-        opacity: 0.085
+        opacity: 0.072
         font.pixelSize: 10
         lineHeight: 1.20
         horizontalAlignment: Text.AlignHCenter
