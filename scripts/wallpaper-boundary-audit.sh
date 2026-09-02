@@ -36,6 +36,15 @@ for symbol in \
   rg -q "$symbol" "$selector" || fail "selector lost native dependency: $symbol"
 done
 
+for symbol in \
+  'orientation:[[:space:]]*ListView\.Horizontal' \
+  'snapMode:[[:space:]]*ListView\.SnapToItem' \
+  'WheelHandler[[:space:]]*\{' \
+  'positionViewAtIndex\(carousel\.currentIndex,[[:space:]]*ListView\.Center\)' \
+  'ScrollBar\.horizontal'; do
+  rg -q "$symbol" "$selector" || fail "wallpaper carousel lost interaction contract: $symbol"
+done
+
 if rg -n \
   '^import QtCore$|^import qs\.services$|^import qs\.modules\.common|GlobalFocusGrab|MaterialSymbol|StandardPaths|\bDirectories\.|\bConfig\.|\bAppearance\.|GlobalStates\.wallpaperSelector' \
   "$selector"; then
