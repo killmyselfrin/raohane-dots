@@ -49,6 +49,7 @@ Singleton {
     property int barShowOnSuperDelay: 140
     property var barScreenList: []
     property bool barShowDate: true
+    property var barModuleLayout: root.defaultBarModuleLayout()
 
     property bool frameEnabled: false
     property int frameThickness: 4
@@ -205,6 +206,36 @@ Singleton {
         }
     }
 
+    function defaultBarModuleLayout(): var {
+        return {
+            left: ["launcher", "separator", "workspaces"],
+            center: ["context"],
+            right: ["tray", "system", "separator", "clock", "control"]
+        }
+    }
+
+    function sanitizeBarModuleZone(value, fallback): var {
+        if (!Array.isArray(value))
+            return fallback.slice()
+        const result = []
+        for (let i = 0; i < value.length && result.length < 16; ++i) {
+            const id = String(value[i] ?? "").trim()
+            if (id.length > 0)
+                result.push(id)
+        }
+        return result
+    }
+
+    function sanitizeBarModuleLayout(value): var {
+        const input = value && typeof value === "object" ? value : {}
+        const defaults = root.defaultBarModuleLayout()
+        return {
+            left: root.sanitizeBarModuleZone(input.left, defaults.left),
+            center: root.sanitizeBarModuleZone(input.center, defaults.center),
+            right: root.sanitizeBarModuleZone(input.right, defaults.right)
+        }
+    }
+
     function defaultStyle(): var {
         return {
             glassOpacity: 1.0,
@@ -297,7 +328,8 @@ Singleton {
                 showOnSuper: root.barShowOnSuper,
                 showOnSuperDelay: root.barShowOnSuperDelay,
                 screenList: root.barScreenList,
-                showDate: root.barShowDate
+                showDate: root.barShowDate,
+                modules: root.sanitizeBarModuleLayout(root.barModuleLayout)
             },
             frame: {
                 enabled: root.frameEnabled,
@@ -434,6 +466,7 @@ Singleton {
         root.assignIfPresent(bar, "showOnSuperDelay", value => root.barShowOnSuperDelay = Math.max(0, Math.min(2000, Number(value) || 140)))
         root.assignIfPresent(bar, "screenList", value => root.barScreenList = Array.isArray(value) ? value.map(item => String(item)) : [])
         root.assignIfPresent(bar, "showDate", value => root.barShowDate = Boolean(value))
+        root.assignIfPresent(bar, "modules", value => root.barModuleLayout = root.sanitizeBarModuleLayout(value))
 
         root.assignIfPresent(frame, "enabled", value => root.frameEnabled = Boolean(value))
         root.assignIfPresent(frame, "thickness", value => root.frameThickness = Math.max(1, Math.min(24, Number(value) || 4)))
@@ -569,6 +602,7 @@ Singleton {
     onBarShowOnSuperDelayChanged: scheduleSave()
     onBarScreenListChanged: scheduleSave()
     onBarShowDateChanged: scheduleSave()
+    onBarModuleLayoutChanged: scheduleSave()
     onFrameEnabledChanged: scheduleSave()
     onFrameThicknessChanged: scheduleSave()
     onFrameColorChanged: scheduleSave()
