@@ -25,6 +25,7 @@ Item {
         { section: "bar", key: "barAutoHidePushWindows", label: qsTr("Push windows"), detail: qsTr("Bar & Dock") },
         { section: "bar", key: "barShowOnSuper", label: qsTr("Reveal on Super"), detail: qsTr("Bar & Dock") },
         { section: "bar", key: "barShowDate", label: qsTr("Show date"), detail: qsTr("Bar & Dock") },
+        { section: "bar", key: "barModuleLayout", label: qsTr("Bar modules"), detail: qsTr("Bar Studio") },
         { section: "bar", key: "dockEnabled", label: qsTr("Dock"), detail: qsTr("Bar & Dock") },
         { section: "bar", key: "dockAutoHide", label: qsTr("Auto-hide dock"), detail: qsTr("Bar & Dock") },
         { section: "bar", key: "dockIconSize", label: qsTr("Dock icon size"), detail: qsTr("Bar & Dock") },
