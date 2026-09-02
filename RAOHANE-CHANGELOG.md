@@ -7,6 +7,8 @@
 - Make the Welcome reveal follow the shared motion scale and derive its tour count from the onboarding model.
 - Remove the obsolete iNiR custom-widget SDK and example that referenced retired runtime namespaces.
 - Correct active project links to `killmyselfrin/raohane-dots`.
+- Remove obsolete Settings V1/V2 implementations and point architecture/CI validation at the sole active Settings V3 surface.
+- Advance config and audit contracts to schema v11 for the native desktop-widget settings.
 
 - Add a Raohane-owned theme catalog loader and deterministic CLI importer/exporter.
 - Convert the Serpantinum color-preset library into complete Raohane surface tokens while keeping the active runtime independent from Serpantinum code and paths.

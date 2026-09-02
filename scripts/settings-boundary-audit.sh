@@ -48,7 +48,7 @@ for symbol in \
   rg -q "$symbol" "$content" || fail "Settings navigation lost native dependency: $symbol"
 done
 
-for page_key in themes quick general bar desktop interface services hyprland profile; do
+for page_key in themes quick general bar desktop widgets interface services hyprland profile; do
   rg -q "key: \"${page_key}\"" "$content" || fail "native Settings route is missing: $page_key"
 done
 
@@ -61,6 +61,7 @@ for contract in \
   'Bar & Dock' \
   'Media & OSD' \
   'Desktop & Spaces' \
+  'Desktop Widgets' \
   'System settings'; do
   rg -q "$contract" "$content" || fail "Settings lost grouped minimal UX contract: $contract"
 done

@@ -17,7 +17,7 @@ Variants {
 
     Timer {
         interval: 1000
-        running: true
+        running: RaohaneConfig.desktopWidgetsEnabled && RaohaneConfig.desktopWidgetClock
         repeat: true
         onTriggered: root.now = new Date()
     }

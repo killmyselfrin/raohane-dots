@@ -54,6 +54,7 @@ required_root=(
   scripts/bluetooth-performance-audit.sh
   scripts/easyeffects-performance-audit.sh
   scripts/keyboard-layout-boundary-audit.sh
+  scripts/desktop-widget-boundary-audit.sh
   scripts/install-deps.sh
   scripts/migrate-legacy-config.py
   scripts/screen-translate.sh
@@ -251,8 +252,8 @@ if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' ins
   fail 'normal install/doctor path executes upstream shell infrastructure'
 fi
 
-rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*10' defaults/native.json \
-  || fail 'native defaults are not schema v10'
+rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*11' defaults/native.json \
+  || fail 'native defaults are not schema v11'
 python3 scripts/migrate-legacy-config.py --help >/dev/null
 
 bash -n scripts/raohane
@@ -275,6 +276,7 @@ bash -n scripts/sidebar-performance-audit.sh
 bash -n scripts/bluetooth-performance-audit.sh
 bash -n scripts/easyeffects-performance-audit.sh
 bash -n scripts/keyboard-layout-boundary-audit.sh
+bash -n scripts/desktop-widget-boundary-audit.sh
 bash -n scripts/install-deps.sh
 bash -n scripts/screen-translate.sh
 bash -n scripts/region-ocr.sh
@@ -295,5 +297,6 @@ bash scripts/sidebar-performance-audit.sh
 bash scripts/bluetooth-performance-audit.sh
 bash scripts/easyeffects-performance-audit.sh
 bash scripts/keyboard-layout-boundary-audit.sh
+bash scripts/desktop-widget-boundary-audit.sh
 
 printf 'raohane-audit: native bootstrap, source lineage, release CLI, coordinated Task Manager, owned lyrics resolver, Phase 4 runtime contract, overview routing, multi-monitor/fullscreen behavior and native release boundaries are valid\n'

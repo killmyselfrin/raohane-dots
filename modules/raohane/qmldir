@@ -39,8 +39,6 @@ RaohaneWelcome 1.0 RaohaneWelcome.qml
 RaohaneLanguageWelcome 1.0 RaohaneLanguageWelcome.qml
 RaohaneOnboarding 1.0 RaohaneOnboarding.qml
 RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
-RaohaneSettingsContent 1.0 RaohaneSettingsContent.qml
-RaohaneSettingsContentV2 1.0 RaohaneSettingsContentV2.qml
 RaohaneSettingsContentV3 1.0 RaohaneSettingsContentV3.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneThemeCatalog 1.0 RaohaneThemeCatalog.qml

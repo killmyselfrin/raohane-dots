@@ -23,7 +23,7 @@ control_center='modules/raohane/RaohaneControlCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 session='modules/raohane/RaohaneSessionScreen.qml'
 settings='modules/raohane/RaohaneSettings.qml'
-settings_content='modules/raohane/RaohaneSettingsContent.qml'
+settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
 installer='install-raohane.sh'
@@ -57,7 +57,7 @@ if rg -n '^import qs\.|\bDirectories\.' "$paths"; then
   fail 'RaohanePaths depends on inherited path framework'
 fi
 
-rg -q 'schemaVersion:[[:space:]]*10' "$config" || fail 'RaohaneConfig schema is not v10'
+rg -q 'schemaVersion:[[:space:]]*11' "$config" || fail 'RaohaneConfig schema is not v11'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig does not use RaohanePaths'
 if rg -n '\bStandardPaths\.|\bDirectories\.|^import qs$|^import qs\.modules\.common|\bConfig\.' "$config"; then
   fail 'RaohaneConfig depends on inherited config/path framework'
@@ -156,7 +156,7 @@ if rg -n '\bGlobalStates\.settingsOpen\b|^import qs$|^import qs\.modules\.common
 fi
 
 for symbol in \
-  'RaohanePaths\.defaultAvatarUrl' 'RaohanePaths\.nativeConfigFile' \
+  'RaohanePaths\.defaultAvatarUrl' 'desktopWidgetsEnabled' \
   'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath' \
   'nativeSectionPage' 'sectionEntries' 'RaohaneConfig\['; do
   rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost native contract: $symbol"
