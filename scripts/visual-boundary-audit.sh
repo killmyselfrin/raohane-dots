@@ -18,6 +18,7 @@ media='modules/raohane/RaohaneMediaOverlay.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_home='modules/raohane/RaohaneSettingsHome.qml'
 bar='modules/raohane/RaohaneBar.qml'
 bar_module='modules/raohane/RaohaneBarModule.qml'
@@ -45,7 +46,7 @@ osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
   "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" "$settings_content" \
-  "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" "$context" "$notification" "$surface" "$icon_button" \
+  "$settings_section" "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" "$context" "$notification" "$surface" "$icon_button" \
   "$motion" "$slider" "$switch" "$clock" "$quick" "$sidebar" "$session" "$task_manager" "$overlay" \
   "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
@@ -109,13 +110,14 @@ rg -q 'RaohaneSlider[[:space:]]*\{' "$quick" || fail 'Quick Controls regressed f
 rg -q 'RaohaneSlider[[:space:]]*\{' "$media" || fail 'Media Player regressed from the shared slider'
 rg -q 'RaohaneSlider[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed from the shared slider'
 rg -q 'RaohaneSwitch[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed from the shared switch'
-rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_content" || fail 'Settings V3 rows regressed from the shared switch'
+rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_section" || fail 'Settings section rows regressed from the shared switch'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_section" || fail 'Settings section number controls regressed from shared icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$media" || fail 'Media Player regressed from shared tactile icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$control" || fail 'Control Center regressed from shared tactile icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$osk" || fail 'OSK shell regressed from shared tactile icon buttons'
 
 shared_surfaces=(
-  "$launcher" "$media" "$control" "$settings" "$settings_home" "$bar" "$vertical" "$dock"
+  "$launcher" "$media" "$control" "$settings" "$settings_content" "$settings_section" "$settings_home" "$bar" "$vertical" "$dock"
   "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
 )
 for file in "${shared_surfaces[@]}"; do
@@ -142,7 +144,7 @@ for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sid
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
 done
 
-if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$control" "$settings" "$settings_content"; then
+if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$control" "$settings" "$settings_content" "$settings_section"; then
   fail 'minimal primary controls contain retired cyber-noir hard-coded colors'
 fi
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls do not consume minimalist surface tokens'
@@ -186,6 +188,7 @@ fi
 for file in "$launcher" "$media" "$control" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
 done
-rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_content" || fail 'Settings V3 lost restrained secondary text hierarchy'
+rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_content" || fail 'Settings V3 shell lost restrained secondary text hierarchy'
+rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, active Settings V3, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, registry-backed Settings V3, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'

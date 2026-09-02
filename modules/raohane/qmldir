@@ -6,6 +6,7 @@ singleton RaohaneI18n 1.0 RaohaneI18n.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneSurfaceRegistry 1.0 RaohaneSurfaceRegistry.qml
 singleton RaohaneBarModuleRegistry 1.0 RaohaneBarModuleRegistry.qml
+singleton RaohaneSettingsPageRegistry 1.0 RaohaneSettingsPageRegistry.qml
 singleton RaohaneState 1.0 RaohaneState.qml
 singleton RaohaneOnboardingState 1.0 RaohaneOnboardingState.qml
 singleton RaohanePrivacy 1.0 RaohanePrivacy.qml
@@ -44,6 +45,7 @@ RaohaneLanguageWelcome 1.0 RaohaneLanguageWelcome.qml
 RaohaneOnboarding 1.0 RaohaneOnboarding.qml
 RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
 RaohaneSettingsContentV3 1.0 RaohaneSettingsContentV3.qml
+RaohaneSettingsSectionPage 1.0 RaohaneSettingsSectionPage.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneWidgetStudio 1.0 RaohaneWidgetStudio.qml
 RaohaneBarStudio 1.0 RaohaneBarStudio.qml

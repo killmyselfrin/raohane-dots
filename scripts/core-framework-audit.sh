@@ -24,12 +24,14 @@ osd='modules/raohane/RaohaneOsd.qml'
 session='modules/raohane/RaohaneSessionScreen.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
+settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
 installer='install-raohane.sh'
 root_qmldir='qmldir'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$family" "$shell" "$installer" "$root_qmldir"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$settings_registry" "$settings_section" "$family" "$shell" "$installer" "$root_qmldir"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -40,7 +42,9 @@ for registration in \
 done
 for registration in \
   '^singleton RaohaneFocusGrab .*RaohaneFocusGrab.qml$' \
-  '^singleton RaohaneState .*RaohaneState.qml$'; do
+  '^singleton RaohaneState .*RaohaneState.qml$' \
+  '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
+  '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$'; do
   rg -q "$registration" "$raohane_qmldir" || fail "missing native module registration: $registration"
 done
 
@@ -156,13 +160,23 @@ if rg -n '\bGlobalStates\.settingsOpen\b|^import qs$|^import qs\.modules\.common
 fi
 
 for symbol in \
-  'RaohanePaths\.defaultAvatarUrl' 'desktopWidgetsEnabled' \
+  'RaohanePaths\.defaultAvatarUrl' \
   'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath' \
-  'nativeSectionPage' 'sectionEntries' 'RaohaneConfig\['; do
-  rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost native contract: $symbol"
+  'RaohaneSettingsPageRegistry\.pages' 'RaohaneSettingsPageRegistry\.resolvePageIndex' \
+  'RaohaneSettingsSectionPage[[:space:]]*\{'; do
+  rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost registry-backed contract: $symbol"
 done
-if rg -n '^import qs$|\bDirectories\.|\bConfig\.|\bGlobalStates\.|\.\./ii/settings/pages|modules/ii/settings/pages|compatibilityConfigFile' "$settings_content"; then
-  fail 'RaohaneSettingsContent regressed to inherited settings/config/path framework'
+for symbol in \
+  'readonly property var pages:' 'readonly property var aliases:' \
+  'desktopWidgetsEnabled' 'function sectionEntries\(' 'function searchEntries\('; do
+  rg -q "$symbol" "$settings_registry" || fail "RaohaneSettingsPageRegistry lost native contract: $symbol"
+done
+for symbol in 'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneConfig\[' 'RaohaneBarStudio[[:space:]]*\{'; do
+  rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost native config/rendering contract: $symbol"
+done
+if rg -n '^import qs$|\bDirectories\.|\bConfig\.|\bGlobalStates\.|\.\./ii/settings/pages|modules/ii/settings/pages|compatibilityConfigFile' \
+  "$settings_content" "$settings_registry" "$settings_section"; then
+  fail 'Raohane Settings architecture regressed to inherited settings/config/path framework'
 fi
 
 rg -q 'RaohaneConfig\.barVertical' "$family" || fail 'RaohaneFamily does not route bar orientation through native config'
@@ -191,4 +205,4 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+E
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost move-window workspace binds'
 
-printf 'core-framework-audit: native paths/config/state/focus/settings/composition, primary coordinator and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus/settings registry/composition, primary coordinator and boot boundaries are valid\n'

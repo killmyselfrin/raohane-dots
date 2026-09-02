@@ -14,13 +14,13 @@ paths='modules/raohane/config/RaohanePaths.qml'
 root_qmldir='modules/raohane/qmldir'
 state='modules/raohane/RaohaneState.qml'
 surface_registry='modules/raohane/RaohaneSurfaceRegistry.qml'
+settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 helper_qmldir='modules/raohane/helpers/qmldir'
 helpers='modules/raohane/helpers/RaohaneUtils.qml'
 model_qmldir='modules/raohane/models/qmldir'
 selection='modules/raohane/models/RaohaneSelectionModel.qml'
 launcher='modules/raohane/RaohaneLauncher.qml'
 notifications='modules/raohane/services/RaohaneNotifications.qml'
-settings='modules/raohane/RaohaneSettingsContentV3.qml'
 family='panelFamilies/RaohaneFamily.qml'
 
 required_files=(
@@ -29,13 +29,13 @@ required_files=(
   "$root_qmldir"
   "$state"
   "$surface_registry"
+  "$settings_registry"
   "$helper_qmldir"
   "$helpers"
   "$model_qmldir"
   "$selection"
   "$launcher"
   "$notifications"
-  "$settings"
   "$family"
   modules/raohane/RaohaneSurface.qml
   modules/raohane/RaohaneDivider.qml
@@ -45,8 +45,6 @@ for path in "${required_files[@]}"; do
   [[ -f "$path" ]] || fail "missing Phase 3 framework file: $path"
 done
 
-# Complete persisted product schema: every behavior-bearing property owned by
-# the current native product must remain in the standalone config singleton.
 product_properties=(
   wallpaperPath lockWallpaperPath wallpaperDirectory wallpaperPreview wallpaperColumns
   wallpaperChangeInterval wallpaperHideWhenFullscreen wallpaperTransitionDuration
@@ -76,14 +74,14 @@ for property_name in "${product_properties[@]}"; do
     || fail "persisted property lost save handler: $property_name"
 done
 
-# Every actual Settings control key must resolve directly into RaohaneConfig.
-# Navigation page keys such as home/about/themes are deliberately excluded.
-mapfile -t settings_keys < <(rg -o '\{[[:space:]]*type:[[:space:]]*"[^"]+",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings" \
+# Every generic Settings control key is declared once in the native page
+# registry and resolves directly into RaohaneConfig.
+mapfile -t settings_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings_registry" \
   | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
-[[ "${#settings_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys'
+[[ "${#settings_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys from registry'
 for key in "${settings_keys[@]}"; do
   rg -q "property [^:]+ ${key}:" "$config" \
-    || fail "Settings control key is not owned by RaohaneConfig: $key"
+    || fail "Settings registry control key is not owned by RaohaneConfig: $key"
 done
 
 for section in wallpaper overview dock bar frame corners osk osd display apps profile quickControls desktopWidgets features; do
@@ -94,7 +92,6 @@ rg -q 'schemaVersion:[[:space:]]*12' "$config" || fail 'RaohaneConfig schema con
 rg -q 'themePreset:[[:space:]]*root\.themePreset' "$config" || fail 'theme selection is not persisted in the native document'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig bypasses RaohanePaths'
 
-# Raohane owns all directory resolution needed by active runtime/services.
 for symbol in \
   'configDirectory' 'nativeConfigFile' 'autostartFile' 'notificationsFile' \
   'stateDirectory' 'cacheDirectory' 'wallpaperCacheDirectory' 'thumbnailDirectory' \
@@ -112,7 +109,6 @@ if rg -n 'StandardPaths\.standardLocations' "$notifications"; then
   fail 'notification service still constructs XDG paths independently'
 fi
 
-# Common widgets are Raohane-owned and used by active UI.
 for registration in \
   '^RaohaneSurface .*RaohaneSurface.qml$' \
   '^RaohaneDivider .*RaohaneDivider.qml$' \
@@ -122,9 +118,6 @@ done
 rg -q 'RaohaneSurface[[:space:]]*\{' "$launcher" \
   || fail 'active Launcher is not consuming Raohane common widgets'
 
-# Cross-surface state must resolve through one Raohane-owned registry so new
-# panels do not grow another duplicated switch table or legacy GlobalStates-like
-# routing layer.
 rg -q '^singleton RaohaneSurfaceRegistry .*RaohaneSurfaceRegistry.qml$' "$root_qmldir" \
   || fail 'native surface registry is not registered'
 for surface_id in launcher wallpaper overview controlCenter leftSidebar overlay screenTranslator settings displaySettings welcome session taskManager desktopMenu mediaOverlay regionSelector osk osd; do
@@ -144,8 +137,12 @@ if rg -n 'case[[:space:]]+"(launcher|wallpaper|overview|controlCenter|settings|s
   fail 'RaohaneState regressed to a duplicated primary-surface switch table'
 fi
 
-# Models and helpers are separate native modules and have an active consumer
-# chain: Launcher -> SelectionModel -> Utils.
+rg -q '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' "$root_qmldir" \
+  || fail 'native Settings page registry is not registered'
+for contract in pages aliases resolvePageIndex sectionEntries searchEntries; do
+  rg -q "$contract" "$settings_registry" || fail "Settings page registry lost contract: $contract"
+done
+
 rg -q '^module qs\.modules\.raohane\.models$' "$model_qmldir" \
   || fail 'native models module is not declared'
 rg -q '^RaohaneSelectionModel .*RaohaneSelectionModel.qml$' "$model_qmldir" \
@@ -161,7 +158,6 @@ rg -q '^import qs\.modules\.raohane\.helpers$' "$selection" \
 rg -q 'RaohaneUtils\.clampInt' "$selection" \
   || fail 'selection model lost helper contract'
 
-# The active startup/UI graph must resolve only Raohane-owned framework.
 for retired_path in modules/common modules/ii services GlobalStates.qml; do
   [[ ! -e "$retired_path" ]] || fail "retired compatibility path returned: $retired_path"
 done
@@ -177,4 +173,4 @@ if rg -n 'IllogicalImpulse|illogical-impulse|end4-pC' "$family" shell.qml; then
   fail 'startup graph contains upstream family/runtime identity'
 fi
 
-printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface registry, persisted theme selection and compatibility-free active UI are valid\n'
+printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface/settings registries, persisted theme selection and compatibility-free active UI are valid\n'

@@ -14,6 +14,7 @@ qmldir='modules/raohane/qmldir'
 config='modules/raohane/config/RaohaneConfig.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 runtime_probe='modules/raohane/RaohaneRuntimeProbe.qml'
 live_check='scripts/phase4-live-check.sh'
@@ -40,6 +41,7 @@ phase4_surfaces=(
   modules/raohane/RaohaneOnScreenKeyboard.qml
   "$settings"
   "$settings_content"
+  "$settings_registry"
   "$settings_search"
   "$runtime_probe"
 )
@@ -48,8 +50,6 @@ for path in "$family" "$qmldir" "$config" "$live_check" "$cli" "${phase4_surface
   [[ -f "$path" ]] || fail "missing Phase 4 path: $path"
 done
 
-# The visible runtime is fully native. Phase 4 must never reintroduce the old
-# presentation tree simply to restore parity.
 for retired in modules/ii modules/common services GlobalStates.qml; do
   [[ ! -e "$retired" ]] || fail "retired runtime source returned: $retired"
 done
@@ -71,8 +71,6 @@ for type in \
     || fail "active family does not load Phase 4 type: $type"
 done
 
-# Secure lock contracts and user-visible lock routing are guarded separately,
-# but Phase 4 also requires a live-readable status endpoint.
 rg -q 'WlSessionLock[[:space:]]*\{' modules/raohane/RaohaneLock.qml \
   || fail 'native Lock lost WlSessionLock'
 rg -q 'function status\(\): string' modules/raohane/RaohaneLock.qml \
@@ -80,8 +78,6 @@ rg -q 'function status\(\): string' modules/raohane/RaohaneLock.qml \
 rg -q 'PamContext[[:space:]]*\{' modules/raohane/RaohaneLockContext.qml \
   || fail 'native Lock lost PAM transaction'
 
-# Horizontal and vertical products must be interchangeable at runtime. Both
-# own the same bar IPC and shortcut contract, and identify the loaded mode.
 for file in modules/raohane/RaohaneBar.qml modules/raohane/RaohaneVerticalBar.qml; do
   for symbol in \
     'monitorHasFullscreen' \
@@ -99,8 +95,6 @@ rg -q 'return[[:space:]]+"horizontal"' modules/raohane/RaohaneBar.qml \
 rg -q 'return[[:space:]]+"vertical"' modules/raohane/RaohaneVerticalBar.qml \
   || fail 'vertical bar lost runtime mode identity'
 
-# Screen chrome/capture are native and have real backends rather than migration
-# placeholders.
 for file in \
   modules/raohane/RaohaneOverlay.qml \
   modules/raohane/RaohaneSidebarLeft.qml \
@@ -123,10 +117,12 @@ if rg -n -i 'still being migrated|migration placeholder|temporary compatibility'
   fail 'Phase 4 visible surface regressed to migration-only UX'
 fi
 
-# Final Settings parity: all existing section controls remain native, while the
-# shell also provides global search and direct keyboard navigation.
+# Final Settings parity: navigation, exact-control search and persisted values
+# are linked through one Raohane-owned registry instead of duplicated UI tables.
 rg -q '^RaohaneSettingsSearch .*RaohaneSettingsSearch.qml$' "$qmldir" \
   || fail 'global Settings search is not registered'
+rg -q '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' "$qmldir" \
+  || fail 'Settings page registry is not registered'
 rg -q 'RaohaneSettingsSearch[[:space:]]*\{' "$settings" \
   || fail 'Settings window does not consume native global search'
 rg -q 'Qt\.ControlModifier' "$settings" \
@@ -137,16 +133,17 @@ rg -q 'function status\(\): string' "$settings" \
   || fail 'Settings lost runtime status IPC'
 rg -q 'RaohaneState\.settingsPage = entry\.section \+ ":" \+ entry\.key' "$settings_search" \
   || fail 'Settings search does not route to exact native controls'
+rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$settings_search" \
+  || fail 'Settings search does not consume the page registry'
 
-mapfile -t search_keys < <(rg -o 'key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings_search" \
-  | sed -E 's/.*"([A-Za-z0-9_]+)"/\1/' | sort -u)
-for key in "${search_keys[@]}"; do
+mapfile -t registry_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings_registry" \
+  | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
+[[ "${#registry_keys[@]}" -gt 0 ]] || fail 'Settings registry exposes no native control keys'
+for key in "${registry_keys[@]}" themePreset barModuleLayout desktopWidgetsLayout; do
   rg -q "property [^:]+ ${key}:" "$config" \
-    || fail "Settings search points to non-native config key: $key"
+    || fail "Settings registry points to non-native config key: $key"
 done
 
-# RuntimeProbe is the live observability boundary used on real Hyprland
-# sessions. It must expose all Phase 4 state groups without opening surfaces.
 for symbol in \
   'target:[[:space:]]*"runtime"' \
   'function phase4\(\): string' \
@@ -161,9 +158,6 @@ for symbol in \
   rg -q "$symbol" "$runtime_probe" || fail "runtime probe lost contract: $symbol"
 done
 
-# The live harness must be safe by default and make invasive exercises explicit.
-# Vertical mode is modified only when explicitly requested and its prior value
-# is restored even on an unexpected exit.
 for symbol in \
   'phase4_json' \
   'ipc runtime phase4' \
@@ -190,7 +184,6 @@ for symbol in \
 done
 bash -n "$live_check"
 
-# CLI must expose both the safe diagnostic and explicit live exercise route.
 for symbol in \
   'doctor \[all\|graphics\|deps\|services\|runtime\|phase4\]' \
   'validate phase4' \
@@ -201,4 +194,4 @@ for symbol in \
   rg -q "$symbol" "$cli" || fail "Raohane CLI lost Phase 4 route: $symbol"
 done
 
-printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, Settings search and full live validation workflow are valid\n'
+printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, registry-backed Settings search and full live validation workflow are valid\n'

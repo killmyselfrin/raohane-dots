@@ -17,13 +17,14 @@ desktop_widgets='modules/raohane/RaohaneDesktopWidgets.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_v3='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 notifications='modules/raohane/RaohaneNotificationCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 
-for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
+for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_section" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
   [[ -f "$file" ]] || fail "missing polished UI surface: $file"
 done
 
@@ -67,7 +68,6 @@ if rg -n '#24ffffff|#ff7373|readonly property bool active:' "$workspaces"; then
   fail 'Workspace buttons reintroduced legacy colors or the RaohaneSurface active-property collision'
 fi
 
-# Control Center is a compact floating command surface, not a full-height sidebar.
 rg -q 'readonly property int panelHeight:' "$control" || fail 'Control Center lost bounded floating height'
 rg -q 'implicitHeight:[[:space:]]*root\.panelHeight' "$control" || fail 'Control Center window no longer follows its floating height'
 rg -q 'RaohaneQuickControls[[:space:]]*\{' "$control" || fail 'Control Center lost the direct Quick Controls composition'
@@ -85,19 +85,20 @@ rg -q 'RaohaneMotion\.' "$quick" || fail 'Quick Controls lost tactile motion'
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls lost the restrained inactive state token'
 rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls lost explicit hover-border hierarchy'
 
-# Settings V3 is one application surface with a quiet navigation plane and one
-# grouped control panel per native section. The old duplicated title bar/card
-# stack must not become active again.
+# Settings V3 keeps one quiet navigation shell; generic native controls are
+# rendered by the extracted section page rather than re-embedded in the shell.
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" || fail 'Settings regressed from the active V3 workspace'
 rg -q 'RaohaneSettingsSearch[[:space:]]*\{' "$settings" || fail 'Settings lost integrated global search'
 rg -q 'RaohaneMotion\.(standard|enter)' "$settings" || fail 'Settings lost shared window motion'
 rg -q 'text:[[:space:]]*"RAOHANE"' "$settings_v3" || fail 'Settings V3 lost its restrained product identity'
 rg -q 'text:[[:space:]]*qsTr\("System settings"\)' "$settings_v3" || fail 'Settings V3 lost the sidebar hierarchy'
-rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_v3" || fail 'Settings V3 lost shared switches'
-rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_v3" || fail 'Settings V3 lost shared number controls'
-rg -q 'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' "$settings_v3" || fail 'Settings V3 lost grouped native-control surface'
+rg -q 'RaohaneSettingsPageRegistry\.pages' "$settings_v3" || fail 'Settings V3 lost registry-backed navigation'
+rg -q 'RaohaneSettingsSectionPage[[:space:]]*\{' "$settings_v3" || fail 'Settings V3 lost extracted generic section composition'
+rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_section" || fail 'Settings section renderer lost shared switches'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_section" || fail 'Settings section renderer lost shared number controls'
+rg -q 'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' "$settings_section" || fail 'Settings section renderer lost grouped native-control surface'
 rg -q 'RaohaneTheme\.surfaceSubtle' "$settings_v3" || fail 'Settings V3 lost the quiet sidebar plane'
-if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3"; then
+if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3" "$settings_section"; then
   fail 'Settings V3 reintroduced retired chrome, stale motion or the previous active layout'
 fi
 
@@ -117,4 +118,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: floating Control Center, grouped Settings V3, Quick Controls, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: floating Control Center, registry-backed Settings V3, extracted native sections, Quick Controls, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
