@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
+import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import SddmComponents 2.0
 
@@ -138,7 +138,7 @@ Rectangle {
                 }
             }
 
-            TextField {
+            QQC2.TextField {
                 id: userField
                 Layout.fillWidth: true
                 Layout.preferredHeight: 52
@@ -154,7 +154,7 @@ Rectangle {
                 }
             }
 
-            TextField {
+            QQC2.TextField {
                 id: passwordField
                 Layout.fillWidth: true
                 Layout.preferredHeight: 52
@@ -172,7 +172,7 @@ Rectangle {
                 }
             }
 
-            ComboBox {
+            QQC2.ComboBox {
                 id: sessionBox
                 Layout.fillWidth: true
                 Layout.preferredHeight: 50
@@ -204,7 +204,7 @@ Rectangle {
                 visible: text.length > 0
             }
 
-            Button {
+            QQC2.Button {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 54
                 enabled: !root.loginBusy
@@ -231,17 +231,17 @@ Rectangle {
                 Layout.fillWidth: true
                 spacing: 10
 
-                Button {
+                QQC2.Button {
                     Layout.fillWidth: true
                     text: qsTr("Suspend")
                     onClicked: sddm.suspend()
                 }
-                Button {
+                QQC2.Button {
                     Layout.fillWidth: true
                     text: qsTr("Restart")
                     onClicked: sddm.reboot()
                 }
-                Button {
+                QQC2.Button {
                     Layout.fillWidth: true
                     text: qsTr("Power off")
                     onClicked: sddm.powerOff()
