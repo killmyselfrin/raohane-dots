@@ -15,6 +15,8 @@
 - Guarantee widget stacking by separating wallpaper (`Background`) and widget (`Bottom`) layer-shell levels.
 - Turn the Desktop Widgets settings page into a visual Widget Studio with a live composition preview and large per-widget controls.
 - Give every native Settings section a consistent visual hero with identity, description and control count instead of opening on an anonymous flat list.
+- Add native balanced/left/right desktop-widget compositions plus live scale and opacity controls, adapting the strongest editor ideas from end4-pC and Serpantinum without importing either runtime.
+- Advance native configuration and integrity checks to schema v12 for persisted widget composition settings.
 
 - Add a Raohane-owned theme catalog loader and deterministic CLI importer/exporter.
 - Convert the Serpantinum color-preset library into complete Raohane surface tokens while keeping the active runtime independent from Serpantinum code and paths.

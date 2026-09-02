@@ -14,10 +14,14 @@ Item {
     readonly property bool compact: RaohaneConfig.desktopWidgetsCompact || width < 1280
     readonly property int edge: compact ? 34 : 54
     readonly property int cardWidth: compact ? 238 : 294
+    readonly property string layoutPreset: RaohaneConfig.desktopWidgetsLayout
 
-    opacity: shown ? 1 : 0
+    opacity: shown ? RaohaneConfig.desktopWidgetsOpacity : 0
+    scale: RaohaneConfig.desktopWidgetsScale
+    transformOrigin: Item.Center
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeStandard } }
+    Behavior on scale { NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeEmphasized } }
 
     Timer {
         interval: 1000
@@ -27,9 +31,13 @@ Item {
     }
 
     ColumnLayout {
-        anchors { left: parent.left; top: parent.top; leftMargin: root.edge; topMargin: root.compact ? 72 : 92 }
+        id: primaryColumn
+        x: root.layoutPreset === "right" ? parent.width - width - root.edge : root.edge
+        y: root.compact ? 72 : 92
         width: Math.min(root.compact ? 370 : 510, parent.width * 0.44)
         spacing: 12
+
+        Behavior on x { NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeEmphasized } }
 
         Item {
             visible: RaohaneConfig.desktopWidgetClock
@@ -151,14 +159,16 @@ Item {
     }
 
     ColumnLayout {
-        anchors {
-            right: parent.right
-            bottom: parent.bottom
-            rightMargin: root.edge
-            bottomMargin: RaohaneConfig.dockEnabled ? (root.compact ? 104 : 122) : root.edge
-        }
+        id: secondaryColumn
+        x: root.layoutPreset === "left" ? root.edge : parent.width - width - root.edge
+        y: root.layoutPreset === "balanced"
+            ? parent.height - height - (RaohaneConfig.dockEnabled ? (root.compact ? 104 : 122) : root.edge)
+            : Math.min(parent.height - height - root.edge, primaryColumn.y + primaryColumn.height + 16)
         width: root.cardWidth
         spacing: 10
+
+        Behavior on x { NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeEmphasized } }
+        Behavior on y { NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeEmphasized } }
 
         WidgetCard {
             visible: RaohaneConfig.desktopWidgetSystem

@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 11
+    readonly property int schemaVersion: 12
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -96,6 +96,9 @@ Singleton {
     property bool desktopWidgetSystem: true
     property bool desktopWidgetMotto: true
     property bool desktopWidgetsCompact: false
+    property string desktopWidgetsLayout: "balanced"
+    property real desktopWidgetsScale: 1.0
+    property real desktopWidgetsOpacity: 0.94
 
     property bool contextIslandEnabled: true
     property bool mediaOverlayEnabled: true
@@ -350,7 +353,10 @@ Singleton {
                 showContext: root.desktopWidgetContext,
                 showSystem: root.desktopWidgetSystem,
                 showMotto: root.desktopWidgetMotto,
-                compact: root.desktopWidgetsCompact
+                compact: root.desktopWidgetsCompact,
+                layout: root.desktopWidgetsLayout,
+                scale: root.desktopWidgetsScale,
+                opacity: root.desktopWidgetsOpacity
             },
             features: {
                 contextIsland: root.contextIslandEnabled,
@@ -475,6 +481,12 @@ Singleton {
         root.assignIfPresent(desktopWidgets, "showSystem", value => root.desktopWidgetSystem = Boolean(value))
         root.assignIfPresent(desktopWidgets, "showMotto", value => root.desktopWidgetMotto = Boolean(value))
         root.assignIfPresent(desktopWidgets, "compact", value => root.desktopWidgetsCompact = Boolean(value))
+        root.assignIfPresent(desktopWidgets, "layout", value => {
+            const requested = String(value ?? "balanced")
+            root.desktopWidgetsLayout = ["balanced", "left", "right"].indexOf(requested) >= 0 ? requested : "balanced"
+        })
+        root.assignIfPresent(desktopWidgets, "scale", value => root.desktopWidgetsScale = root.clampNumber(value, 0.75, 1.25, 1.0))
+        root.assignIfPresent(desktopWidgets, "opacity", value => root.desktopWidgetsOpacity = root.clampNumber(value, 0.45, 1.0, 0.94))
 
         root.assignIfPresent(features, "contextIsland", value => root.contextIslandEnabled = Boolean(value))
         root.assignIfPresent(features, "mediaOverlay", value => root.mediaOverlayEnabled = Boolean(value))
@@ -595,6 +607,9 @@ Singleton {
     onDesktopWidgetSystemChanged: scheduleSave()
     onDesktopWidgetMottoChanged: scheduleSave()
     onDesktopWidgetsCompactChanged: scheduleSave()
+    onDesktopWidgetsLayoutChanged: scheduleSave()
+    onDesktopWidgetsScaleChanged: scheduleSave()
+    onDesktopWidgetsOpacityChanged: scheduleSave()
     onContextIslandEnabledChanged: scheduleSave()
     onMediaOverlayEnabledChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()

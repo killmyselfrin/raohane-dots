@@ -252,8 +252,8 @@ if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' ins
   fail 'normal install/doctor path executes upstream shell infrastructure'
 fi
 
-rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*11' defaults/native.json \
-  || fail 'native defaults are not schema v11'
+rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*12' defaults/native.json \
+  || fail 'native defaults are not schema v12'
 python3 scripts/migrate-legacy-config.py --help >/dev/null
 
 bash -n scripts/raohane

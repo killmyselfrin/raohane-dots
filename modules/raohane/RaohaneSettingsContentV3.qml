@@ -127,7 +127,9 @@ Item {
                 { type: "toggle", key: "desktopWidgetContext", label: qsTr("Live context"), detail: qsTr("Show media, privacy or active-window context") },
                 { type: "toggle", key: "desktopWidgetSystem", label: qsTr("System status"), detail: qsTr("Show network, audio and host status") },
                 { type: "toggle", key: "desktopWidgetMotto", label: qsTr("Quiet motto"), detail: qsTr("Add a small Japanese-inspired ambient card") },
-                { type: "toggle", key: "desktopWidgetsCompact", label: qsTr("Compact layout"), detail: qsTr("Reduce spacing and card sizes on smaller screens") }
+                { type: "toggle", key: "desktopWidgetsCompact", label: qsTr("Compact layout"), detail: qsTr("Reduce spacing and card sizes on smaller screens") },
+                { type: "number", key: "desktopWidgetsScale", label: qsTr("Widget scale"), detail: qsTr("Resize the complete desktop composition"), min: 0.75, max: 1.25, step: 0.05 },
+                { type: "number", key: "desktopWidgetsOpacity", label: qsTr("Surface opacity"), detail: qsTr("Blend widgets softly into the wallpaper"), min: 0.45, max: 1.0, step: 0.05 }
             ]
         case "interface":
             return [
