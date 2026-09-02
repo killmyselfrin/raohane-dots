@@ -12,8 +12,8 @@ usage() {
 Raohane login theme installer
 
 Usage:
-  ./scripts/install-login-theme.sh
-  ./scripts/install-login-theme.sh --preview
+  bash ./scripts/install-login-theme.sh
+  bash ./scripts/install-login-theme.sh --preview
 
 The installer only themes SDDM. It does not enable, disable, or replace your
 current display-manager service.
@@ -41,6 +41,7 @@ if ((PREVIEW)); then
     fi
   done
   echo '[Raohane] SDDM greeter executable was not found.' >&2
+  echo '[Raohane] On Arch Linux install SDDM first: sudo pacman -S sddm' >&2
   exit 1
 fi
 
@@ -62,4 +63,4 @@ EOF
 
 printf '[Raohane] Raohane SDDM theme selected.\n'
 printf '[Raohane] Existing display-manager services were left untouched.\n'
-printf '[Raohane] Preview without logging out: %s --preview\n' "$0"
+printf '[Raohane] Preview without logging out: bash %s --preview\n' "$0"
