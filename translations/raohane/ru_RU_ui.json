@@ -1,6 +1,5 @@
 {
   "A safety restore point is created before your current settings are replaced.": "Перед заменой текущих настроек автоматически создаётся безопасная точка восстановления.",
-  "All files (*)": "Все файлы (*)",
   "All Raohane shell actions in one configurable shortcut map": "Все действия оболочки Raohane в единой настраиваемой карте горячих клавиш",
   "Apply a random wallpaper": "Применить случайные обои",
   "Authentication failed. Check your password and try again.": "Не удалось подтвердить личность. Проверьте пароль и попробуйте снова.",
@@ -66,7 +65,6 @@
   "Region OCR": "OCR выбранной области",
   "Region recording": "Запись области",
   "Region recording with sound": "Запись области со звуком",
-  "Restart Raohane": "Перезапустить Raohane",
   "Restart Raohane to ensure every restored service and monitor profile is reloaded.": "Перезапустите Raohane, чтобы все восстановленные службы и профили мониторов были загружены заново.",
   "Restore backup": "Восстановить из копии",
   "Restore failed": "Не удалось восстановить настройки",
