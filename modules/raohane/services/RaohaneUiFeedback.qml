@@ -12,9 +12,7 @@ Singleton {
     id: root
 
     property bool enabled: true
-    // Keep the Qt path intentionally quiet. The primary PipeWire path plays the
-    // pre-mastered WAV directly; this value only applies if that path fails.
-    property real volume: 0.32
+    property real volume: 0.42
     property bool ready: false
     property double lastPlayedAt: 0
     property string pendingExternalKind: "tap"
@@ -22,10 +20,10 @@ Singleton {
     readonly property string soundDirectory: RaohanePaths.join(RaohanePaths.cacheDirectory, "sounds")
 
     function canPlay(): bool {
-        if (!root.enabled || !root.ready)
+        if (!root.enabled)
             return false
         const now = Date.now()
-        if (now - root.lastPlayedAt < 32)
+        if (now - root.lastPlayedAt < 28)
             return false
         root.lastPlayedAt = now
         return true
@@ -43,6 +41,8 @@ Singleton {
     }
 
     function playQt(kind: string): void {
+        if (!root.ready)
+            return
         switch (kind) {
         case "navigate":
             navigateSound.play()
@@ -61,49 +61,52 @@ Singleton {
         if (!root.canPlay())
             return
 
-        // QtMultimedia can be silent on otherwise healthy PipeWire sessions when
-        // its platform/backend plugin is unavailable. Prefer the native PipeWire
-        // player and only fall back to SoundEffect if the helper cannot play.
+        // The helper now owns preparation as well as playback. This makes every
+        // click self-healing when ~/.cache was cleared or the startup generator
+        // failed before PipeWire/QtMultimedia became available.
         if (!externalPlayer.running) {
             root.pendingExternalKind = normalizedKind
             externalPlayer.command = [
                 "bash",
-                Quickshell.shellPath("scripts/play-ui-sound.sh"),
-                root.soundFile(normalizedKind)
+                RaohanePaths.join(RaohanePaths.scriptsPath, "play-ui-sound.sh"),
+                root.soundDirectory,
+                normalizedKind
             ]
             externalPlayer.running = true
             return
         }
 
-        // Do not spawn an unbounded number of short players during rapid input.
-        // A click that lands while pw-play is still finishing uses Qt instead.
         root.playQt(normalizedKind)
     }
 
     SoundEffect {
         id: tapSound
-        source: root.ready ? RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-tap.wav")) : ""
+        source: root.ready ? RaohanePaths.fileUrl(root.soundFile("tap")) : ""
         volume: root.volume
     }
 
     SoundEffect {
         id: navigateSound
-        source: root.ready ? RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-navigate.wav")) : ""
-        volume: Math.max(0, root.volume * 0.82)
+        source: root.ready ? RaohanePaths.fileUrl(root.soundFile("navigate")) : ""
+        volume: Math.max(0, root.volume * 0.86)
     }
 
     SoundEffect {
         id: confirmSound
-        source: root.ready ? RaohanePaths.fileUrl(RaohanePaths.join(root.soundDirectory, "ui-confirm.wav")) : ""
-        volume: Math.max(0, root.volume * 0.88)
+        source: root.ready ? RaohanePaths.fileUrl(root.soundFile("confirm")) : ""
+        volume: Math.max(0, root.volume * 0.92)
     }
 
     Process {
         id: externalPlayer
 
         onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0 && root.enabled && root.ready)
-                root.playQt(root.pendingExternalKind)
+            if (exitCode === 0) {
+                root.ready = true
+                return
+            }
+            console.warn("RaohaneUiFeedback: native player failed with exit code", exitCode)
+            root.playQt(root.pendingExternalKind)
         }
     }
 
@@ -111,14 +114,14 @@ Singleton {
         id: generator
         command: [
             "python3",
-            Quickshell.shellPath("scripts/generate-ui-sounds.py"),
+            RaohanePaths.join(RaohanePaths.scriptsPath, "generate-ui-sounds.py"),
             root.soundDirectory
         ]
 
         onExited: (exitCode, exitStatus) => {
             root.ready = exitCode === 0
             if (!root.ready)
-                console.warn("RaohaneUiFeedback: failed to prepare UI sounds")
+                console.warn("RaohaneUiFeedback: startup sound preparation failed; playback helper will retry on demand")
         }
     }
 
