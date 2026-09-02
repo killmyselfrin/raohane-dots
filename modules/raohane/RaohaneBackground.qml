@@ -96,7 +96,7 @@ Variants {
         color: "#09080d"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:raohane-background"
-        WlrLayershell.layer: WlrLayer.Bottom
+        WlrLayershell.layer: WlrLayer.Background
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
         anchors {

@@ -231,6 +231,11 @@ Item {
     }
 
     Component {
+        id: widgetsPage
+        RaohaneWidgetStudio {}
+    }
+
+    Component {
         id: nativeSectionPage
 
         Item {
@@ -263,13 +268,79 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 14
 
-                    Text {
+                    RaohaneSurface {
                         width: parent.width
-                        text: root.sectionDescription(sectionRoot.sectionKey)
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 9
-                        lineHeight: 1.25
-                        wrapMode: Text.WordWrap
+                        height: 104
+                        surfaceRadius: RaohaneTheme.radiusLarge
+                        raised: false
+                        showSheen: false
+                        clip: true
+
+                        Rectangle {
+                            width: 150
+                            height: 150
+                            radius: 75
+                            anchors { right: parent.right; top: parent.top; rightMargin: -45; topMargin: -72 }
+                            color: RaohaneTheme.accentSoft
+                            opacity: 0.48
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 18
+                            anchors.rightMargin: 18
+                            spacing: 14
+
+                            RaohaneSurface {
+                                Layout.preferredWidth: 48
+                                Layout.preferredHeight: 48
+                                surfaceRadius: 15
+                                active: true
+                                showSheen: false
+                                RaohaneIcon {
+                                    anchors.centerIn: parent
+                                    text: root.pages[root.currentPage]?.icon ?? "tune"
+                                    iconSize: 23
+                                    fill: 1
+                                    color: RaohaneTheme.accent
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 3
+                                Text {
+                                    text: root.pages[root.currentPage]?.name ?? qsTr("Settings")
+                                    color: RaohaneTheme.text
+                                    font.pixelSize: 15
+                                    font.weight: Font.DemiBold
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: root.sectionDescription(sectionRoot.sectionKey)
+                                    color: RaohaneTheme.textMuted
+                                    font.pixelSize: 9
+                                    lineHeight: 1.2
+                                    wrapMode: Text.WordWrap
+                                }
+                            }
+
+                            RaohaneSurface {
+                                Layout.preferredWidth: settingCount.implicitWidth + 22
+                                Layout.preferredHeight: 28
+                                surfaceRadius: 12
+                                transparentIdle: true
+                                showSheen: false
+                                Text {
+                                    id: settingCount
+                                    anchors.centerIn: parent
+                                    text: qsTr("%1 settings").arg(root.sectionEntries(sectionRoot.sectionKey).length)
+                                    color: RaohaneTheme.textMuted
+                                    font.pixelSize: 8
+                                    font.weight: Font.Medium
+                                }
+                            }
+                        }
                     }
 
                     RaohaneSurface {
@@ -845,6 +916,7 @@ Item {
                         anchors.bottomMargin: 10
                         sourceComponent: root.pages[root.currentPage]?.key === "home" ? homePage
                             : root.pages[root.currentPage]?.key === "themes" ? themesPage
+                            : root.pages[root.currentPage]?.key === "widgets" ? widgetsPage
                             : root.pages[root.currentPage]?.key === "about" ? aboutPage
                             : nativeSectionPage
                         onLoaded: Qt.callLater(root.configureLoadedPage)

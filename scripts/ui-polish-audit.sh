@@ -13,6 +13,7 @@ sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 systray='modules/raohane/RaohaneSysTray.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 desktop='modules/raohane/RaohaneDesktopCanvas.qml'
+desktop_widgets='modules/raohane/RaohaneDesktopWidgets.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_v3='modules/raohane/RaohaneSettingsContentV3.qml'
@@ -22,7 +23,7 @@ quick='modules/raohane/RaohaneQuickControls.qml'
 notifications='modules/raohane/RaohaneNotificationCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 
-for file in "$sidebar" "$systray" "$about" "$desktop" "$workspaces" "$settings" "$settings_v3" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
+for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
   [[ -f "$file" ]] || fail "missing polished UI surface: $file"
 done
 
@@ -46,10 +47,10 @@ if rg -n 'text:[[:space:]]*"ラ"|#79191523|#61171320|#5c17141f|#4c17141f|#20ffff
   fail 'Settings About reintroduced retired prototype chrome'
 fi
 
-rg -q 'RaohaneMotion\.' "$desktop" || fail 'Desktop canvas no longer follows the shared motion scale'
-rg -q 'text:[[:space:]]*RaohaneContext\.icon' "$desktop" || fail 'Desktop context icon lost its live context binding'
-rg -q 'RaohaneIcon[[:space:]]*\{' "$desktop" || fail 'Desktop context no longer renders through the Material icon wrapper'
-if rg -n 'duration:[[:space:]]*180' "$desktop"; then
+rg -q 'RaohaneMotion\.' "$desktop_widgets" || fail 'Desktop widgets no longer follow the shared motion scale'
+rg -q 'RaohaneContext\.icon' "$desktop_widgets" || fail 'Desktop context icon lost its live context binding'
+rg -q 'RaohaneIcon[[:space:]]*\{' "$desktop_widgets" || fail 'Desktop context no longer renders through the Material icon wrapper'
+if rg -n 'duration:[[:space:]]*180' "$desktop" "$desktop_widgets"; then
   fail 'Desktop canvas reintroduced a fixed animation duration outside RaohaneMotion'
 fi
 

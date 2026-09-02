@@ -19,6 +19,7 @@ RaohaneSwitch 1.0 RaohaneSwitch.qml
 RaohaneRuntimeProbe 1.0 RaohaneRuntimeProbe.qml
 RaohaneBackground 1.0 RaohaneBackground.qml
 RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
+RaohaneDesktopWidgets 1.0 RaohaneDesktopWidgets.qml
 RaohaneOverview 1.0 RaohaneOverview.qml
 RaohaneDock 1.0 RaohaneDock.qml
 RaohaneBar 1.0 RaohaneBar.qml
@@ -41,6 +42,7 @@ RaohaneOnboarding 1.0 RaohaneOnboarding.qml
 RaohaneSettingsSearch 1.0 RaohaneSettingsSearch.qml
 RaohaneSettingsContentV3 1.0 RaohaneSettingsContentV3.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
+RaohaneWidgetStudio 1.0 RaohaneWidgetStudio.qml
 RaohaneThemeCatalog 1.0 RaohaneThemeCatalog.qml
 RaohaneSettingsAbout 1.0 RaohaneSettingsAbout.qml
 RaohaneBackupSettings 1.0 RaohaneBackupSettings.qml
