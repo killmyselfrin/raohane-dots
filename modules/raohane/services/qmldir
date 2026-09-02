@@ -20,4 +20,5 @@ singleton RaohaneYdotool 1.0 RaohaneYdotool.qml
 singleton RaohaneDropShelf 1.0 RaohaneDropShelf.qml
 singleton RaohaneAutostart 1.0 RaohaneAutostart.qml
 singleton RaohaneUiFeedback 1.0 RaohaneUiFeedback.qml
+singleton RaohaneBackup 1.0 RaohaneBackup.qml
 RaohaneLoginWallpaperSync 1.0 RaohaneLoginWallpaperSync.qml
