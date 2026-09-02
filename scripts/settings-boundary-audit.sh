@@ -12,6 +12,8 @@ fail() {
 settings='modules/raohane/RaohaneSettings.qml'
 search='modules/raohane/RaohaneSettingsSearch.qml'
 content='modules/raohane/RaohaneSettingsContentV3.qml'
+navigation='modules/raohane/RaohaneSettingsNavigation.qml'
+header='modules/raohane/RaohaneSettingsPageHeader.qml'
 registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 section='modules/raohane/RaohaneSettingsSectionPage.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
@@ -22,13 +24,15 @@ config='modules/raohane/config/RaohaneConfig.qml'
 state='modules/raohane/RaohaneState.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$settings" "$search" "$content" "$registry" "$section" "$home" "$catalog" "$bar_studio" "$about" "$config" "$state" "$qmldir"; do
+for path in "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$section" "$home" "$catalog" "$bar_studio" "$about" "$config" "$state" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
 done
 
 for registration in \
   '^RaohaneSettingsSearch .*RaohaneSettingsSearch.qml$' \
   '^RaohaneSettingsContentV3 .*RaohaneSettingsContentV3.qml$' \
+  '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' \
+  '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
   '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
   '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
   '^RaohaneSettingsAbout .*RaohaneSettingsAbout.qml$' \
@@ -39,30 +43,50 @@ for registration in \
 done
 
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" \
-  || fail 'Settings window is not routed through the active Settings V3 shell'
+  || fail 'Settings window is not routed through the active Settings V3 coordinator'
 rg -q 'property string settingsPage:' "$state" \
   || fail 'RaohaneState does not own Settings page navigation state'
 
-# Content is only the navigation/loading shell. Concrete page classes and
-# generic schemas belong to the registry / page implementations.
+# Content owns coordination only: route/deep-link state, page animation and
+# declarative loading. Navigation and header presentation are extracted.
 for symbol in \
   'RaohaneState\.settingsPage' \
   'RaohaneSettingsPageRegistry\.pages' \
   'RaohaneSettingsPageRegistry\.resolvePageIndex' \
-  'RaohaneSettingsPageRegistry\.isFirstInGroup' \
+  'RaohaneSettingsNavigation[[:space:]]*\{' \
+  'RaohaneSettingsPageHeader[[:space:]]*\{' \
   'pageLoader\.item\.hasOwnProperty\("sectionKey"\)' \
   'source:[[:space:]]*root\.currentPageInfo\?\.source' \
   'externalSurface' \
   'RaohaneSystemInfo\.'; do
-  rg -q "$symbol" "$content" || fail "Settings shell lost declarative registry dependency: $symbol"
+  rg -q "$symbol" "$content" || fail "Settings coordinator lost native contract: $symbol"
 done
-if rg -q 'function sectionEntries\(|function sectionDescription\(|function componentForKind\(|sourceComponent:' "$content"; then
-  fail 'Settings shell reabsorbed schema or imperative component routing'
+if rg -q 'function sectionEntries\(|function sectionDescription\(|function componentForKind\(|sourceComponent:|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl|ScrollBar\.vertical' "$content"; then
+  fail 'Settings coordinator reabsorbed schema, profile/nav presentation or imperative page routing'
 fi
-for type in RaohaneSettingsHome RaohaneThemeCatalog RaohaneWidgetStudio RaohaneSettingsAbout RaohaneSettingsSectionPage; do
-  if rg -q "${type}[[:space:]]*\\{" "$content"; then
-    fail "Settings shell directly embeds page type instead of registry loading: $type"
-  fi
+
+for symbol in \
+  'property var pages:' \
+  'property int currentPage:' \
+  'property bool compact:' \
+  'signal pageRequested\(int index\)' \
+  'RaohaneSettingsPageRegistry\.isFirstInGroup' \
+  'RaohaneSettingsPageRegistry\.resolvePageIndex\("profile"\)' \
+  'RaohaneConfig\.profileDisplayName' \
+  'RaohaneConfig\.profileAvatarPath' \
+  'RaohanePaths\.defaultAvatarUrl' \
+  'RaohaneSystemInfo\.' \
+  'text:[[:space:]]*qsTr\("System settings"\)'; do
+  rg -q "$symbol" "$navigation" || fail "Settings navigation lost contract: $symbol"
+done
+for symbol in \
+  'property var pageInfo:' \
+  'property bool compact:' \
+  'root\.pageInfo\?\.icon' \
+  'root\.pageInfo\?\.name' \
+  'root\.pageInfo\?\.subtitle' \
+  'RaohaneTheme\.borderFaint'; do
+  rg -q "$symbol" "$header" || fail "Settings page header lost contract: $symbol"
 done
 
 for contract in \
@@ -104,9 +128,6 @@ for source in RaohaneSettingsHome.qml RaohaneThemeCatalog.qml RaohaneWidgetStudi
     || fail "Settings registry lost declarative page source: $source"
 done
 
-rg -q 'text:[[:space:]]*qsTr\("System settings"\)' "$content" \
-  || fail 'Settings shell lost sidebar hierarchy'
-
 for symbol in \
   'RaohaneSettingsPageRegistry\.sectionEntries' \
   'RaohaneConfig\[' \
@@ -144,11 +165,11 @@ for key in themePreset barModuleLayout desktopWidgetsLayout; do
 done
 
 if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bMaterialSymbol[[:space:]]*\{|\bGlobalStates\.|\bContentPage[[:space:]]*\{' \
-  "$content" "$registry" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
-  fail 'Settings navigation resolves inherited settings/common/root types'
+  "$content" "$navigation" "$header" "$registry" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
+  fail 'Settings architecture resolves inherited settings/common/root types'
 fi
 if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.json"\)' \
-  "$content" "$registry" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
+  "$content" "$navigation" "$header" "$registry" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
   fail 'Settings still exposes the retired compatibility config path/name'
 fi
 
@@ -193,4 +214,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: declarative registry-loaded Settings V3, extracted native sections, Theme Library, Bar Studio, global search and keyboard navigation are Raohane-owned\n'
+printf 'settings-boundary-audit: coordinator, extracted navigation/header, declarative registry-loaded pages, native sections, Theme Library, Bar Studio and global search are Raohane-owned\n'
