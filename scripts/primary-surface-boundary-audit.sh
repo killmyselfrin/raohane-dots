@@ -11,8 +11,12 @@ fail() {
 
 state="modules/raohane/RaohaneState.qml"
 registry="modules/raohane/RaohaneSurfaceRegistry.qml"
+bar="modules/raohane/RaohaneBar.qml"
+bar_module="modules/raohane/RaohaneBarModule.qml"
 [[ -f "$state" ]] || fail "missing $state"
 [[ -f "$registry" ]] || fail "missing $registry"
+[[ -f "$bar" ]] || fail "missing $bar"
+[[ -f "$bar_module" ]] || fail "missing $bar_module"
 
 for contract in \
   'function primaryOpen\(name: string\): bool' \
@@ -41,7 +45,7 @@ coordinated_surfaces=(
   modules/raohane/RaohaneSessionScreen.qml
   modules/raohane/RaohaneTaskManager.qml
   modules/raohane/RaohaneDesktopMenu.qml
-  modules/raohane/RaohaneBar.qml
+  modules/raohane/RaohaneBarModule.qml
   modules/raohane/RaohaneVerticalBar.qml
   modules/raohane/RaohaneDock.qml
 )
@@ -50,6 +54,9 @@ for file in "${coordinated_surfaces[@]}"; do
   rg -q 'RaohaneState\.(setPrimaryOpen|togglePrimary)\(' "$file" \
     || fail "$file does not route primary navigation through RaohaneState coordinator"
 done
+
+rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" \
+  || fail 'horizontal bar no longer delegates primary actions through the coordinated module host'
 
 rg -q 'property bool taskManagerOpen:' "$state" \
   || fail 'RaohaneState does not own native Task Manager visibility'
@@ -73,4 +80,4 @@ for surface in mediaOverlay osk osd; do
     || fail "transient surface is missing from registry: $surface"
 done
 
-printf 'primary-surface-boundary-audit: registry-backed primary UI including native Task Manager is mutually exclusive and capture dismisses it before selection\n'
+printf 'primary-surface-boundary-audit: registry-backed primary UI including composable bar actions is mutually exclusive and capture dismisses it before selection\n'

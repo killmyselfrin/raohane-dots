@@ -5,12 +5,14 @@ singleton RaohaneMotion 1.0 RaohaneMotion.qml
 singleton RaohaneI18n 1.0 RaohaneI18n.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneSurfaceRegistry 1.0 RaohaneSurfaceRegistry.qml
+singleton RaohaneBarModuleRegistry 1.0 RaohaneBarModuleRegistry.qml
 singleton RaohaneState 1.0 RaohaneState.qml
 singleton RaohaneOnboardingState 1.0 RaohaneOnboardingState.qml
 singleton RaohanePrivacy 1.0 RaohanePrivacy.qml
 singleton RaohaneFocusGrab 1.0 RaohaneFocusGrab.qml
 CompositorGlobalShortcut 1.0 CompositorGlobalShortcut.qml
 RaohanePanelLoader 1.0 RaohanePanelLoader.qml
+RaohaneBarModule 1.0 RaohaneBarModule.qml
 RaohaneIcon 1.0 RaohaneIcon.qml
 RaohaneSurface 1.0 RaohaneSurface.qml
 RaohaneDivider 1.0 RaohaneDivider.qml

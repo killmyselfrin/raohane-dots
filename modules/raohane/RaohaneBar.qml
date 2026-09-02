@@ -14,11 +14,29 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
+    readonly property var defaultLayout: RaohaneBarModuleRegistry.sanitizeLayout(
+        RaohaneBarModuleRegistry.defaultLayout,
+        "horizontal"
+    )
+    readonly property bool showDateConfigured: RaohaneConfig.barShowDate
+
     function styleValue(key: string, fallback): var {
         const style = RaohaneConfig.style
         if (!style || !Object.prototype.hasOwnProperty.call(style, key))
             return fallback
         return style[key]
+    }
+
+    function togglePrimarySurface(surfaceId: string): void {
+        if (surfaceId === "controlCenter") {
+            RaohaneState.togglePrimary("controlCenter")
+            return
+        }
+        RaohaneState.togglePrimary(surfaceId)
+    }
+
+    function toggleTransientSurface(surfaceId: string): void {
+        RaohaneState.toggleSurface(surfaceId)
     }
 
     Variants {
@@ -136,58 +154,44 @@ Scope {
                         }
                         spacing: 7
 
-                        RaohaneIconButton {
-                            icon: "apps"
-                            buttonSize: 30
-                            iconSize: 17
-                            onClicked: RaohaneState.togglePrimary("launcher")
-                        }
+                        Repeater {
+                            model: root.defaultLayout.left
 
-                        Rectangle {
-                            width: 1
-                            Layout.preferredHeight: 17
-                            color: RaohaneTheme.borderFaint
-                        }
+                            delegate: RaohaneBarModule {
+                                required property var modelData
 
-                        RaohaneWorkspaces {
-                            Layout.alignment: Qt.AlignVCenter
-                            screen: barWindow.screen
+                                moduleId: String(modelData)
+                                screen: barWindow.screen
+                                parentWindow: barWindow
+                                hostActive: barWindow.visible
+                                showDate: root.showDateConfigured
+                                primaryAction: root.togglePrimarySurface
+                                transientAction: root.toggleTransientSurface
+                                Layout.alignment: Qt.AlignVCenter
+                            }
                         }
                     }
                 }
 
-                RaohaneContextIsland {
-                    id: contextIsland
+                RowLayout {
+                    id: centerRow
                     anchors.centerIn: parent
+                    spacing: 7
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-                        cursorShape: Qt.PointingHandCursor
+                    Repeater {
+                        model: root.defaultLayout.center
 
-                        onClicked: mouse => {
-                            if (RaohaneContext.mode !== "media") {
-                                if (mouse.button === Qt.LeftButton)
-                                    RaohaneState.togglePrimary("controlCenter")
-                                return
-                            }
+                        delegate: RaohaneBarModule {
+                            required property var modelData
 
-                            if (mouse.button === Qt.MiddleButton) {
-                                RaohaneMedia.togglePlaying()
-                            } else if (mouse.button === Qt.RightButton) {
-                                RaohaneMedia.cyclePlayer(1)
-                            } else {
-                                RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
-                            }
-                        }
-
-                        onWheel: wheel => {
-                            if (RaohaneContext.mode !== "media" || !RaohaneMedia.volumeSupported)
-                                return
-                            const step = wheel.angleDelta.y >= 0 ? 0.04 : -0.04
-                            RaohaneMedia.setVolume(RaohaneMedia.volume + step)
-                            wheel.accepted = true
+                            moduleId: String(modelData)
+                            screen: barWindow.screen
+                            parentWindow: barWindow
+                            hostActive: barWindow.visible
+                            showDate: root.showDateConfigured
+                            primaryAction: root.togglePrimarySurface
+                            transientAction: root.toggleTransientSurface
+                            Layout.alignment: Qt.AlignVCenter
                         }
                     }
                 }
@@ -214,33 +218,21 @@ Scope {
                         }
                         spacing: 7
 
-                        RaohaneSysTray {
-                            Layout.alignment: Qt.AlignVCenter
-                            parentWindow: barWindow
-                        }
+                        Repeater {
+                            model: root.defaultLayout.right
 
-                        RaohaneSystemIcons {
-                            Layout.alignment: Qt.AlignVCenter
-                            onActivated: RaohaneState.togglePrimary("controlCenter")
-                        }
+                            delegate: RaohaneBarModule {
+                                required property var modelData
 
-                        Rectangle {
-                            width: 1
-                            Layout.preferredHeight: 17
-                            color: RaohaneTheme.borderFaint
-                        }
-
-                        RaohaneClock {
-                            Layout.alignment: Qt.AlignVCenter
-                            showDate: RaohaneConfig.barShowDate
-                            active: barWindow.visible
-                        }
-
-                        RaohaneIconButton {
-                            icon: "tune"
-                            buttonSize: 30
-                            iconSize: 16
-                            onClicked: RaohaneState.togglePrimary("controlCenter")
+                                moduleId: String(modelData)
+                                screen: barWindow.screen
+                                parentWindow: barWindow
+                                hostActive: barWindow.visible
+                                showDate: root.showDateConfigured
+                                primaryAction: root.togglePrimarySurface
+                                transientAction: root.toggleTransientSurface
+                                Layout.alignment: Qt.AlignVCenter
+                            }
                         }
                     }
                 }

@@ -20,6 +20,7 @@ settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
 settings_home='modules/raohane/RaohaneSettingsHome.qml'
 bar='modules/raohane/RaohaneBar.qml'
+bar_module='modules/raohane/RaohaneBarModule.qml'
 vertical='modules/raohane/RaohaneVerticalBar.qml'
 dock='modules/raohane/RaohaneDock.qml'
 context='modules/raohane/RaohaneContextIsland.qml'
@@ -44,7 +45,7 @@ osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
   "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" "$settings_content" \
-  "$settings_home" "$bar" "$vertical" "$dock" "$context" "$notification" "$surface" "$icon_button" \
+  "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" "$context" "$notification" "$surface" "$icon_button" \
   "$motion" "$slider" "$switch" "$clock" "$quick" "$sidebar" "$session" "$task_manager" "$overlay" \
   "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
@@ -164,9 +165,10 @@ fi
 rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the floating-pod compositor height contract'
 rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" || fail 'horizontal bar lost safe advanced pod-height bounds'
 rg -q 'barScale' "$bar" || fail 'horizontal bar does not consume persisted advanced scale'
-rg -q 'RaohaneContextIsland[[:space:]]*\{' "$bar" || fail 'horizontal bar lost the centered Context Island'
-rg -q 'RaohaneIconButton[[:space:]]*\{' "$bar" || fail 'horizontal bar no longer uses the shared tactile icon-button primitive'
-rg -q 'RaohaneClock[[:space:]]*\{' "$bar" || fail 'horizontal bar lost the shared clock hierarchy'
+rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" || fail 'horizontal bar no longer composes through the native module host'
+rg -q 'RaohaneContextIsland[[:space:]]*\{' "$bar_module" || fail 'horizontal bar module host lost the centered Context Island'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$bar_module" || fail 'horizontal bar module host no longer uses the shared tactile icon-button primitive'
+rg -q 'RaohaneClock[[:space:]]*\{' "$bar_module" || fail 'horizontal bar module host lost the shared clock hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$icon_button" || fail 'shared icon button lost restrained secondary icon hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$clock" || fail 'shared clock lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.islandHeight' "$context" || fail 'Context Island no longer derives from the shared height token'
@@ -183,4 +185,4 @@ for file in "$launcher" "$media" "$control" "$vertical" "$dock" "$sidebar" "$ses
 done
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_content" || fail 'Settings V3 lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, active Settings V3, shared motion/slider/switch/icon controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, active Settings V3, shared motion/slider/switch/icon controls, composable horizontal bar, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'

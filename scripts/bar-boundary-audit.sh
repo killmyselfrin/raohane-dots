@@ -11,18 +11,22 @@ fail() {
 
 bar='modules/raohane/RaohaneBar.qml'
 vertical='modules/raohane/RaohaneVerticalBar.qml'
+module_host='modules/raohane/RaohaneBarModule.qml'
+module_registry='modules/raohane/RaohaneBarModuleRegistry.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 tray='modules/raohane/RaohaneSysTray.qml'
 status='modules/raohane/RaohaneSystemIcons.qml'
 clock='modules/raohane/RaohaneClock.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$bar" "$vertical" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
+for path in "$bar" "$vertical" "$module_host" "$module_registry" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing native bar path: $path"
 done
 
 for registration in \
   'RaohaneVerticalBar .*RaohaneVerticalBar.qml' \
+  'singleton RaohaneBarModuleRegistry .*RaohaneBarModuleRegistry.qml' \
+  'RaohaneBarModule .*RaohaneBarModule.qml' \
   'RaohaneWorkspaces .*RaohaneWorkspaces.qml' \
   'RaohaneSysTray .*RaohaneSysTray.qml' \
   'RaohaneSystemIcons .*RaohaneSystemIcons.qml' \
@@ -30,20 +34,37 @@ for registration in \
   rg -q "^${registration}$" "$qmldir" || fail "missing qmldir registration: $registration"
 done
 
-for component in RaohaneWorkspaces RaohaneSysTray RaohaneSystemIcons RaohaneClock; do
-  rg -q "${component}[[:space:]]*\\{" "$bar" || fail "RaohaneBar does not consume $component"
+for module_id in launcher workspaces context tray system clock control separator; do
+  rg -q "\"${module_id}\"[[:space:]]*:" "$module_registry" \
+    || fail "bar module registry lost module id: $module_id"
+done
+for zone in left center right; do
+  rg -q "${zone}:[[:space:]]*\[" "$module_registry" \
+    || fail "bar module registry lost default zone: $zone"
+done
+for contract in defaultLayout sanitizeZone sanitizeLayout supports; do
+  rg -q "$contract" "$module_registry" || fail "bar module registry lost contract: $contract"
+done
+
+rg -q 'RaohaneBarModuleRegistry\.defaultLayout' "$bar" \
+  || fail 'horizontal bar does not consume the native module registry'
+rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" \
+  || fail 'horizontal bar does not compose registered module hosts'
+for component in RaohaneWorkspaces RaohaneSysTray RaohaneSystemIcons RaohaneClock RaohaneContextIsland; do
+  rg -q "${component}[[:space:]]*\\{" "$module_host" \
+    || fail "RaohaneBarModule does not render $component"
 done
 
 for symbol in 'RaohaneConfig\.' 'RaohaneState\.'; do
   rg -q "$symbol" "$bar" || fail "RaohaneBar lost native framework dependency: $symbol"
 done
 
-if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.' "$bar"; then
-  fail 'RaohaneBar regressed to inherited config/state/common/ii framework'
+if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.' "$bar" "$module_host" "$module_registry"; then
+  fail 'Raohane bar runtime regressed to inherited config/state/common/ii framework'
 fi
 
-if rg -n '^[[:space:]]*(Workspaces|SysTray|SystemIcons)[[:space:]]*\{|\bDateTime\.|\bHyprlandData\.' "$bar"; then
-  fail 'RaohaneBar regressed to inherited workspace/tray/status/time backends'
+if rg -n '^[[:space:]]*(Workspaces|SysTray|SystemIcons)[[:space:]]*\{|\bDateTime\.|\bHyprlandData\.' "$bar" "$module_host"; then
+  fail 'Raohane bar runtime regressed to inherited workspace/tray/status/time backends'
 fi
 
 for symbol in 'Hyprland\.workspaces' 'Hyprland\.monitorFor' 'workspace\.activate\(\)' 'Hyprland\.usingLua'; do
@@ -74,8 +95,10 @@ for symbol in \
   'running:[[:space:]]*root\.active'; do
   rg -q "$symbol" "$clock" || fail "RaohaneClock lost idle-safe timer contract: $symbol"
 done
-rg -q 'active:[[:space:]]*barWindow\.visible' "$bar" \
-  || fail 'horizontal bar does not suspend RaohaneClock while fullscreen/hidden'
+rg -q 'active:[[:space:]]*root\.hostActive' "$module_host" \
+  || fail 'horizontal bar module host does not suspend RaohaneClock while fullscreen/hidden'
+rg -q 'hostActive:[[:space:]]*barWindow\.visible' "$bar" \
+  || fail 'horizontal bar does not forward visibility to module timers'
 if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
@@ -125,4 +148,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: native bars preserve fullscreen behavior, Super reveal and equivalent IPC/shortcut product contracts\n'
+printf 'bar-boundary-audit: native bars preserve fullscreen behavior and the horizontal bar composes through the Raohane module registry\n'
