@@ -14,6 +14,7 @@ Rectangle {
     property color mutedColor: config.muted
     property int cardRadius: Number(config.radius)
     property bool loginBusy: false
+    property date now: new Date()
 
     function submitLogin() {
         if (loginBusy || userField.text.length === 0 || passwordField.text.length === 0)
@@ -72,14 +73,14 @@ Rectangle {
         spacing: 6
 
         Text {
-            text: Qt.formatTime(new Date(), "HH:mm")
+            text: Qt.formatTime(root.now, "HH:mm")
             color: root.textColor
             font.pixelSize: Math.max(54, parent.parent.width * 0.055)
             font.weight: Font.Light
         }
 
         Text {
-            text: Qt.formatDate(new Date(), "dddd, d MMMM")
+            text: Qt.formatDate(root.now, "dddd, d MMMM")
             color: root.mutedColor
             font.pixelSize: 18
         }
@@ -89,7 +90,7 @@ Rectangle {
         interval: 1000
         running: true
         repeat: true
-        onTriggered: root.childrenChanged()
+        onTriggered: root.now = new Date()
     }
 
     Rectangle {
