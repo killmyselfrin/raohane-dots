@@ -17,6 +17,7 @@ context='modules/raohane/RaohaneDesktopContextWidget.qml'
 system='modules/raohane/RaohaneDesktopSystemWidget.qml'
 motto='modules/raohane/RaohaneDesktopMottoWidget.qml'
 studio='modules/raohane/RaohaneWidgetStudio.qml'
+layout_studio='modules/raohane/RaohaneDesktopWidgetLayoutStudio.qml'
 widget_registry='modules/raohane/RaohaneDesktopWidgetRegistry.qml'
 qmldir='modules/raohane/qmldir'
 settings='modules/raohane/RaohaneSettingsContentV3.qml'
@@ -25,7 +26,7 @@ search='modules/raohane/RaohaneSettingsSearch.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 
-for path in "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
+for path in "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
   [[ -f "$path" ]] || fail "missing native widget path: $path"
 done
 
@@ -36,7 +37,8 @@ for registration in \
   '^RaohaneDesktopClockWidget 1\.0 RaohaneDesktopClockWidget\.qml$' \
   '^RaohaneDesktopContextWidget 1\.0 RaohaneDesktopContextWidget\.qml$' \
   '^RaohaneDesktopSystemWidget 1\.0 RaohaneDesktopSystemWidget\.qml$' \
-  '^RaohaneDesktopMottoWidget 1\.0 RaohaneDesktopMottoWidget\.qml$'; do
+  '^RaohaneDesktopMottoWidget 1\.0 RaohaneDesktopMottoWidget\.qml$' \
+  '^RaohaneDesktopWidgetLayoutStudio 1\.0 RaohaneDesktopWidgetLayoutStudio\.qml$'; do
   rg -q "$registration" "$qmldir" || fail "desktop widget runtime lost registration: $registration"
 done
 
@@ -52,15 +54,48 @@ for source in RaohaneDesktopClockWidget.qml RaohaneDesktopContextWidget.qml Raoh
 done
 rg -q 'function definitions\(\): var' "$widget_registry" \
   || fail 'Desktop Widget Registry lost ordered metadata access'
-rg -q 'function idsForZone\(zone: string\): var' "$widget_registry" \
-  || fail 'Desktop Widget Registry lost zone metadata access'
 
-rg -q 'RaohaneDesktopWidgetRegistry\.idsForZone\("primary"\)' "$widgets" \
-  || fail 'desktop runtime no longer composes the primary registry zone'
-rg -q 'RaohaneDesktopWidgetRegistry\.idsForZone\("secondary"\)' "$widgets" \
-  || fail 'desktop runtime no longer composes the secondary registry zone'
+rg -q 'property var desktopWidgetComposition:[[:space:]]*root\.defaultDesktopWidgetComposition\(\)' "$config" \
+  || fail 'native config lost persisted desktop widget composition'
+rg -q 'function defaultDesktopWidgetComposition\(\): var' "$config" \
+  || fail 'native config lost default desktop widget composition'
+rg -q 'function sanitizeDesktopWidgetComposition\(value\): var' "$config" \
+  || fail 'native config lost desktop widget composition sanitizer'
+rg -q 'composition:[[:space:]]*root\.sanitizeDesktopWidgetComposition\(root\.desktopWidgetComposition\)' "$config" \
+  || fail 'native snapshot no longer persists desktop widget composition'
+rg -q 'assignIfPresent\(desktopWidgets, "composition"' "$config" \
+  || fail 'native config no longer loads desktop widget composition'
+rg -q 'onDesktopWidgetCompositionChanged:[[:space:]]*scheduleSave\(\)' "$config" \
+  || fail 'desktop widget composition changes are not persisted'
+
+jq -e '
+  .schemaVersion == 12 and
+  (.desktopWidgets | type == "object") and
+  (.desktopWidgets.enabled | type == "boolean") and
+  (.desktopWidgets.showClock | type == "boolean") and
+  (.desktopWidgets.showContext | type == "boolean") and
+  (.desktopWidgets.showSystem | type == "boolean") and
+  (.desktopWidgets.showMotto | type == "boolean") and
+  (.desktopWidgets.composition.primary == ["clock", "context"]) and
+  (.desktopWidgets.composition.secondary == ["system", "motto"]) and
+  (.desktopWidgets.compact | type == "boolean") and
+  (.desktopWidgets.layout == "balanced") and
+  (.desktopWidgets.scale | type == "number") and
+  (.desktopWidgets.opacity | type == "number")
+' "$defaults" >/dev/null || fail 'native widget defaults are invalid'
+
+rg -q 'RaohaneConfig\.sanitizeDesktopWidgetComposition\(RaohaneConfig\.desktopWidgetComposition\)' "$widgets" \
+  || fail 'desktop runtime does not consume the persisted sanitized composition'
+rg -q 'root\.composition\.primary' "$widgets" \
+  || fail 'desktop runtime lost the primary persisted zone'
+rg -q 'root\.composition\.secondary' "$widgets" \
+  || fail 'desktop runtime lost the secondary persisted zone'
 rg -q 'delegate:[[:space:]]*RaohaneDesktopWidgetHost[[:space:]]*\{' "$widgets" \
-  || fail 'desktop runtime no longer renders registry IDs through the shared host'
+  || fail 'desktop runtime no longer renders composition IDs through the shared host'
+if rg -q 'RaohaneDesktopWidgetRegistry\.idsForZone\(' "$widgets"; then
+  fail 'desktop runtime regressed to hard-coded registry preferred zones instead of persisted composition'
+fi
+
 rg -q 'RaohaneDesktopWidgetRegistry\.definition\(root\.widgetId\)' "$host" \
   || fail 'desktop widget host lost registry metadata lookup'
 rg -q 'RaohaneConfig\[root\.configKey\]' "$host" \
@@ -82,14 +117,27 @@ rg -q 'RaohaneDesktopWidgetRegistry\.layouts' "$studio" \
   || fail 'Widget Studio no longer consumes registry composition presets'
 rg -q 'desktopWidgetsLayout === modelData\.key' "$studio" \
   || fail 'Widget Studio presets are not connected to native config'
+rg -q 'RaohaneDesktopWidgetLayoutStudio[[:space:]]*\{' "$studio" \
+  || fail 'Widget Studio lost the persisted layout editor'
 if rg -q 'readonly property var widgets:[[:space:]]*\[|readonly property var layouts:[[:space:]]*\[' "$studio"; then
   fail 'Widget Studio reintroduced duplicate widget or layout metadata'
 fi
+
+rg -q 'RaohaneConfig\.desktopWidgetComposition' "$layout_studio" \
+  || fail 'Widget Layout Studio lost live native composition binding'
+rg -q 'function moveWithin\(zone: string, index: int, delta: int\): void' "$layout_studio" \
+  || fail 'Widget Layout Studio lost within-zone ordering'
+rg -q 'function moveAcross\(zone: string, index: int\): void' "$layout_studio" \
+  || fail 'Widget Layout Studio lost cross-zone movement'
+rg -q 'defaultDesktopWidgetComposition\(\)' "$layout_studio" \
+  || fail 'Widget Layout Studio lost reset-to-default behavior'
 
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" \
   || fail 'Settings search is not driven by the native page registry'
 rg -q 'key:[[:space:]]*"widgets".*source:[[:space:]]*"RaohaneWidgetStudio\.qml"' "$registry" \
   || fail 'Settings registry does not declaratively route the visual Widget Studio'
+rg -q 'key:[[:space:]]*"desktopWidgetComposition".*label:[[:space:]]*qsTr\("Widget positions"\)' "$registry" \
+  || fail 'Settings search no longer exposes Widget Layout Studio'
 rg -q 'source:[[:space:]]*root\.currentPageInfo\?\.source' "$settings" \
   || fail 'Settings shell does not load widget pages through registry sources'
 
@@ -115,20 +163,6 @@ for property_name in "${properties[@]}"; do
     || fail "Settings registry does not expose $property_name"
 done
 
-jq -e '
-  .schemaVersion == 12 and
-  (.desktopWidgets | type == "object") and
-  (.desktopWidgets.enabled | type == "boolean") and
-  (.desktopWidgets.showClock | type == "boolean") and
-  (.desktopWidgets.showContext | type == "boolean") and
-  (.desktopWidgets.showSystem | type == "boolean") and
-  (.desktopWidgets.showMotto | type == "boolean") and
-  (.desktopWidgets.compact | type == "boolean") and
-  (.desktopWidgets.layout == "balanced") and
-  (.desktopWidgets.scale | type == "number") and
-  (.desktopWidgets.opacity | type == "number")
-' "$defaults" >/dev/null || fail 'native widget defaults are invalid'
-
 for symbol in \
   'RaohaneConfig\.desktopWidgetsCompact' \
   'RaohaneConfig\.desktopWidgetsLayout' \
@@ -149,8 +183,8 @@ if [[ -e defaults/widgets ]]; then
   find defaults/widgets -type f -print -quit | grep -q . \
     && fail 'retired inherited widget SDK returned'
 fi
-if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWidget|~/.config/inir/widgets' "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$widget_registry" "$settings" "$registry" "$search"; then
+if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWidget|~/.config/inir/widgets' "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$widget_registry" "$settings" "$registry" "$search"; then
   fail 'desktop widgets depend on retired inherited APIs'
 fi
 
-printf 'desktop-widget-boundary-audit: registry-driven widget runtime and Widget Studio, native config, declarative Settings/search and service ownership are valid\n'
+printf 'desktop-widget-boundary-audit: persisted registry-driven widget composition, Widget Studio, native config, declarative Settings/search and service ownership are valid\n'
