@@ -134,13 +134,16 @@ Scope {
 
                 RaohaneSurface {
                     id: leftIsland
+                    visible: root.activeLayout.left.length > 0
                     anchors {
                         left: parent.left
                         leftMargin: 14
                         verticalCenter: parent.verticalCenter
                     }
-                    width: Math.min(parent.width * 0.38, leftRow.implicitWidth + 22)
-                    height: barWindow.podHeight
+                    width: visible
+                        ? Math.min(parent.width * 0.38, Math.max(52, leftRow.implicitWidth + 22))
+                        : 0
+                    height: visible ? barWindow.podHeight : 0
                     surfaceRadius: Math.min(Math.round(height * 0.42), height / 2)
                     raised: true
                     showSheen: false
@@ -175,6 +178,7 @@ Scope {
 
                 RowLayout {
                     id: centerRow
+                    visible: root.activeLayout.center.length > 0
                     anchors.centerIn: parent
                     spacing: 7
 
@@ -198,13 +202,16 @@ Scope {
 
                 RaohaneSurface {
                     id: rightIsland
+                    visible: root.activeLayout.right.length > 0
                     anchors {
                         right: parent.right
                         rightMargin: 14
                         verticalCenter: parent.verticalCenter
                     }
-                    width: Math.min(parent.width * 0.38, Math.max(180, rightRow.implicitWidth + 20))
-                    height: barWindow.podHeight
+                    width: visible
+                        ? Math.min(parent.width * 0.38, Math.max(52, rightRow.implicitWidth + 20))
+                        : 0
+                    height: visible ? barWindow.podHeight : 0
                     surfaceRadius: Math.min(Math.round(height * 0.42), height / 2)
                     raised: true
                     showSheen: false
