@@ -36,6 +36,7 @@ slider='modules/raohane/RaohaneSlider.qml'
 switch='modules/raohane/RaohaneSwitch.qml'
 clock='modules/raohane/RaohaneClock.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
+quick_tile='modules/raohane/RaohaneQuickControlTile.qml'
 sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 session='modules/raohane/RaohaneSessionScreen.qml'
 task_manager='modules/raohane/RaohaneTaskManager.qml'
@@ -50,7 +51,7 @@ osk_key='modules/raohane/RaohaneOskKey.qml'
 for file in \
   "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" "$settings_content" \
   "$settings_navigation" "$settings_header" "$settings_section" "$settings_control" "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" \
-  "$context" "$notification" "$surface" "$icon_button" "$motion" "$slider" "$switch" "$clock" "$quick" "$sidebar" \
+  "$context" "$notification" "$surface" "$icon_button" "$motion" "$slider" "$switch" "$clock" "$quick" "$quick_tile" "$sidebar" \
   "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
   [[ -f "$file" ]] || fail "missing visual surface: $file"
 done
@@ -150,11 +151,11 @@ for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sid
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
 done
 
-if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$control" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_section" "$settings_control"; then
+if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$quick_tile" "$control" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_section" "$settings_control"; then
   fail 'minimal primary controls contain retired cyber-noir hard-coded colors'
 fi
-rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls do not consume minimalist surface tokens'
-rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls do not consume shared minimal borders'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles do not consume minimalist surface tokens'
+rg -q 'RaohaneTheme\.borderStrong' "$quick_tile" || fail 'Quick Control tiles do not consume shared minimal borders'
 rg -q 'RaohaneTheme\.surfaceSubtle' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
 rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted navigation'
 rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted page header'
@@ -202,4 +203,4 @@ rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
