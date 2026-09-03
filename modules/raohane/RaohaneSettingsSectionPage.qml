@@ -9,16 +9,18 @@ Item {
     property string sectionKey: "general"
     readonly property var pageInfo: RaohaneSettingsPageRegistry.page(root.sectionKey)
     readonly property var entries: RaohaneSettingsPageRegistry.sectionEntries(root.sectionKey)
+    readonly property string extensionSource: RaohaneSettingsSectionRegistry.source(root.sectionKey)
 
     function goTo(search: string): void {
-        const needle = String(search ?? "").toLowerCase()
+        const needle = String(search ?? "").trim()
         if (needle === "")
             return
-        if (root.sectionKey === "bar" && (needle.includes("module") || needle.includes("studio") || needle.includes("layout"))) {
-            settingsFlick.contentY = Math.max(0, settingsList.implicitHeight + 118)
+        if (RaohaneSettingsSectionRegistry.ownsControl(root.sectionKey, needle)) {
+            settingsFlick.contentY = Math.max(0, extensionLoader.y - 18)
             return
         }
-        const index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(needle) || entry.key.toLowerCase().includes(needle))
+        const normalized = needle.toLowerCase()
+        const index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(normalized) || entry.key.toLowerCase().includes(normalized))
         if (index >= 0)
             settingsFlick.contentY = Math.max(0, index * 68 - 18)
     }
@@ -152,9 +154,18 @@ Item {
                 }
             }
 
-            RaohaneBarStudio {
-                visible: root.sectionKey === "bar"
+            Loader {
+                id: extensionLoader
                 width: parent.width
+                active: root.extensionSource !== ""
+                visible: active
+                source: root.extensionSource
+                height: active ? implicitHeight : 0
+
+                onLoaded: {
+                    if (item && item.hasOwnProperty("width"))
+                        item.width = width
+                }
             }
         }
     }
