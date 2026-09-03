@@ -7,6 +7,7 @@ singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneSurfaceRegistry 1.0 RaohaneSurfaceRegistry.qml
 singleton RaohaneBarModuleRegistry 1.0 RaohaneBarModuleRegistry.qml
 singleton RaohaneQuickControlRegistry 1.0 RaohaneQuickControlRegistry.qml
+singleton RaohaneDesktopWidgetRegistry 1.0 RaohaneDesktopWidgetRegistry.qml
 singleton RaohaneSettingsPageRegistry 1.0 RaohaneSettingsPageRegistry.qml
 singleton RaohaneSettingsSectionRegistry 1.0 RaohaneSettingsSectionRegistry.qml
 singleton RaohaneSettingsRouter 1.0 RaohaneSettingsRouter.qml
