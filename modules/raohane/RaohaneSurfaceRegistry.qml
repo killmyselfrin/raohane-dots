@@ -7,8 +7,9 @@ import QtQuick
 // The registry deliberately describes product semantics rather than concrete
 // QML instances. RaohaneState owns ephemeral values, while individual surface
 // components remain responsible for their presentation and compositor-facing
-// window geometry. Future surface hosts can consume the same metadata without
-// reintroducing per-component switch tables.
+// window geometry. Surface lifetime is declarative: `resident` surfaces stay
+// instantiated for global entrypoints, while `on-demand` surfaces exist only
+// while their state is open.
 QtObject {
     id: root
 
@@ -92,7 +93,7 @@ QtObject {
             role: "settings",
             layer: "overlay",
             placement: "center",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "welcome": {
             stateProperty: "welcomeOpen",
@@ -101,7 +102,7 @@ QtObject {
             role: "onboarding",
             layer: "overlay",
             placement: "center",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "session": {
             stateProperty: "sessionOpen",
