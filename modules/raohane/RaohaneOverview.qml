@@ -70,6 +70,15 @@ Scope {
         root.activateWorkspace(root.workspaceIds[index])
     }
 
+    function moveSelection(dx: int, dy: int): void {
+        const row = Math.floor(root.selectedIndex / root.columns)
+        const column = root.selectedIndex % root.columns
+        const rows = Math.ceil(root.workspaceCount / root.columns)
+        const nextRow = Math.max(0, Math.min(rows - 1, row + dy))
+        const nextColumn = Math.max(0, Math.min(root.columns - 1, column + dx))
+        root.selectedIndex = Math.min(root.workspaceCount - 1, nextRow * root.columns + nextColumn)
+    }
+
     Connections {
         target: RaohaneState
         function onOverviewOpenChanged(): void {
@@ -117,7 +126,7 @@ Scope {
             opacity: overviewPanel.entered ? 1 : 0
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
 
             MouseArea {
@@ -144,15 +153,15 @@ Scope {
             transform: Translate {
                 y: overviewPanel.entered ? 0 : 12
                 Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
                 }
             }
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
             Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             MouseArea {
@@ -165,16 +174,16 @@ Scope {
                     root.close()
                     event.accepted = true
                 } else if (event.key === Qt.Key_Left) {
-                    root.selectedIndex = Math.max(0, root.selectedIndex - 1)
+                    root.moveSelection(-1, 0)
                     event.accepted = true
                 } else if (event.key === Qt.Key_Right) {
-                    root.selectedIndex = Math.min(root.workspaceCount - 1, root.selectedIndex + 1)
+                    root.moveSelection(1, 0)
                     event.accepted = true
                 } else if (event.key === Qt.Key_Up) {
-                    root.selectedIndex = Math.max(0, root.selectedIndex - root.columns)
+                    root.moveSelection(0, -1)
                     event.accepted = true
                 } else if (event.key === Qt.Key_Down) {
-                    root.selectedIndex = Math.min(root.workspaceCount - 1, root.selectedIndex + root.columns)
+                    root.moveSelection(0, 1)
                     event.accepted = true
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                     root.activateSelected()
@@ -269,200 +278,18 @@ Scope {
                     Repeater {
                         model: root.workspaceIds
 
-                        delegate: RaohaneSurface {
-                            id: workspaceCard
-
+                        delegate: RaohaneOverviewWorkspaceCard {
                             required property var modelData
                             required property int index
 
-                            readonly property int workspaceId: Number(modelData)
-                            readonly property var workspaceObject: root.workspaceForId(workspaceId)
-                            readonly property var windows: workspaceObject?.toplevels.values ?? []
-                            readonly property bool activeWorkspace: workspaceId === root.activeWorkspaceId
-                            readonly property bool selected: index === root.selectedIndex
-
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.minimumHeight: 128
-                            surfaceRadius: 17
-                            raised: activeWorkspace || selected
-                            hovered: workspaceMouse.containsMouse || activeFocus
-                            pressed: workspaceMouse.pressed
-                            interactive: true
-                            showSheen: false
-                            hoverScale: 1.008
-                            pressedScale: 0.994
-                            activeFocusOnTab: true
-                            border.color: activeWorkspace ? RaohaneTheme.accentBorder
-                                : selected ? RaohaneTheme.borderStrong
-                                : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
-
-                            Rectangle {
-                                visible: workspaceCard.activeWorkspace
-                                anchors {
-                                    left: parent.left
-                                    top: parent.top
-                                    bottom: parent.bottom
-                                    leftMargin: 3
-                                    topMargin: 12
-                                    bottomMargin: 12
-                                }
-                                width: 2
-                                radius: 1
-                                color: RaohaneTheme.accent
-                            }
-
-                            ColumnLayout {
-                                z: 1
-                                anchors.fill: parent
-                                anchors.margins: 12
-                                spacing: 7
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-
-                                    Text {
-                                        text: String(workspaceCard.workspaceId).padStart(2, "0")
-                                        color: workspaceCard.activeWorkspace ? RaohaneTheme.accent : RaohaneTheme.text
-                                        font.pixelSize: 18
-                                        font.weight: Font.Medium
-
-                                        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                                    }
-
-                                    Item { Layout.fillWidth: true }
-
-                                    RaohaneSurface {
-                                        visible: workspaceCard.activeWorkspace
-                                        implicitWidth: activeText.implicitWidth + 12
-                                        implicitHeight: 21
-                                        surfaceRadius: 7
-                                        active: true
-                                        showSheen: false
-
-                                        Text {
-                                            id: activeText
-                                            anchors.centerIn: parent
-                                            text: qsTr("Active")
-                                            color: RaohaneTheme.textMuted
-                                            font.pixelSize: 7
-                                            font.weight: Font.DemiBold
-                                        }
-                                    }
-                                }
-
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    height: 1
-                                    color: RaohaneTheme.borderFaint
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    Layout.fillHeight: true
-                                    spacing: 4
-
-                                    Repeater {
-                                        model: workspaceCard.windows.slice(0, 4)
-
-                                        delegate: RaohaneSurface {
-                                            id: windowRow
-                                            required property var modelData
-
-                                            Layout.fillWidth: true
-                                            Layout.preferredHeight: 26
-                                            surfaceRadius: 8
-                                            transparentIdle: !Boolean(windowRow.modelData?.activated)
-                                            active: Boolean(windowRow.modelData?.activated)
-                                            hovered: windowMouse.containsMouse
-                                            pressed: windowMouse.pressed
-                                            interactive: true
-                                            showSheen: false
-                                            hoverScale: 1.004
-                                            pressedScale: 0.992
-                                            opacity: modelData?.wayland ? 1 : 0.65
-
-                                            RowLayout {
-                                                anchors.fill: parent
-                                                anchors.leftMargin: 7
-                                                anchors.rightMargin: 7
-                                                spacing: 7
-
-                                                Rectangle {
-                                                    width: 5
-                                                    height: 5
-                                                    radius: 3
-                                                    color: windowRow.modelData?.urgent
-                                                        ? RaohaneTheme.critical
-                                                        : windowRow.modelData?.activated ? RaohaneTheme.accent : RaohaneTheme.textFaint
-
-                                                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                                                }
-
-                                                Text {
-                                                    Layout.fillWidth: true
-                                                    text: windowRow.modelData?.title ?? qsTr("Window")
-                                                    color: windowRow.modelData?.activated ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                                    font.pixelSize: 8
-                                                    font.weight: windowRow.modelData?.activated ? Font.DemiBold : Font.Normal
-                                                    elide: Text.ElideRight
-                                                }
-                                            }
-
-                                            MouseArea {
-                                                id: windowMouse
-                                                anchors.fill: parent
-                                                z: 2
-                                                enabled: !!windowRow.modelData?.wayland
-                                                hoverEnabled: true
-                                                preventStealing: true
-                                                acceptedButtons: Qt.LeftButton
-                                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                                onEntered: root.selectedIndex = workspaceCard.index
-                                                onClicked: root.activateWindow(windowRow.modelData)
-                                            }
-                                        }
-                                    }
-
-                                    Text {
-                                        visible: workspaceCard.windows.length === 0
-                                        text: qsTr("Empty workspace")
-                                        color: RaohaneTheme.textFaint
-                                        font.pixelSize: 8
-                                    }
-
-                                    Item { Layout.fillHeight: true }
-                                }
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-
-                                    Text {
-                                        text: qsTr("%1 windows").arg(workspaceCard.windows.length)
-                                        color: RaohaneTheme.textFaint
-                                        font.pixelSize: 7
-                                    }
-                                    Item { Layout.fillWidth: true }
-                                    Text {
-                                        visible: workspaceCard.windows.length > 4
-                                        text: "+" + (workspaceCard.windows.length - 4)
-                                        color: RaohaneTheme.textMuted
-                                        font.pixelSize: 7
-                                        font.weight: Font.DemiBold
-                                    }
-                                }
-                            }
-
-                            MouseArea {
-                                id: workspaceMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                acceptedButtons: Qt.LeftButton
-                                onPressed: workspaceCard.forceActiveFocus()
-                                onEntered: root.selectedIndex = workspaceCard.index
-                                onClicked: root.activateWorkspace(workspaceCard.workspaceId)
-                            }
+                            workspaceId: Number(modelData)
+                            workspaceObject: root.workspaceForId(workspaceId)
+                            cardIndex: index
+                            activeWorkspace: workspaceId === root.activeWorkspaceId
+                            selected: index === root.selectedIndex
+                            onHoveredIndex: hoveredIndex => root.selectedIndex = hoveredIndex
+                            onWorkspaceActivated: workspaceId => root.activateWorkspace(workspaceId)
+                            onWindowActivated: toplevel => root.activateWindow(toplevel)
                         }
                     }
                 }
