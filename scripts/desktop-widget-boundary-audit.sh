@@ -76,6 +76,16 @@ rg -q 'RaohaneSystemInfo\.' "$system" || fail 'system widget lost native host-st
 rg -q 'Timer[[:space:]]*\{' "$clock" || fail 'clock widget lost its local idle-safe time source'
 rg -q 'Move gently\. Stay present\.' "$motto" || fail 'motto widget lost native ambient copy'
 
+rg -q 'RaohaneDesktopWidgetRegistry\.definitions\(\)' "$studio" \
+  || fail 'Widget Studio no longer consumes registry widget metadata'
+rg -q 'RaohaneDesktopWidgetRegistry\.layouts' "$studio" \
+  || fail 'Widget Studio no longer consumes registry composition presets'
+rg -q 'desktopWidgetsLayout === modelData\.key' "$studio" \
+  || fail 'Widget Studio presets are not connected to native config'
+if rg -q 'readonly property var widgets:[[:space:]]*\[|readonly property var layouts:[[:space:]]*\[' "$studio"; then
+  fail 'Widget Studio reintroduced duplicate widget or layout metadata'
+fi
+
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" \
   || fail 'Settings search is not driven by the native page registry'
 rg -q 'key:[[:space:]]*"widgets".*source:[[:space:]]*"RaohaneWidgetStudio\.qml"' "$registry" \
@@ -91,11 +101,6 @@ for property_name in desktopWidgetsLayout desktopWidgetsScale desktopWidgetsOpac
   rg -q "key:[[:space:]]*\"${property_name}\"" "$registry" \
     || fail "Settings registry/search schema does not expose $property_name"
 done
-
-rg -q 'readonly property var layouts:' "$studio" \
-  || fail 'Widget Studio is missing native composition presets'
-rg -q 'desktopWidgetsLayout === modelData\.key' "$studio" \
-  || fail 'Widget Studio presets are not connected to native config'
 
 properties=(
   desktopWidgetsEnabled desktopWidgetClock desktopWidgetContext
@@ -148,4 +153,4 @@ if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWi
   fail 'desktop widgets depend on retired inherited APIs'
 fi
 
-printf 'desktop-widget-boundary-audit: registry-driven widget runtime, native config, declarative Settings/search and service ownership are valid\n'
+printf 'desktop-widget-boundary-audit: registry-driven widget runtime and Widget Studio, native config, declarative Settings/search and service ownership are valid\n'
