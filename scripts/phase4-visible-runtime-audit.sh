@@ -17,6 +17,7 @@ settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
 settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
 settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
+settings_router='modules/raohane/RaohaneSettingsRouter.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 runtime_probe='modules/raohane/RaohaneRuntimeProbe.qml'
 live_check='scripts/phase4-live-check.sh'
@@ -46,6 +47,7 @@ phase4_surfaces=(
   "$settings_navigation"
   "$settings_header"
   "$settings_registry"
+  "$settings_router"
   "$settings_search"
   "$runtime_probe"
 )
@@ -78,6 +80,8 @@ for type in RaohaneSettingsNavigation RaohaneSettingsPageHeader; do
   rg -q "^${type} .*${type}\.qml$" "$qmldir" \
     || fail "Settings architecture type is not registered: $type"
 done
+rg -q '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' "$qmldir" \
+  || fail 'Settings router is not registered'
 rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" \
   || fail 'Settings coordinator lost extracted navigation'
 rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" \
@@ -141,8 +145,10 @@ rg -q 'function page\(page: string\)' "$settings" \
   || fail 'Settings lost direct page IPC routing'
 rg -q 'function status\(\): string' "$settings" \
   || fail 'Settings lost runtime status IPC'
-rg -q 'RaohaneState\.settingsPage = entry\.section \+ ":" \+ entry\.key' "$settings_search" \
-  || fail 'Settings search does not route to exact native controls'
+rg -q 'RaohaneSettingsRouter\.requestSearch\(entry\.section, entry\.key\)' "$settings_search" \
+  || fail 'Settings search does not route exact native controls through the router'
+rg -q 'function requestSearch\(section: string, key: string\): bool' "$settings_router" \
+  || fail 'Settings router lost search-route contract'
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$settings_search" \
   || fail 'Settings search does not consume the page registry'
 
@@ -204,4 +210,4 @@ for symbol in \
   rg -q "$symbol" "$cli" || fail "Raohane CLI lost Phase 4 route: $symbol"
 done
 
-printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, extracted Settings navigation/header, registry-backed search and full live validation workflow are valid\n'
+printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, extracted Settings navigation/header, router-backed search and full live validation workflow are valid\n'
