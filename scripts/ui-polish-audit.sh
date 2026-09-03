@@ -14,6 +14,9 @@ systray='modules/raohane/RaohaneSysTray.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 desktop='modules/raohane/RaohaneDesktopCanvas.qml'
 desktop_widgets='modules/raohane/RaohaneDesktopWidgets.qml'
+desktop_host='modules/raohane/RaohaneDesktopWidgetHost.qml'
+desktop_context='modules/raohane/RaohaneDesktopContextWidget.qml'
+desktop_system='modules/raohane/RaohaneDesktopSystemWidget.qml'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_v3='modules/raohane/RaohaneSettingsContentV3.qml'
@@ -30,7 +33,7 @@ quick_tile='modules/raohane/RaohaneQuickControlTile.qml'
 notifications='modules/raohane/RaohaneNotificationCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 
-for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section_registry" "$settings_section" "$settings_control" "$settings_search" "$control" "$quick" "$quick_tile" "$notifications" "$osd"; do
+for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$desktop_host" "$desktop_context" "$desktop_system" "$workspaces" "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section_registry" "$settings_section" "$settings_control" "$settings_search" "$control" "$quick" "$quick_tile" "$notifications" "$osd"; do
   [[ -f "$file" ]] || fail "missing polished UI surface: $file"
 done
 
@@ -54,10 +57,13 @@ if rg -n 'text:[[:space:]]*"ラ"|#79191523|#61171320|#5c17141f|#4c17141f|#20ffff
   fail 'Settings About reintroduced retired prototype chrome'
 fi
 
-rg -q 'RaohaneMotion\.' "$desktop_widgets" || fail 'Desktop widgets no longer follow the shared motion scale'
-rg -q 'RaohaneContext\.icon' "$desktop_widgets" || fail 'Desktop context icon lost its live context binding'
-rg -q 'RaohaneIcon[[:space:]]*\{' "$desktop_widgets" || fail 'Desktop context no longer renders through the Material icon wrapper'
-if rg -n 'duration:[[:space:]]*180' "$desktop" "$desktop_widgets"; then
+rg -q 'RaohaneMotion\.' "$desktop_widgets" || fail 'Desktop widget host no longer follows the shared motion scale'
+rg -q 'RaohaneDesktopWidgetRegistry\.idsForZone' "$desktop_widgets" || fail 'Desktop widget host lost registry-driven composition'
+rg -q 'RaohaneDesktopWidgetRegistry\.definition' "$desktop_host" || fail 'Desktop widget loader lost registry-backed metadata'
+rg -q 'RaohaneContext\.icon' "$desktop_context" || fail 'Desktop context widget lost its live context binding'
+rg -q 'RaohaneIcon[[:space:]]*\{' "$desktop_context" || fail 'Desktop context widget no longer renders through Material icons'
+rg -q 'RaohaneNetwork\.' "$desktop_system" || fail 'Desktop system widget lost live network status'
+if rg -n 'duration:[[:space:]]*180' "$desktop" "$desktop_widgets" "$desktop_context" "$desktop_system"; then
   fail 'Desktop canvas reintroduced a fixed animation duration outside RaohaneMotion'
 fi
 
@@ -143,4 +149,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: floating Control Center with registry-backed tiles, coordinator-based Settings V3 with extracted navigation/header, reusable control rows and registry-owned section extensions, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: registry-driven desktop widgets, floating Control Center with registry-backed tiles, coordinator-based Settings V3, shared controls, Sidebar, tray, About, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
