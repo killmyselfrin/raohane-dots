@@ -29,6 +29,11 @@ RaohaneRuntimeProbe 1.0 RaohaneRuntimeProbe.qml
 RaohaneBackground 1.0 RaohaneBackground.qml
 RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
 RaohaneDesktopWidgets 1.0 RaohaneDesktopWidgets.qml
+RaohaneDesktopWidgetHost 1.0 RaohaneDesktopWidgetHost.qml
+RaohaneDesktopClockWidget 1.0 RaohaneDesktopClockWidget.qml
+RaohaneDesktopContextWidget 1.0 RaohaneDesktopContextWidget.qml
+RaohaneDesktopSystemWidget 1.0 RaohaneDesktopSystemWidget.qml
+RaohaneDesktopMottoWidget 1.0 RaohaneDesktopMottoWidget.qml
 RaohaneOverview 1.0 RaohaneOverview.qml
 RaohaneOverviewWorkspaceCard 1.0 RaohaneOverviewWorkspaceCard.qml
 RaohaneOverviewWindowRow 1.0 RaohaneOverviewWindowRow.qml
