@@ -5,6 +5,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import qs.modules.raohane.config
+
 Singleton {
     id: root
 
@@ -58,6 +60,12 @@ Singleton {
         root.setEnabled(!root.enabled)
     }
 
+    function openManager(): void {
+        const command = String(RaohaneConfig.bluetoothCommand ?? "").trim()
+        if (command !== "")
+            Quickshell.execDetached(["bash", "-c", command])
+    }
+
     Process {
         id: adapterProbe
         environment: ({ LANG: "C", LC_ALL: "C" })
@@ -80,9 +88,6 @@ Singleton {
         onExited: root.refresh()
     }
 
-    // BlueZ's bluetoothctl monitor mode emits state changes instead of forcing
-    // two short-lived bluetoothctl probes every few seconds. A short debounce
-    // collapses bursts such as connect + services-resolved into one refresh.
     Process {
         id: bluezMonitor
         command: [
@@ -116,8 +121,6 @@ Singleton {
         onTriggered: bluezMonitor.running = true
     }
 
-    // Slow fallback keeps state correct if monitor output is unavailable on an
-    // older BlueZ build without restoring the former 3-second polling loop.
     Timer {
         interval: 15000
         repeat: true
