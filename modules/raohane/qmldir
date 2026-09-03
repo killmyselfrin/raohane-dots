@@ -48,6 +48,7 @@ RaohaneSettingsContentV3 1.0 RaohaneSettingsContentV3.qml
 RaohaneSettingsNavigation 1.0 RaohaneSettingsNavigation.qml
 RaohaneSettingsPageHeader 1.0 RaohaneSettingsPageHeader.qml
 RaohaneSettingsSectionPage 1.0 RaohaneSettingsSectionPage.qml
+RaohaneSettingsControlRow 1.0 RaohaneSettingsControlRow.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneWidgetStudio 1.0 RaohaneWidgetStudio.qml
 RaohaneBarStudio 1.0 RaohaneBarStudio.qml
