@@ -14,6 +14,8 @@ qmldir='modules/raohane/qmldir'
 config='modules/raohane/config/RaohaneConfig.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
+settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 runtime_probe='modules/raohane/RaohaneRuntimeProbe.qml'
@@ -41,6 +43,8 @@ phase4_surfaces=(
   modules/raohane/RaohaneOnScreenKeyboard.qml
   "$settings"
   "$settings_content"
+  "$settings_navigation"
+  "$settings_header"
   "$settings_registry"
   "$settings_search"
   "$runtime_probe"
@@ -70,6 +74,14 @@ for type in \
   rg -q "component:[[:space:]]*${type}[[:space:]]*\\{" "$family" \
     || fail "active family does not load Phase 4 type: $type"
 done
+for type in RaohaneSettingsNavigation RaohaneSettingsPageHeader; do
+  rg -q "^${type} .*${type}\.qml$" "$qmldir" \
+    || fail "Settings architecture type is not registered: $type"
+done
+rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" \
+  || fail 'Settings coordinator lost extracted navigation'
+rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" \
+  || fail 'Settings coordinator lost extracted page header'
 
 rg -q 'WlSessionLock[[:space:]]*\{' modules/raohane/RaohaneLock.qml \
   || fail 'native Lock lost WlSessionLock'
@@ -117,8 +129,6 @@ if rg -n -i 'still being migrated|migration placeholder|temporary compatibility'
   fail 'Phase 4 visible surface regressed to migration-only UX'
 fi
 
-# Final Settings parity: navigation, exact-control search and persisted values
-# are linked through one Raohane-owned registry instead of duplicated UI tables.
 rg -q '^RaohaneSettingsSearch .*RaohaneSettingsSearch.qml$' "$qmldir" \
   || fail 'global Settings search is not registered'
 rg -q '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' "$qmldir" \
@@ -194,4 +204,4 @@ for symbol in \
   rg -q "$symbol" "$cli" || fail "Raohane CLI lost Phase 4 route: $symbol"
 done
 
-printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, registry-backed Settings search and full live validation workflow are valid\n'
+printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, extracted Settings navigation/header, registry-backed search and full live validation workflow are valid\n'
