@@ -14,16 +14,16 @@ Scope {
 
     function actionForCorner(corner: int): string {
         if (corner === RaohaneRoundCorner.Corner.TopLeft)
-            return "sidebarLeftOpen"
+            return "leftSidebar"
         if (corner === RaohaneRoundCorner.Corner.TopRight)
-            return "sidebarRightOpen"
+            return "controlCenter"
         if (corner === RaohaneRoundCorner.Corner.BottomLeft)
             return RaohaneConfig.hotCornerBottomLeftAction
         return RaohaneConfig.hotCornerBottomRightAction
     }
 
-    function triggerCorner(corner: int): void {
-        RaohaneState.toggleAction(root.actionForCorner(corner))
+    function triggerCorner(corner: int, targetScreen): void {
+        RaohaneActionRegistry.trigger(root.actionForCorner(corner), targetScreen)
     }
 
     component CornerWindow: PanelWindow {
@@ -112,7 +112,7 @@ Scope {
             onEntered: {
                 if (!cornerWindow.isTop || !RaohaneConfig.hotCornerClickless)
                     return
-                root.triggerCorner(cornerWindow.corner)
+                root.triggerCorner(cornerWindow.corner, cornerWindow.targetScreen)
             }
 
             onPositionChanged: mouse => {
@@ -124,10 +124,10 @@ Scope {
                     : mouse.x <= 2
                 const correctY = mouse.y > RaohaneConfig.hotCornerVerticalOffset
                 if (correctX && correctY)
-                    root.triggerCorner(cornerWindow.corner)
+                    root.triggerCorner(cornerWindow.corner, cornerWindow.targetScreen)
             }
 
-            onPressed: root.triggerCorner(cornerWindow.corner)
+            onPressed: root.triggerCorner(cornerWindow.corner, cornerWindow.targetScreen)
 
             onWheel: wheel => {
                 if (!RaohaneConfig.hotCornerValueScroll)
