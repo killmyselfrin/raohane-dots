@@ -26,15 +26,19 @@ backup='modules/raohane/RaohaneBackupSettings.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
+quick_studio='modules/raohane/RaohaneQuickControlsStudio.qml'
+quick_runtime='modules/raohane/RaohaneQuickControls.qml'
+quick_registry='modules/raohane/RaohaneQuickControlRegistry.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
+defaults='defaults/native.json'
 state='modules/raohane/RaohaneState.qml'
 qmldir='modules/raohane/qmldir'
 
 required=(
   "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$section_registry" "$router"
   "$section" "$control_row" "$preferences" "$preferences_hub" "$language" "$backup" "$home" "$catalog"
-  "$bar_studio" "$about" "$config" "$state" "$qmldir"
+  "$bar_studio" "$quick_studio" "$quick_runtime" "$quick_registry" "$about" "$config" "$defaults" "$state" "$qmldir"
 )
 for path in "${required[@]}"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
@@ -48,11 +52,13 @@ for registration in \
   '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
   '^singleton RaohaneSettingsSectionRegistry .*RaohaneSettingsSectionRegistry.qml$' \
   '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' \
+  '^singleton RaohaneQuickControlRegistry .*RaohaneQuickControlRegistry.qml$' \
   '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
   '^RaohaneSettingsControlRow .*RaohaneSettingsControlRow.qml$' \
   '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml$' \
   '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$' \
-  '^RaohaneBackupSettings .*RaohaneBackupSettings.qml$'; do
+  '^RaohaneBackupSettings .*RaohaneBackupSettings.qml$' \
+  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 
@@ -126,7 +132,10 @@ for symbol in 'property var pageInfo:' 'root\.pageInfo\?\.icon' 'root\.pageInfo\
 done
 
 for contract in \
-  'readonly property var extensions:' 'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
+  'readonly property var extensions:' \
+  'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
+  'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
+  'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
   'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
   'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
   rg -q "$contract" "$section_registry" || fail "Settings section registry lost contract: $contract"
@@ -144,7 +153,7 @@ for symbol in \
   'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource'; do
   rg -q "$symbol" "$section" || fail "native section renderer lost generic composition contract: $symbol"
 done
-if rg -n 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{|RaohaneBarStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"bar"' "$section"; then
+if rg -n 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{|RaohaneBarStudio[[:space:]]*\{|RaohaneQuickControlsStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"(bar|quick)"' "$section"; then
   fail 'generic Settings section renderer reabsorbed control or section-specific implementation'
 fi
 for symbol in \
@@ -179,7 +188,7 @@ fi
 
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" || fail 'global Settings search is not registry-backed'
 rg -q 'RaohaneSettingsRouter\.requestSearch\(entry\.section, entry\.key\)' "$search" || fail 'global Settings search bypasses router'
-for key in themePreset barModuleLayout desktopWidgetsLayout keybinds motion backup language; do
+for key in themePreset barModuleLayout quickControlTiles desktopWidgetsLayout keybinds motion backup language; do
   rg -q "key:[[:space:]]*\"${key}\"" "$registry" || fail "Settings registry lost search route: $key"
 done
 
@@ -190,19 +199,45 @@ rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Librar
 for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
   rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
 done
+for contract in \
+  'RaohaneConfig\.quickControlTiles' \
+  'RaohaneQuickControlRegistry\.sanitizeLayout' \
+  'RaohaneQuickControlRegistry\.tileIds' \
+  'function addTile\(id: string\): void' \
+  'function removeAt\(index: int\): void' \
+  'function move\(index: int, delta: int\): void' \
+  'function resetLayout\(\): void'; do
+  rg -q "$contract" "$quick_studio" || fail "Quick Controls Studio lost native contract: $contract"
+done
 for symbol in 'RaohaneSystemInfo\.' 'Quickshell\.shellPath\("VERSION"\)' 'raohane doctor all'; do
   rg -q "$symbol" "$about" || fail "About page lost native contract: $symbol"
 done
 
+# Quick Control composition is a persisted product contract: defaults feed
+# additive schema-v12 config, runtime consumes the sanitized array, Studio
+# mutates it live and Settings search routes directly to the Studio extension.
+for contract in \
+  'property var quickControlTiles:[[:space:]]*root\.defaultQuickControlTiles\(\)' \
+  'function defaultQuickControlTiles\(\): var' \
+  'function sanitizeQuickControlTiles\(value\): var' \
+  'tiles:[[:space:]]*root\.sanitizeQuickControlTiles\(root\.quickControlTiles\)' \
+  'root\.quickControlTiles[[:space:]]*=[[:space:]]*root\.sanitizeQuickControlTiles\(value\)' \
+  'onQuickControlTilesChanged:[[:space:]]*scheduleSave\(\)'; do
+  rg -q "$contract" "$config" || fail "native config lost persisted Quick Control layout contract: $contract"
+done
+rg -q '"tiles"[[:space:]]*:[[:space:]]*\[' "$defaults" || fail 'native defaults lost Quick Control tile composition'
+rg -q 'RaohaneConfig\.quickControlTiles' "$quick_runtime" || fail 'Quick Controls runtime does not consume persisted tile composition'
+rg -q 'RaohaneQuickControlRegistry\.sanitizeLayout' "$quick_runtime" || fail 'Quick Controls runtime does not validate persisted tile composition'
+
 mapfile -t registry_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$registry" | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
 [[ "${#registry_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys'
-for key in "${registry_keys[@]}" themePreset barModuleLayout desktopWidgetsLayout; do
+for key in "${registry_keys[@]}" themePreset barModuleLayout quickControlTiles desktopWidgetsLayout; do
   rg -q "property [^:]+ ${key}:" "$config" || fail "Settings registry points to non-native config key: $key"
 done
 
 if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bGlobalStates\.' \
-  "$content" "$navigation" "$header" "$registry" "$section_registry" "$router" "$section" "$control_row" "$preferences" "$language" "$settings" "$search"; then
+  "$content" "$navigation" "$header" "$registry" "$section_registry" "$router" "$section" "$control_row" "$preferences" "$language" "$settings" "$search" "$quick_studio"; then
   fail 'Settings architecture resolves inherited settings/common/root types'
 fi
 
-printf 'settings-boundary-audit: all Settings routes share one registry/router/workspace, with generic sections, reusable control rows, preferences, backup and language pages\n'
+printf 'settings-boundary-audit: all Settings routes share one registry/router/workspace, with generic sections, reusable control rows, persisted Bar/Quick Control studios, preferences, backup and language pages\n'
