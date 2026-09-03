@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 
 // Registry for section-specific Settings extensions. Generic section rendering
-// stays independent from concrete editors such as Bar Studio.
+// stays independent from concrete editors such as Bar and Quick Controls Studio.
 QtObject {
     id: root
 
@@ -11,6 +11,10 @@ QtObject {
         bar: {
             source: "RaohaneBarStudio.qml",
             controlKeys: ["barModuleLayout"]
+        },
+        quick: {
+            source: "RaohaneQuickControlsStudio.qml",
+            controlKeys: ["quickControlTiles"]
         }
     })
 
