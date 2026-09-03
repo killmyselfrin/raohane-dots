@@ -27,6 +27,7 @@ settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
 settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
 settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
+settings_section_registry='modules/raohane/RaohaneSettingsSectionRegistry.qml'
 settings_router='modules/raohane/RaohaneSettingsRouter.qml'
 settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
@@ -35,7 +36,7 @@ shell='shell.qml'
 installer='install-raohane.sh'
 root_qmldir='qmldir'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_router" "$settings_section" "$settings_control" "$family" "$shell" "$installer" "$root_qmldir"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section_registry" "$settings_router" "$settings_section" "$settings_control" "$family" "$shell" "$installer" "$root_qmldir"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -48,6 +49,7 @@ for registration in \
   '^singleton RaohaneFocusGrab .*RaohaneFocusGrab.qml$' \
   '^singleton RaohaneState .*RaohaneState.qml$' \
   '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
+  '^singleton RaohaneSettingsSectionRegistry .*RaohaneSettingsSectionRegistry.qml$' \
   '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' \
   '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' \
   '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
@@ -213,6 +215,15 @@ for symbol in \
   rg -q "$symbol" "$settings_registry" || fail "RaohaneSettingsPageRegistry lost declarative native contract: $symbol"
 done
 for symbol in \
+  'readonly property var extensions:' \
+  'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
+  'controlKeys:[[:space:]]*\["barModuleLayout"\]' \
+  'function extension\(sectionKey: string\): var' \
+  'function source\(sectionKey: string\): string' \
+  'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
+  rg -q "$symbol" "$settings_section_registry" || fail "RaohaneSettingsSectionRegistry lost extension contract: $symbol"
+done
+for symbol in \
   'signal pageRequested\(string pageKey, string controlKey\)' \
   'readonly property var specialAliases:' \
   'function splitRoute\(route: string, control: string\): var' \
@@ -225,17 +236,23 @@ done
 if rg -n 'legacyStateBridge|onSettingsPageChanged' "$settings_router"; then
   fail 'RaohaneSettingsRouter reintroduced legacy state routing'
 fi
-for symbol in 'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsControlRow[[:space:]]*\{' 'RaohaneBarStudio[[:space:]]*\{'; do
-  rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost section composition contract: $symbol"
+for symbol in \
+  'RaohaneSettingsPageRegistry\.sectionEntries' \
+  'RaohaneSettingsSectionRegistry\.source' \
+  'RaohaneSettingsSectionRegistry\.ownsControl' \
+  'RaohaneSettingsControlRow[[:space:]]*\{' \
+  'Loader[[:space:]]*\{' \
+  'source:[[:space:]]*root\.extensionSource'; do
+  rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost generic section composition contract: $symbol"
 done
 for symbol in 'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneIconButton[[:space:]]*\{' 'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void'; do
   rg -q "$symbol" "$settings_control" || fail "RaohaneSettingsControlRow lost config-bound control contract: $symbol"
 done
-if rg -q 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{' "$settings_section"; then
-  fail 'RaohaneSettingsSectionPage reabsorbed config-bound control implementation'
+if rg -q 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{|RaohaneBarStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"bar"' "$settings_section"; then
+  fail 'RaohaneSettingsSectionPage reabsorbed config-bound or section-specific implementation'
 fi
 if rg -n '^import qs$|\bDirectories\.|\bConfig\.|\bGlobalStates\.|\.\./ii/settings/pages|modules/ii/settings/pages|compatibilityConfigFile' \
-  "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_router" "$settings_section" "$settings_control"; then
+  "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section_registry" "$settings_router" "$settings_section" "$settings_control"; then
   fail 'Raohane Settings architecture regressed to inherited settings/config/path framework'
 fi
 
@@ -265,4 +282,4 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+E
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost move-window workspace binds'
 
-printf 'core-framework-audit: native paths/config/state/focus/settings router without legacy route state, coordinator/navigation/header/registry/control-row, primary coordinator and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus/settings router without legacy route state, coordinator/navigation/header/page+section registries/control-row, primary coordinator and boot boundaries are valid\n'
