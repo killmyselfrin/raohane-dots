@@ -16,6 +16,7 @@ navigation='modules/raohane/RaohaneSettingsNavigation.qml'
 header='modules/raohane/RaohaneSettingsPageHeader.qml'
 registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 section='modules/raohane/RaohaneSettingsSectionPage.qml'
+control='modules/raohane/RaohaneSettingsControlRow.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
@@ -24,7 +25,7 @@ config='modules/raohane/config/RaohaneConfig.qml'
 state='modules/raohane/RaohaneState.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$section" "$home" "$catalog" "$bar_studio" "$about" "$config" "$state" "$qmldir"; do
+for path in "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$section" "$control" "$home" "$catalog" "$bar_studio" "$about" "$config" "$state" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
 done
 
@@ -35,6 +36,7 @@ for registration in \
   '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
   '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
   '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
+  '^RaohaneSettingsControlRow .*RaohaneSettingsControlRow.qml$' \
   '^RaohaneSettingsAbout .*RaohaneSettingsAbout.qml$' \
   '^RaohaneSettingsHome .*RaohaneSettingsHome.qml$' \
   '^RaohaneThemeCatalog .*RaohaneThemeCatalog.qml$' \
@@ -92,7 +94,11 @@ done
 for contract in \
   'readonly property var pages:' \
   'readonly property var aliases:' \
+  'readonly property var sectionOrder:' \
+  'readonly property var sectionSchemas:' \
+  'readonly property var searchOnlyEntries:' \
   'function resolvePageIndex\(requestedValue: string\): int' \
+  'function sectionSchema\(key: string\): var' \
   'function sectionDescription\(key: string\): string' \
   'function sectionEntries\(key: string\): var' \
   'function searchEntries\(\): var'; do
@@ -100,6 +106,9 @@ for contract in \
 done
 for page_key in home themes widgets interface bar quick general desktop displays hyprland services profile about; do
   rg -q "key:[[:space:]]*\"${page_key}\"" "$registry" || fail "native Settings route is missing: $page_key"
+done
+for section_key in quick general bar desktop widgets interface hyprland services profile; do
+  rg -q "${section_key}:[[:space:]]*\{" "$registry" || fail "native Settings section schema is missing: $section_key"
 done
 for group in PERSONALIZE SHELL SYSTEM; do
   rg -q "$group" "$registry" || fail "Settings page registry lost navigation group: $group"
@@ -116,6 +125,9 @@ for contract in \
 done
 rg -q 'externalSurface:[[:space:]]*"displaySettings"' "$registry" \
   || fail 'Display Settings route lost external surface ownership'
+if rg -q 'switch[[:space:]]*\(' "$registry"; then
+  fail 'Settings registry regressed to imperative per-section switch routing'
+fi
 
 mapfile -t page_sources < <(rg -o 'source:[[:space:]]*"[A-Za-z0-9_/-]+\.qml"' "$registry" \
   | sed -E 's/.*"([^"]+)"/\1/' | sort -u)
@@ -128,15 +140,28 @@ for source in RaohaneSettingsHome.qml RaohaneThemeCatalog.qml RaohaneWidgetStudi
     || fail "Settings registry lost declarative page source: $source"
 done
 
+# SectionPage owns section-level composition/deep-link behavior. ControlRow owns
+# all config-bound control-type interaction and rendering.
 for symbol in \
   'RaohaneSettingsPageRegistry\.sectionEntries' \
-  'RaohaneConfig\[' \
-  'RaohaneSwitch[[:space:]]*\{' \
-  'RaohaneIconButton[[:space:]]*\{' \
+  'RaohaneSettingsControlRow[[:space:]]*\{' \
   'RaohaneBarStudio[[:space:]]*\{' \
   'needle\.includes\("module"\)'; do
   rg -q "$symbol" "$section" || fail "native section renderer lost contract: $symbol"
 done
+for symbol in \
+  'RaohaneConfig\[' \
+  'RaohaneSwitch[[:space:]]*\{' \
+  'RaohaneIconButton[[:space:]]*\{' \
+  'TextInput[[:space:]]*\{' \
+  'function changeNumber\(delta: real\): void' \
+  'Keys\.onPressed' \
+  'MouseArea[[:space:]]*\{'; do
+  rg -q "$symbol" "$control" || fail "native Settings control row lost contract: $symbol"
+done
+if rg -q 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|TextInput[[:space:]]*\{' "$section"; then
+  fail 'Settings SectionPage reabsorbed config-bound control-row implementation'
+fi
 
 rg -q 'Open native\.json' "$home" \
   || fail 'Settings Home no longer exposes the native config entry point'
@@ -165,11 +190,11 @@ for key in themePreset barModuleLayout desktopWidgetsLayout; do
 done
 
 if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bMaterialSymbol[[:space:]]*\{|\bGlobalStates\.|\bContentPage[[:space:]]*\{' \
-  "$content" "$navigation" "$header" "$registry" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
+  "$content" "$navigation" "$header" "$registry" "$section" "$control" "$settings" "$search" "$catalog" "$bar_studio"; then
   fail 'Settings architecture resolves inherited settings/common/root types'
 fi
 if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.json"\)' \
-  "$content" "$navigation" "$header" "$registry" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
+  "$content" "$navigation" "$header" "$registry" "$section" "$control" "$settings" "$search" "$catalog" "$bar_studio"; then
   fail 'Settings still exposes the retired compatibility config path/name'
 fi
 
@@ -214,4 +239,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: coordinator, extracted navigation/header, declarative registry-loaded pages, native sections, Theme Library, Bar Studio and global search are Raohane-owned\n'
+printf 'settings-boundary-audit: coordinator, extracted navigation/header, data-driven registry, reusable control rows, native sections, Theme Library, Bar Studio and global search are Raohane-owned\n'
