@@ -6,27 +6,6 @@ QtObject {
     id: root
 
     signal pageRequested(string pageKey, string controlKey)
-    signal preferencesRequested(string section)
-    signal backupRequested()
-    signal languageRequested()
-
-    readonly property var specialAliases: ({
-        "keybinds": { kind: "preferences", target: "keybinds" },
-        "shortcuts": { kind: "preferences", target: "keybinds" },
-        "keyboard": { kind: "preferences", target: "keybinds" },
-        "motion": { kind: "preferences", target: "motion" },
-        "animations": { kind: "preferences", target: "motion" },
-        "animation": { kind: "preferences", target: "motion" },
-        "backup": { kind: "backup" },
-        "restore": { kind: "backup" },
-        "backup & restore": { kind: "backup" },
-        "language": { kind: "language" },
-        "locale": { kind: "language" }
-    })
-
-    function normalized(value: string): string {
-        return String(value ?? "").trim().toLowerCase()
-    }
 
     function splitRoute(route: string, control: string): var {
         const raw = String(route ?? "").trim()
@@ -45,23 +24,11 @@ QtObject {
 
     function request(route: string, control: string): bool {
         const parsed = root.splitRoute(route, control)
-        const requested = root.normalized(parsed.page)
-        if (requested === "")
+        const resolved = RaohaneSettingsPageRegistry.resolveRoute(parsed.page, parsed.control)
+        if (!resolved)
             return false
 
-        const special = root.specialAliases[requested]
-        if (special) {
-            RaohaneState.setPrimaryOpen("settings", true)
-            if (special.kind === "preferences")
-                root.preferencesRequested(special.target)
-            else if (special.kind === "backup")
-                root.backupRequested()
-            else if (special.kind === "language")
-                root.languageRequested()
-            return true
-        }
-
-        const index = RaohaneSettingsPageRegistry.resolvePageIndex(requested)
+        const index = RaohaneSettingsPageRegistry.resolvePageIndex(resolved.page)
         if (index < 0)
             return false
 
@@ -72,7 +39,7 @@ QtObject {
         }
 
         RaohaneState.setPrimaryOpen("settings", true)
-        root.pageRequested(page.key, String(parsed.control ?? ""))
+        root.pageRequested(page.key, String(resolved.control ?? ""))
         return true
     }
 
