@@ -2,8 +2,8 @@ pragma Singleton
 
 import QtQuick
 
-// Declarative metadata for Raohane desktop widgets. Runtime state and
-// persistence stay owned by RaohaneDesktopWidgets and RaohaneConfig.
+// Single declarative catalog for native desktop widgets. Runtime rendering,
+// Widget Studio and future persisted composition all consume the same IDs.
 QtObject {
     id: root
 
@@ -13,6 +13,7 @@ QtObject {
         clock: {
             id: "clock",
             key: "desktopWidgetClock",
+            source: "RaohaneDesktopClockWidget.qml",
             icon: "schedule",
             title: qsTr("Clock and date"),
             detail: qsTr("Large time with a restrained Japanese label"),
@@ -21,6 +22,7 @@ QtObject {
         context: {
             id: "context",
             key: "desktopWidgetContext",
+            source: "RaohaneDesktopContextWidget.qml",
             icon: "music_note",
             title: qsTr("Media and live context"),
             detail: qsTr("Album art, track progress, privacy and active-window state"),
@@ -29,6 +31,7 @@ QtObject {
         system: {
             id: "system",
             key: "desktopWidgetSystem",
+            source: "RaohaneDesktopSystemWidget.qml",
             icon: "monitor_heart",
             title: qsTr("System status"),
             detail: qsTr("Network, audio level and host status"),
@@ -37,6 +40,7 @@ QtObject {
         motto: {
             id: "motto",
             key: "desktopWidgetMotto",
+            source: "RaohaneDesktopMottoWidget.qml",
             icon: "spa",
             title: qsTr("Quiet motto"),
             detail: qsTr("A small ambient Japanese-inspired card"),
@@ -66,5 +70,9 @@ QtObject {
 
     function configKey(id: string): string {
         return root.definition(id)?.key ?? ""
+    }
+
+    function source(id: string): string {
+        return root.definition(id)?.source ?? ""
     }
 }
