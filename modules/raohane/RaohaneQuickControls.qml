@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 
 import qs.modules.raohane.config
 import qs.modules.raohane.services
@@ -15,6 +14,9 @@ Item {
     readonly property bool pickerOpen: root.pickerMode.length > 0
     readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(screen)
     readonly property real brightnessValue: RaohaneDisplay.compositeValue(screen)
+    readonly property var tileLayout: RaohaneQuickControlRegistry.sanitizeLayout(
+        RaohaneQuickControlRegistry.defaultLayout
+    )
 
     implicitHeight: content.implicitHeight
 
@@ -40,74 +42,17 @@ Item {
             columnSpacing: 8
             rowSpacing: 8
 
-            QuickTile {
-                Layout.fillWidth: true
-                icon: RaohaneNetwork.materialSymbol
-                title: qsTr("Network")
-                subtitle: RaohaneNetwork.networkName || qsTr("Disconnected")
-                active: RaohaneNetwork.wifiStatus !== "disabled"
-                showMenu: true
-                menuOpen: root.pickerMode === "wifi"
-                onPrimary: root.togglePicker("wifi")
-                onSecondary: RaohaneNetwork.toggleWifi()
-            }
+            Repeater {
+                model: root.tileLayout
 
-            QuickTile {
-                Layout.fillWidth: true
-                visible: RaohaneBluetooth.available
-                icon: RaohaneBluetooth.connected ? "bluetooth_connected"
-                    : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled"
-                title: qsTr("Bluetooth")
-                subtitle: RaohaneBluetooth.firstConnectedName.length > 0
-                    ? RaohaneBluetooth.firstConnectedName
-                    : (RaohaneBluetooth.enabled ? qsTr("On") : qsTr("Off"))
-                active: RaohaneBluetooth.enabled
-                onPrimary: RaohaneBluetooth.toggle()
-                onSecondary: {
-                    const command = RaohaneConfig.bluetoothCommand
-                    if (command && command.length > 0)
-                        Quickshell.execDetached(["bash", "-c", command])
+                delegate: RaohaneQuickControlTile {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    tileId: String(modelData)
+                    pickerMode: root.pickerMode
+                    onPickerRequested: mode => root.togglePicker(mode)
                 }
-            }
-
-            QuickTile {
-                Layout.fillWidth: true
-                icon: RaohaneConfig.nightLightAutomatic ? "night_sight_auto" : "bedtime"
-                title: qsTr("Night Light")
-                subtitle: RaohaneConfig.nightLightAutomatic ? qsTr("Automatic") : qsTr("Manual")
-                active: RaohaneDisplay.temperatureActive
-                onPrimary: RaohaneDisplay.toggleTemperature()
-                onSecondary: RaohaneConfig.nightLightAutomatic = !RaohaneConfig.nightLightAutomatic
-            }
-
-            QuickTile {
-                Layout.fillWidth: true
-                icon: "gamepad"
-                title: qsTr("Game Mode")
-                subtitle: RaohanePerformance.gameModeActive ? qsTr("Low latency") : qsTr("Desktop effects")
-                active: RaohanePerformance.gameModeActive
-                onPrimary: RaohanePerformance.toggleGameMode()
-                onSecondary: RaohanePerformance.setGameMode(false)
-            }
-
-            QuickTile {
-                Layout.fillWidth: true
-                icon: "coffee"
-                title: qsTr("Keep Awake")
-                subtitle: RaohaneIdle.inhibit ? qsTr("Sleep blocked") : qsTr("Normal idle")
-                active: RaohaneIdle.inhibit
-                onPrimary: RaohaneIdle.toggleInhibit()
-            }
-
-            QuickTile {
-                Layout.fillWidth: true
-                visible: RaohaneEasyEffects.available
-                icon: "instant_mix"
-                title: qsTr("EasyEffects")
-                subtitle: RaohaneEasyEffects.active ? qsTr("Processing") : qsTr("Bypassed")
-                active: RaohaneEasyEffects.active
-                onPrimary: RaohaneEasyEffects.toggle()
-                onSecondary: RaohaneEasyEffects.launchUi()
             }
         }
 
@@ -169,128 +114,6 @@ Item {
             Layout.preferredHeight: implicitHeight
             mode: root.pickerMode
             onCloseRequested: root.pickerMode = ""
-        }
-    }
-
-    component QuickTile: RaohaneSurface {
-        id: tile
-
-        required property string icon
-        required property string title
-        property string subtitle: ""
-        property bool showMenu: false
-        property bool menuOpen: false
-        signal primary()
-        signal secondary()
-
-        Layout.preferredHeight: 64
-        surfaceRadius: 16
-        showSheen: false
-        transparentIdle: !tile.active && !tile.menuOpen
-        hovered: pointer.containsMouse || activeFocus
-        pressed: pointer.pressed
-        interactive: true
-        hoverScale: RaohaneMotion.subtleHoverScale
-        pressedScale: RaohaneMotion.softPressScale
-        activeFocusOnTab: true
-        feedback: tile.showMenu ? "navigate" : "tap"
-        border.color: tile.menuOpen ? RaohaneTheme.accentBorder
-            : tile.active ? RaohaneTheme.accentBorder
-            : tile.hovered ? RaohaneTheme.borderStrong
-            : RaohaneTheme.border
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 11
-            anchors.rightMargin: 11
-            anchors.topMargin: 9
-            anchors.bottomMargin: 9
-            spacing: 3
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 6
-
-                RaohaneIcon {
-                    text: tile.icon
-                    iconSize: 18
-                    fill: tile.active ? 1 : tile.hovered ? 0.35 : 0
-                    symbolWeight: tile.active ? 560 : tile.hovered ? 500 : 430
-                    grade: tile.active ? 40 : tile.hovered ? 20 : 0
-                    color: tile.active || tile.hovered || tile.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    scale: pointer.pressed ? 0.92 : 1
-
-                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                    Behavior on scale {
-                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
-
-                Rectangle {
-                    width: 6
-                    height: 6
-                    radius: 3
-                    color: tile.active ? RaohaneTheme.accent : RaohaneTheme.surfaceSubtle
-                    border.width: tile.active ? 0 : 1
-                    border.color: RaohaneTheme.border
-                    opacity: tile.active ? 1 : 0.72
-
-                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                    Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
-                }
-
-                RaohaneIcon {
-                    visible: tile.showMenu
-                    text: "expand_more"
-                    iconSize: 12
-                    color: tile.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    rotation: tile.menuOpen ? 180 : 0
-                    Behavior on rotation {
-                        NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-                    }
-                }
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: tile.title
-                color: RaohaneTheme.text
-                font.pixelSize: 10
-                font.weight: Font.DemiBold
-                elide: Text.ElideRight
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: tile.subtitle
-                color: RaohaneTheme.textMuted
-                font.pixelSize: 7
-                elide: Text.ElideRight
-            }
-        }
-
-        MouseArea {
-            id: pointer
-            anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
-            cursorShape: Qt.PointingHandCursor
-            onPressed: tile.forceActiveFocus()
-            onClicked: mouse => {
-                if (mouse.button === Qt.RightButton)
-                    tile.secondary()
-                else
-                    tile.primary()
-            }
-        }
-
-        Keys.onPressed: event => {
-            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                tile.primary()
-                event.accepted = true
-            }
         }
     }
 
