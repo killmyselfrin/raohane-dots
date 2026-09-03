@@ -92,7 +92,8 @@
   "quickControls": {
     "showBrightness": true,
     "showVolume": true,
-    "showMic": false
+    "showMic": false,
+    "tiles": ["network", "bluetooth", "nightLight", "gameMode", "keepAwake", "easyEffects"]
   },
   "desktopWidgets": {
     "enabled": true,
