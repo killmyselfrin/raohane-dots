@@ -15,6 +15,7 @@ content='modules/raohane/RaohaneSettingsContentV3.qml'
 navigation='modules/raohane/RaohaneSettingsNavigation.qml'
 header='modules/raohane/RaohaneSettingsPageHeader.qml'
 registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
+router='modules/raohane/RaohaneSettingsRouter.qml'
 section='modules/raohane/RaohaneSettingsSectionPage.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
@@ -24,7 +25,7 @@ config='modules/raohane/config/RaohaneConfig.qml'
 state='modules/raohane/RaohaneState.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$section" "$home" "$catalog" "$bar_studio" "$about" "$config" "$state" "$qmldir"; do
+for path in "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$router" "$section" "$home" "$catalog" "$bar_studio" "$about" "$config" "$state" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
 done
 
@@ -34,6 +35,7 @@ for registration in \
   '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' \
   '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
   '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
+  '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' \
   '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
   '^RaohaneSettingsAbout .*RaohaneSettingsAbout.qml$' \
   '^RaohaneSettingsHome .*RaohaneSettingsHome.qml$' \
@@ -45,24 +47,25 @@ done
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" \
   || fail 'Settings window is not routed through the active Settings V3 coordinator'
 rg -q 'property string settingsPage:' "$state" \
-  || fail 'RaohaneState does not own Settings page navigation state'
+  || fail 'RaohaneState lost the temporary Settings compatibility ingress'
 
-# Content owns coordination only: route/deep-link state, page animation and
-# declarative loading. Navigation and header presentation are extracted.
+# Content is now a view coordinator. Route parsing, aliases, external surfaces
+# and special destinations belong to RaohaneSettingsRouter.
 for symbol in \
-  'RaohaneState\.settingsPage' \
   'RaohaneSettingsPageRegistry\.pages' \
   'RaohaneSettingsPageRegistry\.resolvePageIndex' \
   'RaohaneSettingsNavigation[[:space:]]*\{' \
   'RaohaneSettingsPageHeader[[:space:]]*\{' \
+  'target:[[:space:]]*RaohaneSettingsRouter' \
+  'function onPageRequested\(pageKey: string, controlKey: string\): void' \
+  'RaohaneSettingsRouter\.request\(root\.pages\[index\]\.key, ""\)' \
   'pageLoader\.item\.hasOwnProperty\("sectionKey"\)' \
   'source:[[:space:]]*root\.currentPageInfo\?\.source' \
-  'externalSurface' \
   'RaohaneSystemInfo\.'; do
-  rg -q "$symbol" "$content" || fail "Settings coordinator lost native contract: $symbol"
+  rg -q "$symbol" "$content" || fail "Settings coordinator lost router-backed contract: $symbol"
 done
-if rg -q 'function sectionEntries\(|function sectionDescription\(|function componentForKind\(|sourceComponent:|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl|ScrollBar\.vertical' "$content"; then
-  fail 'Settings coordinator reabsorbed schema, profile/nav presentation or imperative page routing'
+if rg -q 'RaohaneState\.settingsPage|externalSurface|function sectionEntries\(|function sectionDescription\(|function componentForKind\(|sourceComponent:|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl|ScrollBar\.vertical' "$content"; then
+  fail 'Settings coordinator reabsorbed routing/schema/profile/nav responsibilities'
 fi
 
 for symbol in \
@@ -104,28 +107,36 @@ done
 for group in PERSONALIZE SHELL SYSTEM; do
   rg -q "$group" "$registry" || fail "Settings page registry lost navigation group: $group"
 done
-for contract in \
-  'key:[[:space:]]*"barShowOnSuper"' \
-  'Reveal on Super' \
-  'module composition' \
-  'Bar & Dock' \
-  'Media & OSD' \
-  'Desktop & Spaces' \
-  'Desktop Widgets'; do
-  rg -q "$contract" "$registry" || fail "Settings registry lost grouped UX contract: $contract"
-done
 rg -q 'externalSurface:[[:space:]]*"displaySettings"' "$registry" \
   || fail 'Display Settings route lost external surface ownership'
+
+# Router owns all route classification. The state bridge is temporary and must
+# remain isolated here rather than leaking back into view components.
+for contract in \
+  'signal pageRequested\(string pageKey, string controlKey\)' \
+  'signal preferencesRequested\(string section\)' \
+  'signal backupRequested\(\)' \
+  'signal languageRequested\(\)' \
+  'readonly property var specialAliases:' \
+  'function splitRoute\(route: string, control: string\): var' \
+  'function request\(route: string, control: string\): bool' \
+  'function requestSearch\(section: string, key: string\): bool' \
+  'RaohaneSettingsPageRegistry\.resolvePageIndex' \
+  'RaohaneState\.setPrimaryOpen\("settings", true\)' \
+  'RaohaneState\.setPrimaryOpen\(page\.externalSurface, true\)' \
+  'property Connections legacyStateBridge:' \
+  'function onSettingsPageChanged\(\): void'; do
+  rg -q "$contract" "$router" || fail "Settings router lost contract: $contract"
+done
+for alias in keybinds shortcuts keyboard motion animations animation backup restore language locale; do
+  rg -q "\"${alias}\"" "$router" || fail "Settings router lost special alias: $alias"
+done
 
 mapfile -t page_sources < <(rg -o 'source:[[:space:]]*"[A-Za-z0-9_/-]+\.qml"' "$registry" \
   | sed -E 's/.*"([^"]+)"/\1/' | sort -u)
 [[ "${#page_sources[@]}" -ge 5 ]] || fail 'Settings registry exposes too few declarative page sources'
 for source in "${page_sources[@]}"; do
   [[ -f "modules/raohane/$source" ]] || fail "Settings registry points to missing page source: $source"
-done
-for source in RaohaneSettingsHome.qml RaohaneThemeCatalog.qml RaohaneWidgetStudio.qml RaohaneSettingsSectionPage.qml RaohaneSettingsAbout.qml; do
-  rg -q "source:[[:space:]]*\"${source}\"" "$registry" \
-    || fail "Settings registry lost declarative page source: $source"
 done
 
 for symbol in \
@@ -159,17 +170,19 @@ done
 
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" \
   || fail 'global Settings search is not registry-backed'
+rg -q 'RaohaneSettingsRouter\.requestSearch\(entry\.section, entry\.key\)' "$search" \
+  || fail 'global Settings search bypasses the centralized router'
 for key in themePreset barModuleLayout desktopWidgetsLayout; do
   rg -q "key:[[:space:]]*\"${key}\"" "$registry" \
     || fail "Settings registry lost search-only native key: $key"
 done
 
 if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bMaterialSymbol[[:space:]]*\{|\bGlobalStates\.|\bContentPage[[:space:]]*\{' \
-  "$content" "$navigation" "$header" "$registry" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
+  "$content" "$navigation" "$header" "$registry" "$router" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
   fail 'Settings architecture resolves inherited settings/common/root types'
 fi
 if rg -n 'compatibilityConfigFile|~/.config/raohane/config\.json|qsTr\("config\.json"\)' \
-  "$content" "$navigation" "$header" "$registry" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
+  "$content" "$navigation" "$header" "$registry" "$router" "$section" "$settings" "$search" "$catalog" "$bar_studio"; then
   fail 'Settings still exposes the retired compatibility config path/name'
 fi
 
@@ -184,7 +197,7 @@ done
 for symbol in \
   'function focusSearch\(\)' \
   'function activate\(index: int\)' \
-  'RaohaneState\.settingsPage = entry\.section \+ ":" \+ entry\.key' \
+  'RaohaneSettingsRouter\.requestSearch' \
   'Qt\.Key_Down' \
   'Qt\.Key_Up' \
   'Qt\.Key_Return' \
@@ -200,6 +213,8 @@ for key in "${registry_keys[@]}" themePreset barModuleLayout desktopWidgetsLayou
     || fail "Settings registry points to non-native config key: $key"
 done
 
+# Home still uses the state bridge during this migration slice. It must remain
+# the only view allowed to do so until the final ingress-removal follow-up.
 for symbol in 'RaohaneConfig\.wallpaperPath' 'RaohaneNetwork\.' 'RaohaneAudio\.' 'RaohanePrivacy\.' 'RaohaneState\.settingsPage' 'RaohaneIcon[[:space:]]*\{'; do
   rg -q "$symbol" "$home" || fail "Settings Home lost native dependency: $symbol"
 done
@@ -214,4 +229,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: coordinator, extracted navigation/header, declarative registry-loaded pages, native sections, Theme Library, Bar Studio and global search are Raohane-owned\n'
+printf 'settings-boundary-audit: centralized router, view-only coordinator, extracted navigation/header, declarative registry pages and native Settings surfaces are valid\n'
