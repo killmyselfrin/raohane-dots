@@ -58,7 +58,7 @@ if rg -n 'text:[[:space:]]*"ラ"|#79191523|#61171320|#5c17141f|#4c17141f|#20ffff
 fi
 
 rg -q 'RaohaneMotion\.' "$desktop_widgets" || fail 'Desktop widget host no longer follows the shared motion scale'
-rg -q 'RaohaneDesktopWidgetRegistry\.idsForZone' "$desktop_widgets" || fail 'Desktop widget host lost registry-driven composition'
+rg -q 'RaohaneConfig\.sanitizeDesktopWidgetComposition\(RaohaneConfig\.desktopWidgetComposition\)' "$desktop_widgets" || fail 'Desktop widget host lost persisted composition ownership'
 rg -q 'RaohaneDesktopWidgetRegistry\.definition' "$desktop_host" || fail 'Desktop widget loader lost registry-backed metadata'
 rg -q 'RaohaneContext\.icon' "$desktop_context" || fail 'Desktop context widget lost its live context binding'
 rg -q 'RaohaneIcon[[:space:]]*\{' "$desktop_context" || fail 'Desktop context widget no longer renders through Material icons'
@@ -149,4 +149,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: registry-driven desktop widgets, floating Control Center with registry-backed tiles, coordinator-based Settings V3, shared controls, Sidebar, tray, About, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: persisted registry-driven desktop widgets, floating Control Center with registry-backed tiles, coordinator-based Settings V3, shared controls, Sidebar, tray, About, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
