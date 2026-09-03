@@ -14,6 +14,7 @@ Item {
     readonly property bool compactNav: width < 860
     readonly property var pages: RaohaneSettingsPageRegistry.pages
     readonly property var currentPageInfo: root.pages[root.currentPage] ?? null
+    readonly property bool pageOwnsHeader: Boolean(root.currentPageInfo?.hideHeader)
 
     function showPage(pageKey: string, controlKey: string): void {
         const index = RaohaneSettingsPageRegistry.resolvePageIndex(pageKey)
@@ -92,7 +93,8 @@ Item {
 
                 RaohaneSettingsPageHeader {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: implicitHeight
+                    Layout.preferredHeight: visible ? implicitHeight : 0
+                    visible: !root.pageOwnsHeader
                     pageInfo: root.currentPageInfo
                     compact: root.compactNav
                 }
