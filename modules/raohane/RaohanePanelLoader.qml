@@ -1,9 +1,9 @@
 import Quickshell
 
-// Product-local lazy loader. Registered surfaces can opt into demand-driven
-// loading later without changing RaohaneFamily composition. Current registry
-// entries stay resident to preserve IPC/global-shortcut behavior while the
-// architecture migrates incrementally.
+// Product-local lazy loader. Surface lifetime is declared in
+// RaohaneSurfaceRegistry: resident surfaces keep global entrypoints alive,
+// while on-demand surfaces are instantiated only while their runtime state is
+// open. Unknown policies fail closed instead of silently changing lifecycle.
 LazyLoader {
     id: root
 
@@ -13,14 +13,22 @@ LazyLoader {
         ? RaohaneSurfaceRegistry.definition(surfaceId)
         : null
     readonly property bool registryValid: surfaceId.length === 0 || surfaceMetadata !== null
-    readonly property bool resident: !surfaceMetadata || surfaceMetadata.loadPolicy === "resident"
+    readonly property string loadPolicy: surfaceMetadata?.loadPolicy ?? "resident"
+    readonly property bool policyValid: loadPolicy === "resident" || loadPolicy === "on-demand"
+    readonly property bool resident: loadPolicy === "resident"
 
     active: extraCondition
         && registryValid
+        && policyValid
         && (resident || RaohaneState.surfaceOpen(surfaceId))
 
     onRegistryValidChanged: {
         if (!registryValid)
             console.warn("[RaohanePanelLoader] Unknown surface id:", surfaceId)
+    }
+
+    onPolicyValidChanged: {
+        if (!policyValid)
+            console.warn("[RaohanePanelLoader] Invalid load policy:", loadPolicy, "for", surfaceId)
     }
 }
