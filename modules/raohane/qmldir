@@ -79,6 +79,7 @@ RaohaneSidebarLeft 1.0 RaohaneSidebarLeft.qml
 RaohaneRegionSelector 1.0 RaohaneRegionSelector.qml
 RaohaneScreenTranslator 1.0 RaohaneScreenTranslator.qml
 RaohaneDropShelfPanel 1.0 RaohaneDropShelfPanel.qml
+RaohaneDropShelfItem 1.0 RaohaneDropShelfItem.qml
 RaohaneLauncher 1.0 RaohaneLauncher.qml
 RaohaneTaskManager 1.0 RaohaneTaskManager.qml
 RaohaneOsd 1.0 RaohaneOsd.qml
