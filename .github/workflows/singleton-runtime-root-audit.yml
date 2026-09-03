@@ -1,0 +1,34 @@
+name: Singleton runtime root audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/raohane/services/**'
+      - 'scripts/singleton-runtime-root-audit.sh'
+      - '.github/workflows/singleton-runtime-root-audit.yml'
+  pull_request:
+    paths:
+      - 'modules/raohane/services/**'
+      - 'scripts/singleton-runtime-root-audit.sh'
+      - '.github/workflows/singleton-runtime-root-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  singleton-runtime-roots:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Install audit dependency
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Validate singleton runtime roots
+        shell: bash
+        run: |
+          bash -n scripts/singleton-runtime-root-audit.sh
+          bash scripts/singleton-runtime-root-audit.sh
