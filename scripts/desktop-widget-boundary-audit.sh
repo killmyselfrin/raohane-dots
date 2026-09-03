@@ -12,15 +12,30 @@ fail() {
 canvas='modules/raohane/RaohaneDesktopCanvas.qml'
 widgets='modules/raohane/RaohaneDesktopWidgets.qml'
 studio='modules/raohane/RaohaneWidgetStudio.qml'
+widget_registry='modules/raohane/RaohaneDesktopWidgetRegistry.qml'
+qmldir='modules/raohane/qmldir'
 settings='modules/raohane/RaohaneSettingsContentV3.qml'
 registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 search='modules/raohane/RaohaneSettingsSearch.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 
-for path in "$canvas" "$widgets" "$studio" "$settings" "$registry" "$search" "$config" "$defaults"; do
+for path in "$canvas" "$widgets" "$studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
   [[ -f "$path" ]] || fail "missing native widget path: $path"
 done
+
+rg -q '^singleton RaohaneDesktopWidgetRegistry 1\.0 RaohaneDesktopWidgetRegistry\.qml$' "$qmldir" \
+  || fail 'Desktop Widget Registry is not registered in the Raohane QML module'
+rg -q 'readonly property var widgetIds:[[:space:]]*\["clock", "context", "system", "motto"\]' "$widget_registry" \
+  || fail 'Desktop Widget Registry lost the native widget ids'
+for widget_id in clock context system motto; do
+  rg -q "${widget_id}:[[:space:]]*\{" "$widget_registry" \
+    || fail "Desktop Widget Registry lost ${widget_id} metadata"
+done
+rg -q 'function definitions\(\): var' "$widget_registry" \
+  || fail 'Desktop Widget Registry lost ordered metadata access'
+rg -q 'function idsForZone\(zone: string\): var' "$widget_registry" \
+  || fail 'Desktop Widget Registry lost zone metadata access'
 
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" \
   || fail 'Settings search is not driven by the native page registry'
@@ -92,8 +107,8 @@ if [[ -e defaults/widgets ]]; then
   find defaults/widgets -type f -print -quit | grep -q . \
     && fail 'retired inherited widget SDK returned'
 fi
-if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWidget|~/.config/inir/widgets' "$canvas" "$widgets" "$studio" "$settings" "$registry" "$search"; then
+if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWidget|~/.config/inir/widgets' "$canvas" "$widgets" "$studio" "$widget_registry" "$settings" "$registry" "$search"; then
   fail 'desktop widgets depend on retired inherited APIs'
 fi
 
-printf 'desktop-widget-boundary-audit: native widget config, declarative registry-backed Settings/search and desktop service boundaries are valid\n'
+printf 'desktop-widget-boundary-audit: native widget registry, config, declarative Settings/search and desktop service boundaries are valid\n'
