@@ -29,12 +29,13 @@ settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_router='modules/raohane/RaohaneSettingsRouter.qml'
 settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
+settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
 installer='install-raohane.sh'
 root_qmldir='qmldir'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_router" "$settings_section" "$family" "$shell" "$installer" "$root_qmldir"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_router" "$settings_section" "$settings_control" "$family" "$shell" "$installer" "$root_qmldir"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -50,7 +51,8 @@ for registration in \
   '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' \
   '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' \
   '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
-  '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$'; do
+  '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
+  '^RaohaneSettingsControlRow .*RaohaneSettingsControlRow.qml$'; do
   rg -q "$registration" "$raohane_qmldir" || fail "missing native module registration: $registration"
 done
 
@@ -223,11 +225,17 @@ done
 if rg -n 'legacyStateBridge|onSettingsPageChanged' "$settings_router"; then
   fail 'RaohaneSettingsRouter reintroduced legacy state routing'
 fi
-for symbol in 'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneConfig\[' 'RaohaneBarStudio[[:space:]]*\{'; do
-  rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost native config/rendering contract: $symbol"
+for symbol in 'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsControlRow[[:space:]]*\{' 'RaohaneBarStudio[[:space:]]*\{'; do
+  rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost section composition contract: $symbol"
 done
+for symbol in 'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneIconButton[[:space:]]*\{' 'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void'; do
+  rg -q "$symbol" "$settings_control" || fail "RaohaneSettingsControlRow lost config-bound control contract: $symbol"
+done
+if rg -q 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{' "$settings_section"; then
+  fail 'RaohaneSettingsSectionPage reabsorbed config-bound control implementation'
+fi
 if rg -n '^import qs$|\bDirectories\.|\bConfig\.|\bGlobalStates\.|\.\./ii/settings/pages|modules/ii/settings/pages|compatibilityConfigFile' \
-  "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_router" "$settings_section"; then
+  "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_router" "$settings_section" "$settings_control"; then
   fail 'Raohane Settings architecture regressed to inherited settings/config/path framework'
 fi
 
@@ -257,4 +265,4 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+E
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost move-window workspace binds'
 
-printf 'core-framework-audit: native paths/config/state/focus/settings router without legacy route state, coordinator/navigation/header/registry, primary coordinator and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus/settings router without legacy route state, coordinator/navigation/header/registry/control-row, primary coordinator and boot boundaries are valid\n'
