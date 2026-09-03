@@ -15,7 +15,7 @@ Item {
     readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(screen)
     readonly property real brightnessValue: RaohaneDisplay.compositeValue(screen)
     readonly property var tileLayout: RaohaneQuickControlRegistry.sanitizeLayout(
-        RaohaneQuickControlRegistry.defaultLayout
+        RaohaneConfig.quickControlTiles
     )
 
     implicitHeight: content.implicitHeight
