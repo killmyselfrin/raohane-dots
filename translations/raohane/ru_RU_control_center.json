@@ -1,0 +1,8 @@
+{
+  "Wi-Fi status, network picker and radio toggle": "Состояние Wi-Fi, выбор сети и переключение радиомодуля",
+  "Bluetooth power, connection state and manager": "Питание Bluetooth, состояние подключений и менеджер устройств",
+  "Color temperature and automatic night-light mode": "Цветовая температура и автоматический режим ночного света",
+  "Low-latency Hyprland profile for games": "Профиль Hyprland с низкой задержкой для игр",
+  "Temporarily inhibit idle and sleep": "Временно запретить бездействие и переход в сон",
+  "Toggle audio processing and open EasyEffects": "Переключить обработку звука и открыть EasyEffects"
+}
