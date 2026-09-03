@@ -197,6 +197,14 @@ QtObject {
         return orientation === "vertical" ? root.defaultVerticalLayout : root.defaultLayout
     }
 
+    function cloneLayout(layout): var {
+        return {
+            left: Array.isArray(layout?.left) ? layout.left.slice() : [],
+            center: Array.isArray(layout?.center) ? layout.center.slice() : [],
+            right: Array.isArray(layout?.right) ? layout.right.slice() : []
+        }
+    }
+
     function sanitizeZone(value, fallback, orientation: string): var {
         if (!Array.isArray(value))
             return fallback.slice()
@@ -236,6 +244,13 @@ QtObject {
                 result[zone].push(id)
             }
         }
+
+        // A completely empty saved composition makes the bar impossible to
+        // recover from without editing native.json by hand. Treat that state
+        // as corruption and restore the orientation defaults. Individual
+        // zones may still be intentionally empty.
+        if (result.left.length + result.center.length + result.right.length === 0)
+            return root.cloneLayout(defaults)
 
         return result
     }
