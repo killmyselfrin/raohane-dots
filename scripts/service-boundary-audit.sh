@@ -20,6 +20,7 @@ TASK_MANAGER=modules/raohane/RaohaneTaskManager.qml
 AUDIO="$MODULE/RaohaneAudio.qml"
 PIPEWIRE="$MODULE/RaohanePipeWire.qml"
 EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
+PERFORMANCE="$MODULE/RaohanePerformance.qml"
 CONTROL_CENTER=modules/raohane/RaohaneControlCenter.qml
 QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
 AUTOSTART_SCRIPT=scripts/autostart.sh
@@ -30,7 +31,7 @@ REQUIRED=install/arch/required.txt
 
 for path in \
   "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" \
-  "$SEARCH" "$SESSION" "$PROCESSES" "$TASK_MANAGER" "$AUDIO" "$PIPEWIRE" "$EASY_EFFECTS" \
+  "$SEARCH" "$SESSION" "$PROCESSES" "$TASK_MANAGER" "$AUDIO" "$PIPEWIRE" "$EASY_EFFECTS" "$PERFORMANCE" \
   "$CONTROL_CENTER" "$QUICK_CONTROLS" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" \
   "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
@@ -68,6 +69,7 @@ require_service RaohaneSearch 'DesktopEntries'
 require_service RaohaneProcesses '/proc/meminfo|ps -u'
 require_service RaohaneIdle 'IdleInhibitor'
 require_service RaohaneEasyEffects 'easyeffects'
+require_service RaohanePerformance '\bhyprctl\b'
 require_service RaohaneYdotool 'ydotool'
 require_service RaohaneDropShelf 'wl-copy --type text/uri-list'
 require_service RaohaneAutostart 'scripts/autostart\.sh'
@@ -154,17 +156,24 @@ rg -q 'RaohaneEasyEffects\.refresh\(\)' "$CONTROL_CENTER" \
 rg -q 'refreshTimer\.restart\(\)' "$EASY_EFFECTS" \
   || fail 'EasyEffects actions lost their one-shot post-action state refresh'
 
-# Game Mode is compositor state, so refresh only when Control Center is surfaced.
-rg -q 'function refreshGameMode\(\): void' "$QUICK_CONTROLS" \
-  || fail 'Quick Controls lost on-demand Game Mode refresh'
-rg -q 'if \(!gameModeProbe\.running\)' "$QUICK_CONTROLS" \
+# Game Mode is compositor state owned by the native performance service and is
+# refreshed when Control Center is surfaced. Visible Quick Controls must not
+# shell out to Hyprland directly.
+rg -q 'function refreshGameMode\(\): void' "$PERFORMANCE" \
+  || fail 'RaohanePerformance lost on-demand Game Mode refresh'
+rg -q 'if \(!gameModeProbe\.running\)' "$PERFORMANCE" \
   || fail 'Game Mode refresh no longer guards duplicate hyprctl probes'
-rg -q 'quickControls\.refreshGameMode\(\)' "$CONTROL_CENTER" \
+rg -q 'RaohanePerformance\.refreshGameMode\(\)' "$CONTROL_CENTER" \
   || fail 'Control Center no longer refreshes Game Mode when opened'
-rg -q 'onSecondary:[[:space:]]*root\.setGameMode\(false\)' "$QUICK_CONTROLS" \
-  || fail 'Game Mode reset bypasses local state synchronization'
-if rg -n '^[[:space:]]*running:[[:space:]]*true[[:space:]]*$' "$QUICK_CONTROLS"; then
-  fail 'Quick Controls contains an unconditional background Process/Timer'
+rg -q 'RaohanePerformance\.setGameMode\(false\)' "$QUICK_CONTROLS" \
+  || fail 'Game Mode reset bypasses native performance service'
+rg -q 'RaohanePerformance\.toggleGameMode\(\)' "$QUICK_CONTROLS" \
+  || fail 'Game Mode toggle bypasses native performance service'
+if rg -n '\bhyprctl\b' "$QUICK_CONTROLS"; then
+  fail 'Quick Controls bypasses RaohanePerformance for compositor state'
+fi
+if rg -n '^[[:space:]]*running:[[:space:]]*true[[:space:]]*$' "$PERFORMANCE"; then
+  fail 'RaohanePerformance contains an unconditional background Process/Timer'
 fi
 
 for pair in \
@@ -176,6 +185,7 @@ for pair in \
   'modules/raohane/RaohaneQuickControls.qml:RaohaneDisplay\.' \
   'modules/raohane/RaohaneQuickControls.qml:RaohaneIdle\.' \
   'modules/raohane/RaohaneQuickControls.qml:RaohaneEasyEffects\.' \
+  'modules/raohane/RaohaneQuickControls.qml:RaohanePerformance\.' \
   'modules/raohane/RaohaneOsd.qml:RaohaneAudio\.' \
   'modules/raohane/RaohaneOsd.qml:RaohaneDisplay\.' \
   'modules/raohane/RaohaneLauncher.qml:RaohaneSearch\.' \
