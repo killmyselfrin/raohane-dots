@@ -101,6 +101,10 @@
     "showContext": true,
     "showSystem": true,
     "showMotto": true,
+    "composition": {
+      "primary": ["clock", "context"],
+      "secondary": ["system", "motto"]
+    },
     "compact": false,
     "layout": "balanced",
     "scale": 1.0,
