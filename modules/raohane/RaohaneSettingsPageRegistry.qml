@@ -124,6 +124,8 @@ QtObject {
                 { type: "number", key: "screenRoundingMode", label: qsTr("Rounding mode"), detail: qsTr("0 off · 1 always · 2 hide on fullscreen"), min: 0, max: 2, step: 1 },
                 { type: "number", key: "screenCornerRadius", label: qsTr("Corner radius"), detail: qsTr("Fake-screen rounding radius in pixels"), min: 6, max: 96, step: 2 },
                 { type: "toggle", key: "hotCornersEnabled", label: qsTr("Hot corners"), detail: qsTr("Enable native bottom-corner actions") },
+                { type: "choice", key: "hotCornerBottomLeftAction", label: qsTr("Bottom-left action"), detail: qsTr("Choose what the lower-left hot corner opens"), options: RaohaneActionRegistry.hotCornerOptions() },
+                { type: "choice", key: "hotCornerBottomRightAction", label: qsTr("Bottom-right action"), detail: qsTr("Choose what the lower-right hot corner opens"), options: RaohaneActionRegistry.hotCornerOptions() },
                 { type: "toggle", key: "hotCornerVisualize", label: qsTr("Visualize hot corners"), detail: qsTr("Show interaction regions while tuning them") }
             ]
         },
