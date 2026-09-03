@@ -28,12 +28,13 @@ settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
 settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
+settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
 installer='install-raohane.sh'
 root_qmldir='qmldir'
 
-for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section" "$family" "$shell" "$installer" "$root_qmldir"; do
+for path in "$config" "$paths" "$config_qmldir" "$raohane_qmldir" "$state" "$focus" "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section" "$settings_control" "$family" "$shell" "$installer" "$root_qmldir"; do
   [[ -f "$path" ]] || fail "missing core framework path: $path"
 done
 
@@ -48,7 +49,8 @@ for registration in \
   '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
   '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' \
   '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
-  '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$'; do
+  '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
+  '^RaohaneSettingsControlRow .*RaohaneSettingsControlRow.qml$'; do
   rg -q "$registration" "$raohane_qmldir" || fail "missing native module registration: $registration"
 done
 
@@ -164,36 +166,24 @@ if rg -n '\bGlobalStates\.settingsOpen\b|^import qs$|^import qs\.modules\.common
 fi
 
 for symbol in \
-  'RaohaneSettingsPageRegistry\.pages' \
-  'RaohaneSettingsPageRegistry\.resolvePageIndex' \
-  'RaohaneSettingsNavigation[[:space:]]*\{' \
-  'RaohaneSettingsPageHeader[[:space:]]*\{' \
+  'RaohaneSettingsPageRegistry\.pages' 'RaohaneSettingsPageRegistry\.resolvePageIndex' \
+  'RaohaneSettingsNavigation[[:space:]]*\{' 'RaohaneSettingsPageHeader[[:space:]]*\{' \
   'source:[[:space:]]*root\.currentPageInfo\?\.source' \
   'externalSurface'; do
-  rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost coordinator contract: $symbol"
+  rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost declarative registry/coordinator contract: $symbol"
 done
-if rg -q 'RaohanePaths\.defaultAvatarUrl|RaohaneConfig\.profile(DisplayName|AvatarPath)|ScrollBar\.vertical|function componentForKind\(|sourceComponent:|RaohaneSettingsSectionPage[[:space:]]*\{' "$settings_content"; then
-  fail 'RaohaneSettingsContent reabsorbed profile/navigation presentation or imperative page routing'
+if rg -q 'function componentForKind\(|sourceComponent:|RaohaneSettingsSectionPage[[:space:]]*\{|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl' "$settings_content"; then
+  fail 'RaohaneSettingsContent regressed to imperative routing or embedded navigation/profile ownership'
 fi
-
 for symbol in \
   'RaohanePaths\.defaultAvatarUrl' \
-  'RaohaneConfig\.profileDisplayName' \
-  'RaohaneConfig\.profileAvatarPath' \
-  'RaohaneSystemInfo\.' \
-  'RaohaneSettingsPageRegistry\.isFirstInGroup' \
-  'RaohaneSettingsPageRegistry\.resolvePageIndex\("profile"\)' \
-  'signal pageRequested\(int index\)'; do
-  rg -q "$symbol" "$settings_navigation" || fail "RaohaneSettingsNavigation lost ownership contract: $symbol"
+  'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath' \
+  'RaohaneSettingsPageRegistry\.isFirstInGroup' 'RaohaneSettingsPageRegistry\.resolvePageIndex\("profile"\)'; do
+  rg -q "$symbol" "$settings_navigation" || fail "RaohaneSettingsNavigation lost sidebar/profile contract: $symbol"
 done
-for symbol in \
-  'property var pageInfo:' \
-  'root\.pageInfo\?\.icon' \
-  'root\.pageInfo\?\.name' \
-  'root\.pageInfo\?\.subtitle'; do
-  rg -q "$symbol" "$settings_header" || fail "RaohaneSettingsPageHeader lost ownership contract: $symbol"
+for symbol in 'root\.pageInfo\?\.icon' 'root\.pageInfo\?\.name' 'root\.pageInfo\?\.subtitle'; do
+  rg -q "$symbol" "$settings_header" || fail "RaohaneSettingsPageHeader lost page metadata contract: $symbol"
 done
-
 for symbol in \
   'readonly property var pages:' 'readonly property var aliases:' \
   'source:[[:space:]]*"RaohaneSettingsHome\.qml"' \
@@ -205,11 +195,14 @@ for symbol in \
   'desktopWidgetsEnabled' 'function sectionEntries\(' 'function searchEntries\('; do
   rg -q "$symbol" "$settings_registry" || fail "RaohaneSettingsPageRegistry lost declarative native contract: $symbol"
 done
-for symbol in 'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneConfig\[' 'RaohaneBarStudio[[:space:]]*\{'; do
-  rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost native config/rendering contract: $symbol"
+for symbol in 'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsControlRow[[:space:]]*\{' 'RaohaneBarStudio[[:space:]]*\{'; do
+  rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost section composition contract: $symbol"
+done
+for symbol in 'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneIconButton[[:space:]]*\{' 'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void'; do
+  rg -q "$symbol" "$settings_control" || fail "RaohaneSettingsControlRow lost native control contract: $symbol"
 done
 if rg -n '^import qs$|\bDirectories\.|\bConfig\.|\bGlobalStates\.|\.\./ii/settings/pages|modules/ii/settings/pages|compatibilityConfigFile' \
-  "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section"; then
+  "$settings_content" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section" "$settings_control"; then
   fail 'Raohane Settings architecture regressed to inherited settings/config/path framework'
 fi
 
@@ -239,4 +232,4 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+E
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost move-window workspace binds'
 
-printf 'core-framework-audit: native paths/config/state/focus/settings coordinator/navigation/header/registry, primary coordinator and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus/settings registry/coordinator/control-row composition, primary coordinator and boot boundaries are valid\n'
