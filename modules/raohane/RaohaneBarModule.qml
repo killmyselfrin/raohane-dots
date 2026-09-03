@@ -23,11 +23,42 @@ Item {
 
     readonly property bool vertical: orientation === "vertical"
     readonly property bool known: RaohaneBarModuleRegistry.supports(moduleId, orientation)
+    readonly property real loadedWidth: Number(contentLoader.item?.implicitWidth ?? contentLoader.item?.width ?? 0)
+    readonly property real loadedHeight: Number(contentLoader.item?.implicitHeight ?? contentLoader.item?.height ?? 0)
 
-    implicitWidth: contentLoader.item?.implicitWidth ?? contentLoader.item?.width ?? 0
-    implicitHeight: contentLoader.item?.implicitHeight ?? contentLoader.item?.height ?? 0
+    function fallbackWidth(id: string): real {
+        if (root.vertical)
+            return id === "separator" ? 36 : 36
+        switch (id) {
+        case "launcher": return 30
+        case "workspaces": return Math.max(31, Math.min(300, RaohaneConfig.overviewWorkspaceCount * 28 + 3))
+        case "context": return 170
+        case "tray": return 0
+        case "system": return 54
+        case "clock": return root.showDate ? 70 : 42
+        case "control": return 30
+        case "separator": return 1
+        default: return 0
+        }
+    }
+
+    function fallbackHeight(id: string): real {
+        if (root.vertical)
+            return id === "separator" ? 1 : 36
+        switch (id) {
+        case "context": return 38
+        case "separator": return 17
+        case "workspaces": return 28
+        default: return 30
+        }
+    }
+
+    implicitWidth: Math.max(root.loadedWidth, root.fallbackWidth(root.moduleId))
+    implicitHeight: Math.max(root.loadedHeight, root.fallbackHeight(root.moduleId))
     width: implicitWidth
     height: implicitHeight
+    Layout.preferredWidth: implicitWidth
+    Layout.preferredHeight: implicitHeight
     visible: known && contentLoader.status === Loader.Ready && (contentLoader.item?.visible ?? true)
 
     function requestPrimary(surfaceId: string): void {
