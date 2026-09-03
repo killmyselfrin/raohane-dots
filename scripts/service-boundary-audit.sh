@@ -23,6 +23,7 @@ EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
 PERFORMANCE="$MODULE/RaohanePerformance.qml"
 CONTROL_CENTER=modules/raohane/RaohaneControlCenter.qml
 QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
+QUICK_TILE=modules/raohane/RaohaneQuickControlTile.qml
 AUTOSTART_SCRIPT=scripts/autostart.sh
 RECORDER=scripts/videos/record.sh
 CLI=scripts/raohane
@@ -32,7 +33,7 @@ REQUIRED=install/arch/required.txt
 for path in \
   "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" \
   "$SEARCH" "$SESSION" "$PROCESSES" "$TASK_MANAGER" "$AUDIO" "$PIPEWIRE" "$EASY_EFFECTS" "$PERFORMANCE" \
-  "$CONTROL_CENTER" "$QUICK_CONTROLS" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" \
+  "$CONTROL_CENTER" "$QUICK_CONTROLS" "$QUICK_TILE" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" \
   "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
 done
@@ -157,35 +158,43 @@ rg -q 'refreshTimer\.restart\(\)' "$EASY_EFFECTS" \
   || fail 'EasyEffects actions lost their one-shot post-action state refresh'
 
 # Game Mode is compositor state owned by the native performance service and is
-# refreshed when Control Center is surfaced. Visible Quick Controls must not
-# shell out to Hyprland directly.
+# refreshed when Control Center is surfaced. Registry-backed tiles own the
+# visible action bindings; neither Quick Controls host nor tile may shell out to
+# Hyprland directly.
 rg -q 'function refreshGameMode\(\): void' "$PERFORMANCE" \
   || fail 'RaohanePerformance lost on-demand Game Mode refresh'
 rg -q 'if \(!gameModeProbe\.running\)' "$PERFORMANCE" \
   || fail 'Game Mode refresh no longer guards duplicate hyprctl probes'
 rg -q 'RaohanePerformance\.refreshGameMode\(\)' "$CONTROL_CENTER" \
   || fail 'Control Center no longer refreshes Game Mode when opened'
-rg -q 'RaohanePerformance\.setGameMode\(false\)' "$QUICK_CONTROLS" \
+rg -q 'RaohanePerformance\.setGameMode\(false\)' "$QUICK_TILE" \
   || fail 'Game Mode reset bypasses native performance service'
-rg -q 'RaohanePerformance\.toggleGameMode\(\)' "$QUICK_CONTROLS" \
+rg -q 'RaohanePerformance\.toggleGameMode\(\)' "$QUICK_TILE" \
   || fail 'Game Mode toggle bypasses native performance service'
-if rg -n '\bhyprctl\b' "$QUICK_CONTROLS"; then
+if rg -n '\bhyprctl\b' "$QUICK_CONTROLS" "$QUICK_TILE"; then
   fail 'Quick Controls bypasses RaohanePerformance for compositor state'
 fi
 if rg -n '^[[:space:]]*running:[[:space:]]*true[[:space:]]*$' "$PERFORMANCE"; then
   fail 'RaohanePerformance contains an unconditional background Process/Timer'
 fi
 
+# Quick Controls host owns sliders/pickers. Registry-backed tile renderer owns
+# per-tile service state and actions.
+rg -q 'RaohaneQuickControlTile[[:space:]]*\{' "$QUICK_CONTROLS" \
+  || fail 'Quick Controls host no longer composes registry-backed tile renderer'
+rg -q 'RaohaneQuickControlRegistry\.sanitizeLayout' "$QUICK_CONTROLS" \
+  || fail 'Quick Controls host no longer validates tile layout through registry'
 for pair in \
   'modules/raohane/RaohaneContext.qml:RaohaneMedia\.' \
   'modules/raohane/RaohaneMediaOverlay.qml:RaohaneMedia\.' \
-  'modules/raohane/RaohaneQuickControls.qml:RaohaneBluetooth\.' \
   'modules/raohane/RaohaneQuickControls.qml:RaohaneAudio\.' \
-  'modules/raohane/RaohaneQuickControls.qml:RaohaneNetwork\.' \
   'modules/raohane/RaohaneQuickControls.qml:RaohaneDisplay\.' \
-  'modules/raohane/RaohaneQuickControls.qml:RaohaneIdle\.' \
-  'modules/raohane/RaohaneQuickControls.qml:RaohaneEasyEffects\.' \
-  'modules/raohane/RaohaneQuickControls.qml:RaohanePerformance\.' \
+  'modules/raohane/RaohaneQuickControlTile.qml:RaohaneBluetooth\.' \
+  'modules/raohane/RaohaneQuickControlTile.qml:RaohaneNetwork\.' \
+  'modules/raohane/RaohaneQuickControlTile.qml:RaohaneDisplay\.' \
+  'modules/raohane/RaohaneQuickControlTile.qml:RaohaneIdle\.' \
+  'modules/raohane/RaohaneQuickControlTile.qml:RaohaneEasyEffects\.' \
+  'modules/raohane/RaohaneQuickControlTile.qml:RaohanePerformance\.' \
   'modules/raohane/RaohaneOsd.qml:RaohaneAudio\.' \
   'modules/raohane/RaohaneOsd.qml:RaohaneDisplay\.' \
   'modules/raohane/RaohaneLauncher.qml:RaohaneSearch\.' \
@@ -206,6 +215,7 @@ if rg -n \
   modules/raohane/RaohaneContext.qml \
   modules/raohane/RaohaneMediaOverlay.qml \
   modules/raohane/RaohaneQuickControls.qml \
+  modules/raohane/RaohaneQuickControlTile.qml \
   modules/raohane/RaohaneOsd.qml; then
   fail 'active Raohane surfaces reference inherited service APIs'
 fi
@@ -311,4 +321,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, on-demand Task Manager, shared event-driven PipeWire monitoring, on-demand EasyEffects/Game Mode, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, on-demand Task Manager, shared event-driven PipeWire monitoring, registry-backed Quick Controls, on-demand EasyEffects/Game Mode, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
