@@ -21,13 +21,14 @@ settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
 settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
+settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 notifications='modules/raohane/RaohaneNotificationCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 
-for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
+for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section" "$settings_control" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
   [[ -f "$file" ]] || fail "missing polished UI surface: $file"
 done
 
@@ -89,7 +90,7 @@ rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls lost the re
 rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls lost explicit hover-border hierarchy'
 
 # Settings V3 is a coordinator around extracted navigation/header plus a
-# declarative registry loader. Generic native controls stay in SectionPage.
+# declarative registry loader. SectionPage composes reusable config-bound rows.
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" || fail 'Settings regressed from the active V3 workspace'
 rg -q 'RaohaneSettingsSearch[[:space:]]*\{' "$settings" || fail 'Settings lost integrated global search'
 rg -q 'RaohaneMotion\.(standard|enter)' "$settings" || fail 'Settings lost shared window motion'
@@ -106,10 +107,12 @@ rg -q 'source:[[:space:]]*"RaohaneSettingsSectionPage\.qml"' "$settings_registry
 if rg -q 'function componentForKind\(|sourceComponent:|text:[[:space:]]*"RAOHANE"|RaohaneConfig\.profile' "$settings_v3"; then
   fail 'Settings coordinator reintroduced imperative routing or navigation/profile presentation'
 fi
-rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_section" || fail 'Settings section renderer lost shared switches'
-rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_section" || fail 'Settings section renderer lost shared number controls'
+rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$settings_section" || fail 'Settings section renderer lost reusable control rows'
+rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_control" || fail 'Settings control row lost shared switches'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_control" || fail 'Settings control row lost shared number controls'
+rg -q 'RaohaneMotion\.' "$settings_control" || fail 'Settings control row lost shared interaction motion'
 rg -q 'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' "$settings_section" || fail 'Settings section renderer lost grouped native-control surface'
-if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_section"; then
+if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_section" "$settings_control"; then
   fail 'Settings V3 reintroduced retired chrome, stale motion or the previous active layout'
 fi
 
@@ -129,4 +132,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: floating Control Center, coordinator-based Settings V3 with extracted navigation/header, Quick Controls, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: floating Control Center, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, Quick Controls, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
