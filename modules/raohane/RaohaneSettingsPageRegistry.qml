@@ -161,6 +161,7 @@ QtObject {
     readonly property var searchOnlyEntries: [
         { section: "themes", key: "themePreset", label: qsTr("Theme library"), detail: qsTr("Themes") },
         { section: "bar", key: "barModuleLayout", label: qsTr("Bar modules"), detail: qsTr("Bar Studio") },
+        { section: "quick", key: "quickControlTiles", label: qsTr("Quick Control tiles"), detail: qsTr("Quick Controls Studio") },
         { section: "widgets", key: "desktopWidgetsLayout", label: qsTr("Composition preset"), detail: qsTr("Desktop Widgets") },
         { section: "preferences", key: "keybinds", label: qsTr("Keyboard shortcuts"), detail: qsTr("Keyboard & Motion") },
         { section: "preferences", key: "motion", label: qsTr("Motion & animations"), detail: qsTr("Keyboard & Motion") },
