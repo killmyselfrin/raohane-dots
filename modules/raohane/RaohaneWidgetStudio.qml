@@ -312,6 +312,10 @@ Item {
                 }
             }
 
+            RaohaneDesktopWidgetLayoutStudio {
+                width: parent.width
+            }
+
             RowLayout {
                 width: parent.width
                 spacing: 10
