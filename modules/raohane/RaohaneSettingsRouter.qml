@@ -24,18 +24,6 @@ QtObject {
         "locale": { kind: "language" }
     })
 
-    property Connections legacyStateBridge: Connections {
-        target: RaohaneState
-
-        function onSettingsPageChanged(): void {
-            const route = RaohaneState.settingsPage
-            if (route === "")
-                return
-            RaohaneState.settingsPage = ""
-            root.request(route, "")
-        }
-    }
-
     function normalized(value: string): string {
         return String(value ?? "").trim().toLowerCase()
     }
