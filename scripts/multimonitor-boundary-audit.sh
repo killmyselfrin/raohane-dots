@@ -22,7 +22,6 @@ focused_surfaces=(
   modules/raohane/RaohaneWallpaperSelector.qml
   modules/raohane/RaohaneSessionScreen.qml
   modules/raohane/RaohanePolkit.qml
-  modules/raohane/RaohaneDropShelfPanel.qml
   modules/raohane/RaohaneNotificationPopup.qml
   modules/raohane/RaohaneOsd.qml
 )
@@ -40,6 +39,24 @@ for file in "${focused_surfaces[@]}"; do
   rg -q 'screen:[[:space:]]*root\.focusedScreen' "$file" \
     || fail "$file PanelWindow is not bound to the focused screen"
 done
+
+# DropShelf can be invoked by a specific hot corner. It therefore remembers the
+# concrete invocation monitor in its transient service and only falls back to
+# the currently focused screen when no target was supplied.
+dropshelf='modules/raohane/RaohaneDropShelfPanel.qml'
+[[ -f "$dropshelf" ]] || fail "missing DropShelf surface: $dropshelf"
+rg -q '^import Quickshell\.Hyprland$' "$dropshelf" \
+  || fail 'DropShelf does not import Quickshell.Hyprland'
+rg -q 'readonly property var focusedScreen:[[:space:]]*Quickshell\.screens\.find\(' "$dropshelf" \
+  || fail 'DropShelf lost focused-screen fallback resolution'
+rg -q 'Hyprland\.focusedMonitor\?\.name' "$dropshelf" \
+  || fail 'DropShelf fallback is not anchored to Hyprland.focusedMonitor'
+rg -q 'RaohaneDropShelf\.targetScreenName' "$dropshelf" \
+  || fail 'DropShelf no longer resolves its invocation monitor'
+rg -q '\?\?[[:space:]]*root\.focusedScreen' "$dropshelf" \
+  || fail 'DropShelf lost focused-screen fallback for unknown invocation monitors'
+rg -q 'screen:[[:space:]]*root\.targetScreen' "$dropshelf" \
+  || fail 'DropShelf window is not pinned to its invocation screen'
 
 # Desktop menu keeps the concrete invocation screen in RaohaneState because its
 # popup position is tied to a pointer/desktop coordinate rather than only focus.
@@ -62,4 +79,4 @@ for file in \
   [[ -f "$file" ]] || fail "missing per-monitor surface: $file"
 done
 
-printf 'multimonitor-boundary-audit: focused overlays and desktop menu are pinned to the intended Hyprland monitor\n'
+printf 'multimonitor-boundary-audit: focused overlays, invocation-bound DropShelf and desktop menu are pinned to the intended Hyprland monitor\n'
