@@ -70,6 +70,20 @@ Scope {
         root.activateWorkspace(root.workspaceIds[index])
     }
 
+    function activatePosition(position: int): void {
+        const index = position === 0 ? 9 : position - 1
+        if (index < 0 || index >= root.workspaceIds.length)
+            return
+        root.selectedIndex = index
+        root.activateWorkspace(root.workspaceIds[index])
+    }
+
+    function shortcutLabel(index: int): string {
+        if (index >= 0 && index < 9)
+            return String(index + 1)
+        return index === 9 ? "0" : ""
+    }
+
     function moveSelection(dx: int, dy: int): void {
         const row = Math.floor(root.selectedIndex / root.columns)
         const column = root.selectedIndex % root.columns
@@ -172,6 +186,12 @@ Scope {
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
                     root.close()
+                    event.accepted = true
+                } else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
+                    root.activatePosition(event.key - Qt.Key_0)
+                    event.accepted = true
+                } else if (event.key === Qt.Key_0) {
+                    root.activatePosition(0)
                     event.accepted = true
                 } else if (event.key === Qt.Key_Left) {
                     root.moveSelection(-1, 0)
@@ -285,6 +305,7 @@ Scope {
                             workspaceId: Number(modelData)
                             workspaceObject: root.workspaceForId(workspaceId)
                             cardIndex: index
+                            shortcutLabel: root.shortcutLabel(index)
                             activeWorkspace: workspaceId === root.activeWorkspaceId
                             selected: index === root.selectedIndex
                             onHoveredIndex: hoveredIndex => root.selectedIndex = hoveredIndex
@@ -298,7 +319,7 @@ Scope {
                     Layout.fillWidth: true
 
                     Text {
-                        text: qsTr("Arrows navigate · Enter opens · Esc closes")
+                        text: qsTr("Arrows navigate · 1–9/0 opens · Enter opens · Esc closes")
                         color: RaohaneTheme.textFaint
                         font.pixelSize: 7
                     }
