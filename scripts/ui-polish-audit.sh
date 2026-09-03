@@ -111,6 +111,9 @@ rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$settings_section" || fail 'Set
 rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_control" || fail 'Settings control row lost shared switches'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_control" || fail 'Settings control row lost shared number controls'
 rg -q 'RaohaneMotion\.' "$settings_control" || fail 'Settings control row lost shared interaction motion'
+if rg -q 'RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{' "$settings_section"; then
+  fail 'Settings section renderer reabsorbed reusable control-row implementation'
+fi
 rg -q 'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' "$settings_section" || fail 'Settings section renderer lost grouped native-control surface'
 if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_section" "$settings_control"; then
   fail 'Settings V3 reintroduced retired chrome, stale motion or the previous active layout'
