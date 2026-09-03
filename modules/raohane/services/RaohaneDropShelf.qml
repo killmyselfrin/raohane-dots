@@ -13,6 +13,7 @@ Singleton {
     property bool open: false
     property real positionX: 20
     property real positionY: 220
+    property string targetScreenName: ""
 
     function cleanPath(value): string {
         let path = String(value ?? "")
@@ -68,11 +69,16 @@ Singleton {
     }
 
     function show(urls, x: real, y: real): void {
+        root.showOnScreen(urls, x, y, "")
+    }
+
+    function showOnScreen(urls, x: real, y: real, screenName): void {
         root.addItems(urls)
         if (Number.isFinite(Number(x)))
             root.positionX = Number(x)
         if (Number.isFinite(Number(y)))
             root.positionY = Number(y)
+        root.targetScreenName = String(screenName ?? "")
         root.open = true
     }
 
