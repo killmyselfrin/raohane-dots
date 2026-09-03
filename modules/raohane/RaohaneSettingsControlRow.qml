@@ -14,10 +14,12 @@ Item {
     readonly property bool toggleRow: root.entry?.type === "toggle"
     readonly property bool numberRow: root.entry?.type === "number"
     readonly property bool textRow: root.entry?.type === "text"
+    readonly property bool choiceRow: root.entry?.type === "choice"
+    readonly property var choiceOptions: Array.isArray(root.entry?.options) ? root.entry.options : []
     readonly property bool rowHovered: settingMouse.containsMouse || activeFocus
 
     height: root.textRow ? 76 : 64
-    activeFocusOnTab: root.toggleRow
+    activeFocusOnTab: root.toggleRow || root.choiceRow
 
     function changeNumber(delta: real): void {
         if (!root.entry)
@@ -26,6 +28,31 @@ Item {
         const minimum = Number(root.entry.min)
         const maximum = Number(root.entry.max)
         RaohaneConfig[root.entry.key] = Math.max(minimum, Math.min(maximum, current + delta))
+    }
+
+    function currentChoiceIndex(): int {
+        if (!root.entry || root.choiceOptions.length === 0)
+            return -1
+        const current = String(RaohaneConfig[root.entry.key] ?? "")
+        for (let i = 0; i < root.choiceOptions.length; ++i) {
+            const option = root.choiceOptions[i]
+            if (String(option.value) === current || (option.aliases ?? []).includes(current))
+                return i
+        }
+        return 0
+    }
+
+    function currentChoice(): var {
+        const index = root.currentChoiceIndex()
+        return index >= 0 && index < root.choiceOptions.length ? root.choiceOptions[index] : null
+    }
+
+    function changeChoice(delta: int): void {
+        if (!root.entry || root.choiceOptions.length === 0)
+            return
+        const current = Math.max(0, root.currentChoiceIndex())
+        const nextIndex = (current + delta + root.choiceOptions.length) % root.choiceOptions.length
+        RaohaneConfig[root.entry.key] = String(root.choiceOptions[nextIndex].value)
     }
 
     Rectangle {
@@ -121,6 +148,62 @@ Item {
         }
 
         RaohaneSurface {
+            visible: root.choiceRow
+            Layout.preferredWidth: 198
+            Layout.preferredHeight: 36
+            surfaceRadius: 11
+            raised: false
+            showSheen: false
+            border.color: root.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 3
+                anchors.rightMargin: 3
+                spacing: 3
+
+                RaohaneIconButton {
+                    buttonSize: 28
+                    iconSize: 13
+                    icon: "chevron_left"
+                    transparentIdle: true
+                    showSheen: false
+                    onClicked: root.changeChoice(-1)
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    RaohaneIcon {
+                        text: root.currentChoice()?.icon ?? "tune"
+                        iconSize: 14
+                        color: RaohaneTheme.accent
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.currentChoice()?.label ?? ""
+                        color: RaohaneTheme.text
+                        font.pixelSize: 8
+                        font.weight: Font.DemiBold
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
+                    }
+                }
+
+                RaohaneIconButton {
+                    buttonSize: 28
+                    iconSize: 13
+                    icon: "chevron_right"
+                    transparentIdle: true
+                    showSheen: false
+                    onClicked: root.changeChoice(1)
+                }
+            }
+        }
+
+        RaohaneSurface {
             visible: root.textRow
             Layout.preferredWidth: Math.min(310, root.width * 0.42)
             Layout.preferredHeight: 34
@@ -177,10 +260,16 @@ Item {
     }
 
     Keys.onPressed: event => {
-        if (!root.toggleRow || !root.entry)
+        if (!root.entry)
             return
-        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+        if (root.toggleRow && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
             RaohaneConfig[root.entry.key] = !Boolean(RaohaneConfig[root.entry.key])
+            event.accepted = true
+        } else if (root.choiceRow && event.key === Qt.Key_Left) {
+            root.changeChoice(-1)
+            event.accepted = true
+        } else if (root.choiceRow && event.key === Qt.Key_Right) {
+            root.changeChoice(1)
             event.accepted = true
         }
     }
