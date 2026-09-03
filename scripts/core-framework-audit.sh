@@ -96,10 +96,11 @@ for property_name in \
   rg -q "property bool ${property_name}:" "$state" \
     || fail "RaohaneState missing runtime property: $property_name"
 done
-for property_name in settingsPage wallpaperSelectorTarget; do
-  rg -q "property string ${property_name}:" "$state" \
-    || fail "RaohaneState missing routing property: $property_name"
-done
+rg -q 'property string wallpaperSelectorTarget:' "$state" \
+  || fail 'RaohaneState missing wallpaper target routing property'
+if rg -n '^[[:space:]]*property string settingsPage:|RaohaneState\.settingsPage' modules/raohane; then
+  fail 'Settings page routing leaked back into global RaohaneState'
+fi
 for contract in \
   'function primaryOpen\(name: string\): bool' \
   'function closePrimarySurfaces\(except: string\): void' \
@@ -176,7 +177,7 @@ for symbol in \
   'source:[[:space:]]*root\.currentPageInfo\?\.source'; do
   rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost router-backed coordinator contract: $symbol"
 done
-if rg -q 'RaohaneState\.settingsPage|externalSurface|RaohanePaths\.defaultAvatarUrl|RaohaneConfig\.profile(DisplayName|AvatarPath)|ScrollBar\.vertical|function componentForKind\(|sourceComponent:|RaohaneSettingsSectionPage[[:space:]]*\{' "$settings_content"; then
+if rg -q 'externalSurface|RaohanePaths\.defaultAvatarUrl|RaohaneConfig\.profile(DisplayName|AvatarPath)|ScrollBar\.vertical|function componentForKind\(|sourceComponent:|RaohaneSettingsSectionPage[[:space:]]*\{' "$settings_content"; then
   fail 'RaohaneSettingsContent reabsorbed route/profile/navigation presentation or imperative page routing'
 fi
 
@@ -216,10 +217,12 @@ for symbol in \
   'function request\(route: string, control: string\): bool' \
   'function requestSearch\(section: string, key: string\): bool' \
   'RaohaneSettingsPageRegistry\.resolvePageIndex' \
-  'RaohaneState\.setPrimaryOpen\(page\.externalSurface, true\)' \
-  'property Connections legacyStateBridge:'; do
+  'RaohaneState\.setPrimaryOpen\(page\.externalSurface, true\)'; do
   rg -q "$symbol" "$settings_router" || fail "RaohaneSettingsRouter lost routing contract: $symbol"
 done
+if rg -n 'legacyStateBridge|onSettingsPageChanged' "$settings_router"; then
+  fail 'RaohaneSettingsRouter reintroduced legacy state routing'
+fi
 for symbol in 'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneConfig\[' 'RaohaneBarStudio[[:space:]]*\{'; do
   rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost native config/rendering contract: $symbol"
 done
@@ -254,4 +257,4 @@ rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+E
 rg -q 'hl\.dsp\.focus\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost workspace focus binds'
 rg -q 'hl\.dsp\.window\.move\(\{ workspace = workspace \}\)' "$installer" || fail 'installer lost move-window workspace binds'
 
-printf 'core-framework-audit: native paths/config/state/focus/settings router/coordinator/navigation/header/registry, primary coordinator and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus/settings router without legacy route state, coordinator/navigation/header/registry, primary coordinator and boot boundaries are valid\n'
