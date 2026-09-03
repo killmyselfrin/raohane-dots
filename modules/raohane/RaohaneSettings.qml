@@ -30,30 +30,7 @@ Scope {
 
         function hide(): void {
             settingsSearch.clear()
-            workspace.preferencesOpen = false
-            workspace.backupOpen = false
             RaohaneState.setPrimaryOpen("settings", false)
-        }
-
-        function openPreferences(section: string): void {
-            settingsSearch.clear()
-            workspace.backupOpen = false
-            preferences.section = section
-            workspace.preferencesOpen = true
-            preferences.forceActiveFocus()
-        }
-
-        function openBackup(): void {
-            settingsSearch.clear()
-            workspace.preferencesOpen = false
-            workspace.backupOpen = true
-            backupPage.forceActiveFocus()
-        }
-
-        function showMainSettings(): void {
-            workspace.preferencesOpen = false
-            workspace.backupOpen = false
-            workspace.forceActiveFocus()
         }
 
         onVisibleChanged: {
@@ -63,8 +40,6 @@ Scope {
                 RaohaneFocusGrab.addDismissable(panelWindow)
             } else {
                 workspace.entered = false
-                workspace.preferencesOpen = false
-                workspace.backupOpen = false
                 RaohaneFocusGrab.removeDismissable(panelWindow)
             }
         }
@@ -72,27 +47,6 @@ Scope {
         Connections {
             target: RaohaneFocusGrab
             function onDismissed() { panelWindow.hide() }
-        }
-
-        Connections {
-            target: RaohaneSettingsRouter
-
-            function onPageRequested(pageKey: string, controlKey: string): void {
-                panelWindow.showMainSettings()
-            }
-
-            function onPreferencesRequested(section: string): void {
-                panelWindow.openPreferences(section)
-            }
-
-            function onBackupRequested(): void {
-                panelWindow.openBackup()
-            }
-
-            function onLanguageRequested(): void {
-                panelWindow.showMainSettings()
-                RaohaneI18n.openPicker()
-            }
         }
 
         Rectangle {
@@ -115,8 +69,6 @@ Scope {
         RaohaneSurface {
             id: workspace
             property bool entered: false
-            property bool preferencesOpen: false
-            property bool backupOpen: false
 
             width: Math.min(parent.width - 96, 1040)
             height: Math.min(parent.height - 96, 700)
@@ -160,113 +112,13 @@ Scope {
             }
 
             RaohaneSettingsContentV3 {
+                id: settingsContent
                 anchors.fill: parent
-                visible: !workspace.preferencesOpen && !workspace.backupOpen
-            }
-
-            RaohanePreferencesHub {
-                id: preferences
-                anchors.fill: parent
-                visible: workspace.preferencesOpen
-                z: 45
-                onCloseRequested: {
-                    workspace.preferencesOpen = false
-                    workspace.forceActiveFocus()
-                }
-            }
-
-            Item {
-                id: backupPage
-                anchors.fill: parent
-                visible: workspace.backupOpen
-                z: 45
-                focus: visible
-
-                Item {
-                    id: backupHeader
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        top: parent.top
-                    }
-                    height: 66
-
-                    RaohaneIconButton {
-                        anchors {
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                            leftMargin: 16
-                        }
-                        buttonSize: 32
-                        iconSize: 16
-                        icon: "arrow_back"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: {
-                            workspace.backupOpen = false
-                            workspace.forceActiveFocus()
-                        }
-                    }
-
-                    Column {
-                        anchors {
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                            leftMargin: 60
-                        }
-                        spacing: 1
-
-                        Text {
-                            text: qsTr("Backup & Restore")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 17
-                            font.weight: Font.DemiBold
-                        }
-
-                        Text {
-                            text: qsTr("Portable Raohane settings, wallpapers and monitor profiles")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                        }
-                    }
-
-                    Rectangle {
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            bottom: parent.bottom
-                            leftMargin: 18
-                            rightMargin: 18
-                        }
-                        height: 1
-                        color: RaohaneTheme.borderFaint
-                    }
-                }
-
-                RaohaneBackupSettings {
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        top: backupHeader.bottom
-                        bottom: parent.bottom
-                        leftMargin: 16
-                        rightMargin: 16
-                        bottomMargin: 8
-                    }
-                }
-
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Escape) {
-                        workspace.backupOpen = false
-                        workspace.forceActiveFocus()
-                        event.accepted = true
-                    }
-                }
             }
 
             RaohaneSettingsSearch {
                 id: settingsSearch
-                visible: !workspace.preferencesOpen && !workspace.backupOpen
+                visible: !settingsContent.pageOwnsHeader
                 z: 50
                 width: Math.min(300, Math.max(220, workspace.width * 0.27))
                 height: 34
@@ -279,7 +131,7 @@ Scope {
             }
 
             RaohaneIconButton {
-                visible: !workspace.preferencesOpen && !workspace.backupOpen
+                visible: !settingsContent.pageOwnsHeader
                 z: 50
                 anchors {
                     top: parent.top
@@ -296,7 +148,7 @@ Scope {
             }
 
             RaohaneIconButton {
-                visible: !workspace.preferencesOpen && !workspace.backupOpen
+                visible: !settingsContent.pageOwnsHeader
                 z: 50
                 anchors {
                     top: parent.top
@@ -313,7 +165,7 @@ Scope {
             }
 
             RaohaneIconButton {
-                visible: !workspace.preferencesOpen && !workspace.backupOpen
+                visible: !settingsContent.pageOwnsHeader
                 z: 50
                 anchors {
                     top: parent.top
@@ -330,7 +182,7 @@ Scope {
             }
 
             RaohaneIconButton {
-                visible: !workspace.preferencesOpen && !workspace.backupOpen
+                visible: !settingsContent.pageOwnsHeader
                 z: 50
                 anchors {
                     top: parent.top
@@ -363,19 +215,11 @@ Scope {
             }
 
             Keys.onPressed: event => {
-                if (workspace.backupOpen && event.key === Qt.Key_Escape) {
-                    workspace.backupOpen = false
-                    workspace.forceActiveFocus()
-                    event.accepted = true
-                } else if (workspace.preferencesOpen && event.key === Qt.Key_Escape) {
-                    workspace.preferencesOpen = false
-                    workspace.forceActiveFocus()
-                    event.accepted = true
-                } else if (!workspace.preferencesOpen && !workspace.backupOpen && (event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
+                if (settingsSearch.visible && (event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
                     settingsSearch.focusSearch()
                     event.accepted = true
-                } else if (!workspace.preferencesOpen && !workspace.backupOpen && event.key === Qt.Key_Escape) {
-                    if (settingsSearch.query.length > 0) {
+                } else if (event.key === Qt.Key_Escape) {
+                    if (settingsSearch.visible && settingsSearch.query.length > 0) {
                         settingsSearch.clear()
                         workspace.forceActiveFocus()
                     } else {
