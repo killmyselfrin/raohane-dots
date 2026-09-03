@@ -12,6 +12,9 @@ RaohaneSurface {
     property bool activeWorkspace: false
     property bool selected: false
     readonly property var windows: root.workspaceObject?.toplevels?.values ?? []
+    readonly property bool urgent: root.windows.some(toplevel => Boolean(toplevel?.urgent))
+    readonly property var focusedWindow: root.windows.find(toplevel => Boolean(toplevel?.activated)) ?? null
+    readonly property string focusedTitle: String(root.focusedWindow?.title ?? "")
 
     signal hoveredIndex(int index)
     signal workspaceActivated(int workspaceId)
@@ -29,12 +32,13 @@ RaohaneSurface {
     hoverScale: 1.008
     pressedScale: 0.994
     activeFocusOnTab: true
-    border.color: root.activeWorkspace ? RaohaneTheme.accentBorder
+    border.color: root.urgent ? RaohaneTheme.critical
+        : root.activeWorkspace ? RaohaneTheme.accentBorder
         : root.selected ? RaohaneTheme.borderStrong
         : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
     Rectangle {
-        visible: root.activeWorkspace
+        visible: root.activeWorkspace || root.urgent
         anchors {
             left: parent.left
             top: parent.top
@@ -45,7 +49,9 @@ RaohaneSurface {
         }
         width: 2
         radius: 1
-        color: RaohaneTheme.accent
+        color: root.urgent ? RaohaneTheme.critical : RaohaneTheme.accent
+
+        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
     }
 
     ColumnLayout {
@@ -56,17 +62,39 @@ RaohaneSurface {
 
         RowLayout {
             Layout.fillWidth: true
+            spacing: 8
 
-            Text {
-                text: String(root.workspaceId).padStart(2, "0")
-                color: root.activeWorkspace ? RaohaneTheme.accent : RaohaneTheme.text
-                font.pixelSize: 18
-                font.weight: Font.Medium
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: -2
 
-                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                Text {
+                    text: String(root.workspaceId).padStart(2, "0")
+                    color: root.urgent ? RaohaneTheme.critical
+                        : root.activeWorkspace ? RaohaneTheme.accent : RaohaneTheme.text
+                    font.pixelSize: 18
+                    font.weight: Font.Medium
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                }
+
+                Text {
+                    visible: root.focusedTitle.length > 0
+                    Layout.fillWidth: true
+                    text: root.focusedTitle
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                    elide: Text.ElideRight
+                }
             }
 
-            Item { Layout.fillWidth: true }
+            RaohaneIcon {
+                visible: root.urgent
+                text: "priority_high"
+                iconSize: 15
+                fill: 1
+                color: RaohaneTheme.critical
+            }
 
             RaohaneSurface {
                 visible: root.activeWorkspace
@@ -90,7 +118,10 @@ RaohaneSurface {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: RaohaneTheme.borderFaint
+            color: root.urgent ? RaohaneTheme.critical : RaohaneTheme.borderFaint
+            opacity: root.urgent ? 0.42 : 1
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
 
         ColumnLayout {
@@ -127,7 +158,7 @@ RaohaneSurface {
 
             Text {
                 text: qsTr("%1 windows").arg(root.windows.length)
-                color: RaohaneTheme.textFaint
+                color: root.urgent ? RaohaneTheme.critical : RaohaneTheme.textFaint
                 font.pixelSize: 7
             }
             Item { Layout.fillWidth: true }
