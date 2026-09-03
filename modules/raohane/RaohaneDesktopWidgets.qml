@@ -15,8 +15,9 @@ Item {
     readonly property int edge: compact ? 34 : 54
     readonly property int cardWidth: compact ? 238 : 294
     readonly property string layoutPreset: RaohaneConfig.desktopWidgetsLayout
-    readonly property var primaryWidgetIds: RaohaneDesktopWidgetRegistry.idsForZone("primary")
-    readonly property var secondaryWidgetIds: RaohaneDesktopWidgetRegistry.idsForZone("secondary")
+    readonly property var composition: RaohaneConfig.sanitizeDesktopWidgetComposition(RaohaneConfig.desktopWidgetComposition)
+    readonly property var primaryWidgetIds: root.composition.primary
+    readonly property var secondaryWidgetIds: root.composition.secondary
 
     opacity: shown ? RaohaneConfig.desktopWidgetsOpacity : 0
     scale: RaohaneConfig.desktopWidgetsScale
