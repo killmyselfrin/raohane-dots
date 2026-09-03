@@ -91,6 +91,7 @@ Singleton {
     property bool quickSliderBrightness: true
     property bool quickSliderVolume: true
     property bool quickSliderMic: false
+    property var quickControlTiles: root.defaultQuickControlTiles()
 
     property bool desktopWidgetsEnabled: true
     property bool desktopWidgetClock: true
@@ -255,6 +256,22 @@ Singleton {
         }
     }
 
+    function defaultQuickControlTiles(): var {
+        return ["network", "bluetooth", "nightLight", "gameMode", "keepAwake", "easyEffects"]
+    }
+
+    function sanitizeQuickControlTiles(value): var {
+        const defaults = root.defaultQuickControlTiles()
+        const input = Array.isArray(value) ? value : defaults
+        const result = []
+        for (let i = 0; i < input.length && result.length < defaults.length; ++i) {
+            const id = String(input[i] ?? "").trim()
+            if (defaults.includes(id) && !result.includes(id))
+                result.push(id)
+        }
+        return result.length > 0 ? result : defaults.slice()
+    }
+
     function defaultStyle(): var {
         return {
             glassOpacity: 1.0,
@@ -397,7 +414,8 @@ Singleton {
             quickControls: {
                 showBrightness: root.quickSliderBrightness,
                 showVolume: root.quickSliderVolume,
-                showMic: root.quickSliderMic
+                showMic: root.quickSliderMic,
+                tiles: root.sanitizeQuickControlTiles(root.quickControlTiles)
             },
             desktopWidgets: {
                 enabled: root.desktopWidgetsEnabled,
@@ -528,6 +546,7 @@ Singleton {
         root.assignIfPresent(quickControls, "showBrightness", value => root.quickSliderBrightness = Boolean(value))
         root.assignIfPresent(quickControls, "showVolume", value => root.quickSliderVolume = Boolean(value))
         root.assignIfPresent(quickControls, "showMic", value => root.quickSliderMic = Boolean(value))
+        root.assignIfPresent(quickControls, "tiles", value => root.quickControlTiles = root.sanitizeQuickControlTiles(value))
 
         root.assignIfPresent(desktopWidgets, "enabled", value => root.desktopWidgetsEnabled = Boolean(value))
         root.assignIfPresent(desktopWidgets, "showClock", value => root.desktopWidgetClock = Boolean(value))
@@ -657,6 +676,7 @@ Singleton {
     onQuickSliderBrightnessChanged: scheduleSave()
     onQuickSliderVolumeChanged: scheduleSave()
     onQuickSliderMicChanged: scheduleSave()
+    onQuickControlTilesChanged: scheduleSave()
     onDesktopWidgetsEnabledChanged: scheduleSave()
     onDesktopWidgetClockChanged: scheduleSave()
     onDesktopWidgetContextChanged: scheduleSave()
