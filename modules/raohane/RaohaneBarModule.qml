@@ -23,8 +23,12 @@ Item {
 
     readonly property bool vertical: orientation === "vertical"
     readonly property bool known: RaohaneBarModuleRegistry.supports(moduleId, orientation)
-    readonly property real loadedWidth: Number(contentLoader.item?.implicitWidth ?? contentLoader.item?.width ?? 0)
-    readonly property real loadedHeight: Number(contentLoader.item?.implicitHeight ?? contentLoader.item?.height ?? 0)
+    // Read only implicit geometry from the loaded component. Reading item.width
+    // here while the Loader is sized by this host creates a circular dependency
+    // that can leave the Loader at 0x0 even though the surrounding bar island is
+    // visible. The fallback keeps first-frame geometry stable until loading ends.
+    readonly property real loadedWidth: Number(contentLoader.item?.implicitWidth ?? 0)
+    readonly property real loadedHeight: Number(contentLoader.item?.implicitHeight ?? 0)
 
     function fallbackWidth(id: string): real {
         if (root.vertical)
@@ -59,7 +63,12 @@ Item {
     height: implicitHeight
     Layout.preferredWidth: implicitWidth
     Layout.preferredHeight: implicitHeight
-    visible: known && contentLoader.status === Loader.Ready && (contentLoader.item?.visible ?? true)
+    // Keep the host present while a component is loading so RowLayout does not
+    // collapse it to zero. Once ready, honour components such as an unavailable
+    // Bluetooth slot that intentionally hide themselves.
+    visible: root.known
+        && contentLoader.status !== Loader.Error
+        && (contentLoader.status !== Loader.Ready || (contentLoader.item?.visible ?? true))
 
     function requestPrimary(surfaceId: string): void {
         if (typeof root.primaryAction === "function") {
@@ -114,7 +123,7 @@ Item {
 
     Loader {
         id: contentLoader
-        anchors.centerIn: parent
+        anchors.fill: parent
         active: root.known
         sourceComponent: root.componentFor(root.moduleId)
     }
