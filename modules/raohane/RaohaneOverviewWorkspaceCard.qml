@@ -11,6 +11,7 @@ RaohaneSurface {
     property int cardIndex: -1
     property bool activeWorkspace: false
     property bool selected: false
+    property string shortcutLabel: ""
     readonly property var windows: root.workspaceObject?.toplevels?.values ?? []
     readonly property bool urgent: root.windows.some(toplevel => Boolean(toplevel?.urgent))
     readonly property var focusedWindow: root.windows.find(toplevel => Boolean(toplevel?.activated)) ?? null
@@ -94,6 +95,24 @@ RaohaneSurface {
                 iconSize: 15
                 fill: 1
                 color: RaohaneTheme.critical
+            }
+
+            RaohaneSurface {
+                visible: root.shortcutLabel.length > 0
+                implicitWidth: 21
+                implicitHeight: 21
+                surfaceRadius: 7
+                transparentIdle: !root.selected
+                active: root.selected
+                showSheen: false
+
+                Text {
+                    anchors.centerIn: parent
+                    text: root.shortcutLabel
+                    color: root.selected ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                    font.weight: Font.DemiBold
+                }
             }
 
             RaohaneSurface {
