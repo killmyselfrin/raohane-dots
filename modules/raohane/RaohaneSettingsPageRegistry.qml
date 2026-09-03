@@ -18,8 +18,11 @@ QtObject {
         { key: "desktop", name: qsTr("Desktop & Spaces"), icon: "view_quilt", group: qsTr("SHELL"), subtitle: qsTr("Wallpaper, transitions and workspace overview"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "displays", name: qsTr("Displays"), icon: "monitor", group: qsTr("SYSTEM"), subtitle: qsTr("Resolution, refresh rate, scale and multi-monitor layout"), source: "", externalSurface: "displaySettings" },
         { key: "hyprland", name: qsTr("Hyprland"), icon: "select_window_2", group: qsTr("SYSTEM"), subtitle: qsTr("Compositor-facing behavior and interaction boundaries"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "preferences", name: qsTr("Keyboard & Motion"), icon: "keyboard", group: qsTr("SYSTEM"), subtitle: qsTr("Shortcuts, application bindings and animation behavior"), source: "RaohaneSettingsPreferences.qml", hideHeader: true },
         { key: "services", name: qsTr("Integrations"), icon: "hub", group: qsTr("SYSTEM"), subtitle: qsTr("External commands and native system helpers"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "profile", name: qsTr("Profile"), icon: "account_circle", group: qsTr("SYSTEM"), subtitle: qsTr("Local identity used by Raohane surfaces"), source: "RaohaneSettingsSectionPage.qml" },
+        { key: "backup", name: qsTr("Backup & Restore"), icon: "inventory_2", group: qsTr("SYSTEM"), subtitle: qsTr("Portable Raohane settings, wallpapers and monitor profiles"), source: "RaohaneBackupSettings.qml" },
+        { key: "language", name: qsTr("Language"), icon: "language", group: qsTr("SYSTEM"), subtitle: qsTr("Choose the language used by Raohane"), source: "RaohaneSettingsLanguage.qml" },
         { key: "about", name: qsTr("About"), icon: "info", group: qsTr("SYSTEM"), subtitle: qsTr("Version, runtime and system information"), source: "RaohaneSettingsAbout.qml" }
     ]
 
@@ -36,7 +39,19 @@ QtObject {
         "desktop & spaces": "desktop",
         "spaces": "desktop",
         "integrations": "services",
-        "system": "services"
+        "system": "services",
+        "restore": "backup",
+        "backup & restore": "backup",
+        "locale": "language"
+    })
+
+    readonly property var routeAliases: ({
+        "keybinds": { page: "preferences", control: "keybinds" },
+        "shortcuts": { page: "preferences", control: "keybinds" },
+        "keyboard": { page: "preferences", control: "keybinds" },
+        "motion": { page: "preferences", control: "motion" },
+        "animations": { page: "preferences", control: "motion" },
+        "animation": { page: "preferences", control: "motion" }
     })
 
     readonly property var sectionOrder: [
@@ -146,7 +161,11 @@ QtObject {
     readonly property var searchOnlyEntries: [
         { section: "themes", key: "themePreset", label: qsTr("Theme library"), detail: qsTr("Themes") },
         { section: "bar", key: "barModuleLayout", label: qsTr("Bar modules"), detail: qsTr("Bar Studio") },
-        { section: "widgets", key: "desktopWidgetsLayout", label: qsTr("Composition preset"), detail: qsTr("Desktop Widgets") }
+        { section: "widgets", key: "desktopWidgetsLayout", label: qsTr("Composition preset"), detail: qsTr("Desktop Widgets") },
+        { section: "preferences", key: "keybinds", label: qsTr("Keyboard shortcuts"), detail: qsTr("Keyboard & Motion") },
+        { section: "preferences", key: "motion", label: qsTr("Motion & animations"), detail: qsTr("Keyboard & Motion") },
+        { section: "backup", key: "backup", label: qsTr("Backup & Restore"), detail: qsTr("System") },
+        { section: "language", key: "language", label: qsTr("Interface language"), detail: qsTr("System") }
     ]
 
     function isFirstInGroup(index: int): bool {
@@ -162,6 +181,20 @@ QtObject {
         let requested = String(requestedValue ?? "").trim().toLowerCase()
         requested = root.aliases[requested] ?? requested
         return root.pages.findIndex(item => item.key === requested || item.name.toLowerCase() === requested)
+    }
+
+    function resolveRoute(requestedValue: string, control: string): var {
+        const requested = String(requestedValue ?? "").trim().toLowerCase()
+        const explicitControl = String(control ?? "").trim()
+        if (explicitControl === "") {
+            const routed = root.routeAliases[requested]
+            if (routed)
+                return { page: routed.page, control: routed.control }
+        }
+        const index = root.resolvePageIndex(requested)
+        if (index < 0)
+            return null
+        return { page: root.pages[index].key, control: explicitControl }
     }
 
     function sectionSchema(key: string): var {
