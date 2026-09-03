@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 
 import qs.modules.raohane.config
 import qs.modules.raohane.services
@@ -12,7 +11,6 @@ Item {
     id: root
 
     property var screen
-    property bool gameModeActive: false
     property string pickerMode: ""
     readonly property bool pickerOpen: root.pickerMode.length > 0
     readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(screen)
@@ -23,6 +21,8 @@ Item {
     function togglePicker(mode: string): void {
         root.pickerMode = root.pickerMode === mode ? "" : mode
     }
+
+    Component.onCompleted: RaohanePerformance.refreshGameMode()
 
     ColumnLayout {
         id: content
@@ -84,10 +84,10 @@ Item {
                 Layout.fillWidth: true
                 icon: "gamepad"
                 title: qsTr("Game Mode")
-                subtitle: root.gameModeActive ? qsTr("Low latency") : qsTr("Desktop effects")
-                active: root.gameModeActive
-                onPrimary: root.setGameMode(!root.gameModeActive)
-                onSecondary: root.setGameMode(false)
+                subtitle: RaohanePerformance.gameModeActive ? qsTr("Low latency") : qsTr("Desktop effects")
+                active: RaohanePerformance.gameModeActive
+                onPrimary: RaohanePerformance.toggleGameMode()
+                onSecondary: RaohanePerformance.setGameMode(false)
             }
 
             QuickTile {
@@ -169,37 +169,6 @@ Item {
             Layout.preferredHeight: implicitHeight
             mode: root.pickerMode
             onCloseRequested: root.pickerMode = ""
-        }
-    }
-
-    function refreshGameMode(): void {
-        if (!gameModeProbe.running)
-            gameModeProbe.running = true
-    }
-
-    Process {
-        id: gameModeProbe
-        command: ["hyprctl", "getoption", "animations:enabled", "-j"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    root.gameModeActive = Number(JSON.parse(text).int) === 0
-                } catch (error) {
-                    root.gameModeActive = false
-                }
-            }
-        }
-    }
-
-    function setGameMode(enabled: bool): void {
-        root.gameModeActive = enabled
-        if (enabled) {
-            Quickshell.execDetached([
-                "hyprctl", "--batch",
-                "keyword animations:enabled 0; keyword decoration:shadow:enabled 0; keyword decoration:blur:enabled 0; keyword general:gaps_in 0; keyword general:gaps_out 0; keyword general:border_size 1; keyword decoration:rounding 0; keyword general:allow_tearing 1"
-            ])
-        } else {
-            Quickshell.execDetached(["hyprctl", "reload"])
         }
     }
 
