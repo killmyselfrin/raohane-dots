@@ -20,8 +20,8 @@ Scope {
         screen: root.focusedScreen
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
-        implicitWidth: 372
-        implicitHeight: 228
+        implicitWidth: 410
+        implicitHeight: 246
 
         anchors {
             top: true
@@ -29,8 +29,10 @@ Scope {
         }
 
         margins {
-            left: Math.max(20, RaohaneDropShelf.positionX - implicitWidth / 2)
-            top: Math.max(20, RaohaneDropShelf.positionY - implicitHeight - 30)
+            left: Math.max(16, Math.min((shelfWindow.screen?.width ?? 1920) - implicitWidth - 16,
+                RaohaneDropShelf.positionX - implicitWidth / 2))
+            top: Math.max(16, Math.min((shelfWindow.screen?.height ?? 1080) - implicitHeight - 16,
+                RaohaneDropShelf.positionY - implicitHeight - 30))
         }
 
         WlrLayershell.namespace: "quickshell:raohane-dropshelf"
@@ -75,15 +77,15 @@ Scope {
             transform: Translate {
                 y: shelfPanel.entered ? 0 : 10
                 Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
                 }
             }
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
             }
             Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             ColumnLayout {
@@ -134,8 +136,9 @@ Scope {
 
                 ListView {
                     id: shelfList
+
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 124
+                    Layout.preferredHeight: 130
                     orientation: ListView.Horizontal
                     spacing: 7
                     clip: true
@@ -143,87 +146,16 @@ Scope {
                     boundsBehavior: Flickable.StopAtBounds
                     flickDeceleration: 2500
 
-                    delegate: RaohaneSurface {
-                        id: itemCard
+                    delegate: RaohaneDropShelfItem {
                         required property string modelData
+                        required property int index
 
-                        width: 104
-                        height: 116
-                        surfaceRadius: 14
-                        raised: false
-                        interactive: true
-                        hovered: itemMouse.containsMouse
-                        pressed: itemMouse.pressed
-                        showSheen: false
-                        hoverScale: 1.015
-                        pressedScale: 0.975
-
-                        readonly property string entryPath: modelData
-                        readonly property bool imageLike: /\.(png|jpe?g|webp|bmp|gif)$/i.test(entryPath)
-
-                        Drag.active: itemMouse.drag.active
-                        Drag.dragType: Drag.Automatic
-                        Drag.mimeData: ({ "text/uri-list": "file://" + entryPath })
-                        Drag.supportedActions: Qt.CopyAction
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: 7
-                            spacing: 5
-
-                            RaohaneSurface {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 76
-                                surfaceRadius: 11
-                                active: itemMouse.drag.active
-                                showSheen: false
-                                clip: true
-
-                                Image {
-                                    anchors.fill: parent
-                                    source: itemCard.imageLike ? "file://" + itemCard.entryPath : ""
-                                    fillMode: Image.PreserveAspectCrop
-                                    asynchronous: true
-                                    cache: true
-                                    visible: itemCard.imageLike && status === Image.Ready
-                                }
-
-                                RaohaneIcon {
-                                    anchors.centerIn: parent
-                                    visible: !itemCard.imageLike
-                                    text: itemCard.entryPath.endsWith("/") ? "folder" : "draft"
-                                    iconSize: 24
-                                    fill: itemMouse.containsMouse ? 1 : 0
-                                    symbolWeight: itemMouse.containsMouse ? 520 : 430
-                                    color: itemMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
-
-                                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                                }
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: itemCard.entryPath.split("/").pop()
-                                color: RaohaneTheme.text
-                                font.pixelSize: 8
-                                horizontalAlignment: Text.AlignHCenter
-                                elide: Text.ElideMiddle
-                            }
-                        }
-
-                        MouseArea {
-                            id: itemMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            drag.target: itemCard
-                            cursorShape: drag.active ? Qt.ClosedHandCursor : Qt.OpenHandCursor
-                            onReleased: {
-                                if (itemCard.Drag.active)
-                                    itemCard.Drag.drop()
-                                itemCard.x = 0
-                                itemCard.y = 0
-                            }
-                        }
+                        entryPath: modelData
+                        itemIndex: index
+                        onOpenRequested: path => RaohaneDropShelf.openPath(path)
+                        onRevealRequested: path => RaohaneDropShelf.revealPath(path)
+                        onCopyRequested: path => RaohaneDropShelf.copyPath(path)
+                        onRemoveRequested: index => RaohaneDropShelf.removeAt(index)
                     }
 
                     Column {
