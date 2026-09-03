@@ -9,25 +9,17 @@ Item {
     id: root
 
     property int currentPage: 0
-    property string pendingSearch: ""
+    property string pendingControl: ""
     property bool pageEntered: true
     readonly property bool compactNav: width < 860
     readonly property var pages: RaohaneSettingsPageRegistry.pages
     readonly property var currentPageInfo: root.pages[root.currentPage] ?? null
 
-    function resolvePageIndex(requestedValue: string): int {
-        return RaohaneSettingsPageRegistry.resolvePageIndex(requestedValue)
-    }
-
-    function activatePage(index: int): void {
+    function showPage(pageKey: string, controlKey: string): void {
+        const index = RaohaneSettingsPageRegistry.resolvePageIndex(pageKey)
         if (index < 0 || index >= root.pages.length)
             return
-        const page = root.pages[index]
-        if (page?.externalSurface) {
-            RaohaneState.setPrimaryOpen(page.externalSurface, true)
-            root.pendingSearch = ""
-            return
-        }
+        root.pendingControl = String(controlKey ?? "")
         if (root.currentPage === index) {
             Qt.callLater(root.configureLoadedPage)
             return
@@ -41,9 +33,9 @@ Item {
             return
         if (pageLoader.item.hasOwnProperty("sectionKey"))
             pageLoader.item.sectionKey = page.key
-        if (root.pendingSearch !== "" && typeof pageLoader.item.goTo === "function")
-            pageLoader.item.goTo(root.pendingSearch)
-        root.pendingSearch = ""
+        if (root.pendingControl !== "" && typeof pageLoader.item.goTo === "function")
+            pageLoader.item.goTo(root.pendingControl)
+        root.pendingControl = ""
     }
 
     onCurrentPageChanged: {
@@ -61,19 +53,10 @@ Item {
     }
 
     Connections {
-        target: RaohaneState
+        target: RaohaneSettingsRouter
 
-        function onSettingsPageChanged(): void {
-            if (RaohaneState.settingsPage === "")
-                return
-
-            const parts = RaohaneState.settingsPage.split(":")
-            const requested = parts[0]
-            root.pendingSearch = parts.length > 1 ? parts.slice(1).join(":") : ""
-            const index = root.resolvePageIndex(requested)
-            if (index >= 0)
-                root.activatePage(index)
-            RaohaneState.settingsPage = ""
+        function onPageRequested(pageKey: string, controlKey: string): void {
+            root.showPage(pageKey, controlKey)
         }
     }
 
@@ -88,8 +71,8 @@ Item {
             currentPage: root.currentPage
             compact: root.compactNav
             onPageRequested: index => {
-                root.pendingSearch = ""
-                root.activatePage(index)
+                if (index >= 0 && index < root.pages.length)
+                    RaohaneSettingsRouter.request(root.pages[index].key, "")
             }
         }
 

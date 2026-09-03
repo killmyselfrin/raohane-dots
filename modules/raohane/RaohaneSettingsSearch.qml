@@ -43,13 +43,12 @@ Item {
             return
         const safeIndex = Math.max(0, Math.min(root.filteredEntries.length - 1, index))
         const entry = root.filteredEntries[safeIndex]
-        RaohaneState.settingsPage = entry.section + ":" + entry.key
+        RaohaneSettingsRouter.requestSearch(entry.section, entry.key)
         root.clear()
     }
 
     RaohaneSurface {
         id: searchBox
-
         anchors.fill: parent
         surfaceRadius: 11
         raised: false
@@ -68,10 +67,7 @@ Item {
                 iconSize: 15
                 fill: searchInput.activeFocus ? 1 : 0
                 color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
-
-                Behavior on color {
-                    ColorAnimation { duration: RaohaneMotion.micro }
-                }
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
 
             Item {
@@ -80,7 +76,6 @@ Item {
 
                 TextInput {
                     id: searchInput
-
                     anchors.fill: parent
                     verticalAlignment: TextInput.AlignVCenter
                     color: RaohaneTheme.text
@@ -130,14 +125,7 @@ Item {
                 surfaceRadius: 7
                 raised: false
                 showSheen: false
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "Ctrl F"
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
-                    font.weight: Font.Medium
-                }
+                Text { anchors.centerIn: parent; text: "Ctrl F"; color: RaohaneTheme.textFaint; font.pixelSize: 7; font.weight: Font.Medium }
             }
 
             RaohaneIconButton {
@@ -145,31 +133,17 @@ Item {
                 buttonSize: 24
                 iconSize: 14
                 icon: "close"
-                onClicked: {
-                    root.clear()
-                    searchInput.forceActiveFocus()
-                }
+                onClicked: { root.clear(); searchInput.forceActiveFocus() }
             }
         }
 
-        MouseArea {
-            id: searchHover
-            anchors.fill: parent
-            acceptedButtons: Qt.NoButton
-            hoverEnabled: true
-        }
+        MouseArea { id: searchHover; anchors.fill: parent; acceptedButtons: Qt.NoButton; hoverEnabled: true }
     }
 
     RaohaneSurface {
         id: resultsPanel
-
         visible: root.query.length > 0
-        anchors {
-            top: searchBox.bottom
-            topMargin: 6
-            left: parent.left
-            right: parent.right
-        }
+        anchors { top: searchBox.bottom; topMargin: 6; left: parent.left; right: parent.right }
         height: root.filteredEntries.length > 0 ? Math.min(282, resultsList.contentHeight + 12) : 46
         surfaceRadius: 14
         raised: true
@@ -177,16 +151,10 @@ Item {
         border.color: RaohaneTheme.borderStrong
         clip: true
         z: 101
-
         opacity: root.query.length > 0 ? 1 : 0
         scale: root.query.length > 0 ? 1 : 0.975
-
-        Behavior on opacity {
-            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-        }
-        Behavior on scale {
-            NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-        }
+        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard } }
+        Behavior on scale { NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized } }
 
         Text {
             visible: root.filteredEntries.length === 0
@@ -198,7 +166,6 @@ Item {
 
         ListView {
             id: resultsList
-
             visible: root.filteredEntries.length > 0
             anchors.fill: parent
             anchors.margins: 6
@@ -209,10 +176,8 @@ Item {
 
             delegate: FocusScope {
                 id: resultRow
-
                 required property var modelData
                 required property int index
-
                 width: resultsList.width
                 height: 36
                 activeFocusOnTab: true
@@ -232,37 +197,15 @@ Item {
                         anchors.rightMargin: 9
                         spacing: 8
 
-                        RaohaneIcon {
-                            text: "tune"
-                            iconSize: 14
-                            fill: resultRow.index === root.currentIndex ? 1 : 0
-                            color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: resultRow.modelData.label
-                            color: RaohaneTheme.text
-                            font.pixelSize: 9
-                            font.weight: resultRow.index === root.currentIndex ? Font.DemiBold : Font.Medium
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            text: resultRow.modelData.detail
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
-                        }
-
+                        RaohaneIcon { text: "tune"; iconSize: 14; fill: resultRow.index === root.currentIndex ? 1 : 0; color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textMuted }
+                        Text { Layout.fillWidth: true; text: resultRow.modelData.label; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: resultRow.index === root.currentIndex ? Font.DemiBold : Font.Medium; elide: Text.ElideRight }
+                        Text { text: resultRow.modelData.detail; color: RaohaneTheme.textFaint; font.pixelSize: 8 }
                         RaohaneIcon {
                             text: "arrow_forward"
                             iconSize: 13
                             color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textFaint
                             opacity: resultRow.index === root.currentIndex || resultMouse.containsMouse ? 1 : 0
-
-                            Behavior on opacity {
-                                NumberAnimation { duration: RaohaneMotion.micro }
-                            }
+                            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
                         }
                     }
                 }

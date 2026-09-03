@@ -50,6 +50,12 @@ Scope {
             backupPage.forceActiveFocus()
         }
 
+        function showMainSettings(): void {
+            workspace.preferencesOpen = false
+            workspace.backupOpen = false
+            workspace.forceActiveFocus()
+        }
+
         onVisibleChanged: {
             if (visible) {
                 workspace.entered = false
@@ -66,6 +72,27 @@ Scope {
         Connections {
             target: RaohaneFocusGrab
             function onDismissed() { panelWindow.hide() }
+        }
+
+        Connections {
+            target: RaohaneSettingsRouter
+
+            function onPageRequested(pageKey: string, controlKey: string): void {
+                panelWindow.showMainSettings()
+            }
+
+            function onPreferencesRequested(section: string): void {
+                panelWindow.openPreferences(section)
+            }
+
+            function onBackupRequested(): void {
+                panelWindow.openBackup()
+            }
+
+            function onLanguageRequested(): void {
+                panelWindow.showMainSettings()
+                RaohaneI18n.openPicker()
+            }
         }
 
         Rectangle {
@@ -265,7 +292,7 @@ Scope {
                 icon: "inventory_2"
                 transparentIdle: true
                 showSheen: false
-                onClicked: panelWindow.openBackup()
+                onClicked: RaohaneSettingsRouter.request("backup", "")
             }
 
             RaohaneIconButton {
@@ -282,7 +309,7 @@ Scope {
                 icon: "keyboard"
                 transparentIdle: true
                 showSheen: false
-                onClicked: panelWindow.openPreferences("keybinds")
+                onClicked: RaohaneSettingsRouter.request("keybinds", "")
             }
 
             RaohaneIconButton {
@@ -299,7 +326,7 @@ Scope {
                 icon: "animation"
                 transparentIdle: true
                 showSheen: false
-                onClicked: panelWindow.openPreferences("motion")
+                onClicked: RaohaneSettingsRouter.request("motion", "")
             }
 
             RaohaneIconButton {
@@ -316,7 +343,7 @@ Scope {
                 icon: "language"
                 transparentIdle: true
                 showSheen: false
-                onClicked: RaohaneI18n.openPicker()
+                onClicked: RaohaneSettingsRouter.request("language", "")
             }
 
             RaohaneIconButton {
@@ -365,29 +392,7 @@ Scope {
             function open(): void { RaohaneState.setPrimaryOpen("settings", true) }
             function close(): void { panelWindow.hide() }
             function status(): string { return RaohaneState.settingsOpen ? "open" : "closed" }
-            function page(page: string): void {
-                const requested = String(page ?? "").trim().toLowerCase()
-                RaohaneState.setPrimaryOpen("settings", true)
-                if (requested === "keybinds" || requested === "shortcuts" || requested === "keyboard") {
-                    panelWindow.openPreferences("keybinds")
-                    return
-                }
-                if (requested === "motion" || requested === "animations" || requested === "animation") {
-                    panelWindow.openPreferences("motion")
-                    return
-                }
-                if (requested === "backup" || requested === "restore" || requested === "backup & restore") {
-                    panelWindow.openBackup()
-                    return
-                }
-                if (requested === "language" || requested === "locale") {
-                    RaohaneI18n.openPicker()
-                    return
-                }
-                workspace.preferencesOpen = false
-                workspace.backupOpen = false
-                RaohaneState.settingsPage = page
-            }
+            function page(page: string): void { RaohaneSettingsRouter.request(page, "") }
         }
 
         CompositorGlobalShortcut {
