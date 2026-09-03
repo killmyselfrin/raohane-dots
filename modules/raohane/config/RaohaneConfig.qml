@@ -98,6 +98,7 @@ Singleton {
     property bool desktopWidgetContext: true
     property bool desktopWidgetSystem: true
     property bool desktopWidgetMotto: true
+    property var desktopWidgetComposition: root.defaultDesktopWidgetComposition()
     property bool desktopWidgetsCompact: false
     property string desktopWidgetsLayout: "balanced"
     property real desktopWidgetsScale: 1.0
@@ -272,6 +273,54 @@ Singleton {
         return result.length > 0 ? result : defaults.slice()
     }
 
+    function defaultDesktopWidgetComposition(): var {
+        return {
+            primary: ["clock", "context"],
+            secondary: ["system", "motto"]
+        }
+    }
+
+    function sanitizeDesktopWidgetZone(value, used): var {
+        const validIds = ["clock", "context", "system", "motto"]
+        const input = Array.isArray(value) ? value : []
+        const result = []
+        for (let i = 0; i < input.length && result.length < validIds.length; ++i) {
+            const id = String(input[i] ?? "").trim()
+            if (validIds.includes(id) && !used.includes(id)) {
+                result.push(id)
+                used.push(id)
+            }
+        }
+        return result
+    }
+
+    function sanitizeDesktopWidgetComposition(value): var {
+        const defaults = root.defaultDesktopWidgetComposition()
+        if (!value || typeof value !== "object")
+            return { primary: defaults.primary.slice(), secondary: defaults.secondary.slice() }
+
+        const used = []
+        const primary = root.sanitizeDesktopWidgetZone(value.primary, used)
+        const secondary = root.sanitizeDesktopWidgetZone(value.secondary, used)
+
+        for (let i = 0; i < defaults.primary.length; ++i) {
+            const id = defaults.primary[i]
+            if (!used.includes(id)) {
+                primary.push(id)
+                used.push(id)
+            }
+        }
+        for (let i = 0; i < defaults.secondary.length; ++i) {
+            const id = defaults.secondary[i]
+            if (!used.includes(id)) {
+                secondary.push(id)
+                used.push(id)
+            }
+        }
+
+        return { primary: primary, secondary: secondary }
+    }
+
     function defaultStyle(): var {
         return {
             glassOpacity: 1.0,
@@ -423,6 +472,7 @@ Singleton {
                 showContext: root.desktopWidgetContext,
                 showSystem: root.desktopWidgetSystem,
                 showMotto: root.desktopWidgetMotto,
+                composition: root.sanitizeDesktopWidgetComposition(root.desktopWidgetComposition),
                 compact: root.desktopWidgetsCompact,
                 layout: root.desktopWidgetsLayout,
                 scale: root.desktopWidgetsScale,
@@ -553,6 +603,7 @@ Singleton {
         root.assignIfPresent(desktopWidgets, "showContext", value => root.desktopWidgetContext = Boolean(value))
         root.assignIfPresent(desktopWidgets, "showSystem", value => root.desktopWidgetSystem = Boolean(value))
         root.assignIfPresent(desktopWidgets, "showMotto", value => root.desktopWidgetMotto = Boolean(value))
+        root.assignIfPresent(desktopWidgets, "composition", value => root.desktopWidgetComposition = root.sanitizeDesktopWidgetComposition(value))
         root.assignIfPresent(desktopWidgets, "compact", value => root.desktopWidgetsCompact = Boolean(value))
         root.assignIfPresent(desktopWidgets, "layout", value => {
             const requested = String(value ?? "balanced")
@@ -682,6 +733,7 @@ Singleton {
     onDesktopWidgetContextChanged: scheduleSave()
     onDesktopWidgetSystemChanged: scheduleSave()
     onDesktopWidgetMottoChanged: scheduleSave()
+    onDesktopWidgetCompositionChanged: scheduleSave()
     onDesktopWidgetsCompactChanged: scheduleSave()
     onDesktopWidgetsLayoutChanged: scheduleSave()
     onDesktopWidgetsScaleChanged: scheduleSave()
