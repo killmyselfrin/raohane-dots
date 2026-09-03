@@ -11,11 +11,7 @@ Item {
     id: root
 
     function openPage(page: string): void {
-        if (page === "Displays") {
-            RaohaneState.setPrimaryOpen("displaySettings", true)
-            return
-        }
-        RaohaneState.settingsPage = page
+        RaohaneSettingsRouter.request(page, "")
     }
 
     ColumnLayout {
