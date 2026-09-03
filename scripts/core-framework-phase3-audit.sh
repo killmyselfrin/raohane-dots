@@ -15,10 +15,13 @@ root_qmldir='modules/raohane/qmldir'
 state='modules/raohane/RaohaneState.qml'
 surface_registry='modules/raohane/RaohaneSurfaceRegistry.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
+settings_section_registry='modules/raohane/RaohaneSettingsSectionRegistry.qml'
 settings_router='modules/raohane/RaohaneSettingsRouter.qml'
 settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
 settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
+settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 helper_qmldir='modules/raohane/helpers/qmldir'
 helpers='modules/raohane/helpers/RaohaneUtils.qml'
@@ -35,10 +38,13 @@ required_files=(
   "$state"
   "$surface_registry"
   "$settings_registry"
+  "$settings_section_registry"
   "$settings_router"
   "$settings_navigation"
   "$settings_header"
   "$settings_content"
+  "$settings_section"
+  "$settings_control"
   "$settings_search"
   "$helper_qmldir"
   "$helpers"
@@ -147,16 +153,25 @@ fi
 
 rg -q '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' "$root_qmldir" \
   || fail 'native Settings page registry is not registered'
+rg -q '^singleton RaohaneSettingsSectionRegistry .*RaohaneSettingsSectionRegistry.qml$' "$root_qmldir" \
+  || fail 'native Settings section extension registry is not registered'
 rg -q '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' "$root_qmldir" \
   || fail 'native Settings router is not registered'
 for registration in \
   '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' \
-  '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$'; do
+  '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
+  '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
+  '^RaohaneSettingsControlRow .*RaohaneSettingsControlRow.qml$'; do
   rg -q "$registration" "$root_qmldir" || fail "missing Settings architecture registration: $registration"
 done
 for contract in pages aliases resolvePageIndex sectionEntries searchEntries; do
   rg -q "$contract" "$settings_registry" || fail "Settings page registry lost contract: $contract"
 done
+for contract in extensions extension source ownsControl; do
+  rg -q "$contract" "$settings_section_registry" || fail "Settings section registry lost contract: $contract"
+done
+rg -q 'source:[[:space:]]*"RaohaneBarStudio\.qml"' "$settings_section_registry" \
+  || fail 'Bar Studio extension is not registry-owned'
 for contract in splitRoute request requestSearch specialAliases pageRequested preferencesRequested backupRequested languageRequested; do
   rg -q "$contract" "$settings_router" || fail "Settings router lost framework contract: $contract"
 done
@@ -177,6 +192,15 @@ rg -q 'RaohaneConfig\.profileDisplayName' "$settings_navigation" \
   || fail 'Settings navigation lost profile ownership'
 rg -q 'root\.pageInfo\?\.name' "$settings_header" \
   || fail 'Settings page header lost page metadata ownership'
+rg -q 'RaohaneSettingsSectionRegistry\.source' "$settings_section" \
+  || fail 'generic Settings section does not consume the section extension registry'
+rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$settings_section" \
+  || fail 'generic Settings section does not compose reusable control rows'
+rg -q 'RaohaneConfig\[' "$settings_control" \
+  || fail 'Settings control row lost native config binding ownership'
+if rg -n 'RaohaneBarStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"bar"' "$settings_section"; then
+  fail 'generic Settings section reabsorbed Bar Studio-specific ownership'
+fi
 
 rg -q '^module qs\.modules\.raohane\.models$' "$model_qmldir" \
   || fail 'native models module is not declared'
@@ -208,4 +232,4 @@ if rg -n 'IllogicalImpulse|illogical-impulse|end4-pC' "$family" shell.qml; then
   fail 'startup graph contains upstream family/runtime identity'
 fi
 
-printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface/settings registries and router, extracted navigation/header, persisted theme selection and compatibility-free active UI are valid\n'
+printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface/page+section registries and router, extracted navigation/header/control rows, persisted theme selection and compatibility-free active UI are valid\n'
