@@ -152,7 +152,7 @@ rg -q 'function requestSearch\(section: string, key: string\): bool' "$settings_
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$settings_search" \
   || fail 'Settings search does not consume the page registry'
 
-mapfile -t registry_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings_registry" \
+mapfile -t registry_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text|choice)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$settings_registry" \
   | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
 [[ "${#registry_keys[@]}" -gt 0 ]] || fail 'Settings registry exposes no native control keys'
 for key in "${registry_keys[@]}" themePreset barModuleLayout desktopWidgetsLayout; do
