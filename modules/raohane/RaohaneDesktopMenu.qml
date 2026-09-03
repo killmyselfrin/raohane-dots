@@ -252,10 +252,7 @@ Scope {
                         icon: "space_dashboard"
                         title: qsTr("Desktop & Spaces")
                         detail: qsTr("Wallpaper and workspace configuration")
-                        onTriggered: {
-                            RaohaneState.settingsPage = "Desktop & Spaces"
-                            RaohaneState.setPrimaryOpen("settings", true)
-                        }
+                        onTriggered: RaohaneSettingsRouter.request("Desktop & Spaces", "")
                     }
 
                     MenuAction {
@@ -269,7 +266,7 @@ Scope {
                         icon: "settings"
                         title: qsTr("Settings")
                         detail: qsTr("Configure Raohane")
-                        onTriggered: RaohaneState.setPrimaryOpen("settings", true)
+                        onTriggered: RaohaneSettingsRouter.request("home", "")
                     }
 
                     RowLayout {

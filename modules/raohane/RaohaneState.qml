@@ -23,7 +23,6 @@ QtObject {
     property bool screenTranslatorOpen: false
     property bool oskOpen: false
     property bool settingsOpen: false
-    property string settingsPage: ""
     property bool displaySettingsOpen: false
     property bool welcomeOpen: false
     property bool sessionOpen: false

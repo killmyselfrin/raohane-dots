@@ -66,8 +66,7 @@ Singleton {
             RaohaneState.setPrimaryOpen("wallpaper", true)
             break
         case 7: // Settings
-            RaohaneState.settingsPage = "themes"
-            RaohaneState.setPrimaryOpen("settings", true)
+            RaohaneSettingsRouter.request("themes", "")
             break
         case 8: // Context Island
             break

@@ -46,8 +46,15 @@ done
 
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" \
   || fail 'Settings window is not routed through the active Settings V3 coordinator'
-rg -q 'property string settingsPage:' "$state" \
-  || fail 'RaohaneState lost the temporary Settings compatibility ingress'
+
+# The old global string transport is retired. Page identity/deep links may only
+# move through RaohaneSettingsRouter.
+if rg -n 'RaohaneState\.settingsPage|^[[:space:]]*property string settingsPage:' modules/raohane; then
+  fail 'legacy Settings page route state returned to the native runtime'
+fi
+if rg -n 'legacyStateBridge|onSettingsPageChanged' "$router"; then
+  fail 'Settings router reintroduced the retired state compatibility bridge'
+fi
 
 for symbol in \
   'RaohaneSettingsPageRegistry\.pages' \
@@ -62,7 +69,7 @@ for symbol in \
   'RaohaneSystemInfo\.'; do
   rg -q "$symbol" "$content" || fail "Settings coordinator lost router-backed contract: $symbol"
 done
-if rg -q 'RaohaneState\.settingsPage|externalSurface|function sectionEntries\(|function sectionDescription\(|function componentForKind\(|sourceComponent:|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl|ScrollBar\.vertical' "$content"; then
+if rg -q 'externalSurface|function sectionEntries\(|function sectionDescription\(|function componentForKind\(|sourceComponent:|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl|ScrollBar\.vertical' "$content"; then
   fail 'Settings coordinator reabsorbed routing/schema/profile/nav responsibilities'
 fi
 
@@ -119,9 +126,7 @@ for contract in \
   'function requestSearch\(section: string, key: string\): bool' \
   'RaohaneSettingsPageRegistry\.resolvePageIndex' \
   'RaohaneState\.setPrimaryOpen\("settings", true\)' \
-  'RaohaneState\.setPrimaryOpen\(page\.externalSurface, true\)' \
-  'property Connections legacyStateBridge:' \
-  'function onSettingsPageChanged\(\): void'; do
+  'RaohaneState\.setPrimaryOpen\(page\.externalSurface, true\)'; do
   rg -q "$contract" "$router" || fail "Settings router lost contract: $contract"
 done
 for alias in keybinds shortcuts keyboard motion animations animation backup restore language locale; do
@@ -149,8 +154,8 @@ rg -q 'Open native\.json' "$home" \
   || fail 'Settings Home no longer exposes the native config entry point'
 rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" \
   || fail 'Settings Home bypasses the centralized router'
-if rg -q 'RaohaneState\.settingsPage|setPrimaryOpen\("displaySettings"' "$home"; then
-  fail 'Settings Home reintroduced direct page/external-surface routing'
+if rg -q 'setPrimaryOpen\("displaySettings"' "$home"; then
+  fail 'Settings Home reintroduced direct external-surface routing'
 fi
 
 rg -q 'source:[[:space:]]*"RaohaneThemeCatalog\.qml"' "$registry" \
@@ -200,7 +205,7 @@ for symbol in \
   'function onLanguageRequested\(\): void'; do
   rg -q "$symbol" "$settings" || fail "Settings window lost router-backed UX contract: $symbol"
 done
-if rg -q 'RaohaneState\.settingsPage|requested === "keybinds"|requested === "motion"|requested === "backup"|requested === "language"' "$settings"; then
+if rg -q 'requested === "keybinds"|requested === "motion"|requested === "backup"|requested === "language"' "$settings"; then
   fail 'Settings window reintroduced local route classification'
 fi
 for special in backup keybinds motion language; do
@@ -241,4 +246,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: centralized router, router-backed Home/IPC/search, view-only coordinator, extracted navigation/header and native Settings surfaces are valid\n'
+printf 'settings-boundary-audit: centralized router without legacy route state, router-backed Home/IPC/search, view-only coordinator, extracted navigation/header and native Settings surfaces are valid\n'
