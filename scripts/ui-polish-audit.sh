@@ -26,10 +26,11 @@ settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
+quick_tile='modules/raohane/RaohaneQuickControlTile.qml'
 notifications='modules/raohane/RaohaneNotificationCenter.qml'
 osd='modules/raohane/RaohaneOsd.qml'
 
-for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section_registry" "$settings_section" "$settings_control" "$settings_search" "$control" "$quick" "$notifications" "$osd"; do
+for file in "$sidebar" "$systray" "$about" "$desktop" "$desktop_widgets" "$workspaces" "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_registry" "$settings_section_registry" "$settings_section" "$settings_control" "$settings_search" "$control" "$quick" "$quick_tile" "$notifications" "$osd"; do
   [[ -f "$file" ]] || fail "missing polished UI surface: $file"
 done
 
@@ -83,12 +84,14 @@ if rg -n 'anchors[[:space:]]*\{[^}]*bottom:[[:space:]]*true|shortDuration|medium
   fail 'Control Center regressed to a full-height/stale interaction contract'
 fi
 
-rg -q 'component QuickTile:[[:space:]]*RaohaneSurface' "$quick" || fail 'Quick Controls lost shared command-tile surfaces'
-rg -q 'transparentIdle:[[:space:]]*!tile\.active' "$quick" || fail 'Quick Controls lost the flat inactive tile hierarchy'
+rg -q 'RaohaneQuickControlTile[[:space:]]*\{' "$quick" || fail 'Quick Controls host lost registry-backed command tiles'
+rg -q '^RaohaneSurface[[:space:]]*\{' "$quick_tile" || fail 'Quick Control tile renderer lost shared command-tile surface'
+rg -q 'transparentIdle:[[:space:]]*!root\.active[[:space:]]*&&[[:space:]]*!root\.menuOpen' "$quick_tile" || fail 'Quick Control tiles lost the flat inactive hierarchy'
 rg -q 'RaohaneSlider[[:space:]]*\{' "$quick" || fail 'Quick Controls lost shared sliders'
-rg -q 'RaohaneMotion\.' "$quick" || fail 'Quick Controls lost tactile motion'
-rg -q 'RaohaneTheme\.surfaceSubtle' "$quick" || fail 'Quick Controls lost the restrained inactive state token'
-rg -q 'RaohaneTheme\.borderStrong' "$quick" || fail 'Quick Controls lost explicit hover-border hierarchy'
+rg -q 'RaohaneMotion\.' "$quick" || fail 'Quick Controls host lost tactile slider/picker motion'
+rg -q 'RaohaneMotion\.' "$quick_tile" || fail 'Quick Control tiles lost tactile motion'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles lost the restrained inactive state token'
+rg -q 'RaohaneTheme\.borderStrong' "$quick_tile" || fail 'Quick Control tiles lost explicit hover-border hierarchy'
 
 # Settings V3 is a coordinator around extracted navigation/header plus a
 # declarative page registry. Generic section layout stays in SectionPage,
@@ -108,6 +111,7 @@ rg -q 'root\.pageInfo\?\.name' "$settings_header" || fail 'Settings page header 
 rg -q 'root\.pageInfo\?\.subtitle' "$settings_header" || fail 'Settings page header lost active page subtitle'
 rg -q 'source:[[:space:]]*"RaohaneSettingsSectionPage\.qml"' "$settings_registry" || fail 'Settings registry lost extracted generic section source'
 rg -q 'source:[[:space:]]*"RaohaneBarStudio\.qml"' "$settings_section_registry" || fail 'Settings section registry lost Bar Studio extension ownership'
+rg -q 'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' "$settings_section_registry" || fail 'Settings section registry lost Quick Controls Studio extension ownership'
 if rg -q 'function componentForKind\(|sourceComponent:|text:[[:space:]]*"RAOHANE"|RaohaneConfig\.profile' "$settings_v3"; then
   fail 'Settings coordinator reintroduced imperative routing or navigation/profile presentation'
 fi
@@ -116,8 +120,8 @@ rg -q 'RaohaneSettingsSectionRegistry\.source' "$settings_section" || fail 'Sett
 rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_control" || fail 'Settings control row lost shared switches'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_control" || fail 'Settings control row lost shared numeric controls'
 rg -q 'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' "$settings_section" || fail 'Settings section renderer lost grouped native-control surface'
-if rg -n 'RaohaneBarStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"bar"' "$settings_section"; then
-  fail 'Settings section renderer reabsorbed section-specific Bar Studio logic'
+if rg -n 'RaohaneBarStudio[[:space:]]*\{|RaohaneQuickControlsStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"(bar|quick)"' "$settings_section"; then
+  fail 'Settings section renderer reabsorbed section-specific Studio logic'
 fi
 if rg -n '#76171420|#8b2b203b|#841c1826|shortDuration|mediumDuration|RaohaneSettingsContentV2[[:space:]]*\{' "$settings" "$settings_v3" "$settings_navigation" "$settings_header" "$settings_section" "$settings_control"; then
   fail 'Settings V3 reintroduced retired chrome, stale motion or the previous active layout'
@@ -139,4 +143,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: floating Control Center, coordinator-based Settings V3 with extracted navigation/header, reusable control rows and registry-owned section extensions, Quick Controls, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: floating Control Center with registry-backed tiles, coordinator-based Settings V3 with extracted navigation/header, reusable control rows and registry-owned section extensions, Sidebar, tray, About, desktop context, orientation-aware workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
