@@ -49,8 +49,6 @@ rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" \
 rg -q 'property string settingsPage:' "$state" \
   || fail 'RaohaneState lost the temporary Settings compatibility ingress'
 
-# Content is now a view coordinator. Route parsing, aliases, external surfaces
-# and special destinations belong to RaohaneSettingsRouter.
 for symbol in \
   'RaohaneSettingsPageRegistry\.pages' \
   'RaohaneSettingsPageRegistry\.resolvePageIndex' \
@@ -110,8 +108,6 @@ done
 rg -q 'externalSurface:[[:space:]]*"displaySettings"' "$registry" \
   || fail 'Display Settings route lost external surface ownership'
 
-# Router owns all route classification. The state bridge is temporary and must
-# remain isolated here rather than leaking back into view components.
 for contract in \
   'signal pageRequested\(string pageKey, string controlKey\)' \
   'signal preferencesRequested\(string section\)' \
@@ -151,6 +147,12 @@ done
 
 rg -q 'Open native\.json' "$home" \
   || fail 'Settings Home no longer exposes the native config entry point'
+rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" \
+  || fail 'Settings Home bypasses the centralized router'
+if rg -q 'RaohaneState\.settingsPage|setPrimaryOpen\("displaySettings"' "$home"; then
+  fail 'Settings Home reintroduced direct page/external-surface routing'
+fi
+
 rg -q 'source:[[:space:]]*"RaohaneThemeCatalog\.qml"' "$registry" \
   || fail 'Settings registry does not load the native Theme Library'
 rg -q 'RaohaneTheme\.presets' "$catalog" \
@@ -191,9 +193,21 @@ for symbol in \
   'Qt\.ControlModifier' \
   'settingsSearch\.focusSearch\(\)' \
   'function status\(\): string' \
-  'function page\(page: string\)'; do
-  rg -q "$symbol" "$settings" || fail "Settings window lost final UX contract: $symbol"
+  'function page\(page: string\): void \{ RaohaneSettingsRouter\.request\(page, ""\) \}' \
+  'target:[[:space:]]*RaohaneSettingsRouter' \
+  'function onPreferencesRequested\(section: string\): void' \
+  'function onBackupRequested\(\): void' \
+  'function onLanguageRequested\(\): void'; do
+  rg -q "$symbol" "$settings" || fail "Settings window lost router-backed UX contract: $symbol"
 done
+if rg -q 'RaohaneState\.settingsPage|requested === "keybinds"|requested === "motion"|requested === "backup"|requested === "language"' "$settings"; then
+  fail 'Settings window reintroduced local route classification'
+fi
+for special in backup keybinds motion language; do
+  rg -q "RaohaneSettingsRouter\.request\(\"${special}\", \"\"\)" "$settings" \
+    || fail "Settings quick action bypasses router: $special"
+done
+
 for symbol in \
   'function focusSearch\(\)' \
   'function activate\(index: int\)' \
@@ -213,9 +227,7 @@ for key in "${registry_keys[@]}" themePreset barModuleLayout desktopWidgetsLayou
     || fail "Settings registry points to non-native config key: $key"
 done
 
-# Home still uses the state bridge during this migration slice. It must remain
-# the only view allowed to do so until the final ingress-removal follow-up.
-for symbol in 'RaohaneConfig\.wallpaperPath' 'RaohaneNetwork\.' 'RaohaneAudio\.' 'RaohanePrivacy\.' 'RaohaneState\.settingsPage' 'RaohaneIcon[[:space:]]*\{'; do
+for symbol in 'RaohaneConfig\.wallpaperPath' 'RaohaneNetwork\.' 'RaohaneAudio\.' 'RaohanePrivacy\.' 'RaohaneSettingsRouter\.request' 'RaohaneIcon[[:space:]]*\{'; do
   rg -q "$symbol" "$home" || fail "Settings Home lost native dependency: $symbol"
 done
 if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|\bConfig\.|\bNetwork\.|\bAudio\.|\bGlobalStates\.|\bMaterialSymbol[[:space:]]*\{' "$home"; then
@@ -229,4 +241,4 @@ if rg -n -i '^import qs$|^import qs\.services$|^import qs\.modules\.common|^impo
   fail 'native About page contains inherited shell/runtime update plumbing'
 fi
 
-printf 'settings-boundary-audit: centralized router, view-only coordinator, extracted navigation/header, declarative registry pages and native Settings surfaces are valid\n'
+printf 'settings-boundary-audit: centralized router, router-backed Home/IPC/search, view-only coordinator, extracted navigation/header and native Settings surfaces are valid\n'
