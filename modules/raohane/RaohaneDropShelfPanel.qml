@@ -12,12 +12,14 @@ Scope {
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
+    readonly property var targetScreen: Quickshell.screens.find(screen => screen.name === RaohaneDropShelf.targetScreenName)
+        ?? root.focusedScreen
 
     PanelWindow {
         id: shelfWindow
 
         visible: RaohaneDropShelf.open
-        screen: root.focusedScreen
+        screen: root.targetScreen
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         implicitWidth: 410
