@@ -35,6 +35,17 @@ rg -q 'onWindowActivated:[[:space:]]*toplevel[[:space:]]*=>[[:space:]]*root\.act
 rg -q 'onWorkspaceActivated:[[:space:]]*workspaceId[[:space:]]*=>[[:space:]]*root\.activateWorkspace\(workspaceId\)' "$overview" \
   || fail 'workspace-card background activation no longer routes to workspace activation'
 
+for contract in \
+  'function activatePosition\(position: int\): void' \
+  'function shortcutLabel\(index: int\): string' \
+  'event\.key >= Qt\.Key_1 && event\.key <= Qt\.Key_9' \
+  'event\.key === Qt\.Key_0' \
+  'shortcutLabel:[[:space:]]*root\.shortcutLabel\(index\)'; do
+  rg -q "$contract" "$overview" || fail "Overview lost numeric workspace shortcut contract: $contract"
+done
+rg -q 'property string shortcutLabel:[[:space:]]*""' "$card" \
+  || fail 'workspace card lost visible numeric shortcut label'
+
 rg -q 'RaohaneOverviewWindowRow[[:space:]]*\{' "$card" \
   || fail 'workspace card no longer composes extracted window rows'
 rg -q 'onActivated:[[:space:]]*toplevel[[:space:]]*=>[[:space:]]*root\.windowActivated\(toplevel\)' "$card" \
@@ -46,4 +57,4 @@ rg -q 'preventStealing:[[:space:]]*true' "$window_row" \
 rg -q 'onClicked:[[:space:]]*root\.activated\(root\.toplevel\)' "$window_row" \
   || fail 'window-row pointer no longer emits direct toplevel activation'
 
-printf 'overview-pointer-boundary-audit: extracted window rows retain pointer activation over workspace-card clicks\n'
+printf 'overview-pointer-boundary-audit: extracted window rows retain pointer activation and Overview exposes direct numeric workspace shortcuts\n'
