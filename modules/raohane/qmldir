@@ -29,6 +29,8 @@ RaohaneBackground 1.0 RaohaneBackground.qml
 RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
 RaohaneDesktopWidgets 1.0 RaohaneDesktopWidgets.qml
 RaohaneOverview 1.0 RaohaneOverview.qml
+RaohaneOverviewWorkspaceCard 1.0 RaohaneOverviewWorkspaceCard.qml
+RaohaneOverviewWindowRow 1.0 RaohaneOverviewWindowRow.qml
 RaohaneDock 1.0 RaohaneDock.qml
 RaohaneBar 1.0 RaohaneBar.qml
 RaohaneVerticalBar 1.0 RaohaneVerticalBar.qml
