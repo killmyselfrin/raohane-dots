@@ -5,6 +5,7 @@ singleton RaohaneMotion 1.0 RaohaneMotion.qml
 singleton RaohaneI18n 1.0 RaohaneI18n.qml
 singleton RaohaneContext 1.0 RaohaneContext.qml
 singleton RaohaneSurfaceRegistry 1.0 RaohaneSurfaceRegistry.qml
+singleton RaohaneActionRegistry 1.0 RaohaneActionRegistry.qml
 singleton RaohaneBarModuleRegistry 1.0 RaohaneBarModuleRegistry.qml
 singleton RaohaneQuickControlRegistry 1.0 RaohaneQuickControlRegistry.qml
 singleton RaohaneDesktopWidgetRegistry 1.0 RaohaneDesktopWidgetRegistry.qml
