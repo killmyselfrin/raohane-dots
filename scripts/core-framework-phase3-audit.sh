@@ -15,8 +15,11 @@ root_qmldir='modules/raohane/qmldir'
 state='modules/raohane/RaohaneState.qml'
 surface_registry='modules/raohane/RaohaneSurfaceRegistry.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
+settings_router='modules/raohane/RaohaneSettingsRouter.qml'
 settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
 settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
+settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
+settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 helper_qmldir='modules/raohane/helpers/qmldir'
 helpers='modules/raohane/helpers/RaohaneUtils.qml'
 model_qmldir='modules/raohane/models/qmldir'
@@ -32,8 +35,11 @@ required_files=(
   "$state"
   "$surface_registry"
   "$settings_registry"
+  "$settings_router"
   "$settings_navigation"
   "$settings_header"
+  "$settings_content"
+  "$settings_search"
   "$helper_qmldir"
   "$helpers"
   "$model_qmldir"
@@ -141,6 +147,8 @@ fi
 
 rg -q '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' "$root_qmldir" \
   || fail 'native Settings page registry is not registered'
+rg -q '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' "$root_qmldir" \
+  || fail 'native Settings router is not registered'
 for registration in \
   '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' \
   '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$'; do
@@ -149,6 +157,20 @@ done
 for contract in pages aliases resolvePageIndex sectionEntries searchEntries; do
   rg -q "$contract" "$settings_registry" || fail "Settings page registry lost contract: $contract"
 done
+for contract in splitRoute request requestSearch specialAliases pageRequested preferencesRequested backupRequested languageRequested; do
+  rg -q "$contract" "$settings_router" || fail "Settings router lost framework contract: $contract"
+done
+rg -q 'RaohaneSettingsPageRegistry\.resolvePageIndex' "$settings_router" \
+  || fail 'Settings router bypasses the native page registry'
+rg -q 'RaohaneState\.setPrimaryOpen\(page\.externalSurface, true\)' "$settings_router" \
+  || fail 'Settings router lost external surface routing'
+rg -q 'target:[[:space:]]*RaohaneSettingsRouter' "$settings_content" \
+  || fail 'Settings coordinator does not consume the Settings router'
+rg -q 'RaohaneSettingsRouter\.requestSearch' "$settings_search" \
+  || fail 'Settings search bypasses the Settings router'
+if rg -n 'RaohaneState\.settingsPage|externalSurface' "$settings_content"; then
+  fail 'Settings coordinator reabsorbed routing ownership'
+fi
 rg -q 'RaohaneSettingsPageRegistry\.isFirstInGroup' "$settings_navigation" \
   || fail 'Settings navigation does not consume registry group ownership'
 rg -q 'RaohaneConfig\.profileDisplayName' "$settings_navigation" \
@@ -186,4 +208,4 @@ if rg -n 'IllogicalImpulse|illogical-impulse|end4-pC' "$family" shell.qml; then
   fail 'startup graph contains upstream family/runtime identity'
 fi
 
-printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface/settings registries plus extracted navigation/header, persisted theme selection and compatibility-free active UI are valid\n'
+printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface/settings registries and router, extracted navigation/header, persisted theme selection and compatibility-free active UI are valid\n'
