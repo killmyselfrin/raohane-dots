@@ -62,8 +62,12 @@ for symbol in \
   'RaohaneDropShelf\.showOnScreen'; do
   rg -q "$symbol" "$action_registry" || fail "RaohaneActionRegistry lost hot-corner contract: $symbol"
 done
-rg -q 'function showOnScreen\(urls, x: real, y: real, screenName: string\): void' "$drop_shelf" \
+rg -q 'function showOnScreen\(urls, x: real, y: real, screenName\): void' "$drop_shelf" \
   || fail 'DropShelf service lost invocation-screen action contract'
+rg -q 'property string targetScreenName:[[:space:]]*""' "$drop_shelf" \
+  || fail 'DropShelf service lost invocation-screen state'
+rg -q 'root\.targetScreenName[[:space:]]*=[[:space:]]*String\(screenName' "$drop_shelf" \
+  || fail 'DropShelf service no longer records the invocation monitor'
 
 rg -q '^import QtQuick\.Shapes$' "$round_corner" \
   || fail 'RaohaneRoundCorner does not own its QtQuick.Shapes geometry'
