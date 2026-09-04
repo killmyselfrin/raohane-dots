@@ -6,7 +6,6 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
-import Quickshell.Widgets
 
 import qs.modules.raohane.config
 import qs.modules.raohane.services
@@ -331,13 +330,14 @@ Scope {
                                 hoverScale: dockWindow.appHoverScale
                                 pressedScale: RaohaneMotion.pressScale
 
-                                IconImage {
+                                RaohaneAdaptiveIcon {
                                     anchors.centerIn: parent
-                                    implicitSize: RaohaneConfig.dockIconSize
-                                    source: Quickshell.iconPath(appButton.modelData.icon, "application-x-executable")
-                                    scale: appMouse.pressed ? 0.93 : 1
+                                    iconSource: String(appButton.modelData.icon ?? "")
+                                    iconSize: RaohaneConfig.dockIconSize
+                                    fallbackColor: appButton.anyActivated ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                    imageScale: appMouse.pressed ? 0.93 : 1
 
-                                    Behavior on scale {
+                                    Behavior on imageScale {
                                         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
                                     }
                                 }
