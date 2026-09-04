@@ -33,6 +33,8 @@ QtObject {
             return "apps"
         if (name === "hyprland-dialog")
             return "select_window_2"
+        if (name === "zen" || name === "zen-browser")
+            return "language"
 
         if (name.startsWith("network-wireless")) {
             if (name.includes("disconnected") || name.includes("offline") || name.includes("off"))
