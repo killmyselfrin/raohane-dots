@@ -13,6 +13,7 @@ HYPR_INTEGRATION="$HYPR_LEGACY_SNIPPET"
 RAOHANE_CONFIG="$CONFIG_HOME/raohane"
 RAOHANE_CONFIG_FILE="$RAOHANE_CONFIG/native.json"
 RAOHANE_AUTOSTART_FILE="$RAOHANE_CONFIG/autostart.conf"
+RAOHANE_THEME_CATALOG="$RAOHANE_CONFIG/themes.json"
 PREVIOUS_RAOHANE_CONFIG="$RAOHANE_CONFIG/config.json"
 LEGACY_CONFIG_FILE="$CONFIG_HOME/illogical-impulse/config.json"
 LEGACY_HYPR_AUTOSTART="$HYPR_DIR/raohane-autostart.conf"
@@ -172,6 +173,19 @@ if [[ ! -f "$RAOHANE_CONFIG_FILE" ]]; then
     cp -a "$ROOT/defaults/native.json" "$RAOHANE_CONFIG_FILE"
     printf '[Raohane] Seeded native schema v10 settings.\n'
   fi
+fi
+
+# Theme Library owns this user-writable catalog. Seed it once so a fresh install
+# never asks FileView to read a path that does not exist, while preserving every
+# user-created/imported theme on subsequent upgrades.
+if [[ ! -f "$RAOHANE_THEME_CATALOG" ]]; then
+  cat > "$RAOHANE_THEME_CATALOG" <<'JSON'
+{
+  "schemaVersion": 1,
+  "presets": []
+}
+JSON
+  printf '[Raohane] Seeded empty user theme catalog.\n'
 fi
 
 # Native autostart is consumed by RaohaneAutostart and runs once per Hyprland
