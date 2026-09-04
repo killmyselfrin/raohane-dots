@@ -32,15 +32,15 @@ Item {
             left: parent.left
             right: parent.right
         }
-        spacing: 12
+        spacing: 10
 
         GridLayout {
             id: toggleGrid
             visible: !root.pickerOpen
             Layout.fillWidth: true
             columns: 2
-            columnSpacing: 8
-            rowSpacing: 8
+            columnSpacing: 7
+            rowSpacing: 7
 
             Repeater {
                 model: root.tileLayout
@@ -56,17 +56,11 @@ Item {
             }
         }
 
-        Rectangle {
-            visible: !root.pickerOpen
-            Layout.fillWidth: true
-            Layout.preferredHeight: 1
-            color: RaohaneTheme.borderFaint
-        }
-
         ColumnLayout {
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            spacing: 7
+            Layout.topMargin: 1
+            spacing: 5
 
             ControlSlider {
                 Layout.fillWidth: true
@@ -117,7 +111,7 @@ Item {
         }
     }
 
-    component ControlSlider: Item {
+    component ControlSlider: RaohaneSurface {
         id: control
 
         required property string icon
@@ -131,35 +125,64 @@ Item {
         signal pickerTriggered()
 
         readonly property real clampedLiveValue: Math.max(0, Math.min(1, Number(liveValue) || 0))
-        readonly property bool hovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
+        readonly property bool rowHovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
             || (control.pickerEnabled && pickerButton.hovered)
 
-        implicitHeight: 38
+        implicitHeight: 44
+        surfaceRadius: 13
+        transparentIdle: true
+        showSheen: false
+        hovered: control.rowHovered
+        interactive: false
+        border.color: control.pickerActive ? RaohaneTheme.accentBorder
+            : control.rowHovered ? RaohaneTheme.borderStrong
+            : RaohaneTheme.borderFaint
+
+        Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
 
         RowLayout {
             anchors.fill: parent
-            spacing: 9
+            anchors.leftMargin: 5
+            anchors.rightMargin: 5
+            spacing: 7
 
             RaohaneIconButton {
                 id: iconButton
+                Layout.alignment: Qt.AlignVCenter
                 buttonSize: 30
-                iconSize: 16
+                iconSize: 15
                 icon: control.icon
-                emphasized: control.hovered && !control.pickerActive
-                transparentIdle: !control.hovered || control.pickerActive
+                emphasized: control.rowHovered && !control.pickerActive
+                transparentIdle: !control.rowHovered || control.pickerActive
                 showSheen: false
                 onClicked: control.iconTriggered()
             }
 
-            Text {
-                Layout.preferredWidth: 68
-                text: control.title
-                color: control.pickerActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                font.pixelSize: 8
-                font.weight: Font.Medium
-                elide: Text.ElideRight
+            ColumnLayout {
+                Layout.preferredWidth: 66
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 0
 
-                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                Text {
+                    Layout.fillWidth: true
+                    text: control.title
+                    color: control.pickerActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    font.pixelSize: 8
+                    font.weight: Font.Medium
+                    elide: Text.ElideRight
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: control.displayText
+                    color: control.rowHovered ? RaohaneTheme.text : RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                    font.weight: Font.DemiBold
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                }
             }
 
             RaohaneSlider {
@@ -170,19 +193,8 @@ Item {
                 to: 1
                 stepSize: 0.01
                 value: control.clampedLiveValue
-                showHandle: control.hovered || activeFocus
+                showHandle: control.rowHovered || activeFocus
                 onMoved: value => control.valueChangedByUser(value)
-            }
-
-            Text {
-                Layout.preferredWidth: 31
-                horizontalAlignment: Text.AlignRight
-                text: control.displayText
-                color: control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                font.pixelSize: 8
-                font.weight: Font.DemiBold
-
-                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
 
             RaohaneIconButton {
