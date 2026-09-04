@@ -660,6 +660,8 @@ Scope {
                     Repeater {
                         model: root.steps.length
                         Rectangle {
+                            required property int index
+
                             Layout.fillWidth: true
                             Layout.preferredHeight: index === RaohaneOnboardingState.step ? 4 : 3
                             radius: 2
