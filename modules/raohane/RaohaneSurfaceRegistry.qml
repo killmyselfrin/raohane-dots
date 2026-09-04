@@ -149,7 +149,10 @@ QtObject {
             layer: "overlay",
             placement: "fill",
             loadPolicy: "resident",
-            closePrimaryOnOpen: true
+            // Capture owns a more precise policy: screenshots may preserve the
+            // Control Center so Raohane itself can be captured, while OCR,
+            // search and recording still dismiss primary surfaces explicitly.
+            closePrimaryOnOpen: false
         },
         "osk": {
             stateProperty: "oskOpen",
