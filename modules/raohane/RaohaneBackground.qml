@@ -123,7 +123,9 @@ Variants {
                 id: previousImage
                 anchors.fill: parent
                 visible: backgroundWindow.previousPath.length > 0 && !backgroundWindow.previousIsVideo
-                source: visible ? root.fileUrl(backgroundWindow.previousPath) : ""
+                source: backgroundWindow.previousPath.length > 0 && !backgroundWindow.previousIsVideo
+                    ? root.fileUrl(backgroundWindow.previousPath)
+                    : ""
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: true
@@ -135,7 +137,9 @@ Variants {
                 id: currentImage
                 anchors.fill: parent
                 visible: backgroundWindow.currentPath.length > 0 && !backgroundWindow.currentIsVideo
-                source: visible ? root.fileUrl(backgroundWindow.currentPath) : ""
+                source: backgroundWindow.currentPath.length > 0 && !backgroundWindow.currentIsVideo
+                    ? root.fileUrl(backgroundWindow.currentPath)
+                    : ""
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: true
