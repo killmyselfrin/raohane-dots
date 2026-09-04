@@ -35,8 +35,12 @@ Scope {
 
         onVisibleChanged: {
             panelWindow.entered = false
-            if (visible)
-                Qt.callLater(() => panelWindow.entered = true)
+            if (visible) {
+                Qt.callLater(() => {
+                    panelWindow.entered = true
+                    card.forceActiveFocus()
+                })
+            }
         }
 
         Rectangle {
@@ -64,6 +68,7 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             opacity: panelWindow.entered ? 1 : 0
             scale: panelWindow.entered ? 1 : 0.98
+            focus: panelWindow.visible
 
             transform: Translate {
                 y: panelWindow.entered ? 0 : 16
@@ -179,12 +184,12 @@ Scope {
                     horizontalAlignment: Text.AlignHCenter
                 }
             }
-        }
 
-        Keys.onPressed: event => {
-            if (event.key === Qt.Key_Escape && RaohaneI18n.languageChosen) {
-                RaohaneI18n.closePicker()
-                event.accepted = true
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Escape && RaohaneI18n.languageChosen) {
+                    RaohaneI18n.closePicker()
+                    event.accepted = true
+                }
             }
         }
 
