@@ -12,8 +12,11 @@ Scope {
 
     property bool busy: false
 
-    function prepareCapture(): void {
-        RaohaneState.closePrimarySurfaces("")
+    function prepareCapture(preserveControlCenter: bool): void {
+        const keep = preserveControlCenter && RaohaneState.controlCenterOpen
+            ? "controlCenter"
+            : ""
+        RaohaneState.closePrimarySurfaces(keep)
         RaohaneState.regionSelectorOpen = false
     }
 
@@ -21,7 +24,7 @@ Scope {
         if (root.busy)
             return
         root.busy = true
-        root.prepareCapture()
+        root.prepareCapture(false)
         Quickshell.execDetached([
             "bash",
             Quickshell.shellPath("scripts/" + scriptName)
@@ -33,13 +36,16 @@ Scope {
         if (root.busy)
             return
         root.busy = true
-        root.prepareCapture()
+        // Screenshots are also used to capture Raohane itself while iterating
+        // on the shell UI. Keep an already-open Control Center on screen, while
+        // still dismissing every other primary surface before region selection.
+        root.prepareCapture(true)
         Quickshell.execDetached([
             "bash", "-lc",
             "geometry=\"$(slurp 2>/dev/null)\" || exit 0; "
                 + "[ -n \"$geometry\" ] || exit 0; "
                 + "grim -g \"$geometry\" - | wl-copy --type image/png && "
-                + "notify-send 'Screenshot copied' 'Selected region copied to clipboard' -a 'Raohane Capture' -i image-x-generic >/dev/null 2>&1 || true"
+                + "notify-send 'Screenshot copied' 'Selected region copied to clipboard' -a 'Raohane Capture' >/dev/null 2>&1 || true"
         ])
         busyReset.restart()
     }
@@ -56,7 +62,7 @@ Scope {
         if (root.busy)
             return
         root.busy = true
-        root.prepareCapture()
+        root.prepareCapture(false)
         const script = RaohanePaths.join(RaohanePaths.scriptsPath, "videos/record.sh")
         if (sound)
             Quickshell.execDetached([script, "--sound"])
