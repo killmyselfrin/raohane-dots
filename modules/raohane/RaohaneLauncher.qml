@@ -4,7 +4,6 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
-import Quickshell.Widgets
 
 import qs.modules.raohane.models
 import qs.modules.raohane.services
@@ -303,9 +302,11 @@ Scope {
 
                                     Component {
                                         id: systemIcon
-                                        IconImage {
-                                            implicitSize: 24
-                                            source: Quickshell.iconPath(resultRow.modelData.iconName, "image-missing")
+                                        RaohaneAdaptiveIcon {
+                                            anchors.centerIn: parent
+                                            iconSource: String(resultRow.modelData.iconName ?? "")
+                                            iconSize: 24
+                                            fallbackColor: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                         }
                                     }
 
