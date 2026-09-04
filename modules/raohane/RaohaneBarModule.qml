@@ -32,14 +32,14 @@ Item {
 
     function fallbackWidth(id: string): real {
         if (root.vertical)
-            return id === "separator" ? 36 : 36
+            return 36
         switch (id) {
         case "launcher": return 30
-        case "workspaces": return Math.max(31, Math.min(300, RaohaneConfig.overviewWorkspaceCount * 28 + 3))
-        case "context": return 170
+        case "workspaces": return Math.max(28, Math.min(260, RaohaneConfig.overviewWorkspaceCount * 23 + 4))
+        case "context": return 188
         case "tray": return 0
         case "system": return 54
-        case "clock": return root.showDate ? 70 : 42
+        case "clock": return root.showDate ? 98 : 44
         case "control": return 30
         case "separator": return 1
         default: return 0
@@ -51,7 +51,7 @@ Item {
             return id === "separator" ? 1 : 36
         switch (id) {
         case "context": return 38
-        case "separator": return 17
+        case "separator": return 15
         case "workspaces": return 28
         default: return 30
         }
@@ -137,6 +137,8 @@ Item {
             buttonSize: 30
             iconSize: 17
             icon: "apps"
+            transparentIdle: true
+            emphasized: RaohaneState.launcherOpen
             onClicked: root.requestPrimary("launcher")
         }
     }
@@ -221,6 +223,8 @@ Item {
             buttonSize: 30
             iconSize: 16
             icon: "tune"
+            transparentIdle: true
+            emphasized: RaohaneState.controlCenterOpen
             onClicked: root.requestControlCenter()
         }
     }
@@ -230,7 +234,7 @@ Item {
 
         Item {
             implicitWidth: 1
-            implicitHeight: 17
+            implicitHeight: 15
 
             Rectangle {
                 anchors.fill: parent
