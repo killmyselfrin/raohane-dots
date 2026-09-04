@@ -15,7 +15,7 @@ Item {
     readonly property string fallbackSymbol: RaohaneIconResolver.materialSymbol(iconSource)
     readonly property bool useMaterialFallback: fallbackSymbol.length > 0 || iconSource.length === 0
     readonly property string systemSource: {
-        const source = String(root.iconSource ?? "").trim()
+        let source = String(root.iconSource ?? "").trim()
         if (!source.length)
             return ""
         if (source.startsWith("image://")
@@ -23,6 +23,17 @@ Item {
                 || source.startsWith("qrc:")
                 || source.startsWith("/") )
             return source
+
+        // Some icon-provider values can come back as `name?fallback=...`.
+        // Feeding that query back into iconPath nests provider fallbacks and
+        // produces misleading missing-icon warnings. Resolve only the actual
+        // freedesktop icon name here; generic names are handled by the
+        // Material fallback above.
+        const queryIndex = source.indexOf("?")
+        if (queryIndex >= 0)
+            source = source.slice(0, queryIndex)
+        if (!source.length)
+            return ""
         return Quickshell.iconPath(source, "application-x-executable")
     }
 
