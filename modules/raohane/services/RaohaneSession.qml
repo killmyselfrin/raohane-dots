@@ -29,6 +29,11 @@ Singleton {
         return configured.trim().length > 0 ? configured.trim() : "raohane"
     }
 
+    function reloadDesktop(): void {
+        root.run(["hyprctl", "reload"])
+        Quickshell.reload(true)
+    }
+
     function lock(): void {
         root.run(["qs", "-c", root.configName(), "ipc", "call", "lock", "activate"])
     }
