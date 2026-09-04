@@ -19,15 +19,6 @@ Variants {
         return path.startsWith("file://") ? path : "file://" + path
     }
 
-    function isVideo(path: string): bool {
-        const lower = (path ?? "").toLowerCase()
-        return lower.endsWith(".mp4")
-            || lower.endsWith(".webm")
-            || lower.endsWith(".mkv")
-            || lower.endsWith(".mov")
-            || lower.endsWith(".avi")
-    }
-
     Timer {
         interval: Math.max(1000, RaohaneConfig.wallpaperChangeInterval)
         running: RaohaneConfig.wallpaperChangeInterval > 0
@@ -70,8 +61,8 @@ Variants {
         property string previousPath: ""
         property real transitionProgress: 1.0
 
-        readonly property bool currentIsVideo: root.isVideo(currentPath)
-        readonly property bool previousIsVideo: root.isVideo(previousPath)
+        readonly property bool currentIsVideo: RaohaneWallpapers.isVideo(currentPath)
+        readonly property bool previousIsVideo: RaohaneWallpapers.isVideo(previousPath)
 
         function switchToRequestedPath(): void {
             if (requestedPath === currentPath)
@@ -132,7 +123,7 @@ Variants {
                 id: previousImage
                 anchors.fill: parent
                 visible: backgroundWindow.previousPath.length > 0 && !backgroundWindow.previousIsVideo
-                source: root.fileUrl(backgroundWindow.previousPath)
+                source: visible ? root.fileUrl(backgroundWindow.previousPath) : ""
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: true
@@ -144,7 +135,7 @@ Variants {
                 id: currentImage
                 anchors.fill: parent
                 visible: backgroundWindow.currentPath.length > 0 && !backgroundWindow.currentIsVideo
-                source: root.fileUrl(backgroundWindow.currentPath)
+                source: visible ? root.fileUrl(backgroundWindow.currentPath) : ""
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: true
