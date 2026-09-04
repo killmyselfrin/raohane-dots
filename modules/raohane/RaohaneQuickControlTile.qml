@@ -39,8 +39,8 @@ RaohaneSurface {
         : ""
 
     visible: root.available
-    Layout.preferredHeight: visible ? 64 : 0
-    surfaceRadius: 16
+    Layout.preferredHeight: visible ? 62 : 0
+    surfaceRadius: 15
     active: root.tileActive
     showSheen: false
     transparentIdle: !root.active && !root.menuOpen
@@ -51,10 +51,13 @@ RaohaneSurface {
     pressedScale: RaohaneMotion.softPressScale
     activeFocusOnTab: visible
     feedback: root.showMenu ? "navigate" : "tap"
-    border.color: root.menuOpen ? RaohaneTheme.accentBorder
-        : root.active ? RaohaneTheme.accentBorder
+    border.color: root.menuOpen || root.active ? RaohaneTheme.accentBorder
         : root.hovered ? RaohaneTheme.borderStrong
-        : RaohaneTheme.border
+        : RaohaneTheme.borderFaint
+
+    Behavior on border.color {
+        ColorAnimation { duration: RaohaneMotion.micro }
+    }
 
     function triggerPrimary(): void {
         switch (root.tileId) {
@@ -99,22 +102,33 @@ RaohaneSurface {
         }
     }
 
-    ColumnLayout {
+    RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 11
-        anchors.rightMargin: 11
-        anchors.topMargin: 9
-        anchors.bottomMargin: 9
-        spacing: 3
+        anchors.leftMargin: 9
+        anchors.rightMargin: 9
+        anchors.topMargin: 8
+        anchors.bottomMargin: 8
+        spacing: 9
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 6
+        Rectangle {
+            Layout.preferredWidth: 31
+            Layout.preferredHeight: 31
+            Layout.alignment: Qt.AlignVCenter
+            radius: 10
+            color: root.active || root.menuOpen ? RaohaneTheme.accentSoft
+                : root.hovered ? RaohaneTheme.surfaceHover
+                : RaohaneTheme.surfaceSubtle
+            border.width: 1
+            border.color: root.active || root.menuOpen ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
 
             RaohaneIcon {
+                anchors.centerIn: parent
                 text: root.currentIcon
-                iconSize: 18
-                fill: root.active ? 1 : root.hovered ? 0.35 : 0
+                iconSize: 16
+                fill: root.active ? 1 : root.hovered ? 0.30 : 0
                 symbolWeight: root.active ? 560 : root.hovered ? 500 : 430
                 grade: root.active ? 40 : root.hovered ? 20 : 0
                 color: root.active || root.hovered || root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -125,49 +139,59 @@ RaohaneSurface {
                     NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
                 }
             }
+        }
 
-            Item { Layout.fillWidth: true }
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 1
 
-            Rectangle {
-                width: 6
-                height: 6
-                radius: 3
-                color: root.active ? RaohaneTheme.accent : RaohaneTheme.surfaceSubtle
-                border.width: root.active ? 0 : 1
-                border.color: RaohaneTheme.border
-                opacity: root.active ? 1 : 0.72
-
-                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+            Text {
+                Layout.fillWidth: true
+                text: root.definition?.label ?? root.tileId
+                color: RaohaneTheme.text
+                font.pixelSize: 9
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
             }
 
-            RaohaneIcon {
-                visible: root.showMenu
-                text: "expand_more"
-                iconSize: 12
-                color: root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                rotation: root.menuOpen ? 180 : 0
-                Behavior on rotation {
-                    NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 4
+
+                Rectangle {
+                    Layout.preferredWidth: 4
+                    Layout.preferredHeight: 4
+                    radius: 2
+                    color: root.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    opacity: root.active ? 0.95 : 0.48
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: root.subtitle
+                    color: root.active ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                    elide: Text.ElideRight
                 }
             }
         }
 
-        Text {
-            Layout.fillWidth: true
-            text: root.definition?.label ?? root.tileId
-            color: RaohaneTheme.text
-            font.pixelSize: 10
-            font.weight: Font.DemiBold
-            elide: Text.ElideRight
-        }
+        RaohaneIcon {
+            visible: root.showMenu
+            Layout.preferredWidth: root.showMenu ? 14 : 0
+            Layout.alignment: Qt.AlignVCenter
+            text: "expand_more"
+            iconSize: 12
+            color: root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textFaint
+            rotation: root.menuOpen ? 180 : 0
 
-        Text {
-            Layout.fillWidth: true
-            text: root.subtitle
-            color: RaohaneTheme.textMuted
-            font.pixelSize: 7
-            elide: Text.ElideRight
+            Behavior on rotation {
+                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+            }
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
     }
 
