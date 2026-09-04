@@ -11,10 +11,12 @@ fail() {
 
 state="modules/raohane/RaohaneState.qml"
 registry="modules/raohane/RaohaneSurfaceRegistry.qml"
+region="modules/raohane/RaohaneRegionSelector.qml"
 bar="modules/raohane/RaohaneBar.qml"
 bar_module="modules/raohane/RaohaneBarModule.qml"
 [[ -f "$state" ]] || fail "missing $state"
 [[ -f "$registry" ]] || fail "missing $registry"
+[[ -f "$region" ]] || fail "missing $region"
 [[ -f "$bar" ]] || fail "missing $bar"
 [[ -f "$bar_module" ]] || fail "missing $bar_module"
 
@@ -67,8 +69,23 @@ rg -q 'stateProperty:[[:space:]]*"taskManagerOpen"' "$registry" \
 rg -q 'RaohaneSurfaceRegistry\.primarySurfaceIds' "$state" \
   || fail 'primary coordinator no longer derives exclusivity from the surface registry'
 
-rg -q 'RaohaneState\.closePrimarySurfaces\(""\)' modules/raohane/RaohaneRegionSelector.qml \
-  || fail 'region capture no longer dismisses primary surfaces before selection'
+# Screenshot capture is intentionally able to preserve an already-open Control
+# Center so the shell itself can be captured for UI validation. OCR, image
+# search and recording still use the destructive capture path and dismiss all
+# primary surfaces before their backend starts.
+rg -q 'function prepareCapture\(preserveControlCenter: bool\): void' "$region" \
+  || fail 'region capture lost its explicit preservation policy'
+rg -q 'preserveControlCenter[[:space:]]*&&[[:space:]]*RaohaneState\.controlCenterOpen' "$region" \
+  || fail 'region screenshot no longer detects an open Control Center'
+rg -q 'RaohaneState\.closePrimarySurfaces\(keep\)' "$region" \
+  || fail 'region capture no longer routes dismissal through the primary coordinator'
+rg -q 'root\.prepareCapture\(true\)' "$region" \
+  || fail 'screenshot path no longer preserves Control Center'
+rg -q 'root\.prepareCapture\(false\)' "$region" \
+  || fail 'destructive capture paths no longer dismiss primary surfaces'
+region_block="$(sed -n '/"regionSelector"[[:space:]]*:/,/^[[:space:]]*},/p' "$registry")"
+printf '%s\n' "$region_block" | rg -q 'closePrimaryOnOpen:[[:space:]]*false' \
+  || fail 'region selector registry policy closes Control Center before screenshot can preserve it'
 
 # Media overlay, OSK and OSD are intentionally independent transient surfaces.
 # They may coexist with a primary surface, particularly for fullscreen/game use.
@@ -80,4 +97,4 @@ for surface in mediaOverlay osk osd; do
     || fail "transient surface is missing from registry: $surface"
 done
 
-printf 'primary-surface-boundary-audit: registry-backed primary UI including composable bar actions is mutually exclusive and capture dismisses it before selection\n'
+printf 'primary-surface-boundary-audit: registry-backed primary UI is mutually exclusive while screenshots may preserve Control Center for UI capture\n'
