@@ -188,7 +188,8 @@ rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$icon_button" || fail 'shared icon 
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$clock" || fail 'shared clock lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.islandHeight' "$context" || fail 'Context Island no longer derives from the shared height token'
 
-rg -q 'source:[[:space:]]*RaohaneConfig\.wallpaperPath' "$settings_home" || fail 'Settings home lost its live wallpaper hero'
+rg -q 'visible:[[:space:]]*!RaohaneWallpapers\.isVideo\(RaohaneConfig\.wallpaperPath\)' "$settings_home" || fail 'Settings home no longer guards its hero from video wallpaper decoding'
+rg -q 'source:[[:space:]]*visible[[:space:]]*\?[[:space:]]*RaohaneConfig\.wallpaperPath[[:space:]]*:[[:space:]]*""' "$settings_home" || fail 'Settings home lost its video-safe live wallpaper hero source'
 rg -q 'RaohaneContextIsland[[:space:]]*\{' "$settings_home" || fail 'Settings home lost the Context Island live preview'
 
 if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$media" "$control" "$settings"; then
