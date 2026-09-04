@@ -25,6 +25,8 @@ libnotify
 wl-clipboard
 xdg-utils
 xdg-user-dirs
+hicolor-icon-theme
+adwaita-icon-theme
 ttf-material-symbols-variable|ttf-material-symbols-variable-git
 noto-fonts
 noto-fonts-cjk
