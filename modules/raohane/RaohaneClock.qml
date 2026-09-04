@@ -10,11 +10,11 @@ Item {
     property bool active: true
     property date now: new Date()
 
-    implicitWidth: clockColumn.implicitWidth
-    implicitHeight: clockColumn.implicitHeight
+    implicitWidth: clockRow.implicitWidth
+    implicitHeight: Math.max(24, clockRow.implicitHeight)
 
     readonly property string timeText: Qt.formatTime(root.now, "HH:mm")
-    readonly property string dateText: Qt.formatDate(root.now, "ddd, d MMM")
+    readonly property string dateText: Qt.formatDate(root.now, "ddd d MMM")
 
     onActiveChanged: {
         if (active)
@@ -29,24 +29,35 @@ Item {
         onTriggered: root.now = new Date()
     }
 
-    ColumnLayout {
-        id: clockColumn
-        spacing: -2
+    RowLayout {
+        id: clockRow
+        anchors.centerIn: parent
+        spacing: 7
 
         Text {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             text: root.timeText
             color: RaohaneTheme.text
             font.pixelSize: 12
             font.weight: Font.DemiBold
+            font.letterSpacing: -0.15
+        }
+
+        Rectangle {
+            visible: root.showDate
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: 1
+            Layout.preferredHeight: 13
+            color: RaohaneTheme.borderFaint
         }
 
         Text {
             visible: root.showDate
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
             text: root.dateText
             color: RaohaneTheme.textMuted
             font.pixelSize: 8
+            font.weight: Font.Medium
         }
     }
 }
