@@ -26,17 +26,19 @@ Item {
             clip: true
             border.color: RaohaneTheme.borderStrong
 
-            Image {
+            Loader {
                 anchors.fill: parent
-                visible: !RaohaneWallpapers.isVideo(RaohaneConfig.wallpaperPath)
-                source: RaohaneConfig.wallpaperPath.length > 0
-                    && !RaohaneWallpapers.isVideo(RaohaneConfig.wallpaperPath)
-                    ? RaohaneConfig.wallpaperPath
-                    : ""
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                cache: false
-                opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.42 : 0.30) : 0
+                active: !RaohaneWallpapers.isVideo(RaohaneConfig.wallpaperPath)
+
+                sourceComponent: Image {
+                    anchors.fill: parent
+                    visible: !RaohaneWallpapers.isVideo(RaohaneConfig.wallpaperPath)
+                    source: visible ? RaohaneConfig.wallpaperPath : ""
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    cache: false
+                    opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.42 : 0.30) : 0
+                }
             }
 
             Rectangle {
