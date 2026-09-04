@@ -21,9 +21,10 @@ Singleton {
     readonly property string effectiveDirectory: root.cleanPath(folderModel.folder.toString())
     property alias folderModel: folderModel
     property string searchQuery: ""
+    readonly property list<string> videoExtensions: ["mp4", "webm", "mkv", "mov", "avi"]
     readonly property list<string> extensions: [
         "jpg", "jpeg", "png", "webp", "avif", "bmp", "svg",
-        "mp4", "webm", "mkv", "mov", "avi"
+        ...root.videoExtensions
     ]
     property list<string> wallpapers: []
     property string previewPath: ""
@@ -55,6 +56,13 @@ Singleton {
         } catch (error) {
             return path
         }
+    }
+
+    function isVideo(path: string): bool {
+        const clean = root.cleanPath(path).toLowerCase()
+        if (!clean.length)
+            return false
+        return root.videoExtensions.some(extension => clean.endsWith("." + extension))
     }
 
     function parentDirectory(path: string): string {
