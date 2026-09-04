@@ -37,19 +37,14 @@ Item {
                 pressedScale: RaohaneMotion.softPressScale
                 showSheen: false
 
-                Image {
+                RaohaneAdaptiveIcon {
                     anchors.centerIn: parent
-                    width: 18
-                    height: 18
-                    source: trayButton.modelData.icon
-                    sourceSize.width: 18
-                    sourceSize.height: 18
-                    fillMode: Image.PreserveAspectFit
-                    asynchronous: true
-                    smooth: true
-                    scale: trayMouse.pressed ? 0.92 : 1
+                    iconSource: String(trayButton.modelData.icon ?? "")
+                    iconSize: 18
+                    fallbackColor: RaohaneTheme.textMuted
+                    imageScale: trayMouse.pressed ? 0.92 : 1
 
-                    Behavior on scale {
+                    Behavior on imageScale {
                         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
                     }
                 }
