@@ -17,7 +17,14 @@ Singleton {
 
     function dismiss(): void {
         root.dismissable = []
-        root.dismissed()
+
+        // Control Center is a primary command surface rather than a transient
+        // popup. External overlays such as screenshot/region selectors steal
+        // Hyprland focus while the user still expects the panel to remain in
+        // the capture. Primary-surface exclusivity is already owned by
+        // RaohaneState, so suppress only the focus-loss dismissal here.
+        if (!RaohaneState.controlCenterOpen)
+            root.dismissed()
     }
 
     function addPersistent(window): void {
