@@ -28,7 +28,8 @@ Item {
 
             Image {
                 anchors.fill: parent
-                source: RaohaneConfig.wallpaperPath
+                visible: !RaohaneWallpapers.isVideo(RaohaneConfig.wallpaperPath)
+                source: visible ? RaohaneConfig.wallpaperPath : ""
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 cache: false
