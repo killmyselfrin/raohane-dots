@@ -2,7 +2,7 @@
 
 Raohane's standalone migration goal is a Hyprland + Quickshell shell that does not require end4-pC, illogical-impulse, iNiR, Serpantinum or another shell repository at runtime, install time, update time or normal development time.
 
-As of the current native source boundary, that architectural migration is complete. Upstream projects remain references/provenance only; Raohane owns its runtime graph, dependency manifest, configuration schema, services, UI, scripts, installer and source-release packaging path.
+As of the current native source boundary, that architectural migration is complete. Upstream projects remain references/provenance only; Raohane owns its runtime graph, dependency manifests, configuration schema, services, UI, scripts, installer and source-release packaging path.
 
 ## Independence status
 
@@ -15,9 +15,9 @@ The following gates are complete:
 - upstream synchronizer/bootstrap scripts and source lock files are removed;
 - retired helper script families and the inherited default config are removed;
 - Raohane owns its Arch dependency manifests and dependency installer;
-- Raohane owns persistent schema v10 and native state/path contracts;
+- Raohane owns persistent schema v12 and native state/path contracts;
 - older native schema documents are upgraded before shell startup without discarding user values;
-- Raohane owns audio, media, network, Bluetooth, display, notifications, wallpaper, session, idle, search, autostart, OSK and DropShelf service boundaries;
+- Raohane owns audio, media, network, Bluetooth, display, notifications, wallpaper, session, idle, performance, search, autostart, OSK and DropShelf service boundaries;
 - all active visible surfaces are Raohane-owned;
 - installed runtime pruning prevents stale legacy trees from surviving upgrades;
 - CI parses and audits the standalone Raohane graph;
@@ -29,15 +29,15 @@ The following gates are complete:
 
 ### Phase A — Product surfaces — complete
 
-The active family is composed entirely from `modules/raohane` surfaces: bars, launcher, control center, Settings, media overlay, OSD, notifications, wallpaper selector, desktop menu, overview, dock, background, desktop canvas, lock, Polkit, capture/translation, OSK, sidebars, overlay, DropShelf, screen frame/corners and session UI.
+The active family is composed entirely from `modules/raohane` surfaces: Bars, Context Island, Launcher, Control Center, Settings, media overlay, OSD, notifications, wallpaper selector, desktop menu, Overview, Dock, background, desktop canvas/widgets, lock, Polkit, capture/translation, OSK, sidebars, fullscreen Command Deck, DropShelf, Task Manager, screen frame/corners and session UI.
 
 ### Phase B — Service ownership — complete
 
-Active product code uses Raohane-owned service interfaces and direct system/Quickshell backends instead of inherited service namespaces.
+Active product code uses Raohane-owned service interfaces and direct system/Quickshell backends instead of inherited service namespaces. Visible UI is expected to route compositor/network/audio/system operations through those service contracts rather than adding new ad-hoc shell commands.
 
 ### Phase C — Config/common ownership — complete
 
-Raohane owns `RaohaneConfig`, `RaohaneState`, `RaohanePaths`, theme/widgets/helpers and persistent `~/.config/raohane/native.json`. The inherited common/config/state framework is no longer present in the source graph.
+Raohane owns `RaohaneConfig`, `RaohaneState`, `RaohanePaths`, theme/widgets/helpers, registries and persistent `~/.config/raohane/native.json`. The inherited common/config/state framework is no longer present in the source graph.
 
 ### Phase D — Dependency independence — complete
 
@@ -49,7 +49,19 @@ The inherited source trees, upstream sync/bootstrap tooling, obsolete panel fami
 
 ### Phase F — Source/release boundary — complete
 
-`NOTICE-UPSTREAM.md` records current provenance without confusing technical independence with copyright independence. `scripts/source-lineage-audit.sh` guards the active runtime, provenance notice, font policy and basic retained-asset boundary. `scripts/package-release.sh` packages committed `HEAD` and emits a SHA-256 checksum after lineage and runtime-payload validation. `.github/workflows/release-boundary.yml` exercises this path in CI.
+`NOTICE-UPSTREAM.md` records current provenance without confusing technical independence with copyright independence. `scripts/source-lineage-audit.sh` guards the active runtime, provenance notice, font policy and retained-asset boundary. `scripts/package-release.sh` packages committed `HEAD` and emits a SHA-256 checksum after lineage and runtime-payload validation. `.github/workflows/release-boundary.yml` exercises this path in CI.
+
+## Current product phase
+
+Raohane is no longer in a framework-migration phase. The next product phase is UI/UX refinement, feature depth and real-session validation on top of the existing native architecture.
+
+Large new work should therefore preserve the current boundaries instead of reopening compatibility architecture:
+
+- keep persistent values in `RaohaneConfig`;
+- keep system/compositor operations behind Raohane services;
+- keep configurable composition in the existing registries;
+- keep visible surfaces Raohane-native;
+- use end4-pC and Serpantinum as behavioral/design references only where useful, not as runtime dependencies.
 
 ## Remaining release gates
 
@@ -60,14 +72,15 @@ Architectural independence and source packaging are complete; release readiness 
 - multi-monitor placement and focus/input behavior;
 - fullscreen/game overlay behavior and GPU load;
 - NVIDIA, AMD and Intel graphics validation;
-- horizontal/vertical bar parity and dock behavior;
-- overview window activation/interaction;
+- horizontal/vertical Bar parity and Dock behavior;
+- Overview window activation/interaction;
 - Settings persistence and all exposed controls;
 - wallpaper image/video transitions and thumbnail generation;
-- launcher apps/actions/commands/calculator/clipboard modes;
+- Launcher apps/actions/commands/calculator/clipboard modes;
 - notifications and action handling;
 - audio, brightness, gamma, networking and Bluetooth controls;
-- MPRIS/media behavior;
+- MPRIS/media + lyrics behavior;
+- native Task Manager process refresh and TERM/KILL UX;
 - screenshot, recording, OCR and translation backends;
 - OSK + ydotool permissions/input;
 - WlSessionLock + PAM + fingerprint authentication;
