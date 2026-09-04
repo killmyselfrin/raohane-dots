@@ -67,6 +67,7 @@ Scope {
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
             readonly property real podScale: Number(root.styleValue("barScale", 1.0))
             readonly property int podHeight: Math.max(38, Math.min(48, Math.round(RaohaneTheme.barHeight * podScale)))
+            readonly property int edgeMargin: Math.max(12, Math.round(16 * RaohaneTheme.densityScale))
 
             visible: RaohaneState.barOpen && !RaohaneState.screenLocked && !fullscreenSuppressed
             exclusiveZone: fullscreenSuppressed
@@ -137,25 +138,33 @@ Scope {
                     visible: root.activeLayout.left.length > 0
                     anchors {
                         left: parent.left
-                        leftMargin: 14
+                        leftMargin: barWindow.edgeMargin
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
-                        ? Math.min(parent.width * 0.38, Math.max(52, leftRow.implicitWidth + 22))
+                        ? Math.min(parent.width * 0.38, Math.max(48, leftRow.implicitWidth + 18))
                         : 0
                     height: visible ? barWindow.podHeight : 0
-                    surfaceRadius: Math.min(Math.round(height * 0.42), height / 2)
+                    surfaceRadius: Math.min(RaohaneTheme.radiusLarge, height / 2)
                     raised: true
                     showSheen: false
+                    border.color: RaohaneTheme.border
+
+                    Behavior on width {
+                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+                    Behavior on height {
+                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
 
                     RowLayout {
                         id: leftRow
                         anchors {
                             fill: parent
-                            leftMargin: 7
-                            rightMargin: 9
+                            leftMargin: 6
+                            rightMargin: 8
                         }
-                        spacing: 7
+                        spacing: 5
 
                         Repeater {
                             model: root.activeLayout.left
@@ -180,7 +189,7 @@ Scope {
                     id: centerRow
                     visible: root.activeLayout.center.length > 0
                     anchors.centerIn: parent
-                    spacing: 7
+                    spacing: 6
 
                     Repeater {
                         model: root.activeLayout.center
@@ -205,25 +214,33 @@ Scope {
                     visible: root.activeLayout.right.length > 0
                     anchors {
                         right: parent.right
-                        rightMargin: 14
+                        rightMargin: barWindow.edgeMargin
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
-                        ? Math.min(parent.width * 0.38, Math.max(52, rightRow.implicitWidth + 20))
+                        ? Math.min(parent.width * 0.40, Math.max(48, rightRow.implicitWidth + 18))
                         : 0
                     height: visible ? barWindow.podHeight : 0
-                    surfaceRadius: Math.min(Math.round(height * 0.42), height / 2)
+                    surfaceRadius: Math.min(RaohaneTheme.radiusLarge, height / 2)
                     raised: true
                     showSheen: false
+                    border.color: RaohaneTheme.border
+
+                    Behavior on width {
+                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
+                    Behavior on height {
+                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+                    }
 
                     RowLayout {
                         id: rightRow
                         anchors {
                             fill: parent
                             leftMargin: 8
-                            rightMargin: 7
+                            rightMargin: 6
                         }
-                        spacing: 7
+                        spacing: 5
 
                         Repeater {
                             model: root.activeLayout.right
