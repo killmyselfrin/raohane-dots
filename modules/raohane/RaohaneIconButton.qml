@@ -12,13 +12,13 @@ RaohaneSurface {
 
     implicitWidth: buttonSize
     implicitHeight: buttonSize
-    surfaceRadius: Math.round(buttonSize / 3)
+    surfaceRadius: Math.round(buttonSize / 3.1)
     active: emphasized
     hovered: pointer.containsMouse || activeFocus
     pressed: pointer.pressed
     interactive: true
-    hoverScale: RaohaneMotion.hoverScale
-    pressedScale: RaohaneMotion.pressScale
+    hoverScale: 1
+    pressedScale: 1
     activeFocusOnTab: enabled
     opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
@@ -27,14 +27,14 @@ RaohaneSurface {
         text: root.icon
         iconSize: root.iconSize
         fill: root.filledWhenActive
-            ? (root.emphasized ? 1 : pointer.pressed ? 0.70 : pointer.containsMouse || root.activeFocus ? 0.32 : 0)
+            ? (root.emphasized ? 1 : pointer.pressed ? 0.72 : pointer.containsMouse || root.activeFocus ? 0.34 : 0)
             : 0
         symbolWeight: root.emphasized ? 560 : pointer.pressed ? 540 : pointer.containsMouse || root.activeFocus ? 500 : 430
         grade: root.emphasized ? 40 : pointer.containsMouse || root.activeFocus ? 20 : 0
         color: root.emphasized || pointer.containsMouse || root.activeFocus
             ? RaohaneTheme.accent
             : RaohaneTheme.textMuted
-        scale: root.transformMotionAllowed && pointer.pressed ? 0.92 : 1
+        scale: root.transformMotionAllowed && pointer.pressed ? 0.94 : 1
 
         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         Behavior on scale {
