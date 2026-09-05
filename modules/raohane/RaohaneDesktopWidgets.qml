@@ -12,8 +12,8 @@ Item {
     property bool shown: true
 
     readonly property bool compact: RaohaneConfig.desktopWidgetsCompact || width < 1280
-    readonly property int edge: compact ? 34 : 54
-    readonly property int cardWidth: compact ? 238 : 294
+    readonly property int edge: compact ? 28 : 44
+    readonly property int cardWidth: compact ? 226 : 278
     readonly property string layoutPreset: RaohaneConfig.desktopWidgetsLayout
     readonly property var composition: RaohaneConfig.sanitizeDesktopWidgetComposition(RaohaneConfig.desktopWidgetComposition)
     readonly property var primaryWidgetIds: root.composition.primary
@@ -26,15 +26,8 @@ Item {
 
     Behavior on opacity {
         NumberAnimation {
-            duration: RaohaneMotion.relaxed
+            duration: RaohaneMotion.standard
             easing.type: RaohaneMotion.easeStandard
-        }
-    }
-
-    Behavior on scale {
-        NumberAnimation {
-            duration: RaohaneMotion.relaxed
-            easing.type: RaohaneMotion.easeEmphasized
         }
     }
 
@@ -42,16 +35,9 @@ Item {
         id: primaryColumn
 
         x: root.layoutPreset === "right" ? parent.width - width - root.edge : root.edge
-        y: root.compact ? 72 : 92
-        width: Math.min(root.compact ? 370 : 510, parent.width * 0.44)
-        spacing: 12
-
-        Behavior on x {
-            NumberAnimation {
-                duration: RaohaneMotion.relaxed
-                easing.type: RaohaneMotion.easeEmphasized
-            }
-        }
+        y: root.compact ? 68 : 82
+        width: Math.min(root.compact ? 350 : 480, parent.width * 0.42)
+        spacing: root.compact ? 8 : 9
 
         Repeater {
             model: root.primaryWidgetIds
@@ -71,24 +57,10 @@ Item {
 
         x: root.layoutPreset === "left" ? root.edge : parent.width - width - root.edge
         y: root.layoutPreset === "balanced"
-            ? parent.height - height - (RaohaneConfig.dockEnabled ? (root.compact ? 104 : 122) : root.edge)
-            : Math.min(parent.height - height - root.edge, primaryColumn.y + primaryColumn.height + 16)
+            ? parent.height - height - (RaohaneConfig.dockEnabled ? (root.compact ? 96 : 112) : root.edge)
+            : Math.min(parent.height - height - root.edge, primaryColumn.y + primaryColumn.height + 12)
         width: root.cardWidth
-        spacing: 10
-
-        Behavior on x {
-            NumberAnimation {
-                duration: RaohaneMotion.relaxed
-                easing.type: RaohaneMotion.easeEmphasized
-            }
-        }
-
-        Behavior on y {
-            NumberAnimation {
-                duration: RaohaneMotion.relaxed
-                easing.type: RaohaneMotion.easeEmphasized
-            }
-        }
+        spacing: 8
 
         Repeater {
             model: root.secondaryWidgetIds
