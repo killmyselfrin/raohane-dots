@@ -1,6 +1,7 @@
 {
   "Keyboard & Motion": "Клавиатура и анимации",
   "Shortcuts, application bindings and animation behavior": "Горячие клавиши, привязки приложений и поведение анимаций",
+  "Keybinds, input behavior and animation preferences": "Горячие клавиши, поведение ввода и настройки анимаций",
   "Choose the language used by Raohane": "Выберите язык интерфейса Raohane",
   "Interface language": "Язык интерфейса",
   "Choose the language used by Raohane. The shell restarts automatically when a new runtime catalog needs to be applied.": "Выберите язык Raohane. Оболочка автоматически перезапустится, если потребуется применить новый каталог локализации.",
