@@ -69,6 +69,7 @@ RaohaneSettingsControlRow 1.0 RaohaneSettingsControlRow.qml
 RaohaneSettingsPreferences 1.0 RaohaneSettingsPreferences.qml
 RaohaneSettingsLanguage 1.0 RaohaneSettingsLanguage.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
+RaohaneStyleProfiles 1.0 RaohaneStyleProfiles.qml
 RaohaneWidgetStudio 1.0 RaohaneWidgetStudio.qml
 RaohaneBarStudio 1.0 RaohaneBarStudio.qml
 RaohaneThemeCatalog 1.0 RaohaneThemeCatalog.qml
