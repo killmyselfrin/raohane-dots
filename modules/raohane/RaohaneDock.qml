@@ -259,20 +259,9 @@ Scope {
                     showSheen: false
                     border.color: RaohaneTheme.borderStrong
                     opacity: dockWindow.revealed ? 1 : 0
-                    scale: dockWindow.revealed ? 1 : 0.975
-
-                    transform: Translate {
-                        y: dockWindow.revealed ? 0 : 8
-                        Behavior on y {
-                            NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                        }
-                    }
 
                     Behavior on opacity {
                         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-                    }
-                    Behavior on scale {
-                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
                     }
 
                     RowLayout {
@@ -335,9 +324,10 @@ Scope {
                                     iconSource: String(appButton.modelData.icon ?? "")
                                     iconSize: RaohaneConfig.dockIconSize
                                     fallbackColor: appButton.anyActivated ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                                    imageScale: appMouse.pressed ? 0.93 : 1
+                                    imageScale: appButton.transformMotionAllowed && appMouse.pressed ? 0.93 : 1
 
                                     Behavior on imageScale {
+                                        enabled: appButton.transformMotionAllowed
                                         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
                                     }
                                 }
@@ -353,15 +343,8 @@ Scope {
                                     }
                                     color: RaohaneTheme.accent
                                     opacity: appButton.modelData.running ? 0.88 : 0
-                                    scale: appButton.modelData.running ? 1 : 0.45
 
-                                    Behavior on width {
-                                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                                    }
                                     Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
-                                    Behavior on scale {
-                                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                                    }
                                 }
 
                                 Rectangle {
@@ -471,10 +454,11 @@ Scope {
             symbolWeight: control.active ? 560 : control.hovered ? 500 : 430
             grade: control.active ? 40 : control.hovered ? 20 : 0
             color: control.active || control.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            scale: controlMouse.pressed ? 0.92 : 1
+            scale: control.transformMotionAllowed && controlMouse.pressed ? 0.92 : 1
 
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             Behavior on scale {
+                enabled: control.transformMotionAllowed
                 NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
             }
         }
