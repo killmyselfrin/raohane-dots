@@ -126,11 +126,13 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            color: RaohaneTheme.dark ? "#8a000000" : "#465b5750"
+            color: RaohaneTheme.dark
+                ? Qt.rgba(0.005, 0.008, 0.018, 0.72)
+                : Qt.rgba(0.14, 0.13, 0.12, 0.28)
             opacity: dialog.entered ? 1 : 0
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
 
             MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons }
@@ -140,29 +142,31 @@ Scope {
             id: dialog
             property bool entered: false
 
-            width: Math.min(parent.width - 72, 450)
-            implicitHeight: content.implicitHeight + 40
+            width: Math.min(parent.width - 72, 420)
+            implicitHeight: content.implicitHeight + 34
             height: implicitHeight
             anchors.centerIn: parent
-            surfaceRadius: 20
+            surfaceRadius: 14
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.982
-
-            transform: Translate {
-                y: dialog.entered ? 0 : 10
-                Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
-                }
-            }
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+
+            Rectangle {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    leftMargin: 16
+                    rightMargin: 16
+                }
+                height: 1
+                color: RaohaneTheme.accent
+                opacity: 0.38
             }
 
             Keys.onPressed: event => {
@@ -178,54 +182,67 @@ Scope {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    margins: 20
+                    margins: 17
                 }
-                spacing: 11
+                spacing: 9
 
-                RaohaneSurface {
-                    Layout.alignment: Qt.AlignHCenter
-                    width: 48
-                    height: 48
-                    surfaceRadius: 15
-                    active: true
-                    showSheen: false
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 9
+
+                    Rectangle {
+                        Layout.preferredWidth: 3
+                        Layout.preferredHeight: 34
+                        radius: 1.5
+                        color: RaohaneTheme.accent
+                    }
 
                     RaohaneIcon {
-                        anchors.centerIn: parent
                         text: "security"
-                        iconSize: 23
+                        iconSize: 20
                         fill: 1
                         symbolWeight: 540
                         color: RaohaneTheme.accent
                     }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 0
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Authentication required")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            visible: root.message.length > 0
+                            text: root.message
+                            color: RaohaneTheme.textFaint
+                            wrapMode: Text.Wrap
+                            font.pixelSize: 7
+                        }
+                    }
                 }
 
-                Text {
+                Rectangle {
                     Layout.fillWidth: true
-                    text: qsTr("Authentication required")
-                    color: RaohaneTheme.text
-                    horizontalAlignment: Text.AlignHCenter
-                    font.pixelSize: 15
-                    font.weight: Font.DemiBold
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    visible: root.message.length > 0
-                    text: root.message
-                    color: RaohaneTheme.textMuted
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.Wrap
-                    font.pixelSize: 9
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderFaint
                 }
 
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: supplementaryText.implicitHeight + 16
+                    Layout.preferredHeight: supplementaryText.implicitHeight + 14
                     visible: root.supplementaryMessage.length > 0
-                    surfaceRadius: 10
+                    surfaceRadius: 8
                     showSheen: false
-                    border.color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.border
+                    color: RaohaneTheme.surfaceDeep
+                    border.color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.borderFaint
 
                     Text {
                         id: supplementaryText
@@ -238,7 +255,7 @@ Scope {
                         text: root.supplementaryMessage
                         color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.textMuted
                         wrapMode: Text.Wrap
-                        font.pixelSize: 8
+                        font.pixelSize: 7
 
                         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                     }
@@ -248,30 +265,31 @@ Scope {
                     Layout.fillWidth: true
                     text: root.prompt
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 7
                     font.weight: Font.DemiBold
                 }
 
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 44
-                    surfaceRadius: 13
+                    Layout.preferredHeight: 38
+                    surfaceRadius: 9
                     hovered: inputField.activeFocus
                     showSheen: false
-                    border.color: inputField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
+                    color: RaohaneTheme.surfaceDeep
+                    border.color: inputField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
                     TextInput {
                         id: inputField
                         anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 10
                         verticalAlignment: TextInput.AlignVCenter
                         enabled: root.interactionAvailable
                         color: RaohaneTheme.text
                         selectionColor: RaohaneTheme.accentSoft
                         selectedTextColor: RaohaneTheme.text
                         echoMode: root.responseVisible ? TextInput.Normal : TextInput.Password
-                        font.pixelSize: 10
+                        font.pixelSize: 9
                         clip: true
                         onAccepted: root.submit()
 
@@ -286,19 +304,19 @@ Scope {
                     Text {
                         anchors {
                             left: parent.left
-                            leftMargin: 12
+                            leftMargin: 10
                             verticalCenter: parent.verticalCenter
                         }
                         visible: inputField.text.length === 0 && !inputField.activeFocus
                         text: root.prompt
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 9
+                        font.pixelSize: 8
                     }
                 }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: 6
 
                     Item { Layout.fillWidth: true }
 
@@ -323,26 +341,28 @@ Scope {
         property bool primary: false
         signal triggered()
 
-        Layout.preferredWidth: primary ? 126 : 96
-        Layout.preferredHeight: 36
-        surfaceRadius: 11
+        Layout.preferredWidth: primary ? 116 : 88
+        Layout.preferredHeight: 32
+        surfaceRadius: 8
         active: primary
-        transparentIdle: !primary
+        transparentIdle: !primary && !hovered
         showSheen: false
         interactive: true
         hovered: pointer.containsMouse || activeFocus
         pressed: pointer.pressed
-        hoverScale: 1.015
-        pressedScale: RaohaneMotion.pressScale
+        hoverScale: 1
+        pressedScale: 1
         activeFocusOnTab: enabled
         opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
+        border.color: primary ? RaohaneTheme.accentBorder
+            : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         Text {
             anchors.centerIn: parent
             text: button.title
             color: button.primary ? RaohaneTheme.accent
                 : button.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
-            font.pixelSize: 9
+            font.pixelSize: 7
             font.weight: Font.DemiBold
 
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
