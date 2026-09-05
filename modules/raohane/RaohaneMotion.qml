@@ -8,6 +8,14 @@ QtObject {
     // One motion language for the entire shell. Durations respect the
     // persisted Style Studio motion scale through RaohaneTheme.
     readonly property real motionScale: RaohaneTheme.motionScale
+    readonly property bool enabled: motionScale > 0.001
+
+    // Transform motion is intentionally stricter than color/opacity motion.
+    // Scale and translation force more scene-graph work on translucent shell
+    // surfaces, so the reduced-motion end of Style Studio disables those
+    // transforms while still allowing cheap visual feedback to remain useful.
+    readonly property bool transformMotionEnabled: motionScale > 0.05
+
     readonly property int micro: RaohaneTheme.animationFast
     readonly property int standard: RaohaneTheme.animationDuration
     readonly property int relaxed: RaohaneTheme.animationSlow
