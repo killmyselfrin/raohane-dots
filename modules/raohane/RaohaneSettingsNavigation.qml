@@ -20,7 +20,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: RaohaneTheme.surfaceDeep
+        color: RaohaneTheme.surfaceSubtle
         opacity: RaohaneTheme.dark ? 0.50 : 0.36
     }
 
