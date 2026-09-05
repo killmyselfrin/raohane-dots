@@ -1,5 +1,7 @@
 import QtQuick
 
+import qs.modules.raohane.services
+
 FocusScope {
     id: root
 
