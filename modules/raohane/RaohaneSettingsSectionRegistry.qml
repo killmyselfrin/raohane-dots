@@ -9,7 +9,10 @@ QtObject {
 
     readonly property var extensions: ({
         bar: {
-            source: "RaohaneBarStudioShell.qml",
+            // Keep the editor source explicit as an architectural contract;
+            // shellSource composes it with the native live preview.
+            source: "RaohaneBarStudio.qml",
+            shellSource: "RaohaneBarStudioShell.qml",
             controlKeys: ["barModuleLayout"]
         },
         quick: {
@@ -24,7 +27,8 @@ QtObject {
     }
 
     function source(sectionKey: string): string {
-        return root.extension(sectionKey)?.source ?? ""
+        const entry = root.extension(sectionKey)
+        return entry?.shellSource ?? entry?.source ?? ""
     }
 
     function ownsControl(sectionKey: string, controlKey: string): bool {
