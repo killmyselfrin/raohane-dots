@@ -47,8 +47,8 @@ RaohaneSurface {
     hovered: pointer.containsMouse || activeFocus
     pressed: pointer.pressed
     interactive: true
-    hoverScale: 1.004
-    pressedScale: 0.992
+    hoverScale: 1
+    pressedScale: 1
     activeFocusOnTab: visible
     feedback: root.showMenu ? "navigate" : "tap"
     border.color: root.menuOpen || root.active ? RaohaneTheme.accentBorder
@@ -130,12 +130,8 @@ RaohaneSurface {
                 symbolWeight: root.active ? 560 : root.hovered ? 500 : 430
                 grade: root.active ? 40 : 0
                 color: root.active || root.hovered || root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                scale: pointer.pressed ? 0.92 : 1
 
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                Behavior on scale {
-                    NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-                }
             }
         }
 
