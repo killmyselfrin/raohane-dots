@@ -157,7 +157,7 @@ Scope {
                 RailAction {
                     icon: "music_note"
                     label: qsTr("Media")
-                    active: RaohaneMedia.isPlaying
+                    selected: RaohaneMedia.isPlaying
                     onTriggered: root.openMedia()
                 }
 
@@ -210,13 +210,14 @@ Scope {
         required property string icon
         required property string label
         property bool accent: false
+        property bool selected: false
         signal triggered()
 
         Layout.fillWidth: true
         Layout.preferredHeight: 38
         surfaceRadius: 10
-        active: action.accent || action.active
-        transparentIdle: !action.accent && !action.active && !action.hovered
+        active: action.accent || action.selected
+        transparentIdle: !action.accent && !action.selected && !action.hovered
         raised: false
         showSheen: false
         interactive: true
@@ -235,9 +236,9 @@ Scope {
             RaohaneIcon {
                 text: action.icon
                 iconSize: 15
-                fill: action.accent || action.active ? 1 : action.hovered ? 0.32 : 0
-                symbolWeight: action.accent || action.active ? 550 : 440
-                color: action.accent || action.active || action.hovered
+                fill: action.accent || action.selected ? 1 : action.hovered ? 0.32 : 0
+                symbolWeight: action.accent || action.selected ? 550 : 440
+                color: action.accent || action.selected || action.hovered
                     ? RaohaneTheme.accent
                     : RaohaneTheme.textMuted
             }
@@ -245,11 +246,11 @@ Scope {
             Text {
                 Layout.fillWidth: true
                 text: action.label
-                color: action.accent || action.active || action.hovered
+                color: action.accent || action.selected || action.hovered
                     ? RaohaneTheme.text
                     : RaohaneTheme.textMuted
                 font.pixelSize: 7
-                font.weight: action.accent || action.active ? Font.DemiBold : Font.Medium
+                font.weight: action.accent || action.selected ? Font.DemiBold : Font.Medium
                 elide: Text.ElideRight
             }
         }
