@@ -161,21 +161,22 @@ QtObject {
     readonly property color critical: activePreset.critical
     readonly property color info: activePreset.info
 
-    // Canonical reference geometry. Large windows are softly rounded rather
-    // than pill-like; small controls keep the tighter 7/10px rhythm.
+    // Canonical Nocturne geometry. Defaults stay compact and structural;
+    // Style Studio's radiusScale/densityScale can still make them quieter or
+    // more expressive without returning large surfaces to pill-like geometry.
     readonly property int barHeight: Math.round(42 * densityScale)
     readonly property int islandHeight: Math.round(42 * densityScale)
-    readonly property int radiusTiny: Math.max(3, Math.round(7 * radiusScale))
-    readonly property int radiusSmall: Math.max(4, Math.round(10 * radiusScale))
-    readonly property int radius: Math.max(6, Math.round(14 * radiusScale))
-    readonly property int radiusLarge: Math.max(8, Math.round(18 * radiusScale))
-    readonly property int radiusHero: Math.max(10, Math.round(22 * radiusScale))
+    readonly property int radiusTiny: Math.max(3, Math.round(6 * radiusScale))
+    readonly property int radiusSmall: Math.max(4, Math.round(8 * radiusScale))
+    readonly property int radius: Math.max(5, Math.round(10 * radiusScale))
+    readonly property int radiusLarge: Math.max(7, Math.round(12 * radiusScale))
+    readonly property int radiusHero: Math.max(9, Math.round(14 * radiusScale))
 
-    readonly property int spacingTiny: Math.max(2, Math.round(4 * densityScale))
-    readonly property int spacingSmall: Math.max(4, Math.round(7 * densityScale))
-    readonly property int spacing: Math.max(6, Math.round(10 * densityScale))
-    readonly property int spacingLarge: Math.max(9, Math.round(16 * densityScale))
-    readonly property int panelPadding: Math.max(10, Math.round(14 * densityScale))
+    readonly property int spacingTiny: Math.max(2, Math.round(3 * densityScale))
+    readonly property int spacingSmall: Math.max(4, Math.round(6 * densityScale))
+    readonly property int spacing: Math.max(6, Math.round(9 * densityScale))
+    readonly property int spacingLarge: Math.max(9, Math.round(14 * densityScale))
+    readonly property int panelPadding: Math.max(10, Math.round(12 * densityScale))
 
     readonly property int animationFast: Math.max(0, Math.round(100 * motionScale))
     readonly property int animationDuration: Math.max(0, Math.round(160 * motionScale))
