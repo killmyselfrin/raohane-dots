@@ -32,8 +32,10 @@ Scope {
     Connections {
         target: RaohaneState
         function onLeftSidebarOpenChanged(): void {
-            if (RaohaneState.leftSidebarOpen)
+            if (RaohaneState.leftSidebarOpen) {
                 root.now = new Date()
+                RaohaneAudio.refresh(true)
+            }
         }
     }
 
@@ -50,7 +52,7 @@ Scope {
         visible: RaohaneState.leftSidebarOpen
         screen: root.focusedScreen
         implicitWidth: 126
-        implicitHeight: 352
+        implicitHeight: 412
         color: "transparent"
         exclusiveZone: 0
         exclusionMode: ExclusionMode.Ignore
@@ -140,6 +142,73 @@ Scope {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 1
                     color: RaohaneTheme.borderFaint
+                }
+
+                RaohaneSurface {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 54
+                    surfaceRadius: 10
+                    raised: false
+                    showSheen: false
+                    color: RaohaneTheme.surfaceDeep
+                    border.color: RaohaneTheme.borderFaint
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 6
+                        anchors.rightMargin: 6
+                        anchors.topMargin: 4
+                        anchors.bottomMargin: 4
+                        spacing: 0
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 25
+                            spacing: 4
+
+                            RaohaneIconButton {
+                                buttonSize: 24
+                                iconSize: 13
+                                icon: RaohaneAudio.muted || RaohaneAudio.volume <= 0.001
+                                    ? "volume_off"
+                                    : RaohaneAudio.volume < 0.5 ? "volume_down" : "volume_up"
+                                emphasized: !RaohaneAudio.muted && RaohaneAudio.volume > 0.001
+                                transparentIdle: RaohaneAudio.muted || RaohaneAudio.volume <= 0.001
+                                showSheen: false
+                                hoverScale: 1
+                                pressedScale: 1
+                                onClicked: RaohaneAudio.toggleMute()
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: qsTr("Volume")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 6
+                                font.weight: Font.Medium
+                            }
+
+                            Text {
+                                text: Math.round(RaohaneAudio.volume * 100) + "%"
+                                color: RaohaneAudio.muted ? RaohaneTheme.textFaint : RaohaneTheme.accent
+                                font.pixelSize: 6
+                                font.weight: Font.DemiBold
+                            }
+                        }
+
+                        RaohaneSlider {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 20
+                            from: 0
+                            to: 1
+                            stepSize: 0.02
+                            value: RaohaneAudio.volume
+                            showHandle: false
+                            trackHeight: 3
+                            enabled: RaohaneAudio.ready
+                            onMoved: nextValue => RaohaneAudio.setVolume(nextValue)
+                        }
+                    }
                 }
 
                 RailAction {
