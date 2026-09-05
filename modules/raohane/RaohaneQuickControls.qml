@@ -32,7 +32,7 @@ Item {
             left: parent.left
             right: parent.right
         }
-        spacing: 10
+        spacing: 9
 
         GridLayout {
             id: toggleGrid
@@ -56,50 +56,65 @@ Item {
             }
         }
 
-        ColumnLayout {
+        RaohaneSurface {
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            Layout.topMargin: 1
-            spacing: 5
+            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 10 : 0
+            surfaceRadius: 15
+            raised: false
+            showSheen: false
+            border.color: RaohaneTheme.borderFaint
 
-            ControlSlider {
-                Layout.fillWidth: true
-                visible: RaohaneConfig.quickSliderBrightness
-                icon: RaohaneDisplay.gamma === 100 ? "brightness_medium" : "wb_twilight"
-                title: RaohaneDisplay.gamma === 100 ? qsTr("Brightness") : qsTr("Gamma")
-                displayText: RaohaneDisplay.gamma === 100
-                    ? Math.round((root.brightnessMonitor?.brightness ?? 0.5) * 100) + "%"
-                    : Math.round(RaohaneDisplay.gamma) + "%"
-                liveValue: root.brightnessValue
-                onValueChangedByUser: value => RaohaneDisplay.setComposite(root.screen, value)
-            }
+            ColumnLayout {
+                id: sliderStack
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    verticalCenter: parent.verticalCenter
+                    leftMargin: 5
+                    rightMargin: 5
+                }
+                spacing: 1
 
-            ControlSlider {
-                Layout.fillWidth: true
-                visible: RaohaneConfig.quickSliderVolume
-                icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
-                title: qsTr("Volume")
-                displayText: Math.round(RaohaneAudio.volume * 100) + "%"
-                liveValue: RaohaneAudio.volume
-                pickerEnabled: true
-                pickerActive: root.pickerMode === "output"
-                onValueChangedByUser: value => RaohaneAudio.setVolume(value)
-                onIconTriggered: RaohaneAudio.toggleMute()
-                onPickerTriggered: root.togglePicker("output")
-            }
+                ControlSlider {
+                    Layout.fillWidth: true
+                    visible: RaohaneConfig.quickSliderBrightness
+                    icon: RaohaneDisplay.gamma === 100 ? "brightness_medium" : "wb_twilight"
+                    title: RaohaneDisplay.gamma === 100 ? qsTr("Brightness") : qsTr("Gamma")
+                    displayText: RaohaneDisplay.gamma === 100
+                        ? Math.round((root.brightnessMonitor?.brightness ?? 0.5) * 100) + "%"
+                        : Math.round(RaohaneDisplay.gamma) + "%"
+                    liveValue: root.brightnessValue
+                    onValueChangedByUser: value => RaohaneDisplay.setComposite(root.screen, value)
+                }
 
-            ControlSlider {
-                Layout.fillWidth: true
-                visible: RaohaneConfig.quickSliderMic
-                icon: RaohaneAudio.microphoneMuted ? "mic_off" : "mic"
-                title: qsTr("Microphone")
-                displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
-                liveValue: RaohaneAudio.microphoneVolume
-                pickerEnabled: true
-                pickerActive: root.pickerMode === "input"
-                onValueChangedByUser: value => RaohaneAudio.setMicrophoneVolume(value)
-                onIconTriggered: RaohaneAudio.toggleMicrophoneMute()
-                onPickerTriggered: root.togglePicker("input")
+                ControlSlider {
+                    Layout.fillWidth: true
+                    visible: RaohaneConfig.quickSliderVolume
+                    icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
+                    title: qsTr("Volume")
+                    displayText: Math.round(RaohaneAudio.volume * 100) + "%"
+                    liveValue: RaohaneAudio.volume
+                    pickerEnabled: true
+                    pickerActive: root.pickerMode === "output"
+                    onValueChangedByUser: value => RaohaneAudio.setVolume(value)
+                    onIconTriggered: RaohaneAudio.toggleMute()
+                    onPickerTriggered: root.togglePicker("output")
+                }
+
+                ControlSlider {
+                    Layout.fillWidth: true
+                    visible: RaohaneConfig.quickSliderMic
+                    icon: RaohaneAudio.microphoneMuted ? "mic_off" : "mic"
+                    title: qsTr("Microphone")
+                    displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
+                    liveValue: RaohaneAudio.microphoneVolume
+                    pickerEnabled: true
+                    pickerActive: root.pickerMode === "input"
+                    onValueChangedByUser: value => RaohaneAudio.setMicrophoneVolume(value)
+                    onIconTriggered: RaohaneAudio.toggleMicrophoneMute()
+                    onPickerTriggered: root.togglePicker("input")
+                }
             }
         }
 
@@ -111,7 +126,7 @@ Item {
         }
     }
 
-    component ControlSlider: RaohaneSurface {
+    component ControlSlider: Item {
         id: control
 
         required property string icon
@@ -128,17 +143,18 @@ Item {
         readonly property bool rowHovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
             || (control.pickerEnabled && pickerButton.hovered)
 
-        implicitHeight: 44
-        surfaceRadius: 13
-        transparentIdle: true
-        showSheen: false
-        hovered: control.rowHovered
-        interactive: false
-        border.color: control.pickerActive ? RaohaneTheme.accentBorder
-            : control.rowHovered ? RaohaneTheme.borderStrong
-            : RaohaneTheme.borderFaint
+        implicitHeight: 39
 
-        Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
+        Rectangle {
+            anchors.fill: parent
+            radius: 11
+            color: control.rowHovered || control.pickerActive ? RaohaneTheme.surfaceHover : "transparent"
+            border.width: 1
+            border.color: control.pickerActive ? RaohaneTheme.accentBorder : "transparent"
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
+        }
 
         RowLayout {
             anchors.fill: parent
@@ -149,17 +165,17 @@ Item {
             RaohaneIconButton {
                 id: iconButton
                 Layout.alignment: Qt.AlignVCenter
-                buttonSize: 30
-                iconSize: 15
+                buttonSize: 28
+                iconSize: 14
                 icon: control.icon
                 emphasized: control.rowHovered && !control.pickerActive
-                transparentIdle: !control.rowHovered || control.pickerActive
+                transparentIdle: true
                 showSheen: false
                 onClicked: control.iconTriggered()
             }
 
             ColumnLayout {
-                Layout.preferredWidth: 66
+                Layout.preferredWidth: 68
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 0
 
@@ -170,8 +186,6 @@ Item {
                     font.pixelSize: 8
                     font.weight: Font.Medium
                     elide: Text.ElideRight
-
-                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                 }
 
                 Text {
@@ -180,15 +194,13 @@ Item {
                     color: control.rowHovered ? RaohaneTheme.text : RaohaneTheme.textFaint
                     font.pixelSize: 7
                     font.weight: Font.DemiBold
-
-                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                 }
             }
 
             RaohaneSlider {
                 id: valueSlider
                 Layout.fillWidth: true
-                Layout.preferredHeight: 22
+                Layout.preferredHeight: 20
                 from: 0
                 to: 1
                 stepSize: 0.01
@@ -200,13 +212,13 @@ Item {
             RaohaneIconButton {
                 id: pickerButton
                 visible: control.pickerEnabled
-                Layout.preferredWidth: control.pickerEnabled ? 24 : 0
-                Layout.preferredHeight: 24
-                buttonSize: 24
-                iconSize: 12
+                Layout.preferredWidth: control.pickerEnabled ? 22 : 0
+                Layout.preferredHeight: 22
+                buttonSize: 22
+                iconSize: 11
                 icon: "expand_more"
                 emphasized: control.pickerActive
-                transparentIdle: !control.pickerActive
+                transparentIdle: true
                 showSheen: false
                 rotation: control.pickerActive ? 180 : 0
                 onClicked: control.pickerTriggered()
