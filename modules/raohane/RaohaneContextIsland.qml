@@ -1,6 +1,7 @@
 import QtQuick
 
 import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 RaohaneSurface {
     id: root
@@ -10,6 +11,8 @@ RaohaneSurface {
     readonly property bool showDetail: styleConfig.contextIslandDetail === undefined ? true : Boolean(styleConfig.contextIslandDetail)
     readonly property bool showIndicators: styleConfig.contextIslandIndicators === undefined ? true : Boolean(styleConfig.contextIslandIndicators)
     readonly property bool priorityMode: RaohaneContext.mode === "recording" || RaohaneContext.mode === "privacy"
+    readonly property bool morphMotionAllowed: RaohaneMotion.transformMotionEnabled
+        && !RaohanePerformance.gameModeActive
     readonly property color modeColor: RaohaneContext.mode === "recording"
         ? RaohaneTheme.critical
         : RaohaneContext.mode === "privacy"
@@ -43,6 +46,7 @@ RaohaneSurface {
         : RaohaneTheme.borderStrong
 
     Behavior on implicitWidth {
+        enabled: root.morphMotionAllowed
         NumberAnimation {
             duration: RaohaneMotion.standard
             easing.type: RaohaneMotion.easeEmphasized
@@ -50,6 +54,7 @@ RaohaneSurface {
     }
 
     Behavior on implicitHeight {
+        enabled: root.morphMotionAllowed
         NumberAnimation {
             duration: RaohaneMotion.shortDuration
             easing.type: RaohaneMotion.easeEmphasized
@@ -141,9 +146,11 @@ RaohaneSurface {
             opacity: RaohaneContext.mode === "idle" ? 0.38 : 0.88
 
             Behavior on width {
+                enabled: root.morphMotionAllowed
                 NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
             }
             Behavior on height {
+                enabled: root.morphMotionAllowed
                 NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
             }
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
