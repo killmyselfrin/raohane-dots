@@ -15,6 +15,7 @@ Scope {
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
+    readonly property string profileDisplayName: String(RaohaneConfig.profileDisplayName ?? "").trim()
     readonly property int panelWidth: Math.min(
         680,
         Math.max(520, Math.round((root.focusedScreen?.width ?? 1280) * 0.46))
@@ -124,8 +125,6 @@ Scope {
                 }
             }
 
-            // A dark upper wash creates the slightly denser header material in
-            // the reference without introducing a second blurred window.
             Rectangle {
                 anchors {
                     left: parent.left
@@ -197,7 +196,9 @@ Scope {
                             }
 
                             Text {
-                                text: qsTr("Control Center")
+                                text: root.profileDisplayName.length > 0
+                                    ? root.profileDisplayName
+                                    : qsTr("Control Center")
                                 color: RaohaneTheme.textFaint
                                 font.pixelSize: 7
                             }
