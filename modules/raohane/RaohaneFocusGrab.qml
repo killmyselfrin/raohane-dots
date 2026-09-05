@@ -14,8 +14,19 @@ Singleton {
 
     property var persistent: []
     property var dismissable: []
+    property bool dismissSuppressed: false
+
+    function suppressDismiss(): void {
+        root.dismissSuppressed = true
+    }
+
+    function resumeDismiss(): void {
+        root.dismissSuppressed = false
+    }
 
     function dismiss(): void {
+        if (root.dismissSuppressed)
+            return
         root.dismissable = []
         root.dismissed()
     }
@@ -30,22 +41,7 @@ Singleton {
     }
 
     function addDismissable(window): void {
-        if (!window)
-            return
-
-        // The Control Center is a primary command surface, not a transient
-        // popup. Screenshot/region-selection tools temporarily take compositor
-        // focus; registering the panel in HyprlandFocusGrab makes that look like
-        // an outside click and closes it before it can be captured. Keep the
-        // panel outside the transient grab while it is the active primary
-        // surface. It still closes through its own close button, IPC shortcut,
-        // or when another primary Raohane surface is opened.
-        if (RaohaneState.controlCenterOpen) {
-            root.addPersistent(window)
-            return
-        }
-
-        if (root.dismissable.indexOf(window) < 0)
+        if (window && root.dismissable.indexOf(window) < 0)
             root.dismissable = [...root.dismissable, window]
     }
 
@@ -68,7 +64,7 @@ Singleton {
             || root.dismissable.some(window => root.hasActive(window?.contentItem))
             ? [...root.dismissable, ...root.persistent]
             : [...root.dismissable]
-        active: root.dismissable.length > 0
+        active: root.dismissable.length > 0 && !root.dismissSuppressed
         onCleared: root.dismiss()
     }
 }
