@@ -412,6 +412,10 @@ Item {
                     fill: action.emphasized || actionMouse.containsMouse || action.activeFocus ? 1 : 0
                     color: action.emphasized || actionMouse.containsMouse || action.activeFocus
                         ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                    Behavior on color {
+                        ColorAnimation { duration: RaohaneMotion.micro }
+                    }
                 }
 
                 Text {
@@ -474,6 +478,10 @@ Item {
                     fill: linkMouse.containsMouse || link.activeFocus ? 1 : 0
                     color: linkMouse.containsMouse || link.activeFocus
                         ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                    Behavior on color {
+                        ColorAnimation { duration: RaohaneMotion.micro }
+                    }
                 }
 
                 Text {
