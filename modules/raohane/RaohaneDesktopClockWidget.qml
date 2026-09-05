@@ -9,7 +9,7 @@ Item {
     property bool compact: false
     property date now: new Date()
 
-    implicitHeight: root.compact ? 118 : 148
+    implicitHeight: root.compact ? 112 : 142
 
     Timer {
         interval: 1000
@@ -23,37 +23,38 @@ Item {
         spacing: 1
 
         RowLayout {
-            spacing: 8
-
-            Rectangle {
-                width: 7
-                height: 7
-                radius: 4
-                color: RaohaneTheme.accent
-            }
+            spacing: 7
 
             Text {
-                text: "ラオハネ  ·  RAOHANE"
+                text: "生きる"
                 color: RaohaneTheme.textMuted
                 font.pixelSize: 9
-                font.weight: Font.DemiBold
-                font.letterSpacing: 1.4
+                font.weight: Font.Medium
+                font.letterSpacing: 1.2
+            }
+
+            Rectangle {
+                width: 22
+                height: 1
+                radius: 1
+                color: RaohaneTheme.textFaint
+                opacity: 0.72
             }
         }
 
         Text {
-            Layout.topMargin: 4
+            Layout.topMargin: 2
             text: Qt.formatTime(root.now, "HH:mm")
             color: RaohaneTheme.text
-            font.pixelSize: root.compact ? 58 : 76
-            font.weight: Font.Light
-            font.letterSpacing: -3
+            font.pixelSize: root.compact ? 52 : 66
+            font.weight: Font.ExtraLight
+            font.letterSpacing: -2.4
         }
 
         Text {
             text: Qt.formatDate(root.now, "dddd, d MMMM")
             color: RaohaneTheme.textMuted
-            font.pixelSize: 13
+            font.pixelSize: 11
             font.weight: Font.Medium
         }
     }
