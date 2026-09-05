@@ -25,8 +25,8 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
-            implicitWidth: 420
-            implicitHeight: Math.min(610, notificationStack.implicitHeight)
+            implicitWidth: 382
+            implicitHeight: Math.min(560, notificationStack.implicitHeight)
 
             WlrLayershell.namespace: "quickshell:raohane-notification-popup"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -38,16 +38,16 @@ Scope {
             }
 
             margins {
-                top: RaohaneConfig.barBottom ? 14 : 72
-                right: 14
+                top: RaohaneConfig.barBottom ? 12 : 66
+                right: 12
             }
 
             mask: Region { item: notificationStack }
 
             Column {
                 id: notificationStack
-                width: 390
-                spacing: 8
+                width: 356
+                spacing: 6
 
                 Repeater {
                     model: root.popupNotifications
@@ -66,7 +66,7 @@ Scope {
 
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: RaohaneMotion.mediumDuration
+                                duration: RaohaneMotion.shortDuration
                                 easing.type: RaohaneMotion.easeStandard
                             }
                         }
@@ -75,6 +75,7 @@ Scope {
                             id: card
                             width: parent.width
                             notification: popupEntry.modelData
+                            compact: true
                         }
                     }
                 }
