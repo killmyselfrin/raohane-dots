@@ -29,6 +29,7 @@ bar_studio='modules/raohane/RaohaneBarStudio.qml'
 quick_studio='modules/raohane/RaohaneQuickControlsStudio.qml'
 quick_runtime='modules/raohane/RaohaneQuickControls.qml'
 quick_registry='modules/raohane/RaohaneQuickControlRegistry.qml'
+desktop_preview='modules/raohane/RaohaneDesktopPreview.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
@@ -40,7 +41,7 @@ required=(
   "$section" "$control_row" "$preferences" "$preferences_hub" "$language" "$backup" "$home" "$catalog"
   "$bar_studio" "$quick_studio" "$quick_runtime" "$quick_registry" "$about" "$config" "$defaults" "$state" "$qmldir"
 )
-for path in "${required[@]}"; do
+for path in "${required[@]}" "$desktop_preview"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
 done
 
@@ -58,7 +59,8 @@ for registration in \
   '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml$' \
   '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$' \
   '^RaohaneBackupSettings .*RaohaneBackupSettings.qml$' \
-  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$'; do
+  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$' \
+  '^RaohaneDesktopPreview .*RaohaneDesktopPreview.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 
@@ -149,10 +151,24 @@ done
 
 for symbol in \
   'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsSectionRegistry\.source' \
+  'RaohaneSettingsSectionRegistry\.previewSource' \
   'RaohaneSettingsSectionRegistry\.ownsControl' 'RaohaneSettingsControlRow[[:space:]]*\{' \
   'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource'; do
   rg -q "$symbol" "$section" || fail "native section renderer lost generic composition contract: $symbol"
 done
+rg -q 'previewSource:[[:space:]]*"RaohaneDesktopPreview\.qml"' "$section_registry" \
+  || fail 'Desktop settings lost its declarative preview'
+for symbol in 'RaohaneConfig\.wallpaperPath' 'RaohaneConfig\.overviewWorkspaceCount' 'RaohaneConfig\.overviewColumns'; do
+  rg -q "$symbol" "$desktop_preview" || fail "Desktop preview lost native config binding: $symbol"
+done
+if rg -n '\b(Process|Timer|MediaPlayer|ScreencopyView)[[:space:]]*\{' "$desktop_preview"; then
+  fail 'Desktop settings preview introduced polling, playback or compositor capture'
+fi
+rg -q 'mapToItem\(settingsFlick\.contentItem' "$section" \
+  || fail 'Settings search must use actual control geometry'
+if rg -n 'index[[:space:]]*\*[[:space:]]*[0-9]+' "$section"; then
+  fail 'Settings search regressed to a fixed row-height approximation'
+fi
 if rg -n 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{|RaohaneBarStudio[[:space:]]*\{|RaohaneQuickControlsStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"(bar|quick)"' "$section"; then
   fail 'generic Settings section renderer reabsorbed control or section-specific implementation'
 fi

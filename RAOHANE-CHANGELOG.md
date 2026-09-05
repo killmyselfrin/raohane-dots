@@ -1,5 +1,13 @@
 # Raohane changelog
 
+## Unreleased — Desktop settings preview
+
+- Add a responsive wallpaper and Spaces layout preview above Desktop settings, with native wallpaper, Overview and Widget Studio actions.
+- Keep preview work bounded: downscaled asynchronous image loading, a static video placeholder and no compositor capture or polling.
+- Resolve Settings search targets from actual row geometry, highlight the matching control briefly and reset scrolling when switching sections.
+- Add Russian translations for the new desktop preview states and actions.
+- Static and isolated Qt validation are separate from the pending real Hyprland session gate.
+
 ## Unreleased — Native Serpantinum adoption
 
 - Add native configurable desktop widgets for clock/date, live context, system status and ambient copy, with a dedicated searchable Settings page and compact layout.

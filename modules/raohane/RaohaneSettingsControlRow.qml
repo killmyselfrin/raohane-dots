@@ -10,6 +10,7 @@ Item {
 
     property var entry: null
     property bool lastRow: false
+    property bool highlighted: false
 
     readonly property bool toggleRow: root.entry?.type === "toggle"
     readonly property bool numberRow: root.entry?.type === "number"
@@ -57,12 +58,21 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: root.rowHovered ? RaohaneTheme.surfaceHover : "transparent"
-        opacity: root.rowHovered ? 0.72 : 0
+        color: root.highlighted ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceHover
+        opacity: root.highlighted ? 1 : root.rowHovered ? 0.72 : 0
 
         Behavior on opacity {
             NumberAnimation { duration: RaohaneMotion.micro }
         }
+    }
+
+    Rectangle {
+        width: 2
+        height: parent.height - 20
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        color: RaohaneTheme.accent
+        visible: root.highlighted
     }
 
     RowLayout {
