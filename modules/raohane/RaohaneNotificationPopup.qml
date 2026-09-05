@@ -61,20 +61,13 @@ Scope {
                         width: notificationStack.width
                         height: card.implicitHeight
                         opacity: entered ? 1 : 0
-                        x: entered ? 0 : 24
 
                         Component.onCompleted: entered = true
 
                         Behavior on opacity {
                             NumberAnimation {
                                 duration: RaohaneMotion.mediumDuration
-                                easing.type: RaohaneMotion.easeEmphasized
-                            }
-                        }
-                        Behavior on x {
-                            NumberAnimation {
-                                duration: RaohaneMotion.mediumDuration
-                                easing.type: RaohaneMotion.easeEmphasized
+                                easing.type: RaohaneMotion.easeStandard
                             }
                         }
 
