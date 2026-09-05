@@ -11,11 +11,13 @@ fail() {
 
 state="modules/raohane/RaohaneState.qml"
 registry="modules/raohane/RaohaneSurfaceRegistry.qml"
+focus="modules/raohane/RaohaneFocusGrab.qml"
 region="modules/raohane/RaohaneRegionSelector.qml"
 bar="modules/raohane/RaohaneBar.qml"
 bar_module="modules/raohane/RaohaneBarModule.qml"
 [[ -f "$state" ]] || fail "missing $state"
 [[ -f "$registry" ]] || fail "missing $registry"
+[[ -f "$focus" ]] || fail "missing $focus"
 [[ -f "$region" ]] || fail "missing $region"
 [[ -f "$bar" ]] || fail "missing $bar"
 [[ -f "$bar_module" ]] || fail "missing $bar_module"
@@ -69,23 +71,37 @@ rg -q 'stateProperty:[[:space:]]*"taskManagerOpen"' "$registry" \
 rg -q 'RaohaneSurfaceRegistry\.primarySurfaceIds' "$state" \
   || fail 'primary coordinator no longer derives exclusivity from the surface registry'
 
-# Screenshot capture is intentionally able to preserve an already-open Control
-# Center so the shell itself can be captured for UI validation. OCR, image
-# search and recording still use the destructive capture path and dismiss all
-# primary surfaces before their backend starts.
-rg -q 'function prepareCapture\(preserveControlCenter: bool\): void' "$region" \
-  || fail 'region capture lost its explicit preservation policy'
-rg -q 'preserveControlCenter[[:space:]]*&&[[:space:]]*RaohaneState\.controlCenterOpen' "$region" \
-  || fail 'region screenshot no longer detects an open Control Center'
-rg -q 'RaohaneState\.closePrimarySurfaces\(keep\)' "$region" \
-  || fail 'region capture no longer routes dismissal through the primary coordinator'
+# Normal screenshots preserve the currently visible shell while slurp owns
+# compositor focus. OCR, image search and recording still use the destructive
+# capture path and dismiss all primary surfaces before their backends start.
+rg -q 'property bool dismissSuppressed:[[:space:]]*false' "$focus" \
+  || fail 'focus coordinator lost screenshot dismiss suppression state'
+rg -q 'function suppressDismiss\(\): void' "$focus" \
+  || fail 'focus coordinator cannot suspend dismissal for shell capture'
+rg -q 'function resumeDismiss\(\): void' "$focus" \
+  || fail 'focus coordinator cannot restore dismissal after shell capture'
+rg -q 'active:[[:space:]]*root\.dismissable\.length[[:space:]]*>[[:space:]]*0[[:space:]]*&&[[:space:]]*!root\.dismissSuppressed' "$focus" \
+  || fail 'Hyprland focus grab remains active while screenshot dismissal is suppressed'
+
+rg -q 'function prepareCapture\(preserveShell: bool\): void' "$region" \
+  || fail 'region capture lost its shell-preservation policy'
+rg -q 'if[[:space:]]*\(!preserveShell\)' "$region" \
+  || fail 'region capture no longer distinguishes normal screenshots from destructive capture'
+rg -q 'RaohaneState\.closePrimarySurfaces\(""\)' "$region" \
+  || fail 'destructive capture paths no longer route dismissal through the primary coordinator'
+rg -q 'RaohaneFocusGrab\.suppressDismiss\(\)' "$region" \
+  || fail 'normal screenshot does not suspend focus-based shell dismissal'
 rg -q 'root\.prepareCapture\(true\)' "$region" \
-  || fail 'screenshot path no longer preserves Control Center'
+  || fail 'normal screenshot no longer preserves active shell surfaces'
+rg -q 'RaohaneFocusGrab\.resumeDismiss\(\)' "$region" \
+  || fail 'normal screenshot does not restore focus dismissal after capture'
 rg -q 'root\.prepareCapture\(false\)' "$region" \
-  || fail 'destructive capture paths no longer dismiss primary surfaces'
+  || fail 'OCR/search/record capture paths no longer dismiss primary surfaces'
+rg -q 'Process[[:space:]]*\{' "$region" \
+  || fail 'screenshot lifecycle is not tracked through a Process'
 region_block="$(sed -n '/"regionSelector"[[:space:]]*:/,/^[[:space:]]*},/p' "$registry")"
 printf '%s\n' "$region_block" | rg -q 'closePrimaryOnOpen:[[:space:]]*false' \
-  || fail 'region selector registry policy closes Control Center before screenshot can preserve it'
+  || fail 'region selector registry policy closes shell UI before screenshot can preserve it'
 
 # Media overlay, OSK and OSD are intentionally independent transient surfaces.
 # They may coexist with a primary surface, particularly for fullscreen/game use.
@@ -97,4 +113,4 @@ for surface in mediaOverlay osk osd; do
     || fail "transient surface is missing from registry: $surface"
 done
 
-printf 'primary-surface-boundary-audit: registry-backed primary UI is mutually exclusive while screenshots may preserve Control Center for UI capture\n'
+printf 'primary-surface-boundary-audit: registry-backed primary UI is mutually exclusive while screenshots preserve active shell UI and destructive capture still dismisses it\n'
