@@ -152,42 +152,42 @@ Scope {
         case "bar":
             return {
                 x: 6,
-                y: RaohaneConfig.barBottom ? Math.max(0, h - 64) : 0,
+                y: RaohaneConfig.barBottom ? Math.max(0, h - 58) : 0,
                 width: Math.max(0, w - 12),
-                height: Math.min(64, h),
-                radius: 25
+                height: Math.min(58, h),
+                radius: 12
             }
         case "dock": {
-            const dockW = Math.min(640, Math.max(300, w * 0.58))
-            const dockH = Math.min(h, RaohaneConfig.dockHeight + RaohaneConfig.dockBottomMargin + 20)
+            const dockW = Math.min(620, Math.max(300, w * 0.56))
+            const dockH = Math.min(h, RaohaneConfig.dockHeight + RaohaneConfig.dockBottomMargin + 16)
             return {
                 x: (w - dockW) / 2,
                 y: Math.max(0, h - dockH),
                 width: dockW,
                 height: dockH,
-                radius: Math.min(34, dockH / 2)
+                radius: 12
             }
         }
         case "launcher": {
-            const launcherW = Math.min(640, Math.max(360, w - 56))
+            const launcherW = Math.min(620, Math.max(360, w - 56))
             const launcherH = Math.min(560, Math.max(360, h * 0.61))
             return {
                 x: (w - launcherW) / 2 - 5,
                 y: 72,
                 width: launcherW + 10,
                 height: Math.min(launcherH + 12, h - 82),
-                radius: 31
+                radius: 14
             }
         }
         case "controlCenter": {
-            const panelW = Math.min(404, Math.max(300, w - 28))
+            const panelW = Math.min(430, Math.max(310, w - 28))
             const panelH = Math.min(640, Math.max(540, h - 44))
             return {
                 x: Math.max(8, w - panelW - 20),
                 y: 8,
                 width: Math.min(w - 8, panelW + 12),
                 height: Math.min(h - 16, panelH + 12),
-                radius: 31
+                radius: 14
             }
         }
         case "sidebar":
@@ -196,55 +196,55 @@ Scope {
                 y: 8,
                 width: Math.min(384, w - 16),
                 height: Math.max(0, h - 16),
-                radius: 31
+                radius: 14
             }
         case "overview": {
             const overviewW = Math.min(w - 96, 1040)
             const overviewH = Math.min(h - 112, 680)
-            return root.centeredRect(Math.max(0, overviewW + 12), Math.max(0, overviewH + 12), 34)
+            return root.centeredRect(Math.max(0, overviewW + 12), Math.max(0, overviewH + 12), 14)
         }
         case "wallpaper": {
             const wallpaperW = Math.min(w - 96, 1080)
             const wallpaperH = Math.min(h - 104, 700)
-            return root.centeredRect(Math.max(0, wallpaperW + 12), Math.max(0, wallpaperH + 12), 31)
+            return root.centeredRect(Math.max(0, wallpaperW + 12), Math.max(0, wallpaperH + 12), 14)
         }
         case "settings": {
             const settingsW = Math.min(w - 96, 1040)
             const settingsH = Math.min(h - 96, 700)
-            return root.centeredRect(Math.max(0, settingsW + 12), Math.max(0, settingsH + 12), 31)
+            return root.centeredRect(Math.max(0, settingsW + 12), Math.max(0, settingsH + 12), 14)
         }
         case "context": {
             const islandW = Math.min(520, Math.max(240, w * 0.38))
             return {
                 x: (w - islandW) / 2,
-                y: RaohaneConfig.barBottom ? Math.max(6, h - 58) : 6,
+                y: RaohaneConfig.barBottom ? Math.max(6, h - 54) : 6,
                 width: islandW,
-                height: 50,
-                radius: 25
+                height: 46,
+                radius: 10
             }
         }
         case "session": {
             const sessionW = Math.min(w - 96, 850)
             const sessionH = Math.min(h - 112, 540)
-            return root.centeredRect(Math.max(0, sessionW + 12), Math.max(0, sessionH + 12), 35)
+            return root.centeredRect(Math.max(0, sessionW + 12), Math.max(0, sessionH + 12), 14)
         }
         default:
-            return root.centeredRect(w * 0.56, h * 0.58, 34)
+            return root.centeredRect(w * 0.54, h * 0.56, 14)
         }
     }
 
     function cardPosition(place: string, cardWidth: real, cardHeight: real): var {
         const w = overlayWindow.width
         const h = overlayWindow.height
-        const margin = 28
+        const margin = 24
 
         switch (place) {
-        case "topRight": return { x: w - cardWidth - margin, y: 92 }
-        case "bottomRight": return { x: w - cardWidth - margin, y: h - cardHeight - 34 }
-        case "bottomLeft": return { x: margin, y: h - cardHeight - 34 }
+        case "topRight": return { x: w - cardWidth - margin, y: 84 }
+        case "bottomRight": return { x: w - cardWidth - margin, y: h - cardHeight - 28 }
+        case "bottomLeft": return { x: margin, y: h - cardHeight - 28 }
         case "leftCenter": return { x: margin, y: (h - cardHeight) / 2 }
         case "rightCenter": return { x: w - cardWidth - margin, y: (h - cardHeight) / 2 }
-        case "bottomCenter": return { x: (w - cardWidth) / 2, y: h - cardHeight - 30 }
+        case "bottomCenter": return { x: (w - cardWidth) / 2, y: h - cardHeight - 26 }
         default: return { x: (w - cardWidth) / 2, y: (h - cardHeight) / 2 }
         }
     }
@@ -258,14 +258,14 @@ Scope {
 
     function safeCardPosition(place: string, cardWidth: real, cardHeight: real): var {
         const preferred = root.cardPosition(place, cardWidth, cardHeight)
-        const margin = 28
-        const gap = 24
+        const margin = 24
+        const gap = 20
         const w = overlayWindow.width
         const h = overlayWindow.height
         const target = overlayWindow.targetRect
         const preferredRect = { x: preferred.x, y: preferred.y, width: cardWidth, height: cardHeight }
 
-        if (!overlayWindow.hasSpotlight || !root.overlaps(preferredRect, target, 12))
+        if (!overlayWindow.hasSpotlight || !root.overlaps(preferredRect, target, 10))
             return preferred
 
         const candidates = [
@@ -296,7 +296,7 @@ Scope {
             const validX = candidate.x >= margin && candidate.x + cardWidth <= w - margin
             const validY = candidate.y >= margin && candidate.y + cardHeight <= h - margin
             const rect = { x: candidate.x, y: candidate.y, width: cardWidth, height: cardHeight }
-            if (validX && validY && !root.overlaps(rect, target, 10))
+            if (validX && validY && !root.overlaps(rect, target, 8))
                 return { x: candidate.x, y: candidate.y }
         }
 
@@ -358,6 +358,7 @@ Scope {
 
         Connections {
             target: RaohaneOnboardingState
+
             function onStepChanged(): void {
                 overlayWindow.cardEntered = false
                 Qt.callLater(() => overlayWindow.cardEntered = true)
@@ -414,35 +415,14 @@ Scope {
             border.width: 2
             border.color: RaohaneTheme.accentBorder
 
-            Behavior on x { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
-            Behavior on y { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
-            Behavior on width { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
-            Behavior on height { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
-            Behavior on radius { NumberAnimation { duration: 280; easing.type: RaohaneMotion.easeStandard } }
-
             Rectangle {
                 anchors.fill: parent
-                anchors.margins: -7
-                radius: parent.radius + 7
+                anchors.margins: -5
+                radius: parent.radius + 5
                 color: "transparent"
                 border.width: 1
                 border.color: RaohaneTheme.accentGlow
-
-                SequentialAnimation on opacity {
-                    running: overlayWindow.visible && overlayWindow.hasSpotlight
-                    loops: Animation.Infinite
-                    NumberAnimation { from: 0.18; to: 0.56; duration: 1150; easing.type: Easing.InOutSine }
-                    NumberAnimation { from: 0.56; to: 0.18; duration: 1150; easing.type: Easing.InOutSine }
-                }
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 5
-                radius: Math.max(0, parent.radius - 5)
-                color: "transparent"
-                border.width: 1
-                border.color: Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g, RaohaneTheme.accent.b, 0.16)
+                opacity: 0.34
             }
         }
 
@@ -452,146 +432,75 @@ Scope {
 
             readonly property var desiredPosition: root.safeCardPosition(root.stepData.card, width, height)
 
-            width: Math.min(444, overlayWindow.width - 48)
-            height: Math.min(398, overlayWindow.height - 56)
+            width: Math.min(400, overlayWindow.width - 40)
+            height: Math.min(336, overlayWindow.height - 48)
             x: desiredPosition.x
             y: desiredPosition.y
-            surfaceRadius: RaohaneTheme.radiusHero
+            surfaceRadius: 12
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: overlayWindow.cardEntered ? 1 : 0
-            scale: overlayWindow.cardEntered ? 1 : 0.976
 
-            transform: Translate {
-                y: overlayWindow.cardEntered ? 0 : 10
-                Behavior on y { NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized } }
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
 
-            Behavior on x { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
-            Behavior on y { NumberAnimation { duration: 340; easing.type: RaohaneMotion.easeEmphasized } }
-            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard } }
-            Behavior on scale { NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized } }
-
             Rectangle {
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    bottom: parent.bottom
-                    leftMargin: 1
-                    topMargin: 20
-                    bottomMargin: 20
-                }
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.topMargin: 14
+                anchors.bottomMargin: 14
                 width: 2
                 radius: 1
                 color: RaohaneTheme.accent
-                opacity: 0.74
-            }
-
-            Rectangle {
-                anchors {
-                    right: parent.right
-                    top: parent.top
-                    rightMargin: -42
-                    topMargin: -58
-                }
-                width: 158
-                height: 158
-                radius: 79
-                color: "transparent"
-                border.width: 1
-                border.color: RaohaneTheme.accentGlow
-                opacity: 0.22
+                opacity: 0.82
             }
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 22
-                spacing: 11
+                anchors.leftMargin: 18
+                anchors.rightMargin: 16
+                anchors.topMargin: 16
+                anchors.bottomMargin: 14
+                spacing: 8
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 12
+                    spacing: 9
 
-                    Item {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 48
-                            height: 48
-                            radius: 16
-                            color: RaohaneTheme.accentSoft
-                            border.width: 1
-                            border.color: RaohaneTheme.accentBorder
-                        }
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 36
-                            height: 36
-                            radius: 13
-                            color: "transparent"
-                            border.width: 1
-                            border.color: RaohaneTheme.accentGlow
-                            opacity: 0.6
-                        }
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: root.stepData.icon
-                            iconSize: 22
-                            fill: root.stepData.key === "finish" ? 1 : 0.18
-                            color: RaohaneTheme.accent
-                        }
+                    RaohaneIcon {
+                        text: root.stepData.icon
+                        iconSize: 19
+                        fill: root.stepData.key === "finish" ? 1 : 0.18
+                        color: RaohaneTheme.accent
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: 0
 
                         Text {
                             text: root.stepData.eyebrow
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 9
+                            font.pixelSize: 8
                             font.weight: Font.DemiBold
-                            font.letterSpacing: 1.45
+                            font.letterSpacing: 1.25
                         }
 
                         Text {
                             text: qsTr("Step %1 of %2").arg(RaohaneOnboardingState.step + 1).arg(root.steps.length)
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 10
+                            font.pixelSize: 8
                         }
                     }
 
-                    RaohaneSurface {
-                        Layout.preferredWidth: 70
-                        Layout.preferredHeight: 28
-                        surfaceRadius: 10
-                        transparentIdle: true
-                        interactive: true
-                        hovered: skipPointer.containsMouse
-                        pressed: skipPointer.pressed
-                        showSheen: false
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: qsTr("Skip tour")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 10
-                            font.weight: Font.Medium
-                        }
-
-                        MouseArea {
-                            id: skipPointer
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: RaohaneOnboardingState.skip()
-                        }
+                    CoachButton {
+                        compact: true
+                        label: qsTr("Skip tour")
+                        onTriggered: RaohaneOnboardingState.skip()
                     }
                 }
 
@@ -599,7 +508,7 @@ Scope {
                     Layout.fillWidth: true
                     text: root.stepData.title
                     color: RaohaneTheme.text
-                    font.pixelSize: root.stepData.key === "finish" ? 27 : 23
+                    font.pixelSize: root.stepData.key === "finish" ? 22 : 19
                     font.weight: Font.DemiBold
                     wrapMode: Text.WordWrap
                 }
@@ -608,44 +517,45 @@ Scope {
                     Layout.fillWidth: true
                     text: root.stepData.description
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 13
-                    lineHeight: 1.34
+                    font.pixelSize: 10
+                    lineHeight: 1.28
                     wrapMode: Text.WordWrap
                 }
 
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 62
-                    surfaceRadius: RaohaneTheme.radiusSmall
+                    Layout.preferredHeight: 50
+                    surfaceRadius: 9
                     raised: false
                     showSheen: false
+                    border.color: RaohaneTheme.borderFaint
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 10
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 9
+                        spacing: 8
 
-                        RaohaneSurface {
-                            Layout.preferredWidth: 30
-                            Layout.preferredHeight: 30
-                            surfaceRadius: 10
-                            active: true
-                            showSheen: false
+                        Rectangle {
+                            Layout.preferredWidth: 2
+                            Layout.preferredHeight: 18
+                            radius: 1
+                            color: RaohaneTheme.accentSecondary
+                            opacity: 0.72
+                        }
 
-                            RaohaneIcon {
-                                anchors.centerIn: parent
-                                text: root.stepData.key === "dock" ? "mouse" : "lightbulb"
-                                iconSize: 15
-                                color: RaohaneTheme.accentSecondary
-                            }
+                        RaohaneIcon {
+                            text: root.stepData.key === "dock" ? "mouse" : "lightbulb"
+                            iconSize: 14
+                            color: RaohaneTheme.accentSecondary
                         }
 
                         Text {
                             Layout.fillWidth: true
                             text: root.stepData.hint
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 11
-                            lineHeight: 1.22
+                            font.pixelSize: 8
+                            lineHeight: 1.18
                             wrapMode: Text.WordWrap
                         }
                     }
@@ -655,94 +565,43 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 4
 
                     Repeater {
                         model: root.steps.length
+
                         Rectangle {
                             required property int index
-
                             Layout.fillWidth: true
-                            Layout.preferredHeight: index === RaohaneOnboardingState.step ? 4 : 3
-                            radius: 2
+                            Layout.preferredHeight: 3
+                            radius: 1
                             color: index <= RaohaneOnboardingState.step ? RaohaneTheme.accent : RaohaneTheme.border
-                            opacity: index === RaohaneOnboardingState.step ? 1 : 0.55
+                            opacity: index === RaohaneOnboardingState.step ? 1 : 0.48
 
                             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                            Behavior on height { NumberAnimation { duration: RaohaneMotion.micro } }
                         }
                     }
                 }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 10
+                    spacing: 8
 
-                    RaohaneSurface {
-                        Layout.preferredWidth: 104
-                        Layout.preferredHeight: 40
-                        surfaceRadius: RaohaneTheme.radiusSmall
-                        transparentIdle: RaohaneOnboardingState.step === 0
-                        interactive: RaohaneOnboardingState.step > 0
+                    CoachButton {
                         enabled: RaohaneOnboardingState.step > 0
-                        hovered: backPointer.containsMouse
-                        pressed: backPointer.pressed
-                        showSheen: false
-                        feedback: "navigate"
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 6
-                            RaohaneIcon { text: "arrow_back"; iconSize: 15; color: RaohaneTheme.textMuted }
-                            Text { text: qsTr("Back"); color: RaohaneTheme.textMuted; font.pixelSize: 11; font.weight: Font.DemiBold }
-                        }
-
-                        MouseArea {
-                            id: backPointer
-                            anchors.fill: parent
-                            enabled: RaohaneOnboardingState.step > 0
-                            hoverEnabled: true
-                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            onClicked: RaohaneOnboardingState.previous()
-                        }
+                        opacity: enabled ? 1 : 0.34
+                        icon: "arrow_back"
+                        label: qsTr("Back")
+                        onTriggered: RaohaneOnboardingState.previous()
                     }
 
                     Item { Layout.fillWidth: true }
 
-                    RaohaneSurface {
-                        Layout.preferredWidth: root.stepData.key === "finish" ? 174 : 126
-                        Layout.preferredHeight: 40
-                        surfaceRadius: RaohaneTheme.radiusSmall
-                        active: true
-                        interactive: true
-                        hovered: nextPointer.containsMouse
-                        pressed: nextPointer.pressed
-                        showSheen: false
-                        feedback: root.stepData.key === "finish" ? "confirm" : "navigate"
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 7
-                            Text {
-                                text: root.stepData.key === "finish" ? qsTr("Enter Raohane") : qsTr("Next")
-                                color: RaohaneTheme.text
-                                font.pixelSize: 11
-                                font.weight: Font.DemiBold
-                            }
-                            RaohaneIcon {
-                                text: root.stepData.key === "finish" ? "check" : "arrow_forward"
-                                iconSize: 15
-                                color: RaohaneTheme.accent
-                            }
-                        }
-
-                        MouseArea {
-                            id: nextPointer
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: RaohaneOnboardingState.next()
-                        }
+                    CoachButton {
+                        emphasized: true
+                        icon: root.stepData.key === "finish" ? "check" : "arrow_forward"
+                        label: root.stepData.key === "finish" ? qsTr("Enter Raohane") : qsTr("Next")
+                        onTriggered: RaohaneOnboardingState.next()
                     }
                 }
             }
@@ -758,5 +617,58 @@ Scope {
         function skip(): void { RaohaneOnboardingState.skip() }
         function status(): string { return RaohaneOnboardingState.active ? "open" : "closed" }
         function step(): int { return RaohaneOnboardingState.step }
+    }
+
+    component CoachButton: RaohaneSurface {
+        id: button
+
+        required property string label
+        property string icon: ""
+        property bool emphasized: false
+        property bool compact: false
+        signal triggered()
+
+        implicitWidth: Math.max(compact ? 72 : 88, buttonRow.implicitWidth + 18)
+        implicitHeight: compact ? 28 : 34
+        surfaceRadius: 8
+        raised: false
+        active: emphasized
+        transparentIdle: !emphasized
+        interactive: enabled
+        hovered: buttonMouse.containsMouse
+        pressed: buttonMouse.pressed
+        hoverScale: 1
+        pressedScale: 1
+        showSheen: false
+
+        RowLayout {
+            id: buttonRow
+            anchors.centerIn: parent
+            spacing: 5
+
+            RaohaneIcon {
+                visible: button.icon.length > 0
+                text: button.icon
+                iconSize: 13
+                fill: button.emphasized ? 1 : 0
+                color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+
+            Text {
+                text: button.label
+                color: button.emphasized ? RaohaneTheme.text : RaohaneTheme.textMuted
+                font.pixelSize: button.compact ? 7 : 8
+                font.weight: Font.DemiBold
+            }
+        }
+
+        MouseArea {
+            id: buttonMouse
+            anchors.fill: parent
+            enabled: button.enabled
+            hoverEnabled: true
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: button.triggered()
+        }
     }
 }
