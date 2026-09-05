@@ -9,7 +9,7 @@ QtObject {
 
     readonly property var extensions: ({
         bar: {
-            source: "RaohaneBarStudio.qml",
+            source: "RaohaneBarStudioShell.qml",
             controlKeys: ["barModuleLayout"]
         },
         quick: {
