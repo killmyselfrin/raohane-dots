@@ -72,14 +72,14 @@ Item {
                 ColumnLayout {
                     Layout.fillWidth: true
                     visible: !root.compact
-                    spacing: -1
+                    spacing: 0
 
                     Text {
-                        text: "Raohane"
+                        text: "RAOHANE"
                         color: RaohaneTheme.text
-                        font.pixelSize: 11
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
-                        font.letterSpacing: 0.2
+                        font.letterSpacing: 1.1
                     }
 
                     Text {
