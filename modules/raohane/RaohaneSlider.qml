@@ -9,8 +9,8 @@ FocusScope {
     property real stepSize: 0.01
     property bool wheelEnabled: true
     property bool showHandle: true
-    property int trackHeight: 5
-    property int handleSize: 15
+    property int trackHeight: 4
+    property int handleSize: 12
     signal moved(real value)
 
     readonly property real span: Math.max(0.000001, to - from)
@@ -19,7 +19,7 @@ FocusScope {
     readonly property bool hovered: pointer.containsMouse
     property real dragRatio: normalizedValue
 
-    implicitHeight: 26
+    implicitHeight: 24
     activeFocusOnTab: enabled
     opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
@@ -63,15 +63,14 @@ FocusScope {
             right: parent.right
             verticalCenter: parent.verticalCenter
         }
-        height: pointer.pressed ? root.trackHeight + 2 : root.hovered ? root.trackHeight + 1 : root.trackHeight
-        radius: height / 2
+        height: root.trackHeight
+        radius: Math.max(1, height / 2)
         color: RaohaneTheme.surfaceDeep
         border.width: 1
-        border.color: root.activeFocus || root.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        border.color: root.activeFocus || root.hovered
+            ? RaohaneTheme.borderStrong
+            : RaohaneTheme.borderFaint
 
-        Behavior on height {
-            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-        }
         Behavior on border.color {
             ColorAnimation { duration: RaohaneMotion.micro }
         }
@@ -99,21 +98,9 @@ FocusScope {
         radius: width / 2
         anchors.verticalCenter: parent.verticalCenter
         x: Math.max(0, Math.min(root.width - width, root.shownRatio * root.width - width / 2))
-        scale: pointer.pressed ? 1.20 : root.hovered || root.activeFocus ? 1.10 : 1
-        color: RaohaneTheme.surfaceRaised
-        border.width: 2
-        border.color: RaohaneTheme.accent
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: Math.max(3, parent.width * 0.28)
-            height: width
-            radius: width / 2
-            color: RaohaneTheme.accent
-            opacity: pointer.pressed ? 0.92 : root.hovered ? 0.62 : 0.36
-
-            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
-        }
+        color: RaohaneTheme.text
+        border.width: 1
+        border.color: RaohaneTheme.accentBorder
 
         Behavior on x {
             NumberAnimation {
@@ -121,8 +108,8 @@ FocusScope {
                 easing.type: RaohaneMotion.easeStandard
             }
         }
-        Behavior on scale {
-            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeEmphasized }
+        Behavior on color {
+            ColorAnimation { duration: RaohaneMotion.micro }
         }
     }
 
