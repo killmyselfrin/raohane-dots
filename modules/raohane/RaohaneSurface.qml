@@ -13,12 +13,21 @@ Rectangle {
     property bool transparentIdle: false
     property int surfaceRadius: RaohaneTheme.radius
     property bool showSheen: true
+    property bool transformMotion: true
     property real hoverScale: RaohaneMotion.subtleHoverScale
     property real pressedScale: RaohaneMotion.softPressScale
     property string feedback: "tap"
 
+    // Game Mode already removes compositor blur/rounding/animations. Keep the
+    // QML interaction layer on the same low-cost path as well: large shared
+    // surfaces retain color/focus feedback, but stop scale transforms. The same
+    // policy also respects the Style Studio reduced-motion preset.
+    readonly property bool transformMotionAllowed: root.transformMotion
+        && RaohaneMotion.transformMotionEnabled
+        && !RaohanePerformance.gameModeActive
+
     radius: surfaceRadius
-    scale: interactive
+    scale: interactive && transformMotionAllowed
         ? (pressed ? pressedScale : hovered ? hoverScale : 1)
         : 1
     color: pressed
@@ -99,6 +108,7 @@ Rectangle {
         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
     }
     Behavior on scale {
+        enabled: root.transformMotionAllowed
         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeEmphasized }
     }
 }
