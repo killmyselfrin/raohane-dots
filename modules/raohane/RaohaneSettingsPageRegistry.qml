@@ -9,7 +9,7 @@ QtObject {
 
     readonly property var pages: [
         { key: "home", name: qsTr("Home"), icon: "home", group: qsTr("PERSONALIZE"), subtitle: qsTr("Raohane at a glance"), source: "RaohaneSettingsHome.qml" },
-        { key: "themes", name: qsTr("Themes"), icon: "palette", group: qsTr("PERSONALIZE"), subtitle: qsTr("Theme library and Style Studio"), source: "RaohaneThemeCatalog.qml" },
+        { key: "themes", name: qsTr("Themes"), icon: "palette", group: qsTr("PERSONALIZE"), subtitle: qsTr("Theme library and Style Studio"), source: "RaohaneThemeStudio.qml" },
         { key: "widgets", name: qsTr("Desktop Widgets"), icon: "widgets", group: qsTr("PERSONALIZE"), subtitle: qsTr("Choose the quiet information shown on your wallpaper"), source: "RaohaneWidgetStudio.qml" },
         { key: "interface", name: qsTr("Appearance"), icon: "wand_stars", group: qsTr("PERSONALIZE"), subtitle: qsTr("Screen chrome, corners and visual framing"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "bar", name: qsTr("Bar & Dock"), icon: "dock_to_bottom", group: qsTr("SHELL"), subtitle: qsTr("Placement, reveal behavior, modules and dock sizing"), source: "RaohaneSettingsSectionPage.qml" },
