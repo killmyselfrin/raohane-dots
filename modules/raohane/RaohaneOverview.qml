@@ -137,11 +137,6 @@ Scope {
         Rectangle {
             anchors.fill: parent
             color: RaohaneTheme.dark ? "#72000000" : "#345b5750"
-            opacity: overviewPanel.entered ? 1 : 0
-
-            Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-            }
 
             MouseArea {
                 anchors.fill: parent
@@ -162,20 +157,9 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.982
-
-            transform: Translate {
-                y: overviewPanel.entered ? 0 : 12
-                Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
-                }
-            }
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-            }
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             MouseArea {
