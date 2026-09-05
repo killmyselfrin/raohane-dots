@@ -17,35 +17,57 @@ RaohaneSurface {
     signal removeRequested(int index)
     signal copyRequested(string path)
 
-    width: 116
-    height: 122
-    surfaceRadius: 14
+    width: 112
+    height: 120
+    surfaceRadius: 10
     raised: false
     interactive: true
     hovered: dragMouse.containsMouse || actionRow.hovered
     pressed: dragMouse.pressed
     showSheen: false
-    hoverScale: 1.012
-    pressedScale: 0.982
+    hoverScale: 1
+    pressedScale: 1
+    color: hovered ? RaohaneTheme.surfaceRaised : RaohaneTheme.surfaceDeep
+    border.color: Drag.active ? RaohaneTheme.accentBorder
+        : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
     Drag.active: dragMouse.drag.active
     Drag.dragType: Drag.Automatic
     Drag.mimeData: ({ "text/uri-list": "file://" + root.entryPath })
     Drag.supportedActions: Qt.CopyAction
 
+    Rectangle {
+        anchors {
+            left: parent.left
+            top: parent.top
+            bottom: parent.bottom
+            leftMargin: 2
+            topMargin: 8
+            bottomMargin: 8
+        }
+        width: 2
+        radius: 1
+        color: RaohaneTheme.accent
+        opacity: root.Drag.active ? 1 : root.hovered ? 0.42 : 0.16
+
+        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 7
-        spacing: 5
+        spacing: 4
 
         RaohaneSurface {
             id: preview
 
             Layout.fillWidth: true
-            Layout.preferredHeight: 75
-            surfaceRadius: 11
+            Layout.preferredHeight: 73
+            surfaceRadius: 8
             active: dragMouse.drag.active
             showSheen: false
+            color: RaohaneTheme.surfaceSubtle
+            border.color: dragMouse.drag.active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
             clip: true
 
             Image {
@@ -63,7 +85,7 @@ RaohaneSurface {
                 anchors.centerIn: parent
                 visible: !previewImage.visible
                 text: root.entryPath.endsWith("/") ? "folder" : "draft"
-                iconSize: 24
+                iconSize: 22
                 fill: dragMouse.containsMouse ? 1 : 0
                 symbolWeight: dragMouse.containsMouse ? 520 : 430
                 color: dragMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -95,7 +117,8 @@ RaohaneSurface {
             Layout.fillWidth: true
             text: root.fileName
             color: RaohaneTheme.text
-            font.pixelSize: 8
+            font.pixelSize: 7
+            font.weight: Font.Medium
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideMiddle
         }
@@ -105,50 +128,58 @@ RaohaneSurface {
             property bool hovered: openButton.hovered || revealButton.hovered || copyButton.hovered || removeButton.hovered
 
             Layout.fillWidth: true
-            Layout.preferredHeight: 23
-            spacing: 1
+            Layout.preferredHeight: 22
+            spacing: 0
 
             RaohaneIconButton {
                 id: openButton
                 Layout.fillWidth: true
-                buttonSize: 23
-                iconSize: 12
+                buttonSize: 22
+                iconSize: 11
                 icon: "open_in_new"
                 transparentIdle: true
                 showSheen: false
+                hoverScale: 1
+                pressedScale: 1
                 onClicked: root.openRequested(root.entryPath)
             }
 
             RaohaneIconButton {
                 id: revealButton
                 Layout.fillWidth: true
-                buttonSize: 23
-                iconSize: 12
+                buttonSize: 22
+                iconSize: 11
                 icon: "folder_open"
                 transparentIdle: true
                 showSheen: false
+                hoverScale: 1
+                pressedScale: 1
                 onClicked: root.revealRequested(root.entryPath)
             }
 
             RaohaneIconButton {
                 id: copyButton
                 Layout.fillWidth: true
-                buttonSize: 23
-                iconSize: 12
+                buttonSize: 22
+                iconSize: 11
                 icon: "content_copy"
                 transparentIdle: true
                 showSheen: false
+                hoverScale: 1
+                pressedScale: 1
                 onClicked: root.copyRequested(root.entryPath)
             }
 
             RaohaneIconButton {
                 id: removeButton
                 Layout.fillWidth: true
-                buttonSize: 23
-                iconSize: 12
+                buttonSize: 22
+                iconSize: 11
                 icon: "close"
                 transparentIdle: true
                 showSheen: false
+                hoverScale: 1
+                pressedScale: 1
                 onClicked: root.removeRequested(root.itemIndex)
             }
         }
