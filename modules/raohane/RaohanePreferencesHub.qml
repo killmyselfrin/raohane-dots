@@ -178,46 +178,73 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 18
-        spacing: 12
+        anchors.margins: 14
+        spacing: 9
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 46
-            spacing: 10
+            Layout.preferredHeight: 42
+            spacing: 8
 
             RaohaneIconButton {
-                buttonSize: 34
-                iconSize: 16
+                buttonSize: 30
+                iconSize: 14
                 icon: "arrow_back"
                 transparentIdle: true
                 showSheen: false
+                hoverScale: 1
+                pressedScale: 1
                 onClicked: root.closeRequested()
+            }
+
+            Rectangle {
+                Layout.preferredWidth: 2
+                Layout.preferredHeight: 28
+                radius: 1
+                color: RaohaneTheme.accent
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0
+
                 Text {
                     text: root.section === "motion" ? qsTr("Motion & animations") : qsTr("Keyboard shortcuts")
                     color: RaohaneTheme.text
-                    font.pixelSize: 17
+                    font.pixelSize: 14
                     font.weight: Font.DemiBold
+                    font.letterSpacing: -0.1
                 }
+
                 Text {
                     text: root.section === "motion"
                         ? qsTr("Tune Raohane shell motion and Hyprland compositor transitions")
                         : qsTr("All Raohane shell actions in one configurable shortcut map")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
                 }
             }
 
-            TabButton { icon: "keyboard"; label: qsTr("Keybinds"); active: root.section === "keybinds"; onClicked: root.section = "keybinds" }
-            TabButton { icon: "animation"; label: qsTr("Motion"); active: root.section === "motion"; onClicked: root.section = "motion" }
+            TabButton {
+                icon: "keyboard"
+                label: qsTr("Keybinds")
+                active: root.section === "keybinds"
+                onClicked: root.section = "keybinds"
+            }
+
+            TabButton {
+                icon: "animation"
+                label: qsTr("Motion")
+                active: root.section === "motion"
+                onClicked: root.section = "motion"
+            }
         }
 
-        Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: RaohaneTheme.borderFaint }
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: RaohaneTheme.borderFaint
+        }
 
         Loader {
             Layout.fillWidth: true
@@ -232,29 +259,44 @@ Item {
         Flickable {
             id: keyFlick
             contentWidth: width
-            contentHeight: keyColumn.implicitHeight + 28
+            contentHeight: keyColumn.implicitHeight + 20
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 2600
 
             Column {
                 id: keyColumn
-                width: Math.min(keyFlick.width - 32, 820)
+                width: Math.min(keyFlick.width - 24, 840)
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 12
+                spacing: 9
 
                 RowLayout {
                     width: parent.width
-                    Text { Layout.fillWidth: true; text: qsTr("Raohane actions"); color: RaohaneTheme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
-                    SmallAction { icon: "restart_alt"; label: qsTr("Reset defaults"); onClicked: root.resetKeybinds() }
+                    height: 30
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Raohane actions")
+                        color: RaohaneTheme.text
+                        font.pixelSize: 10
+                        font.weight: Font.DemiBold
+                    }
+
+                    SmallAction {
+                        icon: "restart_alt"
+                        label: qsTr("Reset defaults")
+                        onClicked: root.resetKeybinds()
+                    }
                 }
 
                 RaohaneSurface {
                     width: parent.width
                     height: actionList.implicitHeight
-                    surfaceRadius: RaohaneTheme.radiusLarge
+                    surfaceRadius: 11
                     raised: false
                     showSheen: false
+                    color: RaohaneTheme.surfaceDeep
+                    border.color: RaohaneTheme.borderFaint
                     clip: true
 
                     Column {
@@ -268,34 +310,89 @@ Item {
                                 id: actionRow
                                 required property var modelData
                                 required property int index
+
                                 width: actionList.width
-                                height: 72
+                                height: 56
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    color: RaohaneTheme.surfaceSubtle
+                                    opacity: actionPointer.containsMouse ? 0.50 : 0
+
+                                    Behavior on opacity {
+                                        NumberAnimation { duration: RaohaneMotion.micro }
+                                    }
+                                }
+
+                                Rectangle {
+                                    anchors {
+                                        left: parent.left
+                                        top: parent.top
+                                        bottom: parent.bottom
+                                        leftMargin: 2
+                                        topMargin: 10
+                                        bottomMargin: 10
+                                    }
+                                    width: 2
+                                    radius: 1
+                                    color: RaohaneTheme.accent
+                                    opacity: actionPointer.containsMouse ? 0.38 : 0
+
+                                    Behavior on opacity {
+                                        NumberAnimation { duration: RaohaneMotion.micro }
+                                    }
+                                }
 
                                 RowLayout {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 14
-                                    anchors.rightMargin: 12
-                                    spacing: 12
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 10
+                                    spacing: 9
 
-                                    RaohaneSurface {
-                                        Layout.preferredWidth: 40
-                                        Layout.preferredHeight: 40
-                                        surfaceRadius: 12
-                                        raised: false
-                                        showSheen: false
-                                        RaohaneIcon { anchors.centerIn: parent; text: actionRow.modelData.icon; iconSize: 18; color: RaohaneTheme.accent }
+                                    RaohaneIcon {
+                                        Layout.preferredWidth: 24
+                                        text: actionRow.modelData.icon
+                                        iconSize: 15
+                                        fill: actionPointer.containsMouse ? 0.38 : 0
+                                        symbolWeight: actionPointer.containsMouse ? 500 : 420
+                                        color: actionPointer.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                                        Behavior on color {
+                                            ColorAnimation { duration: RaohaneMotion.micro }
+                                        }
                                     }
 
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        spacing: 1
+                                        spacing: 0
+
                                         RowLayout {
                                             Layout.fillWidth: true
                                             spacing: 6
-                                            Text { text: actionRow.modelData.label; color: RaohaneTheme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
-                                            Text { text: actionRow.modelData.category; color: RaohaneTheme.textFaint; font.pixelSize: 7; font.weight: Font.DemiBold; font.letterSpacing: 0.7 }
+
+                                            Text {
+                                                text: actionRow.modelData.label
+                                                color: RaohaneTheme.text
+                                                font.pixelSize: 8
+                                                font.weight: Font.DemiBold
+                                            }
+
+                                            Text {
+                                                text: actionRow.modelData.category
+                                                color: RaohaneTheme.textFaint
+                                                font.pixelSize: 6
+                                                font.weight: Font.DemiBold
+                                                font.letterSpacing: 0.65
+                                            }
                                         }
-                                        Text { Layout.fillWidth: true; text: actionRow.modelData.detail; color: RaohaneTheme.textMuted; font.pixelSize: 8; elide: Text.ElideRight }
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: actionRow.modelData.detail
+                                            color: RaohaneTheme.textFaint
+                                            font.pixelSize: 7
+                                            elide: Text.ElideRight
+                                        }
                                     }
 
                                     ShortcutRecorder { configKey: actionRow.modelData.key }
@@ -303,32 +400,52 @@ Item {
 
                                 Rectangle {
                                     visible: actionRow.index < root.shellBindings.length - 1
-                                    anchors.left: parent.left
-                                    anchors.right: parent.right
-                                    anchors.bottom: parent.bottom
-                                    anchors.leftMargin: 14
-                                    anchors.rightMargin: 14
+                                    anchors {
+                                        left: parent.left
+                                        right: parent.right
+                                        bottom: parent.bottom
+                                        leftMargin: 12
+                                        rightMargin: 12
+                                    }
                                     height: 1
                                     color: RaohaneTheme.borderFaint
+                                }
+
+                                MouseArea {
+                                    id: actionPointer
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    acceptedButtons: Qt.NoButton
+                                    z: -1
                                 }
                             }
                         }
                     }
                 }
 
-                Text { width: parent.width; text: qsTr("Application shortcuts"); color: RaohaneTheme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
+                Text {
+                    width: parent.width
+                    text: qsTr("Application shortcuts")
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
 
                 Repeater {
                     model: 4
-                    delegate: ApplicationShortcut { required property int index; width: keyColumn.width; slot: index + 1 }
+                    delegate: ApplicationShortcut {
+                        required property int index
+                        width: keyColumn.width
+                        slot: index + 1
+                    }
                 }
 
                 Text {
                     width: parent.width
                     text: qsTr("Click a shortcut chip and press the new combination. Press Backspace while recording to disable it. Duplicate combinations are highlighted before Hyprland applies the map.")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
-                    lineHeight: 1.25
+                    font.pixelSize: 7
+                    lineHeight: 1.20
                     wrapMode: Text.WordWrap
                 }
             }
@@ -341,79 +458,175 @@ Item {
         Flickable {
             id: motionFlick
             contentWidth: width
-            contentHeight: motionColumn.implicitHeight + 28
+            contentHeight: motionColumn.implicitHeight + 20
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 2600
 
             Column {
                 id: motionColumn
-                width: Math.min(motionFlick.width - 32, 780)
+                width: Math.min(motionFlick.width - 24, 800)
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 12
+                spacing: 9
 
-                Text { width: parent.width; text: qsTr("Motion presets"); color: RaohaneTheme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
+                Text {
+                    width: parent.width
+                    text: qsTr("Motion presets")
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
 
                 GridLayout {
                     width: parent.width
                     columns: width > 620 ? 4 : 2
-                    columnSpacing: 8
-                    rowSpacing: 8
-                    MotionPreset { title: qsTr("Zen"); detail: qsTr("Quiet and balanced"); icon: "spa"; onClicked: root.applyMotionPreset("zen") }
-                    MotionPreset { title: qsTr("Snappy"); detail: qsTr("Fast response"); icon: "bolt"; onClicked: root.applyMotionPreset("snappy") }
-                    MotionPreset { title: qsTr("Fluid"); detail: qsTr("Longer and softer"); icon: "water"; onClicked: root.applyMotionPreset("fluid") }
-                    MotionPreset { title: qsTr("Off"); detail: qsTr("Reduced motion"); icon: "motion_photos_off"; onClicked: root.applyMotionPreset("off") }
+                    columnSpacing: 6
+                    rowSpacing: 6
+
+                    MotionPreset {
+                        title: qsTr("Zen")
+                        detail: qsTr("Quiet and balanced")
+                        icon: "spa"
+                        onClicked: root.applyMotionPreset("zen")
+                    }
+                    MotionPreset {
+                        title: qsTr("Snappy")
+                        detail: qsTr("Fast response")
+                        icon: "bolt"
+                        onClicked: root.applyMotionPreset("snappy")
+                    }
+                    MotionPreset {
+                        title: qsTr("Fluid")
+                        detail: qsTr("Longer and softer")
+                        icon: "water"
+                        onClicked: root.applyMotionPreset("fluid")
+                    }
+                    MotionPreset {
+                        title: qsTr("Off")
+                        detail: qsTr("Reduced motion")
+                        icon: "motion_photos_off"
+                        onClicked: root.applyMotionPreset("off")
+                    }
                 }
 
-                Text { width: parent.width; text: qsTr("Fine tuning"); color: RaohaneTheme.text; font.pixelSize: 12; font.weight: Font.DemiBold }
+                Text {
+                    width: parent.width
+                    text: qsTr("Fine tuning")
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
 
                 RaohaneSurface {
                     width: parent.width
                     height: motionRows.implicitHeight
-                    surfaceRadius: RaohaneTheme.radiusLarge
+                    surfaceRadius: 11
                     raised: false
                     showSheen: false
+                    color: RaohaneTheme.surfaceDeep
+                    border.color: RaohaneTheme.borderFaint
                     clip: true
 
                     Column {
                         id: motionRows
                         width: parent.width
-                        ToggleMotionRow { label: qsTr("Hyprland animations"); detail: qsTr("Enable compositor window, layer, workspace and fade transitions"); checked: Boolean(root.animationValue("enabled")); onToggled: root.setAnimation("enabled", checked) }
-                        NumberMotionRow { label: qsTr("Window duration"); detail: qsTr("Open, close and window movement timing"); keyName: "windowMs"; suffix: " ms"; minimum: 80; maximum: 1200; step: 10 }
-                        NumberMotionRow { label: qsTr("Workspace duration"); detail: qsTr("Workspace slide-fade timing"); keyName: "workspaceMs"; suffix: " ms"; minimum: 80; maximum: 1600; step: 10 }
-                        NumberMotionRow { label: qsTr("Layer duration"); detail: qsTr("Panels and compositor layer timing"); keyName: "layerMs"; suffix: " ms"; minimum: 80; maximum: 1200; step: 10 }
-                        NumberMotionRow { label: qsTr("Fade duration"); detail: qsTr("Opacity transition timing"); keyName: "fadeMs"; suffix: " ms"; minimum: 60; maximum: 1000; step: 10 }
-                        NumberMotionRow { label: qsTr("Workspace travel"); detail: qsTr("How far workspace transitions move across the screen"); keyName: "workspaceDistance"; suffix: "%"; minimum: 4; maximum: 40; step: 1 }
+
+                        ToggleMotionRow {
+                            label: qsTr("Hyprland animations")
+                            detail: qsTr("Enable compositor window, layer, workspace and fade transitions")
+                            checked: Boolean(root.animationValue("enabled"))
+                            onToggled: root.setAnimation("enabled", checked)
+                        }
+                        NumberMotionRow {
+                            label: qsTr("Window duration")
+                            detail: qsTr("Open, close and window movement timing")
+                            keyName: "windowMs"
+                            suffix: " ms"
+                            minimum: 80
+                            maximum: 1200
+                            step: 10
+                        }
+                        NumberMotionRow {
+                            label: qsTr("Workspace duration")
+                            detail: qsTr("Workspace slide-fade timing")
+                            keyName: "workspaceMs"
+                            suffix: " ms"
+                            minimum: 80
+                            maximum: 1600
+                            step: 10
+                        }
+                        NumberMotionRow {
+                            label: qsTr("Layer duration")
+                            detail: qsTr("Panels and compositor layer timing")
+                            keyName: "layerMs"
+                            suffix: " ms"
+                            minimum: 80
+                            maximum: 1200
+                            step: 10
+                        }
+                        NumberMotionRow {
+                            label: qsTr("Fade duration")
+                            detail: qsTr("Opacity transition timing")
+                            keyName: "fadeMs"
+                            suffix: " ms"
+                            minimum: 60
+                            maximum: 1000
+                            step: 10
+                        }
+                        NumberMotionRow {
+                            label: qsTr("Workspace travel")
+                            detail: qsTr("How far workspace transitions move across the screen")
+                            keyName: "workspaceDistance"
+                            suffix: "%"
+                            minimum: 4
+                            maximum: 40
+                            step: 1
+                        }
 
                         Item {
                             width: motionRows.width
-                            height: 66
+                            height: 58
+
+                            Rectangle {
+                                anchors {
+                                    left: parent.left
+                                    right: parent.right
+                                    bottom: parent.bottom
+                                    leftMargin: 12
+                                    rightMargin: 12
+                                }
+                                height: 1
+                                color: RaohaneTheme.borderFaint
+                            }
+
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 16
-                                anchors.rightMargin: 12
-                                spacing: 14
+                                anchors.leftMargin: 13
+                                anchors.rightMargin: 10
+                                spacing: 12
+
                                 ColumnLayout {
                                     Layout.fillWidth: true
-                                    spacing: 2
-                                    Text { text: qsTr("Raohane shell motion"); color: RaohaneTheme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
-                                    Text { text: qsTr("Scale QML surface transitions independently from Hyprland"); color: RaohaneTheme.textMuted; font.pixelSize: 8 }
-                                }
-                                RaohaneSurface {
-                                    Layout.preferredWidth: 138
-                                    Layout.preferredHeight: 34
-                                    surfaceRadius: 11
-                                    raised: false
-                                    showSheen: false
-                                    RowLayout {
-                                        anchors.fill: parent
-                                        anchors.leftMargin: 3
-                                        anchors.rightMargin: 3
-                                        spacing: 2
-                                        RaohaneIconButton { buttonSize: 27; iconSize: 13; icon: "remove"; transparentIdle: true; showSheen: false; onClicked: root.setShellMotionScale(root.shellMotionScale() - 0.05) }
-                                        Text { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: Math.round(root.shellMotionScale() * 100) + "%"; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold }
-                                        RaohaneIconButton { buttonSize: 27; iconSize: 13; icon: "add"; transparentIdle: true; showSheen: false; onClicked: root.setShellMotionScale(root.shellMotionScale() + 0.05) }
+                                    spacing: 1
+
+                                    Text {
+                                        text: qsTr("Raohane shell motion")
+                                        color: RaohaneTheme.text
+                                        font.pixelSize: 8
+                                        font.weight: Font.DemiBold
                                     }
+
+                                    Text {
+                                        text: qsTr("Scale QML surface transitions independently from Hyprland")
+                                        color: RaohaneTheme.textFaint
+                                        font.pixelSize: 7
+                                    }
+                                }
+
+                                StepControl {
+                                    valueText: Math.round(root.shellMotionScale() * 100) + "%"
+                                    onDecrease: root.setShellMotionScale(root.shellMotionScale() - 0.05)
+                                    onIncrease: root.setShellMotionScale(root.shellMotionScale() + 0.05)
                                 }
                             }
                         }
@@ -425,40 +638,51 @@ Item {
 
     component ShortcutRecorder: FocusScope {
         id: recorder
+
         required property string configKey
         property bool recording: false
         readonly property bool conflict: root.conflictCount(configKey) > 0
 
-        implicitWidth: 190
-        implicitHeight: 40
+        implicitWidth: 174
+        implicitHeight: 32
         activeFocusOnTab: true
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 11
+            surfaceRadius: 8
             raised: false
             active: recorder.recording
             hovered: recorderMouse.containsMouse || recorder.activeFocus
             pressed: recorderMouse.pressed
             interactive: true
             showSheen: false
-            border.color: recorder.conflict ? RaohaneTheme.critical : active ? RaohaneTheme.accentBorder : RaohaneTheme.border
+            hoverScale: 1
+            pressedScale: 1
+            color: RaohaneTheme.surfaceDeep
+            border.color: recorder.conflict ? RaohaneTheme.critical
+                : active ? RaohaneTheme.accentBorder
+                : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 9
-                anchors.rightMargin: 8
-                spacing: 6
+                anchors.leftMargin: 8
+                anchors.rightMargin: 7
+                spacing: 5
+
                 RaohaneIcon {
                     text: recorder.conflict ? "warning" : recorder.recording ? "keyboard_alt" : "keyboard"
-                    iconSize: 14
-                    color: recorder.conflict ? RaohaneTheme.critical : recorder.recording ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    iconSize: 12
+                    fill: recorder.recording ? 1 : 0
+                    color: recorder.conflict ? RaohaneTheme.critical
+                        : recorder.recording ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
+
                 Text {
                     Layout.fillWidth: true
                     text: recorder.recording ? qsTr("Press shortcut…") : (root.keybindValue(recorder.configKey) || qsTr("Disabled"))
-                    color: recorder.conflict ? RaohaneTheme.critical : recorder.recording ? RaohaneTheme.accent : RaohaneTheme.text
-                    font.pixelSize: 8
+                    color: recorder.conflict ? RaohaneTheme.critical
+                        : recorder.recording ? RaohaneTheme.accent : RaohaneTheme.text
+                    font.pixelSize: 7
                     font.weight: Font.DemiBold
                     horizontalAlignment: Text.AlignHCenter
                     elide: Text.ElideRight
@@ -502,71 +726,103 @@ Item {
 
     component ApplicationShortcut: RaohaneSurface {
         id: appRow
+
         required property int slot
         property string nameKey: "app" + slot + "Name"
         property string keysKey: "app" + slot + "Keys"
         property string commandKey: "app" + slot + "Command"
 
-        height: 92
-        surfaceRadius: 18
+        height: 76
+        surfaceRadius: 10
         raised: false
         showSheen: false
+        color: RaohaneTheme.surfaceDeep
+        border.color: RaohaneTheme.borderFaint
+
+        Rectangle {
+            anchors {
+                left: parent.left
+                top: parent.top
+                bottom: parent.bottom
+                leftMargin: 2
+                topMargin: 10
+                bottomMargin: 10
+            }
+            width: 2
+            radius: 1
+            color: RaohaneTheme.accent
+            opacity: 0.18
+        }
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
-            RaohaneSurface {
-                Layout.preferredWidth: 42
-                Layout.preferredHeight: 42
-                surfaceRadius: 13
-                raised: false
-                showSheen: false
-                RaohaneIcon { anchors.centerIn: parent; text: "apps"; iconSize: 19; color: RaohaneTheme.accent }
+            anchors.margins: 10
+            spacing: 8
+
+            RaohaneIcon {
+                Layout.preferredWidth: 22
+                text: "apps"
+                iconSize: 15
+                color: RaohaneTheme.accent
             }
+
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 6
-                FieldEditor { configKey: appRow.nameKey; placeholderText: qsTr("Application name") }
-                FieldEditor { configKey: appRow.commandKey; placeholderText: qsTr("Command, e.g. firefox or kitty"); monospace: true }
+                spacing: 5
+
+                FieldEditor {
+                    configKey: appRow.nameKey
+                    placeholderText: qsTr("Application name")
+                }
+
+                FieldEditor {
+                    configKey: appRow.commandKey
+                    placeholderText: qsTr("Command, e.g. firefox or kitty")
+                    monospace: true
+                }
             }
+
             ShortcutRecorder { configKey: appRow.keysKey }
         }
     }
 
     component FieldEditor: RaohaneSurface {
         id: editor
+
         required property string configKey
         property string placeholderText: ""
         property bool monospace: false
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 31
-        surfaceRadius: 9
+        Layout.preferredHeight: 28
+        surfaceRadius: 7
         raised: false
         showSheen: false
         hovered: editorField.activeFocus
+        color: RaohaneTheme.surfaceSubtle
+        border.color: editorField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
         TextInput {
             id: editorField
             anchors.fill: parent
-            anchors.leftMargin: 9
-            anchors.rightMargin: 9
+            anchors.leftMargin: 8
+            anchors.rightMargin: 8
             verticalAlignment: TextInput.AlignVCenter
             text: root.keybindValue(editor.configKey)
             color: RaohaneTheme.text
             selectionColor: RaohaneTheme.accentSoft
             selectedTextColor: RaohaneTheme.text
-            font.pixelSize: 8
+            font.pixelSize: 7
             font.family: editor.monospace ? "JetBrainsMono Nerd Font" : ""
             clip: true
             onEditingFinished: root.setKeybind(editor.configKey, text)
+
             Text {
                 anchors.fill: parent
                 verticalAlignment: Text.AlignVCenter
                 text: editor.placeholderText
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 8
+                font.pixelSize: 7
                 visible: editorField.text.length === 0 && !editorField.activeFocus
             }
         }
@@ -574,29 +830,61 @@ Item {
 
     component ToggleMotionRow: Item {
         id: toggleRow
+
         required property string label
         required property string detail
         required property bool checked
         signal toggled(bool checked)
+
         width: parent?.width ?? 0
-        height: 66
+        height: 58
+
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 16
-            anchors.rightMargin: 14
-            spacing: 14
+            anchors.leftMargin: 13
+            anchors.rightMargin: 11
+            spacing: 12
+
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
-                Text { text: toggleRow.label; color: RaohaneTheme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
-                Text { text: toggleRow.detail; color: RaohaneTheme.textMuted; font.pixelSize: 8 }
+                spacing: 1
+
+                Text {
+                    text: toggleRow.label
+                    color: RaohaneTheme.text
+                    font.pixelSize: 8
+                    font.weight: Font.DemiBold
+                }
+
+                Text {
+                    text: toggleRow.detail
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                }
             }
-            RaohaneSwitch { checked: toggleRow.checked; onToggled: toggleRow.toggled(checked) }
+
+            RaohaneSwitch {
+                checked: toggleRow.checked
+                onToggled: toggleRow.toggled(checked)
+            }
+        }
+
+        Rectangle {
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+                leftMargin: 12
+                rightMargin: 12
+            }
+            height: 1
+            color: RaohaneTheme.borderFaint
         }
     }
 
     component NumberMotionRow: Item {
         id: numberRow
+
         required property string label
         required property string detail
         required property string keyName
@@ -604,113 +892,302 @@ Item {
         required property real minimum
         required property real maximum
         required property real step
+
         width: parent?.width ?? 0
-        height: 66
+        height: 58
+
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 16
-            anchors.rightMargin: 12
-            spacing: 14
+            anchors.leftMargin: 13
+            anchors.rightMargin: 10
+            spacing: 12
+
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
-                Text { text: numberRow.label; color: RaohaneTheme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
-                Text { text: numberRow.detail; color: RaohaneTheme.textMuted; font.pixelSize: 8 }
-            }
-            RaohaneSurface {
-                Layout.preferredWidth: 138
-                Layout.preferredHeight: 34
-                surfaceRadius: 11
-                raised: false
-                showSheen: false
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 3
-                    anchors.rightMargin: 3
-                    spacing: 2
-                    RaohaneIconButton { buttonSize: 27; iconSize: 13; icon: "remove"; transparentIdle: true; showSheen: false; onClicked: root.changeAnimation(numberRow.keyName, -numberRow.step, numberRow.minimum, numberRow.maximum) }
-                    Text { Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter; text: String(root.animationValue(numberRow.keyName)) + numberRow.suffix; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold }
-                    RaohaneIconButton { buttonSize: 27; iconSize: 13; icon: "add"; transparentIdle: true; showSheen: false; onClicked: root.changeAnimation(numberRow.keyName, numberRow.step, numberRow.minimum, numberRow.maximum) }
+                spacing: 1
+
+                Text {
+                    text: numberRow.label
+                    color: RaohaneTheme.text
+                    font.pixelSize: 8
+                    font.weight: Font.DemiBold
                 }
+
+                Text {
+                    text: numberRow.detail
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                }
+            }
+
+            StepControl {
+                valueText: String(root.animationValue(numberRow.keyName)) + numberRow.suffix
+                onDecrease: root.changeAnimation(numberRow.keyName, -numberRow.step, numberRow.minimum, numberRow.maximum)
+                onIncrease: root.changeAnimation(numberRow.keyName, numberRow.step, numberRow.minimum, numberRow.maximum)
+            }
+        }
+
+        Rectangle {
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+                leftMargin: 12
+                rightMargin: 12
+            }
+            height: 1
+            color: RaohaneTheme.borderFaint
+        }
+    }
+
+    component StepControl: RaohaneSurface {
+        id: stepControl
+
+        required property string valueText
+        signal decrease()
+        signal increase()
+
+        Layout.preferredWidth: 124
+        Layout.preferredHeight: 32
+        surfaceRadius: 8
+        raised: false
+        showSheen: false
+        color: RaohaneTheme.surfaceSubtle
+        border.color: RaohaneTheme.borderFaint
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 2
+            anchors.rightMargin: 2
+            spacing: 1
+
+            RaohaneIconButton {
+                buttonSize: 26
+                iconSize: 12
+                icon: "remove"
+                transparentIdle: true
+                showSheen: false
+                hoverScale: 1
+                pressedScale: 1
+                onClicked: stepControl.decrease()
+            }
+
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: stepControl.valueText
+                color: RaohaneTheme.text
+                font.pixelSize: 8
+                font.weight: Font.DemiBold
+            }
+
+            RaohaneIconButton {
+                buttonSize: 26
+                iconSize: 12
+                icon: "add"
+                transparentIdle: true
+                showSheen: false
+                hoverScale: 1
+                pressedScale: 1
+                onClicked: stepControl.increase()
             }
         }
     }
 
     component MotionPreset: RaohaneSurface {
         id: preset
+
         required property string title
         required property string detail
         required property string icon
         signal clicked()
+
         Layout.fillWidth: true
-        Layout.preferredHeight: 78
-        surfaceRadius: 17
+        Layout.preferredHeight: 66
+        surfaceRadius: 9
         raised: false
-        hovered: presetMouse.containsMouse
+        hovered: presetMouse.containsMouse || activeFocus
         pressed: presetMouse.pressed
         interactive: true
         showSheen: false
+        hoverScale: 1
+        pressedScale: 1
+        activeFocusOnTab: true
+        color: hovered ? RaohaneTheme.surfaceSubtle : RaohaneTheme.surfaceDeep
+        border.color: hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+
+        Rectangle {
+            anchors {
+                left: parent.left
+                top: parent.top
+                bottom: parent.bottom
+                leftMargin: 2
+                topMargin: 9
+                bottomMargin: 9
+            }
+            width: 2
+            radius: 1
+            color: RaohaneTheme.accent
+            opacity: preset.hovered || preset.activeFocus ? 0.48 : 0.16
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.micro }
+            }
+        }
+
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 10
-            spacing: 3
-            RaohaneIcon { text: preset.icon; iconSize: 18; color: RaohaneTheme.accent }
-            Text { text: preset.title; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold }
-            Text { Layout.fillWidth: true; text: preset.detail; color: RaohaneTheme.textMuted; font.pixelSize: 7; elide: Text.ElideRight }
+            anchors.margins: 9
+            spacing: 2
+
+            RaohaneIcon {
+                text: preset.icon
+                iconSize: 15
+                fill: preset.hovered || preset.activeFocus ? 0.45 : 0
+                color: preset.hovered || preset.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+
+            Text {
+                text: preset.title
+                color: RaohaneTheme.text
+                font.pixelSize: 8
+                font.weight: Font.DemiBold
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: preset.detail
+                color: RaohaneTheme.textFaint
+                font.pixelSize: 6
+                elide: Text.ElideRight
+            }
         }
-        MouseArea { id: presetMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: preset.clicked() }
+
+        MouseArea {
+            id: presetMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onPressed: preset.forceActiveFocus()
+            onClicked: preset.clicked()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                preset.clicked()
+                event.accepted = true
+            }
+        }
     }
 
     component SmallAction: FocusScope {
         id: smallAction
+
         required property string icon
         required property string label
         signal clicked()
-        implicitWidth: 126
-        implicitHeight: 34
+
+        implicitWidth: 116
+        implicitHeight: 30
+        activeFocusOnTab: true
+
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 11
+            surfaceRadius: 8
             raised: false
             hovered: smallMouse.containsMouse || smallAction.activeFocus
             pressed: smallMouse.pressed
             interactive: true
             showSheen: false
+            hoverScale: 1
+            pressedScale: 1
+            transparentIdle: !hovered
+            border.color: hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 6
-                RaohaneIcon { text: smallAction.icon; iconSize: 14; color: RaohaneTheme.textMuted }
-                Text { text: smallAction.label; color: RaohaneTheme.text; font.pixelSize: 8; font.weight: Font.DemiBold }
+                spacing: 5
+
+                RaohaneIcon {
+                    text: smallAction.icon
+                    iconSize: 12
+                    color: smallAction.activeFocus || smallMouse.containsMouse
+                        ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+
+                Text {
+                    text: smallAction.label
+                    color: RaohaneTheme.text
+                    font.pixelSize: 7
+                    font.weight: Font.Medium
+                }
             }
         }
-        MouseArea { id: smallMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: smallAction.clicked() }
+
+        MouseArea {
+            id: smallMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onPressed: smallAction.forceActiveFocus()
+            onClicked: smallAction.clicked()
+        }
     }
 
     component TabButton: FocusScope {
         id: tab
+
         required property string icon
         required property string label
         required property bool active
         signal clicked()
-        implicitWidth: 112
-        implicitHeight: 34
+
+        implicitWidth: 102
+        implicitHeight: 30
+        activeFocusOnTab: true
+
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 11
+            surfaceRadius: 8
             raised: false
             active: tab.active
-            transparentIdle: !tab.active
+            transparentIdle: !tab.active && !hovered
             hovered: tabMouse.containsMouse || tab.activeFocus
             pressed: tabMouse.pressed
             interactive: true
             showSheen: false
+            hoverScale: 1
+            pressedScale: 1
+            border.color: tab.active ? RaohaneTheme.accentBorder
+                : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 6
-                RaohaneIcon { text: tab.icon; iconSize: 14; fill: tab.active ? 1 : 0; color: tab.active ? RaohaneTheme.accent : RaohaneTheme.textMuted }
-                Text { text: tab.label; color: tab.active ? RaohaneTheme.text : RaohaneTheme.textMuted; font.pixelSize: 8; font.weight: Font.DemiBold }
+                spacing: 5
+
+                RaohaneIcon {
+                    text: tab.icon
+                    iconSize: 12
+                    fill: tab.active ? 1 : tab.activeFocus || tabMouse.containsMouse ? 0.35 : 0
+                    color: tab.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+
+                Text {
+                    text: tab.label
+                    color: tab.active ? RaohaneTheme.text : RaohaneTheme.textMuted
+                    font.pixelSize: 7
+                    font.weight: Font.DemiBold
+                }
             }
         }
-        MouseArea { id: tabMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: tab.clicked() }
+
+        MouseArea {
+            id: tabMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onPressed: tab.forceActiveFocus()
+            onClicked: tab.clicked()
+        }
     }
 }
