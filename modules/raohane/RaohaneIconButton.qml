@@ -34,10 +34,11 @@ RaohaneSurface {
         color: root.emphasized || pointer.containsMouse || root.activeFocus
             ? RaohaneTheme.accent
             : RaohaneTheme.textMuted
-        scale: pointer.pressed ? 0.92 : 1
+        scale: root.transformMotionAllowed && pointer.pressed ? 0.92 : 1
 
         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         Behavior on scale {
+            enabled: root.transformMotionAllowed
             NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
     }
