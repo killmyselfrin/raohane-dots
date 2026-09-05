@@ -72,7 +72,7 @@ RaohaneSurface {
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("%1 px icons").arg(RaohaneConfig.dockIconSize)
+                text: RaohaneConfig.dockIconSize + " px"
                 color: RaohaneTheme.textMuted
                 font.pixelSize: 7
                 elide: Text.ElideRight
