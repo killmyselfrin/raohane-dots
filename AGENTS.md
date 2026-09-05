@@ -48,27 +48,32 @@ Preserve GNU GPLv3 obligations for covered derivative work. Runtime independence
 - Filesystem/config/cache/state/runtime locations belong in `RaohanePaths`.
 - Shared visual primitives belong in Raohane-owned framework components rather than ad-hoc copies.
 - Complete color themes belong in the central `RaohaneTheme.presets` catalog and selected preset state belongs in `RaohaneConfig.themePreset`.
-- Feature surfaces must consume shared theme tokens rather than embedding one-off light/dark/neon palettes.
+- Feature surfaces must consume shared theme tokens rather than embedding one-off palettes.
 - New system integrations should expose a Raohane-owned service/API boundary before being consumed across multiple surfaces.
 - Keep expensive polling/event work centralized and demand-driven where possible.
 - Preserve horizontal/vertical bar, fullscreen and multi-monitor contracts when touching shared shell state.
 
-## Design direction
+## Final design direction
 
-Raohane visual identity is now **Japanese minimalism** while preserving the established UI structure and interaction model.
+The approved visual target is the dark **Raohane Nocturne** concept: atmospheric Japanese minimalism with compact glass surfaces and restrained violet accents. This is now the final product direction rather than a temporary mood board.
 
-- calm frosted-glass surfaces;
-- light warm-gray / off-white default appearance;
-- optional dark minimalist presets instead of a dark-only shell;
-- thin low-contrast borders and restrained shadows/highlights;
-- charcoal, stone, sage, blush and cool-gray accents rather than neon purple/magenta;
-- generous negative space and quiet information hierarchy;
+- deep graphite / blue-black desktop chrome with translucent frosted surfaces;
+- soft violet-lavender accent for active controls, selection and focus, never uncontrolled neon bloom;
+- thin blue-gray/violet borders, subtle inner highlights and low-contrast depth;
+- rounded compact cards with consistent geometry across Settings, Control Center, Launcher, Wallpaper, Overview, Media, Sidebar and Notifications;
+- wallpaper-aware atmosphere inspired by night ocean, rain, mist, sakura and subdued anime photography;
+- clear information hierarchy: strong primary text, cool muted secondary text and very faint metadata;
 - floating Bar pods, Context Island and Dock remain signature geometry;
-- wallpaper-aware atmosphere should be subtle and Japanese-inspired rather than cyberpunk-heavy;
-- animation should be short, smooth and understated;
-- semantic colors (recording, warning, success) may stand out, but decorative glow should not.
+- Settings uses a dark sidebar, compact page header and dense two-column navigation cards;
+- Control Center uses composed command tiles plus grouped audio/display sliders rather than isolated oversized cards;
+- Wallpaper Selector uses a responsive gallery grid with selected-state borders and metadata;
+- Launcher uses a focused search surface with mode tabs and compact result/action rows;
+- Overview, Media Overlay, Sidebar and Notifications should visually match the same nocturne material system;
+- animation stays short and smooth, with subtle scale/opacity movement instead of decorative motion;
+- semantic recording/warning/success colors remain distinct, but decorative glow stays restrained;
+- light presets such as Paper, Sakura and Matcha remain optional alternatives, not the default visual target.
 
-`Zen Mist` is the default visual preset. The Theme Library should offer multiple coherent whole-shell moods while keeping layout, shortcuts, services and behavior stable across presets.
+For compatibility the persisted default preset id may remain `zen-mist`, but its current palette is the approved Raohane nocturne signature mood. Do not regress it back to the old off-white appearance unless the user explicitly changes the product direction again.
 
 References may inform behavior, but the final user-facing design must remain recognizably Raohane rather than a renamed upstream shell.
 
