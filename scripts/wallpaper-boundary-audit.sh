@@ -36,13 +36,19 @@ for symbol in \
   rg -q "$symbol" "$selector" || fail "selector lost native dependency: $symbol"
 done
 
+# The wallpaper browser is a responsive gallery rather than the old horizontal
+# carousel. Preserve adaptive density, vertical browsing, selected-state and
+# hover-preview behavior while keeping directory navigation native.
 for symbol in \
-  'orientation:[[:space:]]*ListView\.Horizontal' \
-  'snapMode:[[:space:]]*ListView\.SnapToItem' \
-  'WheelHandler[[:space:]]*\{' \
-  'positionViewAtIndex\(carousel\.currentIndex,[[:space:]]*ListView\.Center\)' \
-  'ScrollBar\.horizontal'; do
-  rg -q "$symbol" "$selector" || fail "wallpaper carousel lost interaction contract: $symbol"
+  'GridView[[:space:]]*\{' \
+  'cellWidth:[[:space:]]*width[[:space:]]*/' \
+  'ScrollBar\.vertical' \
+  'readonly property bool selected:' \
+  'gallery\.currentIndex[[:space:]]*=[[:space:]]*cell\.index' \
+  'RaohaneWallpapers\.startPreview\(cell\.filePath\)' \
+  'RaohaneWallpapers\.stopPreview\(\)' \
+  'root\.selectPath\(cell\.filePath,[[:space:]]*cell\.isDirectory\)'; do
+  rg -q "$symbol" "$selector" || fail "wallpaper gallery lost interaction contract: $symbol"
 done
 
 if rg -n \
@@ -106,4 +112,4 @@ path = pathlib.Path(sys.argv[1])
 ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 PY
 
-printf 'wallpaper-boundary-audit: selector, fullscreen-aware video background and standalone thumbnails are Raohane-owned\n'
+printf 'wallpaper-boundary-audit: responsive selector gallery, fullscreen-aware video background and standalone thumbnails are Raohane-owned\n'
