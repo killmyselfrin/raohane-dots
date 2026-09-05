@@ -190,24 +190,26 @@ Scope {
             anchors.fill: parent
             raised: true
             showSheen: false
-            surfaceRadius: RaohaneTheme.radiusLarge
+            surfaceRadius: 18
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: taskWindow.visible ? 1 : 0
-            scale: taskWindow.visible ? 1 : 0.985
-
-            transform: Translate {
-                y: taskWindow.visible ? 0 : 8
-                Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                }
-            }
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+
+            Rectangle {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    leftMargin: 18
+                    rightMargin: 18
+                }
+                height: 1
+                color: RaohaneTheme.accent
+                opacity: 0.34
             }
 
             Keys.onPressed: event => {
@@ -222,29 +224,19 @@ Scope {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 18
-                spacing: 13
+                anchors.margins: 15
+                spacing: 9
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 12
+                    Layout.preferredHeight: 46
+                    spacing: 10
 
-                    RaohaneSurface {
-                        width: 42
-                        height: 42
-                        surfaceRadius: RaohaneTheme.radiusSmall
-                        showSheen: false
-                        active: true
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "browse_activity"
-                            iconSize: 21
-                            fill: 1
-                            symbolWeight: 560
-                            grade: 40
-                            color: RaohaneTheme.accent
-                        }
+                    Rectangle {
+                        Layout.preferredWidth: 3
+                        Layout.preferredHeight: 30
+                        radius: 1.5
+                        color: RaohaneTheme.accent
                     }
 
                     ColumnLayout {
@@ -254,59 +246,87 @@ Scope {
                         Text {
                             text: qsTr("Task Manager")
                             color: RaohaneTheme.text
-                            font.pixelSize: 18
+                            font.pixelSize: 16
                             font.weight: Font.DemiBold
+                            font.letterSpacing: -0.2
                         }
                         Text {
                             text: qsTr("Applications and processes running in your session")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
                         }
                     }
 
-                    Text {
-                        text: qsTr("Load %1 / %2 cores").arg(RaohaneProcesses.loadOne.toFixed(2)).arg(RaohaneProcesses.cpuCount)
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 9
+                    RaohaneSurface {
+                        implicitWidth: loadText.implicitWidth + 16
+                        implicitHeight: 27
+                        surfaceRadius: 8
+                        transparentIdle: true
+                        showSheen: false
+
+                        Text {
+                            id: loadText
+                            anchors.centerIn: parent
+                            text: qsTr("Load %1 / %2 cores").arg(RaohaneProcesses.loadOne.toFixed(2)).arg(RaohaneProcesses.cpuCount)
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                            font.weight: Font.Medium
+                        }
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 38
-                        iconSize: 18
+                        buttonSize: 30
+                        iconSize: 15
                         icon: "refresh"
                         enabled: !RaohaneProcesses.busy
+                        transparentIdle: true
+                        showSheen: false
+                        hoverScale: 1
+                        pressedScale: 1
                         onClicked: RaohaneProcesses.refresh()
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 38
-                        iconSize: 18
+                        buttonSize: 30
+                        iconSize: 15
                         icon: "close"
+                        transparentIdle: true
+                        showSheen: false
+                        hoverScale: 1
+                        pressedScale: 1
                         onClicked: root.close()
                     }
                 }
 
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderFaint
+                }
+
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 10
+                    spacing: 7
 
                     RaohaneSurface {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 42
-                        surfaceRadius: RaohaneTheme.radiusSmall
+                        Layout.preferredHeight: 36
+                        surfaceRadius: 9
                         showSheen: false
                         active: searchInput.activeFocus
+                        color: RaohaneTheme.surfaceDeep
+                        border.color: searchInput.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.leftMargin: 12
-                            anchors.rightMargin: 12
-                            spacing: 8
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 7
 
                             RaohaneIcon {
                                 text: "search"
-                                iconSize: 17
-                                symbolWeight: searchInput.activeFocus ? 520 : 430
+                                iconSize: 15
+                                symbolWeight: searchInput.activeFocus ? 520 : 400
                                 color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
 
                                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
@@ -318,7 +338,7 @@ Scope {
                                 color: RaohaneTheme.text
                                 selectionColor: RaohaneTheme.accentSoft
                                 selectedTextColor: RaohaneTheme.text
-                                font.pixelSize: 11
+                                font.pixelSize: 9
                                 clip: true
                                 text: root.query
                                 onTextChanged: root.query = text
@@ -328,7 +348,7 @@ Scope {
                                 visible: searchInput.text.length === 0
                                 text: qsTr("Search applications or PID")
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 10
+                                font.pixelSize: 8
                             }
                         }
                     }
@@ -340,7 +360,7 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 10
+                    spacing: 7
 
                     StatCard {
                         icon: "apps"
@@ -362,23 +382,23 @@ Scope {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    spacing: 12
+                    spacing: 8
 
                     RaohaneSurface {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        surfaceRadius: RaohaneTheme.radius
+                        surfaceRadius: 11
                         showSheen: false
-                        color: RaohaneTheme.surfaceSubtle
-                        border.color: RaohaneTheme.border
+                        color: RaohaneTheme.surfaceDeep
+                        border.color: RaohaneTheme.borderFaint
                         clip: true
 
                         ListView {
                             id: groupList
                             anchors.fill: parent
-                            anchors.margins: 7
+                            anchors.margins: 6
                             model: root.groups
-                            spacing: 4
+                            spacing: 3
                             clip: true
                             boundsBehavior: Flickable.StopAtBounds
 
@@ -390,35 +410,57 @@ Scope {
                                 readonly property bool selected: root.selectedCommand === modelData.command
 
                                 width: ListView.view.width
-                                height: 52
-                                surfaceRadius: RaohaneTheme.radiusSmall
+                                height: 44
+                                surfaceRadius: 8
                                 showSheen: false
-                                transparentIdle: true
+                                transparentIdle: !selected && !hovered
                                 active: selected
                                 hovered: rowMouse.containsMouse
                                 pressed: rowMouse.pressed
                                 interactive: true
-                                hoverScale: RaohaneMotion.subtleHoverScale
-                                pressedScale: RaohaneMotion.softPressScale
+                                hoverScale: 1
+                                pressedScale: 1
+                                border.color: selected
+                                    ? RaohaneTheme.accentBorder
+                                    : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+                                color: selected ? RaohaneTheme.surfaceRaised
+                                    : hovered ? RaohaneTheme.surfaceSubtle : RaohaneTheme.surfaceDeep
+
+                                Rectangle {
+                                    anchors {
+                                        left: parent.left
+                                        top: parent.top
+                                        bottom: parent.bottom
+                                        leftMargin: 2
+                                        topMargin: 8
+                                        bottomMargin: 8
+                                    }
+                                    width: 2
+                                    radius: 1
+                                    color: groupRow.modelData.cpu >= 50 ? RaohaneTheme.warning : RaohaneTheme.accent
+                                    opacity: groupRow.selected ? 1 : groupRow.hovered ? 0.48 : 0.18
+
+                                    Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+                                }
 
                                 RowLayout {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 11
-                                    anchors.rightMargin: 11
-                                    spacing: 10
+                                    anchors.leftMargin: 9
+                                    anchors.rightMargin: 9
+                                    spacing: 8
 
                                     RaohaneSurface {
-                                        width: 32
-                                        height: 32
-                                        surfaceRadius: 10
+                                        width: 28
+                                        height: 28
+                                        surfaceRadius: 8
                                         showSheen: false
                                         active: groupRow.selected
-                                        raised: !groupRow.selected
+                                        raised: false
 
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: "deployed_code"
-                                            iconSize: 16
+                                            iconSize: 14
                                             fill: groupRow.selected ? 1 : rowMouse.containsMouse ? 0.25 : 0
                                             symbolWeight: groupRow.selected ? 540 : rowMouse.containsMouse ? 490 : 420
                                             color: groupRow.selected || rowMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -429,36 +471,36 @@ Scope {
 
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        spacing: 1
+                                        spacing: 0
                                         Text {
                                             Layout.fillWidth: true
                                             text: groupRow.modelData.command
                                             color: RaohaneTheme.text
-                                            font.pixelSize: 10
+                                            font.pixelSize: 8
                                             font.weight: Font.DemiBold
                                             elide: Text.ElideRight
                                         }
                                         Text {
                                             text: qsTr("%1 process(es)").arg(groupRow.modelData.pids.length)
                                             color: RaohaneTheme.textFaint
-                                            font.pixelSize: 8
+                                            font.pixelSize: 6
                                         }
                                     }
 
                                     Text {
-                                        Layout.preferredWidth: 70
+                                        Layout.preferredWidth: 62
                                         text: groupRow.modelData.cpu.toFixed(1) + "%"
                                         color: groupRow.modelData.cpu >= 50 ? RaohaneTheme.warning : RaohaneTheme.textMuted
                                         horizontalAlignment: Text.AlignRight
-                                        font.pixelSize: 9
+                                        font.pixelSize: 7
                                         font.weight: Font.DemiBold
                                     }
                                     Text {
-                                        Layout.preferredWidth: 82
+                                        Layout.preferredWidth: 76
                                         text: root.formatMemory(groupRow.modelData.rssMiB)
                                         color: RaohaneTheme.textMuted
                                         horizontalAlignment: Text.AlignRight
-                                        font.pixelSize: 9
+                                        font.pixelSize: 7
                                     }
                                 }
 
@@ -480,23 +522,23 @@ Scope {
                                 visible: root.groups.length === 0 && !RaohaneProcesses.busy
                                 text: root.query.length > 0 ? qsTr("No matching processes") : qsTr("No process data")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 10
+                                font.pixelSize: 8
                             }
                         }
                     }
 
                     RaohaneSurface {
-                        Layout.preferredWidth: 272
+                        Layout.preferredWidth: 270
                         Layout.fillHeight: true
-                        surfaceRadius: RaohaneTheme.radius
+                        surfaceRadius: 11
                         showSheen: false
-                        color: RaohaneTheme.surfaceSubtle
-                        border.color: RaohaneTheme.border
+                        color: RaohaneTheme.surfaceDeep
+                        border.color: RaohaneTheme.borderFaint
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 13
-                            spacing: 10
+                            anchors.margins: 11
+                            spacing: 8
 
                             Item {
                                 Layout.fillWidth: true
@@ -505,18 +547,18 @@ Scope {
 
                                 ColumnLayout {
                                     anchors.centerIn: parent
-                                    spacing: 7
+                                    spacing: 6
                                     RaohaneIcon {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: "select_check_box"
-                                        iconSize: 28
+                                        iconSize: 24
                                         color: RaohaneTheme.textFaint
                                     }
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: qsTr("Select an application")
                                         color: RaohaneTheme.textMuted
-                                        font.pixelSize: 10
+                                        font.pixelSize: 8
                                     }
                                 }
                             }
@@ -525,13 +567,13 @@ Scope {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 visible: root.selectedGroup !== null
-                                spacing: 10
+                                spacing: 8
 
                                 Text {
                                     Layout.fillWidth: true
                                     text: root.selectedGroup?.command ?? ""
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 15
+                                    font.pixelSize: 13
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
@@ -545,7 +587,7 @@ Scope {
                                 Text {
                                     text: qsTr("Processes")
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 9
+                                    font.pixelSize: 7
                                     font.weight: Font.DemiBold
                                 }
 
@@ -553,32 +595,34 @@ Scope {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
                                     model: root.selectedGroup?.processes ?? []
-                                    spacing: 4
+                                    spacing: 3
                                     clip: true
 
                                     delegate: RaohaneSurface {
                                         required property var modelData
                                         width: ListView.view.width
-                                        height: 35
-                                        surfaceRadius: 9
-                                        raised: true
+                                        height: 32
+                                        surfaceRadius: 7
+                                        raised: false
                                         showSheen: false
+                                        color: RaohaneTheme.surfaceSubtle
+                                        border.color: RaohaneTheme.borderFaint
 
                                         RowLayout {
                                             anchors.fill: parent
-                                            anchors.leftMargin: 9
-                                            anchors.rightMargin: 9
+                                            anchors.leftMargin: 8
+                                            anchors.rightMargin: 8
                                             Text {
                                                 text: "PID " + modelData.pid
                                                 color: RaohaneTheme.text
-                                                font.pixelSize: 8
+                                                font.pixelSize: 7
                                                 font.weight: Font.DemiBold
                                             }
                                             Item { Layout.fillWidth: true }
                                             Text {
                                                 text: modelData.cpu.toFixed(1) + "% · " + root.formatAge(modelData.elapsedSeconds)
                                                 color: RaohaneTheme.textFaint
-                                                font.pixelSize: 8
+                                                font.pixelSize: 7
                                             }
                                         }
                                     }
@@ -591,13 +635,13 @@ Scope {
                                         ? qsTr("Press Force stop again to confirm")
                                         : qsTr("Press End again to confirm")
                                     color: root.pendingAction === "KILL" ? RaohaneTheme.critical : RaohaneTheme.warning
-                                    font.pixelSize: 8
+                                    font.pixelSize: 7
                                     wrapMode: Text.WordWrap
                                 }
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    spacing: 7
+                                    spacing: 6
 
                                     ProcessButton {
                                         Layout.fillWidth: true
@@ -625,18 +669,19 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: 22
                     Text {
                         Layout.fillWidth: true
                         text: RaohaneProcesses.errorText.length > 0
                             ? RaohaneProcesses.errorText
                             : qsTr("Only processes owned by your user are shown · F5 refreshes manually")
                         color: RaohaneProcesses.errorText.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        font.pixelSize: 7
                     }
                     Text {
                         text: RaohaneProcesses.busy ? qsTr("Refreshing…") : qsTr("Live · 1.5 s")
                         color: RaohaneProcesses.busy ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        font.pixelSize: 7
                     }
                 }
             }
@@ -663,22 +708,27 @@ Scope {
         required property string icon
         required property string title
 
-        Layout.preferredWidth: 92
-        Layout.preferredHeight: 42
-        surfaceRadius: RaohaneTheme.radiusSmall
+        Layout.preferredWidth: 82
+        Layout.preferredHeight: 36
+        surfaceRadius: 9
         showSheen: false
         active: root.sortMode === mode
         hovered: sortMouse.containsMouse || activeFocus
         pressed: sortMouse.pressed
         interactive: true
         activeFocusOnTab: true
+        hoverScale: 1
+        pressedScale: 1
+        transparentIdle: !active && !hovered
+        border.color: active ? RaohaneTheme.accentBorder
+            : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.centerIn: parent
-            spacing: 6
+            spacing: 5
             RaohaneIcon {
                 text: sortButton.icon
-                iconSize: 15
+                iconSize: 13
                 fill: sortButton.active ? 1 : sortButton.hovered ? 0.25 : 0
                 symbolWeight: sortButton.active ? 540 : sortButton.hovered ? 490 : 420
                 color: sortButton.active || sortButton.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -687,8 +737,8 @@ Scope {
             }
             Text {
                 text: sortButton.title
-                color: RaohaneTheme.text
-                font.pixelSize: 9
+                color: sortButton.active ? RaohaneTheme.text : RaohaneTheme.textMuted
+                font.pixelSize: 7
                 font.weight: Font.DemiBold
             }
         }
@@ -717,23 +767,23 @@ Scope {
         required property string value
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 54
-        surfaceRadius: RaohaneTheme.radiusSmall
+        Layout.preferredHeight: 46
+        surfaceRadius: 9
         showSheen: false
-        color: RaohaneTheme.surfaceSubtle
-        border.color: RaohaneTheme.border
+        color: RaohaneTheme.surfaceDeep
+        border.color: RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 11
-            anchors.rightMargin: 11
-            spacing: 8
-            RaohaneIcon { text: stat.icon; iconSize: 17; symbolWeight: 460; color: RaohaneTheme.textMuted }
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            spacing: 7
+            RaohaneIcon { text: stat.icon; iconSize: 15; symbolWeight: 450; color: RaohaneTheme.textMuted }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0
-                Text { text: stat.title; color: RaohaneTheme.textFaint; font.pixelSize: 8 }
-                Text { text: stat.value; color: RaohaneTheme.text; font.pixelSize: 10; font.weight: Font.DemiBold }
+                Text { text: stat.title; color: RaohaneTheme.textFaint; font.pixelSize: 6 }
+                Text { text: stat.value; color: RaohaneTheme.text; font.pixelSize: 8; font.weight: Font.DemiBold }
             }
         }
     }
@@ -744,16 +794,18 @@ Scope {
         required property string value
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
-        surfaceRadius: RaohaneTheme.radiusSmall
-        raised: true
+        Layout.preferredHeight: 42
+        surfaceRadius: 8
+        raised: false
         showSheen: false
+        color: RaohaneTheme.surfaceSubtle
+        border.color: RaohaneTheme.borderFaint
 
         ColumnLayout {
             anchors.centerIn: parent
             spacing: 0
-            Text { Layout.alignment: Qt.AlignHCenter; text: detail.value; color: RaohaneTheme.text; font.pixelSize: 11; font.weight: Font.DemiBold }
-            Text { Layout.alignment: Qt.AlignHCenter; text: detail.title; color: RaohaneTheme.textFaint; font.pixelSize: 8 }
+            Text { Layout.alignment: Qt.AlignHCenter; text: detail.value; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold }
+            Text { Layout.alignment: Qt.AlignHCenter; text: detail.title; color: RaohaneTheme.textFaint; font.pixelSize: 6 }
         }
     }
 
@@ -766,29 +818,31 @@ Scope {
         property bool confirming: false
         signal triggered()
 
-        Layout.preferredHeight: 38
-        surfaceRadius: RaohaneTheme.radiusSmall
+        Layout.preferredHeight: 34
+        surfaceRadius: 8
         showSheen: false
-        raised: true
+        raised: false
         hovered: buttonMouse.containsMouse || activeFocus
         pressed: buttonMouse.pressed
         interactive: true
         active: confirming
         activeFocusOnTab: true
+        hoverScale: 1
+        pressedScale: 1
         border.color: danger
             ? RaohaneTheme.critical
             : warning
                 ? RaohaneTheme.warning
                 : hovered
                     ? RaohaneTheme.borderStrong
-                    : RaohaneTheme.border
+                    : RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.centerIn: parent
             spacing: 5
             RaohaneIcon {
                 text: processButton.icon
-                iconSize: 14
+                iconSize: 13
                 fill: processButton.confirming ? 1 : processButton.hovered ? 0.24 : 0
                 symbolWeight: processButton.confirming ? 560 : processButton.hovered ? 500 : 430
                 color: processButton.danger ? RaohaneTheme.critical
@@ -798,7 +852,7 @@ Scope {
                 text: processButton.title
                 color: processButton.danger ? RaohaneTheme.critical
                     : processButton.warning && processButton.confirming ? RaohaneTheme.warning : RaohaneTheme.text
-                font.pixelSize: 8
+                font.pixelSize: 7
                 font.weight: Font.DemiBold
             }
         }
