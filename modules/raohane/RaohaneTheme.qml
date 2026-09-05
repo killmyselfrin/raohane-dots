@@ -10,11 +10,13 @@ QtObject {
     // overrides on top without changing Raohane's information architecture.
     readonly property var builtInPresets: [
         {
-            id: "zen-mist", name: qsTr("Zen Mist"), description: qsTr("Warm ivory glass and charcoal details"), tone: qsTr("Light"), dark: false,
-            background: "#ece9e3", backgroundElevated: "#f5f2ed", surface: "#d9f6f2ec", surfaceRaised: "#eefaf7f2", surfaceDeep: "#f2e6e2dc", surfaceSubtle: "#8fffffff", surfaceHover: "#e6ece8e1", surfacePressed: "#eedfdad2",
-            border: "#242c2a27", borderStrong: "#44302e2a", borderFaint: "#142c2a27", highlight: "#b8ffffff",
-            text: "#272623", textMuted: "#706c65", textFaint: "#9a958d", accent: "#343331", accentSecondary: "#716b63", accentBlue: "#6c7b84",
-            success: "#667869", warning: "#9a7b50", critical: "#a26161", info: "#697d89"
+            // Keep the historical preset id for config compatibility, but the
+            // default Raohane mood now follows the approved nocturne design.
+            id: "zen-mist", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
+            background: "#090b16", backgroundElevated: "#0f1222", surface: "#d9151829", surfaceRaised: "#ee1c2035", surfaceDeep: "#f2080a12", surfaceSubtle: "#80242942", surfaceHover: "#e2262c46", surfacePressed: "#ed313959",
+            border: "#305d6380", borderStrong: "#607c82a6", borderFaint: "#185d6380", highlight: "#38ffffff",
+            text: "#f0eff8", textMuted: "#aaa9ba", textFaint: "#74758a", accent: "#a78bfa", accentSecondary: "#8174c8", accentBlue: "#8299ff",
+            success: "#7dd3a7", warning: "#d6b26c", critical: "#e48294", info: "#89b4fa"
         },
         {
             id: "paper", name: qsTr("Paper"), description: qsTr("Neutral white with crisp ink contrast"), tone: qsTr("Light"), dark: false,
