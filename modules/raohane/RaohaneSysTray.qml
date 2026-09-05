@@ -16,7 +16,7 @@ Item {
     RowLayout {
         id: trayRow
         anchors.centerIn: parent
-        spacing: 4
+        spacing: 3
 
         Repeater {
             model: SystemTray.items
@@ -26,25 +26,28 @@ Item {
 
                 required property SystemTrayItem modelData
 
-                Layout.preferredWidth: 28
-                Layout.preferredHeight: 28
-                surfaceRadius: 9
+                Layout.preferredWidth: 27
+                Layout.preferredHeight: 27
+                surfaceRadius: 8
                 raised: false
+                transparentIdle: true
                 hovered: trayMouse.containsMouse
                 pressed: trayMouse.pressed
                 interactive: true
-                hoverScale: RaohaneMotion.subtleHoverScale
-                pressedScale: RaohaneMotion.softPressScale
+                hoverScale: 1
+                pressedScale: 1
                 showSheen: false
+                border.color: trayButton.hovered ? RaohaneTheme.borderStrong : "transparent"
 
                 RaohaneAdaptiveIcon {
                     anchors.centerIn: parent
                     iconSource: String(trayButton.modelData.icon ?? "")
-                    iconSize: 18
-                    fallbackColor: RaohaneTheme.textMuted
-                    imageScale: trayMouse.pressed ? 0.92 : 1
+                    iconSize: 17
+                    fallbackColor: trayButton.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
+                    imageScale: trayButton.transformMotionAllowed && trayMouse.pressed ? 0.92 : 1
 
                     Behavior on imageScale {
+                        enabled: trayButton.transformMotionAllowed
                         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
                     }
                 }
