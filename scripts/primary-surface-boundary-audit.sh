@@ -97,8 +97,19 @@ rg -q 'RaohaneFocusGrab\.resumeDismiss\(\)' "$region" \
   || fail 'normal screenshot does not restore focus dismissal after capture'
 rg -q 'root\.prepareCapture\(false\)' "$region" \
   || fail 'OCR/search/record capture paths no longer dismiss primary surfaces'
-rg -q 'Process[[:space:]]*\{' "$region" \
-  || fail 'screenshot lifecycle is not tracked through a Process'
+rg -q 'Quickshell\.execDetached\(' "$region" \
+  || fail 'normal screenshot no longer uses the known-good detached runtime path'
+rg -q 'function finishScreenshot\(\): void' "$region" \
+  || fail 'screenshot lifecycle has no local completion handler'
+rg -q 'function captureFinished\(\): void' "$region" \
+  || fail 'detached screenshot command cannot report completion through IPC'
+rg -q 'qs -c raohane ipc call region captureFinished' "$region" \
+  || fail 'detached screenshot command lost its completion callback'
+rg -q 'id:[[:space:]]*captureFailsafe' "$region" \
+  || fail 'screenshot dismiss suppression has no failsafe recovery timer'
+if rg -q 'id:[[:space:]]*screenshotProcess' "$region"; then
+  fail 'normal screenshot regressed to the tracked Process path that failed at runtime'
+fi
 region_block="$(sed -n '/"regionSelector"[[:space:]]*:/,/^[[:space:]]*},/p' "$registry")"
 printf '%s\n' "$region_block" | rg -q 'closePrimaryOnOpen:[[:space:]]*false' \
   || fail 'region selector registry policy closes shell UI before screenshot can preserve it'
@@ -113,4 +124,4 @@ for surface in mediaOverlay osk osd; do
     || fail "transient surface is missing from registry: $surface"
 done
 
-printf 'primary-surface-boundary-audit: registry-backed primary UI is mutually exclusive while screenshots preserve active shell UI and destructive capture still dismisses it\n'
+printf 'primary-surface-boundary-audit: registry-backed primary UI is mutually exclusive while screenshots preserve active shell UI through the detached capture path\n'
