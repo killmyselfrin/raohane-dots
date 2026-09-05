@@ -18,6 +18,12 @@ Scope {
         RaohaneState.regionSelectorOpen = false
     }
 
+    function finishScreenshot(): void {
+        captureFailsafe.stop()
+        RaohaneFocusGrab.resumeDismiss()
+        root.busy = false
+    }
+
     function runBackend(scriptName: string): void {
         if (root.busy)
             return
@@ -35,13 +41,21 @@ Scope {
             return
         root.busy = true
 
-        // A normal screenshot captures the shell exactly as the user sees it.
-        // slurp temporarily owns compositor focus, so suppress focus-based
-        // dismissal for the whole selection/grim lifecycle instead of closing
-        // individual Raohane surfaces before capture.
+        // Keep every currently visible Raohane surface in the capture. slurp
+        // temporarily takes compositor focus, so pause focus-based dismissal
+        // until the detached capture command reports completion through IPC.
         RaohaneFocusGrab.suppressDismiss()
         root.prepareCapture(true)
-        screenshotProcess.running = true
+        captureFailsafe.restart()
+        Quickshell.execDetached([
+            "bash", "-lc",
+            "finish_capture() { qs -c raohane ipc call region captureFinished >/dev/null 2>&1 || true; }; "
+                + "trap finish_capture EXIT; "
+                + "geometry=\"$(slurp 2>/dev/null)\" || exit 0; "
+                + "[ -n \"$geometry\" ] || exit 0; "
+                + "grim -g \"$geometry\" - | wl-copy --type image/png && "
+                + "notify-send 'Screenshot copied' 'Selected region copied to clipboard' -a 'Raohane Capture' >/dev/null 2>&1 || true"
+        ])
     }
 
     function search(): void {
@@ -65,26 +79,14 @@ Scope {
         busyReset.restart()
     }
 
-    Process {
-        id: screenshotProcess
-        command: [
-            "bash", "-lc",
-            "geometry=\"$(slurp 2>/dev/null)\" || exit 0; "
-                + "[ -n \"$geometry\" ] || exit 0; "
-                + "grim -g \"$geometry\" - | wl-copy --type image/png && "
-                + "notify-send 'Screenshot copied' 'Selected region copied to clipboard' -a 'Raohane Capture' >/dev/null 2>&1 || true"
-        ]
-        onExited: captureResumeTimer.restart()
-    }
-
+    // The IPC callback is the normal completion path. This timer is only a
+    // safety net so focus dismissal cannot remain disabled forever if the
+    // capture process or IPC callback is interrupted.
     Timer {
-        id: captureResumeTimer
-        interval: 220
+        id: captureFailsafe
+        interval: 30000
         repeat: false
-        onTriggered: {
-            RaohaneFocusGrab.resumeDismiss()
-            root.busy = false
-        }
+        onTriggered: root.finishScreenshot()
     }
 
     Timer {
@@ -109,6 +111,7 @@ Scope {
         function ocr(): void { root.ocr() }
         function record(): void { root.record(false) }
         function recordWithSound(): void { root.record(true) }
+        function captureFinished(): void { root.finishScreenshot() }
     }
 
     CompositorGlobalShortcut {
