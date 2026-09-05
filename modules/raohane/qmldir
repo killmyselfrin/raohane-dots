@@ -73,6 +73,7 @@ RaohaneStyleProfiles 1.0 RaohaneStyleProfiles.qml
 RaohaneWidgetStudio 1.0 RaohaneWidgetStudio.qml
 RaohaneBarStudio 1.0 RaohaneBarStudio.qml
 RaohaneBarPreview 1.0 RaohaneBarPreview.qml
+RaohaneDockPreview 1.0 RaohaneDockPreview.qml
 RaohaneBarStudioShell 1.0 RaohaneBarStudioShell.qml
 RaohaneThemeCatalog 1.0 RaohaneThemeCatalog.qml
 RaohaneSettingsAbout 1.0 RaohaneSettingsAbout.qml
