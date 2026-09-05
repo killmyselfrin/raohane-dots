@@ -14,6 +14,8 @@ Item {
     property bool entered: false
 
     readonly property bool compact: width < 920 || height < 650
+    readonly property bool failureMotionAllowed: RaohaneMotion.transformMotionEnabled
+        && !RaohanePerformance.gameModeActive
     readonly property string wallpaperSource: RaohaneConfig.lockWallpaperPath.length > 0
         ? RaohaneConfig.lockWallpaperPath
         : (RaohaneConfig.wallpaperPath.length > 0 ? RaohaneConfig.wallpaperPath : RaohanePaths.defaultWallpaperUrl)
@@ -41,7 +43,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: RaohaneTheme.dark ? "#9007090b" : "#76534f49"
+        color: RaohaneTheme.dark ? "#7a070914" : "#66534f49"
         opacity: root.entered ? 1 : 0
 
         Behavior on opacity {
@@ -56,7 +58,7 @@ Item {
         x: -width * 0.34
         y: -height * 0.40
         color: RaohaneTheme.accent
-        opacity: root.entered ? (RaohaneTheme.dark ? 0.055 : 0.075) : 0
+        opacity: root.entered ? (RaohaneTheme.dark ? 0.045 : 0.065) : 0
 
         Behavior on opacity { NumberAnimation { duration: RaohaneMotion.mediumDuration } }
     }
@@ -70,7 +72,7 @@ Item {
         anchors.rightMargin: -width * 0.32
         anchors.bottomMargin: -height * 0.34
         color: RaohaneTheme.accent
-        opacity: root.entered ? (RaohaneTheme.dark ? 0.035 : 0.055) : 0
+        opacity: root.entered ? (RaohaneTheme.dark ? 0.028 : 0.045) : 0
 
         Behavior on opacity { NumberAnimation { duration: RaohaneMotion.mediumDuration } }
     }
@@ -81,13 +83,6 @@ Item {
         height: Math.min(parent.height - (root.compact ? 42 : 90), 690)
         anchors.centerIn: parent
         opacity: root.entered ? 1 : 0
-
-        transform: Translate {
-            y: root.entered ? 0 : 14
-            Behavior on y {
-                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
-            }
-        }
 
         Behavior on opacity {
             NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
@@ -191,11 +186,6 @@ Item {
             showSheen: true
             border.color: RaohaneTheme.borderStrong
             clip: true
-            scale: root.entered ? 1 : 0.978
-
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
-            }
 
             Rectangle {
                 anchors {
@@ -203,7 +193,7 @@ Item {
                     top: parent.top
                     bottom: parent.bottom
                 }
-                width: 3
+                width: 2
                 color: RaohaneTheme.accent
                 opacity: 0.72
             }
@@ -223,7 +213,7 @@ Item {
 
                         RaohaneSurface {
                             anchors.fill: parent
-                            surfaceRadius: 20
+                            surfaceRadius: 18
                             active: true
                             showSheen: false
 
@@ -348,7 +338,7 @@ Item {
                     id: passwordBox
                     Layout.fillWidth: true
                     height: 54
-                    surfaceRadius: 16
+                    surfaceRadius: 14
                     raised: false
                     hovered: passwordInput.activeFocus
                     showSheen: false
@@ -499,8 +489,12 @@ Item {
         }
 
         function onShowFailureChanged(): void {
-            if (root.context.showFailure)
+            if (!root.context.showFailure)
+                return
+            if (root.failureMotionAllowed)
                 failureAnimation.restart()
+            else
+                failureTranslate.x = 0
         }
     }
 
@@ -529,8 +523,8 @@ Item {
         feedback: danger ? "confirm" : "tap"
         hovered: pointer.containsMouse || activeFocus
         pressed: pointer.pressed
-        hoverScale: RaohaneMotion.hoverScale
-        pressedScale: RaohaneMotion.pressScale
+        hoverScale: 1
+        pressedScale: 1
         activeFocusOnTab: true
         border.color: control.danger && control.hovered ? RaohaneTheme.critical
             : control.hovered || control.pressed ? RaohaneTheme.borderStrong : RaohaneTheme.border
