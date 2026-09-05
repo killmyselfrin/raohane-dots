@@ -103,27 +103,53 @@ Item {
     RaohaneSurface {
         id: keySurface
         anchors.fill: parent
-        surfaceRadius: 11
+        surfaceRadius: 8
         active: root.toggled
         hovered: keyMouse.containsMouse
         pressed: keyMouse.pressed
         interactive: !root.isEmpty
         transparentIdle: root.isEmpty
         showSheen: false
-        hoverScale: 1.015
-        pressedScale: 0.96
+        hoverScale: 1
+        pressedScale: 1
+        color: root.isEmpty ? "transparent"
+            : root.toggled ? RaohaneTheme.surfaceRaised
+            : keyMouse.containsMouse ? RaohaneTheme.surfaceSubtle : RaohaneTheme.surfaceDeep
+        border.color: root.toggled ? RaohaneTheme.accentBorder
+            : keyMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+
+        Rectangle {
+            visible: !root.isEmpty
+            anchors {
+                left: parent.left
+                top: parent.top
+                bottom: parent.bottom
+                leftMargin: 2
+                topMargin: 7
+                bottomMargin: 7
+            }
+            width: 2
+            radius: 1
+            color: RaohaneTheme.accent
+            opacity: root.toggled ? 1 : keyMouse.containsMouse ? 0.32 : 0
+
+            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+        }
 
         RaohaneIcon {
             anchors.centerIn: parent
             visible: !root.isEmpty && (root.isBackspace || root.isEnter)
             text: root.isBackspace ? "backspace" : "keyboard_return"
-            iconSize: 18
-            fill: root.toggled ? 1 : keyMouse.pressed ? 0.7 : 0
-            symbolWeight: keyMouse.pressed ? 560 : keyMouse.containsMouse || root.toggled ? 520 : 430
-            color: root.toggled ? RaohaneTheme.accent : RaohaneTheme.text
-            scale: keyMouse.pressed ? 0.92 : 1
+            iconSize: 17
+            fill: root.toggled ? 1 : keyMouse.pressed ? 0.55 : 0
+            symbolWeight: keyMouse.pressed ? 550 : keyMouse.containsMouse || root.toggled ? 510 : 420
+            color: root.toggled ? RaohaneTheme.accent
+                : keyMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
+            scale: keySurface.transformMotionAllowed && keyMouse.pressed ? 0.93 : 1
 
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             Behavior on scale {
+                enabled: keySurface.transformMotionAllowed
                 NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
             }
         }
@@ -142,13 +168,16 @@ Item {
                     return root.keyData.labelShift ?? root.keyLabel
                 return root.keyLabel
             }
-            color: root.isEmpty ? "transparent" : root.toggled ? RaohaneTheme.accent : RaohaneTheme.text
-            font.pixelSize: root.shape === "fn" ? 10 : 12
-            font.weight: root.toggled ? Font.DemiBold : Font.Normal
-            scale: keyMouse.pressed ? 0.94 : 1
+            color: root.isEmpty ? "transparent"
+                : root.toggled ? RaohaneTheme.accent
+                : keyMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
+            font.pixelSize: root.shape === "fn" ? 9 : 11
+            font.weight: root.toggled ? Font.DemiBold : Font.Medium
+            scale: keySurface.transformMotionAllowed && keyMouse.pressed ? 0.94 : 1
 
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             Behavior on scale {
+                enabled: keySurface.transformMotionAllowed
                 NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
             }
         }
