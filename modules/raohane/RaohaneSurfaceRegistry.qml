@@ -149,9 +149,9 @@ QtObject {
             layer: "overlay",
             placement: "fill",
             loadPolicy: "resident",
-            // Capture owns a more precise policy: screenshots may preserve the
-            // Control Center so Raohane itself can be captured, while OCR,
-            // search and recording still dismiss primary surfaces explicitly.
+            // Screenshot capture preserves the currently visible Raohane UI so
+            // any shell surface can be captured. OCR, image search and recording
+            // still dismiss primary surfaces explicitly before their backends run.
             closePrimaryOnOpen: false
         },
         "osk": {
