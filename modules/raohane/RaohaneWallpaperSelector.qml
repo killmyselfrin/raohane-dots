@@ -46,7 +46,7 @@ Scope {
         RaohaneState.togglePrimary("wallpaper")
     }
 
-    function choosePath(path: string, isDirectory: bool): void {
+    function selectPath(path: string, isDirectory: bool): void {
         if (!path || path.length === 0)
             return
         if (isDirectory) {
@@ -646,10 +646,10 @@ Scope {
                                                     if (!cell.isDirectory && RaohaneConfig.wallpaperPreview && cell.filePath !== root.pendingPath)
                                                         RaohaneWallpapers.stopPreview()
                                                 }
-                                                onClicked: root.choosePath(cell.filePath, cell.isDirectory)
+                                                onClicked: root.selectPath(cell.filePath, cell.isDirectory)
                                                 onDoubleClicked: {
                                                     if (!cell.isDirectory) {
-                                                        root.choosePath(cell.filePath, false)
+                                                        root.selectPath(cell.filePath, false)
                                                         root.applyPending()
                                                     }
                                                 }
