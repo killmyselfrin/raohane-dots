@@ -100,6 +100,25 @@ RaohaneSurface {
         }
     }
 
+    Rectangle {
+        visible: root.active || root.menuOpen
+        z: 3
+        anchors {
+            left: parent.left
+            verticalCenter: parent.verticalCenter
+            leftMargin: 2
+        }
+        width: 2
+        height: 20
+        radius: 1
+        color: RaohaneTheme.accent
+        opacity: root.menuOpen ? 1 : 0.72
+
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+        }
+    }
+
     RowLayout {
         anchors.fill: parent
         anchors.leftMargin: 9
@@ -176,9 +195,10 @@ RaohaneSurface {
             text: "expand_more"
             iconSize: 12
             color: root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textFaint
-            rotation: root.menuOpen ? 180 : 0
+            rotation: root.transformMotionAllowed && root.menuOpen ? 180 : 0
 
             Behavior on rotation {
+                enabled: root.transformMotionAllowed
                 NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
             }
         }
