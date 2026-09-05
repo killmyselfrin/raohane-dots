@@ -152,9 +152,7 @@ Item {
         clip: true
         z: 101
         opacity: root.query.length > 0 ? 1 : 0
-        scale: root.query.length > 0 ? 1 : 0.975
         Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard } }
-        Behavior on scale { NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized } }
 
         Text {
             visible: root.filteredEntries.length === 0
