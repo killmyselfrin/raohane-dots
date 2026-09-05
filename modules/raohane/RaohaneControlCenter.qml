@@ -24,7 +24,7 @@ Scope {
         return host.length > 0 ? host : user
     }
     readonly property int panelWidth: Math.min(680, Math.max(520, Math.round((root.focusedScreen?.width ?? 1280) * 0.46)))
-    readonly property int panelHeight: Math.min(560, Math.max(500, Math.round((root.focusedScreen?.height ?? 800) - 72)))
+    readonly property int panelHeight: Math.min(620, Math.max(560, Math.round((root.focusedScreen?.height ?? 800) - 72)))
     property date now: new Date()
 
     Timer {
@@ -271,16 +271,16 @@ Scope {
                         visible: !quickControls.pickerOpen
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        spacing: 8
+                        spacing: 7
 
                         MediaCard {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 150
+                            Layout.preferredHeight: 126
                         }
 
                         InfoCard {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 78
+                            Layout.preferredHeight: 52
                             icon: "headphones"
                             title: qsTr("Devices")
                             firstLabel: qsTr("Output")
@@ -292,7 +292,7 @@ Scope {
 
                         InfoCard {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 78
+                            Layout.preferredHeight: 52
                             icon: RaohaneNetwork.materialSymbol
                             title: qsTr("Network")
                             firstLabel: qsTr("Wi-Fi")
@@ -305,7 +305,11 @@ Scope {
                             onTriggered: quickControls.togglePicker("wifi")
                         }
 
-                        Item { Layout.fillHeight: true }
+                        RaohaneNotificationCenter {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.preferredHeight: 104
+                        }
                     }
                 }
 
@@ -552,7 +556,7 @@ Scope {
         property bool accent: false
         signal triggered()
 
-        surfaceRadius: 13
+        surfaceRadius: 11
         raised: false
         showSheen: false
         interactive: true
@@ -566,27 +570,20 @@ Scope {
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 9
-            spacing: 9
+            anchors.margins: 7
+            spacing: 7
 
-            RaohaneSurface {
-                Layout.preferredWidth: 34
-                Layout.preferredHeight: 34
-                surfaceRadius: 10
-                active: infoCard.accent
-                showSheen: false
-                RaohaneIcon {
-                    anchors.centerIn: parent
-                    text: infoCard.icon
-                    iconSize: 16
-                    fill: infoCard.accent ? 1 : 0
-                    color: infoCard.accent ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                }
+            RaohaneIcon {
+                Layout.preferredWidth: 20
+                text: infoCard.icon
+                iconSize: 15
+                fill: infoCard.accent ? 1 : 0
+                color: infoCard.accent ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: 0
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -594,13 +591,13 @@ Scope {
                         Layout.fillWidth: true
                         text: infoCard.title
                         color: RaohaneTheme.text
-                        font.pixelSize: 9
+                        font.pixelSize: 8
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
                     RaohaneIcon {
                         text: "arrow_forward"
-                        iconSize: 11
+                        iconSize: 10
                         color: infoCard.hovered ? RaohaneTheme.accent : RaohaneTheme.textFaint
                     }
                 }
@@ -645,7 +642,7 @@ Scope {
     component MediaCard: RaohaneSurface {
         id: mediaCard
 
-        surfaceRadius: 14
+        surfaceRadius: 12
         showSheen: false
         raised: false
         hovered: mediaMouse.containsMouse
@@ -656,18 +653,18 @@ Scope {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 10
-            spacing: 7
+            anchors.margins: 9
+            spacing: 5
 
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 10
+                spacing: 9
 
                 Rectangle {
-                    Layout.preferredWidth: 68
-                    Layout.preferredHeight: 68
-                    radius: 13
+                    Layout.preferredWidth: 60
+                    Layout.preferredHeight: 60
+                    radius: 11
                     color: RaohaneTheme.accentSoft
                     clip: true
 
@@ -683,7 +680,7 @@ Scope {
                         anchors.centerIn: parent
                         visible: !mediaArt.visible
                         text: "music_note"
-                        iconSize: 25
+                        iconSize: 23
                         fill: RaohaneMedia.isPlaying ? 1 : 0
                         color: RaohaneTheme.accent
                     }
@@ -698,7 +695,7 @@ Scope {
                         text: RaohaneMedia.available && RaohaneMedia.title.length > 0
                             ? RaohaneMedia.title : qsTr("Nothing playing")
                         color: RaohaneTheme.text
-                        font.pixelSize: 10
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
@@ -739,24 +736,31 @@ Scope {
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 30
+                Layout.preferredHeight: 27
                 Item { Layout.fillWidth: true }
                 RaohaneIconButton {
-                    buttonSize: 28; iconSize: 14; icon: "skip_previous"; transparentIdle: true; showSheen: false
+                    buttonSize: 26; iconSize: 13; icon: "skip_previous"; transparentIdle: true; showSheen: false
                     enabled: RaohaneMedia.canGoPrevious
+                    hoverScale: 1
+                    pressedScale: 1
                     onClicked: RaohaneMedia.previous()
                 }
                 RaohaneIconButton {
-                    buttonSize: 30; iconSize: 16
+                    buttonSize: 28; iconSize: 15
                     icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
                     emphasized: RaohaneMedia.isPlaying
                     transparentIdle: !RaohaneMedia.isPlaying
+                    showSheen: false
+                    hoverScale: 1
+                    pressedScale: 1
                     enabled: RaohaneMedia.canTogglePlaying
                     onClicked: RaohaneMedia.togglePlaying()
                 }
                 RaohaneIconButton {
-                    buttonSize: 28; iconSize: 14; icon: "skip_next"; transparentIdle: true; showSheen: false
+                    buttonSize: 26; iconSize: 13; icon: "skip_next"; transparentIdle: true; showSheen: false
                     enabled: RaohaneMedia.canGoNext
+                    hoverScale: 1
+                    pressedScale: 1
                     onClicked: RaohaneMedia.next()
                 }
                 Item { Layout.fillWidth: true }
