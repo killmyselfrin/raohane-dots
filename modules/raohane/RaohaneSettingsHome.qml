@@ -16,14 +16,15 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 12
+        spacing: 14
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 190
+            Layout.preferredHeight: 138
             surfaceRadius: RaohaneTheme.radiusLarge
-            raised: true
+            raised: false
             clip: true
+            showSheen: false
             border.color: RaohaneTheme.borderStrong
 
             Loader {
@@ -37,7 +38,7 @@ Item {
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     cache: false
-                    opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.42 : 0.30) : 0
+                    opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.24 : 0.18) : 0
                 }
             }
 
@@ -45,89 +46,117 @@ Item {
                 anchors.fill: parent
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: RaohaneTheme.dark ? "#ee161616" : "#eef5f2ec" }
-                    GradientStop { position: 0.62; color: RaohaneTheme.dark ? "#c9161616" : "#d8f5f2ec" }
-                    GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#92161616" : "#9cf5f2ec" }
+                    GradientStop { position: 0.0; color: RaohaneTheme.dark ? "#f2171920" : "#f6f4f1eb" }
+                    GradientStop { position: 0.64; color: RaohaneTheme.dark ? "#dc171920" : "#e7f4f1eb" }
+                    GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#a9171920" : "#baf4f1eb" }
                 }
             }
 
-            Column {
-                anchors {
-                    left: parent.left
-                    leftMargin: 24
-                    top: parent.top
-                    topMargin: 22
-                }
-                spacing: 5
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 18
+                spacing: 18
 
-                Text {
-                    text: qsTr("Raohane")
-                    color: RaohaneTheme.text
-                    font.pixelSize: 19
-                    font.weight: Font.DemiBold
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: 4
+
+                    RowLayout {
+                        spacing: 10
+
+                        Rectangle {
+                            Layout.preferredWidth: 34
+                            Layout.preferredHeight: 34
+                            radius: 11
+                            color: RaohaneTheme.accentSoft
+                            border.width: 1
+                            border.color: RaohaneTheme.accentBorder
+
+                            RaohaneIcon {
+                                anchors.centerIn: parent
+                                text: "spa"
+                                iconSize: 18
+                                fill: 1
+                                symbolWeight: 560
+                                color: RaohaneTheme.accent
+                            }
+                        }
+
+                        ColumnLayout {
+                            spacing: 0
+
+                            Text {
+                                text: qsTr("Raohane")
+                                color: RaohaneTheme.text
+                                font.pixelSize: 17
+                                font.weight: Font.DemiBold
+                            }
+
+                            Text {
+                                text: qsTr("A minimal Hyprland shell, shaped live")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 9
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.topMargin: 10
+                        spacing: 7
+
+                        StatusChip {
+                            icon: RaohaneNetwork.materialSymbol
+                            text: RaohaneNetwork.networkName || qsTr("Offline")
+                            active: RaohaneNetwork.wifiStatus !== "disabled"
+                        }
+
+                        StatusChip {
+                            icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
+                            text: qsTr("%1% volume").arg(Math.round(RaohaneAudio.volume * 100))
+                            active: RaohaneAudio.ready && !RaohaneAudio.muted
+                        }
+
+                        StatusChip {
+                            icon: RaohanePrivacy.recordingActive ? "screen_record"
+                                : RaohanePrivacy.cameraActive ? "videocam"
+                                : RaohanePrivacy.microphoneActive ? "mic" : "shield"
+                            text: RaohanePrivacy.recordingActive ? qsTr("Screen capture")
+                                : RaohanePrivacy.cameraActive ? qsTr("Camera active")
+                                : RaohanePrivacy.microphoneActive ? qsTr("Microphone active")
+                                : qsTr("Privacy clear")
+                            active: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
+                            critical: active
+                        }
+                    }
                 }
 
-                Text {
-                    text: qsTr("A minimal Hyprland shell, shaped live")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 10
-                }
-            }
-
-            RaohaneContextIsland {
-                anchors {
-                    left: parent.left
-                    leftMargin: 24
-                    bottom: parent.bottom
-                    bottomMargin: 22
-                }
-            }
-
-            Column {
-                anchors {
-                    right: parent.right
-                    rightMargin: 22
-                    top: parent.top
-                    topMargin: 22
-                }
-                spacing: 7
-
-                StatusChip {
-                    icon: RaohaneNetwork.materialSymbol
-                    text: RaohaneNetwork.networkName || qsTr("Offline")
-                    active: RaohaneNetwork.wifiStatus !== "disabled"
+                Rectangle {
+                    Layout.preferredWidth: 1
+                    Layout.preferredHeight: 78
+                    color: RaohaneTheme.borderFaint
                 }
 
-                StatusChip {
-                    icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
-                    text: qsTr("%1% volume").arg(Math.round(RaohaneAudio.volume * 100))
-                    active: RaohaneAudio.ready && !RaohaneAudio.muted
-                }
+                ColumnLayout {
+                    Layout.preferredWidth: 190
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: 8
 
-                StatusChip {
-                    icon: RaohanePrivacy.recordingActive ? "screen_record"
-                        : RaohanePrivacy.cameraActive ? "videocam"
-                        : RaohanePrivacy.microphoneActive ? "mic" : "shield"
-                    text: RaohanePrivacy.recordingActive ? qsTr("Screen capture")
-                        : RaohanePrivacy.cameraActive ? qsTr("Camera active")
-                        : RaohanePrivacy.microphoneActive ? qsTr("Microphone active")
-                        : qsTr("Privacy clear")
-                    active: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
-                    critical: active
-                }
-            }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
 
-            Row {
-                anchors {
-                    right: parent.right
-                    rightMargin: 22
-                    bottom: parent.bottom
-                    bottomMargin: 22
-                }
-                spacing: 7
+                        MoodChip { label: RaohaneTheme.presetName; active: true }
+                        MoodChip { label: RaohaneTheme.dark ? qsTr("Dark") : qsTr("Light") }
+                    }
 
-                MoodChip { label: RaohaneTheme.presetName; active: true }
-                MoodChip { label: RaohaneTheme.dark ? qsTr("Dark") : qsTr("Light") }
+                    PathChip {
+                        Layout.fillWidth: true
+                        label: qsTr("Open native.json")
+                        path: RaohanePaths.nativeConfigFile
+                        icon: "tune"
+                    }
+                }
             }
         }
 
@@ -153,20 +182,14 @@ Item {
             }
 
             Item { Layout.fillWidth: true }
-
-            PathChip {
-                label: qsTr("Open native.json")
-                path: RaohanePaths.nativeConfigFile
-                icon: "tune"
-            }
         }
 
         GridLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            columns: root.width > 820 ? 3 : 2
-            columnSpacing: 10
-            rowSpacing: 10
+            columns: 2
+            columnSpacing: 9
+            rowSpacing: 9
 
             DeckCard {
                 Layout.fillWidth: true
@@ -230,26 +253,37 @@ Item {
                 detail: qsTr("Choose the controls shown in the command surface")
                 page: "Quick Controls"
             }
+
+            DeckCard {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                icon: "keyboard"
+                title: qsTr("Keyboard & Motion")
+                detail: qsTr("Keybinds, input behavior and animation preferences")
+                page: "Keyboard & Motion"
+            }
         }
     }
 
-    component PathChip: Rectangle {
+    component PathChip: RaohaneSurface {
         id: pathChip
 
         required property string label
         required property string path
         required property string icon
 
-        width: pathRow.implicitWidth + 18
-        height: 29
-        radius: 10
-        color: pathMouse.containsMouse ? RaohaneTheme.surfaceHover : "transparent"
-        border.width: 1
-        border.color: pathMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        implicitHeight: 31
+        surfaceRadius: 10
+        transparentIdle: true
+        showSheen: false
+        hovered: pathMouse.containsMouse
+        interactive: true
+        border.color: pathMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
-        Row {
-            id: pathRow
-            anchors.centerIn: parent
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 9
+            anchors.rightMargin: 9
             spacing: 6
 
             RaohaneIcon {
@@ -259,9 +293,17 @@ Item {
             }
 
             Text {
+                Layout.fillWidth: true
                 text: pathChip.label
-                color: RaohaneTheme.textMuted
+                color: pathMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
                 font.pixelSize: 8
+                elide: Text.ElideRight
+            }
+
+            RaohaneIcon {
+                text: "arrow_outward"
+                iconSize: 11
+                color: RaohaneTheme.textFaint
             }
         }
 
@@ -288,61 +330,68 @@ Item {
         required property string detail
         required property string page
 
-        Layout.minimumHeight: 108
-        surfaceRadius: 17
+        Layout.minimumHeight: 70
+        surfaceRadius: 15
         hovered: cardMouse.containsMouse
+        pressed: cardMouse.pressed
+        interactive: true
         raised: false
         showSheen: false
+        hoverScale: 1.004
+        pressedScale: 0.994
+        border.color: cardMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
-        ColumnLayout {
+        RowLayout {
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 6
+            anchors.leftMargin: 12
+            anchors.rightMargin: 11
+            spacing: 10
 
-            RowLayout {
-                Layout.fillWidth: true
-
-                Rectangle {
-                    width: 32
-                    height: 32
-                    radius: 10
-                    color: RaohaneTheme.surfaceSubtle
-                    border.width: 1
-                    border.color: cardMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.border
-
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        text: card.icon
-                        iconSize: 17
-                        color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
+            Rectangle {
+                Layout.preferredWidth: 36
+                Layout.preferredHeight: 36
+                radius: 11
+                color: cardMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
+                border.width: 1
+                border.color: cardMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
                 RaohaneIcon {
-                    text: "arrow_forward"
-                    iconSize: 14
-                    color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    anchors.centerIn: parent
+                    text: card.icon
+                    iconSize: 17
+                    fill: cardMouse.containsMouse ? 0.45 : 0
+                    symbolWeight: cardMouse.containsMouse ? 520 : 430
+                    color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
             }
 
-            Text {
+            ColumnLayout {
                 Layout.fillWidth: true
-                text: card.title
-                color: RaohaneTheme.text
-                font.pixelSize: 10
-                font.weight: Font.DemiBold
+                spacing: 2
+
+                Text {
+                    Layout.fillWidth: true
+                    text: card.title
+                    color: RaohaneTheme.text
+                    font.pixelSize: 9
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: card.detail
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 7
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                }
             }
 
-            Text {
-                Layout.fillWidth: true
-                text: card.detail
-                color: RaohaneTheme.textMuted
-                font.pixelSize: 8
-                wrapMode: Text.Wrap
-                maximumLineCount: 2
-                elide: Text.ElideRight
+            RaohaneIcon {
+                text: "chevron_right"
+                iconSize: 14
+                color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
             }
         }
 
@@ -363,12 +412,13 @@ Item {
         property bool active: false
         property bool critical: false
 
-        width: chipRow.implicitWidth + 18
-        height: 27
+        Layout.preferredWidth: Math.min(164, chipRow.implicitWidth + 18)
+        Layout.preferredHeight: 27
         radius: 10
         color: RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: critical ? RaohaneTheme.critical : active ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        border.color: critical ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.55)
+            : active ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         Row {
             id: chipRow
@@ -377,15 +427,17 @@ Item {
 
             RaohaneIcon {
                 text: chip.icon
-                iconSize: 13
+                iconSize: 12
                 color: chip.critical ? RaohaneTheme.critical : chip.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
+                width: Math.min(120, implicitWidth)
                 text: chip.text
                 color: RaohaneTheme.text
-                font.pixelSize: 8
+                font.pixelSize: 7
                 font.weight: Font.Medium
+                elide: Text.ElideRight
             }
         }
     }
@@ -394,19 +446,19 @@ Item {
         required property string label
         property bool active: false
 
-        width: labelText.implicitWidth + 18
-        height: 25
+        Layout.preferredWidth: labelText.implicitWidth + 18
+        Layout.preferredHeight: 25
         radius: 9
-        color: active ? RaohaneTheme.surfaceRaised : RaohaneTheme.surfaceSubtle
+        color: active ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: active ? RaohaneTheme.borderStrong : RaohaneTheme.border
+        border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
         Text {
             id: labelText
             anchors.centerIn: parent
             text: label
             color: active ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            font.pixelSize: 8
+            font.pixelSize: 7
             font.weight: Font.Medium
         }
     }
