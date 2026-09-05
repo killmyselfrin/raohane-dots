@@ -14,6 +14,19 @@ Scope {
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
     readonly property var results: RaohaneSearch.results.slice(0, 9)
+    readonly property var idleActions: RaohaneSearch.actionResults("").slice(0, 6)
+    readonly property string currentMode: {
+        const value = String(RaohaneSearch.query ?? "").replace(/^\s+/, "")
+        if (value.startsWith("/"))
+            return "action"
+        if (value.startsWith(">"))
+            return "command"
+        if (value.startsWith(":"))
+            return "clipboard"
+        if (value.startsWith("="))
+            return "calculator"
+        return "app"
+    }
 
     RaohaneSelectionModel {
         id: selection
@@ -27,6 +40,20 @@ Scope {
     function reset(): void {
         selection.reset()
         RaohaneSearch.query = ""
+    }
+
+    function stripMode(value): string {
+        const current = String(value ?? "").replace(/^\s+/, "")
+        if (current.startsWith("/") || current.startsWith(">") || current.startsWith(":") || current.startsWith("="))
+            return current.slice(1).replace(/^\s+/, "")
+        return current
+    }
+
+    function setMode(prefix: string): void {
+        const body = root.stripMode(RaohaneSearch.query)
+        RaohaneSearch.query = prefix + body
+        selection.reset()
+        searchInput.forceActiveFocus()
     }
 
     function executeSelected(): void {
@@ -45,8 +72,8 @@ Scope {
         visible: RaohaneState.launcherOpen
         screen: root.focusedScreen
         exclusiveZone: 0
-        implicitWidth: 684
-        implicitHeight: Math.min(600, launcherSurface.implicitHeight + 18)
+        implicitWidth: 612
+        implicitHeight: Math.min(620, launcherSurface.implicitHeight + 18)
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-launcher"
@@ -60,7 +87,7 @@ Scope {
             left: true
             right: true
         }
-        margins.top: 78
+        margins.top: 82
 
         onVisibleChanged: {
             if (visible) {
@@ -85,9 +112,9 @@ Scope {
             property bool entered: false
 
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 640
+            width: 572
             implicitHeight: content.implicitHeight + 28
-            surfaceRadius: RaohaneTheme.radiusHero
+            surfaceRadius: RaohaneTheme.radiusLarge
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
@@ -115,63 +142,89 @@ Scope {
                     top: parent.top
                     margins: 14
                 }
-                spacing: 8
+                spacing: 9
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 28
-                    Layout.leftMargin: 3
-                    Layout.rightMargin: 3
-                    spacing: 8
+                    Layout.preferredHeight: 34
+                    spacing: 9
 
-                    Text {
-                        text: qsTr("Raohane Search")
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 9
-                        font.weight: Font.DemiBold
+                    RaohaneSurface {
+                        Layout.preferredWidth: 32
+                        Layout.preferredHeight: 32
+                        surfaceRadius: 11
+                        active: true
+                        showSheen: false
+
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "spa"
+                            iconSize: 17
+                            fill: 1
+                            symbolWeight: 560
+                            color: RaohaneTheme.accent
+                        }
                     }
 
-                    Item { Layout.fillWidth: true }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: -1
 
-                    Text {
-                        text: qsTr("apps · actions · commands · clipboard")
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        Text {
+                            text: "Raohane"
+                            color: RaohaneTheme.text
+                            font.pixelSize: 11
+                            font.weight: Font.DemiBold
+                            font.letterSpacing: 0.4
+                        }
+
+                        Text {
+                            text: qsTr("apps · actions · commands · clipboard")
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                        }
+                    }
+
+                    RaohaneSurface {
+                        implicitWidth: escText.implicitWidth + 16
+                        implicitHeight: 24
+                        surfaceRadius: 8
+                        transparentIdle: false
+                        showSheen: false
+
+                        Text {
+                            id: escText
+                            anchors.centerIn: parent
+                            text: "ESC"
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                            font.weight: Font.DemiBold
+                            font.letterSpacing: 0.5
+                        }
                     }
                 }
 
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 56
-                    surfaceRadius: 17
+                    Layout.preferredHeight: 54
+                    surfaceRadius: 16
                     raised: true
                     hovered: searchInput.activeFocus
                     showSheen: false
-                    border.color: searchInput.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
+                    border.color: searchInput.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 13
+                        anchors.leftMargin: 12
                         anchors.rightMargin: 12
-                        spacing: 11
+                        spacing: 10
 
-                        RaohaneSurface {
-                            Layout.preferredWidth: 34
-                            Layout.preferredHeight: 34
-                            surfaceRadius: 11
-                            showSheen: false
-                            active: searchInput.activeFocus
-
-                            RaohaneIcon {
-                                anchors.centerIn: parent
-                                text: "search"
-                                iconSize: 18
-                                fill: searchInput.activeFocus ? 1 : 0
-                                symbolWeight: searchInput.activeFocus ? 540 : 440
-                                color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
-
-                                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                            }
+                        RaohaneIcon {
+                            text: "search"
+                            iconSize: 18
+                            fill: searchInput.activeFocus ? 1 : 0
+                            symbolWeight: searchInput.activeFocus ? 540 : 430
+                            color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
                         }
 
                         TextInput {
@@ -181,7 +234,7 @@ Scope {
                             color: RaohaneTheme.text
                             selectionColor: RaohaneTheme.accentSoft
                             selectedTextColor: RaohaneTheme.text
-                            font.pixelSize: 15
+                            font.pixelSize: 14
                             clip: true
                             text: RaohaneSearch.query
 
@@ -208,20 +261,169 @@ Scope {
                             }
                         }
 
-                        RaohaneSurface {
-                            implicitWidth: escText.implicitWidth + 14
-                            implicitHeight: 23
-                            surfaceRadius: 8
-                            transparentIdle: true
-                            showSheen: false
+                        RaohaneIcon {
+                            visible: searchInput.text.length > 0
+                            text: "backspace"
+                            iconSize: 15
+                            color: clearMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
 
-                            Text {
-                                id: escText
-                                anchors.centerIn: parent
-                                text: "esc"
-                                color: RaohaneTheme.textFaint
-                                font.pixelSize: 8
-                                font.weight: Font.Medium
+                            MouseArea {
+                                id: clearMouse
+                                anchors.fill: parent
+                                anchors.margins: -8
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.reset()
+                            }
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    ModeChip {
+                        label: qsTr("App")
+                        icon: "apps"
+                        prefix: ""
+                        selected: root.currentMode === "app"
+                    }
+                    ModeChip {
+                        label: qsTr("Raohane action")
+                        icon: "bolt"
+                        prefix: "/"
+                        selected: root.currentMode === "action"
+                    }
+                    ModeChip {
+                        label: qsTr("Shell command")
+                        icon: "terminal"
+                        prefix: ">"
+                        selected: root.currentMode === "command"
+                    }
+                    ModeChip {
+                        label: qsTr("Clipboard")
+                        icon: "content_paste"
+                        prefix: ":"
+                        selected: root.currentMode === "clipboard"
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 7
+                    visible: RaohaneSearch.query.trim().length === 0
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 2
+                        Layout.rightMargin: 2
+
+                        Text {
+                            text: qsTr("Search Raohane")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 8
+                            font.weight: Font.DemiBold
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Text {
+                            text: "/  >  =  :"
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
+                        }
+                    }
+
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 2
+                        columnSpacing: 7
+                        rowSpacing: 7
+
+                        Repeater {
+                            model: root.idleActions
+
+                            delegate: RaohaneSurface {
+                                id: idleAction
+                                required property var modelData
+
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 54
+                                surfaceRadius: 14
+                                showSheen: false
+                                raised: false
+                                hovered: idleActionMouse.containsMouse
+                                pressed: idleActionMouse.pressed
+                                interactive: true
+                                hoverScale: 1.004
+                                pressedScale: 0.992
+                                border.color: hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 10
+                                    anchors.rightMargin: 10
+                                    spacing: 9
+
+                                    RaohaneSurface {
+                                        Layout.preferredWidth: 32
+                                        Layout.preferredHeight: 32
+                                        surfaceRadius: 10
+                                        active: idleAction.hovered
+                                        showSheen: false
+
+                                        RaohaneIcon {
+                                            anchors.centerIn: parent
+                                            text: idleAction.modelData.iconName
+                                            iconSize: 16
+                                            fill: idleAction.hovered ? 1 : 0
+                                            symbolWeight: idleAction.hovered ? 540 : 430
+                                            color: idleAction.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                        }
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 0
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: idleAction.modelData.name
+                                            color: RaohaneTheme.text
+                                            font.pixelSize: 9
+                                            font.weight: Font.DemiBold
+                                            elide: Text.ElideRight
+                                        }
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: idleAction.modelData.type
+                                            color: RaohaneTheme.textFaint
+                                            font.pixelSize: 7
+                                            elide: Text.ElideRight
+                                        }
+                                    }
+
+                                    RaohaneIcon {
+                                        text: "arrow_outward"
+                                        iconSize: 12
+                                        color: idleAction.hovered ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: idleActionMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        root.close()
+                                        idleAction.modelData.execute()
+                                    }
+                                }
                             }
                         }
                     }
@@ -229,7 +431,7 @@ Scope {
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 3
+                    spacing: 4
                     visible: root.results.length > 0
 
                     Repeater {
@@ -243,15 +445,15 @@ Scope {
                             readonly property bool selected: index === selection.currentIndex
 
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 50
-                            surfaceRadius: 14
+                            Layout.preferredHeight: 49
+                            surfaceRadius: 13
                             active: selected
                             hovered: resultMouse.containsMouse || activeFocus
                             pressed: resultMouse.pressed
                             interactive: true
-                            transparentIdle: !selected
+                            transparentIdle: !selected && !hovered
                             showSheen: false
-                            hoverScale: 1.006
+                            hoverScale: 1.003
                             pressedScale: 0.992
                             activeFocusOnTab: true
 
@@ -266,29 +468,25 @@ Scope {
                                 height: 20
                                 radius: 1
                                 color: RaohaneTheme.accent
-
-                                Behavior on height {
-                                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
-                                }
                             }
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 11
-                                anchors.rightMargin: 12
-                                spacing: 10
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 11
+                                spacing: 9
 
                                 RaohaneSurface {
-                                    Layout.preferredWidth: 32
-                                    Layout.preferredHeight: 32
+                                    Layout.preferredWidth: 31
+                                    Layout.preferredHeight: 31
                                     surfaceRadius: 10
                                     active: resultRow.selected
                                     showSheen: false
 
                                     Loader {
                                         anchors.centerIn: parent
-                                        width: 26
-                                        height: 26
+                                        width: 25
+                                        height: 25
                                         sourceComponent: {
                                             if (resultRow.modelData.iconType === "system")
                                                 return systemIcon
@@ -305,7 +503,7 @@ Scope {
                                         RaohaneAdaptiveIcon {
                                             anchors.centerIn: parent
                                             iconSource: String(resultRow.modelData.iconName ?? "")
-                                            iconSize: 24
+                                            iconSize: 23
                                             fallbackColor: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                         }
                                     }
@@ -315,7 +513,7 @@ Scope {
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: resultRow.modelData.iconName
-                                            iconSize: 18
+                                            iconSize: 17
                                             fill: resultRow.selected ? 1 : 0
                                             symbolWeight: resultRow.selected ? 540 : 430
                                             color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -328,7 +526,7 @@ Scope {
                                             anchors.centerIn: parent
                                             text: resultRow.modelData.iconName
                                             color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.text
-                                            font.pixelSize: 16
+                                            font.pixelSize: 15
                                         }
                                     }
 
@@ -337,7 +535,7 @@ Scope {
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: "apps"
-                                            iconSize: 17
+                                            iconSize: 16
                                             color: RaohaneTheme.textMuted
                                         }
                                     }
@@ -351,7 +549,7 @@ Scope {
                                         Layout.fillWidth: true
                                         text: resultRow.modelData.name
                                         color: RaohaneTheme.text
-                                        font.pixelSize: 10
+                                        font.pixelSize: 9
                                         font.weight: resultRow.selected ? Font.DemiBold : Font.Medium
                                         elide: Text.ElideRight
                                     }
@@ -360,28 +558,17 @@ Scope {
                                         Layout.fillWidth: true
                                         text: resultRow.modelData.comment || resultRow.modelData.type
                                         color: RaohaneTheme.textMuted
-                                        font.pixelSize: 8
+                                        font.pixelSize: 7
                                         elide: Text.ElideRight
                                     }
                                 }
 
-                                RaohaneSurface {
-                                    visible: verbText.text.length > 0
-                                    implicitWidth: verbText.implicitWidth + 13
-                                    implicitHeight: 22
-                                    surfaceRadius: 8
-                                    transparentIdle: true
-                                    showSheen: false
-                                    active: resultRow.selected
-
-                                    Text {
-                                        id: verbText
-                                        anchors.centerIn: parent
-                                        text: resultRow.modelData.verb
-                                        color: resultRow.selected ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
-                                        font.pixelSize: 8
-                                        font.weight: Font.Medium
-                                    }
+                                Text {
+                                    text: resultRow.modelData.verb
+                                    color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                                    font.pixelSize: 7
+                                    font.weight: Font.DemiBold
+                                    font.letterSpacing: 0.4
                                 }
                             }
 
@@ -412,7 +599,7 @@ Scope {
                 Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 92
-                    visible: root.results.length === 0
+                    visible: RaohaneSearch.query.trim().length > 0 && root.results.length === 0
 
                     Column {
                         anchors.centerIn: parent
@@ -420,9 +607,9 @@ Scope {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: RaohaneSearch.query.length === 0 ? qsTr("Search Raohane") : qsTr("No results")
+                            text: qsTr("No results")
                             color: RaohaneTheme.text
-                            font.pixelSize: 12
+                            font.pixelSize: 11
                             font.weight: Font.DemiBold
                         }
 
@@ -443,9 +630,9 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 22
-                    Layout.leftMargin: 3
-                    Layout.rightMargin: 3
+                    Layout.preferredHeight: 20
+                    Layout.leftMargin: 2
+                    Layout.rightMargin: 2
 
                     Text {
                         text: "RAOHANE"
@@ -460,10 +647,60 @@ Scope {
                     Text {
                         text: "↑↓ navigate   ↵ open"
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        font.pixelSize: 7
                     }
                 }
             }
+        }
+    }
+
+    component ModeChip: RaohaneSurface {
+        id: chip
+
+        required property string label
+        required property string icon
+        required property string prefix
+        property bool selected: false
+
+        Layout.preferredWidth: chipRow.implicitWidth + 18
+        Layout.preferredHeight: 30
+        surfaceRadius: 10
+        active: selected
+        hovered: chipMouse.containsMouse
+        pressed: chipMouse.pressed
+        interactive: true
+        transparentIdle: !selected && !hovered
+        showSheen: false
+        hoverScale: 1.003
+        pressedScale: 0.992
+
+        Row {
+            id: chipRow
+            anchors.centerIn: parent
+            spacing: 5
+
+            RaohaneIcon {
+                text: chip.icon
+                iconSize: 12
+                fill: chip.selected ? 1 : 0
+                symbolWeight: chip.selected ? 540 : 430
+                color: chip.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+
+            Text {
+                text: chip.label
+                color: chip.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
+                font.pixelSize: 7
+                font.weight: chip.selected ? Font.DemiBold : Font.Medium
+            }
+        }
+
+        MouseArea {
+            id: chipMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.setMode(chip.prefix)
         }
     }
 
