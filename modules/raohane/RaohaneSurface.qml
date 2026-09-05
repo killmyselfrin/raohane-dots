@@ -13,15 +13,12 @@ Rectangle {
     property bool transparentIdle: false
     property int surfaceRadius: RaohaneTheme.radius
     property bool showSheen: true
+    property bool showInnerRim: true
     property bool transformMotion: true
-    property real hoverScale: RaohaneMotion.subtleHoverScale
-    property real pressedScale: RaohaneMotion.softPressScale
+    property real hoverScale: 1
+    property real pressedScale: 1
     property string feedback: "tap"
 
-    // Game Mode already removes compositor blur/rounding/animations. Keep the
-    // QML interaction layer on the same low-cost path as well: large shared
-    // surfaces retain color/focus feedback, but stop scale transforms. The same
-    // policy also respects the Style Studio reduced-motion preset.
     readonly property bool transformMotionAllowed: root.transformMotion
         && RaohaneMotion.transformMotionEnabled
         && !RaohanePerformance.gameModeActive
@@ -46,19 +43,20 @@ Rectangle {
         ? RaohaneTheme.accentBorder
         : hovered || pressed
             ? RaohaneTheme.borderStrong
-            : RaohaneTheme.border
+            : raised
+                ? RaohaneTheme.borderStrong
+                : RaohaneTheme.border
 
     onPressedChanged: {
         if (root.interactive && root.pressed && root.feedback.length > 0)
             RaohaneUiFeedback.play(root.feedback)
     }
 
-    // The final Nocturne material uses a very restrained inner rim instead of
-    // a heavy drop shadow. Because it lives in the shared primitive, panels,
-    // cards and command tiles keep identical depth and do not grow one-off
-    // glow implementations.
+    // Reference material: every real glass card gets a quiet inner rim. It is
+    // deliberately independent from hover so stacked panels keep their depth
+    // even while idle.
     Rectangle {
-        visible: !root.transparentIdle && (root.raised || root.active || root.hovered)
+        visible: root.showInnerRim && (!root.transparentIdle || root.active || root.hovered || root.pressed)
         z: 98
         anchors.fill: parent
         anchors.margins: 1
@@ -68,8 +66,8 @@ Rectangle {
         border.color: root.active
             ? Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g, RaohaneTheme.accent.b, 0.10)
             : Qt.rgba(RaohaneTheme.highlight.r, RaohaneTheme.highlight.g, RaohaneTheme.highlight.b,
-                root.hovered ? 0.085 : root.raised ? 0.050 : 0.030)
-        opacity: root.pressed ? 0.45 : 1
+                root.hovered ? 0.080 : root.raised ? 0.052 : 0.032)
+        opacity: root.pressed ? 0.55 : 1
 
         Behavior on border.color {
             ColorAnimation { duration: RaohaneMotion.micro }
@@ -79,6 +77,8 @@ Rectangle {
         }
     }
 
+    // A one-pixel top catch-light gives the smoky panels the same polished rim
+    // as the reference without a compositor-expensive shadow/glow layer.
     Rectangle {
         visible: root.showSheen && RaohaneTheme.sheenEnabled && !root.transparentIdle
         z: 100
@@ -86,12 +86,12 @@ Rectangle {
             left: parent.left
             right: parent.right
             top: parent.top
-            leftMargin: root.surfaceRadius
-            rightMargin: root.surfaceRadius
+            leftMargin: Math.max(8, root.surfaceRadius - 2)
+            rightMargin: Math.max(8, root.surfaceRadius - 2)
         }
         height: 1
         color: root.active ? RaohaneTheme.accentGlow : RaohaneTheme.highlight
-        opacity: root.pressed ? 0.04 : root.active ? 0.24 : root.hovered ? 0.15 : root.raised ? 0.09 : 0.06
+        opacity: root.pressed ? 0.03 : root.active ? 0.20 : root.hovered ? 0.13 : root.raised ? 0.08 : 0.045
 
         Behavior on opacity {
             NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
@@ -108,7 +108,7 @@ Rectangle {
         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
     }
     Behavior on scale {
-        enabled: root.transformMotionAllowed
+        enabled: root.transformMotionAllowed && (root.hoverScale !== 1 || root.pressedScale !== 1)
         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeEmphasized }
     }
 }
