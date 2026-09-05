@@ -74,9 +74,6 @@ Scope {
             color: "transparent"
             border.width: 1
             border.color: RaohaneTheme.borderFaint
-            opacity: panelWindow.visible ? 1 : 0
-
-            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
         }
 
         RaohaneSurface {
@@ -87,19 +84,9 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: panelWindow.visible ? 1 : 0
-            scale: panelWindow.visible ? 1 : 0.985
 
-            transform: Translate {
-                y: panelWindow.visible ? 0 : -7
-                Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                }
-            }
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-            }
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             MouseArea {
@@ -494,9 +481,6 @@ Scope {
                                             border.color: RaohaneTheme.accentBorder
 
                                             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                                            Behavior on border.width {
-                                                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-                                            }
                                         }
 
                                         Text {
@@ -510,16 +494,13 @@ Scope {
                                             }
                                             text: String(lyricLine.modelData.text ?? "")
                                             color: lyricLine.current ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                            font.pixelSize: lyricLine.current ? 12 : 10
+                                            font.pixelSize: 10
                                             font.weight: lyricLine.current ? Font.DemiBold : Font.Normal
                                             wrapMode: Text.WordWrap
                                             horizontalAlignment: Text.AlignHCenter
 
                                             Behavior on color {
                                                 ColorAnimation { duration: RaohaneMotion.micro }
-                                            }
-                                            Behavior on font.pixelSize {
-                                                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
                                             }
                                         }
 
@@ -668,8 +649,8 @@ Scope {
         buttonSize: 36
         iconSize: 18
         showSheen: false
-        hoverScale: RaohaneMotion.hoverScale
-        pressedScale: RaohaneMotion.pressScale
+        hoverScale: 1
+        pressedScale: 1
     }
 
     component MainButton: RaohaneIconButton {
@@ -679,7 +660,7 @@ Scope {
         iconSize: control.emphasized ? 24 : 21
         surfaceRadius: control.emphasized ? 17 : 14
         showSheen: false
-        hoverScale: control.emphasized ? 1.035 : RaohaneMotion.hoverScale
-        pressedScale: RaohaneMotion.pressScale
+        hoverScale: 1
+        pressedScale: 1
     }
 }
