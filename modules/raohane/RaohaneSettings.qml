@@ -19,7 +19,9 @@ Scope {
         color: "transparent"
         WlrLayershell.namespace: "quickshell:raohane-settings"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: RaohaneState.settingsOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: RaohaneState.settingsOpen
+            ? WlrKeyboardFocus.OnDemand
+            : WlrKeyboardFocus.None
 
         anchors {
             top: true
@@ -46,14 +48,14 @@ Scope {
 
         Connections {
             target: RaohaneFocusGrab
-            function onDismissed() { panelWindow.hide() }
+            function onDismissed(): void { panelWindow.hide() }
         }
 
         Rectangle {
             anchors.fill: parent
             color: RaohaneTheme.dark
-                ? Qt.rgba(0, 0, 0, 0.46)
-                : Qt.rgba(0.18, 0.17, 0.15, 0.18)
+                ? Qt.rgba(0.01, 0.015, 0.035, 0.54)
+                : Qt.rgba(0.18, 0.17, 0.15, 0.20)
 
             MouseArea {
                 anchors.fill: parent
@@ -65,19 +67,22 @@ Scope {
             id: workspace
             property bool entered: false
 
-            width: Math.min(parent.width - 96, 1040)
-            height: Math.min(parent.height - 96, 700)
+            width: Math.min(parent.width - 72, 1080)
+            height: Math.min(parent.height - 76, 720)
             anchors.centerIn: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
-            showSheen: false
+            showSheen: true
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
             focus: RaohaneState.settingsOpen
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation {
+                    duration: RaohaneMotion.standard
+                    easing.type: RaohaneMotion.easeStandard
+                }
             }
 
             Rectangle {
@@ -85,9 +90,9 @@ Scope {
                 anchors {
                     left: parent.left
                     top: parent.top
-                    leftMargin: 18
+                    leftMargin: 15
                 }
-                width: 54
+                width: 40
                 height: 2
                 radius: 1
                 color: RaohaneTheme.accent
@@ -103,13 +108,13 @@ Scope {
                 id: settingsSearch
                 visible: !settingsContent.pageOwnsHeader
                 z: 50
-                width: Math.min(300, Math.max(220, workspace.width * 0.27))
-                height: 34
+                width: Math.min(278, Math.max(220, workspace.width * 0.265))
+                height: 32
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 19
-                    rightMargin: 204
+                    topMargin: 18
+                    rightMargin: 164
                 }
             }
 
@@ -117,63 +122,56 @@ Scope {
                 id: commandStrip
                 visible: !settingsContent.pageOwnsHeader
                 z: 50
-                width: 142
-                height: 34
+                width: 108
+                height: 32
                 anchors {
                     top: parent.top
                     right: parent.right
                     topMargin: 18
-                    rightMargin: 54
+                    rightMargin: 49
                 }
-                surfaceRadius: 11
+                surfaceRadius: 10
                 raised: false
                 showSheen: false
+                border.color: RaohaneTheme.borderFaint
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 4
+                    spacing: 2
 
                     RaohaneIconButton {
-                        buttonSize: 30
-                        iconSize: 15
+                        buttonSize: 26
+                        iconSize: 13
                         icon: "inventory_2"
                         transparentIdle: true
                         showSheen: false
-                        hoverScale: 1
-                        pressedScale: 1
                         onClicked: RaohaneSettingsRouter.request("backup", "")
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 30
-                        iconSize: 15
+                        buttonSize: 26
+                        iconSize: 13
                         icon: "keyboard"
                         transparentIdle: true
                         showSheen: false
-                        hoverScale: 1
-                        pressedScale: 1
                         onClicked: RaohaneSettingsRouter.request("keybinds", "")
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 30
-                        iconSize: 15
+                        buttonSize: 26
+                        iconSize: 13
                         icon: "animation"
                         transparentIdle: true
                         showSheen: false
-                        hoverScale: 1
-                        pressedScale: 1
                         onClicked: RaohaneSettingsRouter.request("motion", "")
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 30
-                        iconSize: 15
+                        buttonSize: 26
+                        iconSize: 13
                         icon: "language"
                         transparentIdle: true
                         showSheen: false
-                        hoverScale: 1
-                        pressedScale: 1
                         onClicked: RaohaneSettingsRouter.request("language", "")
                     }
                 }
@@ -184,16 +182,14 @@ Scope {
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 20
-                    rightMargin: 16
+                    topMargin: 19
+                    rightMargin: 13
                 }
-                buttonSize: 30
-                iconSize: 15
+                buttonSize: 28
+                iconSize: 14
                 icon: "close"
                 transparentIdle: true
                 showSheen: false
-                hoverScale: 1
-                pressedScale: 1
                 onClicked: panelWindow.hide()
             }
 
