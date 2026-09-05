@@ -76,6 +76,8 @@ RaohaneBarPreview 1.0 RaohaneBarPreview.qml
 RaohaneDockPreview 1.0 RaohaneDockPreview.qml
 RaohaneBarStudioShell 1.0 RaohaneBarStudioShell.qml
 RaohaneThemeCatalog 1.0 RaohaneThemeCatalog.qml
+RaohaneThemePresetManager 1.0 RaohaneThemePresetManager.qml
+RaohaneThemeStudio 1.0 RaohaneThemeStudio.qml
 RaohaneSettingsAbout 1.0 RaohaneSettingsAbout.qml
 RaohaneBackupSettings 1.0 RaohaneBackupSettings.qml
 RaohaneHyprlandPreferences 1.0 RaohaneHyprlandPreferences.qml
