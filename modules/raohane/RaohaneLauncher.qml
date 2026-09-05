@@ -72,8 +72,8 @@ Scope {
         visible: RaohaneState.launcherOpen
         screen: root.focusedScreen
         exclusiveZone: 0
-        implicitWidth: 612
-        implicitHeight: Math.min(620, launcherSurface.implicitHeight + 18)
+        implicitWidth: 620
+        implicitHeight: Math.min(640, launcherSurface.implicitHeight + 18)
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-launcher"
@@ -112,7 +112,7 @@ Scope {
             property bool entered: false
 
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 572
+            width: 580
             implicitHeight: content.implicitHeight + 28
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: true
@@ -120,17 +120,9 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.985
-            y: entered ? 0 : -10
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
-            }
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
-            }
-            Behavior on y {
-                NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             ColumnLayout {
@@ -216,7 +208,7 @@ Scope {
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 12
-                        anchors.rightMargin: 12
+                        anchors.rightMargin: 8
                         spacing: 10
 
                         RaohaneIcon {
@@ -225,55 +217,69 @@ Scope {
                             fill: searchInput.activeFocus ? 1 : 0
                             symbolWeight: searchInput.activeFocus ? 540 : 430
                             color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                         }
 
-                        TextInput {
-                            id: searchInput
-
+                        Item {
                             Layout.fillWidth: true
-                            color: RaohaneTheme.text
-                            selectionColor: RaohaneTheme.accentSoft
-                            selectedTextColor: RaohaneTheme.text
-                            font.pixelSize: 14
-                            clip: true
-                            text: RaohaneSearch.query
+                            Layout.fillHeight: true
 
-                            onTextChanged: {
-                                if (RaohaneSearch.query !== text)
-                                    RaohaneSearch.query = text
-                                selection.reset()
-                            }
+                            TextInput {
+                                id: searchInput
+                                anchors.fill: parent
+                                verticalAlignment: TextInput.AlignVCenter
+                                color: RaohaneTheme.text
+                                selectionColor: RaohaneTheme.accentSoft
+                                selectedTextColor: RaohaneTheme.text
+                                font.pixelSize: 14
+                                clip: true
+                                text: RaohaneSearch.query
 
-                            Keys.onPressed: event => {
-                                if (event.key === Qt.Key_Escape) {
-                                    root.close()
-                                    event.accepted = true
-                                } else if (event.key === Qt.Key_Down) {
-                                    selection.move(1)
-                                    event.accepted = true
-                                } else if (event.key === Qt.Key_Up) {
-                                    selection.move(-1)
-                                    event.accepted = true
-                                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                    root.executeSelected()
-                                    event.accepted = true
+                                onTextChanged: {
+                                    if (RaohaneSearch.query !== text)
+                                        RaohaneSearch.query = text
+                                    selection.reset()
+                                }
+
+                                Keys.onPressed: event => {
+                                    if (event.key === Qt.Key_Escape) {
+                                        root.close()
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Down) {
+                                        selection.move(1)
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Up) {
+                                        selection.move(-1)
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        root.executeSelected()
+                                        event.accepted = true
+                                    }
                                 }
                             }
+
+                            Text {
+                                anchors.fill: parent
+                                visible: searchInput.text.length === 0
+                                text: qsTr("Search Raohane")
+                                color: RaohaneTheme.textFaint
+                                font: searchInput.font
+                                verticalAlignment: Text.AlignVCenter
+                            }
                         }
 
-                        RaohaneIcon {
+                        RaohaneIconButton {
                             visible: searchInput.text.length > 0
-                            text: "backspace"
-                            iconSize: 15
-                            color: clearMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
-
-                            MouseArea {
-                                id: clearMouse
-                                anchors.fill: parent
-                                anchors.margins: -8
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: root.reset()
+                            buttonSize: 30
+                            iconSize: 14
+                            icon: "backspace"
+                            transparentIdle: true
+                            showSheen: false
+                            hoverScale: 1
+                            pressedScale: 1
+                            onClicked: {
+                                root.reset()
+                                searchInput.forceActiveFocus()
                             }
                         }
                     }
@@ -281,7 +287,7 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: 5
 
                     ModeChip {
                         label: qsTr("App")
@@ -300,6 +306,12 @@ Scope {
                         icon: "terminal"
                         prefix: ">"
                         selected: root.currentMode === "command"
+                    }
+                    ModeChip {
+                        label: qsTr("Calculator")
+                        icon: "calculate"
+                        prefix: "="
+                        selected: root.currentMode === "calculator"
                     }
                     ModeChip {
                         label: qsTr("Clipboard")
@@ -358,8 +370,8 @@ Scope {
                                 hovered: idleActionMouse.containsMouse
                                 pressed: idleActionMouse.pressed
                                 interactive: true
-                                hoverScale: 1.004
-                                pressedScale: 0.992
+                                hoverScale: 1
+                                pressedScale: 1
                                 border.color: hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
                                 RowLayout {
@@ -453,21 +465,29 @@ Scope {
                             interactive: true
                             transparentIdle: !selected && !hovered
                             showSheen: false
-                            hoverScale: 1.003
-                            pressedScale: 0.992
+                            hoverScale: 1
+                            pressedScale: 1
                             activeFocusOnTab: true
+                            border.color: selected
+                                ? RaohaneTheme.accentBorder
+                                : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
                             Rectangle {
-                                visible: resultRow.selected
                                 anchors {
                                     left: parent.left
                                     verticalCenter: parent.verticalCenter
                                     leftMargin: 3
                                 }
                                 width: 2
-                                height: 20
+                                height: selected ? 22 : 10
                                 radius: 1
                                 color: RaohaneTheme.accent
+                                opacity: selected ? 1 : hovered ? 0.34 : 0
+
+                                Behavior on height {
+                                    NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                                }
+                                Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
                             }
 
                             RowLayout {
@@ -666,13 +686,17 @@ Scope {
         Layout.preferredHeight: 30
         surfaceRadius: 10
         active: selected
-        hovered: chipMouse.containsMouse
+        hovered: chipMouse.containsMouse || activeFocus
         pressed: chipMouse.pressed
         interactive: true
         transparentIdle: !selected && !hovered
         showSheen: false
-        hoverScale: 1.003
-        pressedScale: 0.992
+        hoverScale: 1
+        pressedScale: 1
+        activeFocusOnTab: true
+        border.color: selected
+            ? RaohaneTheme.accentBorder
+            : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         Row {
             id: chipRow
@@ -695,12 +719,35 @@ Scope {
             }
         }
 
+        Rectangle {
+            anchors {
+                horizontalCenter: parent.horizontalCenter
+                bottom: parent.bottom
+                bottomMargin: 2
+            }
+            width: chip.selected ? 14 : 5
+            height: 2
+            radius: 1
+            color: RaohaneTheme.accent
+            opacity: chip.selected ? 0.92 : 0
+
+            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+        }
+
         MouseArea {
             id: chipMouse
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: chip.forceActiveFocus()
             onClicked: root.setMode(chip.prefix)
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                root.setMode(chip.prefix)
+                event.accepted = true
+            }
         }
     }
 
