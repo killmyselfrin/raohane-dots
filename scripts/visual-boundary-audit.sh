@@ -190,7 +190,13 @@ rg -q 'RaohaneTheme\.islandHeight' "$context" || fail 'Context Island no longer 
 
 rg -q 'visible:[[:space:]]*!RaohaneWallpapers\.isVideo\(RaohaneConfig\.wallpaperPath\)' "$settings_home" || fail 'Settings home no longer guards its hero from video wallpaper decoding'
 rg -q 'source:[[:space:]]*visible[[:space:]]*\?[[:space:]]*RaohaneConfig\.wallpaperPath[[:space:]]*:[[:space:]]*""' "$settings_home" || fail 'Settings home lost its video-safe live wallpaper hero source'
-rg -q 'RaohaneContextIsland[[:space:]]*\{' "$settings_home" || fail 'Settings home lost the Context Island live preview'
+rg -q 'component StatusChip:[[:space:]]*Rectangle' "$settings_home" || fail 'Settings home lost its compact live status-chip contract'
+rg -q 'RaohaneNetwork\.materialSymbol' "$settings_home" || fail 'Settings home lost live network status'
+rg -q 'RaohaneAudio\.(muted|volume|ready)' "$settings_home" || fail 'Settings home lost live audio status'
+rg -q 'RaohanePrivacy\.(recordingActive|cameraActive|microphoneActive)' "$settings_home" || fail 'Settings home lost live privacy status'
+if rg -q 'RaohaneContextIsland[[:space:]]*\{' "$settings_home"; then
+  fail 'Settings home reintroduced the nested Context Island preview'
+fi
 
 if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$media" "$control" "$settings"; then
   fail 'a primary surface regressed to legacy one-off chrome'
@@ -204,4 +210,4 @@ rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
