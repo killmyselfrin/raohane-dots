@@ -60,19 +60,16 @@ Scope {
 
     Connections {
         target: RaohaneDisplay
-
         function onBrightnessChanged(): void { root.trigger("brightness") }
         function onGammaChanged(): void { root.trigger("gamma") }
     }
 
     Connections {
         target: RaohaneAudio
-
         function onVolumeChanged(): void {
             if (RaohaneAudio.ready)
                 root.trigger("volume")
         }
-
         function onMutedChanged(): void {
             if (RaohaneAudio.ready)
                 root.trigger("volume")
@@ -90,8 +87,8 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
-            implicitWidth: 356
-            implicitHeight: 76
+            implicitWidth: 326
+            implicitHeight: 66
 
             WlrLayershell.namespace: "quickshell:raohane-osd"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -103,57 +100,33 @@ Scope {
             }
 
             margins {
-                top: 70
-                bottom: 70
+                top: 66
+                bottom: 66
             }
 
             mask: Region { item: card }
 
             RaohaneSurface {
                 id: card
+                property bool entered: false
 
-                width: 324
-                height: 64
+                width: 298
+                height: 56
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: !RaohaneConfig.barBottom ? parent.top : undefined
                 anchors.bottom: RaohaneConfig.barBottom ? parent.bottom : undefined
-                surfaceRadius: 19
+                surfaceRadius: 16
                 raised: true
-                showSheen: false
+                showSheen: true
                 border.color: RaohaneTheme.borderStrong
+                opacity: entered ? 1 : 0
 
-                opacity: 0
-                scale: 0.965
-                transform: Translate {
-                    id: cardTranslate
-                    y: RaohaneConfig.barBottom ? 10 : -10
-                }
+                Component.onCompleted: entered = true
 
-                Component.onCompleted: enterAnimation.start()
-
-                ParallelAnimation {
-                    id: enterAnimation
-
+                Behavior on opacity {
                     NumberAnimation {
-                        target: card
-                        property: "opacity"
-                        to: 1
                         duration: RaohaneMotion.standard
                         easing.type: RaohaneMotion.easeStandard
-                    }
-                    NumberAnimation {
-                        target: card
-                        property: "scale"
-                        to: 1
-                        duration: RaohaneMotion.enter
-                        easing.type: RaohaneMotion.easeEnter
-                    }
-                    NumberAnimation {
-                        target: cardTranslate
-                        property: "y"
-                        to: 0
-                        duration: RaohaneMotion.enter
-                        easing.type: RaohaneMotion.easeEmphasized
                     }
                 }
 
@@ -166,29 +139,29 @@ Scope {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 11
+                    anchors.margins: 9
+                    spacing: 10
 
                     RaohaneSurface {
-                        Layout.preferredWidth: 38
-                        Layout.preferredHeight: 38
-                        surfaceRadius: 12
-                        raised: false
+                        Layout.preferredWidth: 34
+                        Layout.preferredHeight: 34
+                        surfaceRadius: 10
                         active: root.currentIndicator === "volume" && RaohaneAudio.muted
                         showSheen: false
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: root.icon
-                            iconSize: 20
+                            iconSize: 17
                             fill: 1
+                            symbolWeight: 540
                             color: RaohaneTheme.accent
                         }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 5
+                        spacing: 4
 
                         RowLayout {
                             Layout.fillWidth: true
@@ -196,7 +169,7 @@ Scope {
                             Text {
                                 text: root.label
                                 color: RaohaneTheme.text
-                                font.pixelSize: 10
+                                font.pixelSize: 8
                                 font.weight: Font.DemiBold
                             }
 
@@ -205,15 +178,15 @@ Scope {
                             Text {
                                 text: root.percent + "%"
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
+                                font.pixelSize: 7
                                 font.weight: Font.DemiBold
                             }
                         }
 
                         Rectangle {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 5
-                            radius: 3
+                            Layout.preferredHeight: 4
+                            radius: 2
                             color: RaohaneTheme.surfaceDeep
                             border.width: 1
                             border.color: RaohaneTheme.borderFaint
@@ -223,7 +196,6 @@ Scope {
                                 height: parent.height
                                 radius: parent.radius
                                 color: RaohaneTheme.accent
-                                opacity: 0.9
 
                                 Behavior on width {
                                     NumberAnimation {
@@ -241,7 +213,6 @@ Scope {
 
     IpcHandler {
         target: "osdVolume"
-
         function trigger(): void { root.trigger("volume") }
         function hide(): void { RaohaneState.osdOpen = false }
         function toggle(): void { RaohaneState.osdOpen = !RaohaneState.osdOpen }
