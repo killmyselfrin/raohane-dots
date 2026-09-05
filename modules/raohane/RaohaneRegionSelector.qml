@@ -12,11 +12,9 @@ Scope {
 
     property bool busy: false
 
-    function prepareCapture(preserveControlCenter: bool): void {
-        const keep = preserveControlCenter && RaohaneState.controlCenterOpen
-            ? "controlCenter"
-            : ""
-        RaohaneState.closePrimarySurfaces(keep)
+    function prepareCapture(preserveShell: bool): void {
+        if (!preserveShell)
+            RaohaneState.closePrimarySurfaces("")
         RaohaneState.regionSelectorOpen = false
     }
 
@@ -36,18 +34,14 @@ Scope {
         if (root.busy)
             return
         root.busy = true
-        // Screenshots are also used to capture Raohane itself while iterating
-        // on the shell UI. Keep an already-open Control Center on screen, while
-        // still dismissing every other primary surface before region selection.
+
+        // A normal screenshot captures the shell exactly as the user sees it.
+        // slurp temporarily owns compositor focus, so suppress focus-based
+        // dismissal for the whole selection/grim lifecycle instead of closing
+        // individual Raohane surfaces before capture.
+        RaohaneFocusGrab.suppressDismiss()
         root.prepareCapture(true)
-        Quickshell.execDetached([
-            "bash", "-lc",
-            "geometry=\"$(slurp 2>/dev/null)\" || exit 0; "
-                + "[ -n \"$geometry\" ] || exit 0; "
-                + "grim -g \"$geometry\" - | wl-copy --type image/png && "
-                + "notify-send 'Screenshot copied' 'Selected region copied to clipboard' -a 'Raohane Capture' >/dev/null 2>&1 || true"
-        ])
-        busyReset.restart()
+        screenshotProcess.running = true
     }
 
     function search(): void {
@@ -69,6 +63,28 @@ Scope {
         else
             Quickshell.execDetached([script])
         busyReset.restart()
+    }
+
+    Process {
+        id: screenshotProcess
+        command: [
+            "bash", "-lc",
+            "geometry=\"$(slurp 2>/dev/null)\" || exit 0; "
+                + "[ -n \"$geometry\" ] || exit 0; "
+                + "grim -g \"$geometry\" - | wl-copy --type image/png && "
+                + "notify-send 'Screenshot copied' 'Selected region copied to clipboard' -a 'Raohane Capture' >/dev/null 2>&1 || true"
+        ]
+        onExited: captureResumeTimer.restart()
+    }
+
+    Timer {
+        id: captureResumeTimer
+        interval: 220
+        repeat: false
+        onTriggered: {
+            RaohaneFocusGrab.resumeDismiss()
+            root.busy = false
+        }
     }
 
     Timer {
@@ -124,4 +140,6 @@ Scope {
         description: "Record a selected region with sound"
         onPressed: root.record(true)
     }
+
+    Component.onDestruction: RaohaneFocusGrab.resumeDismiss()
 }
