@@ -8,34 +8,33 @@ RaohaneSurface {
 
     property bool compact: false
 
-    implicitHeight: root.compact ? 52 : 62
-    surfaceRadius: 21
-    raised: true
-    showSheen: true
-    opacity: 0.94
+    implicitHeight: root.compact ? 46 : 54
+    surfaceRadius: 0
+    transparentIdle: true
+    showInnerRim: false
+    showSheen: false
+    border.width: 0
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 15
-        anchors.rightMargin: 15
-        spacing: 11
+        spacing: 9
 
         Rectangle {
-            width: 2
-            height: 27
+            width: 1
+            height: 29
             radius: 1
             color: RaohaneTheme.accent
-            opacity: 0.68
+            opacity: 0.62
         }
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 0
+            spacing: 1
 
             Text {
                 text: qsTr("Move gently. Stay present.")
                 color: RaohaneTheme.text
-                font.pixelSize: 10
+                font.pixelSize: 9
                 font.weight: Font.Medium
             }
 
@@ -43,16 +42,9 @@ RaohaneSurface {
                 visible: !root.compact
                 text: "静かに、前へ"
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 8
-                font.letterSpacing: 0.8
+                font.pixelSize: 7
+                font.letterSpacing: 0.75
             }
-        }
-
-        RaohaneIcon {
-            text: "spa"
-            iconSize: 18
-            fill: 0.18
-            color: RaohaneTheme.accent
         }
     }
 }
