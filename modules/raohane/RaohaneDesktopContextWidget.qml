@@ -10,24 +10,43 @@ RaohaneSurface {
 
     property bool compact: false
 
-    implicitHeight: RaohaneMedia.available ? 116 : 82
-    surfaceRadius: 21
-    raised: true
-    showSheen: true
-    opacity: 0.94
+    implicitHeight: RaohaneMedia.available
+        ? (root.compact ? 92 : 104)
+        : (root.compact ? 64 : 72)
+    surfaceRadius: 11
+    raised: false
+    showSheen: false
+    border.color: RaohaneTheme.borderFaint
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 2
+        height: RaohaneMedia.available ? 36 : 24
+        radius: 1
+        color: RaohaneTheme.accent
+        opacity: RaohaneMedia.available ? 0.92 : 0.58
+    }
 
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 13
-        spacing: 12
+        anchors.leftMargin: 12
+        anchors.rightMargin: 11
+        anchors.topMargin: 10
+        anchors.bottomMargin: 10
+        spacing: 10
 
         Rectangle {
             id: contextArtwork
 
-            Layout.preferredWidth: RaohaneMedia.available ? 74 : 44
+            Layout.preferredWidth: RaohaneMedia.available
+                ? (root.compact ? 54 : 62)
+                : 38
             Layout.preferredHeight: width
-            radius: RaohaneMedia.available ? 18 : 14
+            radius: RaohaneMedia.available ? 9 : 8
             color: RaohaneTheme.accentSoft
+            border.width: 1
+            border.color: RaohaneTheme.borderFaint
             clip: true
 
             Image {
@@ -44,7 +63,7 @@ RaohaneSurface {
                 anchors.centerIn: parent
                 visible: !artImage.visible
                 text: RaohaneMedia.available ? "music_note" : RaohaneContext.icon
-                iconSize: RaohaneMedia.available ? 28 : 21
+                iconSize: RaohaneMedia.available ? 22 : 17
                 fill: 1
                 color: RaohaneTheme.accent
             }
@@ -52,7 +71,7 @@ RaohaneSurface {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 3
+            spacing: 2
 
             Text {
                 text: RaohaneMedia.available ? qsTr("NOW PLAYING") : qsTr("LIVE CONTEXT")
@@ -66,7 +85,7 @@ RaohaneSurface {
                 Layout.fillWidth: true
                 text: RaohaneMedia.available ? (RaohaneMedia.title || qsTr("Unknown track")) : RaohaneContext.title
                 color: RaohaneTheme.text
-                font.pixelSize: 12
+                font.pixelSize: root.compact ? 10 : 11
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
@@ -75,30 +94,23 @@ RaohaneSurface {
                 Layout.fillWidth: true
                 text: RaohaneMedia.available ? (RaohaneMedia.artist || RaohaneMedia.playerName) : RaohaneContext.detail
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 9
+                font.pixelSize: 8
                 elide: Text.ElideRight
             }
 
             Rectangle {
                 visible: RaohaneMedia.available
                 Layout.fillWidth: true
-                Layout.topMargin: 5
-                Layout.preferredHeight: 3
-                radius: 2
+                Layout.topMargin: 4
+                Layout.preferredHeight: 2
+                radius: 1
                 color: RaohaneTheme.border
 
                 Rectangle {
                     width: parent.width * RaohaneMedia.progress
                     height: parent.height
-                    radius: parent.radius
+                    radius: 1
                     color: RaohaneTheme.accent
-
-                    Behavior on width {
-                        NumberAnimation {
-                            duration: 450
-                            easing.type: RaohaneMotion.easeStandard
-                        }
-                    }
                 }
             }
         }
@@ -106,7 +118,7 @@ RaohaneSurface {
         RaohaneIcon {
             visible: RaohaneMedia.available
             text: RaohaneMedia.isPlaying ? "graphic_eq" : "pause"
-            iconSize: 18
+            iconSize: 15
             fill: 1
             color: RaohaneTheme.accent
         }
