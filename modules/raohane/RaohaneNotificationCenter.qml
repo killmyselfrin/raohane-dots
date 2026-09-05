@@ -91,15 +91,11 @@ Item {
                     width: listView.width
                     height: card.implicitHeight
                     opacity: entered ? 1 : 0
-                    scale: entered ? 1 : 0.985
 
                     Component.onCompleted: entered = true
 
                     Behavior on opacity {
                         NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-                    }
-                    Behavior on scale {
-                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
                     }
 
                     RaohaneNotificationCard {
@@ -162,6 +158,8 @@ Item {
         emphasized: active
         transparentIdle: !active
         showSheen: false
+        hoverScale: 1
+        pressedScale: 1
         onClicked: action.triggered()
     }
 }
