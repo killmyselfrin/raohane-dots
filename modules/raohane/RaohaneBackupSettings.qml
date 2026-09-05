@@ -41,65 +41,65 @@ Item {
     Flickable {
         anchors.fill: parent
         contentWidth: width
-        contentHeight: pageColumn.implicitHeight + 48
+        contentHeight: pageColumn.implicitHeight + 34
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 2600
 
         ColumnLayout {
             id: pageColumn
-            x: 12
-            y: 18
-            width: parent.width - 24
-            spacing: 14
+
+            y: 14
+            width: Math.min(parent.width - 32, 860)
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 10
 
             Text {
                 Layout.fillWidth: true
                 text: qsTr("Save the complete Raohane-owned setup as one portable file, then restore it after a reinstall or on another machine.")
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 9
-                lineHeight: 1.25
+                font.pixelSize: 8
+                lineHeight: 1.2
                 wrapMode: Text.WordWrap
             }
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 104
-                surfaceRadius: 16
+                Layout.preferredHeight: 76
+                surfaceRadius: 10
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 14
+                    anchors.leftMargin: 13
+                    anchors.rightMargin: 13
+                    spacing: 11
 
-                    RaohaneSurface {
-                        Layout.preferredWidth: 52
-                        Layout.preferredHeight: 52
-                        surfaceRadius: 16
-                        active: true
-                        showSheen: false
+                    Rectangle {
+                        Layout.preferredWidth: 2
+                        Layout.preferredHeight: 30
+                        radius: 1
+                        color: RaohaneTheme.accent
+                    }
 
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "inventory_2"
-                            iconSize: 25
-                            fill: 1
-                            color: RaohaneTheme.accent
-                        }
+                    RaohaneIcon {
+                        text: "inventory_2"
+                        iconSize: 19
+                        fill: 0.7
+                        color: RaohaneTheme.accent
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 4
+                        spacing: 2
 
                         Text {
                             Layout.fillWidth: true
                             text: qsTr("What is included")
                             color: RaohaneTheme.text
-                            font.pixelSize: 12
+                            font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
 
@@ -107,8 +107,8 @@ Item {
                             Layout.fillWidth: true
                             text: qsTr("Wallpaper and lock wallpaper · theme and accent · keybinds · motion · bar and dock · monitor profiles · integrations · profile · notification/autostart/theme catalogs")
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            lineHeight: 1.2
+                            font.pixelSize: 7
+                            lineHeight: 1.15
                             wrapMode: Text.WordWrap
                         }
                     }
@@ -117,189 +117,56 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                spacing: 9
 
-                RaohaneSurface {
-                    id: exportCard
+                ToolPanel {
+                    id: exportPanel
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 196
-                    surfaceRadius: 18
-                    raised: false
-                    showSheen: false
-                    border.color: exportMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                    icon: "archive"
+                    title: qsTr("Create backup")
+                    detail: qsTr("Current external wallpaper and avatar files are copied into the archive so the backup stays portable.")
 
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 18
-                        spacing: 8
-
-                        RaohaneIcon {
-                            text: "archive"
-                            iconSize: 25
-                            fill: 0.6
-                            color: RaohaneTheme.accent
-                        }
-
-                        Text {
-                            text: qsTr("Create backup")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: qsTr("Current external wallpaper and avatar files are copied into the archive so the backup stays portable.")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            lineHeight: 1.2
-                            wrapMode: Text.WordWrap
-                        }
-
-                        Item { Layout.fillHeight: true }
-
-                        RaohaneSurface {
-                            Layout.preferredWidth: 138
-                            Layout.preferredHeight: 34
-                            surfaceRadius: 11
-                            active: true
-                            showSheen: false
-                            opacity: RaohaneBackup.busy ? 0.5 : 1
-
-                            RowLayout {
-                                anchors.centerIn: parent
-                                spacing: 7
-                                RaohaneIcon { text: "save"; iconSize: 14; color: RaohaneTheme.accent }
-                                Text {
-                                    text: RaohaneBackup.busy && RaohaneBackup.operation === "export"
-                                        ? qsTr("Saving…")
-                                        : qsTr("Export backup")
-                                    color: RaohaneTheme.text
-                                    font.pixelSize: 9
-                                    font.weight: Font.DemiBold
-                                }
-                            }
-                        }
-                    }
-
-                    MouseArea {
-                        id: exportMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
+                    ActionButton {
+                        Layout.alignment: Qt.AlignLeft
+                        icon: "save"
+                        label: RaohaneBackup.busy && RaohaneBackup.operation === "export"
+                            ? qsTr("Saving…")
+                            : qsTr("Export backup")
+                        emphasized: true
                         enabled: !RaohaneBackup.busy
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: exportDialog.open()
+                        onTriggered: exportDialog.open()
                     }
                 }
 
-                RaohaneSurface {
-                    id: restoreCard
+                ToolPanel {
+                    id: restorePanel
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 196
-                    surfaceRadius: 18
-                    raised: false
-                    showSheen: false
-                    border.color: restoreMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                    icon: "settings_backup_restore"
+                    title: qsTr("Restore backup")
+                    detail: qsTr("Choose a backup first. Nothing is replaced until you explicitly press Restore selected backup.")
 
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 18
-                        spacing: 8
+                    RowLayout {
+                        Layout.alignment: Qt.AlignLeft
+                        spacing: 7
 
-                        RaohaneIcon {
-                            text: "settings_backup_restore"
-                            iconSize: 25
-                            fill: 0.55
-                            color: RaohaneTheme.accent
+                        ActionButton {
+                            icon: "folder_open"
+                            label: qsTr("Choose backup")
+                            emphasized: root.selectedRestorePath.length === 0
+                            enabled: !RaohaneBackup.busy
+                            onTriggered: restoreDialog.open()
                         }
 
-                        Text {
-                            text: qsTr("Restore backup")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
+                        ActionButton {
+                            visible: root.selectedRestorePath.length > 0
+                            icon: "restore"
+                            label: RaohaneBackup.busy && RaohaneBackup.operation === "restore"
+                                ? qsTr("Restoring…")
+                                : qsTr("Restore selected")
+                            emphasized: true
+                            enabled: !RaohaneBackup.busy
+                            onTriggered: RaohaneBackup.restoreBackup(root.selectedRestorePath)
                         }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: qsTr("Choose a backup first. Nothing is replaced until you explicitly press Restore selected backup.")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            lineHeight: 1.2
-                            wrapMode: Text.WordWrap
-                        }
-
-                        Item { Layout.fillHeight: true }
-
-                        RowLayout {
-                            spacing: 8
-
-                            RaohaneSurface {
-                                Layout.preferredWidth: 126
-                                Layout.preferredHeight: 34
-                                surfaceRadius: 11
-                                active: root.selectedRestorePath.length === 0
-                                showSheen: false
-                                opacity: RaohaneBackup.busy ? 0.5 : 1
-
-                                RowLayout {
-                                    anchors.centerIn: parent
-                                    spacing: 7
-                                    RaohaneIcon { text: "folder_open"; iconSize: 14; color: RaohaneTheme.accent }
-                                    Text {
-                                        text: qsTr("Choose backup")
-                                        color: RaohaneTheme.text
-                                        font.pixelSize: 9
-                                        font.weight: Font.DemiBold
-                                    }
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    enabled: !RaohaneBackup.busy
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: restoreDialog.open()
-                                }
-                            }
-
-                            RaohaneSurface {
-                                visible: root.selectedRestorePath.length > 0
-                                Layout.preferredWidth: 154
-                                Layout.preferredHeight: 34
-                                surfaceRadius: 11
-                                active: true
-                                showSheen: false
-                                opacity: RaohaneBackup.busy ? 0.5 : 1
-
-                                RowLayout {
-                                    anchors.centerIn: parent
-                                    spacing: 7
-                                    RaohaneIcon { text: "restore"; iconSize: 14; color: RaohaneTheme.accent }
-                                    Text {
-                                        text: RaohaneBackup.busy && RaohaneBackup.operation === "restore"
-                                            ? qsTr("Restoring…")
-                                            : qsTr("Restore selected")
-                                        color: RaohaneTheme.text
-                                        font.pixelSize: 9
-                                        font.weight: Font.DemiBold
-                                    }
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    enabled: !RaohaneBackup.busy
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: RaohaneBackup.restoreBackup(root.selectedRestorePath)
-                                }
-                            }
-                        }
-                    }
-
-                    MouseArea {
-                        id: restoreMouse
-                        anchors.fill: parent
-                        acceptedButtons: Qt.NoButton
-                        hoverEnabled: true
                     }
                 }
             }
@@ -307,47 +174,60 @@ Item {
             RaohaneSurface {
                 visible: root.selectedRestorePath.length > 0
                 Layout.fillWidth: true
-                Layout.preferredHeight: 64
-                surfaceRadius: 14
+                Layout.preferredHeight: 52
+                surfaceRadius: 9
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 15
-                    anchors.rightMargin: 15
-                    spacing: 10
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 9
+                    spacing: 9
+
+                    Rectangle {
+                        Layout.preferredWidth: 2
+                        Layout.preferredHeight: 20
+                        radius: 1
+                        color: RaohaneTheme.accent
+                        opacity: 0.62
+                    }
 
                     RaohaneIcon {
                         text: "description"
-                        iconSize: 18
+                        iconSize: 16
                         color: RaohaneTheme.textMuted
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: 0
+
                         Text {
                             text: qsTr("Selected backup")
                             color: RaohaneTheme.text
                             font.pixelSize: 9
                             font.weight: Font.DemiBold
                         }
+
                         Text {
                             Layout.fillWidth: true
                             text: root.shortPath(root.selectedRestorePath)
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
+                            font.pixelSize: 7
                             elide: Text.ElideMiddle
                         }
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 30
-                        iconSize: 14
+                        buttonSize: 28
+                        iconSize: 13
                         icon: "close"
                         transparentIdle: true
+                        showSheen: false
+                        hoverScale: 1
+                        pressedScale: 1
                         onClicked: root.selectedRestorePath = ""
                     }
                 }
@@ -356,22 +236,31 @@ Item {
             RaohaneSurface {
                 visible: RaohaneBackup.statusMessage.length > 0
                 Layout.fillWidth: true
-                Layout.preferredHeight: 82
-                surfaceRadius: 15
+                Layout.preferredHeight: 66
+                surfaceRadius: 10
                 raised: false
                 showSheen: false
                 border.color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 15
-                    spacing: 11
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 10
+                    spacing: 10
+
+                    Rectangle {
+                        Layout.preferredWidth: 2
+                        Layout.preferredHeight: 26
+                        radius: 1
+                        color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                        opacity: RaohaneBackup.busy || RaohaneBackup.lastSucceeded ? 1 : 0.5
+                    }
 
                     RaohaneIcon {
                         text: RaohaneBackup.busy
                             ? "progress_activity"
                             : RaohaneBackup.lastSucceeded ? "check_circle" : "error"
-                        iconSize: 20
+                        iconSize: 18
                         fill: RaohaneBackup.lastSucceeded ? 1 : 0
                         color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accent : RaohaneTheme.textMuted
 
@@ -386,51 +275,40 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: 1
+
                         Text {
                             Layout.fillWidth: true
                             text: RaohaneBackup.statusMessage
                             color: RaohaneTheme.text
-                            font.pixelSize: 10
+                            font.pixelSize: 9
                             font.weight: Font.DemiBold
                         }
+
                         Text {
                             Layout.fillWidth: true
                             text: RaohaneBackup.detailMessage
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
+                            font.pixelSize: 7
                             wrapMode: Text.WordWrap
                             elide: Text.ElideRight
                         }
                     }
 
-                    RaohaneSurface {
+                    ActionButton {
                         visible: RaohaneBackup.lastSucceeded && RaohaneBackup.operation === "restore"
-                        Layout.preferredWidth: 122
-                        Layout.preferredHeight: 34
-                        surfaceRadius: 11
-                        active: true
-                        showSheen: false
-
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: 7
-                            RaohaneIcon { text: "restart_alt"; iconSize: 14; color: RaohaneTheme.accent }
-                            Text {
-                                text: qsTr("Restart Raohane")
-                                color: RaohaneTheme.text
-                                font.pixelSize: 9
-                                font.weight: Font.DemiBold
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: RaohaneBackup.restartShell()
-                        }
+                        icon: "restart_alt"
+                        label: qsTr("Restart Raohane")
+                        emphasized: true
+                        onTriggered: RaohaneBackup.restartShell()
                     }
                 }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: RaohaneTheme.borderFaint
             }
 
             Text {
@@ -440,6 +318,126 @@ Item {
                 font.pixelSize: 8
                 wrapMode: Text.WordWrap
             }
+        }
+    }
+
+    component ToolPanel: RaohaneSurface {
+        id: toolPanel
+
+        required property string icon
+        required property string title
+        required property string detail
+        default property alias body: bodyColumn.data
+
+        Layout.preferredHeight: 154
+        surfaceRadius: 11
+        raised: false
+        showSheen: false
+        border.color: RaohaneTheme.borderFaint
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.topMargin: 13
+            anchors.bottomMargin: 13
+            width: 2
+            radius: 1
+            color: RaohaneTheme.accent
+            opacity: 0.72
+        }
+
+        ColumnLayout {
+            id: bodyColumn
+            anchors.fill: parent
+            anchors.leftMargin: 15
+            anchors.rightMargin: 13
+            anchors.topMargin: 13
+            anchors.bottomMargin: 12
+            spacing: 6
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                RaohaneIcon {
+                    text: toolPanel.icon
+                    iconSize: 18
+                    fill: 0.45
+                    color: RaohaneTheme.accent
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: toolPanel.title
+                    color: RaohaneTheme.text
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: toolPanel.detail
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 8
+                lineHeight: 1.15
+                wrapMode: Text.WordWrap
+            }
+
+            Item { Layout.fillHeight: true }
+        }
+    }
+
+    component ActionButton: RaohaneSurface {
+        id: actionButton
+
+        required property string icon
+        required property string label
+        property bool emphasized: false
+        signal triggered()
+
+        implicitWidth: actionRow.implicitWidth + 20
+        implicitHeight: 32
+        surfaceRadius: 8
+        active: emphasized
+        transparentIdle: !emphasized
+        raised: false
+        showSheen: false
+        interactive: enabled
+        hovered: actionMouse.containsMouse
+        pressed: actionMouse.pressed
+        hoverScale: 1
+        pressedScale: 1
+        opacity: enabled ? 1 : 0.48
+
+        RowLayout {
+            id: actionRow
+            anchors.centerIn: parent
+            spacing: 6
+
+            RaohaneIcon {
+                text: actionButton.icon
+                iconSize: 13
+                fill: actionButton.emphasized ? 1 : 0
+                color: actionButton.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+
+            Text {
+                text: actionButton.label
+                color: actionButton.emphasized ? RaohaneTheme.text : RaohaneTheme.textMuted
+                font.pixelSize: 8
+                font.weight: Font.DemiBold
+            }
+        }
+
+        MouseArea {
+            id: actionMouse
+            anchors.fill: parent
+            enabled: actionButton.enabled
+            hoverEnabled: true
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: actionButton.triggered()
         }
     }
 }
