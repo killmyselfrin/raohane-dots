@@ -13,12 +13,6 @@ Scope {
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
 
-    function phase(value: real, start: real, end: real): real {
-        if (end <= start)
-            return value >= end ? 1 : 0
-        return Math.max(0, Math.min(1, (value - start) / (end - start)))
-    }
-
     function skipWelcome(): void {
         RaohaneOnboardingState.complete()
     }
@@ -26,7 +20,7 @@ Scope {
     PanelWindow {
         id: panelWindow
 
-        property real reveal: 0
+        property bool entered: false
 
         visible: RaohaneState.welcomeOpen
         screen: root.focusedScreen
@@ -44,21 +38,13 @@ Scope {
         }
 
         onVisibleChanged: {
+            panelWindow.entered = false
             if (!visible)
                 return
-            panelWindow.reveal = 0
-            introAnimation.restart()
-            Qt.callLater(() => hero.forceActiveFocus())
-        }
-
-        NumberAnimation {
-            id: introAnimation
-            target: panelWindow
-            property: "reveal"
-            from: 0
-            to: 1
-            duration: Math.max(620, RaohaneMotion.relaxed * 4)
-            easing.type: Easing.OutCubic
+            Qt.callLater(() => {
+                panelWindow.entered = true
+                hero.forceActiveFocus()
+            })
         }
 
         Image {
@@ -69,7 +55,14 @@ Scope {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             cache: true
-            opacity: RaohaneTheme.dark ? 0.36 : 0.28
+            opacity: RaohaneTheme.dark ? 0.34 : 0.27
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            color: RaohaneTheme.dark
+                ? Qt.rgba(0.025, 0.03, 0.029, 0.84)
+                : Qt.rgba(0.90, 0.89, 0.86, 0.82)
         }
 
         Rectangle {
@@ -78,59 +71,19 @@ Scope {
                 GradientStop {
                     position: 0
                     color: RaohaneTheme.dark
-                        ? Qt.rgba(0.04, 0.045, 0.043, 0.88)
-                        : Qt.rgba(0.91, 0.90, 0.87, 0.86)
+                        ? Qt.rgba(0.03, 0.035, 0.033, 0.20)
+                        : Qt.rgba(0.96, 0.95, 0.92, 0.18)
                 }
                 GradientStop {
-                    position: 0.52
-                    color: RaohaneTheme.dark
-                        ? Qt.rgba(0.04, 0.045, 0.043, 0.69)
-                        : Qt.rgba(0.91, 0.90, 0.87, 0.64)
+                    position: 0.62
+                    color: "transparent"
                 }
                 GradientStop {
                     position: 1
                     color: RaohaneTheme.dark
-                        ? Qt.rgba(0.02, 0.024, 0.023, 0.93)
-                        : Qt.rgba(0.88, 0.87, 0.84, 0.91)
+                        ? Qt.rgba(0.01, 0.015, 0.014, 0.28)
+                        : Qt.rgba(0.80, 0.79, 0.76, 0.18)
                 }
-            }
-        }
-
-        Rectangle {
-            width: Math.min(parent.width * 0.54, 840)
-            height: width
-            radius: width / 2
-            x: parent.width - width * 0.68
-            y: -height * 0.42
-            color: "transparent"
-            border.width: 1
-            border.color: RaohaneTheme.accentGlow
-            opacity: 0.28 * root.phase(panelWindow.reveal, 0.05, 0.48)
-
-            NumberAnimation on rotation {
-                running: panelWindow.visible
-                from: -7
-                to: 7
-                duration: 12000
-                loops: Animation.Infinite
-                easing.type: Easing.InOutSine
-            }
-        }
-
-        Rectangle {
-            width: Math.min(parent.width * 0.36, 540)
-            height: width
-            radius: width / 2
-            x: parent.width * 0.55
-            y: parent.height - height * 0.42
-            color: RaohaneTheme.accentSoft
-            opacity: 0.24 * root.phase(panelWindow.reveal, 0.18, 0.62)
-
-            SequentialAnimation on scale {
-                running: panelWindow.visible
-                loops: Animation.Infinite
-                NumberAnimation { from: 0.96; to: 1.035; duration: 2900; easing.type: Easing.InOutSine }
-                NumberAnimation { from: 1.035; to: 0.96; duration: 2900; easing.type: Easing.InOutSine }
             }
         }
 
@@ -139,56 +92,53 @@ Scope {
 
             anchors.fill: parent
             focus: panelWindow.visible
+            opacity: panelWindow.entered ? 1 : 0
+
+            Behavior on opacity {
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+            }
 
             RowLayout {
                 anchors {
                     fill: parent
-                    leftMargin: Math.max(44, parent.width * 0.065)
-                    rightMargin: Math.max(44, parent.width * 0.065)
-                    topMargin: Math.max(38, parent.height * 0.055)
-                    bottomMargin: Math.max(38, parent.height * 0.055)
+                    leftMargin: Math.max(34, parent.width * 0.055)
+                    rightMargin: Math.max(34, parent.width * 0.055)
+                    topMargin: Math.max(30, parent.height * 0.05)
+                    bottomMargin: Math.max(30, parent.height * 0.05)
                 }
-                spacing: Math.max(34, parent.width * 0.045)
+                spacing: Math.max(30, parent.width * 0.04)
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    Layout.maximumWidth: 620
+                    Layout.maximumWidth: 590
                     Layout.fillHeight: true
                     spacing: 0
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 11
-                        opacity: root.phase(panelWindow.reveal, 0.02, 0.26)
-
-                        transform: Translate {
-                            y: 12 * (1 - root.phase(panelWindow.reveal, 0.02, 0.26))
-                        }
+                        spacing: 9
 
                         Rectangle {
-                            Layout.preferredWidth: 38
-                            Layout.preferredHeight: 38
-                            radius: 13
-                            color: RaohaneTheme.accentSoft
-                            border.width: 1
-                            border.color: RaohaneTheme.accentBorder
+                            Layout.preferredWidth: 2
+                            Layout.preferredHeight: 28
+                            radius: 1
+                            color: RaohaneTheme.accent
+                        }
 
-                            RaohaneIcon {
-                                anchors.centerIn: parent
-                                text: "spa"
-                                iconSize: 20
-                                fill: 0.18
-                                color: RaohaneTheme.accent
-                            }
+                        RaohaneIcon {
+                            text: "spa"
+                            iconSize: 18
+                            fill: 0.2
+                            color: RaohaneTheme.accent
                         }
 
                         ColumnLayout {
-                            spacing: -1
+                            spacing: 0
 
                             Text {
                                 text: "RAOHANE"
                                 color: RaohaneTheme.text
-                                font.pixelSize: 13
+                                font.pixelSize: 11
                                 font.weight: Font.DemiBold
                                 font.letterSpacing: 2.4
                             }
@@ -196,7 +146,7 @@ Scope {
                             Text {
                                 text: qsTr("Hyprland · Quickshell")
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 10
+                                font.pixelSize: 8
                             }
                         }
 
@@ -208,36 +158,26 @@ Scope {
                     Text {
                         text: "はじめまして"
                         color: RaohaneTheme.accentSecondary
-                        font.pixelSize: 13
+                        font.pixelSize: 11
                         font.weight: Font.Medium
-                        font.letterSpacing: 1.2
-                        opacity: root.phase(panelWindow.reveal, 0.12, 0.36)
-
-                        transform: Translate {
-                            y: 14 * (1 - root.phase(panelWindow.reveal, 0.12, 0.36))
-                        }
+                        font.letterSpacing: 1.1
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        Layout.topMargin: 12
+                        Layout.topMargin: 8
                         text: qsTr("Welcome to\nRaohane")
                         color: RaohaneTheme.text
-                        font.pixelSize: Math.max(48, Math.min(76, panelWindow.width * 0.055))
+                        font.pixelSize: Math.max(44, Math.min(66, panelWindow.width * 0.048))
                         font.weight: Font.DemiBold
-                        font.letterSpacing: -2.2
-                        lineHeight: 0.91
+                        font.letterSpacing: -1.8
+                        lineHeight: 0.93
                         wrapMode: Text.WordWrap
-                        opacity: root.phase(panelWindow.reveal, 0.19, 0.47)
-
-                        transform: Translate {
-                            y: 22 * (1 - root.phase(panelWindow.reveal, 0.19, 0.47))
-                        }
                     }
 
                     Rectangle {
-                        Layout.topMargin: 21
-                        Layout.preferredWidth: 92 * root.phase(panelWindow.reveal, 0.32, 0.62)
+                        Layout.topMargin: 16
+                        Layout.preferredWidth: 74
                         Layout.preferredHeight: 2
                         radius: 1
                         color: RaohaneTheme.accent
@@ -246,26 +186,20 @@ Scope {
 
                     Text {
                         Layout.fillWidth: true
-                        Layout.maximumWidth: 560
-                        Layout.topMargin: 23
+                        Layout.maximumWidth: 520
+                        Layout.topMargin: 18
                         text: qsTr("A calm desktop shell that keeps the interface close when you need it — and quiet when you do not.")
                         color: RaohaneTheme.textMuted
-                        font.pixelSize: 16
-                        lineHeight: 1.35
+                        font.pixelSize: 14
+                        lineHeight: 1.32
                         wrapMode: Text.WordWrap
-                        opacity: root.phase(panelWindow.reveal, 0.36, 0.64)
-
-                        transform: Translate {
-                            y: 16 * (1 - root.phase(panelWindow.reveal, 0.36, 0.64))
-                        }
                     }
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.maximumWidth: 570
-                        Layout.topMargin: 24
-                        spacing: 8
-                        opacity: root.phase(panelWindow.reveal, 0.46, 0.72)
+                        Layout.maximumWidth: 520
+                        Layout.topMargin: 20
+                        spacing: 7
 
                         Repeater {
                             model: [
@@ -275,17 +209,19 @@ Scope {
                             ]
 
                             RaohaneSurface {
-                                Layout.preferredWidth: Math.max(124, chipLabel.implicitWidth + 24)
-                                Layout.preferredHeight: 32
-                                surfaceRadius: 12
+                                Layout.preferredWidth: Math.max(112, chipLabel.implicitWidth + 20)
+                                Layout.preferredHeight: 28
+                                surfaceRadius: 8
+                                raised: false
                                 showSheen: false
+                                border.color: RaohaneTheme.borderFaint
 
                                 Text {
                                     id: chipLabel
                                     anchors.centerIn: parent
                                     text: modelData
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 10
+                                    font.pixelSize: 8
                                     font.weight: Font.Medium
                                 }
                             }
@@ -294,86 +230,31 @@ Scope {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.maximumWidth: 570
-                        Layout.topMargin: 30
-                        spacing: 12
-                        opacity: root.phase(panelWindow.reveal, 0.55, 0.84)
+                        Layout.maximumWidth: 520
+                        Layout.topMargin: 24
+                        spacing: 9
 
-                        transform: Translate {
-                            y: 14 * (1 - root.phase(panelWindow.reveal, 0.55, 0.84))
+                        WelcomeButton {
+                            Layout.preferredWidth: 180
+                            emphasized: true
+                            label: qsTr("Show me around")
+                            icon: "arrow_forward"
+                            onTriggered: RaohaneOnboardingState.start()
                         }
 
-                        RaohaneSurface {
-                            Layout.preferredWidth: 214
-                            Layout.preferredHeight: 50
-                            surfaceRadius: 16
-                            active: true
-                            interactive: true
-                            hovered: startPointer.containsMouse
-                            pressed: startPointer.pressed
-                            showSheen: false
-
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: 9
-
-                                Text {
-                                    text: qsTr("Show me around")
-                                    color: RaohaneTheme.text
-                                    font.pixelSize: 13
-                                    font.weight: Font.DemiBold
-                                }
-
-                                RaohaneIcon {
-                                    text: "arrow_forward"
-                                    iconSize: 17
-                                    color: RaohaneTheme.accent
-                                }
-                            }
-
-                            MouseArea {
-                                id: startPointer
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: RaohaneOnboardingState.start()
-                            }
-                        }
-
-                        RaohaneSurface {
-                            Layout.preferredWidth: 152
-                            Layout.preferredHeight: 50
-                            surfaceRadius: 16
-                            transparentIdle: true
-                            interactive: true
-                            hovered: skipPointer.containsMouse
-                            pressed: skipPointer.pressed
-                            showSheen: false
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: qsTr("Explore myself")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 12
-                                font.weight: Font.Medium
-                            }
-
-                            MouseArea {
-                                id: skipPointer
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: root.skipWelcome()
-                            }
+                        WelcomeButton {
+                            Layout.preferredWidth: 142
+                            label: qsTr("Explore myself")
+                            icon: "explore"
+                            onTriggered: root.skipWelcome()
                         }
                     }
 
                     Text {
-                        Layout.topMargin: 14
+                        Layout.topMargin: 11
                         text: qsTr("The tour uses the real Raohane surfaces, not screenshots.")
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 10
-                        opacity: root.phase(panelWindow.reveal, 0.68, 0.92)
+                        font.pixelSize: 8
                     }
 
                     Item { Layout.fillHeight: true }
@@ -384,33 +265,33 @@ Scope {
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.minimumWidth: 420
-                    visible: panelWindow.width >= 960
-                    opacity: root.phase(panelWindow.reveal, 0.24, 0.76)
-
-                    transform: Translate {
-                        x: 32 * (1 - root.phase(panelWindow.reveal, 0.24, 0.76))
-                    }
+                    Layout.minimumWidth: 390
+                    visible: panelWindow.width >= 920
 
                     Rectangle {
                         id: previewFrame
 
                         anchors.centerIn: parent
-                        width: Math.min(parent.width * 0.94, 570)
-                        height: Math.min(parent.height * 0.80, 620)
-                        radius: 44
+                        width: Math.min(parent.width * 0.95, 540)
+                        height: Math.min(parent.height * 0.78, 560)
+                        radius: 14
                         color: RaohaneTheme.dark
-                            ? Qt.rgba(0.07, 0.075, 0.072, 0.38)
-                            : Qt.rgba(0.97, 0.96, 0.93, 0.34)
+                            ? Qt.rgba(0.055, 0.06, 0.058, 0.50)
+                            : Qt.rgba(0.96, 0.95, 0.92, 0.48)
                         border.width: 1
                         border.color: RaohaneTheme.borderFaint
+                        clip: true
 
                         Rectangle {
-                            anchors.fill: parent
-                            anchors.margins: 18
-                            radius: 32
-                            color: RaohaneTheme.background
-                            opacity: 0.42
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            anchors.topMargin: 14
+                            anchors.bottomMargin: 14
+                            width: 2
+                            radius: 1
+                            color: RaohaneTheme.accent
+                            opacity: 0.68
                         }
 
                         RaohaneSurface {
@@ -418,117 +299,78 @@ Scope {
                                 top: parent.top
                                 left: parent.left
                                 right: parent.right
-                                topMargin: 34
-                                leftMargin: 38
-                                rightMargin: 38
+                                topMargin: 20
+                                leftMargin: 22
+                                rightMargin: 22
                             }
-                            height: 46
-                            surfaceRadius: 20
-                            raised: true
+                            height: 38
+                            surfaceRadius: 9
+                            raised: false
                             showSheen: false
+                            border.color: RaohaneTheme.borderFaint
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 8
+                                anchors.leftMargin: 9
+                                anchors.rightMargin: 9
+                                spacing: 7
 
-                                Rectangle {
-                                    Layout.preferredWidth: 28
-                                    Layout.preferredHeight: 28
-                                    radius: 10
-                                    color: RaohaneTheme.accentSoft
-
-                                    RaohaneIcon {
-                                        anchors.centerIn: parent
-                                        text: "apps"
-                                        iconSize: 14
-                                        color: RaohaneTheme.accent
-                                    }
+                                RaohaneIcon {
+                                    text: "apps"
+                                    iconSize: 13
+                                    color: RaohaneTheme.accent
                                 }
 
                                 Rectangle {
-                                    Layout.preferredWidth: 48
-                                    Layout.preferredHeight: 7
-                                    radius: 4
+                                    Layout.preferredWidth: 36
+                                    Layout.preferredHeight: 4
+                                    radius: 2
                                     color: RaohaneTheme.borderStrong
                                 }
 
                                 Item { Layout.fillWidth: true }
 
-                                RaohaneSurface {
-                                    Layout.preferredWidth: 142
-                                    Layout.preferredHeight: 30
-                                    surfaceRadius: 15
-                                    active: true
-                                    showSheen: false
+                                Row {
+                                    spacing: 5
 
-                                    Row {
-                                        anchors.centerIn: parent
-                                        spacing: 6
-
-                                        RaohaneIcon {
-                                            text: "spa"
-                                            iconSize: 13
-                                            color: RaohaneTheme.accent
-                                        }
-
-                                        Text {
-                                            text: qsTr("Context Island")
-                                            color: RaohaneTheme.textMuted
-                                            font.pixelSize: 9
-                                        }
-                                    }
+                                    RaohaneIcon { text: "spa"; iconSize: 12; color: RaohaneTheme.accent }
+                                    Text { text: qsTr("Context Island"); color: RaohaneTheme.textMuted; font.pixelSize: 8 }
                                 }
 
                                 Item { Layout.fillWidth: true }
 
-                                RaohaneIcon {
-                                    text: "wifi"
-                                    iconSize: 15
-                                    color: RaohaneTheme.textMuted
-                                }
-
-                                RaohaneIcon {
-                                    text: "volume_up"
-                                    iconSize: 15
-                                    color: RaohaneTheme.textMuted
-                                }
+                                RaohaneIcon { text: "wifi"; iconSize: 13; color: RaohaneTheme.textMuted }
+                                RaohaneIcon { text: "volume_up"; iconSize: 13; color: RaohaneTheme.textMuted }
                             }
                         }
 
                         RaohaneSurface {
-                            width: Math.min(340, parent.width * 0.67)
-                            height: 170
+                            width: Math.min(320, parent.width * 0.68)
+                            height: 150
                             anchors.centerIn: parent
-                            surfaceRadius: 28
-                            raised: true
+                            surfaceRadius: 11
+                            raised: false
                             showSheen: false
-
-                            SequentialAnimation on scale {
-                                running: panelWindow.visible
-                                loops: Animation.Infinite
-                                NumberAnimation { from: 0.985; to: 1.015; duration: 2300; easing.type: Easing.InOutSine }
-                                NumberAnimation { from: 1.015; to: 0.985; duration: 2300; easing.type: Easing.InOutSine }
-                            }
+                            border.color: RaohaneTheme.borderStrong
 
                             ColumnLayout {
                                 anchors.fill: parent
-                                anchors.margins: 18
-                                spacing: 9
+                                anchors.margins: 13
+                                spacing: 7
 
                                 RowLayout {
                                     Layout.fillWidth: true
 
                                     RaohaneIcon {
                                         text: "search"
-                                        iconSize: 18
+                                        iconSize: 16
                                         color: RaohaneTheme.accent
                                     }
 
                                     Text {
                                         text: qsTr("Launcher")
                                         color: RaohaneTheme.text
-                                        font.pixelSize: 12
+                                        font.pixelSize: 10
                                         font.weight: Font.DemiBold
                                     }
 
@@ -537,7 +379,7 @@ Scope {
                                     Text {
                                         text: "⌘"
                                         color: RaohaneTheme.textFaint
-                                        font.pixelSize: 11
+                                        font.pixelSize: 9
                                     }
                                 }
 
@@ -552,19 +394,26 @@ Scope {
 
                                     RowLayout {
                                         Layout.fillWidth: true
-                                        spacing: 9
+                                        spacing: 8
 
                                         Rectangle {
-                                            Layout.preferredWidth: 26
-                                            Layout.preferredHeight: 26
-                                            radius: 9
-                                            color: RaohaneTheme.surfaceSubtle
+                                            Layout.preferredWidth: 3
+                                            Layout.preferredHeight: 13
+                                            radius: 1
+                                            color: index === 0 ? RaohaneTheme.accent : RaohaneTheme.borderStrong
+                                            opacity: index === 0 ? 1 : 0.5
+                                        }
+
+                                        RaohaneIcon {
+                                            text: index === 0 ? "terminal" : index === 1 ? "settings" : "folder"
+                                            iconSize: 13
+                                            color: index === 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                         }
 
                                         Rectangle {
-                                            Layout.preferredWidth: 90 + index * 24
-                                            Layout.preferredHeight: 7
-                                            radius: 4
+                                            Layout.preferredWidth: 72 + index * 20
+                                            Layout.preferredHeight: 4
+                                            radius: 2
                                             color: index === 0 ? RaohaneTheme.accentSoft : RaohaneTheme.border
                                         }
 
@@ -575,28 +424,28 @@ Scope {
                         }
 
                         RaohaneSurface {
-                            width: 150
-                            height: 230
+                            width: 138
+                            height: 176
                             anchors {
                                 right: parent.right
-                                rightMargin: 30
+                                rightMargin: 18
                                 verticalCenter: parent.verticalCenter
-                                verticalCenterOffset: 52
+                                verticalCenterOffset: 70
                             }
-                            surfaceRadius: 26
-                            raised: true
+                            surfaceRadius: 10
+                            raised: false
                             showSheen: false
-                            rotation: 1.2
+                            border.color: RaohaneTheme.borderFaint
 
                             ColumnLayout {
                                 anchors.fill: parent
-                                anchors.margins: 14
-                                spacing: 9
+                                anchors.margins: 10
+                                spacing: 6
 
                                 Text {
                                     text: qsTr("Quick Controls")
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 10
+                                    font.pixelSize: 9
                                     font.weight: Font.DemiBold
                                 }
 
@@ -605,25 +454,26 @@ Scope {
 
                                     RaohaneSurface {
                                         Layout.fillWidth: true
-                                        Layout.preferredHeight: 34
-                                        surfaceRadius: 11
+                                        Layout.preferredHeight: 27
+                                        surfaceRadius: 7
                                         active: index === 0
+                                        raised: false
                                         showSheen: false
 
                                         Row {
                                             anchors.centerIn: parent
-                                            spacing: 7
+                                            spacing: 6
 
                                             RaohaneIcon {
                                                 text: modelData
-                                                iconSize: 14
+                                                iconSize: 12
                                                 color: index === 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                             }
 
                                             Rectangle {
-                                                width: 45
-                                                height: 6
-                                                radius: 3
+                                                width: 34
+                                                height: 3
+                                                radius: 2
                                                 color: index === 0 ? RaohaneTheme.accentSoft : RaohaneTheme.border
                                             }
                                         }
@@ -633,36 +483,30 @@ Scope {
                         }
 
                         RaohaneSurface {
-                            width: Math.min(300, parent.width * 0.58)
-                            height: 62
+                            width: Math.min(270, parent.width * 0.58)
+                            height: 48
                             anchors {
                                 bottom: parent.bottom
                                 horizontalCenter: parent.horizontalCenter
-                                bottomMargin: 36
+                                bottomMargin: 22
                             }
-                            surfaceRadius: 31
-                            raised: true
+                            surfaceRadius: 10
+                            raised: false
                             showSheen: false
+                            border.color: RaohaneTheme.borderFaint
 
                             Row {
                                 anchors.centerIn: parent
-                                spacing: 12
+                                spacing: 9
 
                                 Repeater {
                                     model: ["folder", "language", "terminal", "music_note", "settings"]
 
-                                    Rectangle {
-                                        width: 36
-                                        height: 36
-                                        radius: 12
-                                        color: index === 2 ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
-
-                                        RaohaneIcon {
-                                            anchors.centerIn: parent
-                                            text: modelData
-                                            iconSize: 17
-                                            color: index === 2 ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                                        }
+                                    RaohaneIcon {
+                                        text: modelData
+                                        iconSize: 16
+                                        fill: index === 2 ? 1 : 0
+                                        color: index === 2 ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                     }
                                 }
                             }
@@ -672,14 +516,14 @@ Scope {
                             anchors {
                                 right: parent.right
                                 bottom: parent.bottom
-                                rightMargin: 30
-                                bottomMargin: 18
+                                rightMargin: 15
+                                bottomMargin: 8
                             }
                             text: qsTr("LIVE PREVIEW")
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
+                            font.pixelSize: 7
                             font.weight: Font.DemiBold
-                            font.letterSpacing: 1.6
+                            font.letterSpacing: 1.4
                         }
                     }
                 }
@@ -706,5 +550,53 @@ Scope {
         function tour(): void { RaohaneOnboardingState.replay() }
         function status(): string { return RaohaneState.welcomeOpen ? "open" : "closed" }
         function completed(): bool { return RaohaneOnboardingState.completed }
+    }
+
+    component WelcomeButton: RaohaneSurface {
+        id: button
+
+        required property string label
+        required property string icon
+        property bool emphasized: false
+        signal triggered()
+
+        Layout.preferredHeight: 42
+        surfaceRadius: 9
+        raised: false
+        active: emphasized
+        transparentIdle: !emphasized
+        interactive: true
+        hovered: pointer.containsMouse
+        pressed: pointer.pressed
+        showSheen: false
+        hoverScale: 1
+        pressedScale: 1
+
+        Row {
+            anchors.centerIn: parent
+            spacing: 7
+
+            Text {
+                text: button.label
+                color: button.emphasized ? RaohaneTheme.text : RaohaneTheme.textMuted
+                font.pixelSize: 10
+                font.weight: Font.DemiBold
+            }
+
+            RaohaneIcon {
+                text: button.icon
+                iconSize: 14
+                fill: button.emphasized ? 1 : 0
+                color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+        }
+
+        MouseArea {
+            id: pointer
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: button.triggered()
+        }
     }
 }
