@@ -9,7 +9,7 @@ Item {
     property var pageInfo: null
     property bool compact: false
 
-    implicitHeight: 78
+    implicitHeight: 82
 
     RowLayout {
         anchors.fill: parent
@@ -36,7 +36,18 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 1
+            spacing: 0
+
+            Text {
+                Layout.fillWidth: true
+                text: root.pageInfo?.group ?? qsTr("SYSTEM")
+                color: RaohaneTheme.accent
+                opacity: 0.78
+                font.pixelSize: 7
+                font.weight: Font.DemiBold
+                font.letterSpacing: 0.8
+                elide: Text.ElideRight
+            }
 
             Text {
                 Layout.fillWidth: true
