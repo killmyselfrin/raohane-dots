@@ -39,25 +39,23 @@ RaohaneSurface {
         : ""
 
     visible: root.available
-    Layout.preferredHeight: visible ? 62 : 0
-    surfaceRadius: 15
+    Layout.preferredHeight: visible ? 54 : 0
+    surfaceRadius: 14
     active: root.tileActive
     showSheen: false
-    transparentIdle: !root.active && !root.menuOpen
+    transparentIdle: false
     hovered: pointer.containsMouse || activeFocus
     pressed: pointer.pressed
     interactive: true
-    hoverScale: RaohaneMotion.subtleHoverScale
-    pressedScale: RaohaneMotion.softPressScale
+    hoverScale: 1.004
+    pressedScale: 0.992
     activeFocusOnTab: visible
     feedback: root.showMenu ? "navigate" : "tap"
     border.color: root.menuOpen || root.active ? RaohaneTheme.accentBorder
         : root.hovered ? RaohaneTheme.borderStrong
         : RaohaneTheme.borderFaint
 
-    Behavior on border.color {
-        ColorAnimation { duration: RaohaneMotion.micro }
-    }
+    Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
 
     function triggerPrimary(): void {
         switch (root.tileId) {
@@ -106,13 +104,13 @@ RaohaneSurface {
         anchors.fill: parent
         anchors.leftMargin: 9
         anchors.rightMargin: 9
-        anchors.topMargin: 8
-        anchors.bottomMargin: 8
+        anchors.topMargin: 7
+        anchors.bottomMargin: 7
         spacing: 9
 
         Rectangle {
-            Layout.preferredWidth: 31
-            Layout.preferredHeight: 31
+            Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             Layout.alignment: Qt.AlignVCenter
             radius: 10
             color: root.active || root.menuOpen ? RaohaneTheme.accentSoft
@@ -128,9 +126,9 @@ RaohaneSurface {
                 anchors.centerIn: parent
                 text: root.currentIcon
                 iconSize: 16
-                fill: root.active ? 1 : root.hovered ? 0.30 : 0
+                fill: root.active ? 1 : root.hovered ? 0.35 : 0
                 symbolWeight: root.active ? 560 : root.hovered ? 500 : 430
-                grade: root.active ? 40 : root.hovered ? 20 : 0
+                grade: root.active ? 40 : 0
                 color: root.active || root.hovered || root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 scale: pointer.pressed ? 0.92 : 1
 
@@ -144,7 +142,7 @@ RaohaneSurface {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            spacing: 1
+            spacing: 0
 
             Text {
                 Layout.fillWidth: true
@@ -155,33 +153,29 @@ RaohaneSurface {
                 elide: Text.ElideRight
             }
 
-            RowLayout {
+            Text {
                 Layout.fillWidth: true
-                spacing: 4
-
-                Rectangle {
-                    Layout.preferredWidth: 4
-                    Layout.preferredHeight: 4
-                    radius: 2
-                    color: root.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    opacity: root.active ? 0.95 : 0.48
-
-                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: root.subtitle
-                    color: root.active ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
-                    font.pixelSize: 7
-                    elide: Text.ElideRight
-                }
+                text: root.subtitle
+                color: root.active ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
+                font.pixelSize: 7
+                elide: Text.ElideRight
             }
+        }
+
+        Rectangle {
+            Layout.preferredWidth: 6
+            Layout.preferredHeight: 6
+            Layout.alignment: Qt.AlignVCenter
+            radius: 3
+            color: root.active ? RaohaneTheme.accent : RaohaneTheme.borderStrong
+            opacity: root.active ? 1 : 0.55
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
 
         RaohaneIcon {
             visible: root.showMenu
-            Layout.preferredWidth: root.showMenu ? 14 : 0
+            Layout.preferredWidth: root.showMenu ? 12 : 0
             Layout.alignment: Qt.AlignVCenter
             text: "expand_more"
             iconSize: 12
@@ -191,7 +185,6 @@ RaohaneSurface {
             Behavior on rotation {
                 NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
             }
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
     }
 
