@@ -10,13 +10,14 @@ QtObject {
     // overrides on top without changing Raohane's information architecture.
     readonly property var builtInPresets: [
         {
-            // Keep the historical preset id for config compatibility, but the
-            // default Raohane mood now follows the approved nocturne design.
+            // Historical id is retained for config compatibility. This is the
+            // canonical Raohane reference material: smoky navy glass with a
+            // restrained lilac signal color and cool, thin rims.
             id: "zen-mist", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
-            background: "#090b16", backgroundElevated: "#0f1222", surface: "#d9151829", surfaceRaised: "#ee1c2035", surfaceDeep: "#f2080a12", surfaceSubtle: "#80242942", surfaceHover: "#e2262c46", surfacePressed: "#ed313959",
-            border: "#305d6380", borderStrong: "#607c82a6", borderFaint: "#185d6380", highlight: "#38ffffff",
-            text: "#f0eff8", textMuted: "#aaa9ba", textFaint: "#74758a", accent: "#a78bfa", accentSecondary: "#8174c8", accentBlue: "#8299ff",
-            success: "#7dd3a7", warning: "#d6b26c", critical: "#e48294", info: "#89b4fa"
+            background: "#080a14", backgroundElevated: "#0d1020", surface: "#dc111524", surfaceRaised: "#ef171c2e", surfaceDeep: "#f3070912", surfaceSubtle: "#921c2237", surfaceHover: "#e9232a44", surfacePressed: "#ef2c3553",
+            border: "#3a59627f", borderStrong: "#6a7b86aa", borderFaint: "#2059627f", highlight: "#40ffffff",
+            text: "#f2f1fa", textMuted: "#aaa9bd", textFaint: "#73758c", accent: "#aa91ff", accentSecondary: "#8b7bd8", accentBlue: "#899dff",
+            success: "#7fd7aa", warning: "#d7b26e", critical: "#e5889a", info: "#8eb8ff"
         },
         {
             id: "paper", name: qsTr("Paper"), description: qsTr("Neutral white with crisp ink contrast"), tone: qsTr("Light"), dark: false,
@@ -113,8 +114,6 @@ QtObject {
     readonly property color presetBorderFaint: activePreset.borderFaint
     readonly property color presetHighlight: activePreset.highlight
 
-    // Background / glass hierarchy. Opacity is multiplicative, so every preset
-    // keeps its own material character while the user can make it airier/solid.
     readonly property color background: presetBackground
     readonly property color backgroundElevated: presetBackgroundElevated
     readonly property color surface: Qt.rgba(presetSurface.r, presetSurface.g, presetSurface.b, Math.min(1, presetSurface.a * glassOpacity))
@@ -127,11 +126,15 @@ QtObject {
     readonly property color glass: surface
     readonly property color glassStrong: surfaceRaised
     readonly property color glassDeep: surfaceDeep
+    readonly property color surfacePanel: surfaceRaised
+    readonly property color surfaceCard: surface
+    readonly property color surfaceMuted: surfaceSubtle
 
     readonly property color border: Qt.rgba(presetBorder.r, presetBorder.g, presetBorder.b, Math.min(1, presetBorder.a * borderStrength))
     readonly property color borderStrong: Qt.rgba(presetBorderStrong.r, presetBorderStrong.g, presetBorderStrong.b, Math.min(1, presetBorderStrong.a * borderStrength))
     readonly property color borderFaint: Qt.rgba(presetBorderFaint.r, presetBorderFaint.g, presetBorderFaint.b, Math.min(1, presetBorderFaint.a * borderStrength))
     readonly property color highlight: presetHighlight
+    readonly property color divider: borderFaint
 
     readonly property color text: activePreset.text
     readonly property color textMuted: activePreset.textMuted
@@ -147,34 +150,34 @@ QtObject {
         : presetAccent
     readonly property color accentSecondary: accentMode === "theme" ? activePreset.accentSecondary : accent
     readonly property color accentBlue: accentMode === "theme" ? activePreset.accentBlue : accent
-    readonly property color accentSoft: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.48, (dark ? 0.18 : 0.11) * accentStrength))
-    readonly property color accentHover: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.58, (dark ? 0.25 : 0.16) * accentStrength))
-    readonly property color accentPressed: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.70, (dark ? 0.34 : 0.23) * accentStrength))
-    readonly property color accentGlow: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.72, (dark ? 0.40 : 0.24) * accentStrength))
-    readonly property color accentBorder: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.90, (dark ? 0.62 : 0.46) * accentStrength))
+    readonly property color accentSoft: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.46, (dark ? 0.15 : 0.10) * accentStrength))
+    readonly property color accentHover: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.56, (dark ? 0.22 : 0.15) * accentStrength))
+    readonly property color accentPressed: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.66, (dark ? 0.30 : 0.21) * accentStrength))
+    readonly property color accentGlow: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.68, (dark ? 0.34 : 0.22) * accentStrength))
+    readonly property color accentBorder: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.86, (dark ? 0.58 : 0.44) * accentStrength))
 
     readonly property color success: activePreset.success
     readonly property color warning: activePreset.warning
     readonly property color critical: activePreset.critical
     readonly property color info: activePreset.info
 
-    // Geometry is adjustable globally but remains proportional, so Bar, Island,
-    // Settings and shared cards stay recognizably the same UI.
-    readonly property int barHeight: Math.round(44 * densityScale)
-    readonly property int islandHeight: Math.round(46 * densityScale)
-    readonly property int radiusTiny: Math.max(3, Math.round(8 * radiusScale))
-    readonly property int radiusSmall: Math.max(4, Math.round(11 * radiusScale))
-    readonly property int radius: Math.max(6, Math.round(16 * radiusScale))
-    readonly property int radiusLarge: Math.max(8, Math.round(24 * radiusScale))
-    readonly property int radiusHero: Math.max(10, Math.round(28 * radiusScale))
+    // Canonical reference geometry. Large windows are softly rounded rather
+    // than pill-like; small controls keep the tighter 7/10px rhythm.
+    readonly property int barHeight: Math.round(42 * densityScale)
+    readonly property int islandHeight: Math.round(42 * densityScale)
+    readonly property int radiusTiny: Math.max(3, Math.round(7 * radiusScale))
+    readonly property int radiusSmall: Math.max(4, Math.round(10 * radiusScale))
+    readonly property int radius: Math.max(6, Math.round(14 * radiusScale))
+    readonly property int radiusLarge: Math.max(8, Math.round(18 * radiusScale))
+    readonly property int radiusHero: Math.max(10, Math.round(22 * radiusScale))
 
     readonly property int spacingTiny: Math.max(2, Math.round(4 * densityScale))
-    readonly property int spacingSmall: Math.max(4, Math.round(8 * densityScale))
-    readonly property int spacing: Math.max(6, Math.round(12 * densityScale))
-    readonly property int spacingLarge: Math.max(9, Math.round(18 * densityScale))
-    readonly property int panelPadding: Math.max(10, Math.round(16 * densityScale))
+    readonly property int spacingSmall: Math.max(4, Math.round(7 * densityScale))
+    readonly property int spacing: Math.max(6, Math.round(10 * densityScale))
+    readonly property int spacingLarge: Math.max(9, Math.round(16 * densityScale))
+    readonly property int panelPadding: Math.max(10, Math.round(14 * densityScale))
 
-    readonly property int animationFast: Math.max(0, Math.round(110 * motionScale))
-    readonly property int animationDuration: Math.max(0, Math.round(170 * motionScale))
-    readonly property int animationSlow: Math.max(0, Math.round(220 * motionScale))
+    readonly property int animationFast: Math.max(0, Math.round(100 * motionScale))
+    readonly property int animationDuration: Math.max(0, Math.round(160 * motionScale))
+    readonly property int animationSlow: Math.max(0, Math.round(210 * motionScale))
 }
