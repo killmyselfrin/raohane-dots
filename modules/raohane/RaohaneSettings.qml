@@ -113,72 +113,70 @@ Scope {
                 }
             }
 
-            RaohaneIconButton {
+            RaohaneSurface {
+                id: commandStrip
                 visible: !settingsContent.pageOwnsHeader
                 z: 50
+                width: 142
+                height: 34
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 20
-                    rightMargin: 164
+                    topMargin: 18
+                    rightMargin: 54
                 }
-                buttonSize: 30
-                iconSize: 15
-                icon: "inventory_2"
-                transparentIdle: true
+                surfaceRadius: 11
+                raised: false
                 showSheen: false
-                onClicked: RaohaneSettingsRouter.request("backup", "")
-            }
 
-            RaohaneIconButton {
-                visible: !settingsContent.pageOwnsHeader
-                z: 50
-                anchors {
-                    top: parent.top
-                    right: parent.right
-                    topMargin: 20
-                    rightMargin: 127
-                }
-                buttonSize: 30
-                iconSize: 15
-                icon: "keyboard"
-                transparentIdle: true
-                showSheen: false
-                onClicked: RaohaneSettingsRouter.request("keybinds", "")
-            }
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 4
 
-            RaohaneIconButton {
-                visible: !settingsContent.pageOwnsHeader
-                z: 50
-                anchors {
-                    top: parent.top
-                    right: parent.right
-                    topMargin: 20
-                    rightMargin: 90
-                }
-                buttonSize: 30
-                iconSize: 15
-                icon: "animation"
-                transparentIdle: true
-                showSheen: false
-                onClicked: RaohaneSettingsRouter.request("motion", "")
-            }
+                    RaohaneIconButton {
+                        buttonSize: 30
+                        iconSize: 15
+                        icon: "inventory_2"
+                        transparentIdle: true
+                        showSheen: false
+                        hoverScale: 1
+                        pressedScale: 1
+                        onClicked: RaohaneSettingsRouter.request("backup", "")
+                    }
 
-            RaohaneIconButton {
-                visible: !settingsContent.pageOwnsHeader
-                z: 50
-                anchors {
-                    top: parent.top
-                    right: parent.right
-                    topMargin: 20
-                    rightMargin: 53
+                    RaohaneIconButton {
+                        buttonSize: 30
+                        iconSize: 15
+                        icon: "keyboard"
+                        transparentIdle: true
+                        showSheen: false
+                        hoverScale: 1
+                        pressedScale: 1
+                        onClicked: RaohaneSettingsRouter.request("keybinds", "")
+                    }
+
+                    RaohaneIconButton {
+                        buttonSize: 30
+                        iconSize: 15
+                        icon: "animation"
+                        transparentIdle: true
+                        showSheen: false
+                        hoverScale: 1
+                        pressedScale: 1
+                        onClicked: RaohaneSettingsRouter.request("motion", "")
+                    }
+
+                    RaohaneIconButton {
+                        buttonSize: 30
+                        iconSize: 15
+                        icon: "language"
+                        transparentIdle: true
+                        showSheen: false
+                        hoverScale: 1
+                        pressedScale: 1
+                        onClicked: RaohaneSettingsRouter.request("language", "")
+                    }
                 }
-                buttonSize: 30
-                iconSize: 15
-                icon: "language"
-                transparentIdle: true
-                showSheen: false
-                onClicked: RaohaneSettingsRouter.request("language", "")
             }
 
             RaohaneIconButton {
@@ -194,6 +192,8 @@ Scope {
                 icon: "close"
                 transparentIdle: true
                 showSheen: false
+                hoverScale: 1
+                pressedScale: 1
                 onClicked: panelWindow.hide()
             }
 
