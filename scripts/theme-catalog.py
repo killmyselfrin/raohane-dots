@@ -142,6 +142,16 @@ def read_json(path: Path) -> Any:
         raise ValueError(f"{path}: {error}") from error
 
 
+def parse_inline_preset(payload: str, source_name: str) -> dict[str, Any]:
+    try:
+        document = json.loads(payload)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"{source_name}: invalid JSON: {error}") from error
+    if not isinstance(document, dict):
+        raise ValueError(f"{source_name}: theme entry is not an object")
+    return validate_native(document, source_name)
+
+
 def load_sources(path: Path, serpantinum: bool) -> list[dict[str, Any]]:
     is_directory = path.is_dir()
     if is_directory:
@@ -156,8 +166,6 @@ def load_sources(path: Path, serpantinum: bool) -> list[dict[str, Any]]:
         if is_directory and source.stat().st_size == 0:
             continue
         document = read_json(source)
-        # Serpantinum's Matugen.json is a runtime-generated placeholder rather
-        # than a static palette. Skip such entries only during directory imports.
         if serpantinum and is_directory and (not isinstance(document, dict) or not isinstance(document.get("colors"), dict)):
             continue
         presets.extend(presets_from_document(document, str(source), serpantinum))
@@ -175,10 +183,8 @@ def read_catalog(path: Path) -> list[dict[str, Any]]:
     return [validate_native(item, str(path)) for item in document["presets"]]
 
 
-def write_catalog(path: Path, presets: list[dict[str, Any]]) -> None:
+def atomic_write_text(path: Path, payload: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    document = {"schemaVersion": CATALOG_SCHEMA, "presets": sorted(presets, key=lambda item: (item["name"].lower(), item["id"]))}
-    payload = json.dumps(document, ensure_ascii=False, indent=2) + "\n"
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     temporary = Path(temporary_name)
     try:
@@ -188,6 +194,15 @@ def write_catalog(path: Path, presets: list[dict[str, Any]]) -> None:
     finally:
         if temporary.exists():
             temporary.unlink()
+
+
+def write_catalog(path: Path, presets: list[dict[str, Any]]) -> None:
+    document = {"schemaVersion": CATALOG_SCHEMA, "presets": sorted(presets, key=lambda item: (item["name"].lower(), item["id"]))}
+    atomic_write_text(path, json.dumps(document, ensure_ascii=False, indent=2) + "\n")
+
+
+def write_preset(path: Path, preset: dict[str, Any]) -> None:
+    atomic_write_text(path, json.dumps(preset, ensure_ascii=False, indent=2) + "\n")
 
 
 def merge_presets(existing: list[dict[str, Any]], incoming: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -208,9 +223,14 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("list", help="list custom themes")
     remover = commands.add_parser("remove", help="remove a custom theme")
     remover.add_argument("theme_id")
-    exporter = commands.add_parser("export", help="export one native theme")
+    exporter = commands.add_parser("export", help="export one custom theme")
     exporter.add_argument("theme_id")
     exporter.add_argument("destination", type=Path)
+    upserter = commands.add_parser("upsert-json", help="validate and save one inline native theme")
+    upserter.add_argument("preset_json")
+    inline_exporter = commands.add_parser("export-json", help="validate and export one inline native theme")
+    inline_exporter.add_argument("preset_json")
+    inline_exporter.add_argument("destination", type=Path)
     return parser
 
 
@@ -224,6 +244,11 @@ def main() -> int:
             incoming = load_sources(args.source.expanduser(), args.command == "import-serpantinum")
             write_catalog(catalog, merge_presets(existing, incoming))
             print(f"[Raohane] Imported {len(incoming)} theme(s) into {catalog}")
+            return 0
+        if args.command == "upsert-json":
+            preset = parse_inline_preset(args.preset_json, "inline Raohane preset")
+            write_catalog(catalog, merge_presets(existing, [preset]))
+            print(f"[Raohane] Saved {preset['id']} into {catalog}")
             return 0
         if args.command == "list":
             for preset in sorted(existing, key=lambda item: item["name"].lower()):
@@ -241,9 +266,14 @@ def main() -> int:
             if preset is None:
                 raise ValueError(f"Theme not found: {args.theme_id}")
             destination = args.destination.expanduser()
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(json.dumps(preset, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            write_preset(destination, preset)
             print(f"[Raohane] Exported {args.theme_id} to {destination}")
+            return 0
+        if args.command == "export-json":
+            preset = parse_inline_preset(args.preset_json, "inline Raohane preset")
+            destination = args.destination.expanduser()
+            write_preset(destination, preset)
+            print(f"[Raohane] Exported {preset['id']} to {destination}")
             return 0
     except ValueError as error:
         parser.error(str(error))
