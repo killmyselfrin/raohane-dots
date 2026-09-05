@@ -30,8 +30,8 @@ RaohaneSurface {
     pressed: workspaceMouse.pressed
     interactive: true
     showSheen: false
-    hoverScale: 1.008
-    pressedScale: 0.994
+    hoverScale: 1
+    pressedScale: 1
     activeFocusOnTab: true
     border.color: root.urgent ? RaohaneTheme.critical
         : root.activeWorkspace ? RaohaneTheme.accentBorder
@@ -39,7 +39,7 @@ RaohaneSurface {
         : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
     Rectangle {
-        visible: root.activeWorkspace || root.urgent
+        visible: root.activeWorkspace || root.urgent || root.selected
         anchors {
             left: parent.left
             top: parent.top
@@ -51,8 +51,10 @@ RaohaneSurface {
         width: 2
         radius: 1
         color: root.urgent ? RaohaneTheme.critical : RaohaneTheme.accent
+        opacity: root.urgent || root.activeWorkspace ? 1 : root.selected ? 0.48 : 0
 
         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
     }
 
     ColumnLayout {
