@@ -95,46 +95,47 @@ Item {
         readonly property bool selected: root.activeWorkspaceId === workspaceId
         readonly property bool occupied: (workspaceObject?.toplevels?.values?.length ?? 0) > 0
         readonly property bool urgent: workspaceObject?.urgent ?? false
-        readonly property int compactWidth: selected ? 32 : occupied ? 24 : 20
 
-        implicitWidth: verticalMode ? 34 : compactWidth
-        implicitHeight: verticalMode ? 28 : 27
+        implicitWidth: verticalMode ? 30 : 26
+        implicitHeight: verticalMode ? 26 : 26
         Layout.alignment: Qt.AlignCenter
         Layout.preferredWidth: implicitWidth
         Layout.preferredHeight: implicitHeight
-        surfaceRadius: verticalMode ? 9 : 10
+        surfaceRadius: 8
         raised: false
         active: selected
         hovered: workspaceMouse.containsMouse
         pressed: workspaceMouse.pressed
         interactive: true
         transparentIdle: !selected && !urgent
-        hoverScale: 1.018
-        pressedScale: RaohaneMotion.softPressScale
+        hoverScale: 1
+        pressedScale: 1
         showSheen: false
         border.color: urgent ? RaohaneTheme.critical
             : selected ? RaohaneTheme.accentBorder
             : hovered ? RaohaneTheme.borderStrong
             : "transparent"
 
-        Behavior on implicitWidth {
-            NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
-        }
         Behavior on border.color {
             ColorAnimation { duration: RaohaneMotion.micro }
         }
 
         Rectangle {
-            visible: workspaceButton.verticalMode && workspaceButton.selected
-            anchors {
-                left: parent.left
-                verticalCenter: parent.verticalCenter
-                leftMargin: 2
-            }
-            width: 2
-            height: 13
+            visible: workspaceButton.selected || workspaceButton.urgent
+            width: workspaceButton.verticalMode ? 2 : (workspaceButton.selected ? 10 : 6)
+            height: workspaceButton.verticalMode ? (workspaceButton.selected ? 12 : 8) : 2
             radius: 1
-            color: RaohaneTheme.accent
+            color: workspaceButton.urgent ? RaohaneTheme.critical : RaohaneTheme.accent
+            opacity: 1
+
+            anchors {
+                left: workspaceButton.verticalMode ? parent.left : undefined
+                leftMargin: workspaceButton.verticalMode ? 2 : 0
+                verticalCenter: workspaceButton.verticalMode ? parent.verticalCenter : undefined
+                horizontalCenter: workspaceButton.verticalMode ? undefined : parent.horizontalCenter
+                bottom: workspaceButton.verticalMode ? undefined : parent.bottom
+                bottomMargin: workspaceButton.verticalMode ? 0 : 2
+            }
         }
 
         Text {
@@ -146,7 +147,7 @@ Item {
                 : workspaceButton.occupied ? RaohaneTheme.textMuted
                 : RaohaneTheme.textFaint
             opacity: workspaceButton.selected || workspaceButton.urgent ? 1
-                : workspaceButton.occupied ? 0.88 : 0.68
+                : workspaceButton.occupied ? 0.86 : 0.62
             font.pixelSize: workspaceButton.selected ? 9 : 8
             font.weight: workspaceButton.selected ? Font.DemiBold : Font.Medium
 
@@ -155,10 +156,13 @@ Item {
         }
 
         Rectangle {
-            visible: workspaceButton.occupied
-            width: workspaceButton.verticalMode ? 4 : (workspaceButton.selected ? 9 : 4)
-            height: workspaceButton.verticalMode ? 4 : 2
-            radius: workspaceButton.verticalMode ? 2 : 1
+            visible: workspaceButton.occupied && !workspaceButton.selected && !workspaceButton.urgent
+            width: workspaceButton.verticalMode ? 3 : 4
+            height: workspaceButton.verticalMode ? 3 : 2
+            radius: 1
+            color: RaohaneTheme.textFaint
+            opacity: 0.68
+
             anchors {
                 horizontalCenter: workspaceButton.verticalMode ? undefined : parent.horizontalCenter
                 bottom: workspaceButton.verticalMode ? undefined : parent.bottom
@@ -167,15 +171,6 @@ Item {
                 rightMargin: workspaceButton.verticalMode ? 4 : 0
                 verticalCenter: workspaceButton.verticalMode ? parent.verticalCenter : undefined
             }
-            color: workspaceButton.urgent ? RaohaneTheme.critical
-                : workspaceButton.selected ? RaohaneTheme.accent
-                : RaohaneTheme.textFaint
-            opacity: workspaceButton.selected || workspaceButton.urgent ? 1 : 0.72
-
-            Behavior on width {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
-            }
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
 
         MouseArea {
