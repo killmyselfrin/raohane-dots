@@ -20,6 +20,7 @@ RaohaneSurface {
     readonly property int styleBodyLines: Math.max(1, Math.min(6, Number(styleConfig.notificationBodyLines ?? 4)))
     property int bodyLineLimit: effectiveCompact ? Math.min(2, styleBodyLines) : styleBodyLines
     readonly property bool criticalNotification: notification.urgency === "critical"
+    readonly property bool geometryMotionAllowed: RaohaneMotion.transformMotionEnabled && !RaohanePerformance.gameModeActive
 
     implicitHeight: Math.round(Math.max(effectiveCompact ? 90 : 104, content.implicitHeight + 24) * notificationScale)
     surfaceRadius: Math.round((effectiveCompact ? 17 : 20) * notificationScale)
@@ -28,7 +29,24 @@ RaohaneSurface {
     clip: true
 
     Behavior on implicitHeight {
+        enabled: root.geometryMotionAllowed
         NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+    }
+
+    Rectangle {
+        visible: root.criticalNotification
+        anchors {
+            left: parent.left
+            top: parent.top
+            bottom: parent.bottom
+            leftMargin: 3
+            topMargin: 13
+            bottomMargin: 13
+        }
+        width: 2
+        radius: 1
+        color: RaohaneTheme.critical
+        opacity: 0.92
     }
 
     ColumnLayout {
@@ -117,6 +135,8 @@ RaohaneSurface {
                 icon: "close"
                 transparentIdle: true
                 showSheen: false
+                hoverScale: 1
+                pressedScale: 1
                 onClicked: RaohaneNotifications.discardNotification(root.notification.notificationId)
             }
         }
@@ -156,9 +176,10 @@ RaohaneSurface {
                     interactive: true
                     hovered: actionMouse.containsMouse || activeFocus
                     pressed: actionMouse.pressed
-                    hoverScale: 1.015
-                    pressedScale: RaohaneMotion.pressScale
+                    hoverScale: 1
+                    pressedScale: 1
                     activeFocusOnTab: true
+                    border.color: hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
                     Text {
                         id: actionLabel
