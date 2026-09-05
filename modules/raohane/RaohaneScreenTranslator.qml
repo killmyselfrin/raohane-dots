@@ -126,11 +126,13 @@ Scope {
 
             Rectangle {
                 anchors.fill: parent
-                color: RaohaneTheme.dark ? "#66000000" : "#385b5750"
+                color: RaohaneTheme.dark
+                    ? Qt.rgba(0.005, 0.008, 0.018, 0.68)
+                    : Qt.rgba(0.18, 0.17, 0.15, 0.24)
                 opacity: translatorPanel.entered ? 1 : 0
 
                 Behavior on opacity {
-                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
                 }
             }
 
@@ -139,55 +141,55 @@ Scope {
                 property bool entered: false
 
                 anchors.centerIn: parent
-                width: Math.min(parent.width - 64, 820)
-                height: Math.min(parent.height - 72, 520)
-                surfaceRadius: RaohaneTheme.radiusHero
+                width: Math.min(parent.width - 72, 790)
+                height: Math.min(parent.height - 88, 500)
+                surfaceRadius: 16
                 raised: true
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
                 clip: true
                 opacity: entered ? 1 : 0
-                scale: entered ? 1 : 0.982
-
-                transform: Translate {
-                    y: translatorPanel.entered ? 0 : 12
-                    Behavior on y {
-                        NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
-                    }
-                }
 
                 Behavior on opacity {
-                    NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
                 }
-                Behavior on scale {
-                    NumberAnimation { duration: RaohaneMotion.mediumDuration; easing.type: RaohaneMotion.easeEmphasized }
+
+                Rectangle {
+                    anchors {
+                        top: parent.top
+                        left: parent.left
+                        right: parent.right
+                        leftMargin: 17
+                        rightMargin: 17
+                    }
+                    height: 1
+                    color: RaohaneTheme.accent
+                    opacity: 0.40
                 }
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 16
+                    anchors.margins: 15
                     spacing: 9
 
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 42
-                        spacing: 9
+                        spacing: 8
 
-                        RaohaneSurface {
-                            width: 34
-                            height: 34
-                            surfaceRadius: 11
-                            active: true
-                            showSheen: false
+                        Rectangle {
+                            Layout.preferredWidth: 3
+                            Layout.preferredHeight: 29
+                            radius: 1.5
+                            color: RaohaneTheme.accent
+                        }
 
-                            RaohaneIcon {
-                                anchors.centerIn: parent
-                                text: "translate"
-                                iconSize: 18
-                                fill: 1
-                                symbolWeight: 540
-                                color: RaohaneTheme.accent
-                            }
+                        RaohaneIcon {
+                            text: "translate"
+                            iconSize: 18
+                            fill: 1
+                            symbolWeight: 550
+                            color: RaohaneTheme.accent
                         }
 
                         ColumnLayout {
@@ -199,6 +201,7 @@ Scope {
                                 color: RaohaneTheme.text
                                 font.pixelSize: 13
                                 font.weight: Font.DemiBold
+                                font.letterSpacing: -0.1
                             }
 
                             Text {
@@ -206,8 +209,8 @@ Scope {
                                 text: root.errorText.length > 0
                                     ? root.errorText
                                     : qsTr("Capture an area and translate recognized text")
-                                color: root.errorText.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textMuted
-                                font.pixelSize: 8
+                                color: root.errorText.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textFaint
+                                font.pixelSize: 7
                                 elide: Text.ElideRight
 
                                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
@@ -216,26 +219,44 @@ Scope {
 
                         RaohaneSurface {
                             id: languageButton
-                            width: 58
-                            height: 30
-                            surfaceRadius: 9
-                            transparentIdle: true
+                            width: 62
+                            height: 29
+                            surfaceRadius: 8
+                            active: true
                             showSheen: false
                             interactive: true
                             hovered: languageMouse.containsMouse || activeFocus
                             pressed: languageMouse.pressed
-                            hoverScale: 1.015
-                            pressedScale: RaohaneMotion.pressScale
+                            hoverScale: 1
+                            pressedScale: 1
                             activeFocusOnTab: true
+                            border.color: languageButton.hovered ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
-                            Text {
+                            Row {
                                 anchors.centerIn: parent
-                                text: root.targetLanguage === "ru" ? "→ RU" : "→ EN"
-                                color: languageButton.hovered ? RaohaneTheme.accent : RaohaneTheme.text
-                                font.pixelSize: 8
-                                font.weight: Font.DemiBold
+                                spacing: 4
 
-                                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                                Text {
+                                    text: root.targetLanguage === "ru" ? "EN" : "RU"
+                                    color: RaohaneTheme.textFaint
+                                    font.pixelSize: 6
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+
+                                RaohaneIcon {
+                                    text: "arrow_forward"
+                                    iconSize: 10
+                                    color: RaohaneTheme.accent
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+
+                                Text {
+                                    text: root.targetLanguage.toUpperCase()
+                                    color: RaohaneTheme.text
+                                    font.pixelSize: 7
+                                    font.weight: Font.DemiBold
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
                             }
 
                             MouseArea {
@@ -256,11 +277,13 @@ Scope {
                         }
 
                         RaohaneIconButton {
-                            buttonSize: 30
-                            iconSize: 15
+                            buttonSize: 29
+                            iconSize: 14
                             icon: "close"
                             transparentIdle: true
                             showSheen: false
+                            hoverScale: 1
+                            pressedScale: 1
                             onClicked: root.close()
                         }
                     }
@@ -274,12 +297,13 @@ Scope {
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        spacing: 8
+                        spacing: 7
 
                         TextPanel {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             title: qsTr("Recognized text")
+                            icon: "document_scanner"
                             value: root.sourceText.length > 0 ? root.sourceText : qsTr("No capture yet. Press Capture area to begin.")
                             empty: root.sourceText.length === 0
                         }
@@ -288,27 +312,34 @@ Scope {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             title: root.targetLanguage === "ru" ? qsTr("Translation · Russian") : qsTr("Translation · English")
+                            icon: "translate"
                             value: root.translatedText.length > 0 ? root.translatedText : qsTr("The translated text will appear here.")
                             empty: root.translatedText.length === 0
                             highlighted: root.translatedText.length > 0
                         }
                     }
 
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: RaohaneTheme.borderFaint
+                    }
+
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        Layout.preferredHeight: 34
+                        spacing: 6
 
-                        TranslateButton {
+                        Text {
                             Layout.fillWidth: true
-                            icon: "crop_free"
-                            title: root.busy ? qsTr("Working…") : qsTr("Capture area")
-                            primary: true
-                            enabled: !root.busy
-                            onTriggered: root.startTranslation()
+                            text: root.busy ? qsTr("Capturing and translating…") : qsTr("Select a region of the current screen")
+                            color: root.busy ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                            elide: Text.ElideRight
                         }
 
                         TranslateButton {
-                            Layout.preferredWidth: 158
+                            Layout.preferredWidth: 142
                             icon: root.copied ? "check_circle" : "content_copy"
                             title: root.copied ? qsTr("Copied") : qsTr("Copy translation")
                             enabled: root.translatedText.length > 0
@@ -317,6 +348,15 @@ Scope {
                                 root.copied = true
                                 copiedTimer.restart()
                             }
+                        }
+
+                        TranslateButton {
+                            Layout.preferredWidth: 142
+                            icon: "crop_free"
+                            title: root.busy ? qsTr("Working…") : qsTr("Capture area")
+                            primary: true
+                            enabled: !root.busy
+                            onTriggered: root.startTranslation()
                         }
                     }
                 }
@@ -340,26 +380,64 @@ Scope {
     component TextPanel: RaohaneSurface {
         id: panel
         required property string title
+        required property string icon
         required property string value
         property bool empty: false
         property bool highlighted: false
-        surfaceRadius: 15
+
+        surfaceRadius: 10
         raised: false
         showSheen: false
-        border.color: highlighted ? RaohaneTheme.accentBorder : RaohaneTheme.border
+        color: RaohaneTheme.surfaceDeep
+        border.color: highlighted ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+
+        Rectangle {
+            anchors {
+                left: parent.left
+                top: parent.top
+                bottom: parent.bottom
+                leftMargin: 2
+                topMargin: 10
+                bottomMargin: 10
+            }
+            width: 2
+            radius: 1
+            color: RaohaneTheme.accent
+            opacity: panel.highlighted ? 1 : 0.22
+        }
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 7
+            anchors.margins: 10
+            spacing: 6
 
-            Text {
-                text: panel.title
-                color: panel.highlighted ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                font.pixelSize: 8
-                font.weight: Font.DemiBold
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 5
 
-                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                RaohaneIcon {
+                    text: panel.icon
+                    iconSize: 12
+                    fill: panel.highlighted ? 1 : 0
+                    color: panel.highlighted ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: panel.title
+                    color: panel.highlighted ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    font.pixelSize: 7
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+
+                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: RaohaneTheme.borderFaint
             }
 
             TextEdit {
@@ -368,10 +446,10 @@ Scope {
                 readOnly: true
                 selectByMouse: true
                 text: panel.value
-                color: panel.empty ? RaohaneTheme.textMuted : RaohaneTheme.text
+                color: panel.empty ? RaohaneTheme.textFaint : RaohaneTheme.text
                 selectionColor: RaohaneTheme.accentSoft
                 selectedTextColor: RaohaneTheme.text
-                font.pixelSize: panel.highlighted ? 11 : 10
+                font.pixelSize: panel.highlighted ? 10 : 9
                 font.weight: panel.highlighted ? Font.Medium : Font.Normal
                 wrapMode: TextEdit.Wrap
                 clip: true
@@ -386,37 +464,40 @@ Scope {
         property bool primary: false
         signal triggered()
 
-        Layout.preferredHeight: 38
-        surfaceRadius: 11
+        Layout.preferredHeight: 32
+        surfaceRadius: 8
         active: primary
-        transparentIdle: !primary
+        transparentIdle: !primary && !hovered
         showSheen: false
         interactive: true
         hovered: pointer.containsMouse || activeFocus
         pressed: pointer.pressed
-        hoverScale: 1.01
-        pressedScale: RaohaneMotion.pressScale
+        hoverScale: 1
+        pressedScale: 1
         activeFocusOnTab: enabled
         opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
+        border.color: primary ? RaohaneTheme.accentBorder
+            : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         Row {
             anchors.centerIn: parent
-            spacing: 6
+            spacing: 5
 
             RaohaneIcon {
                 text: button.icon
-                iconSize: 14
+                iconSize: 12
                 fill: button.primary || button.hovered ? 1 : 0
-                symbolWeight: button.pressed ? 560 : button.primary || button.hovered ? 520 : 430
+                symbolWeight: button.primary ? 550 : button.hovered ? 500 : 420
                 color: button.primary ? RaohaneTheme.accent
                     : button.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
 
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
+
             Text {
                 text: button.title
                 color: button.primary ? RaohaneTheme.accent : RaohaneTheme.text
-                font.pixelSize: 8
+                font.pixelSize: 7
                 font.weight: Font.DemiBold
             }
         }
