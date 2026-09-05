@@ -92,12 +92,13 @@ fi
 
 rg -q 'RaohaneQuickControlTile[[:space:]]*\{' "$quick" || fail 'Quick Controls host lost registry-backed command tiles'
 rg -q '^RaohaneSurface[[:space:]]*\{' "$quick_tile" || fail 'Quick Control tile renderer lost shared command-tile surface'
-rg -q 'transparentIdle:[[:space:]]*!root\.active[[:space:]]*&&[[:space:]]*!root\.menuOpen' "$quick_tile" || fail 'Quick Control tiles lost the flat inactive hierarchy'
+rg -q 'transparentIdle:[[:space:]]*false' "$quick_tile" || fail 'Quick Control tiles lost their composed inactive surface hierarchy'
 rg -q 'RaohaneSlider[[:space:]]*\{' "$quick" || fail 'Quick Controls lost shared sliders'
 rg -q 'RaohaneMotion\.' "$quick" || fail 'Quick Controls host lost tactile slider/picker motion'
 rg -q 'RaohaneMotion\.' "$quick_tile" || fail 'Quick Control tiles lost tactile motion'
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles lost the restrained inactive state token'
 rg -q 'RaohaneTheme\.borderStrong' "$quick_tile" || fail 'Quick Control tiles lost explicit hover-border hierarchy'
+rg -q 'color:[[:space:]]*root\.active[[:space:]]*\?[[:space:]]*RaohaneTheme\.accent' "$quick_tile" || fail 'Quick Control tiles lost explicit active-state indicator hierarchy'
 
 # Settings V3 is a coordinator around extracted navigation/header plus a
 # declarative page registry. Generic section layout stays in SectionPage,
@@ -149,4 +150,4 @@ if rg -n 'RaohaneTheme\.animation(Fast|Duration|Slow)' "$osd"; then
   fail 'OSD bypasses the shared RaohaneMotion layer'
 fi
 
-printf 'ui-polish-audit: persisted registry-driven desktop widgets, floating Control Center with registry-backed tiles, coordinator-based Settings V3, shared controls, Sidebar, tray, About, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
+printf 'ui-polish-audit: persisted registry-driven desktop widgets, floating Control Center with composed registry-backed tiles, coordinator-based Settings V3, shared controls, Sidebar, tray, About, workspaces, Settings Search, notifications and OSD retain the shared Zen interaction system\n'
