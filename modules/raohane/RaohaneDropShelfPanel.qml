@@ -23,7 +23,7 @@ Scope {
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         implicitWidth: 410
-        implicitHeight: 246
+        implicitHeight: 238
 
         anchors {
             top: true
@@ -69,64 +69,77 @@ Scope {
             property bool entered: false
 
             anchors.fill: parent
-            surfaceRadius: 20
+            surfaceRadius: 14
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.97
-
-            transform: Translate {
-                y: shelfPanel.entered ? 0 : 10
-                Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                }
-            }
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+
+            Rectangle {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    leftMargin: 14
+                    rightMargin: 14
+                }
+                height: 1
+                color: RaohaneTheme.accent
+                opacity: 0.34
             }
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 12
-                spacing: 8
+                anchors.margins: 11
+                spacing: 7
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 30
+                    Layout.preferredHeight: 29
+                    spacing: 8
 
-                    RaohaneSurface {
-                        width: 28
-                        height: 28
-                        surfaceRadius: 9
-                        active: true
-                        showSheen: false
+                    Rectangle {
+                        Layout.preferredWidth: 2
+                        Layout.preferredHeight: 22
+                        radius: 1
+                        color: RaohaneTheme.accent
+                    }
 
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "shelves"
-                            iconSize: 15
-                            fill: 1
-                            symbolWeight: 540
-                            color: RaohaneTheme.accent
-                        }
+                    RaohaneIcon {
+                        text: "shelves"
+                        iconSize: 15
+                        fill: 1
+                        symbolWeight: 540
+                        color: RaohaneTheme.accent
                     }
 
                     Text {
                         Layout.fillWidth: true
                         text: qsTr("Drop Shelf")
                         color: RaohaneTheme.text
-                        font.pixelSize: 11
+                        font.pixelSize: 10
                         font.weight: Font.DemiBold
                     }
-                    Text {
-                        text: qsTr("%1 items").arg(RaohaneDropShelf.items.length)
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
+
+                    RaohaneSurface {
+                        implicitWidth: itemCount.implicitWidth + 14
+                        implicitHeight: 22
+                        surfaceRadius: 7
+                        transparentIdle: true
+                        showSheen: false
+
+                        Text {
+                            id: itemCount
+                            anchors.centerIn: parent
+                            text: qsTr("%1 items").arg(RaohaneDropShelf.items.length)
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 6
+                            font.weight: Font.Medium
+                        }
                     }
                 }
 
@@ -140,9 +153,9 @@ Scope {
                     id: shelfList
 
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 130
+                    Layout.preferredHeight: 126
                     orientation: ListView.Horizontal
-                    spacing: 7
+                    spacing: 6
                     clip: true
                     model: RaohaneDropShelf.items
                     boundsBehavior: Flickable.StopAtBounds
@@ -168,21 +181,21 @@ Scope {
                         RaohaneIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "move_to_inbox"
-                            iconSize: 24
+                            iconSize: 22
                             color: RaohaneTheme.textFaint
                         }
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: qsTr("Drop files here")
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
+                            font.pixelSize: 8
                         }
                     }
                 }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: 5
 
                     ShelfButton {
                         title: qsTr("Copy")
@@ -223,17 +236,19 @@ Scope {
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 34
-        surfaceRadius: 10
+        Layout.preferredHeight: 32
+        surfaceRadius: 8
         active: primary
-        transparentIdle: !primary
+        transparentIdle: !primary && !hovered
         showSheen: false
         interactive: true
         hovered: buttonMouse.containsMouse
         pressed: buttonMouse.pressed
-        hoverScale: 1.01
-        pressedScale: RaohaneMotion.pressScale
+        hoverScale: 1
+        pressedScale: 1
         opacity: button.enabled ? 1 : RaohaneMotion.disabledOpacity
+        border.color: primary ? RaohaneTheme.accentBorder
+            : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         Row {
             anchors.centerIn: parent
@@ -241,7 +256,7 @@ Scope {
 
             RaohaneIcon {
                 text: button.icon
-                iconSize: 13
+                iconSize: 12
                 fill: button.primary || button.hovered ? 1 : 0
                 symbolWeight: button.pressed ? 560 : button.primary || button.hovered ? 520 : 430
                 color: button.primary ? RaohaneTheme.accent
@@ -252,7 +267,7 @@ Scope {
             Text {
                 text: button.title
                 color: button.primary ? RaohaneTheme.accent : RaohaneTheme.text
-                font.pixelSize: 8
+                font.pixelSize: 7
                 font.weight: Font.DemiBold
             }
         }
