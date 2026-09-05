@@ -8,6 +8,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 
 import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Scope {
     id: root
@@ -52,6 +53,8 @@ Scope {
             readonly property bool monitorHasSpecialOpen: (hyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
             readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
+            readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
+                && !RaohanePerformance.gameModeActive
 
             visible: RaohaneState.barOpen && !RaohaneState.screenLocked && !fullscreenSuppressed
             exclusiveZone: fullscreenSuppressed
@@ -108,6 +111,7 @@ Scope {
                 x: barWindow.mustShow ? 5 : -width - 3
 
                 Behavior on x {
+                    enabled: barWindow.surfaceMotionAllowed
                     NumberAnimation {
                         duration: RaohaneMotion.standard
                         easing.type: RaohaneMotion.easeEmphasized
