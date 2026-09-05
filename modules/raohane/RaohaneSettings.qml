@@ -54,11 +54,6 @@ Scope {
             color: RaohaneTheme.dark
                 ? Qt.rgba(0, 0, 0, 0.46)
                 : Qt.rgba(0.18, 0.17, 0.15, 0.18)
-            opacity: RaohaneState.settingsOpen ? 1 : 0
-
-            Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-            }
 
             MouseArea {
                 anchors.fill: parent
@@ -79,22 +74,10 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.994
             focus: RaohaneState.settingsOpen
-
-            transform: Translate {
-                y: workspace.entered ? 0 : 10
-                Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
-                }
-            }
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-            }
-
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             Rectangle {
