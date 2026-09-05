@@ -18,6 +18,10 @@ QtObject {
         quick: {
             source: "RaohaneQuickControlsStudio.qml",
             controlKeys: ["quickControlTiles"]
+        },
+        desktop: {
+            previewSource: "RaohaneDesktopPreview.qml",
+            controlKeys: []
         }
     })
 
@@ -37,5 +41,9 @@ QtObject {
             return false
         const keys = root.extension(sectionKey)?.controlKeys ?? []
         return keys.includes(key)
+    }
+
+    function previewSource(sectionKey: string): string {
+        return root.extension(sectionKey)?.previewSource ?? ""
     }
 }

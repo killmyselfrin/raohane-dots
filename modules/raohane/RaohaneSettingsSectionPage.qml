@@ -10,19 +10,58 @@ Item {
     readonly property var pageInfo: RaohaneSettingsPageRegistry.page(root.sectionKey)
     readonly property var entries: RaohaneSettingsPageRegistry.sectionEntries(root.sectionKey)
     readonly property string extensionSource: RaohaneSettingsSectionRegistry.source(root.sectionKey)
+    readonly property string previewSource: RaohaneSettingsSectionRegistry.previewSource(root.sectionKey)
+    property string pendingSearch: ""
+    property string highlightedKey: ""
 
     function goTo(search: string): void {
-        const needle = String(search ?? "").trim()
+        root.pendingSearch = String(search ?? "").trim()
+        Qt.callLater(root.revealRequestedControl)
+    }
+
+    function revealRequestedControl(): void {
+        const needle = root.pendingSearch
         if (needle === "")
             return
+        settingsList.forceLayout()
+        sectionColumn.forceLayout()
+        let target = null
         if (RaohaneSettingsSectionRegistry.ownsControl(root.sectionKey, needle)) {
-            settingsFlick.contentY = Math.max(0, extensionLoader.y - 18)
-            return
+            if (extensionLoader.status !== Loader.Ready)
+                return
+            target = extensionLoader
+        } else {
+            const normalized = needle.toLowerCase()
+            let index = root.entries.findIndex(entry => entry.key.toLowerCase() === normalized)
+            if (index < 0)
+                index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(normalized) || entry.key.toLowerCase().includes(normalized))
+            if (index < 0) {
+                root.pendingSearch = ""
+                return
+            }
+            target = controlRepeater.itemAt(index)
+            if (!target)
+                return
+            root.highlightedKey = root.entries[index].key
+            highlightTimeout.restart()
         }
-        const normalized = needle.toLowerCase()
-        const index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(normalized) || entry.key.toLowerCase().includes(normalized))
-        if (index >= 0)
-            settingsFlick.contentY = Math.max(0, index * 68 - 18)
+        const position = target.mapToItem(settingsFlick.contentItem, 0, 0)
+        const maximum = Math.max(0, settingsFlick.contentHeight - settingsFlick.height)
+        settingsFlick.contentY = Math.min(maximum, Math.max(0, position.y - 18))
+        root.pendingSearch = ""
+    }
+
+    onSectionKeyChanged: {
+        root.pendingSearch = ""
+        root.highlightedKey = ""
+        highlightTimeout.stop()
+        settingsFlick.contentY = 0
+    }
+
+    Timer {
+        id: highlightTimeout
+        interval: 1800
+        onTriggered: root.highlightedKey = ""
     }
 
     Flickable {
@@ -125,6 +164,15 @@ Item {
                 }
             }
 
+            Loader {
+                width: parent.width
+                active: root.previewSource !== ""
+                visible: active
+                source: root.previewSource
+                height: active ? implicitHeight : 0
+                onLoaded: Qt.callLater(root.revealRequestedControl)
+            }
+
             RaohaneSurface {
                 width: parent.width
                 height: settingsList.implicitHeight
@@ -140,7 +188,9 @@ Item {
                     spacing: 0
 
                     Repeater {
+                        id: controlRepeater
                         model: root.entries
+                        onItemAdded: Qt.callLater(root.revealRequestedControl)
 
                         delegate: RaohaneSettingsControlRow {
                             required property var modelData
@@ -148,6 +198,7 @@ Item {
 
                             width: settingsList.width
                             entry: modelData
+                            highlighted: root.highlightedKey === modelData.key
                             lastRow: index >= root.entries.length - 1
                         }
                     }
@@ -165,6 +216,7 @@ Item {
                 onLoaded: {
                     if (item && item.hasOwnProperty("width"))
                         item.width = width
+                    Qt.callLater(root.revealRequestedControl)
                 }
             }
         }
