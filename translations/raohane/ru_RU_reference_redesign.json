@@ -1,6 +1,7 @@
 {
   "Apply": "Применить",
   "Browse": "Обзор",
+  "Capturing and translating…": "Захват и перевод…",
   "Default input": "Устройство ввода по умолчанию",
   "Default output": "Устройство вывода по умолчанию",
   "Devices": "Устройства",
@@ -14,6 +15,7 @@
   "Preview": "Предпросмотр",
   "Quick access": "Быстрый доступ",
   "Screenshot": "Снимок экрана",
+  "Select a region of the current screen": "Выберите область текущего экрана",
   "Select a wallpaper": "Выберите обои",
   "Signal": "Сигнал"
 }
