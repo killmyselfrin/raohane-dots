@@ -92,25 +92,9 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.992
-
-            transform: Translate {
-                x: panelSurface.entered ? 0 : 18
-                y: panelSurface.entered ? 0 : -4
-
-                Behavior on x {
-                    NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
-                }
-                Behavior on y {
-                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
-                }
-            }
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-            }
-            Behavior on scale {
-                NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             Rectangle {
@@ -124,11 +108,7 @@ Scope {
                 height: 210
                 radius: 105
                 color: RaohaneTheme.accentSoft
-                opacity: panelSurface.entered ? 0.20 : 0
-
-                Behavior on opacity {
-                    NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeStandard }
-                }
+                opacity: 0.16
             }
 
             Rectangle {
@@ -483,7 +463,8 @@ Scope {
         raised: false
         hovered: mediaMouse.containsMouse
         interactive: true
-        hoverScale: RaohaneMotion.subtleHoverScale
+        hoverScale: 1
+        pressedScale: 1
         border.color: hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         RowLayout {
@@ -551,10 +532,6 @@ Scope {
                         height: parent.height
                         radius: 1
                         color: RaohaneTheme.accent
-
-                        Behavior on width {
-                            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-                        }
                     }
                 }
             }
