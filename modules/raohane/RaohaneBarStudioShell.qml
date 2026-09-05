@@ -18,6 +18,10 @@ Item {
             orientation: editor.orientation
         }
 
+        RaohaneDockPreview {
+            Layout.fillWidth: true
+        }
+
         RaohaneBarStudio {
             id: editor
             Layout.fillWidth: true
