@@ -220,10 +220,11 @@ Item {
                 emphasized: control.pickerActive
                 transparentIdle: true
                 showSheen: false
-                rotation: control.pickerActive ? 180 : 0
+                rotation: pickerButton.transformMotionAllowed && control.pickerActive ? 180 : 0
                 onClicked: control.pickerTriggered()
 
                 Behavior on rotation {
+                    enabled: pickerButton.transformMotionAllowed
                     NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
                 }
             }
