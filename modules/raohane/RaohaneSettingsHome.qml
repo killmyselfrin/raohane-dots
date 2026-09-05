@@ -16,11 +16,11 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 14
+        spacing: 11
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 138
+            Layout.preferredHeight: 132
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             clip: true
@@ -54,7 +54,7 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 18
+                anchors.margins: 17
                 spacing: 18
 
                 ColumnLayout {
@@ -102,7 +102,7 @@ Item {
                     }
 
                     RowLayout {
-                        Layout.topMargin: 10
+                        Layout.topMargin: 9
                         spacing: 7
 
                         StatusChip {
@@ -133,7 +133,7 @@ Item {
 
                 Rectangle {
                     Layout.preferredWidth: 1
-                    Layout.preferredHeight: 78
+                    Layout.preferredHeight: 74
                     color: RaohaneTheme.borderFaint
                 }
 
@@ -160,6 +160,66 @@ Item {
             }
         }
 
+        RaohaneSurface {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 66
+            surfaceRadius: 16
+            raised: false
+            showSheen: false
+            color: RaohaneTheme.surfaceSubtle
+            border.color: RaohaneTheme.border
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12
+                anchors.rightMargin: 10
+                spacing: 12
+
+                ColumnLayout {
+                    Layout.preferredWidth: root.width < 760 ? 118 : 150
+                    spacing: 1
+
+                    Text {
+                        text: qsTr("Style profile")
+                        color: RaohaneTheme.text
+                        font.pixelSize: 10
+                        font.weight: Font.DemiBold
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Start broad, tune details later")
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 7
+                        wrapMode: Text.WordWrap
+                    }
+                }
+
+                Rectangle {
+                    Layout.preferredWidth: 1
+                    Layout.preferredHeight: 36
+                    color: RaohaneTheme.borderFaint
+                }
+
+                RaohaneStyleProfiles {
+                    Layout.fillWidth: true
+                    compact: root.width < 760
+                    showDescription: root.width >= 900
+                }
+
+                RaohaneIconButton {
+                    buttonSize: 30
+                    iconSize: 14
+                    icon: "tune"
+                    transparentIdle: true
+                    showSheen: false
+                    hoverScale: 1
+                    pressedScale: 1
+                    onClicked: root.openPage("Themes")
+                }
+            }
+        }
+
         RowLayout {
             Layout.fillWidth: true
             spacing: 10
@@ -168,14 +228,14 @@ Item {
                 spacing: 1
 
                 Text {
-                    text: qsTr("Core surfaces")
+                    text: qsTr("Control deck")
                     color: RaohaneTheme.text
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
                 }
 
                 Text {
-                    text: qsTr("Everything below applies live and stays inside the Raohane design system")
+                    text: qsTr("Open a subsystem directly; every change applies live")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 8
                 }
@@ -187,9 +247,9 @@ Item {
         GridLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            columns: 2
-            columnSpacing: 9
-            rowSpacing: 9
+            columns: root.width >= 760 ? 3 : 2
+            columnSpacing: 8
+            rowSpacing: 8
 
             DeckCard {
                 Layout.fillWidth: true
@@ -198,6 +258,15 @@ Item {
                 title: qsTr("Themes")
                 detail: qsTr("Theme Library, accent color and Style Studio")
                 page: "Themes"
+            }
+
+            DeckCard {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                icon: "widgets"
+                title: qsTr("Desktop Widgets")
+                detail: qsTr("Clock, context, system status and desktop composition")
+                page: "Desktop Widgets"
             }
 
             DeckCard {
@@ -212,19 +281,19 @@ Item {
             DeckCard {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                icon: "monitor"
-                title: qsTr("Displays")
-                detail: qsTr("Resolution, refresh rate, scale, rotation and VRR")
-                page: "Displays"
+                icon: "dock_to_bottom"
+                title: qsTr("Bar & Dock")
+                detail: qsTr("Floating bar, Context Island and application dock")
+                page: "Bar & Dock"
             }
 
             DeckCard {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                icon: "dock_to_bottom"
-                title: qsTr("Bar & Dock")
-                detail: qsTr("Floating bar, Context Island and application dock")
-                page: "Bar & Dock"
+                icon: "instant_mix"
+                title: qsTr("Quick Controls")
+                detail: qsTr("Choose the controls shown in the command surface")
+                page: "Quick Controls"
             }
 
             DeckCard {
@@ -248,10 +317,10 @@ Item {
             DeckCard {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                icon: "instant_mix"
-                title: qsTr("Quick Controls")
-                detail: qsTr("Choose the controls shown in the command surface")
-                page: "Quick Controls"
+                icon: "monitor"
+                title: qsTr("Displays")
+                detail: qsTr("Resolution, refresh rate, scale, rotation and VRR")
+                page: "Displays"
             }
 
             DeckCard {
@@ -278,6 +347,8 @@ Item {
         showSheen: false
         hovered: pathMouse.containsMouse
         interactive: true
+        hoverScale: 1
+        pressedScale: 1
         border.color: pathMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         RowLayout {
@@ -330,27 +401,27 @@ Item {
         required property string detail
         required property string page
 
-        Layout.minimumHeight: 70
+        Layout.minimumHeight: 64
         surfaceRadius: 15
         hovered: cardMouse.containsMouse
         pressed: cardMouse.pressed
         interactive: true
         raised: false
         showSheen: false
-        hoverScale: 1.004
-        pressedScale: 0.994
+        hoverScale: 1
+        pressedScale: 1
         border.color: cardMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 11
-            spacing: 10
+            anchors.leftMargin: 11
+            anchors.rightMargin: 10
+            spacing: 9
 
             Rectangle {
-                Layout.preferredWidth: 36
-                Layout.preferredHeight: 36
-                radius: 11
+                Layout.preferredWidth: 34
+                Layout.preferredHeight: 34
+                radius: 10
                 color: cardMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
                 border.width: 1
                 border.color: cardMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
@@ -358,7 +429,7 @@ Item {
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: card.icon
-                    iconSize: 17
+                    iconSize: 16
                     fill: cardMouse.containsMouse ? 0.45 : 0
                     symbolWeight: cardMouse.containsMouse ? 520 : 430
                     color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
