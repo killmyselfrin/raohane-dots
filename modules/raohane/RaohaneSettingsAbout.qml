@@ -57,123 +57,127 @@ Item {
         anchors.fill: parent
         clip: true
         contentWidth: width
-        contentHeight: contentColumn.implicitHeight + 34
+        contentHeight: contentColumn.implicitHeight + 30
         boundsBehavior: Flickable.StopAtBounds
 
         ColumnLayout {
             id: contentColumn
-            width: parent.width
+
+            width: Math.min(parent.width - 32, 900)
             anchors.top: parent.top
-            anchors.topMargin: 16
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.right: parent.right
-            anchors.rightMargin: 16
-            spacing: 12
+            anchors.topMargin: 14
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 10
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 154
-                surfaceRadius: RaohaneTheme.radiusLarge
-                raised: true
+                Layout.preferredHeight: 106
+                surfaceRadius: 11
+                raised: false
                 showSheen: false
+                border.color: RaohaneTheme.borderFaint
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.topMargin: 14
+                    anchors.bottomMargin: 14
+                    width: 2
+                    radius: 1
+                    color: RaohaneTheme.accent
+                }
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 22
-                    spacing: 18
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 12
+                    spacing: 12
 
-                    RaohaneSurface {
-                        Layout.preferredWidth: 82
-                        Layout.preferredHeight: 82
-                        surfaceRadius: 27
-                        raised: false
-                        active: true
-                        showSheen: false
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "dashboard_customize"
-                            iconSize: 35
-                            fill: 1
-                            symbolWeight: 470
-                            grade: 25
-                            color: RaohaneTheme.accent
-                        }
+                    RaohaneIcon {
+                        text: "dashboard_customize"
+                        iconSize: 28
+                        fill: 1
+                        symbolWeight: 470
+                        grade: 25
+                        color: RaohaneTheme.accent
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: 1
 
                         Text {
-                            text: "Raohane"
+                            text: "RAOHANE"
                             color: RaohaneTheme.text
-                            font.pixelSize: 27
-                            font.weight: Font.Bold
+                            font.pixelSize: 18
+                            font.weight: Font.DemiBold
+                            font.letterSpacing: 2.2
                         }
 
                         Text {
                             text: qsTr("A quiet, living desktop shell for Hyprland")
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 11
+                            font.pixelSize: 9
                         }
 
-                        RaohaneSurface {
-                            Layout.topMargin: 5
-                            Layout.preferredWidth: versionText.implicitWidth + 18
-                            Layout.preferredHeight: 27
-                            surfaceRadius: 14
-                            raised: false
-                            showSheen: false
+                        RowLayout {
+                            Layout.topMargin: 4
+                            spacing: 6
+
+                            RaohaneSurface {
+                                implicitWidth: versionText.implicitWidth + 16
+                                implicitHeight: 24
+                                surfaceRadius: 7
+                                raised: false
+                                showSheen: false
+                                border.color: RaohaneTheme.accentBorder
+
+                                Text {
+                                    id: versionText
+                                    anchors.centerIn: parent
+                                    text: qsTr("Version %1").arg(root.version)
+                                    color: RaohaneTheme.accent
+                                    font.pixelSize: 8
+                                    font.weight: Font.DemiBold
+                                }
+                            }
 
                             Text {
-                                id: versionText
-                                anchors.centerIn: parent
-                                text: qsTr("Version %1").arg(root.version)
-                                color: RaohaneTheme.accent
-                                font.pixelSize: 9
-                                font.weight: Font.DemiBold
+                                text: qsTr("Hyprland · Quickshell")
+                                color: RaohaneTheme.textFaint
+                                font.pixelSize: 8
+                                font.weight: Font.Medium
                             }
                         }
                     }
 
-                    ColumnLayout {
-                        spacing: 8
+                    ActionButton {
+                        icon: "refresh"
+                        label: qsTr("Refresh")
+                        onClicked: root.refresh()
+                    }
 
-                        ActionButton {
-                            icon: "refresh"
-                            label: qsTr("Refresh")
-                            onClicked: root.refresh()
-                        }
-
-                        ActionButton {
-                            icon: root.copied ? "check" : "content_copy"
-                            label: root.copied ? qsTr("Copied") : qsTr("Diagnostics")
-                            emphasized: root.copied
-                            onClicked: {
-                                Quickshell.clipboardText = root.diagnosticsText()
-                                root.copied = true
-                                copiedTimer.restart()
-                            }
+                    ActionButton {
+                        icon: root.copied ? "check" : "content_copy"
+                        label: root.copied ? qsTr("Copied") : qsTr("Diagnostics")
+                        emphasized: root.copied
+                        onClicked: {
+                            Quickshell.clipboardText = root.diagnosticsText()
+                            root.copied = true
+                            copiedTimer.restart()
                         }
                     }
                 }
             }
 
-            Text {
-                text: qsTr("System")
-                color: RaohaneTheme.text
-                font.pixelSize: 13
-                font.weight: Font.DemiBold
-                Layout.leftMargin: 3
-            }
+            SectionLabel { text: qsTr("System") }
 
             GridLayout {
                 Layout.fillWidth: true
                 columns: width >= 720 ? 2 : 1
-                columnSpacing: 10
-                rowSpacing: 10
+                columnSpacing: 8
+                rowSpacing: 8
 
                 InfoCard { icon: "computer"; label: qsTr("Distribution"); value: RaohaneSystemInfo.distroName }
                 InfoCard { icon: "terminal"; label: qsTr("Kernel"); value: RaohaneSystemInfo.kernelVersion }
@@ -185,135 +189,31 @@ Item {
                 InfoCard { icon: "package_2"; label: qsTr("Packages"); value: RaohaneSystemInfo.packages }
             }
 
-            Text {
-                text: qsTr("Introduction")
-                color: RaohaneTheme.text
-                font.pixelSize: 13
-                font.weight: Font.DemiBold
-                Layout.leftMargin: 3
-            }
+            SectionLabel { text: qsTr("Introduction") }
 
-            RaohaneSurface {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 92
-                surfaceRadius: 18
-                raised: false
-                showSheen: false
-                border.color: RaohaneTheme.borderFaint
+            InfoRail {
+                icon: "waving_hand"
+                title: qsTr("Welcome to Raohane")
+                detail: qsTr("Replay the animated welcome and guided interface tour from the beginning.")
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 13
-
-                    RaohaneSurface {
-                        Layout.preferredWidth: 46
-                        Layout.preferredHeight: 46
-                        surfaceRadius: 15
-                        raised: false
-                        active: true
-                        showSheen: false
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "waving_hand"
-                            iconSize: 22
-                            fill: 1
-                            color: RaohaneTheme.accent
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 2
-
-                        Text {
-                            text: qsTr("Welcome to Raohane")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 11
-                            font.weight: Font.DemiBold
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: qsTr("Replay the animated welcome and guided interface tour from the beginning.")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            wrapMode: Text.WordWrap
-                        }
-                    }
-
-                    ActionButton {
-                        icon: "replay"
-                        label: qsTr("Show again")
-                        emphasized: true
-                        onClicked: RaohaneOnboardingState.reset()
-                    }
+                ActionButton {
+                    icon: "replay"
+                    label: qsTr("Show again")
+                    emphasized: true
+                    onClicked: RaohaneOnboardingState.reset()
                 }
             }
 
-            RaohaneSurface {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 130
-                surfaceRadius: 20
-                raised: false
-                showSheen: false
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: 17
-                    spacing: 14
-
-                    RaohaneSurface {
-                        Layout.preferredWidth: 46
-                        Layout.preferredHeight: 46
-                        surfaceRadius: 15
-                        raised: false
-                        active: true
-                        showSheen: false
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "deployed_code"
-                            iconSize: 23
-                            fill: 1
-                            color: RaohaneTheme.accent
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 3
-
-                        Text {
-                            text: qsTr("Standalone architecture")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 12
-                            font.weight: Font.DemiBold
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: qsTr("Raohane owns its runtime, configuration and dependency graph. No other desktop shell repository is required to install, run or update it.")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
-                            wrapMode: Text.Wrap
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: qsTr("Update an existing checkout with: git pull --ff-only && ./install-raohane.sh")
-                            color: RaohaneTheme.accent
-                            font.pixelSize: 9
-                            wrapMode: Text.Wrap
-                        }
-                    }
-                }
+            InfoRail {
+                icon: "deployed_code"
+                title: qsTr("Standalone architecture")
+                detail: qsTr("Raohane owns its runtime, configuration and dependency graph. No other desktop shell repository is required to install, run or update it.")
+                secondary: qsTr("Update an existing checkout with: git pull --ff-only && ./install-raohane.sh")
             }
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: 8
 
                 LinkButton {
                     Layout.fillWidth: true
@@ -333,26 +233,15 @@ Item {
                     }
                 }
             }
-
-            Row {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.bottomMargin: 8
-                spacing: 7
-
-                RaohaneIcon {
-                    text: "desktop_windows"
-                    iconSize: 12
-                    color: RaohaneTheme.textFaint
-                }
-
-                Text {
-                    text: qsTr("Hyprland · Quickshell")
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
-                    font.weight: Font.Medium
-                }
-            }
         }
+    }
+
+    component SectionLabel: Text {
+        Layout.leftMargin: 2
+        color: RaohaneTheme.textFaint
+        font.pixelSize: 8
+        font.weight: Font.DemiBold
+        font.letterSpacing: 1.1
     }
 
     component InfoCard: RaohaneSurface {
@@ -363,49 +252,126 @@ Item {
         required property string value
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 72
-        surfaceRadius: 17
+        Layout.preferredHeight: 54
+        surfaceRadius: 9
         raised: false
         showSheen: false
+        border.color: RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
+            anchors.leftMargin: 11
+            anchors.rightMargin: 10
+            spacing: 9
 
-            RaohaneSurface {
-                Layout.preferredWidth: 38
-                Layout.preferredHeight: 38
-                surfaceRadius: 13
-                raised: false
-                showSheen: false
+            Rectangle {
+                Layout.preferredWidth: 2
+                Layout.preferredHeight: 18
+                radius: 1
+                color: RaohaneTheme.accent
+                opacity: 0.42
+            }
 
-                RaohaneIcon {
-                    anchors.centerIn: parent
-                    text: card.icon
-                    iconSize: 18
-                    color: RaohaneTheme.accent
-                }
+            RaohaneIcon {
+                text: card.icon
+                iconSize: 15
+                color: RaohaneTheme.accent
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: -1
+                spacing: 0
 
                 Text {
                     text: card.label
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 7
+                    font.weight: Font.Medium
                 }
 
                 Text {
                     Layout.fillWidth: true
                     text: card.value.length > 0 ? card.value : qsTr("Loading…")
                     color: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
+            }
+        }
+    }
+
+    component InfoRail: RaohaneSurface {
+        id: rail
+
+        required property string icon
+        required property string title
+        required property string detail
+        property string secondary: ""
+        default property alias actions: actionSlot.data
+
+        Layout.fillWidth: true
+        Layout.preferredHeight: secondary.length > 0 ? 84 : 68
+        surfaceRadius: 10
+        raised: false
+        showSheen: false
+        border.color: RaohaneTheme.borderFaint
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: 2
+            height: 28
+            radius: 1
+            color: RaohaneTheme.accent
+            opacity: 0.68
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 10
+            spacing: 10
+
+            RaohaneIcon {
+                text: rail.icon
+                iconSize: 18
+                fill: 0.7
+                color: RaohaneTheme.accent
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+
+                Text {
+                    text: rail.title
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: rail.detail
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 8
+                    wrapMode: Text.WordWrap
+                }
+
+                Text {
+                    visible: rail.secondary.length > 0
+                    Layout.fillWidth: true
+                    text: rail.secondary
+                    color: RaohaneTheme.accent
+                    font.pixelSize: 8
+                    wrapMode: Text.Wrap
+                }
+            }
+
+            RowLayout {
+                id: actionSlot
+                spacing: 6
             }
         }
     }
@@ -418,29 +384,31 @@ Item {
         property bool emphasized: false
         signal clicked()
 
-        implicitWidth: 118
-        implicitHeight: 38
+        implicitWidth: actionRow.implicitWidth + 20
+        implicitHeight: 32
         activeFocusOnTab: true
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 13
+            surfaceRadius: 8
             raised: false
             active: action.emphasized
+            transparentIdle: !action.emphasized
             hovered: actionMouse.containsMouse || action.activeFocus
             pressed: actionMouse.pressed
             interactive: true
-            hoverScale: RaohaneMotion.subtleHoverScale
-            pressedScale: RaohaneMotion.softPressScale
+            hoverScale: 1
+            pressedScale: 1
             showSheen: false
 
             RowLayout {
+                id: actionRow
                 anchors.centerIn: parent
-                spacing: 6
+                spacing: 5
 
                 RaohaneIcon {
                     text: action.icon
-                    iconSize: 15
+                    iconSize: 13
                     fill: action.emphasized || actionMouse.containsMouse || action.activeFocus ? 1 : 0
                     color: action.emphasized || actionMouse.containsMouse || action.activeFocus
                         ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -449,7 +417,7 @@ Item {
                 Text {
                     text: action.label
                     color: RaohaneTheme.text
-                    font.pixelSize: 9
+                    font.pixelSize: 8
                     font.weight: Font.DemiBold
                 }
             }
@@ -479,27 +447,30 @@ Item {
         required property string label
         signal clicked()
 
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: 40
         activeFocusOnTab: true
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 15
+            surfaceRadius: 9
             raised: false
+            transparentIdle: true
             hovered: linkMouse.containsMouse || link.activeFocus
             pressed: linkMouse.pressed
             interactive: true
-            hoverScale: RaohaneMotion.subtleHoverScale
-            pressedScale: RaohaneMotion.softPressScale
+            hoverScale: 1
+            pressedScale: 1
             showSheen: false
+            border.color: linkMouse.containsMouse || link.activeFocus
+                ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 8
+                spacing: 7
 
                 RaohaneIcon {
                     text: link.icon
-                    iconSize: 17
+                    iconSize: 14
                     fill: linkMouse.containsMouse || link.activeFocus ? 1 : 0
                     color: linkMouse.containsMouse || link.activeFocus
                         ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -508,7 +479,7 @@ Item {
                 Text {
                     text: link.label
                     color: RaohaneTheme.text
-                    font.pixelSize: 9
+                    font.pixelSize: 8
                     font.weight: Font.DemiBold
                 }
             }
