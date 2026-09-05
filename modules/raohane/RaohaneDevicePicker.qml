@@ -35,7 +35,7 @@ Item {
     readonly property bool busy: wifiMode ? (RaohaneNetwork.scanning || RaohaneNetwork.connectingSsid.length > 0)
         : RaohaneAudio.devicesRefreshing
 
-    implicitHeight: mode.length > 0 ? pickerContent.implicitHeight + 26 : 0
+    implicitHeight: mode.length > 0 ? pickerContent.implicitHeight + 22 : 0
     visible: mode.length > 0
 
     onModeChanged: {
@@ -69,9 +69,10 @@ Item {
 
     RaohaneSurface {
         anchors.fill: parent
-        surfaceRadius: 19
+        surfaceRadius: 12
         raised: false
         showSheen: false
+        color: RaohaneTheme.surfaceDeep
         border.color: RaohaneTheme.borderStrong
         clip: true
 
@@ -80,10 +81,12 @@ Item {
                 top: parent.top
                 left: parent.left
                 right: parent.right
+                leftMargin: 12
+                rightMargin: 12
             }
-            height: 2
+            height: 1
             color: RaohaneTheme.accent
-            opacity: 0.72
+            opacity: 0.44
         }
 
         ColumnLayout {
@@ -92,41 +95,39 @@ Item {
                 left: parent.left
                 right: parent.right
                 top: parent.top
-                leftMargin: 13
-                rightMargin: 13
-                topMargin: 12
+                leftMargin: 11
+                rightMargin: 11
+                topMargin: 10
             }
-            spacing: 9
+            spacing: 7
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 9
+                spacing: 7
 
-                RaohaneSurface {
-                    Layout.preferredWidth: 36
-                    Layout.preferredHeight: 36
-                    surfaceRadius: 12
-                    active: true
-                    showSheen: false
+                Rectangle {
+                    Layout.preferredWidth: 2
+                    Layout.preferredHeight: 28
+                    radius: 1
+                    color: RaohaneTheme.accent
+                }
 
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        text: root.headerIcon
-                        iconSize: 18
-                        fill: 1
-                        color: RaohaneTheme.accent
-                    }
+                RaohaneIcon {
+                    text: root.headerIcon
+                    iconSize: 17
+                    fill: 1
+                    color: RaohaneTheme.accent
                 }
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 1
+                    spacing: 0
 
                     Text {
                         Layout.fillWidth: true
                         text: root.title
                         color: RaohaneTheme.text
-                        font.pixelSize: 10
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
@@ -134,8 +135,8 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: root.subtitle
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 7
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 6
                         elide: Text.ElideRight
                     }
                 }
@@ -147,11 +148,13 @@ Item {
                 }
 
                 RaohaneIconButton {
-                    buttonSize: 29
-                    iconSize: 14
+                    buttonSize: 27
+                    iconSize: 13
                     icon: "refresh"
                     transparentIdle: true
                     showSheen: false
+                    hoverScale: 1
+                    pressedScale: 1
                     enabled: root.wifiMode ? RaohaneNetwork.wifiEnabled && !root.busy : !root.busy
                     onClicked: {
                         if (root.wifiMode)
@@ -170,35 +173,44 @@ Item {
                 }
 
                 RaohaneIconButton {
-                    buttonSize: 29
-                    iconSize: 14
+                    buttonSize: 27
+                    iconSize: 13
                     icon: "close"
                     transparentIdle: true
                     showSheen: false
+                    hoverScale: 1
+                    pressedScale: 1
                     onClicked: root.closeRequested()
                 }
             }
 
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: RaohaneTheme.borderFaint
+            }
+
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 48
-                surfaceRadius: 14
+                Layout.preferredHeight: 43
+                surfaceRadius: 9
                 raised: false
                 showSheen: false
+                color: RaohaneTheme.surfaceSubtle
                 active: root.wifiMode ? RaohaneNetwork.wifiConnected
                     : root.outputMode ? RaohaneAudio.ready
                     : RaohaneAudio.microphoneReady
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 11
-                    anchors.rightMargin: 11
-                    spacing: 9
+                    anchors.leftMargin: 9
+                    anchors.rightMargin: 9
+                    spacing: 7
 
                     Rectangle {
-                        width: 7
-                        height: 7
-                        radius: 4
+                        width: 5
+                        height: 5
+                        radius: 2.5
                         color: parent.parent.active ? RaohaneTheme.success : RaohaneTheme.textFaint
                     }
 
@@ -214,7 +226,7 @@ Item {
                                     ? (RaohaneAudio.sinkName || qsTr("No output device"))
                                     : (RaohaneAudio.sourceName || qsTr("No input device"))
                             color: RaohaneTheme.text
-                            font.pixelSize: 9
+                            font.pixelSize: 8
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
@@ -228,8 +240,8 @@ Item {
                                 : root.outputMode
                                     ? qsTr("Default playback device")
                                     : qsTr("Default recording device")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 7
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 6
                             elide: Text.ElideRight
                         }
                     }
@@ -237,7 +249,7 @@ Item {
                     RaohaneIcon {
                         text: "check_circle"
                         visible: parent.parent.active
-                        iconSize: 16
+                        iconSize: 14
                         fill: 1
                         color: RaohaneTheme.success
                     }
@@ -246,7 +258,7 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 5
+                spacing: 4
                 visible: root.wifiMode ? RaohaneNetwork.wifiEnabled : true
 
                 Repeater {
@@ -265,46 +277,49 @@ Item {
                     visible: root.visibleEntries.length === 0 && !root.busy
                     text: root.wifiMode ? qsTr("No Wi-Fi networks found") : qsTr("No devices found")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
+                    font.pixelSize: 7
                     horizontalAlignment: Text.AlignHCenter
-                    Layout.topMargin: 9
-                    Layout.bottomMargin: 9
+                    Layout.topMargin: 8
+                    Layout.bottomMargin: 8
                 }
             }
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: root.selectedWifi.length > 0 ? 92 : 0
+                Layout.preferredHeight: root.selectedWifi.length > 0 ? 84 : 0
                 visible: root.wifiMode && root.selectedWifi.length > 0
-                surfaceRadius: 14
+                surfaceRadius: 9
                 raised: false
                 showSheen: false
                 active: true
+                color: RaohaneTheme.surfaceSubtle
                 clip: true
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 7
+                    anchors.margins: 9
+                    spacing: 6
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
-                        RaohaneIcon { text: "lock"; iconSize: 14; color: RaohaneTheme.accent }
+                        spacing: 6
+                        RaohaneIcon { text: "lock"; iconSize: 13; color: RaohaneTheme.accent }
                         Text {
                             Layout.fillWidth: true
                             text: qsTr("Password for %1").arg(root.selectedWifi)
                             color: RaohaneTheme.text
-                            font.pixelSize: 8
+                            font.pixelSize: 7
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
                         RaohaneIconButton {
-                            buttonSize: 24
-                            iconSize: 12
+                            buttonSize: 23
+                            iconSize: 11
                             icon: "close"
                             transparentIdle: true
                             showSheen: false
+                            hoverScale: 1
+                            pressedScale: 1
                             onClicked: {
                                 root.selectedWifi = ""
                                 root.wifiPassword = ""
@@ -314,28 +329,29 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: 6
 
                         RaohaneSurface {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 32
-                            surfaceRadius: 10
+                            Layout.preferredHeight: 30
+                            surfaceRadius: 8
                             raised: false
                             showSheen: false
-                            border.color: passwordField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.border
+                            color: RaohaneTheme.surfaceDeep
+                            border.color: passwordField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
                             TextInput {
                                 id: passwordField
                                 anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
+                                anchors.leftMargin: 9
+                                anchors.rightMargin: 9
                                 verticalAlignment: TextInput.AlignVCenter
                                 text: root.wifiPassword
                                 echoMode: TextInput.Password
                                 color: RaohaneTheme.text
                                 selectionColor: RaohaneTheme.accentSoft
                                 selectedTextColor: RaohaneTheme.text
-                                font.pixelSize: 9
+                                font.pixelSize: 8
                                 clip: true
                                 onTextChanged: root.wifiPassword = text
                                 Keys.onReturnPressed: connectButton.trigger()
@@ -347,7 +363,7 @@ Item {
                                     visible: passwordField.text.length === 0 && !passwordField.activeFocus
                                     text: qsTr("Enter Wi-Fi password")
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 8
+                                    font.pixelSize: 7
                                 }
                             }
                         }
@@ -372,7 +388,7 @@ Item {
                 visible: root.wifiMode && RaohaneNetwork.lastActionError.length > 0
                 text: qsTr("Could not connect to this network")
                 color: RaohaneTheme.critical
-                font.pixelSize: 7
+                font.pixelSize: 6
                 horizontalAlignment: Text.AlignHCenter
             }
         }
@@ -383,16 +399,20 @@ Item {
         required property var entry
         signal triggered()
 
-        Layout.preferredHeight: 43
-        surfaceRadius: 12
+        Layout.preferredHeight: 38
+        surfaceRadius: 8
         raised: false
         showSheen: false
-        transparentIdle: !rowActive
+        transparentIdle: !rowActive && !hovered
         active: rowActive
         hovered: rowMouse.containsMouse || activeFocus
         pressed: rowMouse.pressed
         interactive: true
         feedback: rowActive ? "tap" : "navigate"
+        hoverScale: 1
+        pressedScale: 1
+        border.color: rowActive ? RaohaneTheme.accentBorder
+            : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
         readonly property bool rowActive: root.wifiMode
             ? Boolean(entry.active)
@@ -400,17 +420,32 @@ Item {
         readonly property bool waiting: root.wifiMode
             && RaohaneNetwork.connectingSsid === String(entry.ssid ?? "")
 
+        Rectangle {
+            anchors {
+                left: parent.left
+                top: parent.top
+                bottom: parent.bottom
+                leftMargin: 2
+                topMargin: 7
+                bottomMargin: 7
+            }
+            width: 2
+            radius: 1
+            color: RaohaneTheme.accent
+            opacity: row.rowActive ? 1 : row.hovered ? 0.42 : 0
+        }
+
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            spacing: 8
+            anchors.leftMargin: 9
+            anchors.rightMargin: 9
+            spacing: 7
 
             RaohaneIcon {
                 text: root.wifiMode
                     ? RaohaneNetwork.signalIcon(row.entry.strength)
                     : root.outputMode ? "speaker" : "mic"
-                iconSize: 16
+                iconSize: 14
                 fill: row.rowActive ? 1 : 0
                 color: row.rowActive || row.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
@@ -423,7 +458,7 @@ Item {
                     Layout.fillWidth: true
                     text: root.wifiMode ? String(row.entry.ssid ?? "") : String(row.entry.name ?? "")
                     color: RaohaneTheme.text
-                    font.pixelSize: 8
+                    font.pixelSize: 7
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -433,8 +468,8 @@ Item {
                     text: root.wifiMode
                         ? (row.entry.secure ? qsTr("Secured network") : qsTr("Open network"))
                         : (row.rowActive ? qsTr("Currently selected") : qsTr("Available device"))
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 7
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 6
                     elide: Text.ElideRight
                 }
             }
@@ -443,13 +478,13 @@ Item {
                 visible: root.wifiMode
                 text: String(Math.round(Number(row.entry.strength) || 0)) + "%"
                 color: row.rowActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                font.pixelSize: 7
+                font.pixelSize: 6
                 font.weight: Font.DemiBold
             }
 
             RaohaneIcon {
                 text: row.waiting ? "sync" : row.rowActive ? "check" : (root.wifiMode && row.entry.secure ? "lock" : "chevron_right")
-                iconSize: 14
+                iconSize: 13
                 fill: row.rowActive ? 1 : 0
                 color: row.rowActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
 
@@ -479,21 +514,23 @@ Item {
         required property string label
         signal triggered()
 
-        Layout.preferredWidth: 94
-        Layout.preferredHeight: 32
-        surfaceRadius: 10
+        Layout.preferredWidth: 88
+        Layout.preferredHeight: 30
+        surfaceRadius: 8
         active: true
         showSheen: false
         hovered: actionMouse.containsMouse
         pressed: actionMouse.pressed
         interactive: true
         feedback: "confirm"
+        hoverScale: 1
+        pressedScale: 1
 
         RowLayout {
             anchors.centerIn: parent
             spacing: 5
-            RaohaneIcon { text: action.icon; iconSize: 13; color: RaohaneTheme.accent }
-            Text { text: action.label; color: RaohaneTheme.text; font.pixelSize: 8; font.weight: Font.DemiBold }
+            RaohaneIcon { text: action.icon; iconSize: 12; color: RaohaneTheme.accent }
+            Text { text: action.label; color: RaohaneTheme.text; font.pixelSize: 7; font.weight: Font.DemiBold }
         }
 
         function trigger(): void {
