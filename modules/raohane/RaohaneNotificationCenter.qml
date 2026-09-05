@@ -14,11 +14,19 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 8
+        spacing: 7
 
         RowLayout {
             Layout.fillWidth: true
+            Layout.preferredHeight: 42
             spacing: 8
+
+            Rectangle {
+                Layout.preferredWidth: 2
+                Layout.preferredHeight: 28
+                radius: 1
+                color: RaohaneNotifications.silent ? RaohaneTheme.textFaint : RaohaneTheme.accent
+            }
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -27,16 +35,35 @@ Item {
                 Text {
                     text: qsTr("Notifications")
                     color: RaohaneTheme.text
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.weight: Font.DemiBold
+                    font.letterSpacing: -0.1
                 }
 
                 Text {
                     text: RaohaneNotifications.unread > 0
                         ? qsTr("%1 unread").arg(RaohaneNotifications.unread)
                         : qsTr("You're all caught up")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                }
+            }
+
+            RaohaneSurface {
+                visible: RaohaneNotifications.unread > 0
+                implicitWidth: unreadText.implicitWidth + 14
+                implicitHeight: 24
+                surfaceRadius: 7
+                active: true
+                showSheen: false
+
+                Text {
+                    id: unreadText
+                    anchors.centerIn: parent
+                    text: String(RaohaneNotifications.unread)
+                    color: RaohaneTheme.accent
+                    font.pixelSize: 7
+                    font.weight: Font.DemiBold
                 }
             }
 
@@ -78,7 +105,7 @@ Item {
                 id: listView
                 anchors.fill: parent
                 clip: true
-                spacing: 7
+                spacing: 5
                 model: root.notifications
                 boundsBehavior: Flickable.StopAtBounds
                 flickDeceleration: 2400
@@ -95,7 +122,7 @@ Item {
                     Component.onCompleted: entered = true
 
                     Behavior on opacity {
-                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
                     }
 
                     RaohaneNotificationCard {
@@ -109,39 +136,30 @@ Item {
 
             Column {
                 anchors.centerIn: parent
-                spacing: 7
+                spacing: 6
                 visible: RaohaneNotifications.list.length === 0
 
-                RaohaneSurface {
-                    width: 48
-                    height: 48
-                    surfaceRadius: 15
+                RaohaneIcon {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    raised: false
-                    showSheen: false
-
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        text: "notifications_none"
-                        iconSize: 23
-                        symbolWeight: 420
-                        color: RaohaneTheme.textMuted
-                    }
+                    text: "notifications_none"
+                    iconSize: 24
+                    symbolWeight: 350
+                    color: RaohaneTheme.textFaint
                 }
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("No notifications")
-                    color: RaohaneTheme.text
-                    font.pixelSize: 10
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                 }
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("New activity will appear here")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
                 }
             }
         }
@@ -153,8 +171,8 @@ Item {
         property string tooltip: ""
         signal triggered()
 
-        buttonSize: 28
-        iconSize: 15
+        buttonSize: 27
+        iconSize: 14
         emphasized: active
         transparentIdle: !active
         showSheen: false
