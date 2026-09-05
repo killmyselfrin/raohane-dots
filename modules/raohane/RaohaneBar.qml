@@ -68,6 +68,8 @@ Scope {
             readonly property real podScale: Number(root.styleValue("barScale", 1.0))
             readonly property int podHeight: Math.max(38, Math.min(48, Math.round(RaohaneTheme.barHeight * podScale)))
             readonly property int edgeMargin: Math.max(12, Math.round(16 * RaohaneTheme.densityScale))
+            readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
+                && !RaohanePerformance.gameModeActive
 
             visible: RaohaneState.barOpen && !RaohaneState.screenLocked && !fullscreenSuppressed
             exclusiveZone: fullscreenSuppressed
@@ -127,6 +129,7 @@ Scope {
                 }
 
                 Behavior on y {
+                    enabled: barWindow.surfaceMotionAllowed
                     NumberAnimation {
                         duration: RaohaneMotion.standard
                         easing.type: RaohaneMotion.easeEmphasized
@@ -149,13 +152,6 @@ Scope {
                     raised: true
                     showSheen: false
                     border.color: RaohaneTheme.border
-
-                    Behavior on width {
-                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
-                    }
-                    Behavior on height {
-                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
-                    }
 
                     RowLayout {
                         id: leftRow
@@ -225,13 +221,6 @@ Scope {
                     raised: true
                     showSheen: false
                     border.color: RaohaneTheme.border
-
-                    Behavior on width {
-                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
-                    }
-                    Behavior on height {
-                        NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
-                    }
 
                     RowLayout {
                         id: rightRow
