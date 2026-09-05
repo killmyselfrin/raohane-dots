@@ -10,7 +10,6 @@ Item {
 
     property int currentPage: 0
     property string pendingControl: ""
-    property bool pageEntered: true
     readonly property bool compactNav: width < 860
     readonly property var pages: RaohaneSettingsPageRegistry.pages
     readonly property var currentPageInfo: root.pages[root.currentPage] ?? null
@@ -40,17 +39,9 @@ Item {
     }
 
     onCurrentPageChanged: {
-        root.pageEntered = false
-        pageReveal.restart()
         if (root.currentPageInfo?.key === "about" && RaohaneSystemInfo.cpu === "")
             RaohaneSystemInfo.refresh()
         Qt.callLater(root.configureLoadedPage)
-    }
-
-    Timer {
-        id: pageReveal
-        interval: 35
-        onTriggered: root.pageEntered = true
     }
 
     Connections {
@@ -102,12 +93,6 @@ Item {
                 Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    opacity: root.pageEntered ? 1 : 0
-                    transform: Translate { y: root.pageEntered ? 0 : 6 }
-
-                    Behavior on opacity {
-                        NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-                    }
 
                     Loader {
                         id: pageLoader
