@@ -4,23 +4,23 @@ Raohane is a standalone Hyprland + Quickshell shell with a Raohane-owned product
 
 ## Production graph
 
-```text
-Hyprland / Wayland / D-Bus / PipeWire / MPRIS / PAM / Polkit
-                         ↓
-                modules/raohane/services
-                         ↓
-          RaohaneConfig + RaohaneState + RaohanePaths
-                         ↓
- registries + widgets + models + helpers (Raohane-owned)
-                         ↓
-                 modules/raohane UI
-                         ↓
-             panelFamilies/RaohaneFamily.qml
-                         ↓
-                    shell.qml
-```
+`shell.qml` loads `panelFamilies/RaohaneFamily.qml`, which composes the shell surfaces. UI components consume shared configuration, registries and service APIs. Services integrate with Hyprland, Wayland, D-Bus, PipeWire, MPRIS, PAM and Polkit.
 
 Production code must not import `modules/common`, `modules/ii`, root `services/`, `GlobalStates`, inherited `Config`, or another shell namespace. Those inherited source trees have been physically removed.
+
+## Repository layout
+
+| Path | Contents |
+| --- | --- |
+| `shell.qml`, `panelFamilies/` | Entry point and shell composition |
+| `modules/raohane/` | UI, configuration, services, models and helpers |
+| `defaults/`, `assets/`, `translations/` | Configuration defaults and runtime resources |
+| `scripts/` | CLI, backend helpers, diagnostics and checks |
+| `install/arch/`, `install-raohane.sh` | Arch dependency manifests and installer |
+| `nix/`, `flake.nix` | Nix package and modules |
+| `display-manager/`, `login/` | Login themes and session setup |
+| `patches/` | Documented dependency fixes |
+| `docs/` | Architecture, themes, roadmap and validation guides |
 
 ## Bootstrap and module boundary
 
@@ -93,22 +93,7 @@ Active services should consume `RaohanePaths` rather than reconstructing XDG pat
 
 Settings is one routed workspace:
 
-```text
-RaohaneSettingsPageRegistry
-        ↓
-RaohaneSettingsRouter
-        ↓
-RaohaneSettingsContentV3
-  ├─ RaohaneSettingsNavigation
-  ├─ RaohaneSettingsPageHeader
-  └─ declarative page loader
-        ↓
-RaohaneSettingsSectionPage / specialized pages
-        ↓
-RaohaneSettingsControlRow / section extensions
-        ↓
-RaohaneConfig
-```
+`RaohaneSettingsPageRegistry` defines routes and `RaohaneSettingsRouter` selects the current page. `RaohaneSettingsContentV3` composes navigation, the header and the page loader. Generic and specialized pages use shared controls and persist changes through `RaohaneConfig`.
 
 Keyboard & Motion, Backup & Restore and Language are normal registry-backed Settings pages. Generic section pages do not own section-specific editors; those are routed through the section extension registry.
 
@@ -225,24 +210,10 @@ raohane validate release --full
 
 `raohane doctor runtime` is the live boundary check for the user's installed copy. It is distinct from CI and verifies that the installed tree is native-only and that `native.json` matches the current native schema contract.
 
-## Standalone source boundary
-
-The current source graph is native-only at the QML/runtime layer:
-
-- `modules/common` — removed;
-- `modules/ii` — removed;
-- root `services/` — removed;
-- inherited root QML — removed;
-- old panel families/loaders — removed;
-- retired upstream helper script families and legacy default config — removed;
-- upstream synchronization/bootstrap lock scaffolding — removed.
-
-`NOTICE-UPSTREAM.md` remains for provenance and licensing. Install-time migration support may remain while it is useful, but it must never become part of the active runtime graph.
-
 ## Runtime verification boundary
 
 Static CI verifies shell syntax, native QML parsing, registrations, package contracts, persistence boundaries, native schema upgrades, installed-runtime pruning and regression guards. It cannot prove compositor/device behavior.
 
 Release-level validation still requires a real Hyprland + Quickshell session for startup, multi-monitor behavior, fullscreen/game overlay behavior, focus/input, launcher execution, notifications, audio/display controls, networking/Bluetooth, media, Settings, wallpapers/thumbnails, capture/OCR/translation, OSK/ydotool, lock/PAM/fingerprint, Polkit, session actions and NVIDIA/AMD/Intel hardware paths.
 
-See `NOTICE-UPSTREAM.md`, `INDEPENDENCE-PLAN.md`, `RAOHANE-ROADMAP.md` and `RELEASE-VALIDATION.md` for provenance, remaining product work and live validation gates.
+See [provenance](../NOTICE-UPSTREAM.md), the [roadmap](ROADMAP.md) and [release validation](RELEASE-VALIDATION.md) for attribution, remaining work and live checks.

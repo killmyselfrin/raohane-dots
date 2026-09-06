@@ -1,0 +1,17 @@
+# Source release output
+/dist/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Editor and local recovery files
+*~
+*.swp
+*.swo
+*.bak
+*.backup-*
+*.tmp
+.DS_Store
