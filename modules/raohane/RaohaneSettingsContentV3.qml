@@ -9,7 +9,9 @@ Item {
     id: root
 
     property int currentPage: 0
+    property int transitionDirection: 1
     property string pendingControl: ""
+    property bool initialPageLoaded: false
     readonly property bool compactNav: width < 860
     readonly property var pages: RaohaneSettingsPageRegistry.pages
     readonly property var currentPageInfo: root.pages[root.currentPage] ?? null
@@ -24,6 +26,7 @@ Item {
             Qt.callLater(root.configureLoadedPage)
             return
         }
+        root.transitionDirection = index > root.currentPage ? 1 : -1
         root.currentPage = index
     }
 
@@ -38,10 +41,29 @@ Item {
         root.pendingControl = ""
     }
 
+    function loadCurrentPage(animated: bool): void {
+        pageExit.stop()
+        pageEnter.stop()
+
+        if (!animated || !RaohaneMotion.enabled || pageLoader.source === "") {
+            pageFrame.opacity = 1
+            pageFrame.x = 0
+            pageLoader.source = root.currentPageInfo?.source ?? ""
+            return
+        }
+
+        pageExit.restart()
+    }
+
     onCurrentPageChanged: {
         if (root.currentPageInfo?.key === "about" && RaohaneSystemInfo.cpu === "")
             RaohaneSystemInfo.refresh()
-        Qt.callLater(root.configureLoadedPage)
+        root.loadCurrentPage(root.initialPageLoaded)
+    }
+
+    Component.onCompleted: {
+        pageLoader.source = root.currentPageInfo?.source ?? ""
+        root.initialPageLoaded = true
     }
 
     Connections {
@@ -93,15 +115,84 @@ Item {
                 Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    clip: true
 
-                    Loader {
-                        id: pageLoader
+                    Item {
+                        id: pageFrame
                         anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-                        anchors.bottomMargin: 10
-                        source: root.currentPageInfo?.source ?? ""
-                        onLoaded: Qt.callLater(root.configureLoadedPage)
+                        opacity: 1
+
+                        Loader {
+                            id: pageLoader
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            anchors.bottomMargin: 10
+
+                            onLoaded: {
+                                Qt.callLater(root.configureLoadedPage)
+                                if (!root.initialPageLoaded || !RaohaneMotion.enabled) {
+                                    pageFrame.opacity = 1
+                                    pageFrame.x = 0
+                                    return
+                                }
+                                pageFrame.opacity = 0
+                                pageFrame.x = root.transitionDirection * 14
+                                pageEnter.restart()
+                            }
+                        }
+                    }
+
+                    ParallelAnimation {
+                        id: pageExit
+
+                        NumberAnimation {
+                            target: pageFrame
+                            property: "opacity"
+                            from: 1
+                            to: 0
+                            duration: RaohaneMotion.micro
+                            easing.type: RaohaneMotion.easeExit
+                        }
+
+                        NumberAnimation {
+                            target: pageFrame
+                            property: "x"
+                            from: 0
+                            to: -root.transitionDirection * 8
+                            duration: RaohaneMotion.micro
+                            easing.type: RaohaneMotion.easeExit
+                        }
+
+                        onFinished: {
+                            pageLoader.source = root.currentPageInfo?.source ?? ""
+                            if (pageLoader.source === "") {
+                                pageFrame.x = 0
+                                pageFrame.opacity = 1
+                            }
+                        }
+                    }
+
+                    ParallelAnimation {
+                        id: pageEnter
+
+                        NumberAnimation {
+                            target: pageFrame
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: RaohaneMotion.standard
+                            easing.type: RaohaneMotion.easeStandard
+                        }
+
+                        NumberAnimation {
+                            target: pageFrame
+                            property: "x"
+                            from: root.transitionDirection * 14
+                            to: 0
+                            duration: RaohaneMotion.relaxed
+                            easing.type: RaohaneMotion.easeEmphasized
+                        }
                     }
                 }
             }
