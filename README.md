@@ -24,17 +24,25 @@ Raohane includes its own runtime and dependency manifests. Installation does not
 
 ### Arch Linux and derivatives
 
-Run from an existing Hyprland session:
+Run the guided installer from an existing Hyprland session:
 
 ```bash
 git clone https://github.com/killmyselfrin/raohane-dots.git
 cd raohane-dots
-./install-raohane.sh --deps
-hyprctl reload
-raohane restart
+bash install.sh
 ```
 
-Dependencies are listed in [install/arch/required.txt](install/arch/required.txt) and [install/arch/features.txt](install/arch/features.txt). GPU driver changes require an explicit choice; fonts are installed through the package manager.
+The installer performs a system preflight, shows every missing package before making changes, asks for permission to install the complete dependency set, installs the optional Raohane SDDM login theme, configures Hyprland integration, enables `raohane.service` for autostart, and starts the shell for a live check when a Hyprland session is available. The visual Raohane welcome/onboarding opens on first launch.
+
+For unattended or already-reviewed installation choices:
+
+```bash
+bash install.sh --yes
+```
+
+Dependencies are owned by Raohane and listed in [install/arch/required.txt](install/arch/required.txt) and [install/arch/features.txt](install/arch/features.txt). GPU drivers are never changed automatically; fonts and feature backends are installed through the package manager.
+
+`install-raohane.sh` remains the low-level backend installer for development, upgrades, recovery, and scripted maintenance.
 
 ### NixOS and Home Manager
 
@@ -50,7 +58,7 @@ git pull --ff-only
 raohane restart
 ```
 
-The installer copies the source into `~/.config/quickshell/raohane`; pulling Git changes alone does not update the running shell. Use `--deps` when updating dependencies, and omit `--no-login-theme` when updating the login theme.
+The installer copies the source into `~/.config/quickshell/raohane`; pulling Git changes alone does not update the running shell. Use the guided installer again when dependency requirements change, and omit `--no-login-theme` when updating the login theme.
 
 ## Use
 
