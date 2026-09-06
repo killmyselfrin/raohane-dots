@@ -37,6 +37,7 @@ required=(
   modules/raohane/RaohaneOverlay.qml
   modules/raohane/services/RaohaneProcesses.qml
   modules/raohane/services/RaohaneLyrics.qml
+  modules/raohane/services/RaohaneCoverAccent.qml
   panelFamilies/RaohaneFamily.qml
   scripts/autostart.sh
   scripts/install-deps.sh
@@ -48,6 +49,7 @@ required=(
   scripts/screen-share.sh
   scripts/process-snapshot.py
   scripts/lyrics-resolve.py
+  scripts/cover-accent.py
   scripts/theme-catalog.py
   scripts/region-ocr.sh
   scripts/region-search.sh
@@ -79,7 +81,7 @@ except (OSError, json.JSONDecodeError):
 raise SystemExit(0 if data.get("schemaVersion") == 12 else 1)
 PY
 
-python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/theme-catalog.py" <<'PY' || fail 'native Python runtime helper is invalid'
+python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/cover-accent.py" "$TARGET/scripts/theme-catalog.py" <<'PY' || fail 'native Python runtime helper is invalid'
 import pathlib
 import sys
 for raw in sys.argv[1:]:
