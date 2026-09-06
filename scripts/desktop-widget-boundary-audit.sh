@@ -138,8 +138,16 @@ rg -q 'key:[[:space:]]*"widgets".*source:[[:space:]]*"RaohaneWidgetStudio\.qml"'
   || fail 'Settings registry does not declaratively route the visual Widget Studio'
 rg -q 'key:[[:space:]]*"desktopWidgetComposition".*label:[[:space:]]*qsTr\("Widget positions"\)' "$registry" \
   || fail 'Settings search no longer exposes Widget Layout Studio'
-rg -q 'source:[[:space:]]*root\.currentPageInfo\?\.source' "$settings" \
-  || fail 'Settings shell does not load widget pages through registry sources'
+
+# Settings pages are still resolved exclusively from currentPageInfo.source, but
+# the animated page transition owns Loader.source imperatively so the outgoing
+# page can fade/slide before the incoming component is swapped in.
+rg -q 'root\.currentPageInfo\?\.source' "$settings" \
+  || fail 'Settings shell no longer resolves pages from the registry source field'
+rg -q 'pageLoader\.source[[:space:]]*=[[:space:]]*nextSource' "$settings" \
+  || fail 'Settings animated loader no longer applies registry-resolved page sources'
+rg -q 'pageLoader\.source[[:space:]]*=[[:space:]]*root\.currentPageInfo\?\.source' "$settings" \
+  || fail 'Settings initial page no longer loads from the registry source field'
 
 for property_name in desktopWidgetsLayout desktopWidgetsScale desktopWidgetsOpacity; do
   rg -q "property (string|real) ${property_name}:" "$config" \
@@ -187,4 +195,4 @@ if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWi
   fail 'desktop widgets depend on retired inherited APIs'
 fi
 
-printf 'desktop-widget-boundary-audit: persisted registry-driven widget composition, Widget Studio, native config, declarative Settings/search and service ownership are valid\n'
+printf 'desktop-widget-boundary-audit: persisted registry-driven widget composition, Widget Studio, animated Settings routing, native config and service ownership are valid\n'
