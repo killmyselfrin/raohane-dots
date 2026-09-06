@@ -5,13 +5,14 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST_DIR="$ROOT/install/arch"
 MODE="full"
 ACTION="install"
+ASSUME_YES=0
 
 usage() {
   cat <<'EOF'
 Raohane dependency installer
 
 Usage:
-  scripts/install-deps.sh [--minimal|--full] [--check|--print]
+  scripts/install-deps.sh [--minimal|--full] [--check|--print|--missing] [--yes]
 
 Modes:
   --minimal   Install only packages required to start the shell.
@@ -20,6 +21,8 @@ Modes:
 Actions:
   --check     Report missing requirements without installing anything.
   --print     Print the currently resolved provider for each requirement.
+  --missing   Print only preferred package names that are currently missing.
+  --yes       Pass --noconfirm to pacman. Intended for an already-confirmed parent installer.
   -h, --help  Show this help.
 
 Manifest syntax:
@@ -42,6 +45,8 @@ while (($#)); do
     --full) MODE="full" ;;
     --check) ACTION="check" ;;
     --print) ACTION="print" ;;
+    --missing) ACTION="missing" ;;
+    --yes) ASSUME_YES=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "[Raohane] Unknown dependency option: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -118,6 +123,13 @@ case "$ACTION" in
     exit 0
     ;;
 
+  missing)
+    for requirement in "${requirements[@]}"; do
+      installed_provider "$requirement" >/dev/null || preferred_provider "$requirement"
+    done
+    exit 0
+    ;;
+
   check)
     missing=()
     for requirement in "${requirements[@]}"; do
@@ -157,7 +169,11 @@ case "$ACTION" in
     else
       echo "[Raohane] Installing ${#install_packages[@]} missing package(s):"
       printf '  - %s\n' "${install_packages[@]}"
-      sudo pacman -S --needed -- "${install_packages[@]}"
+      pacman_args=(-S --needed)
+      if ((ASSUME_YES)); then
+        pacman_args+=(--noconfirm)
+      fi
+      sudo pacman "${pacman_args[@]}" -- "${install_packages[@]}"
     fi
 
     unresolved=()
