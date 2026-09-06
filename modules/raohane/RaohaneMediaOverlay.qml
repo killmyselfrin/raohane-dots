@@ -13,6 +13,7 @@ Scope {
     id: root
 
     property bool lyricsOpen: false
+    property bool lyricsFocus: false
 
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
@@ -22,12 +23,17 @@ Scope {
     function close(): void {
         RaohaneState.mediaOverlayOpen = false
         root.lyricsOpen = false
+        root.lyricsFocus = false
     }
     function showLyrics(): void {
         RaohaneState.mediaOverlayOpen = true
         root.lyricsOpen = true
+        root.lyricsFocus = false
         if (!RaohaneLyrics.available && !RaohaneLyrics.loading)
             RaohaneLyrics.forceRefresh()
+    }
+    function toggleLyricsFocus(): void {
+        root.lyricsFocus = !root.lyricsFocus
     }
 
     Connections {
@@ -70,8 +76,8 @@ Scope {
             anchors.fill: parent
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: true
-            showSheen: true
-            border.color: RaohaneTheme.borderStrong
+            showSheen: !root.lyricsFocus
+            border.color: root.lyricsFocus ? "transparent" : RaohaneTheme.borderStrong
             clip: true
             opacity: panelWindow.visible ? 1 : 0
 
@@ -81,8 +87,8 @@ Scope {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 12
-                spacing: 9
+                anchors.margins: root.lyricsFocus ? 8 : 12
+                spacing: root.lyricsFocus ? 0 : 9
 
                 Item {
                     Layout.fillWidth: true
@@ -234,20 +240,21 @@ Scope {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     visible: root.lyricsOpen
-                    surfaceRadius: 14
+                    surfaceRadius: root.lyricsFocus ? RaohaneTheme.radiusLarge : 14
                     showSheen: false
                     raised: false
-                    color: RaohaneTheme.surfaceSubtle
-                    border.color: RaohaneTheme.borderFaint
+                    color: root.lyricsFocus ? "transparent" : RaohaneTheme.surfaceSubtle
+                    border.color: root.lyricsFocus ? "transparent" : RaohaneTheme.borderFaint
                     clip: true
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 9
-                        spacing: 7
+                        anchors.margins: root.lyricsFocus ? 10 : 9
+                        spacing: root.lyricsFocus ? 0 : 7
 
                         RowLayout {
                             Layout.fillWidth: true
+                            visible: !root.lyricsFocus
                             spacing: 7
 
                             MiniButton {
@@ -284,6 +291,13 @@ Scope {
                                 tooltip: qsTr("Refresh lyrics")
                                 enabled: !RaohaneLyrics.loading && RaohaneMedia.available
                                 onClicked: RaohaneLyrics.forceRefresh()
+                            }
+
+                            MiniButton {
+                                icon: "fullscreen"
+                                tooltip: qsTr("Lyrics only")
+                                enabled: RaohaneLyrics.available
+                                onClicked: root.toggleLyricsFocus()
                             }
 
                             MiniButton {
@@ -375,7 +389,7 @@ Scope {
                                 anchors.fill: parent
                                 visible: !RaohaneLyrics.loading && RaohaneLyrics.available && !RaohaneLyrics.instrumental
                                 clip: true
-                                spacing: 2
+                                spacing: root.lyricsFocus ? 6 : 2
                                 model: RaohaneLyrics.displayLines
                                 boundsBehavior: Flickable.StopAtBounds
                                 flickDeceleration: 2200
@@ -388,13 +402,15 @@ Scope {
                                         && index === RaohaneLyrics.currentLineIndex
 
                                     width: ListView.view.width
-                                    height: lyricText.implicitHeight + 12
+                                    height: lyricText.implicitHeight + (root.lyricsFocus ? 18 : 12)
 
                                     Rectangle {
                                         anchors.fill: parent
                                         radius: 9
-                                        color: lyricLine.current ? RaohaneTheme.accentSoft : "transparent"
-                                        border.width: lyricLine.current ? 1 : 0
+                                        color: lyricLine.current && !root.lyricsFocus
+                                            ? RaohaneTheme.accentSoft
+                                            : "transparent"
+                                        border.width: lyricLine.current && !root.lyricsFocus ? 1 : 0
                                         border.color: RaohaneTheme.accentBorder
                                     }
 
@@ -409,7 +425,7 @@ Scope {
                                         }
                                         text: String(lyricLine.modelData.text ?? "")
                                         color: lyricLine.current ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                        font.pixelSize: 9
+                                        font.pixelSize: root.lyricsFocus ? 12 : 9
                                         font.weight: lyricLine.current ? Font.DemiBold : Font.Normal
                                         wrapMode: Text.WordWrap
                                         horizontalAlignment: Text.AlignHCenter
@@ -430,12 +446,30 @@ Scope {
                             }
                         }
                     }
+
+                    MiniButton {
+                        anchors {
+                            top: parent.top
+                            right: parent.right
+                            margins: 8
+                        }
+                        visible: root.lyricsFocus
+                        opacity: 0.55
+                        icon: "fullscreen_exit"
+                        tooltip: qsTr("Show player controls")
+                        onClicked: root.toggleLyricsFocus()
+
+                        Behavior on opacity {
+                            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                        }
+                    }
                 }
 
                 RaohaneSurface {
                     id: transportRail
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 50
+                    Layout.preferredHeight: root.lyricsFocus ? 0 : 50
+                    visible: !root.lyricsFocus
                     surfaceRadius: 13
                     showSheen: false
                     raised: false
