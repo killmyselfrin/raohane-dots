@@ -9,7 +9,7 @@ FocusScope {
     property real stepSize: 0.01
     property bool wheelEnabled: true
     property bool showHandle: true
-    property int trackHeight: 4
+    property int trackHeight: 5
     property int handleSize: 12
     signal moved(real value)
 
@@ -19,6 +19,7 @@ FocusScope {
     readonly property bool hovered: pointer.containsMouse
     property real dragRatio: normalizedValue
 
+    implicitWidth: 148
     implicitHeight: 24
     activeFocusOnTab: enabled
     opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
@@ -65,12 +66,17 @@ FocusScope {
         }
         height: root.trackHeight
         radius: Math.max(1, height / 2)
-        color: RaohaneTheme.surfaceDeep
+        color: root.activeFocus || root.hovered
+            ? RaohaneTheme.surfaceHover
+            : RaohaneTheme.surfaceSubtle
         border.width: 1
         border.color: root.activeFocus || root.hovered
             ? RaohaneTheme.borderStrong
-            : RaohaneTheme.borderFaint
+            : RaohaneTheme.border
 
+        Behavior on color {
+            ColorAnimation { duration: RaohaneMotion.micro }
+        }
         Behavior on border.color {
             ColorAnimation { duration: RaohaneMotion.micro }
         }
@@ -80,13 +86,6 @@ FocusScope {
             height: parent.height
             radius: parent.radius
             color: RaohaneTheme.accent
-
-            Behavior on width {
-                NumberAnimation {
-                    duration: pointer.pressed ? 0 : RaohaneMotion.micro
-                    easing.type: RaohaneMotion.easeStandard
-                }
-            }
         }
     }
 
@@ -102,12 +101,6 @@ FocusScope {
         border.width: 1
         border.color: RaohaneTheme.accentBorder
 
-        Behavior on x {
-            NumberAnimation {
-                duration: pointer.pressed ? 0 : RaohaneMotion.micro
-                easing.type: RaohaneMotion.easeStandard
-            }
-        }
         Behavior on color {
             ColorAnimation { duration: RaohaneMotion.micro }
         }
