@@ -167,17 +167,18 @@ Variants {
                         fillMode: VideoOutput.PreserveAspectCrop
                     }
 
-                    AudioOutput {
-                        id: mutedAudio
-                        muted: true
-                    }
-
                     MediaPlayer {
                         id: videoPlayer
                         source: root.fileUrl(backgroundWindow.currentPath)
-                        audioOutput: mutedAudio
                         videoOutput: videoOutput
                         loops: MediaPlayer.Infinite
+
+                        // Wallpaper audio is never part of the desktop experience.
+                        // Muting an AudioOutput still makes FFmpeg decode the audio
+                        // stream, which wastes work and can spam timestamp warnings on
+                        // imperfect MP4 loops. Disable the track at the player level.
+                        activeAudioTrack: -1
+                        onTracksChanged: activeAudioTrack = -1
 
                         Component.onCompleted: play()
                         onSourceChanged: play()
