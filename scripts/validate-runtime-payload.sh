@@ -45,6 +45,7 @@ required=(
   scripts/phase4-live-check.sh
   scripts/product-live-check.sh
   scripts/release-live-check.sh
+  scripts/screen-share.sh
   scripts/process-snapshot.py
   scripts/lyrics-resolve.py
   scripts/theme-catalog.py
@@ -89,6 +90,7 @@ PY
 bash -n "$TARGET/scripts/phase4-live-check.sh" || fail 'phase4-live-check.sh has invalid shell syntax'
 bash -n "$TARGET/scripts/product-live-check.sh" || fail 'product-live-check.sh has invalid shell syntax'
 bash -n "$TARGET/scripts/release-live-check.sh" || fail 'release-live-check.sh has invalid shell syntax'
+bash -n "$TARGET/scripts/screen-share.sh" || fail 'screen-share.sh has invalid shell syntax'
 
 source_only=(
   .git
