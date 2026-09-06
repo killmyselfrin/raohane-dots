@@ -278,33 +278,6 @@ Scope {
                             Layout.preferredHeight: 126
                         }
 
-                        InfoCard {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 52
-                            icon: "headphones"
-                            title: qsTr("Devices")
-                            firstLabel: qsTr("Output")
-                            firstValue: RaohaneAudio.sinkName.length > 0 ? RaohaneAudio.sinkName : qsTr("Default output")
-                            secondLabel: qsTr("Input")
-                            secondValue: RaohaneAudio.sourceName.length > 0 ? RaohaneAudio.sourceName : qsTr("Default input")
-                            onTriggered: quickControls.togglePicker("output")
-                        }
-
-                        InfoCard {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 52
-                            icon: RaohaneNetwork.materialSymbol
-                            title: qsTr("Network")
-                            firstLabel: qsTr("Wi-Fi")
-                            firstValue: RaohaneNetwork.networkName.length > 0
-                                ? RaohaneNetwork.networkName
-                                : (RaohaneNetwork.wifiEnabled ? qsTr("Not connected") : qsTr("Off"))
-                            secondLabel: qsTr("Signal")
-                            secondValue: RaohaneNetwork.wifiConnected ? Math.max(0, RaohaneNetwork.networkStrength) + "%" : "—"
-                            accent: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
-                            onTriggered: quickControls.togglePicker("wifi")
-                        }
-
                         RaohaneNotificationCenter {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
@@ -542,100 +515,6 @@ Scope {
             cursorShape: Qt.PointingHandCursor
             onPressed: action.forceActiveFocus()
             onClicked: action.triggered()
-        }
-    }
-
-    component InfoCard: RaohaneSurface {
-        id: infoCard
-        required property string icon
-        required property string title
-        required property string firstLabel
-        required property string firstValue
-        required property string secondLabel
-        required property string secondValue
-        property bool accent: false
-        signal triggered()
-
-        surfaceRadius: 11
-        raised: false
-        showSheen: false
-        interactive: true
-        hovered: infoMouse.containsMouse || activeFocus
-        pressed: infoMouse.pressed
-        hoverScale: 1
-        pressedScale: 1
-        activeFocusOnTab: true
-        border.color: infoCard.accent ? RaohaneTheme.accentBorder
-            : infoCard.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: 7
-            spacing: 7
-
-            RaohaneIcon {
-                Layout.preferredWidth: 20
-                text: infoCard.icon
-                iconSize: 15
-                fill: infoCard.accent ? 1 : 0
-                color: infoCard.accent ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        Layout.fillWidth: true
-                        text: infoCard.title
-                        color: RaohaneTheme.text
-                        font.pixelSize: 8
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-                    RaohaneIcon {
-                        text: "arrow_forward"
-                        iconSize: 10
-                        color: infoCard.hovered ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    }
-                }
-                DetailRow { Layout.fillWidth: true; label: infoCard.firstLabel; value: infoCard.firstValue }
-                DetailRow { Layout.fillWidth: true; label: infoCard.secondLabel; value: infoCard.secondValue }
-            }
-        }
-
-        MouseArea {
-            id: infoMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onPressed: infoCard.forceActiveFocus()
-            onClicked: infoCard.triggered()
-        }
-    }
-
-    component DetailRow: RowLayout {
-        id: detail
-        required property string label
-        required property string value
-        spacing: 6
-
-        Text {
-            Layout.preferredWidth: 38
-            text: detail.label
-            color: RaohaneTheme.textFaint
-            font.pixelSize: 6
-            elide: Text.ElideRight
-        }
-        Text {
-            Layout.fillWidth: true
-            text: detail.value
-            color: RaohaneTheme.textMuted
-            font.pixelSize: 6
-            font.weight: Font.Medium
-            elide: Text.ElideRight
         }
     }
 
