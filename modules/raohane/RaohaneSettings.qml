@@ -56,6 +56,14 @@ Scope {
             color: RaohaneTheme.dark
                 ? Qt.rgba(0.01, 0.015, 0.035, 0.54)
                 : Qt.rgba(0.18, 0.17, 0.15, 0.20)
+            opacity: workspace.entered ? 1 : 0
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: RaohaneMotion.standard
+                    easing.type: RaohaneMotion.easeStandard
+                }
+            }
 
             MouseArea {
                 anchors.fill: parent
@@ -76,12 +84,21 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
+            scale: entered ? 1 : 0.985
             focus: RaohaneState.settingsOpen
 
             Behavior on opacity {
                 NumberAnimation {
                     duration: RaohaneMotion.standard
                     easing.type: RaohaneMotion.easeStandard
+                }
+            }
+
+            Behavior on scale {
+                enabled: RaohaneMotion.transformMotionEnabled
+                NumberAnimation {
+                    duration: RaohaneMotion.relaxed
+                    easing.type: RaohaneMotion.easeEmphasized
                 }
             }
 
@@ -92,11 +109,22 @@ Scope {
                     top: parent.top
                     leftMargin: 15
                 }
-                width: 40
+                width: workspace.entered ? 40 : 12
                 height: 2
                 radius: 1
                 color: RaohaneTheme.accent
-                opacity: 0.72
+                opacity: workspace.entered ? 0.72 : 0
+
+                Behavior on width {
+                    NumberAnimation {
+                        duration: RaohaneMotion.relaxed
+                        easing.type: RaohaneMotion.easeEmphasized
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.standard }
+                }
             }
 
             RaohaneSettingsContentV3 {
