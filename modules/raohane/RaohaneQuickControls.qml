@@ -59,7 +59,7 @@ Item {
         RaohaneSurface {
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 10 : 0
+            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 12 : 0
             surfaceRadius: 15
             raised: false
             showSheen: false
@@ -143,7 +143,7 @@ Item {
         readonly property bool rowHovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
             || (control.pickerEnabled && pickerButton.hovered)
 
-        implicitHeight: 39
+        implicitHeight: 41
 
         Rectangle {
             anchors.fill: parent
@@ -175,7 +175,7 @@ Item {
             }
 
             ColumnLayout {
-                Layout.preferredWidth: 68
+                Layout.preferredWidth: 72
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 0
 
@@ -200,10 +200,12 @@ Item {
             RaohaneSlider {
                 id: valueSlider
                 Layout.fillWidth: true
-                Layout.preferredHeight: 20
+                Layout.minimumWidth: 112
+                Layout.preferredHeight: 22
                 from: 0
                 to: 1
                 stepSize: 0.01
+                trackHeight: 5
                 value: control.clampedLiveValue
                 showHandle: control.rowHovered || activeFocus
                 onMoved: value => control.valueChangedByUser(value)
