@@ -13,9 +13,41 @@ Item {
     property string version: "development"
     property bool copied: false
 
+    readonly property string updateTitle: RaohaneUpdater.applying
+        ? qsTr("Installing update…")
+        : RaohaneUpdater.checking
+            ? qsTr("Checking for updates…")
+            : RaohaneUpdater.errorText.length > 0
+                ? qsTr("Update check needs attention")
+                : RaohaneUpdater.updateAvailable
+                    ? qsTr("A new Raohane build is available")
+                    : qsTr("Raohane is up to date")
+
+    readonly property string updateDetail: RaohaneUpdater.applying
+        ? qsTr("Raohane is validating the official archive, applying the runtime and will restart automatically when it is ready.")
+        : RaohaneUpdater.errorText.length > 0
+            ? RaohaneUpdater.errorText
+            : RaohaneUpdater.updateAvailable
+                ? qsTr("Update directly from the official main channel without opening a terminal or GitHub.")
+                : qsTr("Updates are checked directly against the official Raohane repository.")
+
+    readonly property string revisionSummary: {
+        const current = RaohaneUpdater.currentShortRevision.length > 0 ? RaohaneUpdater.currentShortRevision : "—"
+        const latest = RaohaneUpdater.latestShortRevision.length > 0 ? RaohaneUpdater.latestShortRevision : "—"
+        const checked = RaohaneUpdater.lastCheckedText.length > 0
+            ? qsTr(" · checked %1").arg(RaohaneUpdater.lastCheckedText)
+            : ""
+        return qsTr("%1 channel · current %2 · latest %3%4")
+            .arg(RaohaneUpdater.channel)
+            .arg(current)
+            .arg(latest)
+            .arg(checked)
+    }
+
     function refresh(): void {
         RaohaneSystemInfo.refresh()
         versionFile.reload()
+        RaohaneUpdater.checkNow(false)
     }
 
     function diagnosticsText(): string {
@@ -27,6 +59,8 @@ Item {
             "GPU: " + RaohaneSystemInfo.gpu,
             "Memory: " + RaohaneSystemInfo.memory,
             "Shell: " + RaohaneSystemInfo.shell,
+            "Update channel: " + RaohaneUpdater.channel,
+            "Revision: " + (RaohaneUpdater.currentRevision || "unknown"),
             "Session: Hyprland / Wayland",
             "",
             "Diagnostic command:",
@@ -34,7 +68,9 @@ Item {
         ].join("\n")
     }
 
-    Component.onCompleted: root.refresh()
+    Component.onCompleted: {
+        root.refresh()
+    }
 
     FileView {
         id: versionFile
@@ -155,6 +191,7 @@ Item {
                     ActionButton {
                         icon: "refresh"
                         label: qsTr("Refresh")
+                        enabled: !RaohaneUpdater.applying
                         onClicked: root.refresh()
                     }
 
@@ -168,6 +205,44 @@ Item {
                             copiedTimer.restart()
                         }
                     }
+                }
+            }
+
+            SectionLabel { text: qsTr("Updates") }
+
+            InfoRail {
+                icon: RaohaneUpdater.updateAvailable ? "system_update_alt" : "verified"
+                title: root.updateTitle
+                detail: root.updateDetail
+                secondary: root.revisionSummary
+
+                ActionButton {
+                    icon: "refresh"
+                    label: qsTr("Check")
+                    enabled: !RaohaneUpdater.checking && !RaohaneUpdater.applying
+                    onClicked: RaohaneUpdater.checkNow(false)
+                }
+
+                ActionButton {
+                    visible: RaohaneUpdater.updateAvailable || RaohaneUpdater.applying
+                    icon: RaohaneUpdater.applying ? "progress_activity" : "download"
+                    label: RaohaneUpdater.applying ? qsTr("Installing…") : qsTr("Update now")
+                    emphasized: true
+                    enabled: RaohaneUpdater.updateAvailable && !RaohaneUpdater.applying && !RaohaneUpdater.checking
+                    onClicked: RaohaneUpdater.applyUpdate()
+                }
+            }
+
+            InfoRail {
+                icon: "autorenew"
+                title: qsTr("Automatic updates")
+                detail: qsTr("Check on startup and install a new main build automatically. Background checks during an active session never force a surprise restart.")
+                secondary: qsTr("If a future build adds packages, Polkit may ask once for permission to install the missing official dependencies.")
+
+                ToggleControl {
+                    checked: RaohaneUpdater.automaticUpdates
+                    enabled: RaohaneUpdater.preferenceReady
+                    onToggled: RaohaneUpdater.setAutomaticUpdates(checked)
                 }
             }
 
@@ -207,8 +282,8 @@ Item {
             InfoRail {
                 icon: "deployed_code"
                 title: qsTr("Standalone architecture")
-                detail: qsTr("Raohane owns its runtime, configuration and dependency graph. No other desktop shell repository is required to install, run or update it.")
-                secondary: qsTr("Update an existing checkout with: git pull --ff-only && ./install-raohane.sh")
+                detail: qsTr("Raohane owns its runtime, configuration, dependency graph and update path. No other desktop shell repository is required to install, run or update it.")
+                secondary: qsTr("The updater follows the official Raohane main channel and validates the downloaded product payload before installation.")
             }
 
             RowLayout {
@@ -387,6 +462,11 @@ Item {
         implicitWidth: actionRow.implicitWidth + 20
         implicitHeight: 32
         activeFocusOnTab: true
+        opacity: enabled ? 1 : 0.42
+
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.micro }
+        }
 
         RaohaneSurface {
             anchors.fill: parent
@@ -397,8 +477,8 @@ Item {
             hovered: actionMouse.containsMouse || action.activeFocus
             pressed: actionMouse.pressed
             interactive: true
-            hoverScale: 1
-            pressedScale: 1
+            hoverScale: 1.02
+            pressedScale: 0.98
             showSheen: false
 
             RowLayout {
@@ -430,15 +510,79 @@ Item {
         MouseArea {
             id: actionMouse
             anchors.fill: parent
+            enabled: action.enabled
             hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
+            cursorShape: action.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
             onPressed: action.forceActiveFocus()
             onClicked: action.clicked()
         }
 
         Keys.onPressed: event => {
+            if (!action.enabled)
+                return
             if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 action.clicked()
+                event.accepted = true
+            }
+        }
+    }
+
+    component ToggleControl: FocusScope {
+        id: toggle
+
+        property bool checked: false
+        signal toggled(bool checked)
+
+        implicitWidth: 48
+        implicitHeight: 28
+        activeFocusOnTab: true
+        opacity: enabled ? 1 : 0.45
+
+        Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            color: toggle.checked ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
+            border.width: 1
+            border.color: toggle.checked ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
+
+            Behavior on color {
+                ColorAnimation { duration: RaohaneMotion.standard }
+            }
+
+            Rectangle {
+                width: 20
+                height: 20
+                radius: 10
+                anchors.verticalCenter: parent.verticalCenter
+                x: toggle.checked ? parent.width - width - 4 : 4
+                color: toggle.checked ? RaohaneTheme.accent : RaohaneTheme.textFaint
+
+                Behavior on x {
+                    enabled: RaohaneMotion.transformMotionEnabled
+                    NumberAnimation {
+                        duration: RaohaneMotion.standard
+                        easing.type: RaohaneMotion.easeEmphasized
+                    }
+                }
+
+                Behavior on color {
+                    ColorAnimation { duration: RaohaneMotion.standard }
+                }
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            enabled: toggle.enabled
+            cursorShape: toggle.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: toggle.toggled(!toggle.checked)
+        }
+
+        Keys.onPressed: event => {
+            if (!toggle.enabled)
+                return
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                toggle.toggled(!toggle.checked)
                 event.accepted = true
             }
         }
@@ -462,8 +606,8 @@ Item {
             hovered: linkMouse.containsMouse || link.activeFocus
             pressed: linkMouse.pressed
             interactive: true
-            hoverScale: 1
-            pressedScale: 1
+            hoverScale: 1.015
+            pressedScale: 0.985
             showSheen: false
             border.color: linkMouse.containsMouse || link.activeFocus
                 ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
