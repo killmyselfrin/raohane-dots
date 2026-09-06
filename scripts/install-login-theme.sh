@@ -4,7 +4,10 @@ set -euo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 THEME_SOURCE="$ROOT/login/sddm/raohane"
 THEME_TARGET="/usr/share/sddm/themes/raohane"
-CONFIG_TARGET="/etc/sddm.conf.d/20-raohane-theme.conf"
+CONFIG_TARGET="/etc/sddm.conf.d/99-raohane-theme.conf"
+OLD_CONFIG_TARGET="/etc/sddm.conf.d/20-raohane-theme.conf"
+MAIN_CONFIG="/etc/sddm.conf"
+MAIN_CONFIG_BACKUP="/etc/sddm.conf.raohane.bak"
 SYNC_SCRIPT="$ROOT/scripts/sync-login-wallpaper.sh"
 LOGIN_CACHE_DIR="/var/cache/raohane-login"
 
@@ -104,6 +107,76 @@ sync_to_cache() {
   RAOHANE_LOGIN_CACHE_DIR="$LOGIN_CACHE_DIR" bash "$SYNC_SCRIPT" "$source"
 }
 
+select_raohane_theme() {
+  sudo install -d -m 0755 /etc/sddm.conf.d
+
+  # Keep a late drop-in for conventional SDDM setups and remove the older
+  # Raohane drop-in name so upgrades do not leave duplicate managed entries.
+  cat <<'EOF' | sudo tee "$CONFIG_TARGET" >/dev/null
+[Theme]
+Current=raohane
+EOF
+  sudo rm -f -- "$OLD_CONFIG_TARGET"
+
+  # SDDM reads /etc/sddm.conf after the config directories, so an existing
+  # Current= value there overrides every drop-in. Preserve the file, back it up
+  # once, and update only the Theme/Current key. Creating a minimal main config
+  # when none exists also makes Raohane authoritative over third-party drop-ins.
+  if [[ -f "$MAIN_CONFIG" && ! -e "$MAIN_CONFIG_BACKUP" ]]; then
+    sudo cp -a -- "$MAIN_CONFIG" "$MAIN_CONFIG_BACKUP"
+  fi
+
+  sudo python3 - "$MAIN_CONFIG" <<'PY'
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+try:
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+except OSError as exc:
+    raise SystemExit(f"unable to read {path}: {exc}")
+
+lines = text.splitlines()
+out = []
+in_theme = False
+theme_seen = False
+current_written = False
+section_pattern = re.compile(r"^\s*\[([^]]+)\]\s*$")
+current_pattern = re.compile(r"^\s*Current\s*=", re.IGNORECASE)
+
+for line in lines:
+    section = section_pattern.match(line)
+    if section:
+        if in_theme and not current_written:
+            out.append("Current=raohane")
+        in_theme = section.group(1).strip().lower() == "theme"
+        if in_theme:
+            theme_seen = True
+            current_written = False
+        out.append(line)
+        continue
+
+    if in_theme and current_pattern.match(line):
+        if not current_written:
+            out.append("Current=raohane")
+            current_written = True
+        continue
+
+    out.append(line)
+
+if in_theme and not current_written:
+    out.append("Current=raohane")
+
+if not theme_seen:
+    if out and out[-1].strip():
+        out.append("")
+    out.extend(["[Theme]", "Current=raohane"])
+
+path.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
+PY
+}
+
 wallpaper="$(resolve_wallpaper || true)"
 
 if ((SYNC_ONLY)); then
@@ -177,12 +250,10 @@ sudo install -d -m 0755 "$THEME_TARGET" /etc/sddm.conf.d
 sudo cp -a "$STAGE_DIR/." "$THEME_TARGET/"
 sudo chmod -R a+rX "$THEME_TARGET"
 
-cat <<'EOF' | sudo tee "$CONFIG_TARGET" >/dev/null
-[Theme]
-Current=raohane
-EOF
+select_raohane_theme
 
 printf '[Raohane] Raohane SDDM theme selected.\n'
+printf '[Raohane] Authoritative SDDM config: %s\n' "$MAIN_CONFIG"
 printf '[Raohane] Desktop wallpaper mirror lives at %s/wallpaper.\n' "$LOGIN_CACHE_DIR"
 printf '[Raohane] Existing display-manager services were left untouched.\n'
 printf '[Raohane] Preview without logging out: bash %s --preview\n' "$0"
