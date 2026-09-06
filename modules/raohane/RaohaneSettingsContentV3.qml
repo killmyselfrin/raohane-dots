@@ -41,14 +41,24 @@ Item {
         root.pendingControl = ""
     }
 
+    function preparePageEnter(): void {
+        pageFrame.opacity = 0
+        pageFrame.x = root.transitionDirection * 14
+        pageEnter.restart()
+    }
+
     function loadCurrentPage(animated: bool): void {
         pageExit.stop()
         pageEnter.stop()
 
-        if (!animated || !RaohaneMotion.enabled || pageLoader.source === "") {
+        const nextSource = String(root.currentPageInfo?.source ?? "")
+        if (!animated || !RaohaneMotion.enabled || String(pageLoader.source) === "") {
             pageFrame.opacity = 1
             pageFrame.x = 0
-            pageLoader.source = root.currentPageInfo?.source ?? ""
+            if (String(pageLoader.source) === nextSource && pageLoader.item)
+                Qt.callLater(root.configureLoadedPage)
+            else
+                pageLoader.source = nextSource
             return
         }
 
@@ -136,9 +146,7 @@ Item {
                                     pageFrame.x = 0
                                     return
                                 }
-                                pageFrame.opacity = 0
-                                pageFrame.x = root.transitionDirection * 14
-                                pageEnter.restart()
+                                root.preparePageEnter()
                             }
                         }
                     }
@@ -165,10 +173,19 @@ Item {
                         }
 
                         onFinished: {
-                            pageLoader.source = root.currentPageInfo?.source ?? ""
-                            if (pageLoader.source === "") {
+                            const nextSource = String(root.currentPageInfo?.source ?? "")
+                            if (nextSource === "") {
+                                pageLoader.source = ""
                                 pageFrame.x = 0
                                 pageFrame.opacity = 1
+                                return
+                            }
+
+                            if (String(pageLoader.source) === nextSource && pageLoader.item) {
+                                root.configureLoadedPage()
+                                root.preparePageEnter()
+                            } else {
+                                pageLoader.source = nextSource
                             }
                         }
                     }
