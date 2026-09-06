@@ -29,18 +29,37 @@ Scope {
         { id: "firmware", icon: "settings_applications", title: qsTr("Firmware"), detail: qsTr("Restart into firmware settings"), danger: true }
     ]
 
+    readonly property var pendingActionModel: root.actions.find(action => action.id === root.pendingAction) ?? null
+
     function close(): void {
+        confirmTimer.stop()
         root.pendingAction = ""
         RaohaneState.setPrimaryOpen("session", false)
     }
 
+    function cancelPendingAction(): void {
+        confirmTimer.stop()
+        root.pendingAction = ""
+    }
+
     function requestAction(actionId: string, dangerous: bool): void {
-        if (dangerous && root.pendingAction !== actionId) {
+        if (dangerous) {
             root.pendingAction = actionId
             confirmTimer.restart()
             return
         }
+
+        root.cancelPendingAction()
+        root.executeAction(actionId)
+    }
+
+    function confirmPendingAction(): void {
+        if (root.pendingAction.length === 0)
+            return
+
+        const actionId = root.pendingAction
         root.pendingAction = ""
+        confirmTimer.stop()
         root.executeAction(actionId)
     }
 
@@ -60,7 +79,7 @@ Scope {
 
     Timer {
         id: confirmTimer
-        interval: 4200
+        interval: 10000
         repeat: false
         onTriggered: root.pendingAction = ""
     }
@@ -132,7 +151,7 @@ Scope {
                 property bool entered: false
 
                 width: Math.min(parent.width - 96, 820)
-                height: Math.min(parent.height - 112, 510)
+                height: Math.min(parent.height - 112, root.pendingActionModel ? 565 : 510)
                 anchors.centerIn: parent
                 surfaceRadius: RaohaneTheme.radiusHero
                 raised: true
@@ -144,6 +163,9 @@ Scope {
                 Behavior on opacity {
                     NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
                 }
+                Behavior on height {
+                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -152,10 +174,25 @@ Scope {
 
                 Keys.onPressed: event => {
                     const columns = 4
+
                     if (event.key === Qt.Key_Escape) {
-                        root.close()
+                        if (root.pendingAction.length > 0)
+                            root.cancelPendingAction()
+                        else
+                            root.close()
                         event.accepted = true
-                    } else if (event.key === Qt.Key_Left) {
+                        return
+                    }
+
+                    if (root.pendingAction.length > 0) {
+                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            root.confirmPendingAction()
+                            event.accepted = true
+                        }
+                        return
+                    }
+
+                    if (event.key === Qt.Key_Left) {
                         root.currentIndex = Math.max(0, root.currentIndex - 1)
                         event.accepted = true
                     } else if (event.key === Qt.Key_Right) {
@@ -262,13 +299,13 @@ Scope {
                                 required property int index
 
                                 readonly property bool selected: root.currentIndex === index
-                                readonly property bool confirming: root.pendingAction === modelData.id
+                                readonly property bool pending: root.pendingAction === modelData.id
 
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 Layout.minimumHeight: 112
                                 surfaceRadius: 13
-                                active: selected && !confirming
+                                active: selected && !pending
                                 hovered: actionMouse.containsMouse || activeFocus
                                 pressed: actionMouse.pressed
                                 interactive: true
@@ -276,7 +313,7 @@ Scope {
                                 hoverScale: 1
                                 pressedScale: 1
                                 activeFocusOnTab: true
-                                border.color: confirming
+                                border.color: pending
                                     ? RaohaneTheme.critical
                                     : selected
                                         ? RaohaneTheme.accentBorder
@@ -285,7 +322,7 @@ Scope {
                                             : RaohaneTheme.borderFaint
 
                                 Rectangle {
-                                    visible: actionCard.selected || actionCard.confirming
+                                    visible: actionCard.selected || actionCard.pending
                                     anchors {
                                         left: parent.left
                                         verticalCenter: parent.verticalCenter
@@ -294,9 +331,7 @@ Scope {
                                     width: 2
                                     height: 28
                                     radius: 1
-                                    color: actionCard.confirming
-                                        ? RaohaneTheme.critical
-                                        : RaohaneTheme.accent
+                                    color: actionCard.pending ? RaohaneTheme.critical : RaohaneTheme.accent
                                 }
 
                                 ColumnLayout {
@@ -308,19 +343,17 @@ Scope {
                                         Layout.preferredWidth: 34
                                         Layout.preferredHeight: 34
                                         surfaceRadius: 10
-                                        active: actionCard.selected && !actionCard.confirming
+                                        active: actionCard.selected && !actionCard.pending
                                         showSheen: false
-                                        border.color: actionCard.confirming
-                                            ? RaohaneTheme.critical
-                                            : RaohaneTheme.borderFaint
+                                        border.color: actionCard.pending ? RaohaneTheme.critical : RaohaneTheme.borderFaint
 
                                         RaohaneIcon {
                                             anchors.centerIn: parent
-                                            text: actionCard.confirming ? "priority_high" : actionCard.modelData.icon
+                                            text: actionCard.modelData.icon
                                             iconSize: 18
-                                            fill: actionCard.confirming || actionCard.selected ? 1 : 0
-                                            symbolWeight: actionCard.confirming ? 600 : actionCard.selected ? 550 : 430
-                                            color: actionCard.confirming
+                                            fill: actionCard.pending || actionCard.selected ? 1 : 0
+                                            symbolWeight: actionCard.pending ? 600 : actionCard.selected ? 550 : 430
+                                            color: actionCard.pending
                                                 ? RaohaneTheme.critical
                                                 : actionCard.selected
                                                     ? RaohaneTheme.accent
@@ -332,10 +365,8 @@ Scope {
 
                                     Text {
                                         Layout.fillWidth: true
-                                        text: actionCard.confirming
-                                            ? qsTr("Confirm %1").arg(actionCard.modelData.title)
-                                            : actionCard.modelData.title
-                                        color: actionCard.confirming ? RaohaneTheme.critical : RaohaneTheme.text
+                                        text: actionCard.modelData.title
+                                        color: actionCard.pending ? RaohaneTheme.critical : RaohaneTheme.text
                                         font.pixelSize: 9
                                         font.weight: Font.DemiBold
                                         elide: Text.ElideRight
@@ -343,9 +374,7 @@ Scope {
 
                                     Text {
                                         Layout.fillWidth: true
-                                        text: actionCard.confirming
-                                            ? qsTr("Press again within 4 seconds")
-                                            : actionCard.modelData.detail
+                                        text: actionCard.modelData.detail
                                         color: RaohaneTheme.textMuted
                                         font.pixelSize: 7
                                         wrapMode: Text.Wrap
@@ -363,6 +392,75 @@ Scope {
                                     onEntered: root.currentIndex = actionCard.index
                                     onClicked: root.requestAction(actionCard.modelData.id, actionCard.modelData.danger)
                                 }
+                            }
+                        }
+                    }
+
+                    RaohaneSurface {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 68
+                        visible: root.pendingActionModel !== null
+                        surfaceRadius: 12
+                        showSheen: false
+                        raised: false
+                        border.color: RaohaneTheme.critical
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: 10
+                            spacing: 10
+
+                            RaohaneSurface {
+                                Layout.preferredWidth: 34
+                                Layout.preferredHeight: 34
+                                surfaceRadius: 10
+                                showSheen: false
+                                raised: false
+                                border.color: RaohaneTheme.critical
+
+                                RaohaneIcon {
+                                    anchors.centerIn: parent
+                                    text: root.pendingActionModel?.icon ?? "warning"
+                                    iconSize: 17
+                                    fill: 1
+                                    color: RaohaneTheme.critical
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 1
+
+                                Text {
+                                    text: root.pendingActionModel
+                                        ? qsTr("Confirm %1").arg(root.pendingActionModel.title)
+                                        : ""
+                                    color: RaohaneTheme.text
+                                    font.pixelSize: 10
+                                    font.weight: Font.DemiBold
+                                }
+                                Text {
+                                    text: root.pendingAction === "logout"
+                                        ? qsTr("Applications will be asked to close before the Hyprland session ends.")
+                                        : qsTr("This system action will be executed immediately after confirmation.")
+                                    color: RaohaneTheme.textMuted
+                                    font.pixelSize: 7
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            ConfirmButton {
+                                label: qsTr("Cancel")
+                                icon: "close"
+                                danger: false
+                                onClicked: root.cancelPendingAction()
+                            }
+
+                            ConfirmButton {
+                                label: root.pendingActionModel?.title ?? qsTr("Confirm")
+                                icon: root.pendingAction === "logout" ? "logout" : "check"
+                                danger: true
+                                onClicked: root.confirmPendingAction()
                             }
                         }
                     }
@@ -388,18 +486,18 @@ Scope {
 
                         Text {
                             text: root.pendingAction.length > 0
-                                ? qsTr("Confirmation armed for a destructive action")
-                                : qsTr("Destructive actions require a second press")
-                            color: root.pendingAction.length > 0
-                                ? RaohaneTheme.critical
-                                : RaohaneTheme.textFaint
+                                ? qsTr("Enter confirms · Esc cancels")
+                                : qsTr("Destructive actions open a confirmation panel")
+                            color: root.pendingAction.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textFaint
                             font.pixelSize: 6
                         }
 
                         Item { Layout.fillWidth: true }
 
                         Text {
-                            text: qsTr("Arrows navigate · Enter selects · Esc closes")
+                            text: root.pendingAction.length > 0
+                                ? qsTr("Choose Cancel or confirm the action")
+                                : qsTr("Arrows navigate · Enter selects · Esc closes")
                             color: RaohaneTheme.textFaint
                             font.pixelSize: 6
                         }
@@ -430,6 +528,54 @@ Scope {
         name: "sessionClose"
         description: "Close Raohane session screen"
         onPressed: root.close()
+    }
+
+    component ConfirmButton: RaohaneSurface {
+        id: button
+
+        property string label: ""
+        property string icon: "check"
+        property bool danger: false
+        signal clicked()
+
+        Layout.preferredWidth: 104
+        Layout.preferredHeight: 34
+        surfaceRadius: 10
+        showSheen: false
+        raised: false
+        interactive: true
+        hovered: buttonMouse.containsMouse
+        pressed: buttonMouse.pressed
+        border.color: danger ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+        hoverScale: 1
+        pressedScale: 0.98
+
+        RowLayout {
+            anchors.centerIn: parent
+            spacing: 5
+
+            RaohaneIcon {
+                text: button.icon
+                iconSize: 13
+                fill: 1
+                color: button.danger ? RaohaneTheme.critical : RaohaneTheme.textMuted
+            }
+
+            Text {
+                text: button.label
+                color: button.danger ? RaohaneTheme.critical : RaohaneTheme.text
+                font.pixelSize: 7
+                font.weight: Font.DemiBold
+            }
+        }
+
+        MouseArea {
+            id: buttonMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: button.clicked()
+        }
     }
 
     component WarningBar: RaohaneSurface {
