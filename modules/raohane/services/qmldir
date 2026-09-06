@@ -2,6 +2,7 @@ module qs.modules.raohane.services
 singleton RaohaneMedia 1.0 RaohaneMedia.qml
 singleton RaohaneLyrics 1.0 RaohaneLyrics.qml
 singleton RaohaneCoverAccent 1.0 RaohaneCoverAccent.qml
+singleton RaohaneUpdater 1.0 RaohaneUpdater.qml
 singleton RaohaneBluetooth 1.0 RaohaneBluetooth.qml
 singleton RaohaneAudio 1.0 RaohaneAudio.qml
 singleton RaohaneNetwork 1.0 RaohaneNetwork.qml
