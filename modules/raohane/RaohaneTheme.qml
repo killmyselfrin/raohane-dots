@@ -157,6 +157,7 @@ QtObject {
     readonly property color accentBorder: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.86, (dark ? 0.58 : 0.44) * accentStrength))
 
     readonly property color success: activePreset.success
+    readonly property color positive: success
     readonly property color warning: activePreset.warning
     readonly property color critical: activePreset.critical
     readonly property color info: activePreset.info
