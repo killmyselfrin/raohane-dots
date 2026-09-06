@@ -47,13 +47,14 @@ Singleton {
             return
         root.errorText = ""
         root.applying = true
+        const transactionId = `${root.latestShortRevision}-${Date.now()}`
         applyProcess.command = [
             "systemd-run",
             "--user",
             "--wait",
             "--pipe",
             "--collect",
-            "--unit=raohane-update-apply",
+            `--unit=raohane-update-${transactionId}`,
             "python3",
             root.updaterScript,
             "apply",
