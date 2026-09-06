@@ -10,6 +10,10 @@ import qs.modules.raohane.services
 // product surfaces bind to stable registry ids so state, lifecycle policy and
 // future placement metadata have one shared identity.
 Scope {
+    // Keep the updater singleton alive with the product runtime rather than
+    // lazily creating it only after the About page is opened.
+    readonly property bool updaterAutomatic: RaohaneUpdater.automaticUpdates
+
     Component.onCompleted: RaohaneAutostart.runOnce()
 
     RaohanePanelLoader { component: RaohaneRuntimeProbe {} }
