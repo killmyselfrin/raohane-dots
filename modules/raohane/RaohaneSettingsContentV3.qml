@@ -41,6 +41,11 @@ Item {
         root.pendingControl = ""
     }
 
+    function resolvedSource(source: string): string {
+        const value = String(source ?? "")
+        return value.length > 0 ? String(Qt.resolvedUrl(value)) : ""
+    }
+
     function preparePageEnter(): void {
         pageFrame.opacity = 0
         pageFrame.x = root.transitionDirection * 14
@@ -52,10 +57,12 @@ Item {
         pageEnter.stop()
 
         const nextSource = String(root.currentPageInfo?.source ?? "")
+        const sameSource = String(pageLoader.source) === root.resolvedSource(nextSource)
+
         if (!animated || !RaohaneMotion.enabled || String(pageLoader.source) === "") {
             pageFrame.opacity = 1
             pageFrame.x = 0
-            if (String(pageLoader.source) === nextSource && pageLoader.item)
+            if (sameSource && pageLoader.item)
                 Qt.callLater(root.configureLoadedPage)
             else
                 pageLoader.source = nextSource
@@ -181,7 +188,7 @@ Item {
                                 return
                             }
 
-                            if (String(pageLoader.source) === nextSource && pageLoader.item) {
+                            if (String(pageLoader.source) === root.resolvedSource(nextSource) && pageLoader.item) {
                                 root.configureLoadedPage()
                                 root.preparePageEnter()
                             } else {
