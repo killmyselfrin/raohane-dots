@@ -7,13 +7,16 @@ hyprland
 quickshell
 qt6-5compat
 qt6-multimedia
+qt6-wayland
 networkmanager
 pipewire
 pipewire-audio
 pipewire-pulse
 wireplumber
 polkit
+xdg-desktop-portal
 xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
 upower
 python
 git
