@@ -43,7 +43,10 @@ Singleton {
     }
 
     function logout(): void {
-        root.run(["hyprctl", "dispatch", "exit"])
+        // Hyprland 0.55+ moved dispatchers to the Lua API. Keep the legacy
+        // command as a fallback so the same Raohane runtime still works on
+        // Hyprland <= 0.54 without maintaining two session backends.
+        root.runShell("hyprctl dispatch 'hl.dsp.exit()' >/dev/null 2>&1 || hyprctl dispatch exit >/dev/null 2>&1")
     }
 
     function launchTaskManager(): void {
