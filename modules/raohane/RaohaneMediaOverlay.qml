@@ -26,14 +26,17 @@ Scope {
         ? Qt.rgba(0.01, 0.012, 0.02, 0.82)
         : Qt.rgba(1, 1, 1, 0.90)
 
-    // Keep the active line recognizably Raohane without sacrificing contrast.
-    // The accent is deliberately only a tint; the high-contrast foreground and
-    // opposite-polarity halo remain the dominant readability mechanism.
+    // The cover service supplies a filtered vibrant color when artwork can be
+    // analysed. Theme accent remains the zero-cost fallback for missing/local
+    // formats, network failures or systems without the optional Pillow backend.
+    readonly property color lyricsFocusAccent: RaohaneCoverAccent.available
+        ? RaohaneCoverAccent.accent
+        : RaohaneTheme.accent
     readonly property real lyricsFocusAccentMix: RaohaneTheme.dark ? 0.34 : 0.24
     readonly property color lyricsFocusActive: Qt.rgba(
-        root.lyricsFocusForeground.r * (1 - root.lyricsFocusAccentMix) + RaohaneTheme.accent.r * root.lyricsFocusAccentMix,
-        root.lyricsFocusForeground.g * (1 - root.lyricsFocusAccentMix) + RaohaneTheme.accent.g * root.lyricsFocusAccentMix,
-        root.lyricsFocusForeground.b * (1 - root.lyricsFocusAccentMix) + RaohaneTheme.accent.b * root.lyricsFocusAccentMix,
+        root.lyricsFocusForeground.r * (1 - root.lyricsFocusAccentMix) + root.lyricsFocusAccent.r * root.lyricsFocusAccentMix,
+        root.lyricsFocusForeground.g * (1 - root.lyricsFocusAccentMix) + root.lyricsFocusAccent.g * root.lyricsFocusAccentMix,
+        root.lyricsFocusForeground.b * (1 - root.lyricsFocusAccentMix) + root.lyricsFocusAccent.b * root.lyricsFocusAccentMix,
         1)
 
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
