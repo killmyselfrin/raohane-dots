@@ -26,6 +26,16 @@ Scope {
         ? Qt.rgba(0.01, 0.012, 0.02, 0.82)
         : Qt.rgba(1, 1, 1, 0.90)
 
+    // Keep the active line recognizably Raohane without sacrificing contrast.
+    // The accent is deliberately only a tint; the high-contrast foreground and
+    // opposite-polarity halo remain the dominant readability mechanism.
+    readonly property real lyricsFocusAccentMix: RaohaneTheme.dark ? 0.34 : 0.24
+    readonly property color lyricsFocusActive: Qt.rgba(
+        root.lyricsFocusForeground.r * (1 - root.lyricsFocusAccentMix) + RaohaneTheme.accent.r * root.lyricsFocusAccentMix,
+        root.lyricsFocusForeground.g * (1 - root.lyricsFocusAccentMix) + RaohaneTheme.accent.g * root.lyricsFocusAccentMix,
+        root.lyricsFocusForeground.b * (1 - root.lyricsFocusAccentMix) + RaohaneTheme.accent.b * root.lyricsFocusAccentMix,
+        1)
+
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
 
@@ -492,7 +502,7 @@ Scope {
                                         }
                                         text: String(lyricLine.modelData.text ?? "")
                                         color: root.lyricsFocus
-                                            ? (lyricLine.current ? root.lyricsFocusForeground : root.lyricsFocusSecondary)
+                                            ? (lyricLine.current ? root.lyricsFocusActive : root.lyricsFocusSecondary)
                                             : (lyricLine.current ? RaohaneTheme.text : RaohaneTheme.textMuted)
                                         font.pixelSize: root.lyricsFocus ? 13 : 9
                                         font.weight: lyricLine.current ? Font.DemiBold : root.lyricsFocus ? Font.Medium : Font.Normal
