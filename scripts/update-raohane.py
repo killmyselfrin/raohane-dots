@@ -196,31 +196,12 @@ def _install_dependencies(packages: list[str]) -> None:
     if not packages:
         return
     pkexec = shutil.which("pkexec")
-    if not pkexec:
-        raise RuntimeError("new dependencies require pkexec/polkit authorization")
+    pacman = shutil.which("pacman")
+    if not pkexec or not pacman:
+        raise RuntimeError("new dependencies require pacman and pkexec/polkit authorization")
     subprocess.run(
-        [pkexec, "pacman", "-S", "--needed", "--noconfirm", "--", *packages],
+        [pkexec, pacman, "-S", "--needed", "--noconfirm", "--", *packages],
         check=True,
-    )
-
-
-def _refresh_installed_sddm_theme(source_root: pathlib.Path) -> None:
-    target = pathlib.Path("/usr/share/sddm/themes/raohane")
-    source = source_root / "login/sddm/raohane"
-    if not target.is_dir() or not source.is_dir():
-        return
-    pkexec = shutil.which("pkexec")
-    rsync = shutil.which("rsync")
-    if not pkexec or not rsync:
-        return
-    # Preserve the installed theme.conf because it contains the mirrored login
-    # wallpaper path. Updating the remaining payload keeps SDDM in sync without
-    # rewriting system configuration on every shell update.
-    subprocess.run(
-        [pkexec, rsync, "-a", "--delete", "--exclude", "theme.conf", f"{source}/", f"{target}/"],
-        check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
     )
 
 
@@ -231,7 +212,8 @@ def apply(revision: str) -> int:
         return 2
 
     try:
-        # Refuse a stale/forged UI request if main moved to an unrelated SHA.
+        # Refuse a stale UI request if main moved after the check. Updating to the
+        # newest official revision is safer than installing an already-obsolete SHA.
         latest = _latest_revision()
         if revision != latest:
             revision = latest
@@ -264,7 +246,6 @@ def apply(revision: str) -> int:
             runtime = _runtime()
             runtime.mkdir(parents=True, exist_ok=True)
             (runtime / "REVISION").write_text(revision + "\n", encoding="utf-8")
-            _refresh_installed_sddm_theme(source_root)
 
         state = _read_state()
         state.update({"current_revision": revision, "last_error": ""})
