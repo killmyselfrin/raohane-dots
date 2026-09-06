@@ -139,12 +139,23 @@ command -v pacman >/dev/null 2>&1 || { fail 'pacman is required.'; exit 1; }
 ok 'Package manager ready'
 
 section 'Dependencies'
+mapfile -t core_packages < <(bash "$DEPS" --minimal --print)
+mapfile -t full_packages < <(bash "$DEPS" --full --print)
 mapfile -t missing_packages < <(bash "$DEPS" --full --missing)
 
-if ((${#missing_packages[@]} == 0)); then
+core_count=${#core_packages[@]}
+total_count=${#full_packages[@]}
+feature_count=$((total_count - core_count))
+missing_count=${#missing_packages[@]}
+installed_count=$((total_count - missing_count))
+
+info "Dependency profile: ${total_count} requirements · ${core_count} core + ${feature_count} desktop features"
+info "Current system: ${installed_count}/${total_count} already satisfied · ${missing_count} missing"
+
+if ((missing_count == 0)); then
   ok 'All Raohane runtime and desktop-feature dependencies are already installed.'
 else
-  info "${#missing_packages[@]} package(s) are missing and required for the complete Raohane experience:"
+  info "Only the ${missing_count} missing package(s) are shown below; installed requirements are preserved:"
   printf '\n'
   columns=3
   index=0
@@ -156,7 +167,7 @@ else
   if ((index % columns != 0)); then printf '\n'; fi
 
   printf '\n%sRaohane never changes GPU drivers automatically.%s\n' "$DIM" "$RESET"
-  if ! confirm 'Install these dependencies with pacman?' yes; then
+  if ! confirm 'Install these missing dependencies with pacman?' yes; then
     fail 'Installation cancelled before making system changes.'
     exit 1
   fi
