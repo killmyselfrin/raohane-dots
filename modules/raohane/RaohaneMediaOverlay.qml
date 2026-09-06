@@ -15,6 +15,17 @@ Scope {
     property bool lyricsOpen: false
     property bool lyricsFocus: false
 
+    // A layer-shell surface cannot cheaply sample arbitrary application pixels
+    // underneath it on Wayland. Lyrics-only therefore uses a theme-aware
+    // foreground plus the opposite-polarity halo: light ink gets a dark halo,
+    // dark ink gets a light halo. The pair stays legible over both bright and
+    // dark application content without introducing a visible backing card.
+    readonly property color lyricsFocusForeground: RaohaneTheme.dark ? "#fffdfc" : "#171719"
+    readonly property color lyricsFocusSecondary: RaohaneTheme.dark ? "#e7e5ef" : "#2d2b31"
+    readonly property color lyricsFocusHalo: RaohaneTheme.dark
+        ? Qt.rgba(0.01, 0.012, 0.02, 0.82)
+        : Qt.rgba(1, 1, 1, 0.90)
+
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
 
@@ -480,19 +491,20 @@ Scope {
                                             rightMargin: root.lyricsFocus ? 18 : 9
                                         }
                                         text: String(lyricLine.modelData.text ?? "")
-                                        color: lyricLine.current
-                                            ? RaohaneTheme.text
-                                            : root.lyricsFocus
-                                                ? RaohaneTheme.textMuted
-                                                : RaohaneTheme.textMuted
+                                        color: root.lyricsFocus
+                                            ? (lyricLine.current ? root.lyricsFocusForeground : root.lyricsFocusSecondary)
+                                            : (lyricLine.current ? RaohaneTheme.text : RaohaneTheme.textMuted)
                                         font.pixelSize: root.lyricsFocus ? 13 : 9
                                         font.weight: lyricLine.current ? Font.DemiBold : root.lyricsFocus ? Font.Medium : Font.Normal
                                         wrapMode: Text.WordWrap
                                         horizontalAlignment: Text.AlignHCenter
                                         style: root.lyricsFocus ? Text.Outline : Text.Normal
-                                        styleColor: root.lyricsFocus ? Qt.rgba(0, 0, 0, 0.24) : "transparent"
+                                        styleColor: root.lyricsFocus ? root.lyricsFocusHalo : "transparent"
 
                                         Behavior on color {
+                                            ColorAnimation { duration: RaohaneMotion.standard }
+                                        }
+                                        Behavior on styleColor {
                                             ColorAnimation { duration: RaohaneMotion.standard }
                                         }
                                     }
