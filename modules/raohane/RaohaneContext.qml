@@ -232,7 +232,7 @@ Item {
         target: RaohanePerformance
 
         function onGameModeActiveChanged(): void {
-            if (!root.eventSignalsReady || RaohanePerformance.busy)
+            if (!root.eventSignalsReady)
                 return
             root.showEvent(
                 RaohanePerformance.gameModeActive ? qsTr("Performance mode") : qsTr("Desktop effects restored"),
