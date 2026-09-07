@@ -633,7 +633,8 @@ Scope {
         surfaceRadius: 12
         showSheen: false
         raised: false
-        hovered: mediaMouse.containsMouse
+        hovered: mediaSummaryMouse.containsMouse
+        pressed: mediaSummaryMouse.pressed
         interactive: true
         hoverScale: 1
         pressedScale: 1
@@ -645,6 +646,7 @@ Scope {
             spacing: 5
 
             RowLayout {
+                id: mediaSummary
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: 9
@@ -720,6 +722,16 @@ Scope {
                         }
                     }
                 }
+
+                MouseArea {
+                    id: mediaSummaryMouse
+                    anchors.fill: parent
+                    z: 20
+                    hoverEnabled: true
+                    acceptedButtons: Qt.LeftButton
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: RaohaneState.toggleSurface("mediaOverlay")
+                }
             }
 
             RowLayout {
@@ -753,16 +765,6 @@ Scope {
                 }
                 Item { Layout.fillWidth: true }
             }
-        }
-
-        MouseArea {
-            id: mediaMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.LeftButton
-            cursorShape: Qt.PointingHandCursor
-            z: -1
-            onClicked: RaohaneState.toggleSurface("mediaOverlay")
         }
     }
 }
