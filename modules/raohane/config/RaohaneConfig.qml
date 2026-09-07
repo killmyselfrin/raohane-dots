@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 12
+    readonly property int schemaVersion: 13
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -108,6 +108,12 @@ Singleton {
     property bool mediaOverlayEnabled: true
     property bool integrationMode: true
     property string themePreset: "zen-mist"
+
+    property bool sakuraEnabled: false
+    property bool sakuraInSettings: true
+    property bool sakuraInControlCenter: true
+    property string sakuraIntensity: "subtle"
+    property string sakuraSpeed: "gentle"
 
     property var keybinds: root.defaultKeybinds()
     property var animations: root.defaultAnimations()
@@ -484,6 +490,13 @@ Singleton {
                 integrationMode: root.integrationMode,
                 themePreset: root.themePreset
             },
+            sakura: {
+                enabled: root.sakuraEnabled,
+                settings: root.sakuraInSettings,
+                controlCenter: root.sakuraInControlCenter,
+                intensity: root.sakuraIntensity,
+                speed: root.sakuraSpeed
+            },
             keybinds: root.sanitizeKeybinds(root.keybinds),
             animations: root.sanitizeAnimations(root.animations),
             style: root.sanitizeStyle(root.style)
@@ -519,6 +532,7 @@ Singleton {
         const quickControls = document?.quickControls ?? {}
         const desktopWidgets = document?.desktopWidgets ?? {}
         const features = document?.features ?? {}
+        const sakura = document?.sakura ?? {}
         const keybinds = document?.keybinds ?? root.defaultKeybinds()
         const animations = document?.animations ?? root.defaultAnimations()
         const style = document?.style ?? root.defaultStyle()
@@ -616,6 +630,18 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlay", value => root.mediaOverlayEnabled = Boolean(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
         root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "zen-mist"))
+
+        root.assignIfPresent(sakura, "enabled", value => root.sakuraEnabled = Boolean(value))
+        root.assignIfPresent(sakura, "settings", value => root.sakuraInSettings = Boolean(value))
+        root.assignIfPresent(sakura, "controlCenter", value => root.sakuraInControlCenter = Boolean(value))
+        root.assignIfPresent(sakura, "intensity", value => {
+            const requested = String(value ?? "subtle")
+            root.sakuraIntensity = ["subtle", "standard", "cinematic"].includes(requested) ? requested : "subtle"
+        })
+        root.assignIfPresent(sakura, "speed", value => {
+            const requested = String(value ?? "gentle")
+            root.sakuraSpeed = ["slow", "gentle", "brisk"].includes(requested) ? requested : "gentle"
+        })
 
         root.keybinds = root.sanitizeKeybinds(keybinds)
         root.animations = root.sanitizeAnimations(animations)
@@ -742,6 +768,11 @@ Singleton {
     onMediaOverlayEnabledChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
     onThemePresetChanged: scheduleSave()
+    onSakuraEnabledChanged: scheduleSave()
+    onSakuraInSettingsChanged: scheduleSave()
+    onSakuraInControlCenterChanged: scheduleSave()
+    onSakuraIntensityChanged: scheduleSave()
+    onSakuraSpeedChanged: scheduleSave()
     onKeybindsChanged: {
         scheduleSave()
         scheduleHyprlandApply()
