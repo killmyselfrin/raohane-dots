@@ -33,6 +33,8 @@ settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 settings_preferences='modules/raohane/RaohaneSettingsPreferences.qml'
 settings_language='modules/raohane/RaohaneSettingsLanguage.qml'
+sakura_overlay='modules/raohane/RaohaneSakuraOverlay.qml'
+sakura_settings='modules/raohane/RaohaneSakuraSettings.qml'
 backup='modules/raohane/RaohaneBackupSettings.qml'
 family='panelFamilies/RaohaneFamily.qml'
 shell='shell.qml'
@@ -44,7 +46,8 @@ required=(
   "$bar" "$launcher" "$overview" "$control_center" "$osd" "$session"
   "$settings" "$settings_content" "$settings_navigation" "$settings_header"
   "$settings_registry" "$settings_section_registry" "$settings_router"
-  "$settings_section" "$settings_control" "$settings_preferences" "$settings_language" "$backup"
+  "$settings_section" "$settings_control" "$settings_preferences" "$settings_language"
+  "$sakura_overlay" "$sakura_settings" "$backup"
   "$family" "$shell" "$installer" "$root_qmldir"
 )
 for path in "${required[@]}"; do
@@ -67,7 +70,9 @@ for registration in \
   '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
   '^RaohaneSettingsControlRow .*RaohaneSettingsControlRow.qml$' \
   '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml$' \
-  '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$'; do
+  '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$' \
+  '^RaohaneSakuraOverlay .*RaohaneSakuraOverlay.qml$' \
+  '^RaohaneSakuraSettings .*RaohaneSakuraSettings.qml$'; do
   rg -q "$registration" "$raohane_qmldir" || fail "missing native module registration: $registration"
 done
 
@@ -83,7 +88,7 @@ if rg -n '^import qs\.|\bDirectories\.' "$paths"; then
   fail 'RaohanePaths depends on inherited path framework'
 fi
 
-rg -q 'schemaVersion:[[:space:]]*12' "$config" || fail 'RaohaneConfig schema is not v12'
+rg -q 'schemaVersion:[[:space:]]*13' "$config" || fail 'RaohaneConfig schema is not v13'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig does not use RaohanePaths'
 if rg -n '\bStandardPaths\.|\bDirectories\.|^import qs$|^import qs\.modules\.common|\bConfig\.' "$config"; then
   fail 'RaohaneConfig depends on inherited config/path framework'
@@ -94,7 +99,8 @@ for property_name in \
   hotCornersEnabled hotCornerValueScroll hotCornerClickless hotCornerRegionWidth hotCornerRegionHeight \
   hotCornerBottomLeftAction hotCornerBottomRightAction hotCornerVisualize hotCornerClicklessEnd hotCornerVerticalOffset \
   oskPinned oskLayout profileDisplayName profileAvatarPath quickSliderBrightness quickSliderVolume quickSliderMic \
-  contextIslandEnabled mediaOverlayEnabled integrationMode; do
+  contextIslandEnabled mediaOverlayEnabled integrationMode \
+  sakuraEnabled sakuraInSettings sakuraInControlCenter sakuraIntensity sakuraSpeed; do
   rg -q "property .* ${property_name}:" "$config" || fail "RaohaneConfig missing product property: $property_name"
 done
 
@@ -139,7 +145,8 @@ for surface in "$launcher" "$settings" "$control_center"; do
 done
 for symbol in \
   'RaohaneState\.controlCenterOpen' 'RaohaneState\.setPrimaryOpen\("controlCenter"' \
-  'RaohaneNotifications\.markAllRead' 'RaohaneConfig\.profileDisplayName' 'RaohaneSystemInfo\.'; do
+  'RaohaneNotifications\.markAllRead' 'RaohaneConfig\.profileDisplayName' 'RaohaneSystemInfo\.' \
+  'RaohaneSakuraOverlay[[:space:]]*\{' 'RaohaneConfig\.sakuraInControlCenter'; do
   rg -q "$symbol" "$control_center" || fail "RaohaneControlCenter lost native symbol: $symbol"
 done
 for symbol in 'RaohaneState\.osdOpen' 'RaohaneAudio\.' 'RaohaneDisplay\.' 'RaohaneConfig\.osdTimeout'; do
@@ -154,6 +161,8 @@ done
 rg -q 'RaohaneState\.settingsOpen' "$settings" || fail 'RaohaneSettings does not own open state'
 rg -q 'RaohaneState\.setPrimaryOpen\("settings"' "$settings" || fail 'RaohaneSettings does not use primary coordinator'
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" || fail 'RaohaneSettings lost the unified Settings workspace'
+rg -q 'RaohaneSakuraOverlay[[:space:]]*\{' "$settings" || fail 'RaohaneSettings lost Sakura ambience layer'
+rg -q 'RaohaneConfig\.sakuraInSettings' "$settings" || fail 'RaohaneSettings no longer respects the Sakura surface toggle'
 for route in backup keybinds motion language; do
   rg -q "RaohaneSettingsRouter\.request\(\"${route}\", \"\"\)" "$settings" || fail "Settings quick action bypasses router: $route"
 done
@@ -202,6 +211,7 @@ done
 
 for symbol in \
   'readonly property var extensions:' 'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
+  'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' \
   'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
   'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
   rg -q "$symbol" "$settings_section_registry" || fail "RaohaneSettingsSectionRegistry lost extension contract: $symbol"
@@ -266,4 +276,4 @@ done
 rg -q 'hl\.bind\("SUPER \+ R"' "$installer" || fail 'installer lost SUPER+R launcher bind'
 rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+Escape settings bind'
 
-printf 'core-framework-audit: native paths/config/state/focus, animated registry-routed Settings workspace, primary coordinator and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus, Sakura ambience, animated registry-routed Settings workspace, primary coordinator and boot boundaries are valid\n'
