@@ -4,6 +4,8 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
+import qs.modules.raohane.config
+
 Scope {
     id: root
 
@@ -127,7 +129,6 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.985
             focus: RaohaneState.settingsOpen
 
             transform: Translate {
@@ -144,14 +145,6 @@ Scope {
                 NumberAnimation {
                     duration: RaohaneMotion.standard
                     easing.type: workspace.entered ? RaohaneMotion.easeStandard : RaohaneMotion.easeExit
-                }
-            }
-
-            Behavior on scale {
-                enabled: RaohaneMotion.transformMotionEnabled
-                NumberAnimation {
-                    duration: workspace.entered ? RaohaneMotion.relaxed : RaohaneMotion.standard
-                    easing.type: workspace.entered ? RaohaneMotion.easeEmphasized : RaohaneMotion.easeExit
                 }
             }
 
@@ -178,6 +171,11 @@ Scope {
                 Behavior on opacity {
                     NumberAnimation { duration: RaohaneMotion.standard }
                 }
+            }
+
+            RaohaneSakuraOverlay {
+                anchors.fill: parent
+                active: RaohaneState.settingsOpen && RaohaneConfig.sakuraInSettings
             }
 
             RaohaneSettingsContentV3 {
