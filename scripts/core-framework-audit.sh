@@ -169,7 +169,10 @@ for symbol in \
   'RaohaneSettingsNavigation[[:space:]]*\{' 'RaohaneSettingsPageHeader[[:space:]]*\{' \
   'target:[[:space:]]*RaohaneSettingsRouter' 'function onPageRequested\(pageKey: string, controlKey: string\): void' \
   'RaohaneSettingsRouter\.request\(root\.pages\[index\]\.key, ""\)' \
-  'source:[[:space:]]*root\.currentPageInfo\?\.source' 'pageOwnsHeader'; do
+  'function loadCurrentPage\(animated: bool\): void' \
+  'root\.currentPageInfo\?\.source' \
+  'pageLoader\.source[[:space:]]*=[[:space:]]*nextSource' \
+  'pageOwnsHeader'; do
   rg -q "$symbol" "$settings_content" || fail "RaohaneSettingsContent lost unified coordinator contract: $symbol"
 done
 if rg -q 'externalSurface|RaohanePaths\.defaultAvatarUrl|RaohaneConfig\.profile(DisplayName|AvatarPath)|function componentForKind\(|sourceComponent:' "$settings_content"; then
@@ -263,4 +266,4 @@ done
 rg -q 'hl\.bind\("SUPER \+ R"' "$installer" || fail 'installer lost SUPER+R launcher bind'
 rg -q 'hl\.bind\("SUPER \+ Escape"' "$installer" || fail 'installer lost SUPER+Escape settings bind'
 
-printf 'core-framework-audit: native paths/config/state/focus, unified registry-routed Settings workspace, primary coordinator and boot boundaries are valid\n'
+printf 'core-framework-audit: native paths/config/state/focus, animated registry-routed Settings workspace, primary coordinator and boot boundaries are valid\n'
