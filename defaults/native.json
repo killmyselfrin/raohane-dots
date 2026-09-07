@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 12,
+  "schemaVersion": 13,
   "wallpaper": {
     "path": "",
     "lockPath": "",
@@ -115,6 +115,13 @@
     "mediaOverlay": true,
     "integrationMode": true,
     "themePreset": "zen-mist"
+  },
+  "sakura": {
+    "enabled": false,
+    "settings": true,
+    "controlCenter": true,
+    "intensity": "subtle",
+    "speed": "gentle"
   },
   "keybinds": {
     "closeWindow": "ALT + Q",
