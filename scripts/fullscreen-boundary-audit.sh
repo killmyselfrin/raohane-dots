@@ -33,16 +33,32 @@ rg -q 'active: backgroundWindow\.currentPath\.length > 0' "$background" \
 rg -q '&& !backgroundWindow\.hiddenForFullscreen' "$background" \
   || fail 'video wallpaper continues decoding while fullscreen hides it'
 
-# Both bar orientations must completely stop occupying screen space on a normal
-# fullscreen workspace. Super-key reveal remains an explicit user override.
+# Both bar orientations must stop occupying/intercepting the fullscreen client.
+# The horizontal bar intentionally keeps its layer-shell surface resident to
+# avoid destroy/recreate races when games rapidly change fullscreen state; its
+# content, input region and exclusive zone must all be suppressed instead.
 for file in "$bar" "$vertical"; do
   rg -q 'readonly property bool fullscreenSuppressed:[[:space:]]*effectiveFullscreen && !superShow' "$file" \
     || fail "$file lost fullscreen suppression state"
-  rg -q 'visible: RaohaneState\.barOpen && !RaohaneState\.screenLocked && !fullscreenSuppressed' "$file" \
-    || fail "$file remains visible during fullscreen without explicit reveal"
   rg -q 'exclusiveZone: fullscreenSuppressed' "$file" \
     || fail "$file can keep reserving compositor space during fullscreen"
 done
+
+rg -q 'visible: RaohaneState\.barOpen && !RaohaneState\.screenLocked' "$bar" \
+  || fail 'horizontal bar lost resident layer-surface visibility contract'
+rg -q 'readonly property bool contentShown:[[:space:]]*!fullscreenSuppressed && mustShow' "$bar" \
+  || fail 'horizontal bar content can remain presented during fullscreen'
+rg -q 'width: barWindow\.fullscreenSuppressed \? 0 : barWindow\.width' "$bar" \
+  || fail 'horizontal bar input mask does not release fullscreen pointer input'
+rg -q 'height: barWindow\.fullscreenSuppressed \? 0 : barWindow\.height' "$bar" \
+  || fail 'horizontal bar input mask does not collapse during fullscreen'
+rg -q 'hostActive: barWindow\.visible && !barWindow\.fullscreenSuppressed' "$bar" \
+  || fail 'horizontal bar modules can keep active work running while fullscreen-suppressed'
+
+# Vertical bar still uses the simpler hide/show strategy. Keep validating that
+# it is fully hidden unless an explicit Super-key reveal is active.
+rg -q 'visible: RaohaneState\.barOpen && !RaohaneState\.screenLocked && !fullscreenSuppressed' "$vertical" \
+  || fail 'vertical bar remains visible during fullscreen without explicit reveal'
 
 # Dock keeps only a tiny reveal edge while fullscreen is active and never
 # reserves workspace space behind the fullscreen client.
@@ -79,4 +95,4 @@ rg -q 'WlrLayershell\.layer:[[:space:]]*WlrLayer\.Overlay' "$media" \
 rg -q 'WlrLayershell\.keyboardFocus:[[:space:]]*WlrKeyboardFocus\.None' "$media" \
   || fail 'media overlay may steal keyboard focus from games'
 
-printf 'fullscreen-boundary-audit: persistent surfaces suppress safely and media overlay remains game-capable\n'
+printf 'fullscreen-boundary-audit: resident horizontal bar, fullscreen suppression and game-capable media overlay are valid\n'
