@@ -4,7 +4,6 @@
 # GPU drivers are intentionally absent.
 
 hyprland
-hyprshutdown
 quickshell
 qt6-5compat
 qt6-multimedia
