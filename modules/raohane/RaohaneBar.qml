@@ -19,6 +19,9 @@ Scope {
         "horizontal"
     )
     readonly property bool showDateConfigured: RaohaneConfig.barShowDate
+    readonly property bool contextConfigured: root.activeLayout.left.includes("context")
+        || root.activeLayout.center.includes("context")
+        || root.activeLayout.right.includes("context")
 
     function styleValue(key: string, fallback): var {
         const style = RaohaneConfig.style
@@ -59,7 +62,11 @@ Scope {
 
             property bool superShow: false
             readonly property bool autoHide: RaohaneConfig.barAutoHide
-            readonly property bool mustShow: !autoHide || hoverRegion.containsMouse || superShow
+            readonly property bool contextAttention: root.contextConfigured
+                && (RaohaneContext.mode === "event"
+                    || RaohaneContext.mode === "recording"
+                    || RaohaneContext.mode === "privacy")
+            readonly property bool mustShow: !autoHide || hoverRegion.containsMouse || superShow || contextAttention
             readonly property var hyprMonitor: Hyprland.monitorFor(barWindow.screen)
             readonly property bool monitorHasFullscreen: hyprMonitor?.activeWorkspace?.hasFullscreen ?? false
             readonly property bool monitorHasSpecialOpen: (hyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
