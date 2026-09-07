@@ -9,7 +9,6 @@ import pathlib
 import re
 import shutil
 import subprocess
-import sys
 import tarfile
 import tempfile
 import urllib.request
@@ -42,10 +41,13 @@ def _state_file() -> pathlib.Path:
     return _state_home() / "raohane/updater.json"
 
 
+def _log_file() -> pathlib.Path:
+    return _state_home() / "raohane/update.log"
+
+
 def _read_state() -> dict:
-    path = _state_file()
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(_state_file().read_text(encoding="utf-8"))
         return value if isinstance(value, dict) else {}
     except (OSError, json.JSONDecodeError):
         return {}
@@ -59,13 +61,25 @@ def _write_state(state: dict) -> None:
     temp.replace(path)
 
 
+def _reset_log(revision: str) -> None:
+    path = _log_file()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(f"Raohane update transaction -> {revision}\n", encoding="utf-8")
+
+
+def _log(message: str) -> None:
+    path = _log_file()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(message.rstrip() + "\n")
+
+
+def _emit(payload: dict) -> None:
+    print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), flush=True)
+
+
 def _request(url: str):
-    return urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": "Raohane-Updater/1",
-        },
-    )
+    return urllib.request.Request(url, headers={"User-Agent": "Raohane-Updater/2"})
 
 
 def _latest_revision() -> str:
@@ -87,36 +101,27 @@ def _latest_revision() -> str:
         raise RuntimeError("GitHub revision check timed out") from exc
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or "").strip().splitlines()
-        message = detail[-1] if detail else "git ls-remote failed"
-        raise RuntimeError(message) from exc
+        raise RuntimeError(detail[-1] if detail else "git ls-remote failed") from exc
 
-    revision = ""
     for line in result.stdout.splitlines():
         fields = line.split()
         if len(fields) >= 2 and fields[1] == ref:
             revision = fields[0].lower()
-            break
-
-    if not SHA_RE.fullmatch(revision):
-        raise RuntimeError("GitHub returned an invalid main revision")
-    return revision
+            if SHA_RE.fullmatch(revision):
+                return revision
+    raise RuntimeError("GitHub returned an invalid main revision")
 
 
 def _installed_revision() -> str:
-    revision_path = _runtime() / "REVISION"
     try:
-        value = revision_path.read_text(encoding="utf-8").strip().lower()
+        value = (_runtime() / "REVISION").read_text(encoding="utf-8").strip().lower()
         if SHA_RE.fullmatch(value):
             return value
     except OSError:
         pass
 
-    state_value = str(_read_state().get("current_revision", "")).lower()
-    return state_value if SHA_RE.fullmatch(state_value) else ""
-
-
-def _emit(payload: dict) -> None:
-    print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), flush=True)
+    value = str(_read_state().get("current_revision", "")).lower()
+    return value if SHA_RE.fullmatch(value) else ""
 
 
 def check() -> int:
@@ -128,7 +133,6 @@ def check() -> int:
 
     current = _installed_revision()
     state = _read_state()
-
     if not current:
         current = latest
         state["current_revision"] = current
@@ -143,15 +147,15 @@ def check() -> int:
             "current": current,
             "latest": latest,
             "available": current != latest,
+            "last_error": str(state.get("last_error", "")),
         }
     )
     return 0
 
 
 def _download_archive(revision: str, destination: pathlib.Path) -> None:
-    request = _request(f"{ARCHIVE_URL}/{revision}")
     total = 0
-    with urllib.request.urlopen(request, timeout=20) as response, destination.open("wb") as output:
+    with urllib.request.urlopen(_request(f"{ARCHIVE_URL}/{revision}"), timeout=20) as response, destination.open("wb") as output:
         while True:
             chunk = response.read(1024 * 1024)
             if not chunk:
@@ -168,47 +172,63 @@ def _safe_extract(archive: pathlib.Path, destination: pathlib.Path) -> pathlib.P
         members = tar.getmembers()
         if not members:
             raise RuntimeError("update archive is empty")
-
         for member in members:
             name = pathlib.PurePosixPath(member.name)
             if name.is_absolute() or ".." in name.parts:
                 raise RuntimeError("unsafe path in update archive")
             if member.isdev() or member.isfifo():
                 raise RuntimeError("unsupported special file in update archive")
-
         tar.extractall(destination, members=members, filter="data")
 
-    candidates = [path for path in destination.iterdir() if path.is_dir()]
-    for candidate in candidates:
-        if (candidate / "install-raohane.sh").is_file():
+    for candidate in destination.iterdir():
+        if candidate.is_dir() and (candidate / "install-raohane.sh").is_file():
             return candidate
     raise RuntimeError("Raohane source root was not found in the archive")
 
 
 def _validate_source(root: pathlib.Path) -> None:
     required = [
-        "install-raohane.sh",
         "shell.qml",
-        "VERSION",
         "qmldir",
+        "VERSION",
+        "assets",
+        "translations",
+        "modules/raohane",
         "modules/raohane/qmldir",
         "modules/raohane/services/qmldir",
+        "panelFamilies/RaohaneFamily.qml",
+        "defaults/native.json",
+        "defaults/themes",
+        "install/arch",
         "scripts/install-deps.sh",
+        "scripts/prune-runtime.sh",
         "scripts/validate-runtime-payload.sh",
+        "scripts/raohane",
     ]
     missing = [entry for entry in required if not (root / entry).exists()]
     if missing:
         raise RuntimeError("update payload is incomplete: " + ", ".join(missing))
 
 
-def _missing_dependencies(root: pathlib.Path) -> list[str]:
+def _run(command: list[str], *, cwd: pathlib.Path | None = None) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(
-        ["bash", str(root / "scripts/install-deps.sh"), "--minimal", "--missing"],
-        check=True,
+        command,
+        cwd=cwd,
         text=True,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
     )
+    if result.stdout:
+        _log(result.stdout)
+    if result.returncode != 0:
+        tail = [line for line in (result.stdout or "").splitlines() if line.strip()]
+        detail = tail[-1] if tail else f"exit status {result.returncode}"
+        raise RuntimeError(detail)
+    return result
+
+
+def _missing_dependencies(root: pathlib.Path) -> list[str]:
+    result = _run(["bash", str(root / "scripts/install-deps.sh"), "--minimal", "--missing"])
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
@@ -218,11 +238,78 @@ def _install_dependencies(packages: list[str]) -> None:
     pkexec = shutil.which("pkexec")
     pacman = shutil.which("pacman")
     if not pkexec or not pacman:
-        raise RuntimeError("new dependencies require pacman and pkexec/polkit authorization")
-    subprocess.run(
-        [pkexec, pacman, "-S", "--needed", "--noconfirm", "--", *packages],
-        check=True,
-    )
+        raise RuntimeError("new core dependencies require pacman and Polkit authorization")
+    _log("Installing missing core dependencies: " + ", ".join(packages))
+    _run([pkexec, pacman, "-S", "--needed", "--noconfirm", "--", *packages])
+
+
+def _copy_entry(source: pathlib.Path, destination: pathlib.Path) -> None:
+    if source.is_dir():
+        shutil.copytree(source, destination, symlinks=True)
+    else:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+
+
+def _build_runtime(source_root: pathlib.Path, revision: str) -> pathlib.Path:
+    runtime = _runtime()
+    runtime_parent = runtime.parent
+    runtime_parent.mkdir(parents=True, exist_ok=True)
+    stage = runtime_parent / f".raohane-update-{revision[:12]}-{os.getpid()}"
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True)
+
+    entries = [
+        "shell.qml",
+        "qmldir",
+        "VERSION",
+        "assets",
+        "translations",
+        "modules/raohane",
+        "panelFamilies",
+        "defaults/native.json",
+        "defaults/themes",
+        "install/arch",
+        "scripts",
+    ]
+    for entry in entries:
+        source = source_root / entry
+        destination = stage / entry
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        _copy_entry(source, destination)
+
+    _run(["bash", str(source_root / "scripts/prune-runtime.sh"), str(stage)])
+    (stage / "REVISION").write_text(revision + "\n", encoding="utf-8")
+    _run(["bash", str(source_root / "scripts/validate-runtime-payload.sh"), str(stage)])
+    return stage
+
+
+def _install_cli(source_root: pathlib.Path) -> None:
+    target = _home() / ".local/bin/raohane"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_suffix(".new")
+    shutil.copy2(source_root / "scripts/raohane", temporary)
+    temporary.chmod(0o755)
+    temporary.replace(target)
+
+
+def _activate_runtime(stage: pathlib.Path, revision: str) -> None:
+    runtime = _runtime()
+    backup = runtime.parent / f".raohane-backup-{revision[:12]}"
+    shutil.rmtree(backup, ignore_errors=True)
+
+    had_runtime = runtime.exists()
+    if had_runtime:
+        runtime.rename(backup)
+
+    try:
+        stage.rename(runtime)
+    except Exception:
+        if had_runtime and backup.exists() and not runtime.exists():
+            backup.rename(runtime)
+        raise
+    else:
+        shutil.rmtree(backup, ignore_errors=True)
 
 
 def apply(revision: str) -> int:
@@ -231,52 +318,51 @@ def apply(revision: str) -> int:
         _emit({"ok": False, "error": "invalid requested revision"})
         return 2
 
+    stage: pathlib.Path | None = None
     try:
         latest = _latest_revision()
         if revision != latest:
             revision = latest
+        _reset_log(revision)
+        _log("Resolving official Raohane archive.")
 
-        with tempfile.TemporaryDirectory(prefix="raohane-update-") as temp_raw:
+        with tempfile.TemporaryDirectory(prefix="raohane-update-source-") as temp_raw:
             temp = pathlib.Path(temp_raw)
             archive = temp / "raohane.tar.gz"
-            source_root_dir = temp / "source"
-            source_root_dir.mkdir()
+            extracted = temp / "source"
+            extracted.mkdir()
 
             _download_archive(revision, archive)
-            source_root = _safe_extract(archive, source_root_dir)
+            source_root = _safe_extract(archive, extracted)
             _validate_source(source_root)
 
             missing = _missing_dependencies(source_root)
             _install_dependencies(missing)
 
-            subprocess.run(
-                [
-                    "bash",
-                    str(source_root / "install-raohane.sh"),
-                    "--no-deps",
-                    "--no-login-theme",
-                    "--no-start",
-                ],
-                check=True,
-                cwd=source_root,
-            )
-
-            runtime = _runtime()
-            runtime.mkdir(parents=True, exist_ok=True)
-            (runtime / "REVISION").write_text(revision + "\n", encoding="utf-8")
+            _log("Building validated runtime staging tree.")
+            stage = _build_runtime(source_root, revision)
+            _install_cli(source_root)
+            _log("Activating validated runtime.")
+            _activate_runtime(stage, revision)
+            stage = None
 
         state = _read_state()
         state.update({"current_revision": revision, "last_error": ""})
         _write_state(state)
+        _log("Update installed successfully.")
         _emit({"ok": True, "revision": revision, "restart": True})
 
         subprocess.run(["systemctl", "--user", "restart", "raohane.service"], check=False)
         return 0
     except Exception as exc:
+        if stage is not None:
+            shutil.rmtree(stage, ignore_errors=True)
+        message = str(exc)
+        _log("ERROR: " + message)
         state = _read_state()
-        state["last_error"] = str(exc)
+        state["last_error"] = message
         _write_state(state)
-        _emit({"ok": False, "error": str(exc)})
+        _emit({"ok": False, "error": message, "log": str(_log_file())})
         return 1
 
 
