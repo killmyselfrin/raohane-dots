@@ -43,10 +43,22 @@ Singleton {
     }
 
     function logout(): void {
-        // hyprshutdown is Hyprland's current graceful logout helper: it asks
-        // clients to close before terminating the compositor. Keep dispatcher
-        // fallbacks for older/minimal installations where it is unavailable.
-        root.runShell("if command -v hyprshutdown >/dev/null 2>&1; then exec hyprshutdown; fi; hyprctl dispatch 'hl.dsp.exit()' >/dev/null 2>&1 || hyprctl dispatch exit 1 >/dev/null 2>&1")
+        // UWSM owns the compositor and its graphical-session units, so it must
+        // be allowed to tear them down in dependency order. Directly dispatching
+        // Hyprland exit from an UWSM session can leave user units inconsistent.
+        // Outside UWSM, prefer Hyprland's graceful client-closing helper and keep
+        // compositor dispatch only as a compatibility fallback.
+        root.runShell(
+            "if command -v uwsm >/dev/null 2>&1 "
+                + "&& systemctl --user is-active --quiet 'wayland-wm@*.service' 2>/dev/null; then "
+                + "exec uwsm stop; "
+                + "fi; "
+                + "if command -v hyprshutdown >/dev/null 2>&1; then "
+                + "exec hyprshutdown; "
+                + "fi; "
+                + "hyprctl dispatch 'hl.dsp.exit()' >/dev/null 2>&1 "
+                + "|| hyprctl dispatch exit 1 >/dev/null 2>&1"
+        )
     }
 
     function launchTaskManager(): void {
