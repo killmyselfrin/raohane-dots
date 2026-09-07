@@ -12,6 +12,13 @@ RaohaneSurface {
     readonly property bool showIndicators: styleConfig.contextIslandIndicators === undefined ? true : Boolean(styleConfig.contextIslandIndicators)
     readonly property bool priorityMode: RaohaneContext.mode === "recording" || RaohaneContext.mode === "privacy"
     readonly property bool progressMode: RaohaneContext.mode === "event" && RaohaneContext.eventProgress >= 0
+    readonly property bool mediaProgressMode: RaohaneContext.mode === "media"
+        && RaohaneMedia.available
+        && RaohaneMedia.length > 0
+    readonly property bool showProgress: root.progressMode || root.mediaProgressMode
+    readonly property real progressValue: root.progressMode
+        ? RaohaneContext.eventProgress
+        : root.mediaProgressMode ? RaohaneMedia.progress : 0
     readonly property bool morphMotionAllowed: RaohaneMotion.transformMotionEnabled
         && !RaohanePerformance.gameModeActive
     readonly property color eventColor: RaohaneContext.eventTone === "success"
@@ -46,7 +53,7 @@ RaohaneSurface {
         const contentWidth = Math.max(titleWidth, detailWidth) + 58 + indicatorSpace
         return Math.max(root.modeMinimumWidth, Math.min(440, Math.round(contentWidth * root.islandScale)))
     }
-    implicitHeight: Math.max(38, Math.min(50, Math.round((root.progressMode ? RaohaneTheme.islandHeight + 3 : RaohaneTheme.islandHeight) * root.islandScale)))
+    implicitHeight: Math.max(38, Math.min(50, Math.round((root.showProgress ? RaohaneTheme.islandHeight + 3 : RaohaneTheme.islandHeight) * root.islandScale)))
     surfaceRadius: Math.min(RaohaneTheme.radiusLarge, height / 2)
     raised: true
     showSheen: false
@@ -127,7 +134,7 @@ RaohaneSurface {
         anchors.right: root.showIndicators ? statusIndicator.left : parent.right
         anchors.rightMargin: root.showIndicators ? 8 : 13
         anchors.verticalCenter: parent.verticalCenter
-        anchors.verticalCenterOffset: root.progressMode ? -2 : 0
+        anchors.verticalCenterOffset: root.showProgress ? -2 : 0
         spacing: root.showDetail ? 1 : 0
 
         Text {
@@ -160,10 +167,11 @@ RaohaneSurface {
             rightMargin: 11
             verticalCenter: parent.verticalCenter
         }
-        width: 10
+        width: 12
         height: 18
 
         Rectangle {
+            visible: RaohaneContext.mode !== "media"
             anchors.centerIn: parent
             width: root.priorityMode ? 3 : 6
             height: root.priorityMode ? 15 : 6
@@ -182,11 +190,23 @@ RaohaneSurface {
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
         }
+
+        RaohaneIcon {
+            visible: RaohaneContext.mode === "media"
+            anchors.centerIn: parent
+            text: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
+            iconSize: 11
+            fill: 1
+            symbolWeight: 600
+            color: root.modeColor
+
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+        }
     }
 
     Rectangle {
         id: progressTrack
-        visible: root.progressMode
+        visible: root.showProgress
         anchors {
             left: iconPlate.right
             right: statusIndicator.left
@@ -200,7 +220,7 @@ RaohaneSurface {
         color: RaohaneTheme.surfaceSubtle
 
         Rectangle {
-            width: parent.width * Math.max(0, Math.min(1, RaohaneContext.eventProgress))
+            width: parent.width * Math.max(0, Math.min(1, root.progressValue))
             height: parent.height
             radius: parent.radius
             color: root.modeColor
