@@ -39,6 +39,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install audit dependencies
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
       - name: Validate shell syntax
         run: bash -n scripts/graphics-driver-boundary-audit.sh
 
