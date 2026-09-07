@@ -1,0 +1,46 @@
+name: Graphics driver boundary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/graphics-driver-check.py"
+      - "scripts/graphics-driver-boundary-audit.sh"
+      - "scripts/validate-runtime-payload.sh"
+      - "modules/raohane/RaohaneSettingsGraphics.qml"
+      - "modules/raohane/RaohaneSettingsPageRegistry.qml"
+      - "modules/raohane/qmldir"
+      - "modules/raohane/services/RaohaneGraphics.qml"
+      - "modules/raohane/services/qmldir"
+      - "install/arch/features.txt"
+      - ".github/workflows/graphics-driver-audit.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/graphics-driver-check.py"
+      - "scripts/graphics-driver-boundary-audit.sh"
+      - "scripts/validate-runtime-payload.sh"
+      - "modules/raohane/RaohaneSettingsGraphics.qml"
+      - "modules/raohane/RaohaneSettingsPageRegistry.qml"
+      - "modules/raohane/qmldir"
+      - "modules/raohane/services/RaohaneGraphics.qml"
+      - "modules/raohane/services/qmldir"
+      - "install/arch/features.txt"
+      - ".github/workflows/graphics-driver-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        run: bash -n scripts/graphics-driver-boundary-audit.sh
+
+      - name: Validate graphics driver boundary
+        run: bash scripts/graphics-driver-boundary-audit.sh
