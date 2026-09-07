@@ -14,7 +14,7 @@ Singleton {
     property bool connecting: false
     property string networkName: ""
     property int networkStrength: 0
-    property bool refreshQueued: false
+    property bool forcedRefreshQueued: false
     property double lastRefreshMs: 0
 
     property var availableNetworks: []
@@ -33,7 +33,9 @@ Singleton {
 
     signal wifiPowerApplied(bool enabled)
 
-    readonly property int minimumRefreshInterval: 1400
+    // NetworkManager monitor output is authoritative. UI surfaces can reuse a
+    // recent snapshot instead of launching three nmcli processes on each open.
+    readonly property int minimumRefreshInterval: 15000
     readonly property string wifiStatus: !wifiEnabled
         ? "disabled"
         : connecting || connectingSsid.length > 0
@@ -95,20 +97,17 @@ Singleton {
     function refresh(force) {
         const forced = force === true
         if (root.probesRunning()) {
-            root.refreshQueued = true
+            if (forced)
+                root.forcedRefreshQueued = true
             return
         }
 
         const now = Date.now()
-        const elapsed = now - root.lastRefreshMs
-        if (!forced && root.lastRefreshMs > 0 && elapsed < root.minimumRefreshInterval) {
-            root.refreshQueued = true
-            refreshCooldown.interval = Math.max(120, root.minimumRefreshInterval - elapsed)
-            refreshCooldown.restart()
+        if (!forced && root.lastRefreshMs > 0
+                && now - root.lastRefreshMs < root.minimumRefreshInterval)
             return
-        }
 
-        root.refreshQueued = false
+        root.forcedRefreshQueued = false
         root.lastRefreshMs = now
         radioProbe.exec(["nmcli", "radio", "wifi"])
         deviceProbe.exec(["nmcli", "-t", "-f", "TYPE,STATE,CONNECTION", "device", "status"])
@@ -139,10 +138,10 @@ Singleton {
     }
 
     function finishProbeCycle(): void {
-        if (root.probesRunning() || !root.refreshQueued)
+        if (root.probesRunning() || !root.forcedRefreshQueued)
             return
-        refreshCooldown.interval = root.minimumRefreshInterval
-        refreshCooldown.restart()
+        root.forcedRefreshQueued = false
+        Qt.callLater(() => root.refresh(true))
     }
 
     function setWifiEnabled(enabled: bool): void {
@@ -399,7 +398,7 @@ Singleton {
         id: networkDebounce
         interval: 450
         repeat: false
-        onTriggered: root.refresh()
+        onTriggered: root.refresh(true)
     }
 
     Timer {
@@ -407,13 +406,6 @@ Singleton {
         interval: 700
         repeat: false
         onTriggered: root.scanNetworks()
-    }
-
-    Timer {
-        id: refreshCooldown
-        interval: root.minimumRefreshInterval
-        repeat: false
-        onTriggered: root.refresh()
     }
 
     Timer {
@@ -430,6 +422,6 @@ Singleton {
         interval: 120000
         repeat: true
         running: true
-        onTriggered: root.refresh()
+        onTriggered: root.refresh(true)
     }
 }
