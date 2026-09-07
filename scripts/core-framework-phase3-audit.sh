@@ -140,7 +140,14 @@ rg -q 'pageOwnsHeader' "$settings_content" || fail 'Settings coordinator lost pa
 rg -q 'RaohaneSettingsRouter\.requestSearch' "$settings_search" || fail 'Settings search bypasses Settings router'
 rg -q 'RaohaneSettingsPageRegistry\.isFirstInGroup' "$settings_navigation" || fail 'Settings navigation bypasses registry groups'
 rg -q 'RaohaneConfig\.profileDisplayName' "$settings_navigation" || fail 'Settings navigation lost profile ownership'
-rg -q 'root\.pageInfo\?\.name' "$settings_header" || fail 'Settings page header lost page metadata ownership'
+for contract in \
+  'property var pageInfo:' \
+  'property var displayedPageInfo:' \
+  'root\.displayedPageInfo\?\.name' \
+  'root\.displayedPageInfo[[:space:]]*=[[:space:]]*root\.pageInfo' \
+  'id:[[:space:]]*headerSwap'; do
+  rg -q "$contract" "$settings_header" || fail "Settings page header lost animated metadata ownership: $contract"
+done
 rg -q 'RaohaneSettingsSectionRegistry\.source' "$settings_section" || fail 'generic Settings section does not consume extension registry'
 rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$settings_section" || fail 'generic Settings section does not compose reusable control rows'
 rg -q 'RaohaneConfig\[' "$settings_control" || fail 'Settings control row lost native config binding ownership'
@@ -169,4 +176,4 @@ if rg -n 'IllogicalImpulse|illogical-impulse|end4-pC' "$family" shell.qml; then
   fail 'startup graph contains upstream family/runtime identity'
 fi
 
-printf 'phase3-core-framework-audit: complete v13 config, owned paths/widgets/models/helpers/surface registries and a unified registry-routed Settings workspace are valid\n'
+printf 'phase3-core-framework-audit: complete v13 config, owned paths/widgets/models/helpers/surface registries and a unified animated registry-routed Settings workspace are valid\n'
