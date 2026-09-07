@@ -148,29 +148,43 @@ fi
 rg -q '^pipewire$' "$REQUIRED" \
   || fail 'audio event monitor requires pipewire in the required manifest'
 
-# EasyEffects state is only needed when its controls are surfaced.
+# EasyEffects state is only needed when its controls are surfaced. Actions are
+# asynchronous and are accepted only after a one-shot real process-state probe.
 if rg -n 'interval:[[:space:]]*5000|running:[[:space:]]*root\.available' "$EASY_EFFECTS"; then
   fail 'EasyEffects service regressed to permanent background state polling'
 fi
 rg -q 'RaohaneEasyEffects\.refresh\(\)' "$CONTROL_CENTER" \
   || fail 'Control Center no longer refreshes EasyEffects state on demand'
-rg -q 'refreshTimer\.restart\(\)' "$EASY_EFFECTS" \
-  || fail 'EasyEffects actions lost their one-shot post-action state refresh'
+for contract in \
+  'function requestActive\(value: bool\): void' \
+  'id:[[:space:]]*actionProcess' \
+  'id:[[:space:]]*verifyTimer' \
+  'onTriggered:[[:space:]]*root\.fetchActiveState\(\)' \
+  'function finishVerification\(\): void' \
+  'signal activeApplied\(bool enabled\)'; do
+  rg -q "$contract" "$EASY_EFFECTS" \
+    || fail "EasyEffects lost verified action contract: $contract"
+done
 
 # Game Mode is compositor state owned by the native performance service and is
-# refreshed when Control Center is surfaced. Registry-backed tiles own the
-# visible action bindings; neither Quick Controls host nor tile may shell out to
-# Hyprland directly.
+# refreshed when Control Center is surfaced. Modern and legacy command paths
+# are mutually exclusive with the verification probe.
 rg -q 'function refreshGameMode\(\): void' "$PERFORMANCE" \
   || fail 'RaohanePerformance lost on-demand Game Mode refresh'
-rg -q 'if \(!gameModeProbe\.running\)' "$PERFORMANCE" \
-  || fail 'Game Mode refresh no longer guards duplicate hyprctl probes'
+for guard in 'gameModeProbe\.running' 'gameModeCommand\.running' 'legacyGameModeCommand\.running'; do
+  rg -q "$guard" "$PERFORMANCE" \
+    || fail "Game Mode refresh lost transaction guard: $guard"
+done
 rg -q 'RaohanePerformance\.refreshGameMode\(\)' "$CONTROL_CENTER" \
   || fail 'Control Center no longer refreshes Game Mode when opened'
 rg -q 'RaohanePerformance\.setGameMode\(false\)' "$QUICK_TILE" \
   || fail 'Game Mode reset bypasses native performance service'
 rg -q 'RaohanePerformance\.toggleGameMode\(\)' "$QUICK_TILE" \
   || fail 'Game Mode toggle bypasses native performance service'
+rg -q 'signal gameModeApplied\(bool enabled\)' "$PERFORMANCE" \
+  || fail 'Game Mode service lost confirmed-state signal'
+rg -q 'root\.gameModeActive[[:space:]]*===[[:space:]]*root\.requestedGameMode' "$PERFORMANCE" \
+  || fail 'Game Mode service no longer verifies the compositor state'
 if rg -n '\bhyprctl\b' "$QUICK_CONTROLS" "$QUICK_TILE"; then
   fail 'Quick Controls bypasses RaohanePerformance for compositor state'
 fi
@@ -321,4 +335,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, on-demand Task Manager, shared event-driven PipeWire monitoring, registry-backed Quick Controls, on-demand EasyEffects/Game Mode, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, on-demand Task Manager, shared event-driven PipeWire monitoring, registry-backed Quick Controls, verified EasyEffects/Game Mode actions, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
