@@ -31,6 +31,16 @@ QtObject {
             return "broken_image"
         if (name === "application-x-executable")
             return "apps"
+        if (name === "applications-system")
+            return "apps"
+        if (name === "preferences-system")
+            return "settings"
+        if (name === "preferences-desktop-theme")
+            return "palette"
+        if (name === "multimedia-volume-control")
+            return "volume_up"
+        if (name === "hwloc")
+            return "memory"
         if (name === "hyprland-dialog")
             return "select_window_2"
         if (name === "zen" || name === "zen-browser")
