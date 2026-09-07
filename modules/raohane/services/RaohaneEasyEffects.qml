@@ -9,9 +9,9 @@ Singleton {
     id: root
 
     property bool available: false
-    property bool enabled: false
+    property bool active: false
     property bool busy: false
-    property bool requestedEnabled: false
+    property bool requestedActive: false
     property bool applyPending: false
     property string lastError: ""
     property string commandError: ""
