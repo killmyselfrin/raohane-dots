@@ -16,7 +16,7 @@ import urllib.request
 
 REPOSITORY = "killmyselfrin/raohane-dots"
 BRANCH = "main"
-API_COMMIT_URL = f"https://api.github.com/repos/{REPOSITORY}/commits/{BRANCH}"
+GIT_REMOTE_URL = f"https://github.com/{REPOSITORY}.git"
 ARCHIVE_URL = f"https://codeload.github.com/{REPOSITORY}/tar.gz"
 MAX_ARCHIVE_BYTES = 96 * 1024 * 1024
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -64,18 +64,41 @@ def _request(url: str):
         url,
         headers={
             "User-Agent": "Raohane-Updater/1",
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
         },
     )
 
 
 def _latest_revision() -> str:
-    with urllib.request.urlopen(_request(API_COMMIT_URL), timeout=12) as response:
-        payload = json.load(response)
-    revision = str(payload.get("sha", "")).lower()
+    git = shutil.which("git")
+    if not git:
+        raise RuntimeError("git is required to check for Raohane updates")
+
+    ref = f"refs/heads/{BRANCH}"
+    try:
+        result = subprocess.run(
+            [git, "ls-remote", "--heads", GIT_REMOTE_URL, ref],
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=15,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("GitHub revision check timed out") from exc
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or "").strip().splitlines()
+        message = detail[-1] if detail else "git ls-remote failed"
+        raise RuntimeError(message) from exc
+
+    revision = ""
+    for line in result.stdout.splitlines():
+        fields = line.split()
+        if len(fields) >= 2 and fields[1] == ref:
+            revision = fields[0].lower()
+            break
+
     if not SHA_RE.fullmatch(revision):
-        raise RuntimeError("GitHub returned an invalid revision")
+        raise RuntimeError("GitHub returned an invalid main revision")
     return revision
 
 
