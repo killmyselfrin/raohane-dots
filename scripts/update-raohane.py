@@ -129,9 +129,6 @@ def check() -> int:
     current = _installed_revision()
     state = _read_state()
 
-    # Fresh guided installations from main predate the revision marker. Establish
-    # the first remote SHA as their baseline instead of immediately reinstalling
-    # the same checkout. Every updater-driven installation writes REVISION.
     if not current:
         current = latest
         state["current_revision"] = current
@@ -206,7 +203,7 @@ def _validate_source(root: pathlib.Path) -> None:
 
 def _missing_dependencies(root: pathlib.Path) -> list[str]:
     result = subprocess.run(
-        ["bash", str(root / "scripts/install-deps.sh"), "--full", "--missing"],
+        ["bash", str(root / "scripts/install-deps.sh"), "--minimal", "--missing"],
         check=True,
         text=True,
         stdout=subprocess.PIPE,
@@ -235,8 +232,6 @@ def apply(revision: str) -> int:
         return 2
 
     try:
-        # Refuse a stale UI request if main moved after the check. Updating to the
-        # newest official revision is safer than installing an already-obsolete SHA.
         latest = _latest_revision()
         if revision != latest:
             revision = latest
@@ -275,8 +270,6 @@ def apply(revision: str) -> int:
         _write_state(state)
         _emit({"ok": True, "revision": revision, "restart": True})
 
-        # update-raohane.py is launched in its own transient user unit, so it can
-        # safely restart the shell service without killing the updater itself.
         subprocess.run(["systemctl", "--user", "restart", "raohane.service"], check=False)
         return 0
     except Exception as exc:
