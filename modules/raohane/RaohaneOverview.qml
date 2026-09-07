@@ -22,9 +22,18 @@ Scope {
     readonly property int columns: Math.max(1, Math.min(RaohaneConfig.overviewColumns, workspaceCount))
     readonly property int groupStart: Math.floor((activeWorkspaceId - 1) / workspaceCount) * workspaceCount + 1
     readonly property var workspaceIds: Array.from({ length: workspaceCount }, (_, index) => groupStart + index)
+    // Build one index whenever the Hyprland workspace model changes. Overview
+    // cards then resolve their workspace in O(1) instead of each performing a
+    // separate linear find() through the full model on every reactive update.
+    readonly property var workspaceById: {
+        const result = ({})
+        for (const workspace of Hyprland.workspaces.values)
+            result[String(workspace.id)] = workspace
+        return result
+    }
 
     function workspaceForId(workspaceId: int): var {
-        return Hyprland.workspaces.values.find(workspace => workspace.id === workspaceId) ?? null
+        return root.workspaceById[String(workspaceId)] ?? null
     }
 
     function syncSelection(): void {
