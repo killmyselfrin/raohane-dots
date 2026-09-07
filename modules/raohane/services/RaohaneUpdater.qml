@@ -77,6 +77,9 @@ Singleton {
             root.channel = String(data.channel ?? "main")
             root.updateAvailable = Boolean(data.available)
             root.lastCheckedText = Qt.formatDateTime(new Date(), "HH:mm")
+            const persistedError = String(data.last_error ?? "")
+            if (persistedError.length > 0)
+                root.errorText = persistedError
 
             if (root.updateAvailable && root.automaticUpdates && root.autoApplyAfterCheck)
                 Qt.callLater(root.applyUpdate)
@@ -169,8 +172,7 @@ Singleton {
                     if (!data.ok)
                         root.errorText = String(data.error ?? qsTr("Update failed"))
                 } catch (error) {
-                    // The backend installer writes human-readable progress before
-                    // its final JSON record. Ignore non-JSON lines here.
+                    // The updater may write progress before its final JSON record.
                 }
             }
         }
