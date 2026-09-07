@@ -157,8 +157,11 @@ Singleton {
         }
     }
 
+    // Raohane updates temperatureActive immediately for its own actions. This
+    // slow snapshot only repairs state changed externally, so it does not need
+    // to wake hyprctl every ten seconds while the desktop is idle.
     Timer {
-        interval: 10000
+        interval: 60000
         repeat: true
         running: true
         onTriggered: root.fetchTemperatureState()
