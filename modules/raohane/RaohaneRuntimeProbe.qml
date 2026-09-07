@@ -37,6 +37,22 @@ Scope {
                 autoHide: RaohaneConfig.barAutoHide,
                 showOnSuper: RaohaneConfig.barShowOnSuper
             },
+            controlCenter: {
+                open: RaohaneState.controlCenterOpen,
+                dnd: RaohaneNotifications.silent
+            },
+            performance: {
+                gameMode: RaohanePerformance.gameModeActive,
+                busy: RaohanePerformance.busy,
+                error: RaohanePerformance.lastError
+            },
+            context: {
+                mode: RaohaneContext.mode,
+                title: RaohaneContext.title,
+                detail: RaohaneContext.detail,
+                tone: RaohaneContext.eventTone,
+                progress: RaohaneContext.eventProgress
+            },
             lock: {
                 locked: RaohaneState.screenLocked
             },
