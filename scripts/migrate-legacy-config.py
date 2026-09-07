@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert a small, safe subset of the inherited shell config to Raohane v10.
+"""Convert a small, safe subset of the inherited shell config to Raohane native schema.
 
 The old configuration contains hundreds of settings for components Raohane no
 longer loads. Importing that document verbatim into native.json is therefore
@@ -76,7 +76,9 @@ def main() -> int:
             if isinstance(value, str) and value.strip():
                 assign(native, "apps", native_key, value)
 
-    native["schemaVersion"] = 12
+    # The defaults document is the schema authority. This prevents the legacy
+    # converter from pinning new installations to an obsolete schema revision.
+    native["schemaVersion"] = int(native_defaults.get("schemaVersion", 13))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.output.with_suffix(args.output.suffix + ".tmp")
     temporary.write_text(json.dumps(native, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
