@@ -35,17 +35,13 @@ Variants {
         required property var modelData
 
         readonly property HyprlandMonitor monitor: Hyprland.monitorFor(modelData)
-        readonly property list<HyprlandWorkspace> monitorWorkspaces: Hyprland.workspaces.values.filter(workspace =>
-            workspace.monitor && backgroundWindow.monitor
-            && workspace.monitor.name === backgroundWindow.monitor.name
-        )
-        readonly property var activeFullscreenWorkspace: monitorWorkspaces.find(workspace =>
-            workspace.active
-            && workspace.toplevels.values.some(window => window.wayland?.fullscreen)
-        ) ?? null
+        // Hyprland already exposes fullscreen state on the active workspace.
+        // Avoid filtering every workspace and walking every toplevel whenever
+        // the compositor model changes; Background is resident for the session.
+        readonly property bool activeWorkspaceFullscreen: backgroundWindow.monitor?.activeWorkspace?.hasFullscreen ?? false
         readonly property bool hiddenForFullscreen: RaohaneConfig.wallpaperHideWhenFullscreen
             && !RaohaneState.screenLocked
-            && activeFullscreenWorkspace !== null
+            && backgroundWindow.activeWorkspaceFullscreen
 
         readonly property string requestedPath: {
             if (RaohaneState.screenLocked && RaohaneConfig.lockWallpaperPath.length > 0)
