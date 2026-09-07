@@ -21,6 +21,7 @@ Singleton {
     readonly property string effectiveDirectory: root.cleanPath(folderModel.folder.toString())
     property alias folderModel: folderModel
     property string searchQuery: ""
+    property string effectiveSearchQuery: ""
     readonly property list<string> videoExtensions: ["mp4", "webm", "mkv", "mov", "avi"]
     readonly property list<string> extensions: [
         "jpg", "jpeg", "png", "webp", "avif", "bmp", "svg",
@@ -178,6 +179,26 @@ Singleton {
         thumbnailProcess.running = true
     }
 
+    onSearchQueryChanged: {
+        // FolderListModel can rescan a large directory when its nameFilters
+        // change. Collapse a typing burst into one filter update instead of
+        // forcing a filesystem pass for every key press. Clearing remains
+        // immediate so dismissing a query never leaves a stale filtered model.
+        if (root.searchQuery.length === 0) {
+            searchDebounce.stop()
+            root.effectiveSearchQuery = ""
+        } else {
+            searchDebounce.restart()
+        }
+    }
+
+    Timer {
+        id: searchDebounce
+        interval: 220
+        repeat: false
+        onTriggered: root.effectiveSearchQuery = root.searchQuery
+    }
+
     Process {
         id: directoryProbe
         property string pathToCheck: ""
@@ -213,7 +234,7 @@ Singleton {
         folder: Qt.resolvedUrl(root.defaultFolderPath)
         caseSensitive: false
         nameFilters: root.extensions.map(extension => {
-            const query = root.searchQuery.trim().replace(/\s+/g, "*")
+            const query = root.effectiveSearchQuery.trim().replace(/\s+/g, "*")
             return query.length > 0 ? `*${query}*.${extension}` : `*.${extension}`
         })
         showDirs: true
