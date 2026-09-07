@@ -1,0 +1,16 @@
+{
+  "A quiet layer of falling petals for Raohane surfaces. The animation sleeps whenever its surface is closed.": "Спокойный слой падающих лепестков для поверхностей Raohane. Анимация полностью останавливается, когда поверхность закрыта.",
+  "Brisk": "Быстро",
+  "Cinematic": "Кинематографично",
+  "Controls the vertical fall, drift and rotation cadence": "Настраивает скорость падения, боковой дрейф и покачивание лепестков",
+  "Fall speed": "Скорость падения",
+  "Gentle": "Мягко",
+  "Let petals drift behind Settings content": "Показывать падающие лепестки за содержимым настроек",
+  "Petal density": "Плотность лепестков",
+  "Sakura ambience": "Атмосфера сакуры",
+  "Show the same ambient layer behind quick controls": "Показывать тот же слой сакуры за быстрыми настройками",
+  "Slow": "Медленно",
+  "Standard": "Стандартно",
+  "Subtle": "Ненавязчиво",
+  "Subtle is the recommended responsive default": "Ненавязчивый режим рекомендуется как самый отзывчивый"
+}
