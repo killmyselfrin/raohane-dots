@@ -24,17 +24,23 @@ RaohaneSurface {
         : root.tileId === "keepAwake" ? RaohaneIdle.inhibit
         : root.tileId === "easyEffects" ? RaohaneEasyEffects.active
         : false
-    readonly property bool tileBusy: root.tileId === "gameMode" && RaohanePerformance.busy
-    readonly property bool tileError: root.tileId === "gameMode" && RaohanePerformance.lastError.length > 0
+    readonly property bool tileBusy: (root.tileId === "gameMode" && RaohanePerformance.busy) || (root.tileId === "bluetooth" && RaohaneBluetooth.busy)
+    readonly property bool tileError: (root.tileId === "gameMode" && RaohanePerformance.lastError.length > 0) || (root.tileId === "bluetooth" && RaohaneBluetooth.lastError.length > 0)
     readonly property bool showMenu: root.tileId === "network"
     readonly property bool menuOpen: root.tileId === "network" && root.pickerMode === "wifi"
-    readonly property string currentIcon: root.tileId === "network" ? RaohaneNetwork.materialSymbol
+    readonly property string currentIcon: root.tileBusy ? "progress_activity"
+        : root.tileId === "network" ? RaohaneNetwork.materialSymbol
         : root.tileId === "bluetooth" ? (RaohaneBluetooth.connected ? "bluetooth_connected" : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
         : root.tileId === "nightLight" ? (RaohaneConfig.nightLightAutomatic ? "night_sight_auto" : "bedtime")
-        : root.tileId === "gameMode" && root.tileBusy ? "progress_activity"
         : root.definition?.icon ?? "tune"
     readonly property string subtitle: root.tileId === "network" ? (RaohaneNetwork.networkName || qsTr("Disconnected"))
-        : root.tileId === "bluetooth" ? (RaohaneBluetooth.firstConnectedName.length > 0 ? RaohaneBluetooth.firstConnectedName : (RaohaneBluetooth.enabled ? qsTr("On") : qsTr("Off")))
+        : root.tileId === "bluetooth" ? (root.tileBusy
+            ? qsTr("Applying…")
+            : root.tileError
+                ? qsTr("Bluetooth action failed")
+                : RaohaneBluetooth.firstConnectedName.length > 0
+                    ? RaohaneBluetooth.firstConnectedName
+                    : (RaohaneBluetooth.enabled ? qsTr("On") : qsTr("Off")))
         : root.tileId === "nightLight" ? (RaohaneConfig.nightLightAutomatic ? qsTr("Automatic") : qsTr("Manual"))
         : root.tileId === "gameMode" ? (root.tileBusy
             ? qsTr("Applying…")
