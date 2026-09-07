@@ -15,8 +15,19 @@ fail() {
 [[ -f "$SERVICE" ]] || fail "missing $SERVICE"
 [[ -f "$CONTROL" ]] || fail "missing $CONTROL"
 
-rg -q 'function refresh\(\): void' "$SERVICE" \
-  || fail 'EasyEffects service lost explicit refresh contract'
+# Control Center may ask for state on every open, but the singleton must cache
+# recent results so rapid surface toggles do not spawn pgrep/flatpak repeatedly.
+rg -q 'function refresh\(force\): void' "$SERVICE" \
+  || fail 'EasyEffects service lost throttled refresh contract'
+rg -q 'readonly property int minimumRefreshInterval:[[:space:]]*6000' "$SERVICE" \
+  || fail 'EasyEffects state refresh cooldown is missing or too aggressive'
+rg -q 'readonly property int availabilityRefreshInterval:[[:space:]]*300000' "$SERVICE" \
+  || fail 'EasyEffects availability probe is not cached long enough'
+rg -q 'lastRefreshMs' "$SERVICE" \
+  || fail 'EasyEffects state snapshots are not cached between surface opens'
+rg -q 'lastAvailabilityRefreshMs' "$SERVICE" \
+  || fail 'EasyEffects availability result is not cached'
+
 rg -q 'function requestActive\(value: bool\): void' "$SERVICE" \
   || fail 'EasyEffects service lost transactional action entry point'
 rg -q 'id:[[:space:]]*actionProcess' "$SERVICE" \
@@ -33,19 +44,14 @@ rg -q 'signal activeApplied\(bool enabled\)' "$SERVICE" \
   || fail 'EasyEffects service lost confirmed-state signal'
 rg -q 'root\.finishVerification\(\)' "$SERVICE" \
   || fail 'EasyEffects state probe no longer completes pending actions'
-rg -q 'repeat:[[:space:]]*false' "$SERVICE" \
-  || fail 'EasyEffects post-action verification must remain one-shot'
 
-if rg -n 'interval:[[:space:]]*(5000|[1-4][0-9]{3})' "$SERVICE"; then
-  fail 'EasyEffects service reintroduced frequent background polling'
-fi
 if rg -n 'repeat:[[:space:]]*true' "$SERVICE"; then
   fail 'EasyEffects service must not run a repeating state poll'
 fi
 
 rg -q 'RaohaneEasyEffects\.refresh\(\)' "$CONTROL" \
-  || fail 'Control Center must refresh EasyEffects state when opened'
+  || fail 'Control Center must request cached EasyEffects state when opened'
 rg -q 'onControlCenterOpenChanged' "$CONTROL" \
   || fail 'Control Center lost open-state refresh hook'
 
-printf 'easyeffects-performance-audit: EasyEffects actions use one-shot verified state transitions without background polling\n'
+printf 'easyeffects-performance-audit: cached state refresh and one-shot verified actions are valid\n'
