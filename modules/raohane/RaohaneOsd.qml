@@ -14,12 +14,24 @@ Scope {
     property string currentIndicator: "volume"
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
+    readonly property var focusedHyprMonitor: Hyprland.monitorFor(root.focusedScreen)
+    readonly property bool focusedFullscreen: focusedHyprMonitor?.activeWorkspace?.hasFullscreen ?? false
+    readonly property bool focusedSpecialOpen: (focusedHyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
+    readonly property bool barSuppressedByFullscreen: root.focusedFullscreen && !root.focusedSpecialOpen
+    readonly property var horizontalBarLayout: RaohaneBarModuleRegistry.sanitizeLayout(
+        RaohaneConfig.barModuleLayout,
+        "horizontal"
+    )
+    readonly property bool contextModuleConfigured: root.horizontalBarLayout.left.includes("context")
+        || root.horizontalBarLayout.center.includes("context")
+        || root.horizontalBarLayout.right.includes("context")
     readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(focusedScreen)
-    readonly property bool persistentContextFeedback: RaohaneConfig.contextIslandEnabled
+    readonly property bool contextFeedbackAvailable: RaohaneConfig.contextIslandEnabled
+        && root.contextModuleConfigured
         && RaohaneState.barOpen
         && !RaohaneConfig.barVertical
-        && !RaohaneConfig.barAutoHide
         && !RaohaneState.screenLocked
+        && !root.barSuppressedByFullscreen
 
     readonly property real value: {
         if (currentIndicator === "brightness")
@@ -51,7 +63,7 @@ Scope {
         : Math.round(value * 100)
 
     function trigger(indicator: string): void {
-        if (indicator === "volume" && root.persistentContextFeedback) {
+        if (indicator === "volume" && root.contextFeedbackAvailable) {
             RaohaneState.osdOpen = false
             hideTimer.stop()
             return
