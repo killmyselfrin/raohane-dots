@@ -266,14 +266,11 @@ Item {
         id: verticalContextComponent
 
         VerticalButton {
-            icon: RaohanePrivacy.recordingActive ? "screen_record"
-                : RaohanePrivacy.cameraActive ? "videocam"
-                : RaohanePrivacy.microphoneActive ? "mic"
-                : (RaohaneContext.mode === "media" ? "music_note" : "circle")
-            emphasized: RaohanePrivacy.recordingActive
-                || RaohanePrivacy.cameraActive
-                || RaohanePrivacy.microphoneActive
+            icon: RaohaneContext.icon
+            emphasized: RaohaneContext.mode === "recording"
+                || RaohaneContext.mode === "privacy"
                 || RaohaneContext.mode === "media"
+                || RaohaneContext.mode === "event"
             onTriggered: {
                 if (RaohaneContext.mode === "media")
                     root.requestTransient("mediaOverlay")
