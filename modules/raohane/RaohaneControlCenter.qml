@@ -43,21 +43,21 @@ Scope {
         function onControlCenterOpenChanged(): void {
             if (RaohaneState.controlCenterOpen) {
                 closeHold.stop()
+                openRefresh.stop()
                 panelWindow.heldVisible = true
                 panelSurface.entered = false
                 root.now = new Date()
-                RaohaneAudio.refresh(true)
-                RaohaneNetwork.refresh(true)
-                RaohaneBluetooth.refresh()
-                RaohaneEasyEffects.refresh()
-                RaohanePerformance.refreshGameMode()
                 RaohaneNotifications.markAllRead()
                 RaohaneFocusGrab.addDismissable(panelWindow)
                 Qt.callLater(() => {
+                    if (!RaohaneState.controlCenterOpen)
+                        return
                     panelSurface.entered = true
                     panelSurface.forceActiveFocus()
+                    openRefresh.restart()
                 })
             } else if (panelWindow.heldVisible) {
+                openRefresh.stop()
                 quickControls.pickerMode = ""
                 panelSurface.entered = false
                 RaohaneFocusGrab.removeDismissable(panelWindow)
@@ -112,12 +112,31 @@ Scope {
                 heldVisible = true
                 panelSurface.entered = true
                 RaohaneFocusGrab.addDismissable(panelWindow)
+                openRefresh.restart()
             }
         }
 
         Connections {
             target: RaohaneFocusGrab
             function onDismissed(): void { panelWindow.hide() }
+        }
+
+        // Keep command/process work off the interaction-to-first-frame path.
+        // Services already maintain cached state through their native monitors;
+        // this delayed pass only repairs anything that changed while hidden.
+        Timer {
+            id: openRefresh
+            interval: 90
+            repeat: false
+            onTriggered: {
+                if (!RaohaneState.controlCenterOpen)
+                    return
+                RaohaneAudio.refresh()
+                RaohaneNetwork.refresh()
+                RaohaneBluetooth.refresh()
+                RaohaneEasyEffects.refresh()
+                RaohanePerformance.refreshGameMode()
+            }
         }
 
         Timer {
@@ -143,16 +162,20 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
-            scale: entered ? 1 : 0.987
             focus: RaohaneState.controlCenterOpen
+
+            transform: Translate {
+                x: panelSurface.entered || !RaohaneMotion.transformMotionEnabled ? 0 : 7
+                Behavior on x {
+                    NumberAnimation {
+                        duration: RaohaneMotion.standard
+                        easing.type: panelSurface.entered ? RaohaneMotion.easeEmphasized : RaohaneMotion.easeExit
+                    }
+                }
+            }
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
-            }
-
-            Behavior on scale {
-                enabled: RaohaneMotion.transformMotionEnabled
-                NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             Rectangle {
@@ -164,6 +187,11 @@ Scope {
                 height: 80
                 color: RaohaneTheme.surfaceDeep
                 opacity: 0.28
+            }
+
+            RaohaneSakuraOverlay {
+                anchors.fill: parent
+                active: RaohaneState.controlCenterOpen && RaohaneConfig.sakuraInControlCenter
             }
 
             Rectangle {
