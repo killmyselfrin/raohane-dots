@@ -9,7 +9,9 @@ Singleton {
     id: root
 
     property bool checking: false
+    property bool updating: false
     property string status: "idle"
+    property string updateStatus: "idle"
     property string gpuSummary: ""
     property string driverSummary: ""
     property string packageSummary: ""
@@ -20,13 +22,19 @@ Singleton {
     property string updateCommand: ""
     property string notes: ""
     property string errorText: ""
+    property string updateErrorText: ""
+    property string updateResultText: ""
     property double lastCheckMs: 0
 
     readonly property int minimumAutomaticCheckInterval: 10 * 60 * 1000
     readonly property string probeScript: Quickshell.shellPath("scripts/graphics-driver-check.py")
+    readonly property bool canUpdate: root.updateAvailable
+        && !root.checking
+        && !root.updating
+        && root.status !== "error"
 
     function checkNow(force = false): void {
-        if (probe.running)
+        if (probe.running || root.updating)
             return
 
         const now = Date.now()
@@ -38,6 +46,22 @@ Singleton {
         root.checking = true
         probe.command = ["python3", root.probeScript, "--json"]
         probe.running = true
+    }
+
+    function updateNow(): void {
+        if (!root.canUpdate || updater.running)
+            return
+
+        root.updateErrorText = ""
+        root.updateResultText = ""
+        root.updateStatus = "running"
+        root.updating = true
+
+        // Arch-family systems do not support partial upgrades. Execute only the
+        // root-owned pacman binary through Polkit; never run a user-writable
+        // helper as root and never choose/switch the user's driver family.
+        updater.command = ["pkexec", "/usr/bin/pacman", "-Syu", "--noconfirm"]
+        updater.running = true
     }
 
     function consumePayload(payload: string): void {
@@ -86,6 +110,14 @@ Singleton {
         }
     }
 
+    function summarizeUpdateOutput(payload: string): string {
+        const lines = String(payload ?? "")
+            .split("\n")
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+        return lines.length > 0 ? lines.slice(-2).join(" · ") : ""
+    }
+
     Process {
         id: probe
 
@@ -107,6 +139,49 @@ Singleton {
                 root.status = "error"
                 root.errorText = qsTr("Graphics driver check failed")
             }
+        }
+    }
+
+    Process {
+        id: updater
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const summary = root.summarizeUpdateOutput(text)
+                if (summary.length > 0)
+                    root.updateResultText = summary
+            }
+        }
+
+        stderr: StdioCollector {
+            onStreamFinished: {
+                const value = String(text ?? "").trim()
+                if (value.length > 0)
+                    root.updateErrorText = value.split("\n").pop()
+            }
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            root.updating = false
+
+            if (exitCode === 0) {
+                root.updateStatus = "success"
+                root.updateErrorText = ""
+                root.lastCheckMs = 0
+                Qt.callLater(() => root.checkNow(true))
+                return
+            }
+
+            if (exitCode === 126 || exitCode === 127) {
+                root.updateStatus = "cancelled"
+                if (root.updateErrorText.length === 0)
+                    root.updateErrorText = qsTr("Administrator authorization was cancelled or denied")
+                return
+            }
+
+            root.updateStatus = "error"
+            if (root.updateErrorText.length === 0)
+                root.updateErrorText = qsTr("Driver update failed with exit code %1").arg(exitCode)
         }
     }
 }
