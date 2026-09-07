@@ -93,8 +93,8 @@ if rg -q 'label:[[:space:]]*qsTr\("Performance"\)|label:[[:space:]]*qsTr\("DND"\
   fail 'Control Center reintroduced duplicate system toggles in the action footer'
 fi
 
-# Quick Controls: Game Mode is a confirmed async transaction, brightness has a
-# non-clickable icon, while speaker/microphone icons keep real mute actions.
+# Quick Controls: system toggles are confirmed async transactions, brightness
+# has a non-clickable icon, while speaker/microphone icons keep real mute actions.
 rg -q 'property bool iconEnabled:[[:space:]]*false' "$quick" \
   || fail 'Quick Controls lost explicit slider-icon interactivity'
 rg -q 'title:[[:space:]]*qsTr\("Volume"\)' "$quick" \
@@ -103,12 +103,30 @@ rg -q 'contextText:[[:space:]]*RaohaneAudio\.sinkName' "$quick" \
   || fail 'Volume row lost current output context'
 rg -q 'contextText:[[:space:]]*RaohaneAudio\.sourceName' "$quick" \
   || fail 'Microphone row lost current input context'
-rg -q 'readonly property bool tileBusy:.*gameMode' "$quick_tile" \
-  || fail 'Game Mode tile lost asynchronous busy state'
-rg -q 'readonly property bool tileError:.*lastError' "$quick_tile" \
-  || fail 'Game Mode tile lost actionable error state'
+rg -q 'readonly property bool tileBusy:' "$quick_tile" \
+  || fail 'Quick Control tiles lost asynchronous busy state'
+for busy_binding in \
+  'RaohaneNetwork\.wifiBusy' \
+  'RaohanePerformance\.busy' \
+  'RaohaneBluetooth\.busy' \
+  'RaohaneEasyEffects\.busy'; do
+  rg -q "$busy_binding" "$quick_tile" \
+    || fail "Quick Control busy state lost binding: ${busy_binding}"
+done
+rg -q 'readonly property bool tileError:' "$quick_tile" \
+  || fail 'Quick Control tiles lost actionable error state'
+for error_binding in \
+  'RaohaneNetwork\.wifiToggleError' \
+  'RaohanePerformance\.lastError' \
+  'RaohaneBluetooth\.lastError' \
+  'RaohaneEasyEffects\.lastError'; do
+  rg -q "$error_binding" "$quick_tile" \
+    || fail "Quick Control error state lost binding: ${error_binding}"
+done
 rg -q 'RaohanePerformance\.toggleGameMode\(\)' "$quick_tile" \
   || fail 'Game Mode tile no longer invokes the performance service'
+rg -q 'RaohaneNetwork\.toggleWifi\(\)' "$quick_tile" \
+  || fail 'Wi-Fi tile no longer invokes the transactional radio toggle'
 
 # Hyprland 0.55+ performance IPC is the primary path. The legacy keyword path is
 # retained only as a compatibility fallback and must not be used for probing.
@@ -135,6 +153,8 @@ rg -q 'readonly property bool progressMode:' "$context_island" \
   || fail 'Context Island lost transient progress mode'
 rg -q 'RaohaneContext\.eventProgress' "$context_island" \
   || fail 'Context Island lost live event progress'
+rg -q 'RaohaneMedia\.progress' "$context_island" \
+  || fail 'Context Island lost live media progress'
 
 # Shared visuals and fallbacks should not create noisy generic icon requests.
 rg -q 'RaohaneAdaptiveIcon[[:space:]]*\{' "$systray" \
@@ -158,4 +178,4 @@ if rg -n '#24ffffff|shortDuration|mediumDuration|property bool active:[[:space:]
   fail 'current system surfaces reintroduced stale colors, motion aliases or active-property collisions'
 fi
 
-printf 'ui-polish-audit: animated Settings, hardened Control Center, confirmed Hyprland performance actions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
+printf 'ui-polish-audit: animated Settings, hardened Control Center, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
