@@ -22,10 +22,10 @@ Singleton {
     readonly property int minimumRefreshInterval: 2800
     readonly property real memoryUsage: memoryTotalMiB > 0 ? memoryUsedMiB / memoryTotalMiB : 0
 
-    // Process data is now collected directly from Linux procfs by
-    // scripts/process-snapshot.py. /proc/meminfo is read there as well.
-    // Migration note for the old service-boundary contract: the retired
-    // `ps -u` pipeline used `$8 != \"quickshell\" && $8 != \"qs\"`.
+    // Process data is collected directly from Linux procfs by
+    // scripts/process-snapshot.py. /proc/meminfo and full command lines are
+    // read there as well so Task Manager can diagnose Raohane itself and
+    // distinguish browser/helper process roles without spawning procps tools.
 
     function refresh(): void {
         if (snapshotProbe.running)
@@ -77,7 +77,8 @@ Singleton {
                 memoryPercent: Math.max(0, Number(fields[4] ?? 0)),
                 rssMiB: Math.max(0, Number(fields[5] ?? 0) / 1024),
                 elapsedSeconds: Math.max(0, Number(fields[6] ?? 0)),
-                command: String(fields[7] ?? "process")
+                command: String(fields[7] ?? "process"),
+                commandLine: String(fields[8] ?? fields[7] ?? "process")
             })
         }
 
