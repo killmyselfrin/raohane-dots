@@ -128,15 +128,38 @@ Item {
     function showNetworkEvent(): void {
         if (!root.eventSignalsReady)
             return
+
+        if (!RaohaneNetwork.wifiEnabled) {
+            root.showEvent(
+                qsTr("Wi-Fi off"),
+                qsTr("Wireless radio is disabled"),
+                "signal_wifi_off",
+                "info",
+                -1,
+                2400
+            )
+            return
+        }
+
+        if (RaohaneNetwork.wifiConnected) {
+            root.showEvent(
+                qsTr("Wi-Fi connected"),
+                RaohaneNetwork.networkName || qsTr("Wireless network"),
+                RaohaneNetwork.materialSymbol,
+                "success",
+                -1,
+                2700
+            )
+            return
+        }
+
         root.showEvent(
-            RaohaneNetwork.wifiConnected ? qsTr("Wi-Fi connected") : qsTr("Wi-Fi disconnected"),
-            RaohaneNetwork.wifiConnected
-                ? (RaohaneNetwork.networkName || qsTr("Wireless network"))
-                : qsTr("No wireless connection"),
+            qsTr("Wi-Fi on"),
+            qsTr("Not connected"),
             RaohaneNetwork.materialSymbol,
-            RaohaneNetwork.wifiConnected ? "success" : "warning",
+            "info",
             -1,
-            2700
+            2400
         )
     }
 
@@ -185,6 +208,7 @@ Item {
 
     Connections {
         target: RaohaneNetwork
+        function onWifiEnabledChanged(): void { networkEventTimer.restart() }
         function onWifiConnectedChanged(): void { networkEventTimer.restart() }
         function onNetworkNameChanged(): void {
             if (RaohaneNetwork.wifiConnected)
@@ -195,8 +219,21 @@ Item {
     Connections {
         target: RaohaneBluetooth
 
+        function onPowerApplied(enabled: bool): void {
+            if (!root.eventSignalsReady)
+                return
+            root.showEvent(
+                enabled ? qsTr("Bluetooth on") : qsTr("Bluetooth off"),
+                enabled ? qsTr("Ready for nearby devices") : qsTr("Bluetooth radio disabled"),
+                enabled ? "bluetooth" : "bluetooth_disabled",
+                enabled ? "success" : "info",
+                -1,
+                2400
+            )
+        }
+
         function onConnectedChanged(): void {
-            if (!root.eventSignalsReady || !RaohaneBluetooth.available)
+            if (!root.eventSignalsReady || !RaohaneBluetooth.available || !RaohaneBluetooth.enabled || RaohaneBluetooth.busy)
                 return
             root.showEvent(
                 RaohaneBluetooth.connected ? qsTr("Bluetooth connected") : qsTr("Bluetooth disconnected"),
@@ -245,6 +282,57 @@ Item {
         }
     }
 
+    Connections {
+        target: RaohaneEasyEffects
+
+        function onActiveApplied(enabled: bool): void {
+            if (!root.eventSignalsReady)
+                return
+            root.showEvent(
+                enabled ? qsTr("EasyEffects enabled") : qsTr("EasyEffects bypassed"),
+                enabled ? qsTr("Audio processing is active") : qsTr("Audio processing is off"),
+                "instant_mix",
+                enabled ? "accent" : "info",
+                -1,
+                2400
+            )
+        }
+    }
+
+    Connections {
+        target: RaohaneIdle
+
+        function onInhibitChanged(): void {
+            if (!root.eventSignalsReady)
+                return
+            root.showEvent(
+                RaohaneIdle.inhibit ? qsTr("Keep Awake") : qsTr("Normal idle"),
+                RaohaneIdle.inhibit ? qsTr("Automatic idle is temporarily blocked") : qsTr("Automatic idle is restored"),
+                RaohaneIdle.inhibit ? "coffee" : "bedtime",
+                RaohaneIdle.inhibit ? "accent" : "success",
+                -1,
+                2400
+            )
+        }
+    }
+
+    Connections {
+        target: RaohaneDisplay
+
+        function onTemperatureActiveChanged(): void {
+            if (!root.eventSignalsReady)
+                return
+            root.showEvent(
+                RaohaneDisplay.temperatureActive ? qsTr("Night Light") : qsTr("Night Light off"),
+                RaohaneDisplay.temperatureActive ? qsTr("Warm display temperature enabled") : qsTr("Normal display temperature restored"),
+                RaohaneDisplay.temperatureActive ? "bedtime" : "light_mode",
+                RaohaneDisplay.temperatureActive ? "accent" : "success",
+                -1,
+                2400
+            )
+        }
+    }
+
     Timer {
         id: audioEventTimer
         interval: 70
@@ -261,7 +349,7 @@ Item {
 
     Timer {
         id: networkEventTimer
-        interval: 120
+        interval: 140
         repeat: false
         onTriggered: root.showNetworkEvent()
     }
