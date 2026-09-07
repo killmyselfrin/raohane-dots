@@ -23,8 +23,11 @@ Scope {
             return user + " @ " + host
         return host.length > 0 ? host : user
     }
-    readonly property int panelWidth: Math.min(680, Math.max(520, Math.round((root.focusedScreen?.width ?? 1280) * 0.46)))
-    readonly property int panelHeight: Math.min(620, Math.max(560, Math.round((root.focusedScreen?.height ?? 800) - 72)))
+    readonly property bool privacyActive: RaohanePrivacy.recordingActive
+        || RaohanePrivacy.cameraActive
+        || RaohanePrivacy.microphoneActive
+    readonly property int panelWidth: Math.min(700, Math.max(560, Math.round((root.focusedScreen?.width ?? 1280) * 0.48)))
+    readonly property int panelHeight: Math.min(700, Math.max(580, Math.round((root.focusedScreen?.height ?? 800) - 52)))
     property date now: new Date()
 
     Timer {
@@ -118,9 +121,15 @@ Scope {
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
+            scale: entered ? 1 : 0.987
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+            }
+
+            Behavior on scale {
+                enabled: RaohaneMotion.transformMotionEnabled
+                NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeEmphasized }
             }
 
             Rectangle {
@@ -129,9 +138,9 @@ Scope {
                     right: parent.right
                     top: parent.top
                 }
-                height: 76
+                height: 80
                 color: RaohaneTheme.surfaceDeep
-                opacity: 0.26
+                opacity: 0.28
             }
 
             Rectangle {
@@ -140,11 +149,16 @@ Scope {
                     top: parent.top
                     leftMargin: 16
                 }
-                width: 42
+                width: panelSurface.entered ? 44 : 12
                 height: 2
                 radius: 1
                 color: RaohaneTheme.accent
-                opacity: 0.72
+                opacity: panelSurface.entered ? 0.76 : 0
+
+                Behavior on width {
+                    NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeEmphasized }
+                }
+                Behavior on opacity { NumberAnimation { duration: RaohaneMotion.standard } }
             }
 
             ColumnLayout {
@@ -153,7 +167,7 @@ Scope {
                 anchors.rightMargin: 15
                 anchors.topMargin: 12
                 anchors.bottomMargin: 10
-                spacing: 0
+                spacing: 8
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -201,24 +215,28 @@ Scope {
                         }
                     }
 
-                    StatusPill {
-                        icon: RaohaneNetwork.materialSymbol
-                        text: RaohaneNetwork.networkName.length > 0
-                            ? RaohaneNetwork.networkName
-                            : (RaohaneNetwork.ethernet ? qsTr("Ethernet") : qsTr("Offline"))
-                        active: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
-                    }
+                    ColumnLayout {
+                        spacing: -1
 
-                    Text {
-                        text: Qt.formatTime(root.now, "HH:mm")
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 9
-                        font.weight: Font.Medium
+                        Text {
+                            Layout.alignment: Qt.AlignRight
+                            text: Qt.formatTime(root.now, "HH:mm")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 11
+                            font.weight: Font.DemiBold
+                        }
+
+                        Text {
+                            Layout.alignment: Qt.AlignRight
+                            text: Qt.formatDate(root.now, "ddd, d MMM")
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 6
+                        }
                     }
 
                     HeaderButton {
-                        icon: "notifications"
-                        emphasized: RaohaneNotifications.unread > 0
+                        icon: RaohaneNotifications.silent ? "notifications_off" : "notifications"
+                        emphasized: RaohaneNotifications.silent || RaohaneNotifications.unread > 0
                         onClicked: RaohaneNotifications.silent = !RaohaneNotifications.silent
                     }
                     HeaderButton {
@@ -238,69 +256,127 @@ Scope {
                     color: RaohaneTheme.divider
                 }
 
-                RowLayout {
+                RaohaneSurface {
+                    visible: !quickControls.pickerOpen
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.topMargin: 11
-                    Layout.bottomMargin: 10
-                    spacing: 10
+                    Layout.preferredHeight: visible ? 58 : 0
+                    surfaceRadius: 14
+                    raised: false
+                    showSheen: false
+                    border.color: RaohaneTheme.borderFaint
+                    clip: true
 
-                    ColumnLayout {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: quickControls.pickerOpen
-                        Layout.preferredWidth: quickControls.pickerOpen ? -1 : Math.max(292, panelSurface.width * 0.53)
-                        spacing: 6
+                    GridLayout {
+                        anchors.fill: parent
+                        anchors.margins: 5
+                        columns: 4
+                        columnSpacing: 4
+                        rowSpacing: 0
 
-                        SectionLabel {
-                            visible: !quickControls.pickerOpen
-                            label: qsTr("CONTROLS")
-                            icon: "tune"
-                        }
-
-                        RaohaneQuickControls {
-                            id: quickControls
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: implicitHeight
-                            screen: panelWindow.screen
-                        }
-
-                        Item { Layout.fillHeight: true }
-                    }
-
-                    ColumnLayout {
-                        visible: !quickControls.pickerOpen
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        spacing: 7
-
-                        MediaCard {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 126
-                        }
-
-                        RaohaneNotificationCenter {
+                        StatusCell {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            Layout.preferredHeight: 104
+                            icon: RaohaneNetwork.materialSymbol
+                            label: qsTr("Network")
+                            value: RaohaneNetwork.networkName.length > 0
+                                ? RaohaneNetwork.networkName
+                                : (RaohaneNetwork.ethernet ? qsTr("Ethernet") : qsTr("Offline"))
+                            active: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
                         }
+                        StatusCell {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            icon: RaohaneBluetooth.connected ? "bluetooth_connected"
+                                : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled"
+                            label: qsTr("Bluetooth")
+                            value: RaohaneBluetooth.firstConnectedName.length > 0
+                                ? RaohaneBluetooth.firstConnectedName
+                                : (RaohaneBluetooth.enabled ? qsTr("On") : qsTr("Off"))
+                            active: RaohaneBluetooth.connected
+                        }
+                        StatusCell {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            icon: RaohaneAudio.muted ? "volume_off" : "speaker"
+                            label: qsTr("Audio")
+                            value: RaohaneAudio.sinkName.length > 0 ? RaohaneAudio.sinkName : qsTr("Default output")
+                            active: RaohaneAudio.ready && !RaohaneAudio.muted
+                        }
+                        StatusCell {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            icon: root.privacyActive ? "shield_person" : "verified_user"
+                            label: qsTr("Privacy")
+                            value: root.privacyActive ? qsTr("Device in use") : qsTr("Quiet")
+                            active: root.privacyActive
+                            critical: root.privacyActive
+                        }
+                    }
+                }
+
+                SectionLabel {
+                    visible: !quickControls.pickerOpen
+                    label: qsTr("QUICK CONTROLS")
+                    icon: "instant_mix"
+                }
+
+                RaohaneQuickControls {
+                    id: quickControls
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: implicitHeight
+                    screen: panelWindow.screen
+                    tileColumns: 3
+                }
+
+                RowLayout {
+                    visible: !quickControls.pickerOpen
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.minimumHeight: 122
+                    spacing: 8
+
+                    MediaCard {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 0.92
+                    }
+
+                    RaohaneNotificationCenter {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 1.08
                     }
                 }
 
                 RaohaneSurface {
                     visible: !quickControls.pickerOpen
                     Layout.fillWidth: true
-                    Layout.preferredHeight: visible ? 64 : 0
-                    surfaceRadius: RaohaneTheme.radius
+                    Layout.preferredHeight: visible ? 58 : 0
+                    surfaceRadius: 13
                     raised: false
                     showSheen: false
                     border.color: RaohaneTheme.borderFaint
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 7
-                        anchors.rightMargin: 7
-                        spacing: 5
+                        anchors.leftMargin: 6
+                        anchors.rightMargin: 6
+                        spacing: 4
 
+                        QuickAction {
+                            Layout.fillWidth: true
+                            icon: RaohaneNotifications.silent ? "notifications_off" : "notifications_active"
+                            label: qsTr("DND")
+                            active: RaohaneNotifications.silent
+                            onTriggered: RaohaneNotifications.silent = !RaohaneNotifications.silent
+                        }
+                        QuickAction {
+                            Layout.fillWidth: true
+                            icon: "speed"
+                            label: qsTr("Performance")
+                            active: RaohanePerformance.gameModeActive
+                            onTriggered: RaohanePerformance.toggleGameMode()
+                        }
                         QuickAction {
                             Layout.fillWidth: true
                             icon: "screenshot_region"
@@ -312,12 +388,6 @@ Scope {
                             icon: "translate"
                             label: qsTr("Translator")
                             onTriggered: panelWindow.openSurface("screenTranslator")
-                        }
-                        QuickAction {
-                            Layout.fillWidth: true
-                            icon: "keyboard"
-                            label: qsTr("OSK")
-                            onTriggered: panelWindow.openTransient("osk")
                         }
                         QuickAction {
                             Layout.fillWidth: true
@@ -337,24 +407,19 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 30
-                    Layout.topMargin: 5
+                    Layout.preferredHeight: 28
                     spacing: 7
 
                     Rectangle {
                         width: 5
                         height: 5
                         radius: 3
-                        color: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
-                            ? RaohaneTheme.critical
-                            : RaohaneTheme.success
+                        color: root.privacyActive ? RaohaneTheme.critical : RaohaneTheme.success
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        text: RaohanePrivacy.recordingActive || RaohanePrivacy.cameraActive || RaohanePrivacy.microphoneActive
-                            ? qsTr("Privacy activity")
-                            : qsTr("System ready")
+                        text: root.privacyActive ? qsTr("Privacy activity") : qsTr("System ready")
                         color: RaohaneTheme.textFaint
                         font.pixelSize: 7
                         font.weight: Font.Medium
@@ -367,12 +432,6 @@ Scope {
                         color: RaohaneTheme.textFaint
                         font.pixelSize: 6
                         elide: Text.ElideRight
-                    }
-
-                    Text {
-                        text: Qt.formatDate(root.now, "ddd, d MMM")
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
                     }
 
                     HeaderButton { icon: "restart_alt"; onClicked: RaohaneSession.reloadDesktop() }
@@ -412,7 +471,7 @@ Scope {
         required property string icon
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 20
+        Layout.preferredHeight: 18
 
         RowLayout {
             anchors.fill: parent
@@ -427,42 +486,64 @@ Scope {
                 font.letterSpacing: 0.8
             }
             Item { Layout.fillWidth: true }
-            Rectangle { Layout.preferredWidth: 28; Layout.preferredHeight: 1; color: RaohaneTheme.borderFaint }
+            Rectangle { Layout.preferredWidth: 36; Layout.preferredHeight: 1; color: RaohaneTheme.borderFaint }
         }
     }
 
-    component StatusPill: RaohaneSurface {
-        id: pill
+    component StatusCell: Item {
+        id: status
         required property string icon
-        required property string text
+        required property string label
+        required property string value
+        property bool active: false
+        property bool critical: false
 
-        implicitWidth: Math.min(142, pillRow.implicitWidth + 14)
-        implicitHeight: 24
-        surfaceRadius: 9
-        transparentIdle: !pill.active
-        showSheen: false
-        border.color: pill.active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+        Rectangle {
+            anchors.fill: parent
+            radius: 9
+            color: status.active
+                ? (status.critical ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.09) : RaohaneTheme.accentSoft)
+                : "transparent"
+            opacity: status.active ? 0.84 : 1
 
-        Row {
-            id: pillRow
-            anchors.centerIn: parent
-            spacing: 5
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 8
+            anchors.rightMargin: 8
+            spacing: 7
 
             RaohaneIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                text: pill.icon
-                iconSize: 11
-                fill: pill.active ? 1 : 0
-                color: pill.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                text: status.icon
+                iconSize: 14
+                fill: status.active ? 1 : 0
+                color: status.critical ? RaohaneTheme.critical
+                    : status.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(105, implicitWidth)
-                text: pill.text
-                color: pill.active ? RaohaneTheme.text : RaohaneTheme.textMuted
-                font.pixelSize: 7
-                font.weight: Font.Medium
-                elide: Text.ElideRight
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: -1
+
+                Text {
+                    Layout.fillWidth: true
+                    text: status.label
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 6
+                    font.weight: Font.Medium
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: status.value
+                    color: status.critical ? RaohaneTheme.critical : RaohaneTheme.text
+                    font.pixelSize: 7
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
             }
         }
     }
@@ -472,11 +553,12 @@ Scope {
         required property string icon
         required property string label
         property bool accent: false
+        property bool active: false
         signal triggered()
 
-        Layout.preferredHeight: 50
-        surfaceRadius: 11
-        active: action.accent
+        Layout.preferredHeight: 46
+        surfaceRadius: 10
+        active: action.accent || action.active
         raised: false
         showSheen: false
         interactive: true
@@ -485,25 +567,27 @@ Scope {
         hoverScale: 1
         pressedScale: 1
         activeFocusOnTab: true
-        transparentIdle: !action.accent && !action.hovered
+        transparentIdle: !action.accent && !action.active && !action.hovered
+        border.color: action.accent || action.active ? RaohaneTheme.accentBorder
+            : action.hovered ? RaohaneTheme.borderStrong : "transparent"
 
         Column {
             anchors.centerIn: parent
-            spacing: 3
+            spacing: 2
 
             RaohaneIcon {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: action.icon
-                iconSize: 15
-                fill: action.accent ? 1 : action.hovered ? 0.35 : 0
-                symbolWeight: action.accent ? 560 : 450
-                color: action.accent || action.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                iconSize: 14
+                fill: action.accent || action.active ? 1 : action.hovered ? 0.35 : 0
+                symbolWeight: action.accent || action.active ? 560 : 450
+                color: action.accent || action.active || action.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: action.label
-                color: action.accent || action.hovered ? RaohaneTheme.text : RaohaneTheme.textFaint
-                font.pixelSize: 7
+                color: action.accent || action.active || action.hovered ? RaohaneTheme.text : RaohaneTheme.textFaint
+                font.pixelSize: 6
                 font.weight: Font.Medium
             }
         }
