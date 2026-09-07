@@ -13,7 +13,9 @@ Scope {
     PanelWindow {
         id: panelWindow
 
-        visible: RaohaneState.settingsOpen
+        property bool presented: false
+
+        visible: presented
         screen: root.focusedScreen
         exclusiveZone: 0
         color: "transparent"
@@ -30,20 +32,61 @@ Scope {
             right: true
         }
 
+        function present(): void {
+            closeTimer.stop()
+            panelWindow.presented = true
+            workspace.entered = false
+            Qt.callLater(() => workspace.entered = true)
+        }
+
+        function dismissVisual(): void {
+            workspace.entered = false
+            closeTimer.restart()
+        }
+
         function hide(): void {
             settingsSearch.clear()
-            RaohaneState.setPrimaryOpen("settings", false)
+            if (RaohaneState.settingsOpen)
+                RaohaneState.setPrimaryOpen("settings", false)
+            else
+                panelWindow.dismissVisual()
+        }
+
+        function toggle(): void {
+            if (RaohaneState.settingsOpen)
+                panelWindow.hide()
+            else
+                RaohaneState.setPrimaryOpen("settings", true)
+        }
+
+        Component.onCompleted: {
+            if (RaohaneState.settingsOpen)
+                panelWindow.present()
+        }
+
+        Connections {
+            target: RaohaneState
+
+            function onSettingsOpenChanged(): void {
+                if (RaohaneState.settingsOpen)
+                    panelWindow.present()
+                else if (panelWindow.presented)
+                    panelWindow.dismissVisual()
+            }
+        }
+
+        Timer {
+            id: closeTimer
+            interval: Math.max(1, RaohaneMotion.standard)
+            repeat: false
+            onTriggered: panelWindow.presented = false
         }
 
         onVisibleChanged: {
-            if (visible) {
-                workspace.entered = false
-                Qt.callLater(() => workspace.entered = true)
+            if (visible)
                 RaohaneFocusGrab.addDismissable(panelWindow)
-            } else {
-                workspace.entered = false
+            else
                 RaohaneFocusGrab.removeDismissable(panelWindow)
-            }
         }
 
         Connections {
@@ -61,7 +104,7 @@ Scope {
             Behavior on opacity {
                 NumberAnimation {
                     duration: RaohaneMotion.standard
-                    easing.type: RaohaneMotion.easeStandard
+                    easing.type: workspace.entered ? RaohaneMotion.easeStandard : RaohaneMotion.easeExit
                 }
             }
 
@@ -87,18 +130,28 @@ Scope {
             scale: entered ? 1 : 0.985
             focus: RaohaneState.settingsOpen
 
+            transform: Translate {
+                y: workspace.entered || !RaohaneMotion.transformMotionEnabled ? 0 : 10
+                Behavior on y {
+                    NumberAnimation {
+                        duration: RaohaneMotion.relaxed
+                        easing.type: workspace.entered ? RaohaneMotion.easeEmphasized : RaohaneMotion.easeExit
+                    }
+                }
+            }
+
             Behavior on opacity {
                 NumberAnimation {
                     duration: RaohaneMotion.standard
-                    easing.type: RaohaneMotion.easeStandard
+                    easing.type: workspace.entered ? RaohaneMotion.easeStandard : RaohaneMotion.easeExit
                 }
             }
 
             Behavior on scale {
                 enabled: RaohaneMotion.transformMotionEnabled
                 NumberAnimation {
-                    duration: RaohaneMotion.relaxed
-                    easing.type: RaohaneMotion.easeEmphasized
+                    duration: workspace.entered ? RaohaneMotion.relaxed : RaohaneMotion.standard
+                    easing.type: workspace.entered ? RaohaneMotion.easeEmphasized : RaohaneMotion.easeExit
                 }
             }
 
@@ -144,6 +197,21 @@ Scope {
                     topMargin: 18
                     rightMargin: 164
                 }
+                opacity: workspace.entered ? 1 : 0
+
+                transform: Translate {
+                    y: workspace.entered || !RaohaneMotion.transformMotionEnabled ? 0 : -5
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: RaohaneMotion.standard
+                            easing.type: RaohaneMotion.easeEmphasized
+                        }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.standard }
+                }
             }
 
             RaohaneSurface {
@@ -162,6 +230,21 @@ Scope {
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
+                opacity: workspace.entered ? 1 : 0
+
+                transform: Translate {
+                    y: workspace.entered || !RaohaneMotion.transformMotionEnabled ? 0 : -5
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: RaohaneMotion.standard
+                            easing.type: RaohaneMotion.easeEmphasized
+                        }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.standard }
+                }
 
                 Row {
                     anchors.centerIn: parent
@@ -218,7 +301,12 @@ Scope {
                 icon: "close"
                 transparentIdle: true
                 showSheen: false
+                opacity: workspace.entered ? 1 : 0
                 onClicked: panelWindow.hide()
+
+                Behavior on opacity {
+                    NumberAnimation { duration: RaohaneMotion.standard }
+                }
             }
 
             Keys.onPressed: event => {
@@ -239,7 +327,7 @@ Scope {
 
         IpcHandler {
             target: "settings"
-            function toggle(): void { RaohaneState.togglePrimary("settings") }
+            function toggle(): void { panelWindow.toggle() }
             function open(): void { RaohaneState.setPrimaryOpen("settings", true) }
             function close(): void { panelWindow.hide() }
             function status(): string { return RaohaneState.settingsOpen ? "open" : "closed" }
@@ -249,7 +337,7 @@ Scope {
         CompositorGlobalShortcut {
             name: "settingsToggle"
             description: "Toggles Raohane settings"
-            onPressed: RaohaneState.togglePrimary("settings")
+            onPressed: panelWindow.toggle()
         }
     }
 }
