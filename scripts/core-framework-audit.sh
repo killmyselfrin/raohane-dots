@@ -193,8 +193,11 @@ for symbol in \
   'RaohaneSystemInfo\.' 'RaohaneSettingsPageRegistry\.isFirstInGroup' 'signal pageRequested\(int index\)'; do
   rg -q "$symbol" "$settings_navigation" || fail "RaohaneSettingsNavigation lost ownership contract: $symbol"
 done
-for symbol in 'property var pageInfo:' 'root\.pageInfo\?\.icon' 'root\.pageInfo\?\.name' 'root\.pageInfo\?\.subtitle'; do
-  rg -q "$symbol" "$settings_header" || fail "RaohaneSettingsPageHeader lost ownership contract: $symbol"
+for symbol in \
+  'property var pageInfo:' 'property var displayedPageInfo:' \
+  'root\.displayedPageInfo\?\.icon' 'root\.displayedPageInfo\?\.name' 'root\.displayedPageInfo\?\.subtitle' \
+  'root\.displayedPageInfo[[:space:]]*=[[:space:]]*root\.pageInfo' 'id:[[:space:]]*headerSwap'; do
+  rg -q "$symbol" "$settings_header" || fail "RaohaneSettingsPageHeader lost animated ownership contract: $symbol"
 done
 
 for symbol in \
