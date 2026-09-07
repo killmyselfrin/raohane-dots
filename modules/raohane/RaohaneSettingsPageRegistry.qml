@@ -17,6 +17,7 @@ QtObject {
         { key: "general", name: qsTr("Media & OSD"), icon: "music_note", group: qsTr("SHELL"), subtitle: qsTr("Context Island, media overlay and display feedback"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "desktop", name: qsTr("Desktop & Spaces"), icon: "view_quilt", group: qsTr("SHELL"), subtitle: qsTr("Wallpaper, transitions and workspace overview"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "displays", name: qsTr("Displays"), icon: "monitor", group: qsTr("SYSTEM"), subtitle: qsTr("Resolution, refresh rate, scale and multi-monitor layout"), source: "", externalSurface: "displaySettings" },
+        { key: "graphics", name: qsTr("Graphics & Drivers"), icon: "video_settings", group: qsTr("SYSTEM"), subtitle: qsTr("GPU detection, active drivers and safe update checks"), source: "RaohaneSettingsGraphics.qml" },
         { key: "hyprland", name: qsTr("Hyprland"), icon: "select_window_2", group: qsTr("SYSTEM"), subtitle: qsTr("Compositor-facing behavior and interaction boundaries"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "preferences", name: qsTr("Keyboard & Motion"), icon: "keyboard", group: qsTr("SYSTEM"), subtitle: qsTr("Shortcuts, application bindings and animation behavior"), source: "RaohaneSettingsPreferences.qml", hideHeader: true },
         { key: "services", name: qsTr("Integrations"), icon: "hub", group: qsTr("SYSTEM"), subtitle: qsTr("External commands and native system helpers"), source: "RaohaneSettingsSectionPage.qml" },
@@ -31,6 +32,12 @@ QtObject {
         "display": "displays",
         "monitor": "displays",
         "monitors": "displays",
+        "graphics": "graphics",
+        "gpu": "graphics",
+        "driver": "graphics",
+        "drivers": "graphics",
+        "graphics driver": "graphics",
+        "graphics drivers": "graphics",
         "bar & dock": "bar",
         "dock": "bar",
         "quick controls": "quick",
@@ -168,6 +175,7 @@ QtObject {
         { section: "widgets", key: "desktopWidgetComposition", label: qsTr("Widget positions"), detail: qsTr("Desktop Widgets") },
         { section: "preferences", key: "keybinds", label: qsTr("Keyboard shortcuts"), detail: qsTr("Keyboard & Motion") },
         { section: "preferences", key: "motion", label: qsTr("Motion & animations"), detail: qsTr("Keyboard & Motion") },
+        { section: "graphics", key: "graphics", label: qsTr("Graphics driver health"), detail: qsTr("Graphics & Drivers") },
         { section: "backup", key: "backup", label: qsTr("Backup & Restore"), detail: qsTr("System") },
         { section: "language", key: "language", label: qsTr("Interface language"), detail: qsTr("System") }
     ]
