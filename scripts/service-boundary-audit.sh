@@ -146,7 +146,8 @@ fi
 
 # Audio and privacy share one PipeWire registry watcher. This prevents two
 # permanent pw-mon clients and prevents their snapshot probes from waking one
-# another during graph churn.
+# another during graph churn. The recurring wpctl snapshot is only a slow repair
+# path in case an event was missed.
 rg -Fq 'command: ["pw-mon", "--color=never"]' "$PIPEWIRE" \
   || fail 'shared PipeWire service lost its registry event monitor'
 rg -q 'id:[[:space:]]*graphDebounce' "$PIPEWIRE" \
@@ -157,10 +158,10 @@ rg -q 'target:[[:space:]]*RaohanePipeWire' "$AUDIO" \
   || fail 'audio service no longer consumes shared PipeWire events'
 rg -q 'RaohanePipeWire\.suppressEventsFor' "$AUDIO" \
   || fail 'audio service no longer suppresses self-generated graph churn'
-rg -q 'interval:[[:space:]]*30000' "$AUDIO" \
-  || fail 'audio service lost its slow health fallback'
-if rg -n '"pw-mon"|interval:[[:space:]]*750' "$AUDIO"; then
-  fail 'audio service regressed to a duplicate watcher or subsecond wpctl polling'
+rg -q 'interval:[[:space:]]*120000' "$AUDIO" \
+  || fail 'audio service lost its slow two-minute health fallback'
+if rg -n '"pw-mon"|interval:[[:space:]]*(750|30000)' "$AUDIO"; then
+  fail 'audio service regressed to a duplicate watcher or aggressive wpctl polling'
 fi
 rg -q '^pipewire$' "$REQUIRED" \
   || fail 'audio event monitor requires pipewire in the required manifest'
@@ -184,10 +185,13 @@ for contract in \
 done
 
 # Game Mode is compositor state owned by the native performance service and is
-# refreshed when Control Center is surfaced. Modern and legacy command paths
-# are mutually exclusive with the verification probe.
-rg -q 'function refreshGameMode\(\): void' "$PERFORMANCE" \
-  || fail 'RaohanePerformance lost on-demand Game Mode refresh'
+# refreshed when Control Center is surfaced. A short cache prevents rapid panel
+# toggles from repeatedly spawning hyprctl probes; post-action verification can
+# explicitly bypass the cache.
+rg -q 'function refreshGameMode\(force\): void' "$PERFORMANCE" \
+  || fail 'RaohanePerformance lost throttled on-demand Game Mode refresh'
+rg -q 'readonly property int minimumRefreshInterval:[[:space:]]*6000' "$PERFORMANCE" \
+  || fail 'Game Mode refresh cooldown is missing or too aggressive'
 for guard in 'gameModeProbe\.running' 'gameModeCommand\.running' 'legacyGameModeCommand\.running'; do
   rg -q "$guard" "$PERFORMANCE" \
     || fail "Game Mode refresh lost transaction guard: $guard"
@@ -352,4 +356,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, procfs Task Manager, shared event-driven PipeWire monitoring, registry-backed Quick Controls, verified EasyEffects/Game Mode actions, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, procfs Task Manager, shared event-driven PipeWire monitoring, throttled Game Mode state, registry-backed Quick Controls, verified EasyEffects actions, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
