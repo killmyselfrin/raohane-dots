@@ -62,13 +62,8 @@ Singleton {
 
     function finishProbe(parsed: bool): void {
         root.busy = false
-        if (!parsed)
+        if (!parsed || !root.applyPending)
             return
-
-        if (!root.applyPending) {
-            root.lastError = ""
-            return
-        }
 
         if (root.gameModeActive === root.requestedGameMode) {
             root.applyPending = false
