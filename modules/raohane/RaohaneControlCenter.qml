@@ -39,21 +39,39 @@ Scope {
 
     Connections {
         target: RaohaneState
+
         function onControlCenterOpenChanged(): void {
-            if (!RaohaneState.controlCenterOpen)
-                return
-            root.now = new Date()
-            RaohaneAudio.refresh(true)
-            RaohaneNetwork.refresh(true)
-            RaohaneEasyEffects.refresh()
-            RaohanePerformance.refreshGameMode()
+            if (RaohaneState.controlCenterOpen) {
+                closeHold.stop()
+                panelWindow.heldVisible = true
+                panelSurface.entered = false
+                root.now = new Date()
+                RaohaneAudio.refresh(true)
+                RaohaneNetwork.refresh(true)
+                RaohaneBluetooth.refresh()
+                RaohaneEasyEffects.refresh()
+                RaohanePerformance.refreshGameMode()
+                RaohaneNotifications.markAllRead()
+                RaohaneFocusGrab.addDismissable(panelWindow)
+                Qt.callLater(() => {
+                    panelSurface.entered = true
+                    panelSurface.forceActiveFocus()
+                })
+            } else if (panelWindow.heldVisible) {
+                quickControls.pickerMode = ""
+                panelSurface.entered = false
+                RaohaneFocusGrab.removeDismissable(panelWindow)
+                closeHold.restart()
+            }
         }
     }
 
     PanelWindow {
         id: panelWindow
 
-        visible: RaohaneState.controlCenterOpen
+        property bool heldVisible: false
+
+        visible: heldVisible
         screen: root.focusedScreen
         exclusiveZone: 0
         implicitWidth: root.panelWidth + 28
@@ -76,7 +94,8 @@ Scope {
         }
 
         function hide(): void {
-            RaohaneState.setPrimaryOpen("controlCenter", false)
+            if (RaohaneState.controlCenterOpen)
+                RaohaneState.setPrimaryOpen("controlCenter", false)
         }
 
         function openSurface(surfaceId: string): void {
@@ -88,21 +107,24 @@ Scope {
             Qt.callLater(() => RaohaneState.setSurfaceOpen(surfaceId, true))
         }
 
-        onVisibleChanged: {
-            if (visible) {
-                panelSurface.entered = false
-                Qt.callLater(() => panelSurface.entered = true)
-                RaohaneNotifications.markAllRead()
+        Component.onCompleted: {
+            if (RaohaneState.controlCenterOpen) {
+                heldVisible = true
+                panelSurface.entered = true
                 RaohaneFocusGrab.addDismissable(panelWindow)
-            } else {
-                panelSurface.entered = false
-                RaohaneFocusGrab.removeDismissable(panelWindow)
             }
         }
 
         Connections {
             target: RaohaneFocusGrab
             function onDismissed(): void { panelWindow.hide() }
+        }
+
+        Timer {
+            id: closeHold
+            interval: Math.max(80, RaohaneMotion.standard)
+            repeat: false
+            onTriggered: panelWindow.heldVisible = false
         }
 
         RaohaneSurface {
@@ -122,6 +144,7 @@ Scope {
             clip: true
             opacity: entered ? 1 : 0
             scale: entered ? 1 : 0.987
+            focus: RaohaneState.controlCenterOpen
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
@@ -365,20 +388,6 @@ Scope {
 
                         QuickAction {
                             Layout.fillWidth: true
-                            icon: RaohaneNotifications.silent ? "notifications_off" : "notifications_active"
-                            label: qsTr("DND")
-                            active: RaohaneNotifications.silent
-                            onTriggered: RaohaneNotifications.silent = !RaohaneNotifications.silent
-                        }
-                        QuickAction {
-                            Layout.fillWidth: true
-                            icon: "speed"
-                            label: qsTr("Performance")
-                            active: RaohanePerformance.gameModeActive
-                            onTriggered: RaohanePerformance.toggleGameMode()
-                        }
-                        QuickAction {
-                            Layout.fillWidth: true
                             icon: "screenshot_region"
                             label: qsTr("Screenshot")
                             onTriggered: panelWindow.openTransient("regionSelector")
@@ -388,6 +397,12 @@ Scope {
                             icon: "translate"
                             label: qsTr("Translator")
                             onTriggered: panelWindow.openSurface("screenTranslator")
+                        }
+                        QuickAction {
+                            Layout.fillWidth: true
+                            icon: "keyboard"
+                            label: qsTr("OSK")
+                            onTriggered: panelWindow.openTransient("osk")
                         }
                         QuickAction {
                             Layout.fillWidth: true
@@ -437,6 +452,18 @@ Scope {
                     HeaderButton { icon: "restart_alt"; onClicked: RaohaneSession.reloadDesktop() }
                     HeaderButton { icon: "close"; onClicked: panelWindow.hide() }
                 }
+            }
+
+            Keys.onPressed: event => {
+                if (event.key !== Qt.Key_Escape)
+                    return
+                if (quickControls.pickerOpen) {
+                    quickControls.pickerMode = ""
+                    event.accepted = true
+                    return
+                }
+                panelWindow.hide()
+                event.accepted = true
             }
         }
 
@@ -565,8 +592,8 @@ Scope {
         hoverScale: 1
         pressedScale: 1
         activeFocusOnTab: true
-        transparentIdle: !action.accent && !action.active && !action.hovered
-        border.color: action.accent || action.active ? RaohaneTheme.accentBorder
+        transparentIdle: !action.accent && !action.hovered
+        border.color: action.accent ? RaohaneTheme.accentBorder
             : action.hovered ? RaohaneTheme.borderStrong : "transparent"
 
         Column {
@@ -577,14 +604,14 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: action.icon
                 iconSize: 14
-                fill: action.accent || action.active ? 1 : action.hovered ? 0.35 : 0
-                symbolWeight: action.accent || action.active ? 560 : 450
-                color: action.accent || action.active || action.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                fill: action.accent ? 1 : action.hovered ? 0.35 : 0
+                symbolWeight: action.accent ? 560 : 450
+                color: action.accent || action.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: action.label
-                color: action.accent || action.active || action.hovered ? RaohaneTheme.text : RaohaneTheme.textFaint
+                color: action.accent || action.hovered ? RaohaneTheme.text : RaohaneTheme.textFaint
                 font.pixelSize: 6
                 font.weight: Font.Medium
             }
