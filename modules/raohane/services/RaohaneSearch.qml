@@ -12,8 +12,32 @@ Singleton {
     property string mathResult: ""
     property list<string> clipboardEntries: []
 
-    readonly property var applications: Array.from(DesktopEntries.applications.values)
-        .filter((entry, index, values) => index === values.findIndex(candidate => candidate.id === entry.id))
+    // DesktopEntries can contain duplicate ids through aliases. Build one stable
+    // application list when the source changes instead of running findIndex for
+    // every entry. The normalized search index below is then reused for each
+    // keystroke so launcher typing does not repeatedly lowercase comments and
+    // keyword arrays for every installed application.
+    readonly property var applications: {
+        const values = Array.from(DesktopEntries.applications.values)
+        const seen = new Set()
+        const entries = []
+        for (const entry of values) {
+            if (!entry)
+                continue
+            const id = String(entry.id ?? "")
+            if (id.length === 0 || seen.has(id))
+                continue
+            seen.add(id)
+            entries.push(entry)
+        }
+        return entries
+    }
+
+    readonly property var indexedApplications: root.applications.map(entry => ({
+        entry: entry,
+        name: root.normalized(entry.name),
+        haystack: root.applicationText(entry)
+    }))
 
     readonly property var builtInActions: [
         { name: qsTr("Open Settings"), icon: "settings", command: ["raohane", "settings"], keywords: "preferences config settings" },
@@ -58,9 +82,9 @@ Singleton {
         ].join(" "))
     }
 
-    function scoreApplication(entry, needle: string): int {
-        const name = root.normalized(entry.name)
-        const haystack = root.applicationText(entry)
+    function scoreIndexedApplication(candidate, needle: string): int {
+        const name = candidate.name
+        const haystack = candidate.haystack
         if (name === needle)
             return 1000
         if (name.startsWith(needle))
@@ -97,24 +121,29 @@ Singleton {
         if (needle.length === 0)
             return []
 
-        return root.applications
-            .map(entry => ({ entry: entry, score: root.scoreApplication(entry, needle) }))
-            .filter(candidate => candidate.score > 0)
-            .sort((left, right) => right.score - left.score || root.normalized(left.entry.name).localeCompare(root.normalized(right.entry.name)))
-            .slice(0, 30)
-            .map(candidate => {
-                const entry = candidate.entry
-                return {
-                    id: entry.id,
-                    name: entry.name,
-                    iconName: entry.icon || "application-x-executable",
-                    iconType: "system",
-                    verb: qsTr("OPEN"),
-                    type: qsTr("App"),
-                    comment: entry.comment || entry.genericName || "",
-                    execute: () => root.executeApplication(entry)
-                }
-            })
+        const matches = []
+        for (const candidate of root.indexedApplications) {
+            const score = root.scoreIndexedApplication(candidate, needle)
+            if (score > 0)
+                matches.push({ candidate: candidate, score: score })
+        }
+
+        matches.sort((left, right) => right.score - left.score
+            || left.candidate.name.localeCompare(right.candidate.name))
+
+        return matches.slice(0, 12).map(match => {
+            const entry = match.candidate.entry
+            return {
+                id: entry.id,
+                name: entry.name,
+                iconName: entry.icon || "application-x-executable",
+                iconType: "system",
+                verb: qsTr("OPEN"),
+                type: qsTr("App"),
+                comment: entry.comment || entry.genericName || "",
+                execute: () => root.executeApplication(entry)
+            }
+        })
     }
 
     function actionResults(needle: string): var {
