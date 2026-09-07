@@ -11,15 +11,17 @@ Item {
 
     property bool copied: false
 
-    readonly property color statusColor: RaohaneGraphics.updateAvailable
-        ? RaohaneTheme.warning
-        : RaohaneGraphics.status === "current"
-            ? RaohaneTheme.success
-            : RaohaneGraphics.status === "error"
-                ? RaohaneTheme.critical
-                : RaohaneTheme.info
+    readonly property color statusColor: RaohaneGraphics.updating
+        ? RaohaneTheme.info
+        : RaohaneGraphics.updateAvailable
+            ? RaohaneTheme.warning
+            : RaohaneGraphics.status === "current"
+                ? RaohaneTheme.success
+                : RaohaneGraphics.status === "error"
+                    ? RaohaneTheme.critical
+                    : RaohaneTheme.info
 
-    readonly property string statusIcon: RaohaneGraphics.checking
+    readonly property string statusIcon: RaohaneGraphics.checking || RaohaneGraphics.updating
         ? "progress_activity"
         : RaohaneGraphics.updateAvailable
             ? "system_update_alt"
@@ -29,31 +31,35 @@ Item {
                     ? "error"
                     : "info"
 
-    readonly property string statusTitle: RaohaneGraphics.checking
-        ? qsTr("Checking graphics stack…")
-        : RaohaneGraphics.updateAvailable
-            ? qsTr("Graphics updates are available")
-            : RaohaneGraphics.status === "current"
-                ? qsTr("Graphics stack is up to date")
-                : RaohaneGraphics.status === "unverified"
-                    ? qsTr("Some graphics packages need manual verification")
-                    : RaohaneGraphics.status === "unsupported"
-                        ? qsTr("Automatic package checks are not available here")
-                        : RaohaneGraphics.status === "error"
-                            ? qsTr("Graphics check needs attention")
-                            : qsTr("Graphics status is not verified yet")
-
-    readonly property string statusDetail: RaohaneGraphics.checking
-        ? qsTr("Raohane is detecting active GPUs, kernel drivers and installed graphics packages.")
-        : RaohaneGraphics.errorText.length > 0
-            ? RaohaneGraphics.errorText
+    readonly property string statusTitle: RaohaneGraphics.updating
+        ? qsTr("Updating graphics stack…")
+        : RaohaneGraphics.checking
+            ? qsTr("Checking graphics stack…")
             : RaohaneGraphics.updateAvailable
-                ? qsTr("Only packages that already belong to your active graphics stack are reported. Raohane will never switch driver families automatically.")
+                ? qsTr("Graphics updates are available")
                 : RaohaneGraphics.status === "current"
-                    ? qsTr("A fresh repository check found no pending updates for the installed graphics packages.")
-                    : RaohaneGraphics.notes.length > 0
-                        ? RaohaneGraphics.notes
-                        : qsTr("Run a check to inspect the hardware and driver stack used by this session.")
+                    ? qsTr("Graphics stack is up to date")
+                    : RaohaneGraphics.status === "unverified"
+                        ? qsTr("Some graphics packages need manual verification")
+                        : RaohaneGraphics.status === "unsupported"
+                            ? qsTr("Automatic package checks are not available here")
+                            : RaohaneGraphics.status === "error"
+                                ? qsTr("Graphics check needs attention")
+                                : qsTr("Graphics status is not verified yet")
+
+    readonly property string statusDetail: RaohaneGraphics.updating
+        ? qsTr("Raohane is running the normal full system upgrade through Polkit. Keep the computer powered on until it finishes.")
+        : RaohaneGraphics.checking
+            ? qsTr("Raohane is detecting active GPUs, kernel drivers and installed graphics packages.")
+            : RaohaneGraphics.errorText.length > 0
+                ? RaohaneGraphics.errorText
+                : RaohaneGraphics.updateAvailable
+                    ? qsTr("Only packages that already belong to your active graphics stack are reported. Raohane will never switch driver families automatically.")
+                    : RaohaneGraphics.status === "current"
+                        ? qsTr("A fresh repository check found no pending updates for the installed graphics packages.")
+                        : RaohaneGraphics.notes.length > 0
+                            ? RaohaneGraphics.notes
+                            : qsTr("Run a check to inspect the hardware and driver stack used by this session.")
 
     readonly property string checkSourceLabel: RaohaneGraphics.checkSource === "checkupdates"
         ? qsTr("Fresh Arch repository metadata")
@@ -62,6 +68,36 @@ Item {
             : RaohaneGraphics.checkSource === "unsupported"
                 ? qsTr("Hardware detection only")
                 : qsTr("Not checked")
+
+    readonly property color updateResultColor: RaohaneGraphics.updateStatus === "success"
+        ? RaohaneTheme.success
+        : RaohaneGraphics.updateStatus === "error"
+            ? RaohaneTheme.critical
+            : RaohaneGraphics.updateStatus === "cancelled"
+                ? RaohaneTheme.warning
+                : RaohaneTheme.info
+
+    readonly property string updateResultIcon: RaohaneGraphics.updateStatus === "success"
+        ? "check_circle"
+        : RaohaneGraphics.updateStatus === "error"
+            ? "error"
+            : RaohaneGraphics.updateStatus === "cancelled"
+                ? "cancel"
+                : "progress_activity"
+
+    readonly property string updateResultText: RaohaneGraphics.updateStatus === "running"
+        ? qsTr("Installing system and graphics updates…")
+        : RaohaneGraphics.updateStatus === "success"
+            ? qsTr("Graphics update completed. Restart the computer if the kernel or GPU driver was updated.")
+            : RaohaneGraphics.updateStatus === "cancelled"
+                ? (RaohaneGraphics.updateErrorText.length > 0
+                    ? RaohaneGraphics.updateErrorText
+                    : qsTr("Driver update was cancelled."))
+                : RaohaneGraphics.updateStatus === "error"
+                    ? (RaohaneGraphics.updateErrorText.length > 0
+                        ? RaohaneGraphics.updateErrorText
+                        : qsTr("Driver update failed."))
+                    : ""
 
     function refresh(force = false): void {
         RaohaneGraphics.checkNow(force)
@@ -153,7 +189,7 @@ Item {
                     ActionButton {
                         icon: "refresh"
                         label: RaohaneGraphics.checking ? qsTr("Checking…") : qsTr("Check again")
-                        enabled: !RaohaneGraphics.checking
+                        enabled: !RaohaneGraphics.checking && !RaohaneGraphics.updating
                         onClicked: root.refresh(true)
                     }
                 }
@@ -226,7 +262,7 @@ Item {
 
                             Text {
                                 text: RaohaneGraphics.updateAvailable
-                                    ? qsTr("Use a full system upgrade")
+                                    ? qsTr("Update drivers safely")
                                     : qsTr("Driver families stay under your control")
                                 color: RaohaneTheme.text
                                 font.pixelSize: 11
@@ -236,7 +272,7 @@ Item {
                             Text {
                                 Layout.fillWidth: true
                                 text: RaohaneGraphics.updateAvailable
-                                    ? qsTr("On Arch-family systems Raohane recommends the normal full system upgrade instead of a partial graphics-driver upgrade.")
+                                    ? qsTr("Arch-family systems require a full system upgrade. Raohane will update the installed graphics stack through Polkit without switching to another driver family.")
                                     : qsTr("Raohane detects NVIDIA, nouveau, AMD and Intel stacks, but never converts one driver family into another.")
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 9
@@ -244,15 +280,28 @@ Item {
                             }
                         }
 
-                        ActionButton {
-                            visible: RaohaneGraphics.updateAvailable && RaohaneGraphics.updateCommand.length > 0
-                            icon: root.copied ? "check" : "content_copy"
-                            label: root.copied ? qsTr("Copied") : qsTr("Copy update command")
-                            emphasized: true
-                            onClicked: {
-                                Quickshell.clipboardText = RaohaneGraphics.updateCommand
-                                root.copied = true
-                                copiedTimer.restart()
+                        RowLayout {
+                            spacing: 6
+
+                            ActionButton {
+                                visible: RaohaneGraphics.updateAvailable
+                                icon: RaohaneGraphics.updating ? "progress_activity" : "system_update_alt"
+                                label: RaohaneGraphics.updating ? qsTr("Updating…") : qsTr("Update drivers")
+                                emphasized: true
+                                enabled: RaohaneGraphics.canUpdate
+                                onClicked: RaohaneGraphics.updateNow()
+                            }
+
+                            ActionButton {
+                                visible: RaohaneGraphics.updateAvailable && RaohaneGraphics.updateCommand.length > 0
+                                icon: root.copied ? "check" : "content_copy"
+                                label: root.copied ? qsTr("Copied") : qsTr("Copy command")
+                                enabled: !RaohaneGraphics.updating
+                                onClicked: {
+                                    Quickshell.clipboardText = RaohaneGraphics.updateCommand
+                                    root.copied = true
+                                    copiedTimer.restart()
+                                }
                             }
                         }
                     }
@@ -265,6 +314,40 @@ Item {
                         font.pixelSize: 9
                         font.family: "monospace"
                         wrapMode: Text.WordWrap
+                    }
+
+                    RaohaneSurface {
+                        visible: RaohaneGraphics.updateStatus !== "idle"
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: updateStateRow.implicitHeight + 20
+                        surfaceRadius: 8
+                        raised: false
+                        showSheen: false
+                        border.color: root.updateResultColor
+
+                        RowLayout {
+                            id: updateStateRow
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 8
+
+                            RaohaneIcon {
+                                text: root.updateResultIcon
+                                iconSize: 16
+                                color: root.updateResultColor
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.updateResultText
+                                color: root.updateResultColor
+                                font.pixelSize: 9
+                                wrapMode: Text.WordWrap
+                            }
+                        }
                     }
 
                     RaohaneSurface {
