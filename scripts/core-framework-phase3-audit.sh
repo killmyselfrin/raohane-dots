@@ -39,6 +39,7 @@ required=(
   "$settings_content" "$settings_section" "$settings_control" "$settings_preferences" "$settings_language" "$settings_search"
   "$helper_qmldir" "$helpers" "$model_qmldir" "$selection" "$launcher" "$notifications" "$family"
   modules/raohane/RaohaneSurface.qml modules/raohane/RaohaneDivider.qml modules/raohane/RaohaneIconButton.qml
+  modules/raohane/RaohaneSakuraOverlay.qml modules/raohane/RaohaneSakuraSettings.qml
 )
 for path in "${required[@]}"; do
   [[ -f "$path" ]] || fail "missing Phase 3 framework file: $path"
@@ -57,6 +58,7 @@ product_properties=(
   profileDisplayName profileAvatarPath quickSliderBrightness quickSliderVolume quickSliderMic
   desktopWidgetsEnabled desktopWidgetClock desktopWidgetContext desktopWidgetSystem desktopWidgetMotto desktopWidgetsCompact
   contextIslandEnabled mediaOverlayEnabled integrationMode themePreset
+  sakuraEnabled sakuraInSettings sakuraInControlCenter sakuraIntensity sakuraSpeed
 )
 for property_name in "${product_properties[@]}"; do
   rg -q "property [^:]+ ${property_name}:" "$config" || fail "complete product schema lost property: $property_name"
@@ -70,10 +72,10 @@ for key in "${settings_keys[@]}"; do
   rg -q "property [^:]+ ${key}:" "$config" || fail "Settings registry control key is not owned by RaohaneConfig: $key"
 done
 
-for section_name in wallpaper overview dock bar frame corners osk osd display apps profile quickControls desktopWidgets features; do
+for section_name in wallpaper overview dock bar frame corners osk osd display apps profile quickControls desktopWidgets features sakura; do
   rg -q "${section_name}:[[:space:]]*\{" "$config" || fail "snapshot lost product section: $section_name"
 done
-rg -q 'schemaVersion:[[:space:]]*12' "$config" || fail 'RaohaneConfig schema contract is not v12'
+rg -q 'schemaVersion:[[:space:]]*13' "$config" || fail 'RaohaneConfig schema contract is not v13'
 rg -q 'themePreset:[[:space:]]*root\.themePreset' "$config" || fail 'theme selection is not persisted in native config'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig bypasses RaohanePaths'
 
@@ -90,6 +92,7 @@ rg -q 'RaohanePaths\.notificationsFile' "$notifications" || fail 'notification p
 
 for registration in \
   '^RaohaneSurface .*RaohaneSurface.qml$' '^RaohaneDivider .*RaohaneDivider.qml$' '^RaohaneIconButton .*RaohaneIconButton.qml$' \
+  '^RaohaneSakuraOverlay .*RaohaneSakuraOverlay.qml$' '^RaohaneSakuraSettings .*RaohaneSakuraSettings.qml$' \
   '^singleton RaohaneSurfaceRegistry .*RaohaneSurfaceRegistry.qml$' \
   '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
   '^singleton RaohaneSettingsSectionRegistry .*RaohaneSettingsSectionRegistry.qml$' \
@@ -123,6 +126,8 @@ done
 for contract in extensions extension source ownsControl; do
   rg -q "$contract" "$settings_section_registry" || fail "Settings section registry lost contract: $contract"
 done
+rg -q 'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' "$settings_section_registry" \
+  || fail 'Appearance section lost Sakura settings extension'
 for contract in splitRoute request requestSearch pageRequested; do
   rg -q "$contract" "$settings_router" || fail "Settings router lost framework contract: $contract"
 done
@@ -164,4 +169,4 @@ if rg -n 'IllogicalImpulse|illogical-impulse|end4-pC' "$family" shell.qml; then
   fail 'startup graph contains upstream family/runtime identity'
 fi
 
-printf 'phase3-core-framework-audit: complete config, owned paths/widgets/models/helpers/surface registries and a unified registry-routed Settings workspace are valid\n'
+printf 'phase3-core-framework-audit: complete v13 config, owned paths/widgets/models/helpers/surface registries and a unified registry-routed Settings workspace are valid\n'
