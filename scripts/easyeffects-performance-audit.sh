@@ -17,10 +17,24 @@ fail() {
 
 rg -q 'function refresh\(\): void' "$SERVICE" \
   || fail 'EasyEffects service lost explicit refresh contract'
-rg -q 'id:[[:space:]]*refreshTimer' "$SERVICE" \
-  || fail 'EasyEffects service lost post-action debounce refresh'
+rg -q 'function requestActive\(value: bool\): void' "$SERVICE" \
+  || fail 'EasyEffects service lost transactional action entry point'
+rg -q 'id:[[:space:]]*actionProcess' "$SERVICE" \
+  || fail 'EasyEffects service lost owned action process'
+rg -q 'id:[[:space:]]*verifyTimer' "$SERVICE" \
+  || fail 'EasyEffects service lost post-action verification debounce'
+rg -q 'interval:[[:space:]]*850' "$SERVICE" \
+  || fail 'EasyEffects verification debounce changed unexpectedly'
+rg -q 'onTriggered:[[:space:]]*root\.fetchActiveState\(\)' "$SERVICE" \
+  || fail 'EasyEffects verification no longer reads the actual process state'
+rg -q 'function finishVerification\(\): void' "$SERVICE" \
+  || fail 'EasyEffects service lost post-action state verification'
+rg -q 'signal activeApplied\(bool enabled\)' "$SERVICE" \
+  || fail 'EasyEffects service lost confirmed-state signal'
+rg -q 'root\.finishVerification\(\)' "$SERVICE" \
+  || fail 'EasyEffects state probe no longer completes pending actions'
 rg -q 'repeat:[[:space:]]*false' "$SERVICE" \
-  || fail 'EasyEffects post-action refresh must remain one-shot'
+  || fail 'EasyEffects post-action verification must remain one-shot'
 
 if rg -n 'interval:[[:space:]]*(5000|[1-4][0-9]{3})' "$SERVICE"; then
   fail 'EasyEffects service reintroduced frequent background polling'
@@ -34,4 +48,4 @@ rg -q 'RaohaneEasyEffects\.refresh\(\)' "$CONTROL" \
 rg -q 'onControlCenterOpenChanged' "$CONTROL" \
   || fail 'Control Center lost open-state refresh hook'
 
-printf 'easyeffects-performance-audit: EasyEffects state is refreshed on demand without background polling\n'
+printf 'easyeffects-performance-audit: EasyEffects actions use one-shot verified state transitions without background polling\n'
