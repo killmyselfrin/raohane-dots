@@ -68,6 +68,8 @@ Item {
     }
 
     function showEvent(title, detail, icon, tone, progress, duration): void {
+        if (root.recording || root.camera || root.microphone)
+            return
         root.eventTitle = String(title ?? "")
         root.eventDetail = String(detail ?? "")
         root.eventIcon = String(icon ?? "auto_awesome")
@@ -91,6 +93,53 @@ Item {
         clearTransientEvent()
     }
 
+    function showAudioEvent(): void {
+        if (!root.eventSignalsReady || !RaohaneAudio.ready)
+            return
+        const percent = Math.round(RaohaneAudio.volume * 100)
+        root.showEvent(
+            RaohaneAudio.muted ? qsTr("Volume muted") : qsTr("Volume"),
+            RaohaneAudio.sinkName.length > 0
+                ? qsTr("%1% · %2").arg(percent).arg(RaohaneAudio.sinkName)
+                : qsTr("%1%").arg(percent),
+            RaohaneAudio.muted ? "volume_off" : percent > 66 ? "volume_up" : percent > 0 ? "volume_down" : "volume_mute",
+            RaohaneAudio.muted ? "warning" : "accent",
+            RaohaneAudio.muted ? 0 : RaohaneAudio.volume,
+            2100
+        )
+    }
+
+    function showMicrophoneEvent(): void {
+        if (!root.eventSignalsReady || !RaohaneAudio.microphoneReady)
+            return
+        const percent = Math.round(RaohaneAudio.microphoneVolume * 100)
+        root.showEvent(
+            RaohaneAudio.microphoneMuted ? qsTr("Microphone muted") : qsTr("Microphone"),
+            RaohaneAudio.sourceName.length > 0
+                ? qsTr("%1% · %2").arg(percent).arg(RaohaneAudio.sourceName)
+                : qsTr("%1%").arg(percent),
+            RaohaneAudio.microphoneMuted ? "mic_off" : "mic",
+            RaohaneAudio.microphoneMuted ? "warning" : "accent",
+            RaohaneAudio.microphoneMuted ? 0 : RaohaneAudio.microphoneVolume,
+            2200
+        )
+    }
+
+    function showNetworkEvent(): void {
+        if (!root.eventSignalsReady)
+            return
+        root.showEvent(
+            RaohaneNetwork.wifiConnected ? qsTr("Wi-Fi connected") : qsTr("Wi-Fi disconnected"),
+            RaohaneNetwork.wifiConnected
+                ? (RaohaneNetwork.networkName || qsTr("Wireless network"))
+                : qsTr("No wireless connection"),
+            RaohaneNetwork.materialSymbol,
+            RaohaneNetwork.wifiConnected ? "success" : "warning",
+            -1,
+            2700
+        )
+    }
+
     function statusJson(): string {
         return JSON.stringify({
             mode: mode,
@@ -110,90 +159,36 @@ Item {
     }
 
     Connections {
-        target: RaohaneAudio
+        target: RaohanePrivacy
 
-        function onVolumeChanged(): void {
-            if (!root.eventSignalsReady)
-                return
-            const percent = Math.round(RaohaneAudio.volume * 100)
-            root.showEvent(
-                RaohaneAudio.muted ? qsTr("Volume muted") : qsTr("Volume"),
-                RaohaneAudio.sinkName.length > 0 ? qsTr("%1% · %2").arg(percent).arg(RaohaneAudio.sinkName) : qsTr("%1%").arg(percent),
-                RaohaneAudio.muted ? "volume_off" : percent > 66 ? "volume_up" : percent > 0 ? "volume_down" : "volume_mute",
-                "accent",
-                RaohaneAudio.muted ? 0 : RaohaneAudio.volume,
-                2100
-            )
+        function onRecordingActiveChanged(): void {
+            if (RaohanePrivacy.recordingActive)
+                root.clearTransientEvent()
         }
-
-        function onMutedChanged(): void {
-            if (!root.eventSignalsReady)
-                return
-            root.showEvent(
-                RaohaneAudio.muted ? qsTr("Volume muted") : qsTr("Volume restored"),
-                RaohaneAudio.sinkName || qsTr("Default output"),
-                RaohaneAudio.muted ? "volume_off" : "volume_up",
-                RaohaneAudio.muted ? "warning" : "accent",
-                RaohaneAudio.muted ? 0 : RaohaneAudio.volume,
-                2200
-            )
+        function onCameraActiveChanged(): void {
+            if (RaohanePrivacy.cameraActive)
+                root.clearTransientEvent()
         }
-
-        function onMicrophoneVolumeChanged(): void {
-            if (!root.eventSignalsReady)
-                return
-            const percent = Math.round(RaohaneAudio.microphoneVolume * 100)
-            root.showEvent(
-                qsTr("Microphone"),
-                RaohaneAudio.sourceName.length > 0 ? qsTr("%1% · %2").arg(percent).arg(RaohaneAudio.sourceName) : qsTr("%1%").arg(percent),
-                RaohaneAudio.microphoneMuted ? "mic_off" : "mic",
-                RaohaneAudio.microphoneMuted ? "warning" : "accent",
-                RaohaneAudio.microphoneMuted ? 0 : RaohaneAudio.microphoneVolume,
-                2100
-            )
-        }
-
-        function onMicrophoneMutedChanged(): void {
-            if (!root.eventSignalsReady)
-                return
-            root.showEvent(
-                RaohaneAudio.microphoneMuted ? qsTr("Microphone muted") : qsTr("Microphone live"),
-                RaohaneAudio.sourceName || qsTr("Default input"),
-                RaohaneAudio.microphoneMuted ? "mic_off" : "mic",
-                RaohaneAudio.microphoneMuted ? "warning" : "accent",
-                RaohaneAudio.microphoneMuted ? 0 : RaohaneAudio.microphoneVolume,
-                2300
-            )
+        function onMicrophoneActiveChanged(): void {
+            if (RaohanePrivacy.microphoneActive)
+                root.clearTransientEvent()
         }
     }
 
     Connections {
+        target: RaohaneAudio
+        function onVolumeChanged(): void { audioEventTimer.restart() }
+        function onMutedChanged(): void { audioEventTimer.restart() }
+        function onMicrophoneVolumeChanged(): void { microphoneEventTimer.restart() }
+        function onMicrophoneMutedChanged(): void { microphoneEventTimer.restart() }
+    }
+
+    Connections {
         target: RaohaneNetwork
-
-        function onWifiConnectedChanged(): void {
-            if (!root.eventSignalsReady)
-                return
-            root.showEvent(
-                RaohaneNetwork.wifiConnected ? qsTr("Wi-Fi connected") : qsTr("Wi-Fi disconnected"),
-                RaohaneNetwork.wifiConnected ? (RaohaneNetwork.networkName || qsTr("Wireless network")) : qsTr("No wireless connection"),
-                RaohaneNetwork.materialSymbol,
-                RaohaneNetwork.wifiConnected ? "success" : "warning",
-                -1,
-                2800
-            )
-        }
-
+        function onWifiConnectedChanged(): void { networkEventTimer.restart() }
         function onNetworkNameChanged(): void {
-            if (!root.eventSignalsReady || !RaohaneNetwork.wifiConnected || RaohaneNetwork.networkName.length === 0)
-                return
-            root.showEvent(
-                qsTr("Network"),
-                RaohaneNetwork.networkName,
-                RaohaneNetwork.materialSymbol,
-                "success",
-                -1,
-                2200
-            )
+            if (RaohaneNetwork.wifiConnected)
+                networkEventTimer.restart()
         }
     }
 
@@ -237,7 +232,7 @@ Item {
         target: RaohanePerformance
 
         function onGameModeActiveChanged(): void {
-            if (!root.eventSignalsReady)
+            if (!root.eventSignalsReady || RaohanePerformance.busy)
                 return
             root.showEvent(
                 RaohanePerformance.gameModeActive ? qsTr("Performance mode") : qsTr("Desktop effects restored"),
@@ -248,6 +243,27 @@ Item {
                 2600
             )
         }
+    }
+
+    Timer {
+        id: audioEventTimer
+        interval: 70
+        repeat: false
+        onTriggered: root.showAudioEvent()
+    }
+
+    Timer {
+        id: microphoneEventTimer
+        interval: 70
+        repeat: false
+        onTriggered: root.showMicrophoneEvent()
+    }
+
+    Timer {
+        id: networkEventTimer
+        interval: 120
+        repeat: false
+        onTriggered: root.showNetworkEvent()
     }
 
     Timer {
