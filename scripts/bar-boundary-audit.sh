@@ -14,6 +14,7 @@ vertical='modules/raohane/RaohaneVerticalBar.qml'
 module_host='modules/raohane/RaohaneBarModule.qml'
 module_registry='modules/raohane/RaohaneBarModuleRegistry.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
+context='modules/raohane/RaohaneContext.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 workspaces='modules/raohane/RaohaneWorkspaces.qml'
@@ -22,7 +23,7 @@ status='modules/raohane/RaohaneSystemIcons.qml'
 clock='modules/raohane/RaohaneClock.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
+for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$context" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing native bar path: $path"
 done
 
@@ -101,9 +102,17 @@ for component in RaohaneWorkspaces RaohaneSysTray RaohaneSystemIcons RaohaneCloc
   rg -q "${component}[[:space:]]*\\{" "$module_host" \
     || fail "RaohaneBarModule does not render $component"
 done
-for service in RaohaneNetwork RaohaneBluetooth RaohaneNotifications RaohanePrivacy RaohaneAudio RaohaneContext; do
-  rg -q "${service}\." "$module_host" || fail "vertical module renderer lost native service: $service"
+for service in RaohaneNetwork RaohaneBluetooth RaohaneNotifications RaohaneAudio RaohaneContext; do
+  rg -q "${service}\." "$module_host" || fail "bar module renderer lost native service: $service"
 done
+# Privacy ownership belongs to the shared context service, not to horizontal or
+# vertical bar renderers. Both orientations consume the same icon/mode contract.
+rg -q 'RaohanePrivacy\.' "$context" \
+  || fail 'Context service lost native privacy ownership'
+rg -q 'icon:[[:space:]]*RaohaneContext\.icon' "$module_host" \
+  || fail 'vertical context renderer no longer consumes the shared context icon'
+rg -q 'function activateContextPrimary\(\): void' "$module_host" \
+  || fail 'bar module renderer lost context-aware primary routing'
 for contract in \
   'property string orientation:[[:space:]]*"horizontal"' \
   'readonly property bool vertical:' \
@@ -236,4 +245,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: horizontal and vertical bars share registry-backed modules with independent persisted layouts and a dual-orientation Bar Studio\n'
+printf 'bar-boundary-audit: horizontal and vertical bars share registry-backed modules, context-owned privacy and independent persisted layouts\n'
