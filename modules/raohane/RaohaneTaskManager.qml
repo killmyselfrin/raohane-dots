@@ -191,6 +191,7 @@ Scope {
             raised: true
             showSheen: false
             surfaceRadius: 18
+            color: RaohaneTheme.backgroundElevated
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: taskWindow.visible ? 1 : 0
