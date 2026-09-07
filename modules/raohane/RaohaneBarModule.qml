@@ -90,6 +90,20 @@ Item {
         RaohaneState.toggleSurface(surfaceId)
     }
 
+    function activateContextPrimary(): void {
+        switch (RaohaneContext.mode) {
+        case "media":
+            root.requestTransient("mediaOverlay")
+            break
+        case "window":
+            root.requestPrimary("overview")
+            break
+        default:
+            root.requestControlCenter()
+            break
+        }
+    }
+
     function componentFor(id: string): Component {
         if (root.vertical) {
             switch (id) {
@@ -163,19 +177,18 @@ Item {
                 cursorShape: Qt.PointingHandCursor
 
                 onClicked: mouse => {
-                    if (RaohaneContext.mode !== "media") {
-                        if (mouse.button === Qt.LeftButton)
-                            root.requestControlCenter()
+                    if (mouse.button === Qt.LeftButton) {
+                        root.activateContextPrimary()
                         return
                     }
 
-                    if (mouse.button === Qt.MiddleButton) {
+                    if (RaohaneContext.mode !== "media")
+                        return
+
+                    if (mouse.button === Qt.MiddleButton)
                         RaohaneMedia.togglePlaying()
-                    } else if (mouse.button === Qt.RightButton) {
+                    else if (mouse.button === Qt.RightButton)
                         RaohaneMedia.cyclePlayer(1)
-                    } else {
-                        root.requestTransient("mediaOverlay")
-                    }
                 }
 
                 onWheel: wheel => {
@@ -271,12 +284,7 @@ Item {
                 || RaohaneContext.mode === "privacy"
                 || RaohaneContext.mode === "media"
                 || RaohaneContext.mode === "event"
-            onTriggered: {
-                if (RaohaneContext.mode === "media")
-                    root.requestTransient("mediaOverlay")
-                else
-                    root.requestControlCenter()
-            }
+            onTriggered: root.activateContextPrimary()
         }
     }
 
