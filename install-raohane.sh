@@ -143,7 +143,11 @@ fi
 
 if command -v rg >/dev/null 2>&1; then
   printf '[Raohane] Running static Raohane audit...\n'
-  bash "$ROOT/scripts/raohane-audit.sh"
+  if ! bash "$ROOT/scripts/raohane-audit.sh"; then
+    echo '[Raohane] Static audit failed; installation aborted before runtime changes.' >&2
+    echo '[Raohane] The currently installed shell was left untouched.' >&2
+    exit 1
+  fi
 else
   echo '[Raohane] ripgrep (rg) is unavailable; skipping extended static audit.'
 fi
