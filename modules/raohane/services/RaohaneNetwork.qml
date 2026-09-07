@@ -423,8 +423,11 @@ Singleton {
         onTriggered: monitor.running = true
     }
 
+    // nmcli monitor drives normal updates. Keep a slow fallback snapshot only
+    // to repair a missed monitor event instead of launching three nmcli probes
+    // every 30 seconds while the shell is idle.
     Timer {
-        interval: 30000
+        interval: 120000
         repeat: true
         running: true
         onTriggered: root.refresh()
