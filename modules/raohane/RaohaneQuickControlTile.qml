@@ -24,8 +24,14 @@ RaohaneSurface {
         : root.tileId === "keepAwake" ? RaohaneIdle.inhibit
         : root.tileId === "easyEffects" ? RaohaneEasyEffects.active
         : false
-    readonly property bool tileBusy: (root.tileId === "gameMode" && RaohanePerformance.busy) || (root.tileId === "bluetooth" && RaohaneBluetooth.busy) || (root.tileId === "easyEffects" && RaohaneEasyEffects.busy)
-    readonly property bool tileError: (root.tileId === "gameMode" && RaohanePerformance.lastError.length > 0) || (root.tileId === "bluetooth" && RaohaneBluetooth.lastError.length > 0) || (root.tileId === "easyEffects" && RaohaneEasyEffects.lastError.length > 0)
+    readonly property bool tileBusy: (root.tileId === "network" && RaohaneNetwork.wifiBusy)
+        || (root.tileId === "gameMode" && RaohanePerformance.busy)
+        || (root.tileId === "bluetooth" && RaohaneBluetooth.busy)
+        || (root.tileId === "easyEffects" && RaohaneEasyEffects.busy)
+    readonly property bool tileError: (root.tileId === "network" && RaohaneNetwork.wifiToggleError.length > 0)
+        || (root.tileId === "gameMode" && RaohanePerformance.lastError.length > 0)
+        || (root.tileId === "bluetooth" && RaohaneBluetooth.lastError.length > 0)
+        || (root.tileId === "easyEffects" && RaohaneEasyEffects.lastError.length > 0)
     readonly property bool showMenu: root.tileId === "network"
     readonly property bool menuOpen: root.tileId === "network" && root.pickerMode === "wifi"
     readonly property string currentIcon: root.tileBusy ? "progress_activity"
@@ -33,7 +39,17 @@ RaohaneSurface {
         : root.tileId === "bluetooth" ? (RaohaneBluetooth.connected ? "bluetooth_connected" : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
         : root.tileId === "nightLight" ? (RaohaneConfig.nightLightAutomatic ? "night_sight_auto" : "bedtime")
         : root.definition?.icon ?? "tune"
-    readonly property string subtitle: root.tileId === "network" ? (RaohaneNetwork.networkName || qsTr("Disconnected"))
+    readonly property string subtitle: root.tileId === "network" ? (root.tileBusy
+            ? qsTr("Applying…")
+            : root.tileError
+                ? qsTr("Wi-Fi action failed")
+                : RaohaneNetwork.networkName.length > 0
+                    ? RaohaneNetwork.networkName
+                    : !RaohaneNetwork.wifiEnabled
+                        ? qsTr("Wi-Fi off")
+                        : RaohaneNetwork.ethernet
+                            ? qsTr("Ethernet")
+                            : qsTr("Not connected"))
         : root.tileId === "bluetooth" ? (root.tileBusy
             ? qsTr("Applying…")
             : root.tileError
