@@ -198,13 +198,17 @@ rg -q 'active:[[:space:]]*root\.hostActive' "$module_host" \
 rg -q 'running:[[:space:]]*root\.hostActive' "$module_host" \
   || fail 'vertical module renderer does not suspend its clock while hidden'
 for host in "$bar" "$vertical"; do
-  rg -q 'hostActive:[[:space:]]*barWindow\.visible' "$host" \
-    || fail "$host does not forward visibility to module timers"
+  rg -q 'hostActive:[[:space:]]*barWindow\.visible[[:space:]]*&&[[:space:]]*!barWindow\.fullscreenSuppressed' "$host" \
+    || fail "$host does not suspend module timers while fullscreen-suppressed"
 done
 if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
 
+# Both bar orientations keep their layer-shell surface resident during fullscreen.
+# Content and timers are suspended, exclusion drops to zero, and a zero-sized
+# Region makes the transparent surface fully click-through instead of destroying
+# and recreating the Wayland surface across game fullscreen transitions.
 for file in "$bar" "$vertical"; do
   for symbol in \
     'Hyprland\.monitorFor' \
@@ -212,7 +216,9 @@ for file in "$bar" "$vertical"; do
     'monitorHasSpecialOpen' \
     'effectiveFullscreen' \
     'fullscreenSuppressed' \
-    '&& !fullscreenSuppressed' \
+    'visible:[[:space:]]*RaohaneState\.barOpen[[:space:]]*&&[[:space:]]*!RaohaneState\.screenLocked' \
+    'mask:[[:space:]]*Region' \
+    'barWindow\.fullscreenSuppressed[[:space:]]*\?[[:space:]]*0' \
     'monitorHasSpecialOpen \|\| superShow' \
     'WlrLayer\.Overlay' \
     'target:[[:space:]]*"bar"' \
@@ -221,7 +227,7 @@ for file in "$bar" "$vertical"; do
     'function close\(\): void' \
     'function mode\(\): string' \
     'name:[[:space:]]*"barToggle"'; do
-    rg -q "$symbol" "$file" || fail "$file lost shared bar/runtime contract: $symbol"
+    rg -q "$symbol" "$file" || fail "$file lost shared resident bar/runtime contract: $symbol"
   done
 done
 rg -q 'return[[:space:]]+"horizontal"' "$bar" \
@@ -245,4 +251,4 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
-printf 'bar-boundary-audit: horizontal and vertical bars share registry-backed modules, context-owned privacy and independent persisted layouts\n'
+printf 'bar-boundary-audit: horizontal and vertical bars share registry-backed modules, resident fullscreen surfaces, context-owned privacy and independent persisted layouts\n'
