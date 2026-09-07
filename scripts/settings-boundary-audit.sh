@@ -27,6 +27,7 @@ home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
 quick_studio='modules/raohane/RaohaneQuickControlsStudio.qml'
+sakura_settings='modules/raohane/RaohaneSakuraSettings.qml'
 quick_runtime='modules/raohane/RaohaneQuickControls.qml'
 quick_registry='modules/raohane/RaohaneQuickControlRegistry.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
@@ -38,7 +39,7 @@ qmldir='modules/raohane/qmldir'
 required=(
   "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$section_registry" "$router"
   "$section" "$control_row" "$preferences" "$preferences_hub" "$language" "$backup" "$home" "$catalog"
-  "$bar_studio" "$quick_studio" "$quick_runtime" "$quick_registry" "$about" "$config" "$defaults" "$state" "$qmldir"
+  "$bar_studio" "$quick_studio" "$sakura_settings" "$quick_runtime" "$quick_registry" "$about" "$config" "$defaults" "$state" "$qmldir"
 )
 for path in "${required[@]}"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
@@ -58,7 +59,8 @@ for registration in \
   '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml$' \
   '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$' \
   '^RaohaneBackupSettings .*RaohaneBackupSettings.qml$' \
-  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$'; do
+  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$' \
+  '^RaohaneSakuraSettings .*RaohaneSakuraSettings.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 
@@ -114,9 +116,11 @@ for symbol in \
   'RaohaneSettingsPageRegistry\.pages' 'RaohaneSettingsPageRegistry\.resolvePageIndex' \
   'RaohaneSettingsNavigation[[:space:]]*\{' 'RaohaneSettingsPageHeader[[:space:]]*\{' \
   'target:[[:space:]]*RaohaneSettingsRouter' 'function onPageRequested\(pageKey: string, controlKey: string\): void' \
-  'pageOwnsHeader' 'source:[[:space:]]*root\.currentPageInfo\?\.source' \
+  'pageOwnsHeader' 'root\.currentPageInfo\?\.source' \
+  'pageLoader\.source[[:space:]]*=[[:space:]]*nextSource' \
+  'pageLoader\.source[[:space:]]*=[[:space:]]*root\.currentPageInfo\?\.source' \
   'pageLoader\.item\.hasOwnProperty\("sectionKey"\)' 'typeof pageLoader\.item\.goTo'; do
-  rg -q "$symbol" "$content" || fail "Settings coordinator lost unified page-loader contract: $symbol"
+  rg -q "$symbol" "$content" || fail "Settings coordinator lost animated page-loader contract: $symbol"
 done
 if rg -q 'externalSurface|function componentForKind\(|sourceComponent:|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl' "$content"; then
   fail 'Settings coordinator reabsorbed imperative routing or profile ownership'
@@ -135,6 +139,7 @@ for contract in \
   'readonly property var extensions:' \
   'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
   'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
+  'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' \
   'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
   'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
   'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
@@ -182,6 +187,7 @@ done
 rg -q 'settingsContent\.pageOwnsHeader' "$settings" || fail 'Settings top chrome does not respect page-owned header'
 rg -q 'Qt\.ControlModifier' "$settings" || fail 'Settings lost Ctrl+F search shortcut'
 rg -q 'settingsSearch\.focusSearch\(\)' "$settings" || fail 'Settings lost keyboard search focus'
+rg -q 'RaohaneSakuraOverlay[[:space:]]*\{' "$settings" || fail 'Settings lost Sakura ambience layer'
 if rg -n 'preferencesOpen|backupOpen|openPreferences\(|openBackup\(|showMainSettings\(|onPreferencesRequested|onBackupRequested|onLanguageRequested' "$settings"; then
   fail 'Settings window reintroduced special overlay state'
 fi
@@ -213,8 +219,8 @@ for symbol in 'RaohaneSystemInfo\.' 'Quickshell\.shellPath\("VERSION"\)' 'raohan
   rg -q "$symbol" "$about" || fail "About page lost native contract: $symbol"
 done
 
-# Quick Control composition is a persisted product contract: defaults feed
-# additive schema-v12 config, runtime consumes the sanitized array, Studio
+# Quick Control composition is a persisted product contract: defaults feed the
+# additive schema-v13 config, runtime consumes the sanitized array, Studio
 # mutates it live and Settings search routes directly to the Studio extension.
 for contract in \
   'property var quickControlTiles:[[:space:]]*root\.defaultQuickControlTiles\(\)' \
@@ -240,4 +246,4 @@ if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import q
   fail 'Settings architecture resolves inherited settings/common/root types'
 fi
 
-printf 'settings-boundary-audit: all Settings routes share one registry/router/workspace, with generic sections, reusable control rows, persisted Bar/Quick Control studios, preferences, backup and language pages\n'
+printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace, with Sakura ambience, generic sections, reusable control rows and persisted studios/preferences pages\n'
