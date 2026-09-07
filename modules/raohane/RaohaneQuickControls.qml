@@ -110,6 +110,7 @@ Item {
                     Layout.fillWidth: true
                     visible: RaohaneConfig.quickSliderVolume
                     icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
+                    iconEnabled: true
                     title: qsTr("Volume")
                     displayText: Math.round(RaohaneAudio.volume * 100) + "%"
                     contextText: RaohaneAudio.sinkName
@@ -125,6 +126,7 @@ Item {
                     Layout.fillWidth: true
                     visible: RaohaneConfig.quickSliderMic
                     icon: RaohaneAudio.microphoneMuted ? "mic_off" : "mic"
+                    iconEnabled: true
                     title: qsTr("Microphone")
                     displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
                     contextText: RaohaneAudio.sourceName
@@ -154,6 +156,7 @@ Item {
         property string displayText: ""
         property string contextText: ""
         property real liveValue: 0
+        property bool iconEnabled: false
         property bool pickerEnabled: false
         property bool pickerActive: false
         signal valueChangedByUser(real value)
@@ -161,7 +164,8 @@ Item {
         signal pickerTriggered()
 
         readonly property real clampedLiveValue: Math.max(0, Math.min(1, Number(liveValue) || 0))
-        readonly property bool rowHovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
+        readonly property bool rowHovered: valueSlider.hovered
+            || (control.iconEnabled && (iconButton.hovered || iconButton.activeFocus))
             || (control.pickerEnabled && pickerButton.hovered)
 
         implicitHeight: 43
@@ -183,16 +187,31 @@ Item {
             anchors.rightMargin: 5
             spacing: 7
 
-            RaohaneIconButton {
-                id: iconButton
+            Item {
+                Layout.preferredWidth: 29
+                Layout.preferredHeight: 29
                 Layout.alignment: Qt.AlignVCenter
-                buttonSize: 29
-                iconSize: 14
-                icon: control.icon
-                emphasized: control.rowHovered && !control.pickerActive
-                transparentIdle: true
-                showSheen: false
-                onClicked: control.iconTriggered()
+
+                RaohaneIcon {
+                    visible: !control.iconEnabled
+                    anchors.centerIn: parent
+                    text: control.icon
+                    iconSize: 14
+                    color: RaohaneTheme.textMuted
+                }
+
+                RaohaneIconButton {
+                    id: iconButton
+                    visible: control.iconEnabled
+                    anchors.centerIn: parent
+                    buttonSize: 29
+                    iconSize: 14
+                    icon: control.icon
+                    emphasized: control.rowHovered && !control.pickerActive
+                    transparentIdle: true
+                    showSheen: false
+                    onClicked: control.iconTriggered()
+                }
             }
 
             ColumnLayout {
