@@ -12,11 +12,19 @@ Singleton {
 
     property bool available: false
     property bool enabled: false
+    property bool busy: false
+    property bool requestedEnabled: false
+    property bool applyPending: false
+    property string lastError: ""
+    property string commandError: ""
     property var connectedDevices: []
+
     readonly property int connectedCount: connectedDevices.length
     readonly property bool connected: connectedCount > 0
     readonly property var firstConnectedDevice: connectedDevices.length > 0 ? connectedDevices[0] : null
     readonly property string firstConnectedName: firstConnectedDevice?.name ?? ""
+
+    signal powerApplied(bool enabled)
 
     function refresh(): void {
         if (!adapterProbe.running)
@@ -25,12 +33,30 @@ Singleton {
             devicesProbe.exec(["bash", "-lc", "command -v bluetoothctl >/dev/null 2>&1 && bluetoothctl devices Connected || true"])
     }
 
+    function finishPowerVerification(): void {
+        if (!root.applyPending)
+            return
+
+        if (root.enabled === root.requestedEnabled) {
+            root.applyPending = false
+            root.busy = false
+            root.lastError = ""
+            root.powerApplied(root.enabled)
+            return
+        }
+
+        root.applyPending = false
+        root.busy = false
+        root.lastError = qsTr("Bluetooth adapter did not apply the requested power state")
+    }
+
     function parseAdapter(text): void {
         const value = String(text ?? "")
         root.available = /(^|\n)Controller\s+/m.test(value)
         root.enabled = /Powered:\s*yes/i.test(value)
         if (!root.available)
             root.connectedDevices = []
+        root.finishPowerVerification()
     }
 
     function parseConnectedDevices(text): void {
@@ -50,10 +76,16 @@ Singleton {
     }
 
     function setEnabled(value: bool): void {
-        if (!root.available)
+        const requested = Boolean(value)
+        if (!root.available || root.busy || root.enabled === requested)
             return
-        root.enabled = Boolean(value)
-        powerCommand.exec(["bluetoothctl", "power", root.enabled ? "on" : "off"])
+
+        root.busy = true
+        root.requestedEnabled = requested
+        root.applyPending = true
+        root.lastError = ""
+        root.commandError = ""
+        powerCommand.exec(["bluetoothctl", "power", requested ? "on" : "off"])
     }
 
     function toggle(): void {
@@ -72,6 +104,13 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: root.parseAdapter(text)
         }
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0 && root.applyPending) {
+                root.applyPending = false
+                root.busy = false
+                root.lastError = qsTr("Could not verify Bluetooth adapter state")
+            }
+        }
     }
 
     Process {
@@ -85,7 +124,26 @@ Singleton {
     Process {
         id: powerCommand
         environment: ({ LANG: "C", LC_ALL: "C" })
-        onExited: root.refresh()
+
+        stderr: StdioCollector {
+            onStreamFinished: {
+                const value = String(text ?? "").trim()
+                root.commandError = value.length > 0 ? value.split("\n").pop() : ""
+            }
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode === 0) {
+                verifyPowerTimer.restart()
+                return
+            }
+            root.applyPending = false
+            root.busy = false
+            root.lastError = root.commandError.length > 0
+                ? root.commandError
+                : qsTr("Bluetooth power command failed")
+            root.refresh()
+        }
     }
 
     Process {
@@ -105,6 +163,13 @@ Singleton {
         }
 
         onExited: monitorRestart.restart()
+    }
+
+    Timer {
+        id: verifyPowerTimer
+        interval: 260
+        repeat: false
+        onTriggered: root.refresh()
     }
 
     Timer {
