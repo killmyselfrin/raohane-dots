@@ -37,10 +37,12 @@ required=(
   modules/raohane/RaohaneOverlay.qml
   modules/raohane/RaohaneSakuraOverlay.qml
   modules/raohane/RaohaneSakuraSettings.qml
+  modules/raohane/RaohaneSettingsGraphics.qml
   modules/raohane/services/RaohaneProcesses.qml
   modules/raohane/services/RaohaneLyrics.qml
   modules/raohane/services/RaohaneCoverAccent.qml
   modules/raohane/services/RaohaneUpdater.qml
+  modules/raohane/services/RaohaneGraphics.qml
   panelFamilies/RaohaneFamily.qml
   scripts/autostart.sh
   scripts/install-deps.sh
@@ -55,6 +57,7 @@ required=(
   scripts/cover-accent.py
   scripts/update-raohane.py
   scripts/theme-catalog.py
+  scripts/graphics-driver-check.py
   scripts/region-ocr.sh
   scripts/region-search.sh
   scripts/screen-translate.sh
@@ -85,7 +88,7 @@ except (OSError, json.JSONDecodeError):
 raise SystemExit(0 if data.get("schemaVersion") == 13 else 1)
 PY
 
-python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/cover-accent.py" "$TARGET/scripts/update-raohane.py" "$TARGET/scripts/theme-catalog.py" <<'PY' || fail 'native Python runtime helper is invalid'
+python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/cover-accent.py" "$TARGET/scripts/update-raohane.py" "$TARGET/scripts/theme-catalog.py" "$TARGET/scripts/graphics-driver-check.py" <<'PY' || fail 'native Python runtime helper is invalid'
 import pathlib
 import sys
 for raw in sys.argv[1:]:
