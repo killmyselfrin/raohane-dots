@@ -553,12 +553,10 @@ Scope {
         required property string icon
         required property string label
         property bool accent: false
-        property bool active: false
         signal triggered()
 
         Layout.preferredHeight: 46
         surfaceRadius: 10
-        active: action.accent || action.active
         raised: false
         showSheen: false
         interactive: true
