@@ -32,11 +32,13 @@ rg -q 'checkupdates' "$probe" \
   || fail 'fresh Arch repository update check is missing'
 rg -q 'pacman", "-Qu"' "$probe" \
   || fail 'local pacman database fallback is missing'
-rg -q 'pacman-contrib' install/arch/features.txt \
+rg -q '^pacman-contrib$' install/arch/features.txt \
   || fail 'pacman-contrib is not part of the full feature dependency profile'
+rg -q '^polkit$' install/arch/required.txt \
+  || fail 'Polkit is not part of the required runtime profile'
 
-# The probe may inspect package names, but must never install/remove/switch a
-# graphics driver family. Package changes stay an explicit user-owned action.
+# Detection remains read-only. The probe may inspect package names, but must
+# never install/remove/switch a graphics driver family.
 if rg -n \
   'pacman[[:space:]]+-(S|R)[^\n]*(nvidia|nouveau|mesa|vulkan|amdvlk)|subprocess\.(run|Popen).*pacman.*-(S|R)|\["pacman",[[:space:]]*"-(S|R)' \
   "$probe"; then
@@ -67,16 +69,33 @@ rg -q 'Component\.onCompleted:[[:space:]]*root\.refresh\(false\)' "$page" \
 rg -q 'minimumAutomaticCheckInterval:[[:space:]]*10[[:space:]]*\*[[:space:]]*60[[:space:]]*\*[[:space:]]*1000' "$service" \
   || fail 'graphics update probe lost its 10-minute UI cache'
 
-# QML can only copy the full upgrade command; it must never execute pacman or a
-# privilege helper directly.
-if rg -n '(pacman[[:space:]]+-S|sudo[[:space:]]+pacman|pkexec.*pacman|Process[[:space:]]*\{[^}]*pacman)' \
-  "$page" "$service"; then
-  fail 'QML graphics UI gained a direct package mutation path'
-fi
-rg -q 'Quickshell\.clipboardText[[:space:]]*=[[:space:]]*RaohaneGraphics\.updateCommand' "$page" \
-  || fail 'update action is no longer copy-only'
+# One-click updates are allowed only through the root-owned pkexec and pacman
+# binaries, and only as a normal full Arch system upgrade. A user-writable
+# script must never become a privileged update helper.
+rg -q 'function updateNow\(\): void' "$service" \
+  || fail 'graphics service lost the explicit update action'
+rg -q 'updater\.command[[:space:]]*=[[:space:]]*\["pkexec",[[:space:]]*"/usr/bin/pacman",[[:space:]]*"-Syu",[[:space:]]*"--noconfirm"\]' "$service" \
+  || fail 'graphics update action is not the exact Polkit full-system upgrade'
+rg -q 'RaohaneGraphics\.updateNow\(\)' "$page" \
+  || fail 'Graphics Settings does not expose the native update action'
+rg -q 'RaohaneGraphics\.canUpdate' "$page" \
+  || fail 'Graphics update button is not gated by service state'
 
+if rg -n '(pkexec|sudo|pacman[[:space:]]+-S)' "$page"; then
+  fail 'presentation QML gained a direct privileged package command'
+fi
+if rg -n \
+  'updater\.command[^\n]*(nvidia|nouveau|mesa|vulkan|amdvlk|xf86-video)|updater\.command[^\n]*(scripts/|Quickshell\.shellPath|bash|python|/bin/sh)' \
+  "$service"; then
+  fail 'graphics updater can select a driver family or execute a user-writable helper as root'
+fi
+if rg -n 'Process[[:space:]]*\{[^}]*pkexec' "$page"; then
+  fail 'privileged update process escaped from the graphics service boundary'
+fi
+
+rg -q 'Quickshell\.clipboardText[[:space:]]*=[[:space:]]*RaohaneGraphics\.updateCommand' "$page" \
+  || fail 'manual copy fallback for the full upgrade command is missing'
 rg -q 'scripts/graphics-driver-check\.py' "$runtime_validator" \
   || fail 'installed runtime validator does not require the graphics probe'
 
-printf 'graphics-driver-boundary-audit: hardware-aware detection, lazy freshness checks, copy-only full upgrades and no driver-family mutation are enforced\n'
+printf 'graphics-driver-boundary-audit: hardware-aware detection, lazy freshness checks, Polkit-gated full upgrades, root-owned executables and no driver-family switching are enforced\n'
