@@ -7,9 +7,22 @@ Item {
     id: root
 
     property string sectionKey: "general"
+    property bool headerEntered: false
+    property bool settingsEntered: false
+    property bool extensionEntered: false
+
     readonly property var pageInfo: RaohaneSettingsPageRegistry.page(root.sectionKey)
     readonly property var entries: RaohaneSettingsPageRegistry.sectionEntries(root.sectionKey)
     readonly property string extensionSource: RaohaneSettingsSectionRegistry.source(root.sectionKey)
+
+    function replayEntrance(): void {
+        headerEntered = false
+        settingsEntered = false
+        extensionEntered = false
+        headerTimer.restart()
+        settingsTimer.restart()
+        extensionTimer.restart()
+    }
 
     function goTo(search: string): void {
         const needle = String(search ?? "").trim()
@@ -23,6 +36,30 @@ Item {
         const index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(normalized) || entry.key.toLowerCase().includes(normalized))
         if (index >= 0)
             settingsFlick.contentY = Math.max(0, index * 68 - 18)
+    }
+
+    onSectionKeyChanged: Qt.callLater(root.replayEntrance)
+    Component.onCompleted: root.replayEntrance()
+
+    Timer {
+        id: headerTimer
+        interval: 1
+        repeat: false
+        onTriggered: root.headerEntered = true
+    }
+
+    Timer {
+        id: settingsTimer
+        interval: Math.max(1, RaohaneMotion.staggerStep)
+        repeat: false
+        onTriggered: root.settingsEntered = true
+    }
+
+    Timer {
+        id: extensionTimer
+        interval: Math.max(1, RaohaneMotion.staggerStep * 2)
+        repeat: false
+        onTriggered: root.extensionEntered = true
     }
 
     Flickable {
@@ -42,12 +79,31 @@ Item {
             spacing: 14
 
             RaohaneSurface {
+                id: sectionHero
                 width: parent.width
                 height: 104
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
                 clip: true
+                opacity: root.headerEntered ? 1 : 0
+
+                transform: Translate {
+                    y: root.headerEntered || !RaohaneMotion.transformMotionEnabled ? 0 : 8
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: RaohaneMotion.relaxed
+                            easing.type: RaohaneMotion.easeEmphasized
+                        }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: RaohaneMotion.standard
+                        easing.type: RaohaneMotion.easeStandard
+                    }
+                }
 
                 Rectangle {
                     width: 150
@@ -60,7 +116,11 @@ Item {
                         topMargin: -72
                     }
                     color: RaohaneTheme.accentSoft
-                    opacity: 0.48
+                    opacity: root.headerEntered ? 0.48 : 0.15
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: RaohaneMotion.relaxed }
+                    }
                 }
 
                 RowLayout {
@@ -126,6 +186,7 @@ Item {
             }
 
             RaohaneSurface {
+                id: settingsSurface
                 width: parent.width
                 height: settingsList.implicitHeight
                 surfaceRadius: RaohaneTheme.radiusLarge
@@ -133,6 +194,24 @@ Item {
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
                 clip: true
+                opacity: root.settingsEntered ? 1 : 0
+
+                transform: Translate {
+                    y: root.settingsEntered || !RaohaneMotion.transformMotionEnabled ? 0 : 10
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: RaohaneMotion.relaxed
+                            easing.type: RaohaneMotion.easeEmphasized
+                        }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: RaohaneMotion.standard
+                        easing.type: RaohaneMotion.easeStandard
+                    }
+                }
 
                 Column {
                     id: settingsList
@@ -154,17 +233,39 @@ Item {
                 }
             }
 
-            Loader {
-                id: extensionLoader
+            Item {
                 width: parent.width
-                active: root.extensionSource !== ""
-                visible: active
-                source: root.extensionSource
-                height: active ? implicitHeight : 0
+                height: extensionLoader.active ? extensionLoader.implicitHeight : 0
+                visible: extensionLoader.active
+                opacity: root.extensionEntered ? 1 : 0
 
-                onLoaded: {
-                    if (item && item.hasOwnProperty("width"))
-                        item.width = width
+                transform: Translate {
+                    y: root.extensionEntered || !RaohaneMotion.transformMotionEnabled ? 0 : 10
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: RaohaneMotion.relaxed
+                            easing.type: RaohaneMotion.easeEmphasized
+                        }
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: RaohaneMotion.standard
+                        easing.type: RaohaneMotion.easeStandard
+                    }
+                }
+
+                Loader {
+                    id: extensionLoader
+                    width: parent.width
+                    active: root.extensionSource !== ""
+                    source: root.extensionSource
+
+                    onLoaded: {
+                        if (item && item.hasOwnProperty("width"))
+                            item.width = width
+                    }
                 }
             }
         }
