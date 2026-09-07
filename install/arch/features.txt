@@ -20,6 +20,7 @@ fprintd
 libpulse
 libqalculate
 pciutils
+pacman-contrib
 python-pillow
 tesseract
 tesseract-data-eng
