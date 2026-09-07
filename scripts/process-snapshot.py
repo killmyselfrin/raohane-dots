@@ -108,6 +108,22 @@ def read_stat(pid_path: Path):
     return command, ppid, utime_ticks + stime_ticks, start_ticks
 
 
+def read_cmdline(pid_path: Path, fallback: str) -> str:
+    try:
+        raw = (pid_path / "cmdline").read_bytes()
+    except OSError:
+        return fallback
+    if not raw:
+        return fallback
+    parts = [
+        part.decode("utf-8", errors="replace").strip()
+        for part in raw.split(b"\0")
+        if part
+    ]
+    value = " ".join(part for part in parts if part)
+    return value.replace("\t", " ").replace("\n", " ").strip() or fallback
+
+
 def read_cpu_baseline() -> dict[int, tuple[float, float, float]]:
     baseline: dict[int, tuple[float, float, float]] = {}
     try:
@@ -130,9 +146,7 @@ def read_cpu_baseline() -> dict[int, tuple[float, float, float]]:
         stat = read_stat(pid_path)
         if stat is None:
             continue
-        command, _ppid, cpu_ticks, start_ticks = stat
-        if command in {"quickshell", "qs"}:
-            continue
+        _command, _ppid, cpu_ticks, start_ticks = stat
 
         # Keep a per-process timestamp so scan time does not skew CPU values.
         baseline[pid] = (start_ticks, cpu_ticks, time.monotonic())
@@ -162,8 +176,6 @@ def read_process(
     if stat is None:
         return None
     command, ppid, cpu_ticks, start_ticks = stat
-    if command in {"quickshell", "qs"}:
-        return None
 
     sample_time = time.monotonic()
     previous = baseline.get(pid)
@@ -180,6 +192,7 @@ def read_process(
     elapsed = max(0.0, uptime - (start_ticks / CLK_TCK)) if uptime > 0 else 0.0
     rss_mib = max(0.0, rss_kib / 1024.0)
     memory_percent = (rss_mib / total_mib * 100.0) if total_mib > 0 else 0.0
+    command_line = read_cmdline(pid_path, command or "process")
 
     return (
         pid,
@@ -190,6 +203,7 @@ def read_process(
         max(0.0, rss_kib),
         max(0, int(elapsed)),
         command or "process",
+        command_line,
     )
 
 
@@ -225,10 +239,10 @@ def main() -> int:
     rows.sort(key=lambda row: (-row[3], -row[5], row[7].lower(), row[0]))
 
     for row in rows:
-        pid, ppid, user, cpu, mem, rss_kib, elapsed, command = row
+        pid, ppid, user, cpu, mem, rss_kib, elapsed, command, command_line = row
         print(
             f"{pid}\t{ppid}\t{user}\t{cpu:.1f}\t{mem:.2f}\t"
-            f"{rss_kib:.0f}\t{elapsed}\t{command}"
+            f"{rss_kib:.0f}\t{elapsed}\t{command}\t{command_line}"
         )
 
     return 0
