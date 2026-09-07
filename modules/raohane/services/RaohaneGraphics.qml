@@ -68,12 +68,14 @@ Singleton {
 
             const updates = Array.isArray(data.updates) ? data.updates : []
             root.updateCount = updates.length
-            root.packageSummary = updates.map(update => {
+            const visibleUpdates = updates.slice(0, 3).map(update => {
                 const name = String(update.name ?? "")
-                const installed = String(update.installed ?? "")
                 const candidate = String(update.candidate ?? "")
-                return `${name} ${installed} → ${candidate}`
-            }).filter(value => value.length > 0).join(" · ")
+                return candidate.length > 0 ? `${name} → ${candidate}` : name
+            }).filter(value => value.length > 0)
+            if (updates.length > 3)
+                visibleUpdates.push(qsTr("+%1 more").arg(updates.length - 3))
+            root.packageSummary = visibleUpdates.join(" · ")
 
             const noteItems = Array.isArray(data.notes) ? data.notes.map(value => String(value)) : []
             root.notes = noteItems.join(" ")
