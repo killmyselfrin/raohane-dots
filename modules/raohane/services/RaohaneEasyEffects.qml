@@ -10,6 +10,13 @@ Singleton {
 
     property bool available: false
     property bool active: false
+    property bool busy: false
+    property bool requestedActive: false
+    property bool applyPending: false
+    property string lastError: ""
+    property string commandError: ""
+
+    signal activeApplied(bool enabled)
 
     function refresh(): void {
         root.fetchAvailability()
@@ -22,45 +29,76 @@ Singleton {
     }
 
     function fetchActiveState(): void {
-        if (!stateProbe.running)
+        if (!stateProbe.running && !actionProcess.running)
             stateProbe.running = true
     }
 
     function launchUi(): void {
         Quickshell.execDetached([
             "bash", "-lc",
-            "if command -v easyeffects >/dev/null 2>&1; then easyeffects; "
-                + "elif command -v flatpak >/dev/null 2>&1; then flatpak run com.github.wwmm.easyeffects; fi"
+            "if command -v easyeffects >/dev/null 2>&1; then exec easyeffects; "
+                + "elif command -v flatpak >/dev/null 2>&1 && flatpak info com.github.wwmm.easyeffects >/dev/null 2>&1; then "
+                + "exec flatpak run com.github.wwmm.easyeffects; fi"
         ])
-        refreshTimer.restart()
+        verifyTimer.restart()
+    }
+
+    function requestActive(value: bool): void {
+        const requested = Boolean(value)
+        if (!root.available || root.busy || root.active === requested)
+            return
+
+        root.busy = true
+        root.requestedActive = requested
+        root.applyPending = true
+        root.lastError = ""
+        root.commandError = ""
+
+        if (requested) {
+            actionProcess.command = [
+                "bash", "-lc",
+                "if command -v easyeffects >/dev/null 2>&1; then "
+                    + "easyeffects --hide-window --service-mode >/dev/null 2>&1 & exit 0; "
+                    + "elif command -v flatpak >/dev/null 2>&1 && flatpak info com.github.wwmm.easyeffects >/dev/null 2>&1; then "
+                    + "flatpak run com.github.wwmm.easyeffects --hide-window --service-mode >/dev/null 2>&1 & exit 0; "
+                    + "else exit 127; fi"
+            ]
+        } else {
+            actionProcess.command = [
+                "bash", "-lc",
+                "pkill -x easyeffects >/dev/null 2>&1 || true; "
+                    + "if command -v flatpak >/dev/null 2>&1; then flatpak kill com.github.wwmm.easyeffects >/dev/null 2>&1 || true; fi"
+            ]
+        }
+        actionProcess.running = true
     }
 
     function disable(): void {
-        root.active = false
-        Quickshell.execDetached([
-            "bash", "-lc",
-            "pkill -x easyeffects >/dev/null 2>&1 || flatpak kill com.github.wwmm.easyeffects >/dev/null 2>&1 || true"
-        ])
-        refreshTimer.restart()
+        root.requestActive(false)
     }
 
     function enable(): void {
-        root.active = true
-        Quickshell.execDetached([
-            "bash", "-lc",
-            "if command -v easyeffects >/dev/null 2>&1; then "
-                + "easyeffects --hide-window --service-mode >/dev/null 2>&1 & "
-                + "elif command -v flatpak >/dev/null 2>&1 && flatpak info com.github.wwmm.easyeffects >/dev/null 2>&1; then "
-                + "flatpak run com.github.wwmm.easyeffects --hide-window --service-mode >/dev/null 2>&1 & fi"
-        ])
-        refreshTimer.restart()
+        root.requestActive(true)
     }
 
     function toggle(): void {
-        if (root.active)
-            root.disable()
-        else
-            root.enable()
+        root.requestActive(!root.active)
+    }
+
+    function finishVerification(): void {
+        root.busy = false
+        if (!root.applyPending)
+            return
+
+        if (root.active === root.requestedActive) {
+            root.applyPending = false
+            root.lastError = ""
+            root.activeApplied(root.active)
+            return
+        }
+
+        root.applyPending = false
+        root.lastError = qsTr("EasyEffects did not reach the requested state")
     }
 
     Process {
@@ -80,12 +118,39 @@ Singleton {
             "pgrep -x easyeffects >/dev/null 2>&1 || "
                 + "{ command -v flatpak >/dev/null 2>&1 && flatpak ps --columns=application 2>/dev/null | grep -Fxq com.github.wwmm.easyeffects; }"
         ]
-        onExited: (exitCode, exitStatus) => root.active = exitCode === 0
+        onExited: (exitCode, exitStatus) => {
+            root.active = exitCode === 0
+            root.finishVerification()
+        }
+    }
+
+    Process {
+        id: actionProcess
+
+        stderr: StdioCollector {
+            onStreamFinished: {
+                const value = String(text ?? "").trim()
+                root.commandError = value.length > 0 ? value.split("\n").pop() : ""
+            }
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode === 0) {
+                verifyTimer.restart()
+                return
+            }
+            root.busy = false
+            root.applyPending = false
+            root.lastError = root.commandError.length > 0
+                ? root.commandError
+                : qsTr("Could not start the EasyEffects action")
+            root.fetchActiveState()
+        }
     }
 
     Timer {
-        id: refreshTimer
-        interval: 700
+        id: verifyTimer
+        interval: 850
         repeat: false
         onTriggered: root.fetchActiveState()
     }
