@@ -102,7 +102,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             contentWidth: width
-            contentHeight: navColumn.implicitHeight
+            contentHeight: navContent.height
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 2600
@@ -118,115 +118,192 @@ Item {
                 }
             }
 
-            Column {
-                id: navColumn
+            Item {
+                id: navContent
                 width: navigation.width
-                spacing: 1
+                height: navColumn.implicitHeight
 
-                Repeater {
-                    model: root.pages
+                readonly property var selectedDelegate: navRepeater.itemAt(root.currentPage)
+                readonly property real selectedY: selectedDelegate
+                    ? selectedDelegate.y + selectedDelegate.height - 34
+                    : 0
 
-                    delegate: Item {
-                        id: navDelegate
-                        required property var modelData
-                        required property int index
-                        readonly property bool firstInGroup: RaohaneSettingsPageRegistry.isFirstInGroup(index)
+                RaohaneSurface {
+                    id: selectionRail
+                    z: 0
+                    x: 0
+                    y: navContent.selectedY
+                    width: navContent.width
+                    height: 34
+                    visible: navContent.selectedDelegate !== null
+                    opacity: visible ? 1 : 0
+                    surfaceRadius: 9
+                    active: true
+                    raised: false
+                    showSheen: false
+                    border.color: RaohaneTheme.accentBorder
 
-                        width: navColumn.width
-                        height: root.compact ? 41 : (firstInGroup ? 54 : 37)
-
-                        Text {
-                            visible: !root.compact && navDelegate.firstInGroup
-                            anchors {
-                                left: parent.left
-                                leftMargin: 9
-                                top: parent.top
-                                topMargin: 7
-                            }
-                            text: navDelegate.modelData.group
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 6
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: 0.85
+                    Rectangle {
+                        anchors {
+                            left: parent.left
+                            verticalCenter: parent.verticalCenter
+                            leftMargin: 2
                         }
+                        width: 2
+                        height: 16
+                        radius: 1
+                        color: RaohaneTheme.accent
+                        opacity: 0.90
+                    }
 
-                        RaohaneSurface {
-                            id: navItem
-                            anchors {
-                                left: parent.left
-                                right: parent.right
-                                bottom: parent.bottom
-                            }
-                            height: 34
-                            surfaceRadius: 9
-                            active: root.currentPage === navDelegate.index
-                            transparentIdle: !active
-                            showSheen: false
-                            interactive: true
-                            hovered: navMouse.containsMouse || activeFocus
-                            pressed: navMouse.pressed
-                            hoverScale: 1
-                            pressedScale: 1
-                            activeFocusOnTab: true
-                            border.color: navItem.active
-                                ? RaohaneTheme.accentBorder
-                                : navItem.hovered
-                                    ? RaohaneTheme.borderStrong
-                                    : RaohaneTheme.borderFaint
+                    Behavior on y {
+                        enabled: RaohaneMotion.transformMotionEnabled
+                        NumberAnimation {
+                            duration: RaohaneMotion.selectionTravel
+                            easing.type: RaohaneMotion.easeEmphasized
+                        }
+                    }
 
-                            Rectangle {
-                                visible: navItem.active
+                    Behavior on opacity {
+                        NumberAnimation { duration: RaohaneMotion.micro }
+                    }
+                }
+
+                Column {
+                    id: navColumn
+                    z: 1
+                    width: navContent.width
+                    spacing: 1
+
+                    Repeater {
+                        id: navRepeater
+                        model: root.pages
+
+                        delegate: Item {
+                            id: navDelegate
+                            required property var modelData
+                            required property int index
+                            readonly property bool firstInGroup: RaohaneSettingsPageRegistry.isFirstInGroup(index)
+                            readonly property bool selected: root.currentPage === navDelegate.index
+
+                            width: navColumn.width
+                            height: root.compact ? 41 : (firstInGroup ? 54 : 37)
+
+                            Text {
+                                visible: !root.compact && navDelegate.firstInGroup
                                 anchors {
                                     left: parent.left
-                                    verticalCenter: parent.verticalCenter
-                                    leftMargin: 2
+                                    leftMargin: 9
+                                    top: parent.top
+                                    topMargin: 7
                                 }
-                                width: 2
-                                height: 16
-                                radius: 1
-                                color: RaohaneTheme.accent
-                                opacity: 0.88
+                                text: navDelegate.modelData.group
+                                color: RaohaneTheme.textFaint
+                                font.pixelSize: 6
+                                font.weight: Font.DemiBold
+                                font.letterSpacing: 0.85
                             }
 
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: root.compact ? 0 : 10
-                                anchors.rightMargin: root.compact ? 0 : 8
-                                spacing: 8
+                            RaohaneSurface {
+                                id: navItem
+                                anchors {
+                                    left: parent.left
+                                    right: parent.right
+                                    bottom: parent.bottom
+                                }
+                                height: 34
+                                surfaceRadius: 9
+                                active: false
+                                transparentIdle: true
+                                showSheen: false
+                                interactive: true
+                                hovered: navMouse.containsMouse || activeFocus
+                                pressed: navMouse.pressed
+                                hoverScale: 1
+                                pressedScale: 1
+                                activeFocusOnTab: true
+                                border.color: navDelegate.selected
+                                    ? "transparent"
+                                    : navItem.hovered
+                                        ? RaohaneTheme.borderStrong
+                                        : "transparent"
 
-                                RaohaneIcon {
-                                    Layout.alignment: root.compact ? Qt.AlignCenter : Qt.AlignVCenter
-                                    text: navDelegate.modelData.icon
-                                    iconSize: 15
-                                    fill: navItem.active ? 1 : navItem.hovered ? 0.30 : 0
-                                    symbolWeight: navItem.active ? 550 : navItem.hovered ? 490 : 420
-                                    color: navItem.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 9
+                                    color: RaohaneTheme.surfaceSubtle
+                                    opacity: !navDelegate.selected && navItem.hovered ? 0.36 : 0
+
+                                    Behavior on opacity {
+                                        NumberAnimation {
+                                            duration: RaohaneMotion.micro
+                                            easing.type: RaohaneMotion.easeStandard
+                                        }
+                                    }
                                 }
 
-                                Text {
-                                    Layout.fillWidth: true
-                                    visible: !root.compact
-                                    text: navDelegate.modelData.name
-                                    color: navItem.active ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                    font.pixelSize: 8
-                                    font.weight: navItem.active ? Font.DemiBold : Font.Normal
-                                    elide: Text.ElideRight
+                                RowLayout {
+                                    id: navRow
+                                    anchors.fill: parent
+                                    anchors.leftMargin: root.compact ? 0 : 10
+                                    anchors.rightMargin: root.compact ? 0 : 8
+                                    spacing: 8
+
+                                    transform: Translate {
+                                        x: navItem.hovered && !navDelegate.selected && RaohaneMotion.transformMotionEnabled ? 2 : 0
+                                        Behavior on x {
+                                            NumberAnimation {
+                                                duration: RaohaneMotion.micro
+                                                easing.type: RaohaneMotion.easeStandard
+                                            }
+                                        }
+                                    }
+
+                                    RaohaneIcon {
+                                        Layout.alignment: root.compact ? Qt.AlignCenter : Qt.AlignVCenter
+                                        text: navDelegate.modelData.icon
+                                        iconSize: 15
+                                        fill: navDelegate.selected ? 1 : navItem.hovered ? 0.30 : 0
+                                        symbolWeight: navDelegate.selected ? 550 : navItem.hovered ? 490 : 420
+                                        color: navDelegate.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                                        Behavior on color {
+                                            ColorAnimation { duration: RaohaneMotion.micro }
+                                        }
+                                        Behavior on fill {
+                                            NumberAnimation { duration: RaohaneMotion.micro }
+                                        }
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        visible: !root.compact
+                                        text: navDelegate.modelData.name
+                                        color: navDelegate.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                        font.pixelSize: 8
+                                        font.weight: navDelegate.selected ? Font.DemiBold : Font.Normal
+                                        elide: Text.ElideRight
+
+                                        Behavior on color {
+                                            ColorAnimation { duration: RaohaneMotion.micro }
+                                        }
+                                    }
                                 }
-                            }
 
-                            MouseArea {
-                                id: navMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onPressed: navItem.forceActiveFocus()
-                                onClicked: root.pageRequested(navDelegate.index)
-                            }
+                                MouseArea {
+                                    id: navMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onPressed: navItem.forceActiveFocus()
+                                    onClicked: root.pageRequested(navDelegate.index)
+                                }
 
-                            Keys.onPressed: event => {
-                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                    root.pageRequested(navDelegate.index)
-                                    event.accepted = true
+                                Keys.onPressed: event => {
+                                    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        root.pageRequested(navDelegate.index)
+                                        event.accepted = true
+                                    }
                                 }
                             }
                         }
@@ -258,6 +335,16 @@ Item {
                 anchors.leftMargin: root.compact ? 6 : 7
                 anchors.rightMargin: 7
                 spacing: 8
+
+                transform: Translate {
+                    x: profileMouse.containsMouse && RaohaneMotion.transformMotionEnabled ? 2 : 0
+                    Behavior on x {
+                        NumberAnimation {
+                            duration: RaohaneMotion.micro
+                            easing.type: RaohaneMotion.easeStandard
+                        }
+                    }
+                }
 
                 RaohaneSurface {
                     Layout.preferredWidth: 32
@@ -315,7 +402,11 @@ Item {
                     visible: !root.compact
                     text: "chevron_right"
                     iconSize: 12
-                    color: RaohaneTheme.textFaint
+                    color: profileMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
+
+                    Behavior on color {
+                        ColorAnimation { duration: RaohaneMotion.micro }
+                    }
                 }
             }
 
