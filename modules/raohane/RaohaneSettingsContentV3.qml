@@ -127,6 +127,7 @@ Item {
                     visible: !root.pageOwnsHeader
                     pageInfo: root.currentPageInfo
                     compact: root.compactNav
+                    direction: root.transitionDirection
                 }
 
                 Item {
