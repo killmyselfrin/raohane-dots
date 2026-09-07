@@ -21,6 +21,12 @@ QtObject {
     readonly property int relaxed: RaohaneTheme.animationSlow
     readonly property int enter: Math.round(RaohaneTheme.animationSlow * 1.08)
 
+    // Small cadence used by Settings and other dense surfaces. Keep the delay
+    // short enough that staggered content still feels immediate rather than
+    // theatrical. It scales with the user's persisted motion preference.
+    readonly property int staggerStep: Math.max(0, Math.round(22 * motionScale))
+    readonly property int selectionTravel: Math.max(1, Math.round(standard * 1.08))
+
     // Compatibility aliases used by larger surfaces. Keeping these aliases here
     // prevents individual components from inventing their own timing language.
     readonly property int shortDuration: micro
