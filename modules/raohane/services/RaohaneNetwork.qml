@@ -24,6 +24,15 @@ Singleton {
     property string lastActionError: ""
     property bool scanWhenEnabled: false
 
+    property bool wifiBusy: false
+    property bool requestedWifiEnabled: false
+    property bool wifiApplyPending: false
+    property bool wifiVerificationReady: false
+    property string wifiToggleError: ""
+    property string wifiCommandError: ""
+
+    signal wifiPowerApplied(bool enabled)
+
     readonly property int minimumRefreshInterval: 1400
     readonly property string wifiStatus: !wifiEnabled
         ? "disabled"
@@ -65,6 +74,21 @@ Singleton {
 
     function probesRunning(): bool {
         return radioProbe.running || deviceProbe.running || wifiProbe.running
+    }
+
+    function finishWifiVerification(): void {
+        if (!root.wifiApplyPending || !root.wifiVerificationReady)
+            return
+
+        root.wifiApplyPending = false
+        root.wifiVerificationReady = false
+        root.wifiBusy = false
+        if (root.wifiEnabled === root.requestedWifiEnabled) {
+            root.wifiToggleError = ""
+            root.wifiPowerApplied(root.wifiEnabled)
+            return
+        }
+        root.wifiToggleError = qsTr("NetworkManager did not apply the requested Wi-Fi radio state")
     }
 
     // Keep the optional force flag untyped for deployed Quickshell compatibility.
@@ -122,8 +146,18 @@ Singleton {
     }
 
     function setWifiEnabled(enabled: bool): void {
-        root.scanWhenEnabled = enabled
-        wifiToggle.exec(["nmcli", "radio", "wifi", enabled ? "on" : "off"])
+        const requested = Boolean(enabled)
+        if (root.wifiBusy || root.wifiEnabled === requested)
+            return
+
+        root.wifiBusy = true
+        root.requestedWifiEnabled = requested
+        root.wifiApplyPending = true
+        root.wifiVerificationReady = false
+        root.wifiToggleError = ""
+        root.wifiCommandError = ""
+        root.scanWhenEnabled = requested
+        wifiToggle.exec(["nmcli", "radio", "wifi", requested ? "on" : "off"])
     }
 
     function toggleWifi(): void {
@@ -149,6 +183,8 @@ Singleton {
                     root.scanWhenEnabled = false
                     scanDelay.restart()
                 }
+
+                root.finishWifiVerification()
             }
         }
         onExited: root.finishProbeCycle()
@@ -309,7 +345,29 @@ Singleton {
     Process {
         id: wifiToggle
         environment: ({ LANG: "C", LC_ALL: "C" })
-        onExited: root.refresh(true)
+
+        stderr: StdioCollector {
+            onStreamFinished: {
+                const value = String(text ?? "").trim()
+                root.wifiCommandError = value.length > 0 ? value.split("\n").pop() : ""
+            }
+        }
+
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode === 0) {
+                root.wifiVerificationReady = true
+                wifiVerifyTimer.restart()
+                return
+            }
+
+            root.wifiApplyPending = false
+            root.wifiVerificationReady = false
+            root.wifiBusy = false
+            root.wifiToggleError = root.wifiCommandError.length > 0
+                ? root.wifiCommandError
+                : qsTr("Could not change the Wi-Fi radio state")
+            root.refresh(true)
+        }
     }
 
     // NetworkManager can emit several monitor lines for one state transition.
@@ -328,6 +386,13 @@ Singleton {
         }
 
         onExited: monitorRestart.restart()
+    }
+
+    Timer {
+        id: wifiVerifyTimer
+        interval: 300
+        repeat: false
+        onTriggered: root.refresh(true)
     }
 
     Timer {
