@@ -17,29 +17,30 @@ Singleton {
     readonly property list<MprisPlayer> players: Mpris.players.values.filter(player => root.acceptPlayer(player))
     readonly property int playerCount: players.length
     readonly property int activePlayerIndex: activePlayer ? players.indexOf(activePlayer) : -1
+    readonly property bool activePlayerKnown: activePlayer !== null && activePlayerIndex >= 0
 
-    readonly property bool available: activePlayer !== null
-    readonly property bool isPlaying: activePlayer?.isPlaying ?? false
-    readonly property bool canTogglePlaying: activePlayer?.canTogglePlaying ?? false
-    readonly property bool canGoPrevious: activePlayer?.canGoPrevious ?? false
-    readonly property bool canGoNext: activePlayer?.canGoNext ?? false
-    readonly property bool canSeek: (activePlayer?.canSeek ?? false) && (activePlayer?.positionSupported ?? false)
-    readonly property bool canRaise: activePlayer?.canRaise ?? false
-    readonly property bool canQuit: activePlayer?.canQuit ?? false
-    readonly property bool volumeSupported: (activePlayer?.volumeSupported ?? false) && (activePlayer?.canControl ?? false)
-    readonly property bool shuffleSupported: (activePlayer?.shuffleSupported ?? false) && (activePlayer?.canControl ?? false)
+    readonly property bool available: activePlayerKnown
+    readonly property bool isPlaying: activePlayerKnown ? (activePlayer?.isPlaying ?? false) : false
+    readonly property bool canTogglePlaying: activePlayerKnown ? (activePlayer?.canTogglePlaying ?? false) : false
+    readonly property bool canGoPrevious: activePlayerKnown ? (activePlayer?.canGoPrevious ?? false) : false
+    readonly property bool canGoNext: activePlayerKnown ? (activePlayer?.canGoNext ?? false) : false
+    readonly property bool canSeek: activePlayerKnown && (activePlayer?.canSeek ?? false) && (activePlayer?.positionSupported ?? false)
+    readonly property bool canRaise: activePlayerKnown ? (activePlayer?.canRaise ?? false) : false
+    readonly property bool canQuit: activePlayerKnown ? (activePlayer?.canQuit ?? false) : false
+    readonly property bool volumeSupported: activePlayerKnown && (activePlayer?.volumeSupported ?? false) && (activePlayer?.canControl ?? false)
+    readonly property bool shuffleSupported: activePlayerKnown && (activePlayer?.shuffleSupported ?? false) && (activePlayer?.canControl ?? false)
 
-    readonly property string title: activePlayer?.trackTitle ?? ""
-    readonly property string artist: activePlayer?.trackArtist ?? ""
-    readonly property string album: activePlayer?.trackAlbum ?? ""
-    readonly property string albumArtist: activePlayer?.trackAlbumArtist ?? ""
-    readonly property string artUrl: activePlayer?.trackArtUrl ?? ""
-    readonly property string playerName: activePlayer?.identity ?? activePlayer?.desktopEntry ?? ""
-    readonly property string desktopEntry: activePlayer?.desktopEntry ?? ""
-    readonly property string dbusName: activePlayer?.dbusName ?? ""
+    readonly property string title: activePlayerKnown ? (activePlayer?.trackTitle ?? "") : ""
+    readonly property string artist: activePlayerKnown ? (activePlayer?.trackArtist ?? "") : ""
+    readonly property string album: activePlayerKnown ? (activePlayer?.trackAlbum ?? "") : ""
+    readonly property string albumArtist: activePlayerKnown ? (activePlayer?.trackAlbumArtist ?? "") : ""
+    readonly property string artUrl: activePlayerKnown ? (activePlayer?.trackArtUrl ?? "") : ""
+    readonly property string playerName: activePlayerKnown ? (activePlayer?.identity ?? activePlayer?.desktopEntry ?? "") : ""
+    readonly property string desktopEntry: activePlayerKnown ? (activePlayer?.desktopEntry ?? "") : ""
+    readonly property string dbusName: activePlayerKnown ? (activePlayer?.dbusName ?? "") : ""
 
     readonly property real position: available ? livePosition : 0
-    readonly property real length: activePlayer?.length ?? 0
+    readonly property real length: activePlayerKnown ? (activePlayer?.length ?? 0) : 0
     readonly property real progress: length > 0 ? Math.max(0, Math.min(1, position / length)) : 0
     readonly property real volume: volumeSupported ? Math.max(0, Math.min(1, activePlayer?.volume ?? 1)) : 1
     readonly property bool shuffle: shuffleSupported ? Boolean(activePlayer?.shuffle ?? false) : false
@@ -131,10 +132,10 @@ Singleton {
     }
 
     function seekSeconds(offset: real): void {
-        if (!root.activePlayer?.canSeek)
+        if (!root.activePlayerKnown || !root.activePlayer?.canSeek)
             return
         root.activePlayer.seek(offset)
-        Qt.callLater(root.refreshPosition)
+        root.livePosition = Math.max(0, root.livePosition + offset)
     }
 
     function setVolume(value: real): void {
@@ -165,12 +166,22 @@ Singleton {
         }
     }
 
+    // Reading MprisPlayer.position asks the remote player for a fresh value.
+    // Do that only at meaningful synchronization points; polling a player that
+    // has just disappeared creates repeated ServiceUnknown D-Bus warnings.
     function refreshPosition(): void {
-        if (!root.activePlayer) {
+        if (!root.activePlayerKnown || !(root.activePlayer?.positionSupported ?? false)) {
             root.livePosition = 0
             return
         }
         root.livePosition = Math.max(0, Number(root.activePlayer.position ?? 0))
+    }
+
+    function advanceLocalPosition(seconds: real): void {
+        if (!root.activePlayerKnown || !root.isPlaying)
+            return
+        const maximum = root.length > 0 ? root.length : Number.POSITIVE_INFINITY
+        root.livePosition = Math.min(maximum, Math.max(0, root.livePosition + seconds))
     }
 
     function formatTime(seconds: real): string {
@@ -181,13 +192,19 @@ Singleton {
     }
 
     onPlayersChanged: Qt.callLater(root.chooseBestPlayer)
-    onActivePlayerChanged: Qt.callLater(root.refreshPosition)
+    onActivePlayerChanged: {
+        if (!root.activePlayerKnown) {
+            root.livePosition = 0
+            return
+        }
+        Qt.callLater(root.refreshPosition)
+    }
 
     Timer {
         interval: 500
         repeat: true
-        running: root.available
-        onTriggered: root.refreshPosition()
+        running: root.activePlayerKnown && root.isPlaying
+        onTriggered: root.advanceLocalPosition(interval / 1000)
     }
 
     Instantiator {
@@ -198,7 +215,13 @@ Singleton {
             target: modelData
 
             Component.onCompleted: root.promote(modelData)
-            Component.onDestruction: Qt.callLater(root.chooseBestPlayer)
+            Component.onDestruction: {
+                if (root.activePlayer === modelData) {
+                    root.activePlayer = null
+                    root.livePosition = 0
+                }
+                Qt.callLater(root.chooseBestPlayer)
+            }
 
             function onPlaybackStateChanged(): void {
                 if (modelData.isPlaying) {
@@ -215,6 +238,11 @@ Singleton {
                     root.activePlayer = modelData
                     Qt.callLater(root.refreshPosition)
                 }
+            }
+
+            function onPositionChanged(): void {
+                if (root.activePlayer === modelData && root.activePlayerKnown)
+                    root.livePosition = Math.max(0, Number(modelData.position ?? root.livePosition))
             }
         }
     }
