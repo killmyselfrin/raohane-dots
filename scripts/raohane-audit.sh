@@ -188,6 +188,10 @@ rg -q '^import Quickshell\.Hyprland$' modules/raohane/RaohaneBar.qml \
   || fail 'native bar lost Hyprland integration'
 
 while IFS= read -r qml; do
+  if rg -q '^[[:space:]]*Singleton[[:space:]]*\{' "$qml"; then
+    rg -q '^import[[:space:]]+Quickshell([[:space:]]|$)' "$qml" \
+      || fail "$qml uses Singleton without importing Quickshell"
+  fi
   if rg -q '\bConnections[[:space:]]*\{' "$qml"; then
     rg -q '^import (QtQuick|QtQml)([[:space:]]|;|$)' "$qml" \
       || fail "$qml uses Connections without QtQuick/QtQml"
