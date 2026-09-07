@@ -121,9 +121,12 @@ Singleton {
         }
     }
 
+    // Keep login/startup warm-up free of network and git work. Manual checks
+    // remain immediate; the automatic check begins only after the shell has had
+    // enough time to settle and the user has started interacting with it.
     Timer {
         id: startupCheck
-        interval: 18000
+        interval: 90000
         repeat: false
         onTriggered: root.checkNow(true)
     }
