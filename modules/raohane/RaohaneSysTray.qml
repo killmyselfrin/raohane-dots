@@ -25,6 +25,7 @@ Item {
                 id: trayButton
 
                 required property SystemTrayItem modelData
+                readonly property var trayItem: modelData ?? null
 
                 Layout.preferredWidth: 27
                 Layout.preferredHeight: 27
@@ -33,7 +34,7 @@ Item {
                 transparentIdle: true
                 hovered: trayMouse.containsMouse
                 pressed: trayMouse.pressed
-                interactive: true
+                interactive: trayItem !== null
                 hoverScale: 1
                 pressedScale: 1
                 showSheen: false
@@ -41,7 +42,7 @@ Item {
 
                 RaohaneAdaptiveIcon {
                     anchors.centerIn: parent
-                    iconSource: String(trayButton.modelData.icon ?? "")
+                    iconSource: String(trayButton.trayItem?.icon ?? "")
                     iconSize: 17
                     fallbackColor: trayButton.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
                     imageScale: trayButton.transformMotionAllowed && trayMouse.pressed ? 0.92 : 1
@@ -53,38 +54,47 @@ Item {
                 }
 
                 function showMenu(): void {
-                    if (!root.parentWindow || !trayButton.modelData.hasMenu)
+                    const item = trayButton.trayItem
+                    if (!root.parentWindow || !item || !item.hasMenu)
                         return
                     const point = trayButton.mapToItem(null, 0, trayButton.height)
-                    trayButton.modelData.display(root.parentWindow, Math.round(point.x), Math.round(point.y))
+                    item.display(root.parentWindow, Math.round(point.x), Math.round(point.y))
                 }
 
                 MouseArea {
                     id: trayMouse
                     anchors.fill: parent
+                    enabled: trayButton.trayItem !== null
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                    cursorShape: Qt.PointingHandCursor
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
                     onClicked: mouse => {
+                        const item = trayButton.trayItem
+                        if (!item)
+                            return
+
                         if (mouse.button === Qt.MiddleButton) {
-                            trayButton.modelData.secondaryActivate()
+                            item.secondaryActivate()
                             return
                         }
 
-                        if (mouse.button === Qt.RightButton || trayButton.modelData.onlyMenu) {
+                        if (mouse.button === Qt.RightButton || item.onlyMenu) {
                             trayButton.showMenu()
                             return
                         }
 
-                        trayButton.modelData.activate()
+                        item.activate()
                     }
 
                     onWheel: wheel => {
+                        const item = trayButton.trayItem
+                        if (!item)
+                            return
                         const delta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.angleDelta.x
                         if (delta === 0)
                             return
-                        trayButton.modelData.scroll(delta, wheel.angleDelta.x !== 0 && wheel.angleDelta.y === 0)
+                        item.scroll(delta, wheel.angleDelta.x !== 0 && wheel.angleDelta.y === 0)
                         wheel.accepted = true
                     }
                 }
