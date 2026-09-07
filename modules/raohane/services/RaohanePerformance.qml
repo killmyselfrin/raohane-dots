@@ -14,15 +14,26 @@ Singleton {
     property bool applyPending: false
     property string lastError: ""
     property string commandError: ""
+    property double lastRefreshMs: 0
+
+    readonly property int minimumRefreshInterval: 6000
 
     signal gameModeApplied(bool enabled)
 
     readonly property string modernGameModeExpression:
         "hl.config({ animations = { enabled = false }, decoration = { shadow = { enabled = false }, blur = { enabled = false }, rounding = 0 }, general = { gaps_in = 0, gaps_out = 0, border_size = 1 } })"
 
-    function refreshGameMode(): void {
+    function refreshGameMode(force): void {
         if (gameModeProbe.running || gameModeCommand.running || legacyGameModeCommand.running)
             return
+
+        const forced = force === true
+        const now = Date.now()
+        if (!forced && root.lastRefreshMs > 0
+                && now - root.lastRefreshMs < root.minimumRefreshInterval)
+            return
+
+        root.lastRefreshMs = now
         root.busy = true
         gameModeProbe.running = true
     }
@@ -176,15 +187,15 @@ Singleton {
         id: settleTimer
         interval: 260
         repeat: false
-        onTriggered: root.refreshGameMode()
+        onTriggered: root.refreshGameMode(true)
     }
 
     Timer {
         id: errorRefreshTimer
         interval: 420
         repeat: false
-        onTriggered: root.refreshGameMode()
+        onTriggered: root.refreshGameMode(true)
     }
 
-    Component.onCompleted: root.refreshGameMode()
+    Component.onCompleted: root.refreshGameMode(true)
 }
