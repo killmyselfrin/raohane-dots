@@ -9,17 +9,33 @@ Singleton {
     id: root
 
     property bool available: false
-    property bool active: false
+    property bool enabled: false
     property bool busy: false
-    property bool requestedActive: false
+    property bool requestedEnabled: false
     property bool applyPending: false
     property string lastError: ""
     property string commandError: ""
+    property double lastRefreshMs: 0
+    property double lastAvailabilityRefreshMs: 0
+
+    readonly property int minimumRefreshInterval: 6000
+    readonly property int availabilityRefreshInterval: 300000
 
     signal activeApplied(bool enabled)
 
-    function refresh(): void {
-        root.fetchAvailability()
+    function refresh(force): void {
+        const forced = force === true
+        const now = Date.now()
+        if (!forced && root.lastRefreshMs > 0
+                && now - root.lastRefreshMs < root.minimumRefreshInterval)
+            return
+
+        root.lastRefreshMs = now
+        if (forced || root.lastAvailabilityRefreshMs === 0
+                || now - root.lastAvailabilityRefreshMs >= root.availabilityRefreshInterval) {
+            root.lastAvailabilityRefreshMs = now
+            root.fetchAvailability()
+        }
         root.fetchActiveState()
     }
 
@@ -155,5 +171,5 @@ Singleton {
         onTriggered: root.fetchActiveState()
     }
 
-    Component.onCompleted: root.refresh()
+    Component.onCompleted: root.refresh(true)
 }
