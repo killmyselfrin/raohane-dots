@@ -24,8 +24,8 @@ RaohaneSurface {
         : root.tileId === "keepAwake" ? RaohaneIdle.inhibit
         : root.tileId === "easyEffects" ? RaohaneEasyEffects.active
         : false
-    readonly property bool tileBusy: (root.tileId === "gameMode" && RaohanePerformance.busy) || (root.tileId === "bluetooth" && RaohaneBluetooth.busy)
-    readonly property bool tileError: (root.tileId === "gameMode" && RaohanePerformance.lastError.length > 0) || (root.tileId === "bluetooth" && RaohaneBluetooth.lastError.length > 0)
+    readonly property bool tileBusy: (root.tileId === "gameMode" && RaohanePerformance.busy) || (root.tileId === "bluetooth" && RaohaneBluetooth.busy) || (root.tileId === "easyEffects" && RaohaneEasyEffects.busy)
+    readonly property bool tileError: (root.tileId === "gameMode" && RaohanePerformance.lastError.length > 0) || (root.tileId === "bluetooth" && RaohaneBluetooth.lastError.length > 0) || (root.tileId === "easyEffects" && RaohaneEasyEffects.lastError.length > 0)
     readonly property bool showMenu: root.tileId === "network"
     readonly property bool menuOpen: root.tileId === "network" && root.pickerMode === "wifi"
     readonly property string currentIcon: root.tileBusy ? "progress_activity"
@@ -48,7 +48,11 @@ RaohaneSurface {
                 ? qsTr("Hyprland rejected the change")
                 : RaohanePerformance.gameModeActive ? qsTr("Low latency") : qsTr("Desktop effects"))
         : root.tileId === "keepAwake" ? (RaohaneIdle.inhibit ? qsTr("Sleep blocked") : qsTr("Normal idle"))
-        : root.tileId === "easyEffects" ? (RaohaneEasyEffects.active ? qsTr("Processing") : qsTr("Bypassed"))
+        : root.tileId === "easyEffects" ? (root.tileBusy
+            ? qsTr("Applying…")
+            : root.tileError
+                ? qsTr("EasyEffects action failed")
+                : RaohaneEasyEffects.active ? qsTr("Processing") : qsTr("Bypassed"))
         : ""
 
     visible: root.available
