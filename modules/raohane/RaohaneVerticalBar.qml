@@ -53,10 +53,18 @@ Scope {
             readonly property bool monitorHasSpecialOpen: (hyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
             readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
+            readonly property bool contentShown: !fullscreenSuppressed && mustShow
             readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
                 && !RaohanePerformance.gameModeActive
 
-            visible: RaohaneState.barOpen && !RaohaneState.screenLocked && !fullscreenSuppressed
+            // Keep the layer-shell surface alive across fullscreen transitions,
+            // matching the horizontal bar. The zero-sized input mask makes the
+            // transparent resident surface click-through while a game is fullscreen.
+            visible: RaohaneState.barOpen && !RaohaneState.screenLocked
+            mask: Region {
+                width: barWindow.fullscreenSuppressed ? 0 : barWindow.width
+                height: barWindow.fullscreenSuppressed ? 0 : barWindow.height
+            }
             exclusiveZone: fullscreenSuppressed
                 ? 0
                 : (autoHide && (!mustShow || !RaohaneConfig.barAutoHidePushWindows))
@@ -108,7 +116,7 @@ Scope {
                 id: barContent
                 width: 62
                 height: parent.height
-                x: barWindow.mustShow ? 5 : -width - 3
+                x: barWindow.contentShown ? 5 : -width - 3
 
                 Behavior on x {
                     enabled: barWindow.surfaceMotionAllowed
@@ -149,7 +157,7 @@ Scope {
                                     orientation: "vertical"
                                     screen: barWindow.screen
                                     parentWindow: barWindow
-                                    hostActive: barWindow.visible
+                                    hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                     showDate: root.showDateConfigured
                                     primaryAction: root.togglePrimarySurface
                                     transientAction: root.toggleTransientSurface
@@ -174,7 +182,7 @@ Scope {
                                     orientation: "vertical"
                                     screen: barWindow.screen
                                     parentWindow: barWindow
-                                    hostActive: barWindow.visible
+                                    hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                     showDate: root.showDateConfigured
                                     primaryAction: root.togglePrimarySurface
                                     transientAction: root.toggleTransientSurface
@@ -199,7 +207,7 @@ Scope {
                                     orientation: "vertical"
                                     screen: barWindow.screen
                                     parentWindow: barWindow
-                                    hostActive: barWindow.visible
+                                    hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                     showDate: root.showDateConfigured
                                     primaryAction: root.togglePrimarySurface
                                     transientAction: root.toggleTransientSurface
