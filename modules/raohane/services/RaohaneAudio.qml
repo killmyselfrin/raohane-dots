@@ -296,9 +296,10 @@ Singleton {
         onTriggered: root.refreshDevices(true)
     }
 
-    // A slow fallback only repairs missed events; normal updates are event driven.
+    // PipeWire events are the normal update path. Keep a slow repair snapshot
+    // for missed events instead of recurring wpctl bursts while the shell idles.
     Timer {
-        interval: 30000
+        interval: 120000
         repeat: true
         running: true
         onTriggered: root.refresh(true)
