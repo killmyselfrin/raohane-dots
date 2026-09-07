@@ -47,12 +47,18 @@ rg -q 'volumeProbe\.exec\(' "$audio" \
   || fail 'audio snapshot no longer uses the dedicated probe process'
 rg -q '"bash",[[:space:]]*"-c"' "$audio" \
   || fail 'audio snapshot/action shell is no longer explicitly non-login'
-rg -q 'minimumRefreshInterval:[[:space:]]*1000' "$audio" \
-  || fail 'audio refresh throttling changed unexpectedly'
+rg -q 'minimumRefreshInterval:[[:space:]]*15000' "$audio" \
+  || fail 'audio UI cache interval changed unexpectedly'
+rg -q 'function onGraphChanged\(\): void' "$audio" \
+  || fail 'audio no longer reacts to shared PipeWire graph events'
+rg -q 'root\.refresh\(true\)' "$audio" \
+  || fail 'authoritative PipeWire events no longer bypass the UI cache'
+rg -q 'interval:[[:space:]]*120000' "$audio" \
+  || fail 'audio lost its slow missed-event repair snapshot'
 
 rg -q 'graphProbe\.exec\(\["pw-dump"\]\)' "$privacy" \
   || fail 'privacy snapshot no longer runs pw-dump directly'
 rg -q 'minimumRefreshInterval:[[:space:]]*1600' "$privacy" \
   || fail 'privacy refresh throttling changed unexpectedly'
 
-printf 'pipewire-probe-performance-audit: one shared graph monitor, throttled audio/privacy probes and self-event suppression are active\n'
+printf 'pipewire-probe-performance-audit: one shared graph monitor, cached event-driven audio, throttled privacy probes and self-event suppression are active\n'
