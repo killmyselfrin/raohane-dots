@@ -17,13 +17,14 @@ Singleton {
         "hl.config({ animations = { enabled = false }, decoration = { shadow = { enabled = false }, blur = { enabled = false }, rounding = 0 }, general = { gaps_in = 0, gaps_out = 0, border_size = 1 } })"
 
     function refreshGameMode(): void {
-        if (gameModeProbe.running)
+        if (gameModeProbe.running || gameModeCommand.running || legacyGameModeCommand.running)
             return
+        root.busy = true
         gameModeProbe.running = true
     }
 
     function setGameMode(enabled: bool): void {
-        if (root.busy || root.gameModeActive === enabled)
+        if (root.busy || gameModeProbe.running || gameModeCommand.running || legacyGameModeCommand.running || root.gameModeActive === enabled)
             return
 
         root.busy = true
@@ -51,7 +52,7 @@ Singleton {
     function commandFailed(message: string): void {
         root.busy = false
         root.lastError = message.length > 0 ? message : qsTr("Hyprland rejected the performance-mode request")
-        root.refreshGameMode()
+        errorRefreshTimer.restart()
     }
 
     Process {
@@ -144,7 +145,14 @@ Singleton {
 
     Timer {
         id: settleTimer
-        interval: 220
+        interval: 260
+        repeat: false
+        onTriggered: root.refreshGameMode()
+    }
+
+    Timer {
+        id: errorRefreshTimer
+        interval: 420
         repeat: false
         onTriggered: root.refreshGameMode()
     }
