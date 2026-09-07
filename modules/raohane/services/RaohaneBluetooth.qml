@@ -18,15 +18,24 @@ Singleton {
     property string lastError: ""
     property string commandError: ""
     property var connectedDevices: []
+    property double lastRefreshMs: 0
 
     readonly property int connectedCount: connectedDevices.length
     readonly property bool connected: connectedCount > 0
     readonly property var firstConnectedDevice: connectedDevices.length > 0 ? connectedDevices[0] : null
     readonly property string firstConnectedName: firstConnectedDevice?.name ?? ""
+    readonly property int minimumRefreshInterval: 15000
 
     signal powerApplied(bool enabled)
 
-    function refresh(): void {
+    function refresh(force): void {
+        const forced = force === true
+        const now = Date.now()
+        if (!forced && root.lastRefreshMs > 0
+                && now - root.lastRefreshMs < root.minimumRefreshInterval)
+            return
+
+        root.lastRefreshMs = now
         if (!adapterProbe.running)
             adapterProbe.exec(["bash", "-lc", "command -v bluetoothctl >/dev/null 2>&1 && bluetoothctl show || true"])
         if (!devicesProbe.running)
@@ -142,7 +151,7 @@ Singleton {
             root.lastError = root.commandError.length > 0
                 ? root.commandError
                 : qsTr("Bluetooth power command failed")
-            root.refresh()
+            root.refresh(true)
         }
     }
 
@@ -169,14 +178,14 @@ Singleton {
         id: verifyPowerTimer
         interval: 260
         repeat: false
-        onTriggered: root.refresh()
+        onTriggered: root.refresh(true)
     }
 
     Timer {
         id: monitorDebounce
         interval: 180
         repeat: false
-        onTriggered: root.refresh()
+        onTriggered: root.refresh(true)
     }
 
     Timer {
@@ -188,13 +197,13 @@ Singleton {
 
     // BlueZ monitor events are the primary update path. Keep only a slow repair
     // snapshot in case a monitor event is lost instead of spawning bluetoothctl
-    // probes every 15 seconds while the shell is otherwise idle.
+    // probes while the shell is otherwise idle.
     Timer {
         interval: 90000
         repeat: true
         running: true
-        onTriggered: root.refresh()
+        onTriggered: root.refresh(true)
     }
 
-    Component.onCompleted: root.refresh()
+    Component.onCompleted: root.refresh(true)
 }
