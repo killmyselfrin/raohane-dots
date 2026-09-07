@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Widgets
 
 import qs.modules.raohane.config
 import qs.modules.raohane.services
@@ -20,6 +19,9 @@ RaohaneSurface {
     readonly property int styleBodyLines: Math.max(1, Math.min(6, Number(styleConfig.notificationBodyLines ?? 4)))
     property int bodyLineLimit: effectiveCompact ? Math.min(2, styleBodyLines) : styleBodyLines
     readonly property bool criticalNotification: notification.urgency === "critical"
+    readonly property string notificationIconSource: String(notification.image ?? "").length > 0
+        ? String(notification.image)
+        : String(notification.appIcon ?? "")
 
     implicitHeight: Math.round(Math.max(effectiveCompact ? 76 : 88, content.implicitHeight + 20) * notificationScale)
     surfaceRadius: Math.round((effectiveCompact ? 11 : 13) * notificationScale)
@@ -71,14 +73,13 @@ RaohaneSurface {
                 border.color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.borderFaint
                 clip: true
 
-                IconImage {
+                RaohaneAdaptiveIcon {
                     id: appIcon
                     anchors.centerIn: parent
-                    implicitSize: root.effectiveCompact ? 18 : 20
-                    source: root.notification.image !== ""
-                        ? root.notification.image
-                        : Quickshell.iconPath(root.notification.appIcon, "")
-                    visible: source !== ""
+                    iconSource: root.notificationIconSource
+                    iconSize: root.effectiveCompact ? 18 : 20
+                    fallbackColor: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.textFaint
+                    visible: root.notificationIconSource.length > 0
                 }
 
                 RaohaneIcon {
