@@ -24,6 +24,7 @@ RaohaneQuickControlTile 1.0 RaohaneQuickControlTile.qml
 RaohaneIcon 1.0 RaohaneIcon.qml
 RaohaneAdaptiveIcon 1.0 RaohaneAdaptiveIcon.qml
 RaohaneSurface 1.0 RaohaneSurface.qml
+RaohaneSakuraOverlay 1.0 RaohaneSakuraOverlay.qml
 RaohaneDivider 1.0 RaohaneDivider.qml
 RaohaneIconButton 1.0 RaohaneIconButton.qml
 RaohaneSlider 1.0 RaohaneSlider.qml
@@ -56,6 +57,7 @@ RaohaneDevicePicker 1.0 RaohaneDevicePicker.qml
 RaohaneNotificationCard 1.0 RaohaneNotificationCard.qml
 RaohaneNotificationCenter 1.0 RaohaneNotificationCenter.qml
 RaohaneSettings 1.0 RaohaneSettings.qml
+RaohaneSakuraSettings 1.0 RaohaneSakuraSettings.qml
 RaohaneDisplaySettings 1.0 RaohaneDisplaySettings.qml
 RaohaneWelcome 1.0 RaohaneWelcome.qml
 RaohaneLanguageWelcome 1.0 RaohaneLanguageWelcome.qml
