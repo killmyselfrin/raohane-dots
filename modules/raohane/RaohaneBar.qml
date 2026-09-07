@@ -72,13 +72,22 @@ Scope {
             readonly property bool monitorHasSpecialOpen: (hyprMonitor?.lastIpcObject?.specialWorkspace?.name ?? "") !== ""
             readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
+            readonly property bool contentShown: !fullscreenSuppressed && mustShow
             readonly property real podScale: Number(root.styleValue("barScale", 1.0))
             readonly property int podHeight: Math.max(38, Math.min(48, Math.round(RaohaneTheme.barHeight * podScale)))
             readonly property int edgeMargin: Math.max(12, Math.round(16 * RaohaneTheme.densityScale))
             readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
                 && !RaohanePerformance.gameModeActive
 
-            visible: RaohaneState.barOpen && !RaohaneState.screenLocked && !fullscreenSuppressed
+            // Keep the layer-shell surface alive across fullscreen transitions.
+            // Hiding/recreating the window itself could leave the bar missing
+            // after games changed fullscreen state. A zero-sized input mask makes
+            // the resident transparent surface fully click-through while hidden.
+            visible: RaohaneState.barOpen && !RaohaneState.screenLocked
+            mask: Region {
+                width: barWindow.fullscreenSuppressed ? 0 : barWindow.width
+                height: barWindow.fullscreenSuppressed ? 0 : barWindow.height
+            }
             exclusiveZone: fullscreenSuppressed
                 ? 0
                 : (autoHide && (!mustShow || !RaohaneConfig.barAutoHidePushWindows))
@@ -130,7 +139,7 @@ Scope {
                 width: parent.width
                 height: 52
                 y: {
-                    if (barWindow.mustShow)
+                    if (barWindow.contentShown)
                         return RaohaneConfig.barBottom ? barWindow.height - height - 6 : 6
                     return RaohaneConfig.barBottom ? barWindow.height + 2 : -height - 4
                 }
@@ -178,7 +187,7 @@ Scope {
                                 moduleId: String(modelData)
                                 screen: barWindow.screen
                                 parentWindow: barWindow
-                                hostActive: barWindow.visible
+                                hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                 showDate: root.showDateConfigured
                                 primaryAction: root.togglePrimarySurface
                                 transientAction: root.toggleTransientSurface
@@ -203,7 +212,7 @@ Scope {
                             moduleId: String(modelData)
                             screen: barWindow.screen
                             parentWindow: barWindow
-                            hostActive: barWindow.visible
+                            hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                             showDate: root.showDateConfigured
                             primaryAction: root.togglePrimarySurface
                             transientAction: root.toggleTransientSurface
@@ -247,7 +256,7 @@ Scope {
                                 moduleId: String(modelData)
                                 screen: barWindow.screen
                                 parentWindow: barWindow
-                                hostActive: barWindow.visible
+                                hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                 showDate: root.showDateConfigured
                                 primaryAction: root.togglePrimarySurface
                                 transientAction: root.toggleTransientSurface
