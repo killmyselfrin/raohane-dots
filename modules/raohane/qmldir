@@ -70,6 +70,7 @@ RaohaneSettingsSectionPage 1.0 RaohaneSettingsSectionPage.qml
 RaohaneSettingsControlRow 1.0 RaohaneSettingsControlRow.qml
 RaohaneSettingsPreferences 1.0 RaohaneSettingsPreferences.qml
 RaohaneSettingsLanguage 1.0 RaohaneSettingsLanguage.qml
+RaohaneSettingsGraphics 1.0 RaohaneSettingsGraphics.qml
 RaohaneSettingsHome 1.0 RaohaneSettingsHome.qml
 RaohaneStyleProfiles 1.0 RaohaneStyleProfiles.qml
 RaohaneWidgetStudio 1.0 RaohaneWidgetStudio.qml
