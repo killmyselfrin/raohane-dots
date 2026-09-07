@@ -18,6 +18,16 @@ QtObject {
         quick: {
             source: "RaohaneQuickControlsStudio.qml",
             controlKeys: ["quickControlTiles"]
+        },
+        interface: {
+            source: "RaohaneSakuraSettings.qml",
+            controlKeys: [
+                "sakuraEnabled",
+                "sakuraInSettings",
+                "sakuraInControlCenter",
+                "sakuraIntensity",
+                "sakuraSpeed"
+            ]
         }
     })
 
