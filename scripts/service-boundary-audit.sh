@@ -16,6 +16,7 @@ FAMILY=panelFamilies/RaohaneFamily.qml
 SEARCH="$MODULE/RaohaneSearch.qml"
 SESSION="$MODULE/RaohaneSession.qml"
 PROCESSES="$MODULE/RaohaneProcesses.qml"
+PROCESS_SNAPSHOT=scripts/process-snapshot.py
 TASK_MANAGER=modules/raohane/RaohaneTaskManager.qml
 AUDIO="$MODULE/RaohaneAudio.qml"
 PIPEWIRE="$MODULE/RaohanePipeWire.qml"
@@ -32,7 +33,7 @@ REQUIRED=install/arch/required.txt
 
 for path in \
   "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" \
-  "$SEARCH" "$SESSION" "$PROCESSES" "$TASK_MANAGER" "$AUDIO" "$PIPEWIRE" "$EASY_EFFECTS" "$PERFORMANCE" \
+  "$SEARCH" "$SESSION" "$PROCESSES" "$PROCESS_SNAPSHOT" "$TASK_MANAGER" "$AUDIO" "$PIPEWIRE" "$EASY_EFFECTS" "$PERFORMANCE" \
   "$CONTROL_CENTER" "$QUICK_CONTROLS" "$QUICK_TILE" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" \
   "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
@@ -67,7 +68,7 @@ require_service RaohaneSession 'hyprctl.*dispatch.*exit'
 require_service RaohaneSessionWarnings 'pacman|/var/lib/pacman/db\.lck'
 require_service RaohaneSystemInfo '/etc/os-release'
 require_service RaohaneSearch 'DesktopEntries'
-require_service RaohaneProcesses '/proc/meminfo|ps -u'
+require_service RaohaneProcesses 'process-snapshot\.py'
 require_service RaohaneIdle 'IdleInhibitor'
 require_service RaohaneEasyEffects 'easyeffects'
 require_service RaohanePerformance '\bhyprctl\b'
@@ -79,31 +80,47 @@ for package in bluez-utils brightnessctl ddcutil hyprsunset easyeffects ydotool 
   rg -q "^${package}$" "$FEATURES" \
     || fail "native service/backend package missing from feature manifest: $package"
 done
-rg -q '^procps-ng$' "$REQUIRED" \
-  || fail 'native Task Manager requires procps-ng in the required manifest'
 if rg -q '^btop$' "$FEATURES"; then
   fail 'retired external Task Manager dependency btop is still required by the feature manifest'
 fi
 
-# Native Task Manager: process collection is on-demand, UI refreshes only while
-# visible, Session opens the native surface by default, and destructive actions
-# require an explicit second press in the UI.
+# Native Task Manager: the QML service launches a low-overhead Python helper
+# which samples procfs directly. It intentionally keeps qs/quickshell visible so
+# the Task Manager can diagnose Raohane itself, and never spawns ps/procps for a
+# snapshot. Collection remains on-demand and destructive actions stay explicit.
 rg -q '^singleton RaohaneProcesses .*RaohaneProcesses.qml$' "$QMLDIR" \
   || fail 'RaohaneProcesses is not registered in native services'
 for contract in \
-  '/proc/meminfo' \
-  'ps -u' \
+  'process-snapshot\.py' \
   'property var processes:' \
+  'property bool busy:' \
+  'readonly property int minimumRefreshInterval:' \
   'function refresh\(\): void' \
   'function terminate\(pids\): void' \
-  'function forceKill\(pids\): void' \
-  '\$8 != \\"quickshell\\"' \
-  '\$8 != \\"qs\\"'; do
+  'function forceKill\(pids\): void'; do
   rg -q "$contract" "$PROCESSES" || fail "native process service lost contract: $contract"
 done
+for contract in \
+  'PROC = Path\("/proc"\)' \
+  'SELF_PID = os\.getpid\(\)' \
+  'SAMPLE_INTERVAL = 0\.22' \
+  'def read_cpu_baseline\(' \
+  'def read_process\(' \
+  'cpu_percent = \(delta_ticks / CLK_TCK\) / wall_seconds \* 100\.0'; do
+  rg -q "$contract" "$PROCESS_SNAPSHOT" || fail "procfs snapshot helper lost contract: $contract"
+done
+if rg -n '\bps[[:space:]]+-|subprocess.*\bps\b|command:[[:space:]]*\[[^]]*"ps"' "$PROCESSES" "$PROCESS_SNAPSHOT"; then
+  fail 'native Task Manager regressed to procps process-table collection'
+fi
 if rg -n 'Timer[[:space:]]*\{[^}]*repeat:[[:space:]]*true' "$PROCESSES"; then
   fail 'process service contains permanent background polling'
 fi
+python3 - "$PROCESS_SNAPSHOT" <<'PY'
+import pathlib
+import sys
+path = pathlib.Path(sys.argv[1])
+compile(path.read_text(encoding="utf-8"), str(path), "exec")
+PY
 
 for contract in \
   'RaohaneProcesses\.' \
@@ -335,4 +352,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, on-demand Task Manager, shared event-driven PipeWire monitoring, registry-backed Quick Controls, verified EasyEffects/Game Mode actions, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, procfs Task Manager, shared event-driven PipeWire monitoring, registry-backed Quick Controls, verified EasyEffects/Game Mode actions, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
