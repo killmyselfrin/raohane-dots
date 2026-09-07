@@ -41,6 +41,28 @@ Scope {
                 open: RaohaneState.controlCenterOpen,
                 dnd: RaohaneNotifications.silent
             },
+            quickControls: {
+                wifi: {
+                    enabled: RaohaneNetwork.wifiEnabled,
+                    connected: RaohaneNetwork.wifiConnected,
+                    busy: RaohaneNetwork.wifiBusy,
+                    error: RaohaneNetwork.wifiToggleError
+                },
+                bluetooth: {
+                    available: RaohaneBluetooth.available,
+                    enabled: RaohaneBluetooth.enabled,
+                    connected: RaohaneBluetooth.connected,
+                    busy: RaohaneBluetooth.busy,
+                    error: RaohaneBluetooth.lastError
+                },
+                easyEffects: {
+                    available: RaohaneEasyEffects.available,
+                    active: RaohaneEasyEffects.active,
+                    busy: RaohaneEasyEffects.busy,
+                    error: RaohaneEasyEffects.lastError
+                },
+                keepAwake: RaohaneIdle.inhibit
+            },
             performance: {
                 gameMode: RaohanePerformance.gameModeActive,
                 busy: RaohanePerformance.busy,
