@@ -2,14 +2,16 @@
 """Low-overhead /proc process snapshot for the native Raohane Task Manager.
 
 The helper intentionally avoids procps/ps so opening Task Manager does not create
-short-lived `ps` processes that can report misleadingly high lifetime CPU usage.
-It emits the tab-separated format consumed by RaohaneProcesses.qml.
+short-lived `ps` processes that can report misleadingly high CPU usage. CPU is
+sampled from /proc twice over a short interval so the UI reports current usage,
+not a process's lifetime average.
 """
 
 from __future__ import annotations
 
 import os
 import pwd
+import time
 from pathlib import Path
 
 PROC = Path("/proc")
@@ -17,6 +19,7 @@ SELF_PID = os.getpid()
 UID = os.getuid()
 USERNAME = pwd.getpwuid(UID).pw_name
 CLK_TCK = float(os.sysconf(os.sysconf_names["SC_CLK_TCK"]))
+SAMPLE_INTERVAL = 0.22
 
 
 def read_memory() -> tuple[float, float]:
@@ -46,6 +49,17 @@ def read_uptime() -> float:
         return 0.0
 
 
+def read_uid(pid_path: Path) -> int | None:
+    try:
+        with (pid_path / "status").open("r", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("Uid:"):
+                    return int(line.split()[1])
+    except (OSError, ValueError, IndexError):
+        return None
+    return None
+
+
 def read_status(pid_path: Path) -> tuple[int, float] | None:
     uid = -1
     rss_kib = 0.0
@@ -66,19 +80,7 @@ def read_status(pid_path: Path) -> tuple[int, float] | None:
     return uid, rss_kib
 
 
-def read_process(pid_path: Path, uptime: float, total_mib: float):
-    try:
-        pid = int(pid_path.name)
-    except ValueError:
-        return None
-    if pid <= 1 or pid == SELF_PID:
-        return None
-
-    status = read_status(pid_path)
-    if status is None:
-        return None
-    _, rss_kib = status
-
+def read_stat(pid_path: Path):
     try:
         stat_line = (pid_path / "stat").read_text(encoding="utf-8", errors="replace")
     except OSError:
@@ -95,9 +97,6 @@ def read_process(pid_path: Path, uptime: float, total_mib: float):
     if len(fields) < 20:
         return None
 
-    if command in {"quickshell", "qs"}:
-        return None
-
     try:
         ppid = int(fields[1])
         utime_ticks = float(fields[11])
@@ -106,9 +105,79 @@ def read_process(pid_path: Path, uptime: float, total_mib: float):
     except (ValueError, IndexError):
         return None
 
+    return command, ppid, utime_ticks + stime_ticks, start_ticks
+
+
+def read_cpu_baseline() -> dict[int, tuple[float, float, float]]:
+    baseline: dict[int, tuple[float, float, float]] = {}
+    try:
+        entries = PROC.iterdir()
+    except OSError:
+        return baseline
+
+    for pid_path in entries:
+        if not pid_path.name.isdigit():
+            continue
+        try:
+            pid = int(pid_path.name)
+        except ValueError:
+            continue
+        if pid <= 1 or pid == SELF_PID:
+            continue
+        if read_uid(pid_path) != UID:
+            continue
+
+        stat = read_stat(pid_path)
+        if stat is None:
+            continue
+        command, _ppid, cpu_ticks, start_ticks = stat
+        if command in {"quickshell", "qs"}:
+            continue
+
+        # Keep a per-process timestamp so scan time does not skew CPU values.
+        baseline[pid] = (start_ticks, cpu_ticks, time.monotonic())
+
+    return baseline
+
+
+def read_process(
+    pid_path: Path,
+    uptime: float,
+    total_mib: float,
+    baseline: dict[int, tuple[float, float, float]],
+):
+    try:
+        pid = int(pid_path.name)
+    except ValueError:
+        return None
+    if pid <= 1 or pid == SELF_PID:
+        return None
+
+    status = read_status(pid_path)
+    if status is None:
+        return None
+    _, rss_kib = status
+
+    stat = read_stat(pid_path)
+    if stat is None:
+        return None
+    command, ppid, cpu_ticks, start_ticks = stat
+    if command in {"quickshell", "qs"}:
+        return None
+
+    sample_time = time.monotonic()
+    previous = baseline.get(pid)
+    cpu_percent = 0.0
+    if previous is not None:
+        previous_start, previous_ticks, previous_time = previous
+        # starttime also protects against PID reuse between the two samples.
+        if previous_start == start_ticks:
+            wall_seconds = sample_time - previous_time
+            delta_ticks = max(0.0, cpu_ticks - previous_ticks)
+            if wall_seconds > 0.01:
+                cpu_percent = (delta_ticks / CLK_TCK) / wall_seconds * 100.0
+
     elapsed = max(0.0, uptime - (start_ticks / CLK_TCK)) if uptime > 0 else 0.0
-    cpu_seconds = (utime_ticks + stime_ticks) / CLK_TCK
-    cpu_percent = (cpu_seconds / elapsed * 100.0) if elapsed > 0.05 else 0.0
     rss_mib = max(0.0, rss_kib / 1024.0)
     memory_percent = (rss_mib / total_mib * 100.0) if total_mib > 0 else 0.0
 
@@ -125,6 +194,9 @@ def read_process(pid_path: Path, uptime: float, total_mib: float):
 
 
 def main() -> int:
+    baseline = read_cpu_baseline()
+    time.sleep(SAMPLE_INTERVAL)
+
     used_mib, total_mib = read_memory()
     try:
         load_one = float(os.getloadavg()[0])
@@ -144,7 +216,7 @@ def main() -> int:
     for pid_path in entries:
         if not pid_path.name.isdigit():
             continue
-        row = read_process(pid_path, uptime, total_mib)
+        row = read_process(pid_path, uptime, total_mib, baseline)
         if row is not None:
             rows.append(row)
 
