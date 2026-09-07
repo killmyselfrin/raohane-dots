@@ -29,30 +29,47 @@ Singleton {
     property string packages: ""
     property string installAge: ""
     property string kernelVersion: ""
+    property double lastRefreshMs: 0
 
-    function refresh(): void {
-        cpuProbe.running = false
-        gpuProbe.running = false
-        memoryProbe.running = false
-        diskProbe.running = false
-        shellProbe.running = false
-        packageProbe.running = false
-        installAgeProbe.running = false
-        kernelProbe.running = false
+    readonly property int minimumRefreshInterval: 30000
 
-        cpuProbe.running = true
-        gpuProbe.running = true
-        memoryProbe.running = true
-        diskProbe.running = true
-        shellProbe.running = true
-        packageProbe.running = true
-        installAgeProbe.running = true
-        kernelProbe.running = true
+    function refresh(force): void {
+        if (systemProbe.running)
+            return
+
+        const forced = force === true
+        const now = Date.now()
+        if (!forced && root.lastRefreshMs > 0
+                && now - root.lastRefreshMs < root.minimumRefreshInterval)
+            return
+
+        root.lastRefreshMs = now
+        systemProbe.running = true
     }
 
     function refreshHostname(): void {
-        hostnameProbe.running = false
-        hostnameProbe.running = true
+        if (!hostnameProbe.running)
+            hostnameProbe.running = true
+    }
+
+    function applySnapshot(text: string): void {
+        for (const rawLine of String(text ?? "").split("\n")) {
+            const tab = rawLine.indexOf("\t")
+            if (tab <= 0)
+                continue
+            const key = rawLine.slice(0, tab)
+            const value = rawLine.slice(tab + 1).trim()
+            switch (key) {
+            case "CPU": root.cpu = value; break
+            case "GPU": root.gpu = value; break
+            case "MEMORY": root.memory = value; break
+            case "DISK": root.disk = value; break
+            case "SHELL": root.shell = value; break
+            case "PACKAGES": root.packages = value; break
+            case "INSTALL_AGE": root.installAge = value; break
+            case "KERNEL": root.kernelVersion = value; break
+            }
+        }
     }
 
     function readOsRelease(): void {
@@ -116,56 +133,32 @@ Singleton {
         stdout: SplitParser { onRead: data => root.hostname = data.trim() }
     }
 
+    // Static/about information is collected in one shell transaction instead
+    // of spawning eight concurrent processes whenever About requests a refresh.
     Process {
-        id: cpuProbe
-        command: ["bash", "-lc", "awk -F: '/model name/ {gsub(/^ +/, \"\", $2); print $2; exit}' /proc/cpuinfo"]
-        stdout: SplitParser { onRead: data => root.cpu = data.trim() }
-    }
-
-    Process {
-        id: gpuProbe
-        command: ["bash", "-lc", "lspci 2>/dev/null | grep -Ei 'vga|3d|display' | head -1 | sed -E 's/^[^:]+: //; s/ \\(rev [^)]+\\)//; s/NVIDIA Corporation //; s/Advanced Micro Devices, Inc. \\[AMD\\/ATI\\] //; s/Intel Corporation //' "]
-        stdout: SplitParser { onRead: data => root.gpu = data.trim() }
-    }
-
-    Process {
-        id: memoryProbe
-        command: ["bash", "-lc", "LC_ALL=C free -h | awk '/^Mem:/ {print $3 \" / \" $2}'"]
-        stdout: SplitParser { onRead: data => root.memory = data.trim() }
-    }
-
-    Process {
-        id: diskProbe
-        command: ["bash", "-lc", "df -h / | awk 'NR==2 {print $3 \" / \" $2}'"]
-        stdout: SplitParser { onRead: data => root.disk = data.trim() }
-    }
-
-    Process {
-        id: shellProbe
-        command: ["bash", "-lc", "basename \"${SHELL:-bash}\""]
-        stdout: SplitParser { onRead: data => root.shell = data.trim() }
-    }
-
-    Process {
-        id: packageProbe
-        command: ["bash", "-lc", "pacman_count=$(pacman -Q 2>/dev/null | wc -l); flatpak_count=$(flatpak list 2>/dev/null | wc -l || true); if [ \"${flatpak_count:-0}\" -gt 0 ]; then printf '%s pacman, %s flatpak\\n' \"$pacman_count\" \"$flatpak_count\"; else printf '%s pacman\\n' \"$pacman_count\"; fi"]
-        stdout: SplitParser { onRead: data => root.packages = data.trim() }
-    }
-
-    Process {
-        id: installAgeProbe
-        command: ["bash", "-lc", "birth=$(stat -c %W / 2>/dev/null || echo 0); if [ \"$birth\" -le 0 ]; then birth=$(stat -c %Y /); fi; echo $((($(date +%s) - birth) / 86400)) days"]
-        stdout: SplitParser { onRead: data => root.installAge = data.trim() }
-    }
-
-    Process {
-        id: kernelProbe
-        command: ["uname", "-r"]
-        stdout: SplitParser { onRead: data => root.kernelVersion = data.trim() }
+        id: systemProbe
+        command: [
+            "bash", "-lc",
+            "cpu=$(awk -F: '/model name/ {gsub(/^ +/, \"\", $2); print $2; exit}' /proc/cpuinfo); "
+                + "gpu=$(lspci 2>/dev/null | grep -Ei 'vga|3d|display' | head -1 | sed -E 's/^[^:]+: //; s/ \\(rev [^)]+\\)//; s/NVIDIA Corporation //; s/Advanced Micro Devices, Inc. \\[AMD\\/ATI\\] //; s/Intel Corporation //'); "
+                + "memory=$(LC_ALL=C free -h | awk '/^Mem:/ {print $3 \" / \" $2}'); "
+                + "disk=$(df -h / | awk 'NR==2 {print $3 \" / \" $2}'); "
+                + "shell=$(basename \"${SHELL:-bash}\"); "
+                + "pacman_count=$(pacman -Q 2>/dev/null | wc -l); "
+                + "flatpak_count=$(flatpak list 2>/dev/null | wc -l || true); "
+                + "if [ \"${flatpak_count:-0}\" -gt 0 ]; then packages=\"$pacman_count pacman, $flatpak_count flatpak\"; else packages=\"$pacman_count pacman\"; fi; "
+                + "birth=$(stat -c %W / 2>/dev/null || echo 0); [ \"$birth\" -gt 0 ] || birth=$(stat -c %Y /); install_age=$((($(date +%s) - birth) / 86400)); "
+                + "kernel=$(uname -r); "
+                + "printf 'CPU\\t%s\\nGPU\\t%s\\nMEMORY\\t%s\\nDISK\\t%s\\nSHELL\\t%s\\nPACKAGES\\t%s\\nINSTALL_AGE\\t%s days\\nKERNEL\\t%s\\n' \"$cpu\" \"$gpu\" \"$memory\" \"$disk\" \"$shell\" \"$packages\" \"$install_age\" \"$kernel\""
+        ]
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        stdout: StdioCollector {
+            onStreamFinished: root.applySnapshot(text)
+        }
     }
 
     Component.onCompleted: {
         osRelease.reload()
-        root.refresh()
+        root.refresh(true)
     }
 }
