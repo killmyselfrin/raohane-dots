@@ -11,6 +11,7 @@ Item {
 
     property var screen
     property string pickerMode: ""
+    property int tileColumns: 2
     readonly property bool pickerOpen: root.pickerMode.length > 0
     readonly property var brightnessMonitor: RaohaneDisplay.getMonitorForScreen(screen)
     readonly property real brightnessValue: RaohaneDisplay.compositeValue(screen)
@@ -38,7 +39,7 @@ Item {
             id: toggleGrid
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            columns: 2
+            columns: Math.max(1, root.tileColumns)
             columnSpacing: 7
             rowSpacing: 7
 
@@ -59,11 +60,27 @@ Item {
         RaohaneSurface {
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 12 : 0
+            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 14 : 0
             surfaceRadius: 15
             raised: false
             showSheen: false
             border.color: RaohaneTheme.borderFaint
+            clip: true
+
+            Rectangle {
+                anchors {
+                    left: parent.left
+                    top: parent.top
+                    bottom: parent.bottom
+                    leftMargin: 1
+                    topMargin: 14
+                    bottomMargin: 14
+                }
+                width: 2
+                radius: 1
+                color: RaohaneTheme.accent
+                opacity: 0.34
+            }
 
             ColumnLayout {
                 id: sliderStack
@@ -71,8 +88,8 @@ Item {
                     left: parent.left
                     right: parent.right
                     verticalCenter: parent.verticalCenter
-                    leftMargin: 5
-                    rightMargin: 5
+                    leftMargin: 7
+                    rightMargin: 7
                 }
                 spacing: 1
 
@@ -84,6 +101,7 @@ Item {
                     displayText: RaohaneDisplay.gamma === 100
                         ? Math.round((root.brightnessMonitor?.brightness ?? 0.5) * 100) + "%"
                         : Math.round(RaohaneDisplay.gamma) + "%"
+                    contextText: root.brightnessMonitor?.name ?? ""
                     liveValue: root.brightnessValue
                     onValueChangedByUser: value => RaohaneDisplay.setComposite(root.screen, value)
                 }
@@ -94,6 +112,7 @@ Item {
                     icon: RaohaneAudio.muted ? "volume_off" : "volume_up"
                     title: qsTr("Volume")
                     displayText: Math.round(RaohaneAudio.volume * 100) + "%"
+                    contextText: RaohaneAudio.sinkName
                     liveValue: RaohaneAudio.volume
                     pickerEnabled: true
                     pickerActive: root.pickerMode === "output"
@@ -108,6 +127,7 @@ Item {
                     icon: RaohaneAudio.microphoneMuted ? "mic_off" : "mic"
                     title: qsTr("Microphone")
                     displayText: Math.round(RaohaneAudio.microphoneVolume * 100) + "%"
+                    contextText: RaohaneAudio.sourceName
                     liveValue: RaohaneAudio.microphoneVolume
                     pickerEnabled: true
                     pickerActive: root.pickerMode === "input"
@@ -132,6 +152,7 @@ Item {
         required property string icon
         required property string title
         property string displayText: ""
+        property string contextText: ""
         property real liveValue: 0
         property bool pickerEnabled: false
         property bool pickerActive: false
@@ -143,7 +164,7 @@ Item {
         readonly property bool rowHovered: valueSlider.hovered || iconButton.hovered || iconButton.activeFocus
             || (control.pickerEnabled && pickerButton.hovered)
 
-        implicitHeight: 41
+        implicitHeight: 43
 
         Rectangle {
             anchors.fill: parent
@@ -165,7 +186,7 @@ Item {
             RaohaneIconButton {
                 id: iconButton
                 Layout.alignment: Qt.AlignVCenter
-                buttonSize: 28
+                buttonSize: 29
                 iconSize: 14
                 icon: control.icon
                 emphasized: control.rowHovered && !control.pickerActive
@@ -175,25 +196,38 @@ Item {
             }
 
             ColumnLayout {
-                Layout.preferredWidth: 72
+                Layout.preferredWidth: 132
                 Layout.alignment: Qt.AlignVCenter
-                spacing: 0
+                spacing: -1
 
-                Text {
+                RowLayout {
                     Layout.fillWidth: true
-                    text: control.title
-                    color: control.pickerActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    font.pixelSize: 8
-                    font.weight: Font.Medium
-                    elide: Text.ElideRight
+                    spacing: 5
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: control.title
+                        color: control.pickerActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                        font.weight: Font.Medium
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        text: control.displayText
+                        color: control.rowHovered || control.pickerActive ? RaohaneTheme.text : RaohaneTheme.textFaint
+                        font.pixelSize: 7
+                        font.weight: Font.DemiBold
+                    }
                 }
 
                 Text {
                     Layout.fillWidth: true
-                    text: control.displayText
-                    color: control.rowHovered ? RaohaneTheme.text : RaohaneTheme.textFaint
-                    font.pixelSize: 7
-                    font.weight: Font.DemiBold
+                    visible: control.contextText.length > 0
+                    text: control.contextText
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 6
+                    elide: Text.ElideRight
                 }
             }
 
@@ -214,9 +248,9 @@ Item {
             RaohaneIconButton {
                 id: pickerButton
                 visible: control.pickerEnabled
-                Layout.preferredWidth: control.pickerEnabled ? 22 : 0
-                Layout.preferredHeight: 22
-                buttonSize: 22
+                Layout.preferredWidth: control.pickerEnabled ? 24 : 0
+                Layout.preferredHeight: 24
+                buttonSize: 24
                 iconSize: 11
                 icon: "expand_more"
                 emphasized: control.pickerActive
