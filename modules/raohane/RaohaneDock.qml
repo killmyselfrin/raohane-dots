@@ -14,6 +14,8 @@ Scope {
     id: root
 
     property bool forcedOpen: false
+    readonly property var dockPinnedApps: Array.from(RaohaneConfig.dockPinnedApps ?? []).map(value => String(value))
+    readonly property var dockPinnedKeys: root.dockPinnedApps.map(value => value.toLowerCase())
 
     function styleValue(key: string, fallback): var {
         const style = RaohaneConfig.style
@@ -35,8 +37,7 @@ Scope {
     }
 
     function isPinned(appId: string): bool {
-        const needle = (appId ?? "").toLowerCase()
-        return Array.from(RaohaneConfig.dockPinnedApps ?? []).some(id => String(id).toLowerCase() === needle)
+        return root.dockPinnedKeys.includes(String(appId ?? "").toLowerCase())
     }
 
     function togglePin(appId: string): void {
@@ -96,14 +97,10 @@ Scope {
 
             property bool hoverLatched: false
             readonly property HyprlandMonitor monitor: Hyprland.monitorFor(modelData)
-            readonly property list<HyprlandWorkspace> monitorWorkspaces: Hyprland.workspaces.values.filter(workspace =>
-                workspace.monitor && dockWindow.monitor
-                && workspace.monitor.name === dockWindow.monitor.name
-            )
-            readonly property bool fullscreenActive: monitorWorkspaces.some(workspace =>
-                workspace.active
-                && workspace.toplevels.values.some(window => window.wayland?.fullscreen)
-            )
+            // Hyprland already tracks fullscreen state on the active workspace.
+            // Avoid filtering every workspace and every toplevel whenever the
+            // compositor model changes.
+            readonly property bool fullscreenActive: dockWindow.monitor?.activeWorkspace?.hasFullscreen ?? false
             readonly property var liveToplevels: ToplevelManager.toplevels.values.filter(toplevel => {
                 const title = String(toplevel.title ?? "")
                 return !title.toLowerCase().startsWith("quickshell")
@@ -115,31 +112,36 @@ Scope {
                     const appId = String(toplevel.appId ?? "")
                     if (!appId.length)
                         continue
+                    const key = appId.toLowerCase()
 
-                    if (!apps.has(appId)) {
+                    if (!apps.has(key)) {
                         const entry = root.appEntry(appId)
-                        apps.set(appId, {
+                        apps.set(key, {
                             id: appId,
                             name: entry?.name ?? toplevel.title ?? appId,
                             icon: root.iconName(appId, entry),
                             desktopEntry: entry,
                             windows: [toplevel],
                             running: true,
-                            pinned: root.isPinned(appId)
+                            pinned: root.dockPinnedKeys.includes(key)
                         })
                     } else {
-                        apps.get(appId).windows.push(toplevel)
+                        apps.get(key).windows.push(toplevel)
                     }
                 }
                 return Array.from(apps.values())
             }
             readonly property var appModel: {
                 const result = []
-                const pinnedIds = Array.from(RaohaneConfig.dockPinnedApps ?? [])
+                const runningByKey = new Map()
+                for (const running of dockWindow.runningApps)
+                    runningByKey.set(String(running.id ?? "").toLowerCase(), running)
+                const pinnedKeySet = new Set(root.dockPinnedKeys)
 
-                for (const pinnedValue of pinnedIds) {
-                    const pinnedId = String(pinnedValue)
-                    const running = dockWindow.runningApps.find(app => app.id.toLowerCase() === pinnedId.toLowerCase())
+                for (let index = 0; index < root.dockPinnedApps.length; index += 1) {
+                    const pinnedId = root.dockPinnedApps[index]
+                    const pinnedKey = root.dockPinnedKeys[index]
+                    const running = runningByKey.get(pinnedKey)
                     if (running) {
                         result.push({
                             id: running.id,
@@ -166,7 +168,7 @@ Scope {
                 }
 
                 for (const running of dockWindow.runningApps) {
-                    if (pinnedIds.some(id => String(id).toLowerCase() === running.id.toLowerCase()))
+                    if (pinnedKeySet.has(String(running.id ?? "").toLowerCase()))
                         continue
                     result.push({
                         id: running.id,
