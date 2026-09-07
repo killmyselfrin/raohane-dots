@@ -23,7 +23,10 @@ Singleton {
     property var inputDevices: []
     property bool devicesRefreshing: false
 
-    readonly property int minimumRefreshInterval: 1000
+    // UI surfaces may request a snapshot when opened, but PipeWire events are
+    // authoritative. Keep recent state cached so repeated panel opens do not
+    // launch wpctl again while real graph changes still refresh immediately.
+    readonly property int minimumRefreshInterval: 15000
     readonly property int selfEventGuardInterval: 1300
     readonly property var outputStreams: []
     readonly property var inputStreams: []
@@ -261,7 +264,7 @@ Singleton {
         target: RaohanePipeWire
 
         function onGraphChanged(): void {
-            root.refresh()
+            root.refresh(true)
         }
     }
 
