@@ -186,8 +186,11 @@ Singleton {
         onTriggered: bluezMonitor.running = true
     }
 
+    // BlueZ monitor events are the primary update path. Keep only a slow repair
+    // snapshot in case a monitor event is lost instead of spawning bluetoothctl
+    // probes every 15 seconds while the shell is otherwise idle.
     Timer {
-        interval: 15000
+        interval: 90000
         repeat: true
         running: true
         onTriggered: root.refresh()
