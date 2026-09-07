@@ -231,14 +231,14 @@ Item {
     Connections {
         target: RaohanePerformance
 
-        function onGameModeActiveChanged(): void {
+        function onGameModeApplied(enabled: bool): void {
             if (!root.eventSignalsReady)
                 return
             root.showEvent(
-                RaohanePerformance.gameModeActive ? qsTr("Performance mode") : qsTr("Desktop effects restored"),
-                RaohanePerformance.gameModeActive ? qsTr("Low-latency shell profile") : qsTr("Normal visual profile"),
+                enabled ? qsTr("Performance mode") : qsTr("Desktop effects restored"),
+                enabled ? qsTr("Low-latency shell profile") : qsTr("Normal visual profile"),
                 "speed",
-                RaohanePerformance.gameModeActive ? "accent" : "success",
+                enabled ? "accent" : "success",
                 -1,
                 2600
             )
