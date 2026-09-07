@@ -10,8 +10,11 @@ Singleton {
     property bool gameModeActive: false
     property bool busy: false
     property bool requestedGameMode: false
+    property bool applyPending: false
     property string lastError: ""
     property string commandError: ""
+
+    signal gameModeApplied(bool enabled)
 
     readonly property string modernGameModeExpression:
         "hl.config({ animations = { enabled = false }, decoration = { shadow = { enabled = false }, blur = { enabled = false }, rounding = 0 }, general = { gaps_in = 0, gaps_out = 0, border_size = 1 } })"
@@ -29,6 +32,7 @@ Singleton {
 
         root.busy = true
         root.requestedGameMode = enabled
+        root.applyPending = true
         root.lastError = ""
         root.commandError = ""
 
@@ -51,8 +55,30 @@ Singleton {
 
     function commandFailed(message: string): void {
         root.busy = false
+        root.applyPending = false
         root.lastError = message.length > 0 ? message : qsTr("Hyprland rejected the performance-mode request")
         errorRefreshTimer.restart()
+    }
+
+    function finishProbe(parsed: bool): void {
+        root.busy = false
+        if (!parsed)
+            return
+
+        if (!root.applyPending) {
+            root.lastError = ""
+            return
+        }
+
+        if (root.gameModeActive === root.requestedGameMode) {
+            root.applyPending = false
+            root.lastError = ""
+            root.gameModeApplied(root.gameModeActive)
+            return
+        }
+
+        root.applyPending = false
+        root.lastError = qsTr("Hyprland did not apply the requested performance state")
     }
 
     Process {
@@ -108,10 +134,17 @@ Singleton {
 
     Process {
         id: gameModeProbe
+        property bool parsed: false
+
         command: [
             "bash", "-lc",
             "hyprctl -j getoption animations.enabled 2>/dev/null || hyprctl -j getoption animations:enabled 2>/dev/null"
         ]
+
+        onRunningChanged: {
+            if (running)
+                parsed = false
+        }
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -119,7 +152,7 @@ Singleton {
                     const payload = JSON.parse(String(text ?? "{}"))
                     const raw = payload.int ?? payload.bool ?? payload.value
                     root.gameModeActive = Number(raw) === 0 || raw === false
-                    root.lastError = ""
+                    gameModeProbe.parsed = true
                 } catch (error) {
                     root.lastError = qsTr("Could not read Hyprland animation state")
                 }
@@ -135,11 +168,11 @@ Singleton {
         }
 
         onExited: (exitCode, exitStatus) => {
-            root.busy = false
             if (exitCode !== 0 && root.lastError.length === 0)
                 root.lastError = root.commandError.length > 0
                     ? root.commandError
                     : qsTr("Could not query Hyprland performance state")
+            root.finishProbe(exitCode === 0 && gameModeProbe.parsed)
         }
     }
 
