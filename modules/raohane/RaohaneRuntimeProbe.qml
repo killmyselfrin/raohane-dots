@@ -39,6 +39,8 @@ Scope {
                 activeAppId: RaohaneScenes.activeAppId,
                 autoSwitch: RaohaneScenes.autoSwitchEnabled,
                 autoScene: RaohaneScenes.autoSceneActive,
+                autoSourceAppId: RaohaneScenes.autoSourceAppId,
+                activeRule: RaohaneScenes.activeRule,
                 manualOverride: RaohaneScenes.manualOverride,
                 policy: RaohaneScenes.activePolicy
             },
@@ -84,7 +86,12 @@ Scope {
                 title: RaohaneContext.title,
                 detail: RaohaneContext.detail,
                 tone: RaohaneContext.eventTone,
-                progress: RaohaneContext.eventProgress
+                progress: RaohaneContext.eventProgress,
+                scene: RaohaneContext.sceneId,
+                sceneAutomatic: RaohaneContext.sceneAutomatic,
+                sceneSourceAppId: RaohaneContext.sceneSourceAppId,
+                sceneRulePattern: RaohaneContext.sceneRulePattern,
+                sceneRuleMatch: RaohaneContext.sceneRuleMatch
             },
             lock: {
                 locked: RaohaneState.screenLocked
