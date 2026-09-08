@@ -93,6 +93,33 @@ Item {
         clearTransientEvent()
     }
 
+    function sceneLabel(sceneId: string): string {
+        switch (sceneId) {
+        case "gaming": return qsTr("Gaming scene")
+        case "focus": return qsTr("Focus scene")
+        case "work": return qsTr("Work scene")
+        default: return qsTr("Balanced scene")
+        }
+    }
+
+    function sceneDetail(sceneId: string): string {
+        switch (sceneId) {
+        case "gaming": return qsTr("DND, Keep Awake and Game Mode enabled")
+        case "focus": return qsTr("Distractions reduced for focused work")
+        case "work": return qsTr("Keep Awake enabled for a work session")
+        default: return qsTr("Previous runtime state restored")
+        }
+    }
+
+    function sceneIcon(sceneId: string): string {
+        switch (sceneId) {
+        case "gaming": return "sports_esports"
+        case "focus": return "center_focus_strong"
+        case "work": return "work"
+        default: return "tune"
+        }
+    }
+
     function showAudioEvent(): void {
         if (!root.eventSignalsReady || !RaohaneAudio.ready)
             return
@@ -177,7 +204,8 @@ Item {
             title: title,
             detail: detail,
             eventTone: eventTone,
-            eventProgress: eventProgress
+            eventProgress: eventProgress,
+            scene: RaohaneScenes.activeSceneId
         })
     }
 
@@ -195,6 +223,23 @@ Item {
         function onMicrophoneActiveChanged(): void {
             if (RaohanePrivacy.microphoneActive)
                 root.clearTransientEvent()
+        }
+    }
+
+    Connections {
+        target: RaohaneScenes
+
+        function onSceneActivated(sceneId: string, source: string): void {
+            if (!root.eventSignalsReady)
+                return
+            root.showEvent(
+                root.sceneLabel(sceneId),
+                root.sceneDetail(sceneId),
+                root.sceneIcon(sceneId),
+                sceneId === "balanced" ? "success" : "accent",
+                -1,
+                2800
+            )
         }
     }
 
