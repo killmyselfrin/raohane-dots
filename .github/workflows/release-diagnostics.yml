@@ -1,0 +1,45 @@
+name: Release diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-diagnostics.yml'
+      - 'scripts/**'
+      - 'modules/**'
+      - 'defaults/**'
+      - 'install-raohane.sh'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'docs/THEMES.md'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: ${{ matrix.audit }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        audit:
+          - raohane-audit.sh
+          - source-lineage-audit.sh
+          - theme-library-audit.sh
+          - nix-boundary-audit.sh
+          - phase4-visible-runtime-audit.sh
+          - multimonitor-boundary-audit.sh
+          - fullscreen-boundary-audit.sh
+          - primary-surface-boundary-audit.sh
+          - overview-pointer-boundary-audit.sh
+          - privacy-performance-audit.sh
+          - sidebar-performance-audit.sh
+          - bluetooth-performance-audit.sh
+          - easyeffects-performance-audit.sh
+          - keyboard-layout-boundary-audit.sh
+          - desktop-widget-boundary-audit.sh
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y jq ripgrep
+      - run: bash "scripts/${{ matrix.audit }}"
