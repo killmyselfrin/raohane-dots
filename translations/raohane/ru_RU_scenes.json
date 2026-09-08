@@ -1,6 +1,7 @@
 {
   "ACTIVE": "АКТИВНО",
   "APPLY": "ПРИМЕНИТЬ",
+  "AUTO": "АВТО",
   "Balanced Scene": "Сбалансированный режим",
   "Balanced scene": "Сбалансированный режим",
   "Current scene": "Текущий режим",
@@ -8,11 +9,15 @@
   "Distractions reduced for focused work": "Отвлекающие факторы сведены к минимуму",
   "Focus Scene": "Режим фокуса",
   "Focus scene": "Режим фокуса",
+  "Gaming": "Игры",
   "Gaming Scene": "Игровой режим",
   "Gaming scene": "Игровой режим",
   "Keep Awake enabled for a work session": "Запрет сна включён на время рабочей сессии",
+  "MANUAL": "ВРУЧНУЮ",
   "Previous runtime state restored": "Предыдущее состояние системы восстановлено",
   "Raohane scene": "Режим Raohane",
+  "Scene": "Режим",
+  "Work": "Работа",
   "Work Scene": "Рабочий режим",
   "Work scene": "Рабочий режим"
 }
