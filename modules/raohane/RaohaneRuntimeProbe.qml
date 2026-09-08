@@ -123,7 +123,16 @@ Scope {
             },
             capture: {
                 regionSelectorOpen: RaohaneState.regionSelectorOpen,
-                screenTranslatorOpen: RaohaneState.screenTranslatorOpen
+                screenTranslatorOpen: RaohaneState.screenTranslatorOpen,
+                recorder: {
+                    available: RaohaneRecorder.available,
+                    recording: RaohaneRecorder.recording,
+                    owned: RaohaneRecorder.ownedRecording,
+                    mode: RaohaneRecorder.captureMode,
+                    sound: RaohaneRecorder.captureSound,
+                    elapsed: RaohaneRecorder.elapsedSeconds,
+                    error: RaohaneRecorder.lastError
+                }
             }
         }
     }
