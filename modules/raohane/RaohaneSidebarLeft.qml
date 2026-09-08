@@ -34,7 +34,7 @@ Scope {
         function onLeftSidebarOpenChanged(): void {
             if (RaohaneState.leftSidebarOpen) {
                 root.now = new Date()
-                RaohaneAudio.refresh(true)
+                RaohaneAudio.refresh()
             }
         }
     }
