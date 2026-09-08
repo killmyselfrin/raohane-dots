@@ -56,12 +56,15 @@ for file in "$bar" "$vertical"; do
     || fail "$file modules can keep active work running while fullscreen-suppressed"
 done
 
-# Dock keeps only a tiny reveal edge while fullscreen is active and never
-# reserves workspace space behind the fullscreen client.
+# Dock keeps only a tiny reveal edge while fullscreen is active. The same
+# reversible reveal behavior may be requested by a Scene, but fullscreen must
+# still suppress the dock independently and never reserve workspace space.
 rg -q 'readonly property bool fullscreenActive:' "$dock" \
   || fail 'dock lost per-monitor fullscreen detection'
-rg -q 'if \(dockWindow\.fullscreenActive\)' "$dock" \
-  || fail 'dock reveal policy no longer special-cases fullscreen'
+rg -q 'if \(dockWindow\.fullscreenActive \|\| root\.sceneHidePolicy\)' "$dock" \
+  || fail 'dock reveal policy no longer preserves fullscreen suppression alongside Scene policy'
+rg -q 'return dockWindow\.hoverLatched \|\| root\.forcedOpen' "$dock" \
+  || fail 'dock fullscreen/Scene reveal edge no longer honors hover or forced-open'
 rg -q '&& !dockWindow\.fullscreenActive' "$dock" \
   || fail 'dock can reserve exclusive space during fullscreen'
 rg -q 'readonly property int hiddenHoverHeight:[[:space:]]*5' "$dock" \
@@ -91,4 +94,4 @@ rg -q 'WlrLayershell\.layer:[[:space:]]*WlrLayer\.Overlay' "$media" \
 rg -q 'WlrLayershell\.keyboardFocus:[[:space:]]*WlrKeyboardFocus\.None' "$media" \
   || fail 'media overlay may steal keyboard focus from games'
 
-printf 'fullscreen-boundary-audit: resident horizontal and vertical bars, fullscreen suppression and game-capable media overlay are valid\n'
+printf 'fullscreen-boundary-audit: resident bars, scene-aware dock suppression, fullscreen input/reveal boundaries and game-capable media overlay are valid\n'

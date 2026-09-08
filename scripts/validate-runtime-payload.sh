@@ -37,11 +37,14 @@ required=(
   modules/raohane/RaohaneSakuraOverlay.qml
   modules/raohane/RaohaneSakuraSettings.qml
   modules/raohane/RaohaneSettingsGraphics.qml
+  modules/raohane/RaohaneSettingsScenes.qml
   modules/raohane/services/RaohaneProcesses.qml
   modules/raohane/services/RaohaneLyrics.qml
   modules/raohane/services/RaohaneCoverAccent.qml
   modules/raohane/services/RaohaneUpdater.qml
   modules/raohane/services/RaohaneGraphics.qml
+  modules/raohane/services/RaohaneScenes.qml
+  modules/raohane/services/RaohaneRecorder.qml
   panelFamilies/RaohaneFamily.qml
   scripts/autostart.sh
   scripts/install-deps.sh

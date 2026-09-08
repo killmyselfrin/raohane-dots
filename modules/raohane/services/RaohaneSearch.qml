@@ -47,7 +47,35 @@ Singleton {
         { name: qsTr("Random Wallpaper"), icon: "casino", command: ["raohane", "wallpaper", "random"], keywords: "background random wallpaper" },
         { name: qsTr("Session / Power"), icon: "power_settings_new", command: ["raohane", "session"], keywords: "logout reboot shutdown power" },
         { name: qsTr("Lock Session"), icon: "lock", command: ["qs", "-c", "raohane", "ipc", "call", "lock", "activate"], keywords: "lock screen security" },
-        { name: qsTr("Restart Raohane"), icon: "restart_alt", command: ["raohane", "restart"], keywords: "reload restart shell" }
+        { name: qsTr("Restart Raohane"), icon: "restart_alt", command: ["raohane", "restart"], keywords: "reload restart shell" },
+        {
+            name: qsTr("Balanced Scene"),
+            icon: "tune",
+            keywords: "scene profile balanced normal default",
+            active: RaohaneScenes.activeSceneId === "balanced",
+            execute: () => RaohaneScenes.activate("balanced", "launcher")
+        },
+        {
+            name: qsTr("Gaming Scene"),
+            icon: "sports_esports",
+            keywords: "scene profile gaming game performance dnd",
+            active: RaohaneScenes.activeSceneId === "gaming",
+            execute: () => RaohaneScenes.activate("gaming", "launcher")
+        },
+        {
+            name: qsTr("Focus Scene"),
+            icon: "center_focus_strong",
+            keywords: "scene profile focus quiet dnd concentration",
+            active: RaohaneScenes.activeSceneId === "focus",
+            execute: () => RaohaneScenes.activate("focus", "launcher")
+        },
+        {
+            name: qsTr("Work Scene"),
+            icon: "work",
+            keywords: "scene profile work productivity office development",
+            active: RaohaneScenes.activeSceneId === "work",
+            execute: () => RaohaneScenes.activate("work", "launcher")
+        }
     ]
 
     readonly property var results: root.buildResults()
@@ -71,6 +99,15 @@ Singleton {
 
     function normalized(value): string {
         return String(value ?? "").toLowerCase().trim()
+    }
+
+    function sceneDisplayName(sceneId): string {
+        switch (String(sceneId ?? "")) {
+        case "gaming": return qsTr("Gaming")
+        case "focus": return qsTr("Focus")
+        case "work": return qsTr("Work")
+        default: return qsTr("Balanced")
+        }
     }
 
     function applicationText(entry): string {
@@ -146,8 +183,160 @@ Singleton {
         })
     }
 
+    function gamingActionResults(): var {
+        if (RaohaneScenes.activeSceneId !== "gaming")
+            return []
+
+        const nextOutput = RaohaneAudio.nextOutputName()
+        const outputDetail = nextOutput.length > 0 && nextOutput !== RaohaneAudio.sinkName
+            ? qsTr("%1 → %2").arg(RaohaneAudio.sinkName || qsTr("Current output")).arg(nextOutput)
+            : (RaohaneAudio.sinkName || qsTr("Audio output"))
+
+        return [
+            {
+                name: qsTr("Microphone"),
+                iconName: RaohaneAudio.microphoneMuted ? "mic_off" : "mic",
+                iconType: "material",
+                verb: RaohaneAudio.microphoneMuted ? qsTr("UNMUTE") : qsTr("MUTE"),
+                type: qsTr("Gaming action"),
+                comment: RaohaneAudio.sourceName || qsTr("Microphone input"),
+                execute: () => RaohaneAudio.toggleMicrophoneMute()
+            },
+            {
+                name: qsTr("Audio output"),
+                iconName: "speaker",
+                iconType: "material",
+                verb: qsTr("SWITCH"),
+                type: qsTr("Gaming action"),
+                comment: outputDetail,
+                execute: () => RaohaneAudio.cycleDefaultSink()
+            },
+            {
+                name: RaohaneRecorder.recording ? qsTr("Stop recording") : qsTr("Record gameplay"),
+                iconName: RaohaneRecorder.recording ? "stop_circle" : "fiber_manual_record",
+                iconType: "material",
+                verb: RaohaneRecorder.recording ? qsTr("STOP") : qsTr("RECORD"),
+                type: qsTr("Gaming action"),
+                comment: RaohaneRecorder.recording
+                    ? qsTr("Recording · %1").arg(RaohaneRecorder.ownedRecording ? RaohaneRecorder.elapsedText : qsTr("active"))
+                    : (RaohaneRecorder.available ? qsTr("Focused monitor with audio") : qsTr("wf-recorder unavailable")),
+                execute: () => RaohaneRecorder.toggleFullscreen(true)
+            },
+            {
+                name: qsTr("Game Mode"),
+                iconName: "speed",
+                iconType: "material",
+                verb: RaohanePerformance.gameModeActive ? qsTr("DISABLE") : qsTr("ENABLE"),
+                type: qsTr("Gaming action"),
+                comment: qsTr("Performance profile"),
+                execute: () => RaohanePerformance.toggleGameMode()
+            },
+            {
+                name: qsTr("Do Not Disturb"),
+                iconName: RaohaneNotifications.silent ? "notifications_off" : "notifications_active",
+                iconType: "material",
+                verb: RaohaneNotifications.silent ? qsTr("DISABLE") : qsTr("ENABLE"),
+                type: qsTr("Gaming action"),
+                comment: qsTr("Notification popups"),
+                execute: () => RaohaneNotifications.silent = !RaohaneNotifications.silent
+            },
+            {
+                name: qsTr("Media"),
+                iconName: RaohaneMedia.isPlaying ? "pause" : "play_arrow",
+                iconType: "material",
+                verb: RaohaneMedia.available
+                    ? (RaohaneMedia.isPlaying ? qsTr("PAUSE") : qsTr("PLAY"))
+                    : qsTr("OPEN"),
+                type: qsTr("Gaming action"),
+                comment: RaohaneMedia.available && RaohaneMedia.title.length > 0
+                    ? RaohaneMedia.title
+                    : qsTr("Media overlay"),
+                execute: () => {
+                    if (RaohaneMedia.available)
+                        RaohaneMedia.togglePlaying()
+                    else
+                        Quickshell.execDetached(["raohane", "media"])
+                }
+            }
+        ]
+    }
+
+    function sceneManagementResults(needle: string): var {
+        if (needle.length === 0)
+            return []
+
+        const actions = []
+        actions.push({
+            name: RaohaneScenes.autoSwitchEnabled ? qsTr("Disable automatic Scenes") : qsTr("Enable automatic Scenes"),
+            iconName: RaohaneScenes.autoSwitchEnabled ? "auto_awesome" : "auto_awesome_motion",
+            iconType: "material",
+            verb: RaohaneScenes.autoSwitchEnabled ? qsTr("DISABLE") : qsTr("ENABLE"),
+            type: qsTr("Scene control"),
+            comment: RaohaneScenes.autoSwitchEnabled ? qsTr("Automatic app rules enabled") : qsTr("Manual Scene switching only"),
+            keywords: "scene auto automatic profile rule switching",
+            execute: () => RaohaneScenes.setAutoSwitch(!RaohaneScenes.autoSwitchEnabled)
+        })
+
+        if (RaohaneScenes.manualOverride) {
+            actions.push({
+                name: qsTr("Resume automatic Scene switching"),
+                iconName: "resume",
+                iconType: "material",
+                verb: qsTr("ENABLE"),
+                type: qsTr("Scene control"),
+                comment: RaohaneScenes.activeAppId || qsTr("Clear manual override"),
+                keywords: "scene auto resume override rule",
+                execute: () => RaohaneScenes.clearManualOverride()
+            })
+        }
+
+        const appId = RaohaneScenes.activeAppId
+        if (appId.length > 0) {
+            for (const sceneId of RaohaneScenes.sceneIds) {
+                actions.push({
+                    name: qsTr("Assign %1 to %2").arg(appId).arg(root.sceneDisplayName(sceneId)),
+                    iconName: sceneId === "gaming" ? "sports_esports"
+                        : sceneId === "focus" ? "center_focus_strong"
+                        : sceneId === "work" ? "work" : "tune",
+                    iconType: "material",
+                    verb: qsTr("APPLY"),
+                    type: qsTr("Scene rule"),
+                    comment: qsTr("Exact appId rule"),
+                    keywords: `scene assign app rule ${sceneId} ${appId}`,
+                    execute: () => RaohaneScenes.setRule(appId, "exact", sceneId)
+                })
+            }
+        }
+
+        const activeRule = RaohaneScenes.matchingRuleFor(appId)
+        if (activeRule && !activeRule.builtin) {
+            actions.push({
+                name: qsTr("Remove active Scene rule"),
+                iconName: "link_off",
+                iconType: "material",
+                verb: qsTr("REMOVE"),
+                type: qsTr("Scene rule"),
+                comment: qsTr("%1 match · %2").arg(activeRule.match).arg(activeRule.pattern),
+                keywords: `scene remove app rule ${activeRule.match} ${activeRule.pattern}`,
+                execute: () => RaohaneScenes.removeRule(activeRule.pattern, activeRule.match)
+            })
+        }
+
+        return actions.filter(action => {
+            const haystack = root.normalized(`${action.name} ${action.type} ${action.comment} ${action.keywords}`)
+            return haystack.includes(needle)
+        })
+    }
+
     function actionResults(needle: string): var {
-        return root.builtInActions
+        if (needle.length === 0) {
+            const contextual = root.gamingActionResults()
+            if (contextual.length > 0)
+                return contextual
+        }
+
+        const contextualManagement = root.sceneManagementResults(needle)
+        const builtIns = root.builtInActions
             .filter(action => {
                 const haystack = root.normalized(`${action.name} ${action.keywords}`)
                 return needle.length === 0 || haystack.includes(needle)
@@ -156,11 +345,12 @@ Singleton {
                 name: action.name,
                 iconName: action.icon,
                 iconType: "material",
-                verb: qsTr("RUN"),
-                type: qsTr("Raohane action"),
-                comment: action.keywords,
-                execute: () => Quickshell.execDetached(action.command)
+                verb: action.active ? qsTr("ACTIVE") : (action.execute ? qsTr("APPLY") : qsTr("RUN")),
+                type: action.execute ? qsTr("Raohane scene") : qsTr("Raohane action"),
+                comment: action.active ? qsTr("Current scene") : action.keywords,
+                execute: action.execute ? action.execute : () => Quickshell.execDetached(action.command)
             }))
+        return contextualManagement.concat(builtIns)
     }
 
     function commandResult(command: string): var {

@@ -1,5 +1,28 @@
 # Raohane changelog
 
+## 1.2.0 — Contextual shell
+
+- Add the native `RaohaneScenes` subsystem with Balanced, Gaming, Focus and Work scenes persisted as runtime state outside the user's base configuration.
+- Keep selected and effective scenes separate so automatic context switching can return to the user's chosen mode without overwriting persistent settings.
+- Apply reversible runtime policies with baseline restoration for DND, Keep Awake and Game Mode instead of mutating `RaohaneConfig`.
+- Add event-driven application scene switching from the active Wayland `appId`, with conservative Steam/gamescope defaults, manual-override behavior and up to 64 custom rules.
+- Support explicit exact, prefix and contains application rules; user rules take precedence over built-ins and exact Balanced rules can be used as exclusions from broader matches.
+- Add a Scene rail to runtime Quick Controls / Control Center with direct mode selection plus AUTO/MANUAL switching state.
+- Add Settings → Scenes with active/selected state, automatic switching, current `appId`, protected built-in rules and an explicit exact/prefix/contains rule editor.
+- Add a per-Scene Behavior Editor for Gaming, Focus and Work with persisted runtime-only DND, Keep Awake, Game Mode, Dock and motion-cadence overrides while keeping Balanced as the baseline restore mode.
+- Add Launcher 2.0 scene commands and contextual `/ assign`, `/ auto`, `/ rule` and `/ scene` management without embedding shell commands in the Launcher backend.
+- Replace Gaming Scene idle Quick Access with six live native actions: Microphone, Audio Output, Record Gameplay, Game Mode, DND and Media.
+- Add native PipeWire output cycling through `RaohaneAudio` so Launcher can switch devices without directly invoking `wpctl`.
+- Add the native `RaohaneRecorder` service over the validated recording script with fullscreen/region capture, audio, clean stop, external-session detection, elapsed time and IPC status.
+- Evolve Context Island 2.0 with persistent gameplay recording, elapsed time, direct Stop control, scene-aware activity, and manual/automatic rule-reason feedback while preserving recording/privacy/media priority.
+- Apply Scene `dockPolicy` as a temporary runtime overlay so Gaming/Focus can hide Dock and release its exclusive zone without rewriting dock preferences; hover/forced-open reveal remains available.
+- Apply Scene `motionHint` as a temporary cadence overlay over the user's Style Studio motion scale: Gaming fast motion uses 0.72× duration, Focus quiet motion 0.82×, and Balanced/Work remain at 1.0×.
+- Keep Game Mode responsible for expensive transform suppression and preserve the user's reduced-motion threshold independently of Scene cadence.
+- Expose active scene, matched rule, effective policy and recorder state through runtime diagnostics.
+- Require Scenes, Recorder and Settings Scenes in the validated runtime payload and expand the dedicated Scenes boundary workflow across persistence, rules, native actions, Context Island, Dock and Motion integration.
+- Update fullscreen validation so Scene-aware Dock hiding preserves the independent fullscreen reveal, input and exclusive-zone boundary.
+- Keep the stable updater on the official `main` channel; once 1.2 lands in `main`, existing stable installations detect it through the normal Check / Update now flow.
+
 ## 1.1.0 — Whole-shell polish
 
 - Start the post-1.0 polish cycle while keeping the stable registry/router/config architecture intact.
@@ -61,7 +84,7 @@
 - Ship eight initial presets: `Zen Mist`, `Paper`, `Sakura`, `Matcha`, `Slate`, `Sand`, `Sumi` and `Midnight`.
 - Make `Zen Mist` the default: warm off-white frosted glass, charcoal text, thin borders, quiet accents and restrained motion.
 - Keep `Sumi` and `Midnight` as coherent dark minimalist alternatives instead of maintaining a separate dark-only UI implementation.
-- Restyle Settings, Settings Home, Control Center, Quick Controls, Launcher, Context Island, Dock, Media Overlay, notifications and Overview/Spaces around the shared minimalist surface hierarchy.
+- Restyle Settings, Settings Home, Control Center, Launcher, Context Island, Dock, Media Overlay, notifications and Overview/Spaces around the shared minimalist surface hierarchy.
 - Remove decorative neon halos and the hard-coded cyber-noir Quick Control palette from primary shell surfaces.
 - Extend Settings/global-search, core-framework and visual audits so theme selection, catalog registration, persistence and minimalist shared-surface contracts cannot silently regress.
 - Complete the source/static standalone migration boundary: the active shell, services, configuration framework and visible runtime are Raohane-owned, while remaining hardware/session validation stays explicit.

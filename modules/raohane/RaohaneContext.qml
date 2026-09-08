@@ -14,13 +14,23 @@ Item {
     property real eventProgress: -1
     property bool eventSignalsReady: false
 
-    readonly property bool recording: RaohanePrivacy.recordingActive
+    readonly property bool gameplayRecording: RaohaneRecorder.recording
+    readonly property bool recording: root.gameplayRecording || RaohanePrivacy.recordingActive
     readonly property bool microphone: RaohanePrivacy.microphoneActive
     readonly property bool camera: RaohanePrivacy.cameraActive
 
     readonly property bool mediaActive: RaohaneMedia.available
     readonly property string mediaTitle: RaohaneMedia.title
     readonly property string mediaArtist: RaohaneMedia.artist
+
+    readonly property string sceneId: RaohaneScenes.activeSceneId
+    readonly property bool sceneActive: root.sceneId !== "balanced"
+    readonly property bool sceneAutomatic: RaohaneScenes.autoSceneActive
+    readonly property string sceneSourceAppId: RaohaneScenes.autoSourceAppId
+    readonly property var sceneRule: RaohaneScenes.activeRule
+    readonly property string sceneRulePattern: String(root.sceneRule?.pattern ?? "")
+    readonly property string sceneRuleMatch: String(root.sceneRule?.match ?? "")
+    readonly property bool sceneRuleBuiltin: Boolean(root.sceneRule?.builtin ?? false)
 
     readonly property var activeWindow: ToplevelManager.activeToplevel
     readonly property string windowTitle: activeWindow?.title ?? ""
@@ -29,6 +39,7 @@ Item {
         : (camera || microphone) ? "privacy"
         : eventTitle.length > 0 ? "event"
         : mediaActive ? "media"
+        : sceneActive ? "scene"
         : windowTitle.length > 0 ? "window"
         : "idle"
 
@@ -37,20 +48,28 @@ Item {
         : microphone ? "mic"
         : eventTitle.length > 0 ? eventIcon
         : mediaActive ? "music_note"
+        : sceneActive ? root.sceneIcon(root.sceneId)
         : windowTitle.length > 0 ? "web_asset"
         : "circle"
 
-    readonly property string title: recording ? qsTr("Screen capture")
+    readonly property string title: gameplayRecording ? qsTr("Gameplay recording")
+        : recording ? qsTr("Screen capture")
         : camera && microphone ? qsTr("Camera and microphone")
         : camera ? qsTr("Camera in use")
         : microphone ? qsTr("Microphone in use")
         : eventTitle.length > 0 ? eventTitle
         : mediaActive ? (mediaTitle.length > 0 ? mediaTitle : qsTr("Media"))
+        : sceneActive ? root.sceneLabel(root.sceneId)
         : windowTitle.length > 0 ? windowTitle
         : qsTr("Raohane")
 
     readonly property string detail: {
-        if (recording)
+        if (gameplayRecording) {
+            if (RaohaneRecorder.ownedRecording)
+                return qsTr("Recording · %1").arg(RaohaneRecorder.elapsedText)
+            return qsTr("wf-recorder is active")
+        }
+        if (RaohanePrivacy.recordingActive)
             return RaohanePrivacy.recordingApp || qsTr("Screen sharing or recording")
         if (camera && microphone)
             return RaohanePrivacy.cameraApp || RaohanePrivacy.microphoneApp || qsTr("Privacy capture active")
@@ -62,6 +81,8 @@ Item {
             return eventDetail
         if (mediaActive)
             return mediaArtist
+        if (sceneActive)
+            return root.sceneActivityDetail()
         if (windowTitle.length > 0)
             return qsTr("Active window")
         return qsTr("Hyprland shell")
@@ -91,6 +112,46 @@ Item {
 
     function clear(): void {
         clearTransientEvent()
+    }
+
+    function sceneLabel(sceneId: string): string {
+        switch (sceneId) {
+        case "gaming": return qsTr("Gaming scene")
+        case "focus": return qsTr("Focus scene")
+        case "work": return qsTr("Work scene")
+        default: return qsTr("Balanced scene")
+        }
+    }
+
+    function sceneDetail(sceneId: string): string {
+        switch (sceneId) {
+        case "gaming": return qsTr("DND, Keep Awake and Game Mode enabled")
+        case "focus": return qsTr("Distractions reduced for focused work")
+        case "work": return qsTr("Keep Awake enabled for a work session")
+        default: return qsTr("Previous runtime state restored")
+        }
+    }
+
+    function sceneIcon(sceneId: string): string {
+        switch (sceneId) {
+        case "gaming": return "sports_esports"
+        case "focus": return "center_focus_strong"
+        case "work": return "work"
+        default: return "tune"
+        }
+    }
+
+    function sceneActivityDetail(): string {
+        if (!root.sceneAutomatic)
+            return qsTr("Manual scene · selected by user")
+        if (root.sceneSourceAppId.length === 0)
+            return qsTr("Automatic scene")
+        if (!root.sceneRule)
+            return qsTr("Auto · %1").arg(root.sceneSourceAppId)
+        return qsTr("Auto · %1 · %2:%3")
+            .arg(root.sceneSourceAppId)
+            .arg(root.sceneRuleMatch)
+            .arg(root.sceneRulePattern)
     }
 
     function showAudioEvent(): void {
@@ -167,6 +228,9 @@ Item {
         return JSON.stringify({
             mode: mode,
             recording: recording,
+            gameplayRecording: gameplayRecording,
+            recorderOwned: RaohaneRecorder.ownedRecording,
+            recorderElapsed: RaohaneRecorder.elapsedSeconds,
             microphone: microphone,
             camera: camera,
             unclassifiedVideoCapture: RaohanePrivacy.unclassifiedVideoCaptureActive,
@@ -177,7 +241,13 @@ Item {
             title: title,
             detail: detail,
             eventTone: eventTone,
-            eventProgress: eventProgress
+            eventProgress: eventProgress,
+            scene: sceneId,
+            sceneAutomatic: sceneAutomatic,
+            sceneSourceAppId: sceneSourceAppId,
+            sceneRulePattern: sceneRulePattern,
+            sceneRuleMatch: sceneRuleMatch,
+            sceneRuleBuiltin: sceneRuleBuiltin
         })
     }
 
@@ -195,6 +265,57 @@ Item {
         function onMicrophoneActiveChanged(): void {
             if (RaohanePrivacy.microphoneActive)
                 root.clearTransientEvent()
+        }
+    }
+
+    Connections {
+        target: RaohaneRecorder
+
+        function onRecordingChanged(): void {
+            if (RaohaneRecorder.recording) {
+                root.clearTransientEvent()
+                return
+            }
+            if (!root.eventSignalsReady)
+                return
+            root.showEvent(
+                qsTr("Recording stopped"),
+                qsTr("Gameplay capture finished"),
+                "stop_circle",
+                "success",
+                -1,
+                2400
+            )
+        }
+
+        function onLastErrorChanged(): void {
+            if (!root.eventSignalsReady || RaohaneRecorder.lastError.length === 0)
+                return
+            root.showEvent(
+                qsTr("Recording unavailable"),
+                RaohaneRecorder.lastError,
+                "error",
+                "warning",
+                -1,
+                3000
+            )
+        }
+    }
+
+    Connections {
+        target: RaohaneScenes
+
+        function onSceneActivated(sceneId: string, source: string): void {
+            if (!root.eventSignalsReady)
+                return
+            root.showEvent(
+                root.sceneLabel(sceneId),
+                root.sceneDetail(sceneId),
+                root.sceneIcon(sceneId),
+                sceneId === "balanced" ? "success" : "accent",
+                -1,
+                2800
+            )
         }
     }
 

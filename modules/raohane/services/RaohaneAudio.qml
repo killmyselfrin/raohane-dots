@@ -244,6 +244,34 @@ Singleton {
         root.setMicrophoneMuted(!root.microphoneMuted)
     }
 
+    function nextOutputDevice(): var {
+        const devices = Array.isArray(root.outputDevices) ? root.outputDevices : []
+        if (devices.length === 0)
+            return null
+        let activeIndex = devices.findIndex(device => Boolean(device?.active))
+        if (activeIndex < 0 && root.sinkName.length > 0)
+            activeIndex = devices.findIndex(device => String(device?.name ?? "") === root.sinkName)
+        const nextIndex = activeIndex >= 0 ? (activeIndex + 1) % devices.length : 0
+        return devices[nextIndex]
+    }
+
+    function nextOutputName(): string {
+        return String(root.nextOutputDevice()?.name ?? "")
+    }
+
+    function cycleDefaultSink(): bool {
+        const devices = Array.isArray(root.outputDevices) ? root.outputDevices : []
+        if (devices.length < 2) {
+            root.refreshDevices(true)
+            return false
+        }
+        const next = root.nextOutputDevice()
+        if (!next)
+            return false
+        root.setDefaultSink(next)
+        return true
+    }
+
     function setDefaultSink(node): void {
         if (node?.id !== undefined && Number(node.id) >= 0) {
             Quickshell.execDetached(["wpctl", "set-default", String(node.id)])

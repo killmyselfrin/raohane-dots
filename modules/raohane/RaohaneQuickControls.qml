@@ -35,6 +35,12 @@ Item {
         }
         spacing: 10
 
+        RaohaneSceneSwitcher {
+            visible: !root.pickerOpen
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? implicitHeight : 0
+        }
+
         GridLayout {
             id: toggleGrid
             visible: !root.pickerOpen

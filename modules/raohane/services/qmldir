@@ -26,4 +26,6 @@ singleton RaohaneAutostart 1.0 RaohaneAutostart.qml
 singleton RaohaneUiFeedback 1.0 RaohaneUiFeedback.qml
 singleton RaohaneBackup 1.0 RaohaneBackup.qml
 singleton RaohaneThemePresets 1.0 RaohaneThemePresets.qml
+singleton RaohaneScenes 1.0 RaohaneScenes.qml
+singleton RaohaneRecorder 1.0 RaohaneRecorder.qml
 RaohaneLoginWallpaperSync 1.0 RaohaneLoginWallpaperSync.qml

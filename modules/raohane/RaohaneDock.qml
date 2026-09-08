@@ -16,6 +16,10 @@ Scope {
     property bool forcedOpen: false
     readonly property var dockPinnedApps: Array.from(RaohaneConfig.dockPinnedApps ?? []).map(value => String(value))
     readonly property var dockPinnedKeys: root.dockPinnedApps.map(value => value.toLowerCase())
+    // Scenes layer temporary behavior over the persisted dock configuration.
+    // Gaming/Focus can keep the dock out of the way without rewriting the
+    // user's auto-hide or pinned preferences, and hover/forced-open still win.
+    readonly property bool sceneHidePolicy: String(RaohaneScenes.activePolicy?.dockPolicy ?? "inherit") === "hide"
 
     function styleValue(key: string, fallback): var {
         const style = RaohaneConfig.style
@@ -184,7 +188,7 @@ Scope {
                 return result
             }
             readonly property bool revealed: {
-                if (dockWindow.fullscreenActive)
+                if (dockWindow.fullscreenActive || root.sceneHidePolicy)
                     return dockWindow.hoverLatched || root.forcedOpen
                 return !RaohaneConfig.dockAutoHide
                     || RaohaneConfig.dockPinned
@@ -201,6 +205,7 @@ Scope {
             exclusiveZone: RaohaneConfig.dockExclusiveZone
                 && RaohaneConfig.dockPinned
                 && !dockWindow.fullscreenActive
+                && !root.sceneHidePolicy
                 ? RaohaneConfig.dockHeight + RaohaneConfig.dockBottomMargin
                 : 0
             implicitHeight: dockWindow.revealed
@@ -399,7 +404,7 @@ Scope {
                     }
 
                     Rectangle {
-                        visible: dockWindow.fullscreenActive
+                        visible: dockWindow.fullscreenActive || root.sceneHidePolicy
                         anchors {
                             horizontalCenter: parent.horizontalCenter
                             bottom: parent.bottom
@@ -407,7 +412,7 @@ Scope {
                         width: 18
                         height: 2
                         radius: 1
-                        color: RaohaneTheme.accent
+                        color: root.sceneHidePolicy ? RaohaneTheme.accentSecondary : RaohaneTheme.accent
                         opacity: 0.75
                     }
                 }

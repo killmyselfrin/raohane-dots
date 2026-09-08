@@ -31,6 +31,19 @@ Scope {
             ready: RaohaneConfig.ready,
             monitors: root.monitorSnapshot(),
             focusedMonitor: String(Hyprland.focusedMonitor?.name ?? ""),
+            scenes: {
+                ready: RaohaneScenes.ready,
+                selected: RaohaneScenes.selectedSceneId,
+                active: RaohaneScenes.activeSceneId,
+                source: RaohaneScenes.activationSource,
+                activeAppId: RaohaneScenes.activeAppId,
+                autoSwitch: RaohaneScenes.autoSwitchEnabled,
+                autoScene: RaohaneScenes.autoSceneActive,
+                autoSourceAppId: RaohaneScenes.autoSourceAppId,
+                activeRule: RaohaneScenes.activeRule,
+                manualOverride: RaohaneScenes.manualOverride,
+                policy: RaohaneScenes.activePolicy
+            },
             bar: {
                 open: RaohaneState.barOpen,
                 vertical: RaohaneConfig.barVertical,
@@ -73,7 +86,12 @@ Scope {
                 title: RaohaneContext.title,
                 detail: RaohaneContext.detail,
                 tone: RaohaneContext.eventTone,
-                progress: RaohaneContext.eventProgress
+                progress: RaohaneContext.eventProgress,
+                scene: RaohaneContext.sceneId,
+                sceneAutomatic: RaohaneContext.sceneAutomatic,
+                sceneSourceAppId: RaohaneContext.sceneSourceAppId,
+                sceneRulePattern: RaohaneContext.sceneRulePattern,
+                sceneRuleMatch: RaohaneContext.sceneRuleMatch
             },
             lock: {
                 locked: RaohaneState.screenLocked
@@ -112,7 +130,16 @@ Scope {
             },
             capture: {
                 regionSelectorOpen: RaohaneState.regionSelectorOpen,
-                screenTranslatorOpen: RaohaneState.screenTranslatorOpen
+                screenTranslatorOpen: RaohaneState.screenTranslatorOpen,
+                recorder: {
+                    available: RaohaneRecorder.available,
+                    recording: RaohaneRecorder.recording,
+                    owned: RaohaneRecorder.ownedRecording,
+                    mode: RaohaneRecorder.captureMode,
+                    sound: RaohaneRecorder.captureSound,
+                    elapsed: RaohaneRecorder.elapsedSeconds,
+                    error: RaohaneRecorder.lastError
+                }
             }
         }
     }
