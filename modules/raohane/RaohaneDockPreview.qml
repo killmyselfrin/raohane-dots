@@ -9,9 +9,9 @@ RaohaneSurface {
     id: root
 
     readonly property var pinnedApps: Array.from(RaohaneConfig.dockPinnedApps ?? []).slice(0, 6)
-    readonly property int previewIconSize: Math.max(20, Math.min(30, Math.round(RaohaneConfig.dockIconSize * 0.64)))
+    readonly property int previewIconSize: Math.max(22, Math.min(32, Math.round(RaohaneConfig.dockIconSize * 0.66)))
 
-    implicitHeight: 94
+    implicitHeight: 104
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
@@ -25,29 +25,29 @@ RaohaneSurface {
             leftMargin: -48
             topMargin: -58
         }
-        width: 142
-        height: 142
-        radius: 71
+        width: 150
+        height: 150
+        radius: 75
         color: RaohaneTheme.accentSoft
         opacity: 0.24
     }
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        spacing: 12
+        anchors.leftMargin: 14
+        anchors.rightMargin: 14
+        spacing: 14
 
         ColumnLayout {
-            Layout.preferredWidth: 138
-            spacing: 2
+            Layout.preferredWidth: 154
+            spacing: 3
 
             RowLayout {
-                spacing: 7
+                spacing: 8
 
                 RaohaneIcon {
                     text: "dock_to_bottom"
-                    iconSize: 15
+                    iconSize: 17
                     fill: RaohaneConfig.dockEnabled ? 1 : 0
                     color: RaohaneConfig.dockEnabled ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
@@ -55,7 +55,7 @@ RaohaneSurface {
                 Text {
                     text: qsTr("Dock")
                     color: RaohaneTheme.text
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
             }
@@ -66,7 +66,7 @@ RaohaneSurface {
                     ? qsTr("Auto-hide dock")
                     : qsTr("Pin dock")
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 7
+                font.pixelSize: 8
                 elide: Text.ElideRight
             }
 
@@ -74,14 +74,14 @@ RaohaneSurface {
                 Layout.fillWidth: true
                 text: RaohaneConfig.dockIconSize + " px"
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 7
+                font.pixelSize: 8
                 elide: Text.ElideRight
             }
         }
 
         Rectangle {
             Layout.preferredWidth: 1
-            Layout.preferredHeight: 48
+            Layout.preferredHeight: 54
             color: RaohaneTheme.borderFaint
         }
 
@@ -94,9 +94,9 @@ RaohaneSurface {
                     horizontalCenter: parent.horizontalCenter
                     verticalCenter: parent.verticalCenter
                 }
-                implicitWidth: previewRow.implicitWidth + 18
+                implicitWidth: previewRow.implicitWidth + 20
                 width: implicitWidth
-                height: Math.max(42, root.previewIconSize + 16)
+                height: Math.max(46, root.previewIconSize + 18)
                 surfaceRadius: height / 2
                 raised: true
                 showSheen: false
@@ -109,9 +109,9 @@ RaohaneSurface {
                         top: parent.top
                         bottom: parent.bottom
                         horizontalCenter: parent.horizontalCenter
-                        margins: 6
+                        margins: 7
                     }
-                    spacing: 4
+                    spacing: 5
 
                     PreviewControl {
                         icon: "space_dashboard"
@@ -125,7 +125,7 @@ RaohaneSurface {
 
                     Rectangle {
                         Layout.preferredWidth: 1
-                        Layout.preferredHeight: Math.max(20, root.previewIconSize - 3)
+                        Layout.preferredHeight: Math.max(22, root.previewIconSize - 3)
                         color: RaohaneTheme.borderFaint
                         visible: root.pinnedApps.length > 0
                     }
@@ -155,7 +155,7 @@ RaohaneSurface {
                                     bottom: parent.bottom
                                     bottomMargin: 1
                                 }
-                                width: 6
+                                width: 7
                                 height: 2
                                 radius: 1
                                 color: RaohaneTheme.accent
@@ -198,7 +198,7 @@ RaohaneSurface {
         RaohaneIcon {
             anchors.centerIn: parent
             text: icon
-            iconSize: Math.max(13, root.previewIconSize * 0.58)
+            iconSize: Math.max(14, root.previewIconSize * 0.58)
             fill: parent.active ? 1 : 0
             symbolWeight: parent.active ? 540 : 430
             color: parent.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
