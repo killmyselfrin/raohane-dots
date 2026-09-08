@@ -143,8 +143,11 @@ Singleton {
         id: gameModeProbe
         property bool parsed: false
 
+        // We only need shell fallback semantics for Hyprland's old/new option
+        // spelling. A non-login shell avoids user profile startup on every
+        // cached Control Center refresh.
         command: [
-            "bash", "-lc",
+            "bash", "-c",
             "hyprctl -j getoption animations.enabled 2>/dev/null || hyprctl -j getoption animations:enabled 2>/dev/null"
         ]
 
