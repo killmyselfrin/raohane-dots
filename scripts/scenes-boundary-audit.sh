@@ -18,13 +18,14 @@ AUDIO=modules/raohane/services/RaohaneAudio.qml
 RECORDER=modules/raohane/services/RaohaneRecorder.qml
 RECORD_SCRIPT=scripts/videos/record.sh
 CONTEXT=modules/raohane/RaohaneContext.qml
+CONTEXT_ISLAND=modules/raohane/RaohaneContextIsland.qml
 RUNTIME=modules/raohane/RaohaneRuntimeProbe.qml
 QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
 SWITCHER=modules/raohane/RaohaneSceneSwitcher.qml
 SETTINGS=modules/raohane/RaohaneSettingsScenes.qml
 SETTINGS_REGISTRY=modules/raohane/RaohaneSettingsPageRegistry.qml
 
-for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$AUDIO" "$RECORDER" "$RECORD_SCRIPT" "$CONTEXT" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY"; do
+for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$AUDIO" "$RECORDER" "$RECORD_SCRIPT" "$CONTEXT" "$CONTEXT_ISLAND" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY"; do
   [[ -f "$path" ]] || fail "missing scene integration path: $path"
 done
 
@@ -146,13 +147,23 @@ if rg -n 'FileView|scenes\.json|RaohanePaths\.sceneStateFile' "$SETTINGS"; then
 fi
 
 rg -q 'target: RaohaneScenes' "$CONTEXT" \
-  || fail 'Context Island no longer consumes scene activation events'
+  || fail 'Context model no longer consumes scene activation events'
 rg -q 'target: RaohaneRecorder' "$CONTEXT" \
-  || fail 'Context Island no longer consumes recorder activity'
+  || fail 'Context model no longer consumes recorder activity'
 rg -q 'gameplayRecording: RaohaneRecorder\.recording' "$CONTEXT" \
-  || fail 'Context Island no longer exposes persistent gameplay recording state'
+  || fail 'Context model no longer exposes persistent gameplay recording state'
 rg -q 'scene: RaohaneScenes\.activeSceneId' "$CONTEXT" \
   || fail 'Context diagnostics no longer expose active scene'
+
+for contract in \
+  'sceneId: RaohaneScenes\.activeSceneId' \
+  'sceneMarkerVisible:' \
+  'gameplayRecording: RaohaneContext\.gameplayRecording' \
+  'indicatorIcon: root\.gameplayRecording \? "stop_circle"' \
+  'onClicked: RaohaneRecorder\.stop\(\)'; do
+  rg -q "$contract" "$CONTEXT_ISLAND" || fail "Context Island 2.0 lost activity contract: $contract"
+done
+
 rg -q 'active: RaohaneScenes\.activeSceneId' "$RUNTIME" \
   || fail 'Runtime probe no longer exposes active scene'
 rg -q 'policy: RaohaneScenes\.activePolicy' "$RUNTIME" \
@@ -166,4 +177,4 @@ for contract in \
   rg -q "$contract" "$RUNTIME" || fail "Runtime recorder diagnostics lost contract: $contract"
 done
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, manual override, Settings management, native gaming audio/recording actions, Context activity and runtime diagnostics are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, Settings management, native gaming actions, scene-aware Context Island activity and runtime diagnostics are valid\n'
