@@ -13,11 +13,11 @@ Item {
     Column {
         id: content
         width: parent.width
-        spacing: 12
+        spacing: 14
 
         RaohaneSurface {
             width: parent.width
-            height: 116
+            height: 132
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
@@ -33,21 +33,21 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 18
-                anchors.rightMargin: 18
-                spacing: 14
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                spacing: 16
 
                 RaohaneSurface {
-                    Layout.preferredWidth: 48
-                    Layout.preferredHeight: 48
-                    surfaceRadius: 15
+                    Layout.preferredWidth: 52
+                    Layout.preferredHeight: 52
+                    surfaceRadius: 16
                     active: RaohaneConfig.sakuraEnabled
                     showSheen: false
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: "local_florist"
-                        iconSize: 23
+                        iconSize: 25
                         fill: RaohaneConfig.sakuraEnabled ? 1 : 0
                         color: RaohaneConfig.sakuraEnabled ? "#f3a9c6" : RaohaneTheme.textMuted
                     }
@@ -55,12 +55,12 @@ Item {
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 3
+                    spacing: 4
 
                     Text {
                         text: qsTr("Sakura ambience")
                         color: RaohaneTheme.text
-                        font.pixelSize: 12
+                        font.pixelSize: 14
                         font.weight: Font.DemiBold
                     }
 
@@ -68,7 +68,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("A quiet layer of falling petals for Raohane surfaces. The animation sleeps whenever its surface is closed.")
                         color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
+                        font.pixelSize: 9
                         lineHeight: 1.18
                         wrapMode: Text.WordWrap
                     }
@@ -76,15 +76,15 @@ Item {
                     Text {
                         text: "花びら · hanabira"
                         color: "#e89ab8"
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         font.weight: Font.Medium
-                        font.letterSpacing: 0.7
+                        font.letterSpacing: 0.75
                     }
                 }
 
                 RaohaneSwitch {
-                    Layout.preferredWidth: 42
-                    Layout.preferredHeight: 24
+                    Layout.preferredWidth: 44
+                    Layout.preferredHeight: 26
                     checked: RaohaneConfig.sakuraEnabled
                     enabled: false
                 }
@@ -118,9 +118,9 @@ Item {
                 }
 
                 Rectangle {
-                    width: parent.width - 28
+                    width: parent.width - 32
                     height: 1
-                    x: 14
+                    x: 16
                     color: RaohaneTheme.borderFaint
                 }
 
@@ -136,7 +136,7 @@ Item {
 
         RaohaneSurface {
             width: parent.width
-            height: tuningColumn.implicitHeight + 20
+            height: tuningColumn.implicitHeight + 26
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
@@ -148,11 +148,11 @@ Item {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    leftMargin: 14
-                    rightMargin: 14
-                    topMargin: 10
+                    leftMargin: 16
+                    rightMargin: 16
+                    topMargin: 13
                 }
-                spacing: 10
+                spacing: 12
 
                 ChoiceRow {
                     Layout.fillWidth: true
@@ -185,29 +185,43 @@ Item {
 
     component ToggleRow: Item {
         id: toggleRow
+
         required property string title
         required property string detail
         required property bool checked
         signal toggled()
 
-        height: 58
+        height: 64
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 14
-            anchors.rightMargin: 14
+            anchors.leftMargin: 16
+            anchors.rightMargin: 16
             spacing: 14
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
-                Text { text: toggleRow.title; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold }
-                Text { Layout.fillWidth: true; text: toggleRow.detail; color: RaohaneTheme.textFaint; font.pixelSize: 7; elide: Text.ElideRight }
+                spacing: 2
+
+                Text {
+                    text: toggleRow.title
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: toggleRow.detail
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 8
+                    elide: Text.ElideRight
+                }
             }
 
             RaohaneSwitch {
-                Layout.preferredWidth: 40
-                Layout.preferredHeight: 22
+                Layout.preferredWidth: 42
+                Layout.preferredHeight: 24
                 checked: toggleRow.checked
                 enabled: false
             }
@@ -222,27 +236,41 @@ Item {
 
     component ChoiceRow: Item {
         id: choiceRow
+
         required property string title
         required property string detail
         required property string value
         required property var options
         signal selected(string value)
 
-        implicitHeight: 54
+        implicitHeight: 62
 
         RowLayout {
             anchors.fill: parent
-            spacing: 12
+            spacing: 14
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
-                Text { text: choiceRow.title; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold }
-                Text { Layout.fillWidth: true; text: choiceRow.detail; color: RaohaneTheme.textFaint; font.pixelSize: 7; elide: Text.ElideRight }
+                spacing: 2
+
+                Text {
+                    text: choiceRow.title
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: choiceRow.detail
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 8
+                    elide: Text.ElideRight
+                }
             }
 
             RowLayout {
-                spacing: 4
+                spacing: 5
 
                 Repeater {
                     model: choiceRow.options
@@ -251,9 +279,9 @@ Item {
                         required property var modelData
                         readonly property bool selected: String(modelData.value) === choiceRow.value
 
-                        Layout.preferredWidth: 72
-                        Layout.preferredHeight: 30
-                        surfaceRadius: 9
+                        Layout.preferredWidth: 80
+                        Layout.preferredHeight: 34
+                        surfaceRadius: 10
                         raised: false
                         showSheen: false
                         active: selected
@@ -267,7 +295,7 @@ Item {
                             anchors.centerIn: parent
                             text: modelData.label
                             color: selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                            font.pixelSize: 7
+                            font.pixelSize: 9
                             font.weight: Font.DemiBold
                         }
 
