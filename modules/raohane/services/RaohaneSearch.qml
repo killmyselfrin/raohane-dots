@@ -47,7 +47,35 @@ Singleton {
         { name: qsTr("Random Wallpaper"), icon: "casino", command: ["raohane", "wallpaper", "random"], keywords: "background random wallpaper" },
         { name: qsTr("Session / Power"), icon: "power_settings_new", command: ["raohane", "session"], keywords: "logout reboot shutdown power" },
         { name: qsTr("Lock Session"), icon: "lock", command: ["qs", "-c", "raohane", "ipc", "call", "lock", "activate"], keywords: "lock screen security" },
-        { name: qsTr("Restart Raohane"), icon: "restart_alt", command: ["raohane", "restart"], keywords: "reload restart shell" }
+        { name: qsTr("Restart Raohane"), icon: "restart_alt", command: ["raohane", "restart"], keywords: "reload restart shell" },
+        {
+            name: qsTr("Balanced Scene"),
+            icon: "tune",
+            keywords: "scene profile balanced normal default",
+            active: RaohaneScenes.activeSceneId === "balanced",
+            execute: () => RaohaneScenes.activate("balanced", "launcher")
+        },
+        {
+            name: qsTr("Gaming Scene"),
+            icon: "sports_esports",
+            keywords: "scene profile gaming game performance dnd",
+            active: RaohaneScenes.activeSceneId === "gaming",
+            execute: () => RaohaneScenes.activate("gaming", "launcher")
+        },
+        {
+            name: qsTr("Focus Scene"),
+            icon: "center_focus_strong",
+            keywords: "scene profile focus quiet dnd concentration",
+            active: RaohaneScenes.activeSceneId === "focus",
+            execute: () => RaohaneScenes.activate("focus", "launcher")
+        },
+        {
+            name: qsTr("Work Scene"),
+            icon: "work",
+            keywords: "scene profile work productivity office development",
+            active: RaohaneScenes.activeSceneId === "work",
+            execute: () => RaohaneScenes.activate("work", "launcher")
+        }
     ]
 
     readonly property var results: root.buildResults()
@@ -156,10 +184,10 @@ Singleton {
                 name: action.name,
                 iconName: action.icon,
                 iconType: "material",
-                verb: qsTr("RUN"),
-                type: qsTr("Raohane action"),
-                comment: action.keywords,
-                execute: () => Quickshell.execDetached(action.command)
+                verb: action.active ? qsTr("ACTIVE") : (action.execute ? qsTr("APPLY") : qsTr("RUN")),
+                type: action.execute ? qsTr("Raohane scene") : qsTr("Raohane action"),
+                comment: action.active ? qsTr("Current scene") : action.keywords,
+                execute: action.execute ? action.execute : () => Quickshell.execDetached(action.command)
             }))
     }
 
