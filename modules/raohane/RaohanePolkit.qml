@@ -142,11 +142,11 @@ Scope {
             id: dialog
             property bool entered: false
 
-            width: Math.min(parent.width - 72, 420)
-            implicitHeight: content.implicitHeight + 34
+            width: Math.min(parent.width - 80, 460)
+            implicitHeight: content.implicitHeight + 40
             height: implicitHeight
             anchors.centerIn: parent
-            surfaceRadius: 14
+            surfaceRadius: 16
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
@@ -161,12 +161,12 @@ Scope {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    leftMargin: 16
-                    rightMargin: 16
+                    leftMargin: 18
+                    rightMargin: 18
                 }
                 height: 1
                 color: RaohaneTheme.accent
-                opacity: 0.38
+                opacity: 0.42
             }
 
             Keys.onPressed: event => {
@@ -182,38 +182,47 @@ Scope {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    margins: 17
+                    margins: 20
                 }
-                spacing: 9
+                spacing: 11
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 9
+                    spacing: 11
 
                     Rectangle {
                         Layout.preferredWidth: 3
-                        Layout.preferredHeight: 34
+                        Layout.preferredHeight: 38
                         radius: 1.5
                         color: RaohaneTheme.accent
                     }
 
-                    RaohaneIcon {
-                        text: "security"
-                        iconSize: 20
-                        fill: 1
-                        symbolWeight: 540
-                        color: RaohaneTheme.accent
+                    RaohaneSurface {
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        surfaceRadius: 11
+                        active: true
+                        showSheen: false
+
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "security"
+                            iconSize: 20
+                            fill: 1
+                            symbolWeight: 540
+                            color: RaohaneTheme.accent
+                        }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 0
+                        spacing: 1
 
                         Text {
                             Layout.fillWidth: true
                             text: qsTr("Authentication required")
                             color: RaohaneTheme.text
-                            font.pixelSize: 13
+                            font.pixelSize: 14
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
@@ -224,7 +233,8 @@ Scope {
                             text: root.message
                             color: RaohaneTheme.textFaint
                             wrapMode: Text.Wrap
-                            font.pixelSize: 7
+                            font.pixelSize: 8
+                            lineHeight: 1.18
                         }
                     }
                 }
@@ -237,9 +247,9 @@ Scope {
 
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: supplementaryText.implicitHeight + 14
+                    Layout.preferredHeight: supplementaryText.implicitHeight + 18
                     visible: root.supplementaryMessage.length > 0
-                    surfaceRadius: 8
+                    surfaceRadius: 9
                     showSheen: false
                     color: RaohaneTheme.surfaceDeep
                     border.color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.borderFaint
@@ -250,12 +260,13 @@ Scope {
                             left: parent.left
                             right: parent.right
                             verticalCenter: parent.verticalCenter
-                            margins: 8
+                            margins: 10
                         }
                         text: root.supplementaryMessage
                         color: root.supplementaryIsError ? RaohaneTheme.critical : RaohaneTheme.textMuted
                         wrapMode: Text.Wrap
-                        font.pixelSize: 7
+                        font.pixelSize: 8
+                        lineHeight: 1.16
 
                         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                     }
@@ -265,14 +276,14 @@ Scope {
                     Layout.fillWidth: true
                     text: root.prompt
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     font.weight: Font.DemiBold
                 }
 
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 38
-                    surfaceRadius: 9
+                    Layout.preferredHeight: 44
+                    surfaceRadius: 10
                     hovered: inputField.activeFocus
                     showSheen: false
                     color: RaohaneTheme.surfaceDeep
@@ -281,15 +292,15 @@ Scope {
                     TextInput {
                         id: inputField
                         anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 10
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
                         verticalAlignment: TextInput.AlignVCenter
                         enabled: root.interactionAvailable
                         color: RaohaneTheme.text
                         selectionColor: RaohaneTheme.accentSoft
                         selectedTextColor: RaohaneTheme.text
                         echoMode: root.responseVisible ? TextInput.Normal : TextInput.Password
-                        font.pixelSize: 9
+                        font.pixelSize: 10
                         clip: true
                         onAccepted: root.submit()
 
@@ -304,19 +315,19 @@ Scope {
                     Text {
                         anchors {
                             left: parent.left
-                            leftMargin: 10
+                            leftMargin: 12
                             verticalCenter: parent.verticalCenter
                         }
                         visible: inputField.text.length === 0 && !inputField.activeFocus
                         text: root.prompt
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        font.pixelSize: 9
                     }
                 }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: 8
 
                     Item { Layout.fillWidth: true }
 
@@ -341,9 +352,9 @@ Scope {
         property bool primary: false
         signal triggered()
 
-        Layout.preferredWidth: primary ? 116 : 88
-        Layout.preferredHeight: 32
-        surfaceRadius: 8
+        Layout.preferredWidth: primary ? 128 : 96
+        Layout.preferredHeight: 36
+        surfaceRadius: 9
         active: primary
         transparentIdle: !primary && !hovered
         showSheen: false
@@ -362,7 +373,7 @@ Scope {
             text: button.title
             color: button.primary ? RaohaneTheme.accent
                 : button.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.weight: Font.DemiBold
 
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
