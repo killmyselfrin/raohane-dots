@@ -2,12 +2,19 @@
 
 ## 1.2.0-dev — Contextual shell
 
-- Start the 1.2 feature cycle on a dedicated `develop/v1.2` branch while keeping `main` on stable 1.1.0.
+- Start the 1.2 feature cycle on a dedicated `develop/v1.2` branch while keeping `main` on the stable 1.1 line.
 - Add the native `RaohaneScenes` service with Balanced, Gaming, Focus and Work scenes, persisted as runtime state outside the user's base configuration.
 - Apply reversible scene policies: Gaming enables DND, Keep Awake and Game Mode; Focus enables DND; Work enables Keep Awake; Balanced restores the pre-scene runtime state.
+- Add event-driven application scene switching from the active Wayland `appId`, with conservative Steam/gamescope defaults, user rules and manual-override behavior.
+- Add a Scene rail to runtime Quick Controls / Control Center with direct mode selection and AUTO/MANUAL switching state.
+- Add a dedicated Settings → Scenes surface for selected/active state, auto switching, current `appId`, exact custom app rules and protected built-in rules without exposing scene persistence to the UI.
 - Add Launcher scene actions with active-scene feedback so `/ gaming`, `/ focus`, `/ work` and `/ balanced` become the first contextual Launcher 2.0 commands.
-- Surface scene changes through Context Island events and expose the active scene/effective policy through runtime diagnostics.
-- Add a dedicated Scenes boundary workflow that protects persistence, reversible policy behavior, Launcher integration and Context/runtime diagnostics.
+- Replace Gaming Scene idle Quick Access with six live native actions: Microphone, Audio Output, Record Gameplay, Game Mode, DND and Media.
+- Add native PipeWire output cycling through `RaohaneAudio` so Launcher can switch devices without embedding `wpctl` commands.
+- Add the native `RaohaneRecorder` service over the validated recording script, with fullscreen/region capture, audio, clean stop, external-session detection, elapsed time and IPC status.
+- Evolve Context Island toward 2.0 with persistent gameplay-recording state, elapsed time, direct stop control and scene-aware secondary activity markers while preserving privacy/media priority.
+- Expose scene and recorder state through runtime diagnostics and require Scenes/Recorder/Settings Scenes in the validated runtime payload.
+- Add and expand the dedicated Scenes boundary workflow to protect persistence, reversible policy behavior, app rules, Settings routing, native Gaming action routes, recorder integration and Context/runtime diagnostics.
 
 ## 1.1.0 — Whole-shell polish
 
