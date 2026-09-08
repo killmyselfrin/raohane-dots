@@ -2,7 +2,7 @@
 
 ## 1.1.0-dev — Whole-shell polish
 
-- Start the post-1.0 polish cycle with Settings while keeping the stable registry/router/config architecture intact.
+- Start the post-1.0 polish cycle while keeping the stable registry/router/config architecture intact.
 - Increase Settings workspace breathing room and rebalance the global search/command chrome.
 - Improve Settings navigation, page headers and profile affordances with more readable typography and spacing.
 - Increase control-row hit areas and text hierarchy for toggles, numeric controls, choices and text inputs.
@@ -12,6 +12,21 @@
 - Bring Sakura ambience controls in Appearance onto the same typography, spacing and choice-button scale as the rest of Settings.
 - Rebalance Bar & Dock Studio, horizontal/vertical layout editing and Settings-only bar/dock previews without changing runtime Bar or Dock geometry.
 - Rebalance Quick Controls Studio preview, active/available tile lists, reorder actions and slider previews while preserving the quick-control layout model.
+- Rework Displays presentation with a larger monitor canvas, clearer cards and safer Apply/Keep/Revert hierarchy while preserving monitor IPC and the timed rollback path.
+- Rebalance Graphics & Drivers around larger hardware/status/update cards without changing Polkit, package filtering or driver-family safety.
+- Bring Keyboard & Motion, Backup & Restore, Language and About onto the same 1.1 visual scale while preserving keybind, restore, locale and updater behavior.
+- Complete a Control Center polish pass across the panel shell, runtime Quick Controls, device picker, notifications and notification cards without reintroducing duplicate audio or microphone controls.
+- Rebalance Launcher search, mode chips, pinned applications, quick actions and result rows while preserving ranking, mode prefixes and execution semantics.
+- Scale Wallpaper Selector navigation, gallery metadata and footer controls without changing preview, apply, random, directory or video behavior.
+- Rework Overview / Spaces presentation across workspace cards and window rows while preserving O(1) workspace lookup, Hyprland dispatch and direct Wayland activation.
+- Rebalance Media Overlay, lyrics presentation and transport controls while keeping MPRIS, seek, synced lyrics and lyrics-only rendering intact.
+- Refine the native OSD without changing Context Island suppression or brightness/gamma/audio event routing.
+- Rework Session Screen presentation while retaining the 10-second destructive-action confirmation and package/download warnings.
+- Validate Lock Surface, Context Island, OSK, Task Manager, runtime Bar and Dock as already compatible with the 1.1 scale instead of creating cosmetic rewrites around security or density-sensitive behavior.
+- Rebalance DropShelf panel/item geometry while preserving URI drag-and-drop, MIME payloads and open/reveal/copy/remove behavior.
+- Rebalance the Polkit authentication dialog without changing the PolkitAgent request lifecycle, password masking, submit or cancel semantics.
+- Rework the left navigation sidebar and desktop context menu around larger everyday controls while keeping the sidebar free of duplicate microphone/device selection UI.
+- Rebalance Screen Translator panels and actions while preserving the capture → OCR → translation → JSON → clipboard pipeline.
 
 ## 1.0.0 — First stable release
 
@@ -97,15 +112,3 @@
 - Expand the Raohane config namespace for Context Island, Control Center and gaming behavior.
 - Keep old shell identity out of primary UI, launcher and installer while backend replacement continues incrementally.
 - Extend `raohane-audit.sh` to validate primary QML/import/identity boundaries.
-
-## 0.8.0-dev — Visual Foundation
-
-- Load Raohane Bar and Control Center directly from the root shell.
-- Add native Raohane Launcher and `raohane launcher` IPC/CLI path.
-- Replace SettingsPageRegistry in the visible settings UI with RaohaneSettingsRegistry.
-- Add native Appearance, Bar, Control Center, Effects, Media, Hyprland and System pages.
-- Convert the bar to three floating pods with Context Island as the visual center.
-- Set `panelFamily=raohane` as the only shell family and remove Waffle runtime loading.
-- Remove legacy bar/right-sidebar/overview/left-sidebar primary loaders.
-- Move active helper/service/cache paths to the Raohane namespace.
-- Add visual previews to Bar and Control Center settings.
