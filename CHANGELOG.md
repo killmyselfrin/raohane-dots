@@ -1,5 +1,13 @@
 # Raohane changelog
 
+## 1.2.1 — Lyrics flow hotfix
+
+- Fix lyrics-only rendering for plain LRCLIB lyrics so non-synced text stays readable instead of inheriting the distant-line fade intended for synced lyrics.
+- Keep lyric delegates at a stable width and animate the inner text instead, preventing active synced lines from being clipped at the left or right edge.
+- Use high-contrast light lyric text with a dark outline over arbitrary application content while retaining artwork-derived accent on the active synced line.
+- Add top and bottom breathing room so the first and last timed lines can move into the same centered reading position as the rest of the song.
+- Rework synced lyrics into a clearer karaoke stack with animated active-line scale, neighboring-line fade and smooth recentering while preserving click-to-seek behavior.
+
 ## 1.2.0 — Contextual shell
 
 - Add the native `RaohaneScenes` subsystem with Balanced, Gaming, Focus and Work scenes persisted as runtime state outside the user's base configuration.
@@ -103,7 +111,7 @@
 - Replace compatibility right-sidebar quick controls with `RaohaneQuickControls.qml`, including Wi-Fi, Bluetooth, Night Light, Game Mode, idle inhibition, EasyEffects and native brightness/audio/microphone sliders.
 - Remove the quick-control `jq` probe by parsing Hyprland JSON directly in QML.
 - Replace the top-level Settings compatibility shell with `RaohaneSettingsContent.qml`, a Hyprland-only Raohane navigation layer over the mature configuration pages.
-- Add `RaohaneSettingsHome.qml` as the wallpaper-backed Control Deck landing page with live context/system state.
+- Add `RaohaneSettingsHome.qml` as the wallpaper-backed Control Deck home surface with live context/system state.
 - Replace the visible wallpaper selector with `RaohaneWallpaperSelector.qml` while retaining the mature `Wallpapers` service, preview and background transition path.
 - Replace the visible desktop context menu with `RaohaneDesktopMenu.qml` while retaining background click coordinates, DropShelf and wallpaper services.
 - Expand the `raohane` CLI with `media`, `desktop`, `wallpaper`, random-wallpaper control and batch diagnostics for dependencies, services and graphics.
