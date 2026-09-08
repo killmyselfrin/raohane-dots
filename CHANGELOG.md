@@ -79,7 +79,7 @@
 - Replace compatibility right-sidebar quick controls with `RaohaneQuickControls.qml`, including Wi-Fi, Bluetooth, Night Light, Game Mode, idle inhibition, EasyEffects and native brightness/audio/microphone sliders.
 - Remove the quick-control `jq` probe by parsing Hyprland JSON directly in QML.
 - Replace the top-level Settings compatibility shell with `RaohaneSettingsContent.qml`, a Hyprland-only Raohane navigation layer over the mature configuration pages.
-- Add `RaohaneSettingsHome.qml` as the wallpaper-backed Control Deck landing page with live context/system state.
+- Add `RaohaneSettingsHome.qml` as the wallpaper-backed Control Deck home surface with live context/system state.
 - Replace the visible wallpaper selector with `RaohaneWallpaperSelector.qml` while retaining the mature `Wallpapers` service, preview and background transition path.
 - Replace the visible desktop context menu with `RaohaneDesktopMenu.qml` while retaining background click coordinates, DropShelf and wallpaper services.
 - Expand the `raohane` CLI with `media`, `desktop`, `wallpaper`, random-wallpaper control and batch diagnostics for dependencies, services and graphics.
