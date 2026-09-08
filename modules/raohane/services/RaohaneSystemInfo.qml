@@ -135,10 +135,12 @@ Singleton {
 
     // Static/about information is collected in one shell transaction instead
     // of spawning eight concurrent processes whenever About requests a refresh.
+    // It intentionally uses a non-login shell: no user profile initialization
+    // is needed for this deterministic system snapshot.
     Process {
         id: systemProbe
         command: [
-            "bash", "-lc",
+            "bash", "-c",
             "cpu=$(awk -F: '/model name/ {gsub(/^ +/, \"\", $2); print $2; exit}' /proc/cpuinfo); "
                 + "gpu=$(lspci 2>/dev/null | grep -Ei 'vga|3d|display' | head -1 | sed -E 's/^[^:]+: //; s/ \\(rev [^)]+\\)//; s/NVIDIA Corporation //; s/Advanced Micro Devices, Inc. \\[AMD\\/ATI\\] //; s/Intel Corporation //'); "
                 + "memory=$(LC_ALL=C free -h | awk '/^Mem:/ {print $3 \" / \" $2}'); "
