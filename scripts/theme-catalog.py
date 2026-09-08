@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Manage Raohane native theme catalogs.
-
-Source palettes are converted into Raohane's complete token schema. The shell
-never imports or executes another shell's runtime.
-"""
+"""Manage Raohane native theme catalogs."""
 
 from __future__ import annotations
 
@@ -17,7 +13,6 @@ from typing import Any, Iterable
 
 
 CATALOG_SCHEMA = 1
-HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
 NATIVE_FIELDS = (
     "background", "backgroundElevated", "surface", "surfaceRaised",
     "surfaceDeep", "surfaceSubtle", "surfaceHover", "surfacePressed",
@@ -25,6 +20,7 @@ NATIVE_FIELDS = (
     "textMuted", "textFaint", "accent", "accentSecondary", "accentBlue",
     "success", "warning", "critical", "info",
 )
+HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$")
 
 
 def default_catalog_path() -> Path:
@@ -37,73 +33,11 @@ def slug(value: str) -> str:
     return normalized or "theme"
 
 
-def color(value: Any, fallback: str) -> str:
-    candidate = str(value or "").strip()
-    return candidate.lower() if HEX_COLOR.fullmatch(candidate) else fallback.lower()
-
-
-def alpha(value: str, opacity: str) -> str:
-    return f"#{opacity}{value.lstrip('#')}"
-
-
 def relative_luminance(value: str) -> float:
-    channels = [int(value[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+    rgb = value[-6:]
+    channels = [int(rgb[index:index + 2], 16) / 255 for index in (0, 2, 4)]
     converted = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels]
     return 0.2126 * converted[0] + 0.7152 * converted[1] + 0.0722 * converted[2]
-
-
-def serpantinum_to_raohane(document: dict[str, Any], source_name: str) -> dict[str, Any]:
-    palette = document.get("colors")
-    if not isinstance(palette, dict):
-        raise ValueError(f"{source_name}: missing Serpantinum colors object")
-
-    name = str(document.get("name") or Path(source_name).stem).strip()
-    base = color(palette.get("base"), "#17181b")
-    mantle = color(palette.get("mantle"), base)
-    crust = color(palette.get("crust"), mantle)
-    surface0 = color(palette.get("surface0"), mantle)
-    surface1 = color(palette.get("surface1"), surface0)
-    surface2 = color(palette.get("surface2"), surface1)
-    overlay0 = color(palette.get("overlay0"), surface2)
-    overlay1 = color(palette.get("overlay1"), overlay0)
-    overlay2 = color(palette.get("overlay2"), overlay1)
-    text = color(palette.get("text"), "#eceff4")
-    subtext0 = color(palette.get("subtext0"), overlay2)
-    subtext1 = color(palette.get("subtext1"), subtext0)
-    accent = color(palette.get("mauve"), color(palette.get("blue"), "#8296b5"))
-    dark = relative_luminance(base) < 0.34
-
-    return {
-        "id": f"serp-{slug(name)}",
-        "name": name,
-        "description": "Serpantinum palette adapted to Raohane's native surface system",
-        "tone": "Serpantinum · Dark" if dark else "Serpantinum · Light",
-        "dark": dark,
-        "source": "ilyamiro/serpantinum",
-        "sourceTheme": name,
-        "background": base,
-        "backgroundElevated": surface0,
-        "surface": alpha(surface0, "dc"),
-        "surfaceRaised": alpha(surface1, "ee"),
-        "surfaceDeep": alpha(crust, "f2"),
-        "surfaceSubtle": alpha(surface0, "8f"),
-        "surfaceHover": alpha(surface1, "df"),
-        "surfacePressed": alpha(surface2, "e8"),
-        "border": alpha(overlay0, "2e"),
-        "borderStrong": alpha(overlay1, "50"),
-        "borderFaint": alpha(overlay0, "18"),
-        "highlight": alpha(overlay2, "38" if dark else "70"),
-        "text": text,
-        "textMuted": subtext1,
-        "textFaint": subtext0,
-        "accent": accent,
-        "accentSecondary": color(palette.get("blue"), accent),
-        "accentBlue": color(palette.get("sapphire"), color(palette.get("blue"), accent)),
-        "success": color(palette.get("green"), "#719181"),
-        "warning": color(palette.get("yellow"), "#b69b6f"),
-        "critical": color(palette.get("red"), "#bd7479"),
-        "info": color(palette.get("blue"), accent),
-    }
 
 
 def validate_native(document: dict[str, Any], source_name: str) -> dict[str, Any]:
@@ -112,26 +46,25 @@ def validate_native(document: dict[str, Any], source_name: str) -> dict[str, Any
     result["name"] = str(result.get("name") or result["id"]).strip()
     result["description"] = str(result.get("description") or "Custom Raohane theme")
     result["tone"] = str(result.get("tone") or "Custom")
-    fallback_background = color(result.get("background"), "#17181b")
-    result["dark"] = bool(result.get("dark", relative_luminance(fallback_background) < 0.34))
+
     for field in NATIVE_FIELDS:
         value = str(result.get(field, ""))
-        if not re.fullmatch(r"#[0-9a-fA-F]{6}|#[0-9a-fA-F]{8}", value):
+        if not HEX_COLOR.fullmatch(value):
             raise ValueError(f"{source_name}: invalid or missing native token {field}")
         result[field] = value.lower()
+
+    result["dark"] = bool(result.get("dark", relative_luminance(result["background"]) < 0.34))
+    result["source"] = str(result.get("source") or "user")
     return result
 
 
-def presets_from_document(document: Any, source_name: str, serpantinum: bool) -> list[dict[str, Any]]:
+def presets_from_document(document: Any, source_name: str) -> list[dict[str, Any]]:
     raw_presets = document["presets"] if isinstance(document, dict) and isinstance(document.get("presets"), list) else [document]
     result = []
     for raw in raw_presets:
         if not isinstance(raw, dict):
             raise ValueError(f"{source_name}: theme entry is not an object")
-        if serpantinum or isinstance(raw.get("colors"), dict):
-            result.append(serpantinum_to_raohane(raw, source_name))
-        else:
-            result.append(validate_native(raw, source_name))
+        result.append(validate_native(raw, source_name))
     return result
 
 
@@ -152,9 +85,8 @@ def parse_inline_preset(payload: str, source_name: str) -> dict[str, Any]:
     return validate_native(document, source_name)
 
 
-def load_sources(path: Path, serpantinum: bool) -> list[dict[str, Any]]:
-    is_directory = path.is_dir()
-    if is_directory:
+def load_sources(path: Path) -> list[dict[str, Any]]:
+    if path.is_dir():
         files: Iterable[Path] = sorted(path.glob("*.json"), key=lambda item: item.name.lower())
     elif path.is_file():
         files = [path]
@@ -163,12 +95,9 @@ def load_sources(path: Path, serpantinum: bool) -> list[dict[str, Any]]:
 
     presets: list[dict[str, Any]] = []
     for source in files:
-        if is_directory and source.stat().st_size == 0:
+        if source.stat().st_size == 0:
             continue
-        document = read_json(source)
-        if serpantinum and is_directory and (not isinstance(document, dict) or not isinstance(document.get("colors"), dict)):
-            continue
-        presets.extend(presets_from_document(document, str(source), serpantinum))
+        presets.extend(presets_from_document(read_json(source), str(source)))
     if not presets:
         raise ValueError(f"No JSON themes found in {path}")
     return presets
@@ -178,8 +107,8 @@ def read_catalog(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
     document = read_json(path)
-    if not isinstance(document, dict) or not isinstance(document.get("presets"), list):
-        raise ValueError(f"{path}: expected a Raohane theme catalog")
+    if not isinstance(document, dict) or document.get("schemaVersion") != CATALOG_SCHEMA or not isinstance(document.get("presets"), list):
+        raise ValueError(f"{path}: expected a Raohane theme catalog schema v{CATALOG_SCHEMA}")
     return [validate_native(item, str(path)) for item in document["presets"]]
 
 
@@ -197,7 +126,10 @@ def atomic_write_text(path: Path, payload: str) -> None:
 
 
 def write_catalog(path: Path, presets: list[dict[str, Any]]) -> None:
-    document = {"schemaVersion": CATALOG_SCHEMA, "presets": sorted(presets, key=lambda item: (item["name"].lower(), item["id"]))}
+    document = {
+        "schemaVersion": CATALOG_SCHEMA,
+        "presets": sorted(presets, key=lambda item: (item["name"].lower(), item["id"])),
+    }
     atomic_write_text(path, json.dumps(document, ensure_ascii=False, indent=2) + "\n")
 
 
@@ -216,10 +148,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--catalog", type=Path, default=default_catalog_path(), help="catalog path")
     commands = parser.add_subparsers(dest="command", required=True)
 
-    importer = commands.add_parser("import", help="import native or palette JSON")
+    importer = commands.add_parser("import", help="import native Raohane theme JSON")
     importer.add_argument("source", type=Path)
-    serpantinum = commands.add_parser("import-serpantinum", help="convert Serpantinum theme JSON")
-    serpantinum.add_argument("source", type=Path)
     commands.add_parser("list", help="list custom themes")
     remover = commands.add_parser("remove", help="remove a custom theme")
     remover.add_argument("theme_id")
@@ -240,8 +170,8 @@ def main() -> int:
     catalog = args.catalog.expanduser()
     try:
         existing = read_catalog(catalog)
-        if args.command in {"import", "import-serpantinum"}:
-            incoming = load_sources(args.source.expanduser(), args.command == "import-serpantinum")
+        if args.command == "import":
+            incoming = load_sources(args.source.expanduser())
             write_catalog(catalog, merge_presets(existing, incoming))
             print(f"[Raohane] Imported {len(incoming)} theme(s) into {catalog}")
             return 0
