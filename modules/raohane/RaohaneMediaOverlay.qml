@@ -15,16 +15,12 @@ Scope {
     property bool lyricsOpen: false
     property bool lyricsFocus: false
 
-    // A layer-shell surface cannot cheaply sample arbitrary application pixels
-    // underneath it on Wayland. Lyrics-only therefore uses a theme-aware
-    // foreground plus the opposite-polarity halo: light ink gets a dark halo,
-    // dark ink gets a light halo. The pair stays legible over both bright and
-    // dark application content without introducing a visible backing card.
-    readonly property color lyricsFocusForeground: RaohaneTheme.dark ? "#fffdfc" : "#171719"
-    readonly property color lyricsFocusSecondary: RaohaneTheme.dark ? "#e7e5ef" : "#2d2b31"
-    readonly property color lyricsFocusHalo: RaohaneTheme.dark
-        ? Qt.rgba(0.01, 0.012, 0.02, 0.82)
-        : Qt.rgba(1, 1, 1, 0.90)
+    // Lyrics-only floats over arbitrary application content. Use stable light
+    // ink with a dark halo instead of theme polarity so the text stays legible
+    // over both bright and dark backgrounds without adding a backing card.
+    readonly property color lyricsFocusForeground: "#fffdfc"
+    readonly property color lyricsFocusSecondary: "#e7e5ef"
+    readonly property color lyricsFocusHalo: Qt.rgba(0.01, 0.012, 0.02, 0.88)
 
     // The cover service supplies a filtered vibrant color when artwork can be
     // analysed. Theme accent remains the zero-cost fallback for missing/local
@@ -439,12 +435,28 @@ Scope {
                                 anchors.fill: parent
                                 visible: !RaohaneLyrics.loading && RaohaneLyrics.available && !RaohaneLyrics.instrumental
                                 clip: true
-                                spacing: root.lyricsFocus ? 9 : 3
+                                spacing: root.lyricsFocus
+                                    ? (RaohaneLyrics.syncedAvailable ? 8 : 11)
+                                    : 3
                                 model: RaohaneLyrics.displayLines
                                 currentIndex: RaohaneLyrics.syncedAvailable ? RaohaneLyrics.currentLineIndex : -1
                                 boundsBehavior: Flickable.StopAtBounds
                                 flickDeceleration: 2200
-                                cacheBuffer: root.lyricsFocus ? height * 1.5 : 0
+                                cacheBuffer: root.lyricsFocus ? height * 1.75 : 0
+
+                                header: Item {
+                                    width: lyricsList.width
+                                    height: root.lyricsFocus && RaohaneLyrics.syncedAvailable
+                                        ? Math.max(88, lyricsList.height * 0.34)
+                                        : root.lyricsFocus ? 10 : 0
+                                }
+
+                                footer: Item {
+                                    width: lyricsList.width
+                                    height: root.lyricsFocus && RaohaneLyrics.syncedAvailable
+                                        ? Math.max(88, lyricsList.height * 0.34)
+                                        : root.lyricsFocus ? 10 : 0
+                                }
 
                                 NumberAnimation {
                                     id: lyricsScrollAnimation
@@ -459,33 +471,43 @@ Scope {
                                     required property var modelData
                                     required property int index
 
-                                    readonly property bool current: RaohaneLyrics.syncedAvailable
+                                    readonly property bool synced: RaohaneLyrics.syncedAvailable
+                                    readonly property bool current: synced
                                         && index === RaohaneLyrics.currentLineIndex
-                                    readonly property int distanceFromCurrent: RaohaneLyrics.currentLineIndex < 0
+                                    readonly property int distanceFromCurrent: !synced || RaohaneLyrics.currentLineIndex < 0
                                         ? 0
                                         : Math.abs(index - RaohaneLyrics.currentLineIndex)
+                                    readonly property real targetTextScale: !root.lyricsFocus || !synced
+                                        ? 1
+                                        : current
+                                            ? 1.08
+                                            : distanceFromCurrent === 1
+                                                ? 0.995
+                                                : 0.965
+                                    readonly property real targetTextLift: root.lyricsFocus && synced && current ? -3 : 0
 
                                     width: ListView.view.width
-                                    height: lyricText.implicitHeight + (root.lyricsFocus ? 30 : 14)
+                                    height: lyricText.implicitHeight + (root.lyricsFocus
+                                        ? (synced ? 24 : 18)
+                                        : 14)
                                     opacity: !root.lyricsFocus
                                         ? 1
-                                        : current
-                                            ? 1
-                                            : distanceFromCurrent === 1
-                                                ? 0.56
-                                                : distanceFromCurrent === 2
-                                                    ? 0.30
-                                                    : 0.14
-                                    scale: !root.lyricsFocus
-                                        ? 1
-                                        : current
-                                            ? 1.055
-                                            : distanceFromCurrent === 1
-                                                ? 0.985
-                                                : 0.96
+                                        : !synced
+                                            ? 0.90
+                                            : current
+                                                ? 1
+                                                : distanceFromCurrent === 1
+                                                    ? 0.62
+                                                    : distanceFromCurrent === 2
+                                                        ? 0.38
+                                                        : 0.20
 
                                     Rectangle {
-                                        anchors.fill: parent
+                                        anchors {
+                                            fill: parent
+                                            leftMargin: 3
+                                            rightMargin: 3
+                                        }
                                         radius: 10
                                         color: lyricLine.current && !root.lyricsFocus
                                             ? RaohaneTheme.accentSoft
@@ -500,25 +522,46 @@ Scope {
                                             left: parent.left
                                             right: parent.right
                                             verticalCenter: parent.verticalCenter
-                                            leftMargin: root.lyricsFocus ? 20 : 10
-                                            rightMargin: root.lyricsFocus ? 20 : 10
+                                            leftMargin: root.lyricsFocus ? 42 : 10
+                                            rightMargin: root.lyricsFocus ? 42 : 10
                                         }
                                         text: String(lyricLine.modelData.text ?? "")
                                         color: root.lyricsFocus
-                                            ? (lyricLine.current ? root.lyricsFocusActive : root.lyricsFocusSecondary)
+                                            ? (!lyricLine.synced
+                                                ? root.lyricsFocusForeground
+                                                : lyricLine.current
+                                                    ? root.lyricsFocusActive
+                                                    : root.lyricsFocusSecondary)
                                             : (lyricLine.current ? RaohaneTheme.text : RaohaneTheme.textMuted)
-                                        font.pixelSize: root.lyricsFocus ? 14 : 10
-                                        font.weight: lyricLine.current ? Font.DemiBold : root.lyricsFocus ? Font.Medium : Font.Normal
+                                        font.pixelSize: root.lyricsFocus
+                                            ? (lyricLine.synced ? 16 : 14)
+                                            : 10
+                                        font.weight: lyricLine.current
+                                            ? Font.Bold
+                                            : root.lyricsFocus
+                                                ? Font.Medium
+                                                : Font.Normal
+                                        font.letterSpacing: root.lyricsFocus && lyricLine.current ? 0.12 : 0
                                         wrapMode: Text.WordWrap
                                         horizontalAlignment: Text.AlignHCenter
                                         style: root.lyricsFocus ? Text.Outline : Text.Normal
                                         styleColor: root.lyricsFocus ? root.lyricsFocusHalo : "transparent"
+                                        scale: lyricLine.targetTextScale
+                                        transformOrigin: Item.Center
+                                        transform: Translate { y: lyricLine.targetTextLift }
 
                                         Behavior on color {
                                             ColorAnimation { duration: RaohaneMotion.standard }
                                         }
                                         Behavior on styleColor {
                                             ColorAnimation { duration: RaohaneMotion.standard }
+                                        }
+                                        Behavior on scale {
+                                            enabled: RaohaneMotion.transformMotionEnabled
+                                            NumberAnimation {
+                                                duration: RaohaneMotion.relaxed
+                                                easing.type: RaohaneMotion.easeEmphasized
+                                            }
                                         }
                                     }
 
@@ -529,17 +572,9 @@ Scope {
                                         }
                                     }
 
-                                    Behavior on scale {
-                                        enabled: RaohaneMotion.transformMotionEnabled
-                                        NumberAnimation {
-                                            duration: RaohaneMotion.relaxed
-                                            easing.type: RaohaneMotion.easeEmphasized
-                                        }
-                                    }
-
                                     MouseArea {
                                         anchors.fill: parent
-                                        enabled: RaohaneLyrics.syncedAvailable
+                                        enabled: lyricLine.synced
                                             && Number(lyricLine.modelData.time) >= 0
                                             && RaohaneMedia.canSeek
                                         cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
