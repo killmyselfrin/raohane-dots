@@ -24,8 +24,9 @@ QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
 SWITCHER=modules/raohane/RaohaneSceneSwitcher.qml
 SETTINGS=modules/raohane/RaohaneSettingsScenes.qml
 SETTINGS_REGISTRY=modules/raohane/RaohaneSettingsPageRegistry.qml
+DOCK=modules/raohane/RaohaneDock.qml
 
-for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$AUDIO" "$RECORDER" "$RECORD_SCRIPT" "$CONTEXT" "$CONTEXT_ISLAND" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY"; do
+for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$AUDIO" "$RECORDER" "$RECORD_SCRIPT" "$CONTEXT" "$CONTEXT_ISLAND" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY" "$DOCK"; do
   [[ -f "$path" ]] || fail "missing scene integration path: $path"
 done
 
@@ -171,6 +172,17 @@ if rg -n 'FileView|scenes\.json|RaohanePaths\.sceneStateFile' "$SETTINGS"; then
 fi
 
 for contract in \
+  'sceneHidePolicy: String\(RaohaneScenes\.activePolicy\?\.dockPolicy' \
+  'if \(dockWindow\.fullscreenActive \|\| root\.sceneHidePolicy\)' \
+  '&& !root\.sceneHidePolicy' \
+  'visible: dockWindow\.fullscreenActive \|\| root\.sceneHidePolicy'; do
+  rg -q "$contract" "$DOCK" || fail "Dock lost temporary Scene visibility overlay: $contract"
+done
+if rg -n 'sceneHidePolicy.*RaohaneConfig\.|RaohaneConfig\.(dockAutoHide|dockPinned|dockEnabled)[[:space:]]*=.*scene' "$DOCK"; then
+  fail 'Dock Scene overlay must not rewrite persisted dock configuration'
+fi
+
+for contract in \
   'target: RaohaneScenes' \
   'target: RaohaneRecorder' \
   'gameplayRecording: RaohaneRecorder\.recording' \
@@ -209,4 +221,4 @@ for contract in \
   rg -q "$contract" "$RUNTIME" || fail "Runtime recorder diagnostics lost contract: $contract"
 done
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Settings management, native gaming actions, Launcher 2.0 scene management, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Settings management, temporary dock policy, native gaming actions, Launcher 2.0 scene management, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
