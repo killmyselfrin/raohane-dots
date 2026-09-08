@@ -18,6 +18,7 @@ Singleton {
 
     property bool autoSwitchEnabled: true
     property var appRules: []
+    property var policyOverrides: ({})
     property bool autoSceneActive: false
     property string autoSourceAppId: ""
     property bool manualOverride: false
@@ -31,7 +32,9 @@ Singleton {
     property bool desiredGameMode: false
 
     readonly property var sceneIds: ["balanced", "gaming", "focus", "work"]
+    readonly property var editableSceneIds: ["gaming", "focus", "work"]
     readonly property var matchModes: ["exact", "prefix", "contains"]
+    readonly property var policyKeys: ["notificationPolicy", "keepAwake", "gameMode", "dockPolicy", "motionHint"]
     readonly property string activeAppId: String(ToplevelManager.activeToplevel?.appId ?? "").trim().toLowerCase()
     readonly property var activePolicy: root.policyFor(root.activeSceneId)
     readonly property bool gaming: root.activeSceneId === "gaming"
@@ -44,6 +47,7 @@ Singleton {
 
     signal sceneActivated(string sceneId, string source)
     signal policyApplied(string sceneId)
+    signal policyChanged(string sceneId)
     signal autoRuleMatched(string appId, string sceneId)
 
     function sanitizeSceneId(value): string {
@@ -51,7 +55,7 @@ Singleton {
         return root.sceneIds.includes(requested) ? requested : "balanced"
     }
 
-    function policyFor(sceneId): var {
+    function defaultPolicyFor(sceneId): var {
         switch (root.sanitizeSceneId(sceneId)) {
         case "gaming":
             return {
@@ -90,6 +94,103 @@ Singleton {
                 motionHint: "balanced"
             }
         }
+    }
+
+    function sanitizePolicy(sceneId, value): var {
+        const id = root.sanitizeSceneId(sceneId)
+        const defaults = root.defaultPolicyFor(id)
+        if (!root.editableSceneIds.includes(id) || !value || typeof value !== "object")
+            return defaults
+
+        const notification = String(value.notificationPolicy ?? defaults.notificationPolicy).trim().toLowerCase()
+        const dock = String(value.dockPolicy ?? defaults.dockPolicy).trim().toLowerCase()
+        const motion = String(value.motionHint ?? defaults.motionHint).trim().toLowerCase()
+
+        return {
+            notificationPolicy: ["inherit", "dnd"].includes(notification) ? notification : defaults.notificationPolicy,
+            keepAwake: value.keepAwake === undefined ? defaults.keepAwake : Boolean(value.keepAwake),
+            dockPolicy: ["inherit", "hide"].includes(dock) ? dock : defaults.dockPolicy,
+            contextMode: defaults.contextMode,
+            gameMode: value.gameMode === undefined ? defaults.gameMode : Boolean(value.gameMode),
+            motionHint: ["balanced", "fast", "quiet"].includes(motion) ? motion : defaults.motionHint
+        }
+    }
+
+    function sanitizePolicyOverrides(value): var {
+        const result = {}
+        if (!value || typeof value !== "object" || Array.isArray(value))
+            return result
+        for (const sceneId of root.editableSceneIds) {
+            if (!Object.prototype.hasOwnProperty.call(value, sceneId))
+                continue
+            result[sceneId] = root.sanitizePolicy(sceneId, value[sceneId])
+        }
+        return result
+    }
+
+    function policyFor(sceneId): var {
+        const id = root.sanitizeSceneId(sceneId)
+        const defaults = root.defaultPolicyFor(id)
+        if (!root.editableSceneIds.includes(id))
+            return defaults
+        const stored = root.policyOverrides?.[id]
+        return stored ? root.sanitizePolicy(id, stored) : defaults
+    }
+
+    function hasPolicyOverride(sceneId): bool {
+        const id = root.sanitizeSceneId(sceneId)
+        return root.editableSceneIds.includes(id)
+            && Object.prototype.hasOwnProperty.call(root.policyOverrides ?? {}, id)
+    }
+
+    function setPolicyValue(sceneId, key, value): bool {
+        const id = root.sanitizeSceneId(sceneId)
+        const policyKey = String(key ?? "").trim()
+        if (!root.editableSceneIds.includes(id) || !root.policyKeys.includes(policyKey))
+            return false
+
+        const current = Object.assign({}, root.policyFor(id))
+        if (policyKey === "notificationPolicy") {
+            const next = String(value ?? "").trim().toLowerCase()
+            if (!["inherit", "dnd"].includes(next))
+                return false
+            current.notificationPolicy = next
+        } else if (policyKey === "dockPolicy") {
+            const next = String(value ?? "").trim().toLowerCase()
+            if (!["inherit", "hide"].includes(next))
+                return false
+            current.dockPolicy = next
+        } else if (policyKey === "motionHint") {
+            const next = String(value ?? "").trim().toLowerCase()
+            if (!["balanced", "fast", "quiet"].includes(next))
+                return false
+            current.motionHint = next
+        } else {
+            current[policyKey] = Boolean(value)
+        }
+
+        const nextOverrides = Object.assign({}, root.policyOverrides ?? {})
+        nextOverrides[id] = root.sanitizePolicy(id, current)
+        root.policyOverrides = root.sanitizePolicyOverrides(nextOverrides)
+        root.policyChanged(id)
+        saveTimer.restart()
+        if (root.activeSceneId === id)
+            sceneApplyTimer.restart()
+        return true
+    }
+
+    function resetScenePolicy(sceneId): bool {
+        const id = root.sanitizeSceneId(sceneId)
+        if (!root.editableSceneIds.includes(id) || !root.hasPolicyOverride(id))
+            return false
+        const nextOverrides = Object.assign({}, root.policyOverrides ?? {})
+        delete nextOverrides[id]
+        root.policyOverrides = root.sanitizePolicyOverrides(nextOverrides)
+        root.policyChanged(id)
+        saveTimer.restart()
+        if (root.activeSceneId === id)
+            sceneApplyTimer.restart()
+        return true
     }
 
     function defaultRules(): var {
@@ -350,10 +451,11 @@ Singleton {
 
     function snapshot(): var {
         return {
-            version: 2,
+            version: 3,
             selectedScene: root.selectedSceneId,
             autoSwitch: root.autoSwitchEnabled,
-            rules: root.sanitizeRules(root.appRules)
+            rules: root.sanitizeRules(root.appRules),
+            policies: root.sanitizePolicyOverrides(root.policyOverrides)
         }
     }
 
@@ -365,12 +467,14 @@ Singleton {
             root.activeSceneId = root.selectedSceneId
             root.autoSwitchEnabled = parsed?.autoSwitch === undefined ? true : Boolean(parsed.autoSwitch)
             root.appRules = root.sanitizeRules(parsed?.rules)
+            root.policyOverrides = root.sanitizePolicyOverrides(parsed?.policies)
         } catch (error) {
             console.warn("[RaohaneScenes] Invalid scene state, using defaults:", error)
             root.selectedSceneId = "balanced"
             root.activeSceneId = "balanced"
             root.autoSwitchEnabled = true
             root.appRules = []
+            root.policyOverrides = ({})
         }
         root.activationSource = "startup"
         root.ready = true
@@ -388,6 +492,10 @@ Singleton {
             saveTimer.restart()
     }
     onAppRulesChanged: {
+        if (root.ready)
+            saveTimer.restart()
+    }
+    onPolicyOverridesChanged: {
         if (root.ready)
             saveTimer.restart()
     }
@@ -504,6 +612,8 @@ Singleton {
                 autoScene: root.autoSceneActive,
                 autoSourceAppId: root.autoSourceAppId,
                 activeRule: root.activeRule,
+                activePolicy: root.activePolicy,
+                policies: root.sanitizePolicyOverrides(root.policyOverrides),
                 manualOverride: root.manualOverride,
                 rules: root.sanitizeRules(root.appRules)
             })
@@ -540,6 +650,22 @@ Singleton {
 
         function removePatternRule(pattern: string, matchType: string): string {
             return root.removeRule(pattern, matchType) ? "ok" : "not-found"
+        }
+
+        function setPolicy(sceneId: string, key: string, value: string): string {
+            const normalizedKey = String(key ?? "").trim()
+            let parsedValue = value
+            if (["keepAwake", "gameMode"].includes(normalizedKey)) {
+                const normalized = String(value ?? "").trim().toLowerCase()
+                if (!["1", "0", "true", "false", "on", "off"].includes(normalized))
+                    return "invalid-value"
+                parsedValue = ["1", "true", "on"].includes(normalized)
+            }
+            return root.setPolicyValue(sceneId, normalizedKey, parsedValue) ? "ok" : "invalid-policy"
+        }
+
+        function resetPolicy(sceneId: string): string {
+            return root.resetScenePolicy(sceneId) ? "ok" : "unchanged"
         }
 
         function clearOverride(): string {
