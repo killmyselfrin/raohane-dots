@@ -16,7 +16,7 @@ Item {
 
     signal pageRequested(int index)
 
-    implicitWidth: compact ? 72 : 210
+    implicitWidth: compact ? 78 : 226
 
     Rectangle {
         anchors.fill: parent
@@ -37,31 +37,31 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
-        anchors.topMargin: 11
-        anchors.bottomMargin: 10
-        spacing: 7
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
+        anchors.topMargin: 13
+        anchors.bottomMargin: 12
+        spacing: 8
 
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: 48
+            Layout.preferredHeight: 52
 
             RowLayout {
                 anchors.fill: parent
-                spacing: 9
+                spacing: 10
 
                 RaohaneSurface {
-                    Layout.preferredWidth: 34
-                    Layout.preferredHeight: 34
-                    surfaceRadius: 10
+                    Layout.preferredWidth: 36
+                    Layout.preferredHeight: 36
+                    surfaceRadius: 11
                     active: true
                     showSheen: false
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: "spa"
-                        iconSize: 18
+                        iconSize: 19
                         fill: 1
                         symbolWeight: 560
                         grade: 40
@@ -72,12 +72,12 @@ Item {
                 ColumnLayout {
                     Layout.fillWidth: true
                     visible: !root.compact
-                    spacing: 0
+                    spacing: 1
 
                     Text {
                         text: "RAOHANE"
                         color: RaohaneTheme.text
-                        font.pixelSize: 9
+                        font.pixelSize: 10
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.1
                     }
@@ -85,7 +85,7 @@ Item {
                     Text {
                         text: qsTr("System settings")
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                     }
                 }
             }
@@ -125,7 +125,7 @@ Item {
 
                 readonly property var selectedDelegate: navRepeater.itemAt(root.currentPage)
                 readonly property real selectedY: selectedDelegate
-                    ? selectedDelegate.y + selectedDelegate.height - 34
+                    ? selectedDelegate.y + selectedDelegate.height - 36
                     : 0
 
                 RaohaneSurface {
@@ -134,10 +134,10 @@ Item {
                     x: 0
                     y: navContent.selectedY
                     width: navContent.width
-                    height: 34
+                    height: 36
                     visible: navContent.selectedDelegate !== null
                     opacity: visible ? 1 : 0
-                    surfaceRadius: 9
+                    surfaceRadius: 10
                     active: true
                     raised: false
                     showSheen: false
@@ -150,7 +150,7 @@ Item {
                             leftMargin: 2
                         }
                         width: 2
-                        height: 16
+                        height: 18
                         radius: 1
                         color: RaohaneTheme.accent
                         opacity: 0.90
@@ -173,7 +173,7 @@ Item {
                     id: navColumn
                     z: 1
                     width: navContent.width
-                    spacing: 1
+                    spacing: 2
 
                     Repeater {
                         id: navRepeater
@@ -187,21 +187,21 @@ Item {
                             readonly property bool selected: root.currentPage === navDelegate.index
 
                             width: navColumn.width
-                            height: root.compact ? 41 : (firstInGroup ? 54 : 37)
+                            height: root.compact ? 43 : (firstInGroup ? 58 : 40)
 
                             Text {
                                 visible: !root.compact && navDelegate.firstInGroup
                                 anchors {
                                     left: parent.left
-                                    leftMargin: 9
+                                    leftMargin: 10
                                     top: parent.top
-                                    topMargin: 7
+                                    topMargin: 8
                                 }
                                 text: navDelegate.modelData.group
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 6
+                                font.pixelSize: 7
                                 font.weight: Font.DemiBold
-                                font.letterSpacing: 0.85
+                                font.letterSpacing: 0.8
                             }
 
                             RaohaneSurface {
@@ -211,8 +211,8 @@ Item {
                                     right: parent.right
                                     bottom: parent.bottom
                                 }
-                                height: 34
-                                surfaceRadius: 9
+                                height: 36
+                                surfaceRadius: 10
                                 active: false
                                 transparentIdle: true
                                 showSheen: false
@@ -230,7 +230,7 @@ Item {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: 9
+                                    radius: 10
                                     color: RaohaneTheme.surfaceSubtle
                                     opacity: !navDelegate.selected && navItem.hovered ? 0.36 : 0
 
@@ -245,9 +245,9 @@ Item {
                                 RowLayout {
                                     id: navRow
                                     anchors.fill: parent
-                                    anchors.leftMargin: root.compact ? 0 : 10
-                                    anchors.rightMargin: root.compact ? 0 : 8
-                                    spacing: 8
+                                    anchors.leftMargin: root.compact ? 0 : 11
+                                    anchors.rightMargin: root.compact ? 0 : 9
+                                    spacing: 9
 
                                     transform: Translate {
                                         x: navItem.hovered && !navDelegate.selected && RaohaneMotion.transformMotionEnabled ? 2 : 0
@@ -262,7 +262,7 @@ Item {
                                     RaohaneIcon {
                                         Layout.alignment: root.compact ? Qt.AlignCenter : Qt.AlignVCenter
                                         text: navDelegate.modelData.icon
-                                        iconSize: 15
+                                        iconSize: 16
                                         fill: navDelegate.selected ? 1 : navItem.hovered ? 0.30 : 0
                                         symbolWeight: navDelegate.selected ? 550 : navItem.hovered ? 490 : 420
                                         color: navDelegate.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -280,7 +280,7 @@ Item {
                                         visible: !root.compact
                                         text: navDelegate.modelData.name
                                         color: navDelegate.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                        font.pixelSize: 8
+                                        font.pixelSize: 9
                                         font.weight: navDelegate.selected ? Font.DemiBold : Font.Normal
                                         elide: Text.ElideRight
 
@@ -320,8 +320,8 @@ Item {
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 46
-            surfaceRadius: 11
+            Layout.preferredHeight: 50
+            surfaceRadius: 12
             transparentIdle: true
             showSheen: false
             interactive: true
@@ -334,7 +334,7 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: root.compact ? 6 : 7
                 anchors.rightMargin: 7
-                spacing: 8
+                spacing: 9
 
                 transform: Translate {
                     x: profileMouse.containsMouse && RaohaneMotion.transformMotionEnabled ? 2 : 0
@@ -347,9 +347,9 @@ Item {
                 }
 
                 RaohaneSurface {
-                    Layout.preferredWidth: 32
-                    Layout.preferredHeight: 32
-                    surfaceRadius: 10
+                    Layout.preferredWidth: 34
+                    Layout.preferredHeight: 34
+                    surfaceRadius: 11
                     showSheen: false
                     clip: true
 
@@ -368,7 +368,7 @@ Item {
                         anchors.centerIn: parent
                         visible: !avatar.visible
                         text: "account_circle"
-                        iconSize: 19
+                        iconSize: 20
                         color: RaohaneTheme.textMuted
                     }
                 }
@@ -376,7 +376,7 @@ Item {
                 ColumnLayout {
                     Layout.fillWidth: true
                     visible: !root.compact
-                    spacing: -1
+                    spacing: 0
 
                     Text {
                         Layout.fillWidth: true
@@ -384,7 +384,7 @@ Item {
                             ? RaohaneSystemInfo.username
                             : RaohaneConfig.profileDisplayName
                         color: RaohaneTheme.text
-                        font.pixelSize: 8
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
@@ -393,7 +393,7 @@ Item {
                         Layout.fillWidth: true
                         text: RaohaneSystemInfo.distroName || qsTr("Hyprland")
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 6
+                        font.pixelSize: 7
                         elide: Text.ElideRight
                     }
                 }
@@ -401,7 +401,7 @@ Item {
                 RaohaneIcon {
                     visible: !root.compact
                     text: "chevron_right"
-                    iconSize: 12
+                    iconSize: 13
                     color: profileMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
 
                     Behavior on color {
