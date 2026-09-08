@@ -6,16 +6,17 @@ A desktop shell for Hyprland, built with Quickshell and Qt/QML. Dark glass surfa
 [![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
 [![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 
-**Status:** `1.1.0` — stable whole-shell polish release with refreshed Settings and runtime surfaces plus targeted startup/open-path performance improvements. See the [release validation guide](docs/RELEASE-VALIDATION.md) and [roadmap](docs/ROADMAP.md) for validation and future work.
+**Status:** `1.2.0` — stable contextual-shell release with Scenes, application-aware switching, Launcher 2.0 actions, Context Island 2.0 activity states, native recording, and reversible runtime policy overlays. See the [release validation guide](docs/RELEASE-VALIDATION.md) and [roadmap](docs/ROADMAP.md) for validation and future work.
 
 ## Features
 
 - Horizontal and vertical bars, workspaces, system tray, Context Island, and a dock.
-- Application launcher, workspace overview, and configurable desktop widgets.
-- Control Center with Wi-Fi, Bluetooth, audio, microphone, brightness, and notifications.
-- Settings, theme import/export, and image or video wallpapers.
+- Contextual Scenes for Balanced, Gaming, Focus, and Work, including application rules and configurable runtime behavior.
+- Application launcher with scene-aware actions, workspace overview, and configurable desktop widgets.
+- Control Center with Wi-Fi, Bluetooth, audio, microphone, brightness, notifications, and Scene switching.
+- Settings, theme import/export, image or video wallpapers, and per-Scene behavior controls.
 - MPRIS media controls, lyrics, and a media overlay for fullscreen applications.
-- Screenshots, recording, OCR, screen translation, clipboard tools, and an on-screen keyboard.
+- Screenshots, native gameplay recording, OCR, screen translation, clipboard tools, and an on-screen keyboard.
 - Lock screen, session controls, Polkit authentication, and a process manager.
 
 Raohane includes its own runtime and dependency manifests. Installation does not require another desktop-shell repository.
@@ -73,9 +74,9 @@ The installer copies the source into `~/.config/quickshell/raohane`; pulling Git
 | `raohane session` | Session and power controls |
 | `raohane translate` | Screen translation |
 
-The launcher supports application names, `/` for built-in actions, `>` for commands, `=` for calculations, and `:` for clipboard history.
+The launcher supports application names, `/` for built-in and contextual actions, `>` for commands, `=` for calculations, and `:` for clipboard history.
 
-Settings are stored in `~/.config/raohane/native.json`. User autostart commands belong in `~/.config/raohane/autostart.conf`.
+Settings are stored in `~/.config/raohane/native.json`. Scene state and application rules are stored separately under the XDG state directory so temporary policies do not overwrite base settings. User autostart commands belong in `~/.config/raohane/autostart.conf`.
 
 The default **Raohane** theme uses dark charcoal glass and violet accents. Paper, Sakura, Matcha, Slate, Sand, Sumi, and Midnight are included as built-in alternatives. Themes can be selected in Settings or managed through `raohane theme`; see the [theme format](docs/THEMES.md).
 
