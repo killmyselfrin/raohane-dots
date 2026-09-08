@@ -1,5 +1,14 @@
 # Raohane changelog
 
+## 1.2.0-dev — Contextual shell
+
+- Start the 1.2 feature cycle on a dedicated `develop/v1.2` branch while keeping `main` on stable 1.1.0.
+- Add the native `RaohaneScenes` service with Balanced, Gaming, Focus and Work scenes, persisted as runtime state outside the user's base configuration.
+- Apply reversible scene policies: Gaming enables DND, Keep Awake and Game Mode; Focus enables DND; Work enables Keep Awake; Balanced restores the pre-scene runtime state.
+- Add Launcher scene actions with active-scene feedback so `/ gaming`, `/ focus`, `/ work` and `/ balanced` become the first contextual Launcher 2.0 commands.
+- Surface scene changes through Context Island events and expose the active scene/effective policy through runtime diagnostics.
+- Add a dedicated Scenes boundary workflow that protects persistence, reversible policy behavior, Launcher integration and Context/runtime diagnostics.
+
 ## 1.1.0 — Whole-shell polish
 
 - Start the post-1.0 polish cycle while keeping the stable registry/router/config architecture intact.
