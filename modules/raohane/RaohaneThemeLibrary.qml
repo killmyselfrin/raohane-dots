@@ -10,9 +10,8 @@ import qs.modules.raohane.config
 Singleton {
     id: root
 
-    property var bundledPresets: []
     property var userPresets: []
-    readonly property var presets: root.mergeCatalogs(root.bundledPresets, root.userPresets)
+    readonly property var presets: root.userPresets
 
     readonly property var requiredTokens: [
         "background", "backgroundElevated", "surface", "surfaceRaised", "surfaceDeep",
@@ -70,36 +69,8 @@ Singleton {
         }
     }
 
-    function mergeCatalogs(bundled, user): var {
-        const result = []
-        const positions = {}
-        for (const preset of (bundled ?? [])) {
-            positions[preset.id] = result.length
-            result.push(preset)
-        }
-        for (const preset of (user ?? [])) {
-            if (positions[preset.id] !== undefined)
-                result[positions[preset.id]] = preset
-            else {
-                positions[preset.id] = result.length
-                result.push(preset)
-            }
-        }
-        return result
-    }
-
     function refresh(): void {
-        bundledCatalog.reload()
         userCatalog.reload()
-    }
-
-    FileView {
-        id: bundledCatalog
-        path: Quickshell.shellPath("defaults/themes/serpantinum.json")
-        watchChanges: true
-        onLoaded: root.bundledPresets = root.parseCatalog(bundledCatalog.text(), "bundled Serpantinum themes")
-        onFileChanged: reload()
-        onLoadFailed: error => console.warn("[RaohaneThemeLibrary] Bundled catalog unavailable:", error)
     }
 
     FileView {
