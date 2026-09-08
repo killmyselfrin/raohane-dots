@@ -18,6 +18,7 @@ on:
       - 'modules/raohane/RaohaneSettingsScenes.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
       - 'modules/raohane/RaohaneDock.qml'
+      - 'modules/raohane/RaohaneMotion.qml'
       - 'modules/raohane/qmldir'
       - 'scripts/videos/record.sh'
       - 'scripts/scenes-boundary-audit.sh'
@@ -38,6 +39,7 @@ on:
       - 'modules/raohane/RaohaneSettingsScenes.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
       - 'modules/raohane/RaohaneDock.qml'
+      - 'modules/raohane/RaohaneMotion.qml'
       - 'modules/raohane/qmldir'
       - 'scripts/videos/record.sh'
       - 'scripts/scenes-boundary-audit.sh'
@@ -76,7 +78,8 @@ jobs:
             modules/raohane/RaohaneSceneSwitcher.qml \
             modules/raohane/RaohaneSettingsScenes.qml \
             modules/raohane/RaohaneSettingsPageRegistry.qml \
-            modules/raohane/RaohaneDock.qml; do
+            modules/raohane/RaohaneDock.qml \
+            modules/raohane/RaohaneMotion.qml; do
             "$QMLFORMAT" "$file" >/dev/null
           done
 
