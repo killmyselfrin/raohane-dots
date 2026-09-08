@@ -33,8 +33,13 @@ Scope {
             focusedMonitor: String(Hyprland.focusedMonitor?.name ?? ""),
             scenes: {
                 ready: RaohaneScenes.ready,
+                selected: RaohaneScenes.selectedSceneId,
                 active: RaohaneScenes.activeSceneId,
                 source: RaohaneScenes.activationSource,
+                activeAppId: RaohaneScenes.activeAppId,
+                autoSwitch: RaohaneScenes.autoSwitchEnabled,
+                autoScene: RaohaneScenes.autoSceneActive,
+                manualOverride: RaohaneScenes.manualOverride,
                 policy: RaohaneScenes.activePolicy
             },
             bar: {
