@@ -1,6 +1,6 @@
 # Raohane changelog
 
-## 1.1.0-dev — Whole-shell polish
+## 1.1.0 — Whole-shell polish
 
 - Start the post-1.0 polish cycle while keeping the stable registry/router/config architecture intact.
 - Increase Settings workspace breathing room and rebalance the global search/command chrome.
@@ -27,6 +27,7 @@
 - Rebalance the Polkit authentication dialog without changing the PolkitAgent request lifecycle, password masking, submit or cancel semantics.
 - Rework the left navigation sidebar and desktop context menu around larger everyday controls while keeping the sidebar free of duplicate microphone/device selection UI.
 - Rebalance Screen Translator panels and actions while preserving the capture → OCR → translation → JSON → clipboard pipeline.
+- Reduce runtime overhead by keeping Left Sidebar audio refreshes inside the existing PipeWire cache and by replacing unnecessary login-shell probes in Game Mode and System Info with non-login shell execution.
 
 ## 1.0.0 — First stable release
 
@@ -79,7 +80,7 @@
 - Replace compatibility right-sidebar quick controls with `RaohaneQuickControls.qml`, including Wi-Fi, Bluetooth, Night Light, Game Mode, idle inhibition, EasyEffects and native brightness/audio/microphone sliders.
 - Remove the quick-control `jq` probe by parsing Hyprland JSON directly in QML.
 - Replace the top-level Settings compatibility shell with `RaohaneSettingsContent.qml`, a Hyprland-only Raohane navigation layer over the mature configuration pages.
-- Add `RaohaneSettingsHome.qml` as the wallpaper-backed Control Deck home surface with live context/system state.
+- Add `RaohaneSettingsHome.qml` as the wallpaper-backed Control Deck landing page with live context/system state.
 - Replace the visible wallpaper selector with `RaohaneWallpaperSelector.qml` while retaining the mature `Wallpapers` service, preview and background transition path.
 - Replace the visible desktop context menu with `RaohaneDesktopMenu.qml` while retaining background click coordinates, DropShelf and wallpaper services.
 - Expand the `raohane` CLI with `media`, `desktop`, `wallpaper`, random-wallpaper control and batch diagnostics for dependencies, services and graphics.
