@@ -145,11 +145,11 @@ Item {
     ColumnLayout {
         id: studioColumn
         width: parent.width
-        spacing: 10
+        spacing: 12
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
+            spacing: 12
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -158,7 +158,7 @@ Item {
                 Text {
                     text: qsTr("Bar Studio")
                     color: RaohaneTheme.text
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                 }
 
@@ -166,36 +166,38 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Compose the selected bar orientation from native modules. Changes apply live and are saved automatically.")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 9
+                    lineHeight: 1.15
                     wrapMode: Text.WordWrap
                 }
             }
 
             RaohaneSurface {
-                Layout.preferredWidth: resetRow.implicitWidth + 20
-                Layout.preferredHeight: 32
-                surfaceRadius: 10
+                Layout.preferredWidth: resetRow.implicitWidth + 22
+                Layout.preferredHeight: 36
+                surfaceRadius: 11
                 raised: false
                 interactive: true
                 hovered: resetMouse.containsMouse
                 pressed: resetMouse.pressed
                 showSheen: false
+                border.color: resetMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
                 RowLayout {
                     id: resetRow
                     anchors.centerIn: parent
-                    spacing: 5
+                    spacing: 6
 
                     RaohaneIcon {
                         text: "restart_alt"
-                        iconSize: 14
-                        color: RaohaneTheme.textMuted
+                        iconSize: 15
+                        color: resetMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     }
 
                     Text {
                         text: qsTr("Reset")
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
+                        color: resetMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                     }
                 }
@@ -212,22 +214,22 @@ Item {
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 46
-            surfaceRadius: 12
+            Layout.preferredHeight: 54
+            surfaceRadius: 13
             raised: false
             showSheen: false
             border.color: RaohaneTheme.borderFaint
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 6
-                spacing: 6
+                anchors.margins: 8
+                spacing: 8
 
                 Text {
                     Layout.leftMargin: 5
                     text: qsTr("Editing layout")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     font.weight: Font.Medium
                 }
 
@@ -245,9 +247,9 @@ Item {
 
                         readonly property bool selected: root.orientation === String(modelData.id)
 
-                        Layout.preferredWidth: modeRow.implicitWidth + 18
-                        Layout.preferredHeight: 32
-                        surfaceRadius: 10
+                        Layout.preferredWidth: modeRow.implicitWidth + 20
+                        Layout.preferredHeight: 36
+                        surfaceRadius: 11
                         raised: false
                         active: selected
                         transparentIdle: !selected
@@ -259,11 +261,11 @@ Item {
                         RowLayout {
                             id: modeRow
                             anchors.centerIn: parent
-                            spacing: 5
+                            spacing: 6
 
                             RaohaneIcon {
                                 text: modeButton.modelData.icon
-                                iconSize: 13
+                                iconSize: 14
                                 fill: modeButton.selected ? 1 : 0
                                 color: modeButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                             }
@@ -271,7 +273,7 @@ Item {
                             Text {
                                 text: modeButton.modelData.label
                                 color: modeButton.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                font.pixelSize: 8
+                                font.pixelSize: 9
                                 font.weight: modeButton.selected ? Font.DemiBold : Font.Medium
                             }
                         }
@@ -300,7 +302,7 @@ Item {
                 readonly property var items: root.zoneItems(zoneId)
 
                 Layout.fillWidth: true
-                Layout.preferredHeight: zoneColumn.implicitHeight + 22
+                Layout.preferredHeight: zoneColumn.implicitHeight + 26
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
@@ -312,17 +314,17 @@ Item {
                         left: parent.left
                         right: parent.right
                         top: parent.top
-                        margins: 11
+                        margins: 13
                     }
-                    spacing: 7
+                    spacing: 9
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 8
+                        spacing: 9
 
                         RaohaneIcon {
                             text: root.zoneIcon(zoneCard.zoneId)
-                            iconSize: 15
+                            iconSize: 17
                             color: RaohaneTheme.accent
                         }
 
@@ -330,14 +332,14 @@ Item {
                             Layout.fillWidth: true
                             text: root.zoneLabel(zoneCard.zoneId)
                             color: RaohaneTheme.text
-                            font.pixelSize: 9
+                            font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
 
                         Text {
                             text: qsTr("%1 modules").arg(zoneCard.items.length)
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
+                            font.pixelSize: 8
                         }
                     }
 
@@ -346,7 +348,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("This zone is empty. Add a module below.")
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        font.pixelSize: 9
                         horizontalAlignment: Text.AlignHCenter
                     }
 
@@ -361,33 +363,33 @@ Item {
                             readonly property string moduleId: String(modelData)
 
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 42
-                            surfaceRadius: 11
+                            Layout.preferredHeight: 50
+                            surfaceRadius: 12
                             raised: false
                             showSheen: false
                             border.color: RaohaneTheme.borderFaint
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 6
-                                spacing: 8
+                                anchors.leftMargin: 12
+                                anchors.rightMargin: 7
+                                spacing: 9
 
                                 RaohaneIcon {
                                     text: RaohaneBarModuleRegistry.definition(moduleRow.moduleId)?.icon ?? "widgets"
-                                    iconSize: 15
+                                    iconSize: 16
                                     color: RaohaneTheme.accent
                                 }
 
                                 ColumnLayout {
                                     Layout.fillWidth: true
-                                    spacing: -1
+                                    spacing: 0
 
                                     Text {
                                         Layout.fillWidth: true
                                         text: RaohaneBarModuleRegistry.label(moduleRow.moduleId)
                                         color: RaohaneTheme.text
-                                        font.pixelSize: 9
+                                        font.pixelSize: 10
                                         font.weight: Font.DemiBold
                                         elide: Text.ElideRight
                                     }
@@ -396,14 +398,14 @@ Item {
                                         Layout.fillWidth: true
                                         text: RaohaneBarModuleRegistry.description(moduleRow.moduleId)
                                         color: RaohaneTheme.textFaint
-                                        font.pixelSize: 7
+                                        font.pixelSize: 8
                                         elide: Text.ElideRight
                                     }
                                 }
 
                                 RaohaneIconButton {
                                     visible: zoneCard.index > 0
-                                    buttonSize: 27
+                                    buttonSize: 29
                                     iconSize: 13
                                     icon: root.vertical ? "north" : "west"
                                     transparentIdle: true
@@ -414,7 +416,7 @@ Item {
                                 RaohaneIconButton {
                                     enabled: moduleRow.index > 0
                                     opacity: enabled ? 1 : 0.34
-                                    buttonSize: 27
+                                    buttonSize: 29
                                     iconSize: 13
                                     icon: "arrow_upward"
                                     transparentIdle: true
@@ -425,7 +427,7 @@ Item {
                                 RaohaneIconButton {
                                     enabled: moduleRow.index < zoneCard.items.length - 1
                                     opacity: enabled ? 1 : 0.34
-                                    buttonSize: 27
+                                    buttonSize: 29
                                     iconSize: 13
                                     icon: "arrow_downward"
                                     transparentIdle: true
@@ -435,7 +437,7 @@ Item {
 
                                 RaohaneIconButton {
                                     visible: zoneCard.index < root.zones.length - 1
-                                    buttonSize: 27
+                                    buttonSize: 29
                                     iconSize: 13
                                     icon: root.vertical ? "south" : "east"
                                     transparentIdle: true
@@ -444,7 +446,7 @@ Item {
                                 }
 
                                 RaohaneIconButton {
-                                    buttonSize: 27
+                                    buttonSize: 29
                                     iconSize: 13
                                     icon: "close"
                                     transparentIdle: true
@@ -460,7 +462,7 @@ Item {
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: availableColumn.implicitHeight + 22
+            Layout.preferredHeight: availableColumn.implicitHeight + 26
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
@@ -472,17 +474,17 @@ Item {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    margins: 11
+                    margins: 13
                 }
-                spacing: 7
+                spacing: 9
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: 9
 
                     RaohaneIcon {
                         text: "add_circle"
-                        iconSize: 15
+                        iconSize: 17
                         color: RaohaneTheme.accent
                     }
 
@@ -490,7 +492,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Available modules")
                         color: RaohaneTheme.text
-                        font.pixelSize: 9
+                        font.pixelSize: 10
                         font.weight: Font.DemiBold
                     }
                 }
@@ -500,7 +502,7 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("All single-instance modules are already on the bar.")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                 }
 
                 Repeater {
@@ -513,33 +515,33 @@ Item {
                         readonly property string moduleId: String(modelData)
 
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 42
-                        surfaceRadius: 11
+                        Layout.preferredHeight: 50
+                        surfaceRadius: 12
                         raised: false
                         showSheen: false
                         border.color: RaohaneTheme.borderFaint
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 7
-                            spacing: 8
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 8
+                            spacing: 9
 
                             RaohaneIcon {
                                 text: RaohaneBarModuleRegistry.definition(availableRow.moduleId)?.icon ?? "widgets"
-                                iconSize: 15
+                                iconSize: 16
                                 color: RaohaneTheme.textMuted
                             }
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: -1
+                                spacing: 0
 
                                 Text {
                                     Layout.fillWidth: true
                                     text: RaohaneBarModuleRegistry.label(availableRow.moduleId)
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 9
+                                    font.pixelSize: 10
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
@@ -548,7 +550,7 @@ Item {
                                     Layout.fillWidth: true
                                     text: RaohaneBarModuleRegistry.description(availableRow.moduleId)
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 7
+                                    font.pixelSize: 8
                                     elide: Text.ElideRight
                                 }
                             }
@@ -556,11 +558,11 @@ Item {
                             Text {
                                 text: qsTr("to %1").arg(root.zoneLabel(RaohaneBarModuleRegistry.preferredZone(availableRow.moduleId)))
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 7
+                                font.pixelSize: 8
                             }
 
                             RaohaneIconButton {
-                                buttonSize: 28
+                                buttonSize: 30
                                 iconSize: 14
                                 icon: "add"
                                 onClicked: root.addModule(availableRow.moduleId)
