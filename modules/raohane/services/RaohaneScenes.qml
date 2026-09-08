@@ -31,9 +31,16 @@ Singleton {
     property bool desiredGameMode: false
 
     readonly property var sceneIds: ["balanced", "gaming", "focus", "work"]
+    readonly property var matchModes: ["exact", "prefix", "contains"]
     readonly property string activeAppId: String(ToplevelManager.activeToplevel?.appId ?? "").trim().toLowerCase()
     readonly property var activePolicy: root.policyFor(root.activeSceneId)
     readonly property bool gaming: root.activeSceneId === "gaming"
+    readonly property var activeRule: root.autoSceneActive && root.autoSourceAppId.length > 0
+        ? root.matchingRuleFor(root.autoSourceAppId)
+        : null
+    readonly property string activeRulePattern: String(root.activeRule?.pattern ?? "")
+    readonly property string activeRuleMatch: String(root.activeRule?.match ?? "")
+    readonly property bool activeRuleBuiltin: Boolean(root.activeRule?.builtin ?? false)
 
     signal sceneActivated(string sceneId, string source)
     signal policyApplied(string sceneId)
@@ -99,7 +106,7 @@ Singleton {
         if (pattern.length === 0 || pattern.length > 180)
             return null
         const requestedMatch = String(rule.match ?? "exact").trim().toLowerCase()
-        const match = ["exact", "prefix", "contains"].includes(requestedMatch) ? requestedMatch : "exact"
+        const match = root.matchModes.includes(requestedMatch) ? requestedMatch : "exact"
         const scene = root.sanitizeSceneId(rule.scene)
         if (!root.sceneIds.includes(String(rule.scene ?? "").trim().toLowerCase()))
             return null
@@ -136,18 +143,29 @@ Singleton {
         return appId === rule.pattern
     }
 
-    function matchingSceneFor(appId): string {
+    function matchingRuleFor(appId): var {
         const normalizedAppId = String(appId ?? "").trim().toLowerCase()
         if (normalizedAppId.length === 0)
-            return ""
+            return null
 
         // User rules take precedence over conservative built-in gaming rules.
-        const rules = root.sanitizeRules(root.appRules).concat(root.defaultRules())
+        const userRules = root.sanitizeRules(root.appRules).map(rule => ({
+            pattern: rule.pattern,
+            match: rule.match,
+            scene: rule.scene,
+            builtin: false
+        }))
+        const rules = userRules.concat(root.defaultRules())
         for (const rule of rules) {
             if (root.ruleMatches(rule, normalizedAppId))
-                return root.sanitizeSceneId(rule.scene)
+                return rule
         }
-        return ""
+        return null
+    }
+
+    function matchingSceneFor(appId): string {
+        const rule = root.matchingRuleFor(appId)
+        return rule ? root.sanitizeSceneId(rule.scene) : ""
     }
 
     function captureBaseline(): void {
@@ -258,7 +276,8 @@ Singleton {
             return
 
         const appId = root.activeAppId
-        const matchedScene = root.matchingSceneFor(appId)
+        const matchedRule = root.matchingRuleFor(appId)
+        const matchedScene = matchedRule ? root.sanitizeSceneId(matchedRule.scene) : ""
         if (matchedScene.length > 0) {
             if (root.autoSceneActive && root.autoSourceAppId === appId && root.activeSceneId === matchedScene)
                 return
@@ -285,30 +304,42 @@ Singleton {
         autoEvaluate.restart()
     }
 
-    function setAppRule(appId, sceneId): bool {
-        const pattern = String(appId ?? "").trim().toLowerCase()
+    function setRule(patternValue, matchType, sceneId): bool {
+        const pattern = String(patternValue ?? "").trim().toLowerCase()
+        const match = String(matchType ?? "exact").trim().toLowerCase()
         const scene = String(sceneId ?? "").trim().toLowerCase()
-        if (pattern.length === 0 || !root.sceneIds.includes(scene))
+        if (pattern.length === 0 || pattern.length > 180 || !root.matchModes.includes(match) || !root.sceneIds.includes(scene))
             return false
 
-        const rules = root.sanitizeRules(root.appRules).filter(rule => !(rule.match === "exact" && rule.pattern === pattern))
-        rules.unshift({ pattern: pattern, match: "exact", scene: scene })
+        const rules = root.sanitizeRules(root.appRules).filter(rule => !(rule.match === match && rule.pattern === pattern))
+        rules.unshift({ pattern: pattern, match: match, scene: scene })
         root.appRules = root.sanitizeRules(rules)
         saveTimer.restart()
         autoEvaluate.restart()
         return true
     }
 
-    function removeAppRule(appId): bool {
-        const pattern = String(appId ?? "").trim().toLowerCase()
+    function removeRule(patternValue, matchType): bool {
+        const pattern = String(patternValue ?? "").trim().toLowerCase()
+        const match = String(matchType ?? "exact").trim().toLowerCase()
+        if (pattern.length === 0 || !root.matchModes.includes(match))
+            return false
         const before = root.sanitizeRules(root.appRules)
-        const after = before.filter(rule => !(rule.match === "exact" && rule.pattern === pattern))
+        const after = before.filter(rule => !(rule.match === match && rule.pattern === pattern))
         if (after.length === before.length)
             return false
         root.appRules = after
         saveTimer.restart()
         autoEvaluate.restart()
         return true
+    }
+
+    function setAppRule(appId, sceneId): bool {
+        return root.setRule(appId, "exact", sceneId)
+    }
+
+    function removeAppRule(appId): bool {
+        return root.removeRule(appId, "exact")
     }
 
     function clearManualOverride(): void {
@@ -471,6 +502,8 @@ Singleton {
                 activeAppId: root.activeAppId,
                 autoSwitch: root.autoSwitchEnabled,
                 autoScene: root.autoSceneActive,
+                autoSourceAppId: root.autoSourceAppId,
+                activeRule: root.activeRule,
                 manualOverride: root.manualOverride,
                 rules: root.sanitizeRules(root.appRules)
             })
@@ -497,8 +530,16 @@ Singleton {
             return root.setAppRule(appId, sceneId) ? "ok" : "invalid-rule"
         }
 
+        function setPatternRule(pattern: string, matchType: string, sceneId: string): string {
+            return root.setRule(pattern, matchType, sceneId) ? "ok" : "invalid-rule"
+        }
+
         function removeRule(appId: string): string {
             return root.removeAppRule(appId) ? "ok" : "not-found"
+        }
+
+        function removePatternRule(pattern: string, matchType: string): string {
+            return root.removeRule(pattern, matchType) ? "ok" : "not-found"
         }
 
         function clearOverride(): string {
