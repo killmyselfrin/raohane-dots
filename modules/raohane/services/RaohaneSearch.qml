@@ -101,6 +101,15 @@ Singleton {
         return String(value ?? "").toLowerCase().trim()
     }
 
+    function sceneDisplayName(sceneId): string {
+        switch (String(sceneId ?? "")) {
+        case "gaming": return qsTr("Gaming")
+        case "focus": return qsTr("Focus")
+        case "work": return qsTr("Work")
+        default: return qsTr("Balanced")
+        }
+    }
+
     function applicationText(entry): string {
         return root.normalized([
             entry.name,
@@ -252,6 +261,73 @@ Singleton {
         ]
     }
 
+    function sceneManagementResults(needle: string): var {
+        if (needle.length === 0)
+            return []
+
+        const actions = []
+        actions.push({
+            name: RaohaneScenes.autoSwitchEnabled ? qsTr("Disable automatic Scenes") : qsTr("Enable automatic Scenes"),
+            iconName: RaohaneScenes.autoSwitchEnabled ? "auto_awesome" : "auto_awesome_motion",
+            iconType: "material",
+            verb: RaohaneScenes.autoSwitchEnabled ? qsTr("DISABLE") : qsTr("ENABLE"),
+            type: qsTr("Scene control"),
+            comment: RaohaneScenes.autoSwitchEnabled ? qsTr("Automatic app rules enabled") : qsTr("Manual Scene switching only"),
+            keywords: "scene auto automatic profile rule switching",
+            execute: () => RaohaneScenes.setAutoSwitch(!RaohaneScenes.autoSwitchEnabled)
+        })
+
+        if (RaohaneScenes.manualOverride) {
+            actions.push({
+                name: qsTr("Resume automatic Scene switching"),
+                iconName: "resume",
+                iconType: "material",
+                verb: qsTr("ENABLE"),
+                type: qsTr("Scene control"),
+                comment: RaohaneScenes.activeAppId || qsTr("Clear manual override"),
+                keywords: "scene auto resume override rule",
+                execute: () => RaohaneScenes.clearManualOverride()
+            })
+        }
+
+        const appId = RaohaneScenes.activeAppId
+        if (appId.length > 0) {
+            for (const sceneId of RaohaneScenes.sceneIds) {
+                actions.push({
+                    name: qsTr("Assign %1 to %2").arg(appId).arg(root.sceneDisplayName(sceneId)),
+                    iconName: sceneId === "gaming" ? "sports_esports"
+                        : sceneId === "focus" ? "center_focus_strong"
+                        : sceneId === "work" ? "work" : "tune",
+                    iconType: "material",
+                    verb: qsTr("APPLY"),
+                    type: qsTr("Scene rule"),
+                    comment: qsTr("Exact appId rule"),
+                    keywords: `scene assign app rule ${sceneId} ${appId}`,
+                    execute: () => RaohaneScenes.setRule(appId, "exact", sceneId)
+                })
+            }
+        }
+
+        const activeRule = RaohaneScenes.matchingRuleFor(appId)
+        if (activeRule && !activeRule.builtin) {
+            actions.push({
+                name: qsTr("Remove active Scene rule"),
+                iconName: "link_off",
+                iconType: "material",
+                verb: qsTr("REMOVE"),
+                type: qsTr("Scene rule"),
+                comment: qsTr("%1 match · %2").arg(activeRule.match).arg(activeRule.pattern),
+                keywords: `scene remove app rule ${activeRule.match} ${activeRule.pattern}`,
+                execute: () => RaohaneScenes.removeRule(activeRule.pattern, activeRule.match)
+            })
+        }
+
+        return actions.filter(action => {
+            const haystack = root.normalized(`${action.name} ${action.type} ${action.comment} ${action.keywords}`)
+            return haystack.includes(needle)
+        })
+    }
+
     function actionResults(needle: string): var {
         if (needle.length === 0) {
             const contextual = root.gamingActionResults()
@@ -259,7 +335,8 @@ Singleton {
                 return contextual
         }
 
-        return root.builtInActions
+        const contextualManagement = root.sceneManagementResults(needle)
+        const builtIns = root.builtInActions
             .filter(action => {
                 const haystack = root.normalized(`${action.name} ${action.keywords}`)
                 return needle.length === 0 || haystack.includes(needle)
@@ -273,6 +350,7 @@ Singleton {
                 comment: action.active ? qsTr("Current scene") : action.keywords,
                 execute: action.execute ? action.execute : () => Quickshell.execDetached(action.command)
             }))
+        return contextualManagement.concat(builtIns)
     }
 
     function commandResult(command: string): var {
