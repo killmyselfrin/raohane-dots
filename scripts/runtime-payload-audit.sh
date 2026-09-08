@@ -11,7 +11,7 @@ fail() {
 
 for path in \
   shell.qml qmldir VERSION assets translations \
-  modules/raohane panelFamilies/RaohaneFamily.qml defaults/native.json defaults/themes/serpantinum.json \
+  modules/raohane panelFamilies/RaohaneFamily.qml defaults/native.json \
   install/arch scripts scripts/prune-runtime.sh scripts/validate-runtime-payload.sh \
   scripts/lyrics-resolve.py scripts/product-live-check.sh \
   scripts/phase4-live-check.sh scripts/release-live-check.sh; do
@@ -37,7 +37,6 @@ cp -a shell.qml qmldir VERSION "$runtime/"
 cp -a modules/raohane "$runtime/modules/"
 cp -a panelFamilies/RaohaneFamily.qml "$runtime/panelFamilies/"
 cp -a defaults/native.json "$runtime/defaults/"
-cp -a defaults/themes "$runtime/defaults/"
 cp -a install/arch "$runtime/install/"
 cp -a assets "$runtime/"
 cp -a translations "$runtime/"
@@ -56,7 +55,6 @@ for path in \
 done
 
 [[ -f "$runtime/VERSION" ]] || fail 'VERSION was lost from staged runtime'
-[[ -f "$runtime/defaults/themes/serpantinum.json" ]] || fail 'bundled Serpantinum theme catalog was lost'
 [[ -d "$runtime/assets" ]] || fail 'assets were lost from staged runtime'
 [[ -d "$runtime/translations" ]] || fail 'translations were lost from staged runtime'
 [[ -f "$runtime/install/arch/required.txt" ]] || fail 'required package manifest was lost'
@@ -72,4 +70,4 @@ done
 [[ -f "$runtime/scripts/phase4-live-check.sh" ]] || fail 'Phase 4 live validator was lost'
 [[ -f "$runtime/scripts/release-live-check.sh" ]] || fail 'release live validator was lost'
 
-printf 'runtime-payload-audit: clean standalone staging retains current Task/Lyrics/product validators and post-prune payload validation succeeds\n'
+printf 'runtime-payload-audit: clean standalone staging retains current Task/Lyrics/theme/product validators and post-prune payload validation succeeds\n'
