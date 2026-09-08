@@ -13,7 +13,7 @@ Item {
     readonly property var filteredEntries: root.filtered(root.query)
 
     implicitWidth: 300
-    implicitHeight: 32
+    implicitHeight: 34
     z: 100
 
     function filtered(value: string): var {
@@ -58,13 +58,13 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 9
-            anchors.rightMargin: 8
-            spacing: 7
+            anchors.leftMargin: 10
+            anchors.rightMargin: 9
+            spacing: 8
 
             RaohaneIcon {
                 text: "search"
-                iconSize: 15
+                iconSize: 16
                 fill: searchInput.activeFocus ? 1 : 0
                 color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
@@ -81,7 +81,7 @@ Item {
                     color: RaohaneTheme.text
                     selectionColor: RaohaneTheme.accentSoft
                     selectedTextColor: RaohaneTheme.text
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     clip: true
                     text: root.query
 
@@ -114,37 +114,53 @@ Item {
                     visible: root.query.length === 0 && !searchInput.activeFocus
                     text: qsTr("Search settings")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                 }
             }
 
             RaohaneSurface {
                 visible: root.query.length === 0
-                Layout.preferredWidth: 40
-                Layout.preferredHeight: 20
-                surfaceRadius: 7
+                Layout.preferredWidth: 42
+                Layout.preferredHeight: 22
+                surfaceRadius: 8
                 raised: false
                 showSheen: false
-                Text { anchors.centerIn: parent; text: "Ctrl F"; color: RaohaneTheme.textFaint; font.pixelSize: 7; font.weight: Font.Medium }
+                Text {
+                    anchors.centerIn: parent
+                    text: "Ctrl F"
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 8
+                    font.weight: Font.Medium
+                }
             }
 
             RaohaneIconButton {
                 visible: root.query.length > 0
-                buttonSize: 24
+                buttonSize: 26
                 iconSize: 14
                 icon: "close"
                 onClicked: { root.clear(); searchInput.forceActiveFocus() }
             }
         }
 
-        MouseArea { id: searchHover; anchors.fill: parent; acceptedButtons: Qt.NoButton; hoverEnabled: true }
+        MouseArea {
+            id: searchHover
+            anchors.fill: parent
+            acceptedButtons: Qt.NoButton
+            hoverEnabled: true
+        }
     }
 
     RaohaneSurface {
         id: resultsPanel
         visible: root.query.length > 0
-        anchors { top: searchBox.bottom; topMargin: 6; left: parent.left; right: parent.right }
-        height: root.filteredEntries.length > 0 ? Math.min(282, resultsList.contentHeight + 12) : 46
+        anchors {
+            top: searchBox.bottom
+            topMargin: 7
+            left: parent.left
+            right: parent.right
+        }
+        height: root.filteredEntries.length > 0 ? Math.min(310, resultsList.contentHeight + 14) : 50
         surfaceRadius: 14
         raised: true
         showSheen: false
@@ -152,21 +168,27 @@ Item {
         clip: true
         z: 101
         opacity: root.query.length > 0 ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard } }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: RaohaneMotion.micro
+                easing.type: RaohaneMotion.easeStandard
+            }
+        }
 
         Text {
             visible: root.filteredEntries.length === 0
             anchors.centerIn: parent
             text: qsTr("No matching setting")
             color: RaohaneTheme.textMuted
-            font.pixelSize: 9
+            font.pixelSize: 10
         }
 
         ListView {
             id: resultsList
             visible: root.filteredEntries.length > 0
             anchors.fill: parent
-            anchors.margins: 6
+            anchors.margins: 7
             model: root.filteredEntries
             spacing: 3
             clip: true
@@ -177,7 +199,7 @@ Item {
                 required property var modelData
                 required property int index
                 width: resultsList.width
-                height: 36
+                height: 40
                 activeFocusOnTab: true
 
                 RaohaneSurface {
@@ -191,16 +213,35 @@ Item {
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 9
-                        anchors.rightMargin: 9
-                        spacing: 8
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 10
+                        spacing: 9
 
-                        RaohaneIcon { text: "tune"; iconSize: 14; fill: resultRow.index === root.currentIndex ? 1 : 0; color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textMuted }
-                        Text { Layout.fillWidth: true; text: resultRow.modelData.label; color: RaohaneTheme.text; font.pixelSize: 9; font.weight: resultRow.index === root.currentIndex ? Font.DemiBold : Font.Medium; elide: Text.ElideRight }
-                        Text { text: resultRow.modelData.detail; color: RaohaneTheme.textFaint; font.pixelSize: 8 }
+                        RaohaneIcon {
+                            text: "tune"
+                            iconSize: 15
+                            fill: resultRow.index === root.currentIndex ? 1 : 0
+                            color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: resultRow.modelData.label
+                            color: RaohaneTheme.text
+                            font.pixelSize: 10
+                            font.weight: resultRow.index === root.currentIndex ? Font.DemiBold : Font.Medium
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            text: resultRow.modelData.detail
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 8
+                        }
+
                         RaohaneIcon {
                             text: "arrow_forward"
-                            iconSize: 13
+                            iconSize: 14
                             color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textFaint
                             opacity: resultRow.index === root.currentIndex || resultMouse.containsMouse ? 1 : 0
                             Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }

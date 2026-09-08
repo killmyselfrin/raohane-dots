@@ -34,7 +34,7 @@ Scope {
         function onLeftSidebarOpenChanged(): void {
             if (RaohaneState.leftSidebarOpen) {
                 root.now = new Date()
-                RaohaneAudio.refresh(true)
+                RaohaneAudio.refresh()
             }
         }
     }
@@ -51,8 +51,8 @@ Scope {
 
         visible: RaohaneState.leftSidebarOpen
         screen: root.focusedScreen
-        implicitWidth: 126
-        implicitHeight: 412
+        implicitWidth: 144
+        implicitHeight: 448
         color: "transparent"
         exclusiveZone: 0
         exclusionMode: ExclusionMode.Ignore
@@ -63,7 +63,7 @@ Scope {
         }
 
         margins {
-            left: 14
+            left: 16
             top: Math.max(72, Math.round(((root.focusedScreen?.height ?? 800) - sidebarWindow.implicitHeight) / 2))
         }
 
@@ -93,46 +93,55 @@ Scope {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 9
-                spacing: 5
+                anchors.margins: 10
+                spacing: 6
 
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 48
-                    surfaceRadius: 12
+                    Layout.preferredHeight: 54
+                    surfaceRadius: 13
                     active: true
                     showSheen: false
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 8
-                        spacing: 7
+                        anchors.leftMargin: 9
+                        anchors.rightMargin: 9
+                        spacing: 8
 
-                        RaohaneIcon {
-                            text: "spa"
-                            iconSize: 17
-                            fill: 1
-                            symbolWeight: 560
-                            grade: 40
-                            color: RaohaneTheme.accent
+                        RaohaneSurface {
+                            Layout.preferredWidth: 32
+                            Layout.preferredHeight: 32
+                            surfaceRadius: 10
+                            active: true
+                            showSheen: false
+
+                            RaohaneIcon {
+                                anchors.centerIn: parent
+                                text: "spa"
+                                iconSize: 18
+                                fill: 1
+                                symbolWeight: 560
+                                grade: 40
+                                color: RaohaneTheme.accent
+                            }
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: -1
+                            spacing: 0
 
                             Text {
                                 text: "Raohane"
                                 color: RaohaneTheme.text
-                                font.pixelSize: 8
+                                font.pixelSize: 9
                                 font.weight: Font.DemiBold
                             }
 
                             Text {
                                 text: Qt.formatTime(root.now, "HH:mm")
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 6
+                                font.pixelSize: 8
                             }
                         }
                     }
@@ -146,8 +155,8 @@ Scope {
 
                 RaohaneSurface {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 54
-                    surfaceRadius: 10
+                    Layout.preferredHeight: 62
+                    surfaceRadius: 11
                     raised: false
                     showSheen: false
                     color: RaohaneTheme.surfaceDeep
@@ -155,20 +164,20 @@ Scope {
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 6
-                        anchors.rightMargin: 6
-                        anchors.topMargin: 4
-                        anchors.bottomMargin: 4
-                        spacing: 0
+                        anchors.leftMargin: 7
+                        anchors.rightMargin: 7
+                        anchors.topMargin: 5
+                        anchors.bottomMargin: 5
+                        spacing: 1
 
                         RowLayout {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 25
-                            spacing: 4
+                            Layout.preferredHeight: 28
+                            spacing: 5
 
                             RaohaneIconButton {
-                                buttonSize: 24
-                                iconSize: 13
+                                buttonSize: 27
+                                iconSize: 14
                                 icon: RaohaneAudio.muted || RaohaneAudio.volume <= 0.001
                                     ? "volume_off"
                                     : RaohaneAudio.volume < 0.5 ? "volume_down" : "volume_up"
@@ -184,27 +193,27 @@ Scope {
                                 Layout.fillWidth: true
                                 text: qsTr("Volume")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 6
+                                font.pixelSize: 8
                                 font.weight: Font.Medium
                             }
 
                             Text {
                                 text: Math.round(RaohaneAudio.volume * 100) + "%"
                                 color: RaohaneAudio.muted ? RaohaneTheme.textFaint : RaohaneTheme.accent
-                                font.pixelSize: 6
+                                font.pixelSize: 8
                                 font.weight: Font.DemiBold
                             }
                         }
 
                         RaohaneSlider {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 20
+                            Layout.preferredHeight: 22
                             from: 0
                             to: 1
                             stepSize: 0.02
                             value: RaohaneAudio.volume
                             showHandle: false
-                            trackHeight: 3
+                            trackHeight: 4
                             enabled: RaohaneAudio.ready
                             onMoved: nextValue => RaohaneAudio.setVolume(nextValue)
                         }
@@ -283,8 +292,8 @@ Scope {
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 38
-        surfaceRadius: 10
+        Layout.preferredHeight: 42
+        surfaceRadius: 11
         active: action.accent || action.selected
         transparentIdle: !action.accent && !action.selected && !action.hovered
         raised: false
@@ -298,13 +307,13 @@ Scope {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 8
-            anchors.rightMargin: 7
-            spacing: 7
+            anchors.leftMargin: 9
+            anchors.rightMargin: 8
+            spacing: 8
 
             RaohaneIcon {
                 text: action.icon
-                iconSize: 15
+                iconSize: 16
                 fill: action.accent || action.selected ? 1 : action.hovered ? 0.32 : 0
                 symbolWeight: action.accent || action.selected ? 550 : 440
                 color: action.accent || action.selected || action.hovered
@@ -318,7 +327,7 @@ Scope {
                 color: action.accent || action.selected || action.hovered
                     ? RaohaneTheme.text
                     : RaohaneTheme.textMuted
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: action.accent || action.selected ? Font.DemiBold : Font.Medium
                 elide: Text.ElideRight
             }

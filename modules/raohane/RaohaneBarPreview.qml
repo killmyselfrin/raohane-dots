@@ -16,7 +16,7 @@ RaohaneSurface {
         : RaohaneConfig.barModuleLayout
     readonly property var layout: RaohaneBarModuleRegistry.sanitizeLayout(sourceLayout, orientation)
 
-    implicitHeight: vertical ? 236 : 94
+    implicitHeight: vertical ? 250 : 104
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
@@ -30,16 +30,16 @@ RaohaneSurface {
             topMargin: -72
             rightMargin: -44
         }
-        width: 170
-        height: 170
-        radius: 85
+        width: 176
+        height: 176
+        radius: 88
         color: RaohaneTheme.accentSoft
         opacity: 0.28
     }
 
     Item {
         anchors.fill: parent
-        anchors.margins: 12
+        anchors.margins: 14
 
         RaohaneSurface {
             id: horizontalBar
@@ -49,17 +49,17 @@ RaohaneSurface {
                 right: parent.right
                 verticalCenter: parent.verticalCenter
             }
-            height: 50
-            surfaceRadius: 16
+            height: 56
+            surfaceRadius: 18
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
-                spacing: 8
+                anchors.leftMargin: 10
+                anchors.rightMargin: 10
+                spacing: 9
 
                 PreviewZone {
                     Layout.fillWidth: true
@@ -87,22 +87,22 @@ RaohaneSurface {
         RaohaneSurface {
             id: verticalBar
             visible: root.vertical
-            width: 62
+            width: 68
             anchors {
                 top: parent.top
                 bottom: parent.bottom
                 horizontalCenter: parent.horizontalCenter
             }
-            surfaceRadius: 18
+            surfaceRadius: 20
             raised: true
             showSheen: false
             border.color: RaohaneTheme.borderStrong
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.topMargin: 8
-                anchors.bottomMargin: 8
-                spacing: 6
+                anchors.topMargin: 10
+                anchors.bottomMargin: 10
+                spacing: 7
 
                 VerticalPreviewZone {
                     Layout.fillWidth: true
@@ -139,7 +139,7 @@ RaohaneSurface {
             anchors.left: zone.alignment === Qt.AlignLeft ? parent.left : undefined
             anchors.right: zone.alignment === Qt.AlignRight ? parent.right : undefined
             anchors.horizontalCenter: zone.alignment === Qt.AlignHCenter ? parent.horizontalCenter : undefined
-            spacing: 4
+            spacing: 5
 
             Repeater {
                 model: zone.items
@@ -164,7 +164,7 @@ RaohaneSurface {
             anchors.top: zone.alignment === Qt.AlignTop ? parent.top : undefined
             anchors.bottom: zone.alignment === Qt.AlignBottom ? parent.bottom : undefined
             anchors.verticalCenter: zone.alignment === Qt.AlignVCenter ? parent.verticalCenter : undefined
-            spacing: 3
+            spacing: 4
 
             Repeater {
                 model: zone.items
@@ -186,14 +186,14 @@ RaohaneSurface {
         readonly property bool separator: moduleId === "separator"
         readonly property var definition: RaohaneBarModuleRegistry.definition(moduleId)
 
-        width: separator ? (verticalPreview ? 24 : 8) : 26
-        height: separator ? (verticalPreview ? 6 : 24) : 26
+        width: separator ? (verticalPreview ? 26 : 9) : 30
+        height: separator ? (verticalPreview ? 7 : 26) : 30
 
         Rectangle {
             visible: glyph.separator
             anchors.centerIn: parent
-            width: glyph.verticalPreview ? 20 : 1
-            height: glyph.verticalPreview ? 1 : 20
+            width: glyph.verticalPreview ? 22 : 1
+            height: glyph.verticalPreview ? 1 : 22
             radius: 1
             color: RaohaneTheme.borderStrong
             opacity: 0.66
@@ -202,7 +202,7 @@ RaohaneSurface {
         RaohaneSurface {
             visible: !glyph.separator
             anchors.fill: parent
-            surfaceRadius: 9
+            surfaceRadius: 10
             raised: false
             showSheen: false
             border.color: glyph.moduleId === "context"
@@ -215,7 +215,7 @@ RaohaneSurface {
             RaohaneIcon {
                 anchors.centerIn: parent
                 text: glyph.definition?.icon ?? "widgets"
-                iconSize: 13
+                iconSize: 14
                 fill: glyph.moduleId === "context" ? 1 : 0
                 symbolWeight: glyph.moduleId === "context" ? 540 : 430
                 color: glyph.moduleId === "context"

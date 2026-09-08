@@ -73,8 +73,8 @@ RaohaneSurface {
 
     visible: root.available
     enabled: root.available && !root.tileBusy
-    Layout.preferredHeight: visible ? 54 : 0
-    surfaceRadius: 14
+    Layout.preferredHeight: visible ? 62 : 0
+    surfaceRadius: 15
     active: root.tileActive
     showSheen: false
     transparentIdle: false
@@ -148,11 +148,11 @@ RaohaneSurface {
             verticalCenter: parent.verticalCenter
             leftMargin: 2
         }
-        width: 2
-        height: 20
-        radius: 1
+        width: 3
+        height: 26
+        radius: 2
         color: root.tileError ? RaohaneTheme.critical : RaohaneTheme.accent
-        opacity: root.tileError ? 0.92 : root.menuOpen ? 1 : 0.72
+        opacity: root.tileError ? 0.92 : root.menuOpen ? 1 : 0.76
 
         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         Behavior on opacity {
@@ -162,17 +162,17 @@ RaohaneSurface {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 9
-        anchors.rightMargin: 9
-        anchors.topMargin: 7
-        anchors.bottomMargin: 7
-        spacing: 9
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        anchors.topMargin: 8
+        anchors.bottomMargin: 8
+        spacing: 10
 
         Rectangle {
-            Layout.preferredWidth: 32
-            Layout.preferredHeight: 32
+            Layout.preferredWidth: 36
+            Layout.preferredHeight: 36
             Layout.alignment: Qt.AlignVCenter
-            radius: 10
+            radius: 11
             color: root.tileError
                 ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.10)
                 : root.active || root.menuOpen ? RaohaneTheme.accentSoft
@@ -188,8 +188,8 @@ RaohaneSurface {
             RaohaneIcon {
                 anchors.centerIn: parent
                 text: root.currentIcon
-                iconSize: 16
-                fill: root.active || root.tileError ? 1 : root.hovered ? 0.35 : 0
+                iconSize: 18
+                fill: root.active || root.tileError ? 1 : root.hovered ? 0.4 : 0
                 symbolWeight: root.active || root.tileError ? 560 : root.hovered ? 500 : 430
                 grade: root.active ? 40 : 0
                 color: root.tileError ? RaohaneTheme.critical
@@ -210,13 +210,13 @@ RaohaneSurface {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            spacing: 0
+            spacing: 1
 
             Text {
                 Layout.fillWidth: true
                 text: root.definition?.label ?? root.tileId
                 color: root.tileError ? RaohaneTheme.critical : RaohaneTheme.text
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
@@ -226,16 +226,16 @@ RaohaneSurface {
                 text: root.subtitle
                 color: root.tileError ? RaohaneTheme.critical
                     : root.active ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
-                font.pixelSize: 7
+                font.pixelSize: 8
                 elide: Text.ElideRight
             }
         }
 
         Rectangle {
-            Layout.preferredWidth: 6
-            Layout.preferredHeight: 6
+            Layout.preferredWidth: 7
+            Layout.preferredHeight: 7
             Layout.alignment: Qt.AlignVCenter
-            radius: 3
+            radius: 4
             color: root.tileError ? RaohaneTheme.critical
                 : root.active ? RaohaneTheme.accent : RaohaneTheme.borderStrong
             opacity: root.active || root.tileError ? 1 : 0.55
@@ -245,10 +245,10 @@ RaohaneSurface {
 
         RaohaneIcon {
             visible: root.showMenu
-            Layout.preferredWidth: root.showMenu ? 12 : 0
+            Layout.preferredWidth: root.showMenu ? 14 : 0
             Layout.alignment: Qt.AlignVCenter
             text: "expand_more"
-            iconSize: 12
+            iconSize: 13
             color: root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textFaint
             rotation: root.transformMotionAllowed && root.menuOpen ? 180 : 0
 

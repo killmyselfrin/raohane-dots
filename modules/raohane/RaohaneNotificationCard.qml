@@ -23,15 +23,15 @@ RaohaneSurface {
         ? String(notification.image)
         : String(notification.appIcon ?? "")
 
-    implicitHeight: Math.round(Math.max(effectiveCompact ? 76 : 88, content.implicitHeight + 20) * notificationScale)
-    surfaceRadius: Math.round((effectiveCompact ? 11 : 13) * notificationScale)
+    implicitHeight: Math.round(Math.max(effectiveCompact ? 84 : 98, content.implicitHeight + 24) * notificationScale)
+    surfaceRadius: Math.round((effectiveCompact ? 12 : 14) * notificationScale)
     raised: false
     showSheen: false
     border.color: criticalNotification
         ? RaohaneTheme.critical
         : RaohaneTheme.borderFaint
     color: criticalNotification
-        ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.055)
+        ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.06)
         : RaohaneTheme.surfaceDeep
     clip: true
 
@@ -41,13 +41,13 @@ RaohaneSurface {
             top: parent.top
             bottom: parent.bottom
             leftMargin: 2
-            topMargin: 9
-            bottomMargin: 9
+            topMargin: 10
+            bottomMargin: 10
         }
-        width: 2
-        radius: 1
+        width: 3
+        radius: 2
         color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.accent
-        opacity: root.criticalNotification ? 1 : 0.46
+        opacity: root.criticalNotification ? 1 : 0.50
     }
 
     ColumnLayout {
@@ -56,18 +56,18 @@ RaohaneSurface {
             left: parent.left
             right: parent.right
             top: parent.top
-            margins: root.effectiveCompact ? 9 : 10
+            margins: root.effectiveCompact ? 10 : 12
         }
-        spacing: root.effectiveCompact ? 4 : 6
+        spacing: root.effectiveCompact ? 5 : 7
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: root.effectiveCompact ? 7 : 8
+            spacing: root.effectiveCompact ? 8 : 10
 
             Rectangle {
-                width: root.effectiveCompact ? 28 : 31
+                width: root.effectiveCompact ? 32 : 36
                 height: width
-                radius: root.effectiveCompact ? 8 : 9
+                radius: root.effectiveCompact ? 9 : 10
                 color: RaohaneTheme.surfaceRaised
                 border.width: 1
                 border.color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.borderFaint
@@ -77,7 +77,7 @@ RaohaneSurface {
                     id: appIcon
                     anchors.centerIn: parent
                     iconSource: root.notificationIconSource
-                    iconSize: root.effectiveCompact ? 18 : 20
+                    iconSize: root.effectiveCompact ? 20 : 22
                     fallbackColor: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.textFaint
                     visible: root.notificationIconSource.length > 0
                 }
@@ -86,7 +86,7 @@ RaohaneSurface {
                     anchors.centerIn: parent
                     visible: !appIcon.visible
                     text: root.criticalNotification ? "warning" : "notifications"
-                    iconSize: root.effectiveCompact ? 15 : 17
+                    iconSize: root.effectiveCompact ? 17 : 19
                     fill: root.criticalNotification ? 1 : 0
                     symbolWeight: root.criticalNotification ? 560 : 390
                     color: root.criticalNotification ? RaohaneTheme.critical : RaohaneTheme.textFaint
@@ -95,17 +95,17 @@ RaohaneSurface {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: 1
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 6
 
                     Text {
                         Layout.fillWidth: true
                         text: root.notification.appName || qsTr("Notification")
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         font.weight: Font.Medium
                         elide: Text.ElideRight
                     }
@@ -114,7 +114,7 @@ RaohaneSurface {
                         visible: root.criticalNotification
                         text: qsTr("Urgent")
                         color: RaohaneTheme.critical
-                        font.pixelSize: 6
+                        font.pixelSize: 7
                         font.weight: Font.DemiBold
                     }
                 }
@@ -123,15 +123,15 @@ RaohaneSurface {
                     Layout.fillWidth: true
                     text: root.notification.summary || qsTr("Notification")
                     color: RaohaneTheme.text
-                    font.pixelSize: root.effectiveCompact ? 9 : 10
+                    font.pixelSize: root.effectiveCompact ? 10 : 11
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
             }
 
             RaohaneIconButton {
-                buttonSize: root.effectiveCompact ? 24 : 26
-                iconSize: 13
+                buttonSize: root.effectiveCompact ? 27 : 29
+                iconSize: 14
                 icon: "close"
                 transparentIdle: true
                 showSheen: false
@@ -147,8 +147,8 @@ RaohaneSurface {
             text: root.notification.body
             textFormat: Text.PlainText
             color: RaohaneTheme.textMuted
-            font.pixelSize: root.effectiveCompact ? 8 : 9
-            lineHeight: 1.06
+            font.pixelSize: root.effectiveCompact ? 9 : 10
+            lineHeight: 1.10
             wrapMode: Text.Wrap
             maximumLineCount: root.bodyLineLimit
             elide: Text.ElideRight
@@ -157,7 +157,7 @@ RaohaneSurface {
         RowLayout {
             Layout.fillWidth: true
             visible: root.notification.actions.length > 0
-            spacing: 5
+            spacing: 6
 
             Item { Layout.fillWidth: true }
 
@@ -168,9 +168,9 @@ RaohaneSurface {
                     id: actionButton
                     required property var modelData
 
-                    width: Math.max(64, actionLabel.implicitWidth + 18)
-                    height: root.effectiveCompact ? 24 : 26
-                    surfaceRadius: 7
+                    width: Math.max(72, actionLabel.implicitWidth + 20)
+                    height: root.effectiveCompact ? 27 : 30
+                    surfaceRadius: 8
                     raised: false
                     showSheen: false
                     interactive: true
@@ -189,7 +189,7 @@ RaohaneSurface {
                         color: actionButton.pressed || actionButton.hovered
                             ? RaohaneTheme.text
                             : RaohaneTheme.textMuted
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         font.weight: Font.Medium
 
                         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }

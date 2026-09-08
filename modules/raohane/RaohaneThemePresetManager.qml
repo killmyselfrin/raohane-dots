@@ -17,8 +17,8 @@ RaohaneSurface {
     readonly property bool activeIsUser: String(activePreset?.source ?? "") === "user"
     readonly property int userPresetCount: RaohaneThemeLibrary.userPresets.length
 
-    implicitHeight: managerColumn.implicitHeight + 20
-    surfaceRadius: 10
+    implicitHeight: managerColumn.implicitHeight + 28
+    surfaceRadius: 13
     raised: false
     showSheen: false
     border.color: RaohaneTheme.borderFaint
@@ -111,15 +111,17 @@ RaohaneSurface {
     }
 
     Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.topMargin: 10
-        anchors.bottomMargin: 10
-        width: 2
-        radius: 1
+        anchors {
+            left: parent.left
+            top: parent.top
+            bottom: parent.bottom
+            topMargin: 12
+            bottomMargin: 12
+        }
+        width: 3
+        radius: 2
         color: RaohaneTheme.accent
-        opacity: 0.62
+        opacity: 0.68
     }
 
     ColumnLayout {
@@ -129,44 +131,56 @@ RaohaneSurface {
             left: parent.left
             right: parent.right
             top: parent.top
-            margins: 10
-            leftMargin: 13
+            margins: 14
+            leftMargin: 17
         }
-        spacing: 8
+        spacing: 10
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 9
+            spacing: 11
 
-            RaohaneIcon {
-                text: "palette"
-                iconSize: 16
-                fill: 0.65
-                color: RaohaneTheme.accent
+            RaohaneSurface {
+                Layout.preferredWidth: 36
+                Layout.preferredHeight: 36
+                surfaceRadius: 11
+                active: true
+                raised: false
+                showSheen: false
+
+                RaohaneIcon {
+                    anchors.centerIn: parent
+                    text: "palette"
+                    iconSize: 18
+                    fill: 0.75
+                    color: RaohaneTheme.accent
+                }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: 1
 
                 Text {
                     text: qsTr("User presets")
                     color: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 12
                     font.weight: Font.DemiBold
                 }
 
                 Text {
+                    Layout.fillWidth: true
                     text: qsTr("Save, import and export portable Raohane color themes")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 7
+                    font.pixelSize: 9
+                    elide: Text.ElideRight
                 }
             }
 
             RaohaneSurface {
-                implicitWidth: presetCount.implicitWidth + 14
-                implicitHeight: 22
-                surfaceRadius: 7
+                implicitWidth: presetCount.implicitWidth + 18
+                implicitHeight: 26
+                surfaceRadius: 9
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
@@ -175,8 +189,8 @@ RaohaneSurface {
                     id: presetCount
                     anchors.centerIn: parent
                     text: qsTr("%1 custom").arg(root.userPresetCount)
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 8
                     font.weight: Font.DemiBold
                 }
             }
@@ -184,12 +198,13 @@ RaohaneSurface {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 7
+            spacing: 8
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 32
-                surfaceRadius: 8
+                Layout.minimumWidth: 164
+                Layout.preferredHeight: 36
+                surfaceRadius: 10
                 raised: false
                 showSheen: false
                 active: presetNameInput.activeFocus
@@ -198,14 +213,14 @@ RaohaneSurface {
                 TextInput {
                     id: presetNameInput
                     anchors.fill: parent
-                    anchors.leftMargin: 9
-                    anchors.rightMargin: 9
+                    anchors.leftMargin: 11
+                    anchors.rightMargin: 11
                     verticalAlignment: TextInput.AlignVCenter
                     text: root.presetName
                     color: RaohaneTheme.text
                     selectionColor: RaohaneTheme.accentSoft
                     selectedTextColor: RaohaneTheme.text
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     clip: true
                     onTextEdited: root.presetName = text
 
@@ -259,13 +274,13 @@ RaohaneSurface {
         RowLayout {
             visible: RaohaneThemePresets.statusMessage.length > 0
             Layout.fillWidth: true
-            spacing: 7
+            spacing: 8
 
             RaohaneIcon {
                 text: RaohaneThemePresets.busy
                     ? "progress_activity"
                     : RaohaneThemePresets.lastSucceeded ? "check_circle" : "error"
-                iconSize: 13
+                iconSize: 14
                 fill: RaohaneThemePresets.lastSucceeded ? 1 : 0
                 color: RaohaneThemePresets.lastSucceeded ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
@@ -273,7 +288,7 @@ RaohaneSurface {
             Text {
                 text: RaohaneThemePresets.statusMessage
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: Font.DemiBold
             }
 
@@ -281,7 +296,7 @@ RaohaneSurface {
                 Layout.fillWidth: true
                 text: RaohaneThemePresets.detailMessage
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 7
+                font.pixelSize: 8
                 elide: Text.ElideMiddle
             }
         }
@@ -296,9 +311,9 @@ RaohaneSurface {
         property bool destructive: false
         signal triggered()
 
-        implicitWidth: buttonRow.implicitWidth + 18
-        implicitHeight: 32
-        surfaceRadius: 8
+        implicitWidth: buttonRow.implicitWidth + 20
+        implicitHeight: 36
+        surfaceRadius: 10
         raised: false
         active: emphasized
         transparentIdle: !emphasized
@@ -317,11 +332,11 @@ RaohaneSurface {
         RowLayout {
             id: buttonRow
             anchors.centerIn: parent
-            spacing: 5
+            spacing: 6
 
             RaohaneIcon {
                 text: button.icon
-                iconSize: 13
+                iconSize: 14
                 fill: button.emphasized ? 1 : 0
                 color: button.destructive
                     ? RaohaneTheme.critical
@@ -331,7 +346,7 @@ RaohaneSurface {
             Text {
                 text: button.label
                 color: button.destructive ? RaohaneTheme.critical : RaohaneTheme.text
-                font.pixelSize: 8
+                font.pixelSize: 9
                 font.weight: Font.DemiBold
             }
         }

@@ -138,8 +138,8 @@ Scope {
                 id: selector
                 property bool entered: false
 
-                width: Math.min(parent.width - 72, 940)
-                height: Math.min(parent.height - 72, 670)
+                width: Math.min(parent.width - 72, 1040)
+                height: Math.min(parent.height - 72, 720)
                 anchors.centerIn: parent
                 surfaceRadius: RaohaneTheme.radiusHero
                 raised: true
@@ -185,25 +185,25 @@ Scope {
 
                     Item {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 62
+                        Layout.preferredHeight: 68
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.leftMargin: 14
-                            anchors.rightMargin: 12
-                            spacing: 9
+                            anchors.leftMargin: 16
+                            anchors.rightMargin: 14
+                            spacing: 11
 
                             RaohaneSurface {
-                                Layout.preferredWidth: 36
-                                Layout.preferredHeight: 36
-                                surfaceRadius: 11
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 40
+                                surfaceRadius: 12
                                 active: true
                                 showSheen: false
 
                                 RaohaneIcon {
                                     anchors.centerIn: parent
                                     text: "wallpaper"
-                                    iconSize: 18
+                                    iconSize: 20
                                     fill: 1
                                     symbolWeight: 560
                                     grade: 30
@@ -212,30 +212,30 @@ Scope {
                             }
 
                             ColumnLayout {
-                                spacing: 0
+                                spacing: 1
 
                                 Text {
                                     text: RaohaneState.wallpaperSelectorTarget === "lockWall"
                                         ? qsTr("Lock screen wallpaper")
                                         : qsTr("Wallpaper")
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 13
+                                    font.pixelSize: 14
                                     font.weight: Font.DemiBold
                                 }
 
                                 Text {
                                     text: qsTr("Browse, preview and apply")
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 7
+                                    font.pixelSize: 8
                                 }
                             }
 
                             Item { Layout.fillWidth: true }
 
                             RaohaneSurface {
-                                Layout.preferredWidth: 246
-                                Layout.preferredHeight: 32
-                                surfaceRadius: 10
+                                Layout.preferredWidth: 280
+                                Layout.preferredHeight: 36
+                                surfaceRadius: 11
                                 hovered: searchField.activeFocus
                                 showSheen: false
                                 border.color: searchField.activeFocus
@@ -244,13 +244,13 @@ Scope {
 
                                 RowLayout {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 9
-                                    anchors.rightMargin: 9
-                                    spacing: 6
+                                    anchors.leftMargin: 10
+                                    anchors.rightMargin: 10
+                                    spacing: 7
 
                                     RaohaneIcon {
                                         text: "search"
-                                        iconSize: 14
+                                        iconSize: 15
                                         fill: searchField.activeFocus ? 1 : 0
                                         color: searchField.activeFocus
                                             ? RaohaneTheme.accent
@@ -264,7 +264,7 @@ Scope {
                                         color: RaohaneTheme.text
                                         placeholderText: qsTr("Search wallpapers")
                                         placeholderTextColor: RaohaneTheme.textFaint
-                                        font.pixelSize: 8
+                                        font.pixelSize: 9
                                         selectByMouse: true
                                         onTextChanged: RaohaneWallpapers.searchQuery = text
                                     }
@@ -299,7 +299,7 @@ Scope {
                         spacing: 0
 
                         RaohaneSurface {
-                            Layout.preferredWidth: 154
+                            Layout.preferredWidth: 176
                             Layout.fillHeight: true
                             surfaceRadius: 0
                             raised: false
@@ -310,16 +310,16 @@ Scope {
 
                             ColumnLayout {
                                 anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 5
+                                anchors.margins: 12
+                                spacing: 6
 
                                 Text {
-                                    Layout.leftMargin: 7
+                                    Layout.leftMargin: 8
                                     text: qsTr("Wallpapers")
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 6
+                                    font.pixelSize: 7
                                     font.weight: Font.DemiBold
-                                    font.letterSpacing: 0.7
+                                    font.letterSpacing: 0.8
                                 }
 
                                 LibraryButton {
@@ -358,8 +358,8 @@ Scope {
                                 Rectangle {
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: 1
-                                    Layout.topMargin: 3
-                                    Layout.bottomMargin: 3
+                                    Layout.topMargin: 4
+                                    Layout.bottomMargin: 4
                                     color: RaohaneTheme.borderFaint
                                 }
 
@@ -379,10 +379,10 @@ Scope {
 
                                 Text {
                                     Layout.fillWidth: true
-                                    Layout.leftMargin: 7
+                                    Layout.leftMargin: 8
                                     text: qsTr("%1 items").arg(RaohaneWallpapers.folderModel.count)
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 6
+                                    font.pixelSize: 7
                                 }
                             }
                         }
@@ -396,16 +396,16 @@ Scope {
                         ColumnLayout {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            Layout.leftMargin: 11
-                            Layout.rightMargin: 11
-                            Layout.topMargin: 9
-                            Layout.bottomMargin: 9
-                            spacing: 8
+                            Layout.leftMargin: 13
+                            Layout.rightMargin: 13
+                            Layout.topMargin: 11
+                            Layout.bottomMargin: 11
+                            spacing: 9
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 30
-                                spacing: 5
+                                Layout.preferredHeight: 34
+                                spacing: 6
 
                                 NavButton { icon: "arrow_back"; onTriggered: RaohaneWallpapers.navigateBack() }
                                 NavButton { icon: "arrow_forward"; onTriggered: RaohaneWallpapers.navigateForward() }
@@ -414,13 +414,13 @@ Scope {
                                     Layout.fillWidth: true
                                     text: RaohaneWallpapers.effectiveDirectory
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 7
+                                    font.pixelSize: 8
                                     elide: Text.ElideMiddle
                                 }
 
                                 RaohaneSurface {
-                                    implicitWidth: countText.implicitWidth + 14
-                                    implicitHeight: 22
+                                    implicitWidth: countText.implicitWidth + 16
+                                    implicitHeight: 24
                                     surfaceRadius: 8
                                     transparentIdle: true
                                     showSheen: false
@@ -430,7 +430,7 @@ Scope {
                                         anchors.centerIn: parent
                                         text: qsTr("%1 items").arg(RaohaneWallpapers.folderModel.count)
                                         color: RaohaneTheme.textFaint
-                                        font.pixelSize: 6
+                                        font.pixelSize: 7
                                     }
                                 }
                             }
@@ -445,8 +445,8 @@ Scope {
                                     clip: true
                                     model: RaohaneWallpapers.folderModel
                                     boundsBehavior: Flickable.StopAtBounds
-                                    cellWidth: width / Math.max(1, width >= 610 ? 3 : 2)
-                                    cellHeight: Math.max(145, Math.min(182, cellWidth * 0.68))
+                                    cellWidth: width / Math.max(1, width >= 650 ? 3 : 2)
+                                    cellHeight: Math.max(158, Math.min(198, cellWidth * 0.69))
 
                                     ScrollBar.vertical: ScrollBar {
                                         id: galleryScroll
@@ -459,7 +459,7 @@ Scope {
                                             color: galleryScroll.pressed
                                                 ? RaohaneTheme.accent
                                                 : RaohaneTheme.borderStrong
-                                            opacity: galleryScroll.active ? 0.76 : 0.24
+                                            opacity: galleryScroll.active ? 0.78 : 0.26
                                         }
                                     }
 
@@ -480,8 +480,8 @@ Scope {
                                         RaohaneSurface {
                                             id: card
                                             anchors.fill: parent
-                                            anchors.margins: 4
-                                            surfaceRadius: 12
+                                            anchors.margins: 5
+                                            surfaceRadius: 13
                                             active: cell.selected
                                             hovered: cellMouse.containsMouse
                                             pressed: cellMouse.pressed
@@ -513,22 +513,22 @@ Scope {
 
                                                 Column {
                                                     anchors.centerIn: parent
-                                                    spacing: 5
+                                                    spacing: 6
 
                                                     RaohaneIcon {
                                                         anchors.horizontalCenter: parent.horizontalCenter
                                                         text: "movie"
-                                                        iconSize: 26
+                                                        iconSize: 28
                                                         color: cellMouse.containsMouse
                                                             ? RaohaneTheme.accent
                                                             : RaohaneTheme.textMuted
                                                     }
 
                                                     Text {
-                                                        width: Math.min(180, card.width - 24)
+                                                        width: Math.min(190, card.width - 26)
                                                         text: cell.fileName
                                                         color: RaohaneTheme.textMuted
-                                                        font.pixelSize: 7
+                                                        font.pixelSize: 8
                                                         horizontalAlignment: Text.AlignHCenter
                                                         elide: Text.ElideMiddle
                                                     }
@@ -542,23 +542,23 @@ Scope {
 
                                                 Column {
                                                     anchors.centerIn: parent
-                                                    spacing: 6
+                                                    spacing: 7
 
                                                     RaohaneIcon {
                                                         anchors.horizontalCenter: parent.horizontalCenter
                                                         text: "folder"
-                                                        iconSize: 28
-                                                        fill: cellMouse.containsMouse ? 0.35 : 0
+                                                        iconSize: 30
+                                                        fill: cellMouse.containsMouse ? 0.4 : 0
                                                         color: cellMouse.containsMouse
                                                             ? RaohaneTheme.accent
                                                             : RaohaneTheme.textMuted
                                                     }
 
                                                     Text {
-                                                        width: Math.min(170, card.width - 24)
+                                                        width: Math.min(180, card.width - 26)
                                                         text: cell.fileName
                                                         color: RaohaneTheme.text
-                                                        font.pixelSize: 7
+                                                        font.pixelSize: 8
                                                         font.weight: Font.Medium
                                                         horizontalAlignment: Text.AlignHCenter
                                                         elide: Text.ElideMiddle
@@ -580,10 +580,10 @@ Scope {
                                                 anchors {
                                                     top: parent.top
                                                     right: parent.right
-                                                    margins: 7
+                                                    margins: 8
                                                 }
-                                                width: 22
-                                                height: 22
+                                                width: 24
+                                                height: 24
                                                 radius: 8
                                                 color: cell.selected
                                                     ? RaohaneTheme.accent
@@ -594,7 +594,7 @@ Scope {
                                                 RaohaneIcon {
                                                     anchors.centerIn: parent
                                                     text: cell.selected ? "check" : "wallpaper"
-                                                    iconSize: 12
+                                                    iconSize: 13
                                                     fill: 1
                                                     color: cell.selected
                                                         ? RaohaneTheme.background
@@ -608,15 +608,15 @@ Scope {
                                                     left: parent.left
                                                     right: parent.right
                                                     bottom: parent.bottom
-                                                    leftMargin: 9
-                                                    rightMargin: 9
-                                                    bottomMargin: 7
+                                                    leftMargin: 10
+                                                    rightMargin: 10
+                                                    bottomMargin: 8
                                                 }
-                                                spacing: 5
+                                                spacing: 6
 
                                                 RaohaneIcon {
                                                     text: cell.video ? "movie" : "image"
-                                                    iconSize: 11
+                                                    iconSize: 12
                                                     color: cell.selected
                                                         ? RaohaneTheme.accent
                                                         : RaohaneTheme.text
@@ -626,7 +626,7 @@ Scope {
                                                     Layout.fillWidth: true
                                                     text: cell.fileName
                                                     color: RaohaneTheme.text
-                                                    font.pixelSize: 7
+                                                    font.pixelSize: 8
                                                     font.weight: Font.DemiBold
                                                     elide: Text.ElideMiddle
                                                 }
@@ -661,12 +661,12 @@ Scope {
                                 Column {
                                     anchors.centerIn: parent
                                     visible: RaohaneWallpapers.folderModel.count === 0
-                                    spacing: 6
+                                    spacing: 7
 
                                     RaohaneIcon {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text: "image_not_supported"
-                                        iconSize: 28
+                                        iconSize: 30
                                         color: RaohaneTheme.textFaint
                                     }
 
@@ -674,7 +674,7 @@ Scope {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         text: qsTr("No wallpapers found")
                                         color: RaohaneTheme.textMuted
-                                        font.pixelSize: 8
+                                        font.pixelSize: 9
                                     }
                                 }
                             }
@@ -687,8 +687,8 @@ Scope {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 36
-                                spacing: 7
+                                Layout.preferredHeight: 40
+                                spacing: 8
 
                                 Text {
                                     Layout.fillWidth: true
@@ -696,7 +696,7 @@ Scope {
                                         ? root.pendingPath.split("/").pop()
                                         : qsTr("Select a wallpaper")
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 7
+                                    font.pixelSize: 8
                                     elide: Text.ElideMiddle
                                 }
 
@@ -744,8 +744,8 @@ Scope {
         id: button
         signal triggered()
 
-        buttonSize: 28
-        iconSize: 14
+        buttonSize: 30
+        iconSize: 15
         transparentIdle: true
         showSheen: false
         hoverScale: 1
@@ -762,8 +762,8 @@ Scope {
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 34
-        surfaceRadius: 9
+        Layout.preferredHeight: 38
+        surfaceRadius: 10
         active: library.selected
         transparentIdle: !library.selected && !library.hovered
         showSheen: false
@@ -776,14 +776,14 @@ Scope {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 8
-            anchors.rightMargin: 7
-            spacing: 7
+            anchors.leftMargin: 9
+            anchors.rightMargin: 8
+            spacing: 8
 
             RaohaneIcon {
                 text: library.icon
-                iconSize: 13
-                fill: library.selected ? 1 : library.hovered ? 0.3 : 0
+                iconSize: 14
+                fill: library.selected ? 1 : library.hovered ? 0.35 : 0
                 color: library.selected || library.hovered
                     ? RaohaneTheme.accent
                     : RaohaneTheme.textMuted
@@ -795,7 +795,7 @@ Scope {
                 color: library.selected || library.hovered
                     ? RaohaneTheme.text
                     : RaohaneTheme.textMuted
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: library.selected ? Font.DemiBold : Font.Medium
                 elide: Text.ElideRight
             }
@@ -809,6 +809,13 @@ Scope {
             onPressed: library.forceActiveFocus()
             onClicked: library.triggered()
         }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                library.triggered()
+                event.accepted = true
+            }
+        }
     }
 
     component FooterButton: RaohaneSurface {
@@ -819,9 +826,9 @@ Scope {
         property bool accent: false
         signal triggered()
 
-        implicitWidth: footerRow.implicitWidth + 20
-        implicitHeight: 30
-        surfaceRadius: 9
+        implicitWidth: footerRow.implicitWidth + 22
+        implicitHeight: 34
+        surfaceRadius: 10
         active: footer.accent
         showSheen: false
         interactive: true
@@ -835,12 +842,12 @@ Scope {
         Row {
             id: footerRow
             anchors.centerIn: parent
-            spacing: 5
+            spacing: 6
 
             RaohaneIcon {
                 text: footer.icon
-                iconSize: 12
-                fill: footer.accent ? 1 : footer.hovered ? 0.3 : 0
+                iconSize: 13
+                fill: footer.accent ? 1 : footer.hovered ? 0.35 : 0
                 color: footer.accent || footer.hovered
                     ? RaohaneTheme.accent
                     : RaohaneTheme.textMuted
@@ -851,7 +858,7 @@ Scope {
                 color: footer.accent || footer.hovered
                     ? RaohaneTheme.text
                     : RaohaneTheme.textMuted
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: Font.Medium
             }
         }
@@ -864,6 +871,15 @@ Scope {
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
             onPressed: footer.forceActiveFocus()
             onClicked: footer.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (!footer.enabled)
+                return
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                footer.triggered()
+                event.accepted = true
+            }
         }
     }
 }

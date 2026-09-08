@@ -20,9 +20,14 @@ rg -q 'if \(RaohaneState\.leftSidebarOpen\)' "$sidebar" \
   || fail 'sidebar open-state handler does not guard the immediate refresh'
 rg -q 'root\.now = new Date\(\)' "$sidebar" \
   || fail 'sidebar no longer updates its displayed clock'
+rg -q 'RaohaneAudio\.refresh\(\)' "$sidebar" \
+  || fail 'sidebar no longer requests the cached audio snapshot when opened'
 
+if rg -n 'RaohaneAudio\.refresh\(true\)' "$sidebar"; then
+  fail 'sidebar bypasses the shared audio cache on every open'
+fi
 if rg -n 'running:[[:space:]]*true' "$sidebar"; then
   fail 'sidebar contains an unconditional always-running timer/process'
 fi
 
-printf 'sidebar-performance-audit: clock updates only while the sidebar is visible\n'
+printf 'sidebar-performance-audit: clock is visibility-gated and audio opens reuse the shared cache\n'

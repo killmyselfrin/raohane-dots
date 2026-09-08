@@ -150,8 +150,8 @@ Scope {
                 id: dialog
                 property bool entered: false
 
-                width: Math.min(parent.width - 96, 820)
-                height: Math.min(parent.height - 112, root.pendingActionModel ? 565 : 510)
+                width: Math.min(parent.width - 96, 900)
+                height: Math.min(parent.height - 104, root.pendingActionModel ? 630 : 570)
                 anchors.centerIn: parent
                 surfaceRadius: RaohaneTheme.radiusHero
                 raised: true
@@ -218,25 +218,25 @@ Scope {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 10
+                    anchors.margins: 18
+                    spacing: 12
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 42
-                        spacing: 9
+                        Layout.preferredHeight: 48
+                        spacing: 10
 
                         RaohaneSurface {
-                            Layout.preferredWidth: 34
-                            Layout.preferredHeight: 34
-                            surfaceRadius: 10
+                            Layout.preferredWidth: 38
+                            Layout.preferredHeight: 38
+                            surfaceRadius: 11
                             active: true
                             showSheen: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "power_settings_new"
-                                iconSize: 17
+                                iconSize: 19
                                 fill: 1
                                 symbolWeight: 550
                                 grade: 30
@@ -246,33 +246,35 @@ Scope {
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 0
+                            spacing: 1
 
                             Text {
                                 text: qsTr("Session")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 14
+                                font.pixelSize: 15
                                 font.weight: Font.DemiBold
                             }
                             Text {
                                 text: qsTr("Choose what happens next")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 7
+                                font.pixelSize: 8
                             }
                         }
 
                         Text {
                             text: RaohaneSystemInfo.username + " @ " + RaohaneSystemInfo.hostname
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
+                            font.pixelSize: 8
                         }
 
                         RaohaneIconButton {
-                            buttonSize: 28
-                            iconSize: 14
+                            buttonSize: 30
+                            iconSize: 15
                             icon: "close"
                             transparentIdle: true
                             showSheen: false
+                            hoverScale: 1
+                            pressedScale: 1
                             onClicked: root.close()
                         }
                     }
@@ -287,8 +289,8 @@ Scope {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         columns: 4
-                        columnSpacing: 7
-                        rowSpacing: 7
+                        columnSpacing: 9
+                        rowSpacing: 9
 
                         Repeater {
                             model: root.actions
@@ -303,8 +305,8 @@ Scope {
 
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
-                                Layout.minimumHeight: 112
-                                surfaceRadius: 13
+                                Layout.minimumHeight: 124
+                                surfaceRadius: 14
                                 active: selected && !pending
                                 hovered: actionMouse.containsMouse || activeFocus
                                 pressed: actionMouse.pressed
@@ -328,21 +330,21 @@ Scope {
                                         verticalCenter: parent.verticalCenter
                                         leftMargin: 2
                                     }
-                                    width: 2
-                                    height: 28
-                                    radius: 1
+                                    width: 3
+                                    height: 34
+                                    radius: 2
                                     color: actionCard.pending ? RaohaneTheme.critical : RaohaneTheme.accent
                                 }
 
                                 ColumnLayout {
                                     anchors.fill: parent
-                                    anchors.margins: 11
-                                    spacing: 4
+                                    anchors.margins: 13
+                                    spacing: 5
 
                                     RaohaneSurface {
-                                        Layout.preferredWidth: 34
-                                        Layout.preferredHeight: 34
-                                        surfaceRadius: 10
+                                        Layout.preferredWidth: 38
+                                        Layout.preferredHeight: 38
+                                        surfaceRadius: 11
                                         active: actionCard.selected && !actionCard.pending
                                         showSheen: false
                                         border.color: actionCard.pending ? RaohaneTheme.critical : RaohaneTheme.borderFaint
@@ -350,7 +352,7 @@ Scope {
                                         RaohaneIcon {
                                             anchors.centerIn: parent
                                             text: actionCard.modelData.icon
-                                            iconSize: 18
+                                            iconSize: 20
                                             fill: actionCard.pending || actionCard.selected ? 1 : 0
                                             symbolWeight: actionCard.pending ? 600 : actionCard.selected ? 550 : 430
                                             color: actionCard.pending
@@ -367,7 +369,7 @@ Scope {
                                         Layout.fillWidth: true
                                         text: actionCard.modelData.title
                                         color: actionCard.pending ? RaohaneTheme.critical : RaohaneTheme.text
-                                        font.pixelSize: 9
+                                        font.pixelSize: 10
                                         font.weight: Font.DemiBold
                                         elide: Text.ElideRight
                                     }
@@ -376,7 +378,7 @@ Scope {
                                         Layout.fillWidth: true
                                         text: actionCard.modelData.detail
                                         color: RaohaneTheme.textMuted
-                                        font.pixelSize: 7
+                                        font.pixelSize: 8
                                         wrapMode: Text.Wrap
                                         maximumLineCount: 2
                                         elide: Text.ElideRight
@@ -398,22 +400,22 @@ Scope {
 
                     RaohaneSurface {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 68
+                        Layout.preferredHeight: 78
                         visible: root.pendingActionModel !== null
-                        surfaceRadius: 12
+                        surfaceRadius: 13
                         showSheen: false
                         raised: false
                         border.color: RaohaneTheme.critical
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: 10
-                            spacing: 10
+                            anchors.margins: 12
+                            spacing: 11
 
                             RaohaneSurface {
-                                Layout.preferredWidth: 34
-                                Layout.preferredHeight: 34
-                                surfaceRadius: 10
+                                Layout.preferredWidth: 38
+                                Layout.preferredHeight: 38
+                                surfaceRadius: 11
                                 showSheen: false
                                 raised: false
                                 border.color: RaohaneTheme.critical
@@ -421,7 +423,7 @@ Scope {
                                 RaohaneIcon {
                                     anchors.centerIn: parent
                                     text: root.pendingActionModel?.icon ?? "warning"
-                                    iconSize: 17
+                                    iconSize: 19
                                     fill: 1
                                     color: RaohaneTheme.critical
                                 }
@@ -429,14 +431,14 @@ Scope {
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: 1
+                                spacing: 2
 
                                 Text {
                                     text: root.pendingActionModel
                                         ? qsTr("Confirm %1").arg(root.pendingActionModel.title)
                                         : ""
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 10
+                                    font.pixelSize: 11
                                     font.weight: Font.DemiBold
                                 }
                                 Text {
@@ -444,7 +446,7 @@ Scope {
                                         ? qsTr("Applications will be asked to close before the Hyprland session ends.")
                                         : qsTr("This system action will be executed immediately after confirmation.")
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 7
+                                    font.pixelSize: 8
                                     elide: Text.ElideRight
                                 }
                             }
@@ -467,7 +469,7 @@ Scope {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 4
+                        spacing: 5
 
                         WarningBar {
                             visible: RaohaneSessionWarnings.packageManagerRunning
@@ -489,7 +491,7 @@ Scope {
                                 ? qsTr("Enter confirms · Esc cancels")
                                 : qsTr("Destructive actions open a confirmation panel")
                             color: root.pendingAction.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textFaint
-                            font.pixelSize: 6
+                            font.pixelSize: 7
                         }
 
                         Item { Layout.fillWidth: true }
@@ -499,7 +501,7 @@ Scope {
                                 ? qsTr("Choose Cancel or confirm the action")
                                 : qsTr("Arrows navigate · Enter selects · Esc closes")
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 6
+                            font.pixelSize: 7
                         }
                     }
                 }
@@ -538,25 +540,26 @@ Scope {
         property bool danger: false
         signal clicked()
 
-        Layout.preferredWidth: 104
-        Layout.preferredHeight: 34
+        Layout.preferredWidth: 112
+        Layout.preferredHeight: 36
         surfaceRadius: 10
         showSheen: false
         raised: false
         interactive: true
-        hovered: buttonMouse.containsMouse
+        hovered: buttonMouse.containsMouse || activeFocus
         pressed: buttonMouse.pressed
         border.color: danger ? RaohaneTheme.critical : RaohaneTheme.borderStrong
         hoverScale: 1
         pressedScale: 0.98
+        activeFocusOnTab: true
 
         RowLayout {
             anchors.centerIn: parent
-            spacing: 5
+            spacing: 6
 
             RaohaneIcon {
                 text: button.icon
-                iconSize: 13
+                iconSize: 14
                 fill: 1
                 color: button.danger ? RaohaneTheme.critical : RaohaneTheme.textMuted
             }
@@ -564,7 +567,7 @@ Scope {
             Text {
                 text: button.label
                 color: button.danger ? RaohaneTheme.critical : RaohaneTheme.text
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: Font.DemiBold
             }
         }
@@ -574,7 +577,15 @@ Scope {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: button.forceActiveFocus()
             onClicked: button.clicked()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                button.clicked()
+                event.accepted = true
+            }
         }
     }
 
@@ -584,20 +595,20 @@ Scope {
         required property string text
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 30
-        surfaceRadius: 9
+        Layout.preferredHeight: 34
+        surfaceRadius: 10
         showSheen: false
         border.color: RaohaneTheme.warning
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 8
-            anchors.rightMargin: 8
-            spacing: 7
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            spacing: 8
 
             RaohaneIcon {
                 text: warning.icon
-                iconSize: 13
+                iconSize: 14
                 fill: 1
                 color: RaohaneTheme.warning
             }
@@ -606,7 +617,7 @@ Scope {
                 Layout.fillWidth: true
                 text: warning.text
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 7
+                font.pixelSize: 8
                 elide: Text.ElideRight
             }
         }

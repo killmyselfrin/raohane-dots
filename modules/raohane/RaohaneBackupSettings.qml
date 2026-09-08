@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 
@@ -39,67 +40,91 @@ Item {
     }
 
     Flickable {
+        id: backupFlick
         anchors.fill: parent
         contentWidth: width
-        contentHeight: pageColumn.implicitHeight + 34
+        contentHeight: pageColumn.implicitHeight + 42
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 2600
 
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+            width: 4
+            contentItem: Rectangle {
+                implicitWidth: 4
+                radius: 2
+                color: RaohaneTheme.accent
+                opacity: 0.42
+            }
+        }
+
         ColumnLayout {
             id: pageColumn
 
-            y: 14
-            width: Math.min(parent.width - 32, 860)
+            y: 16
+            width: Math.min(parent.width - 40, 900)
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 10
+            spacing: 12
 
             Text {
                 Layout.fillWidth: true
                 text: qsTr("Save the complete Raohane-owned setup as one portable file, then restore it after a reinstall or on another machine.")
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 8
+                font.pixelSize: 9
                 lineHeight: 1.2
                 wrapMode: Text.WordWrap
             }
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 76
-                surfaceRadius: 10
+                Layout.preferredHeight: 90
+                surfaceRadius: 13
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
 
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 3
+                    height: 46
+                    radius: 2
+                    color: RaohaneTheme.accent
+                }
+
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 13
-                    anchors.rightMargin: 13
-                    spacing: 11
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 16
+                    spacing: 13
 
-                    Rectangle {
-                        Layout.preferredWidth: 2
-                        Layout.preferredHeight: 30
-                        radius: 1
-                        color: RaohaneTheme.accent
-                    }
+                    RaohaneSurface {
+                        Layout.preferredWidth: 42
+                        Layout.preferredHeight: 42
+                        surfaceRadius: 13
+                        raised: false
+                        active: true
+                        showSheen: false
 
-                    RaohaneIcon {
-                        text: "inventory_2"
-                        iconSize: 19
-                        fill: 0.7
-                        color: RaohaneTheme.accent
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "inventory_2"
+                            iconSize: 21
+                            fill: 0.8
+                            color: RaohaneTheme.accent
+                        }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: 3
 
                         Text {
                             Layout.fillWidth: true
                             text: qsTr("What is included")
                             color: RaohaneTheme.text
-                            font.pixelSize: 10
+                            font.pixelSize: 12
                             font.weight: Font.DemiBold
                         }
 
@@ -107,8 +132,8 @@ Item {
                             Layout.fillWidth: true
                             text: qsTr("Wallpaper and lock wallpaper · theme and accent · keybinds · motion · bar and dock · monitor profiles · integrations · profile · notification/autostart/theme catalogs")
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 7
-                            lineHeight: 1.15
+                            font.pixelSize: 8
+                            lineHeight: 1.16
                             wrapMode: Text.WordWrap
                         }
                     }
@@ -117,7 +142,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 9
+                spacing: 11
 
                 ToolPanel {
                     id: exportPanel
@@ -147,7 +172,7 @@ Item {
 
                     RowLayout {
                         Layout.alignment: Qt.AlignLeft
-                        spacing: 7
+                        spacing: 8
 
                         ActionButton {
                             icon: "folder_open"
@@ -174,40 +199,40 @@ Item {
             RaohaneSurface {
                 visible: root.selectedRestorePath.length > 0
                 Layout.fillWidth: true
-                Layout.preferredHeight: 52
-                surfaceRadius: 9
+                Layout.preferredHeight: 62
+                surfaceRadius: 11
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: 9
-                    spacing: 9
+                    anchors.leftMargin: 14
+                    anchors.rightMargin: 10
+                    spacing: 10
 
                     Rectangle {
-                        Layout.preferredWidth: 2
-                        Layout.preferredHeight: 20
-                        radius: 1
+                        Layout.preferredWidth: 3
+                        Layout.preferredHeight: 28
+                        radius: 2
                         color: RaohaneTheme.accent
-                        opacity: 0.62
+                        opacity: 0.72
                     }
 
                     RaohaneIcon {
                         text: "description"
-                        iconSize: 16
+                        iconSize: 18
                         color: RaohaneTheme.textMuted
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 0
+                        spacing: 1
 
                         Text {
                             text: qsTr("Selected backup")
                             color: RaohaneTheme.text
-                            font.pixelSize: 9
+                            font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
 
@@ -215,14 +240,14 @@ Item {
                             Layout.fillWidth: true
                             text: root.shortPath(root.selectedRestorePath)
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
+                            font.pixelSize: 8
                             elide: Text.ElideMiddle
                         }
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 28
-                        iconSize: 13
+                        buttonSize: 32
+                        iconSize: 14
                         icon: "close"
                         transparentIdle: true
                         showSheen: false
@@ -236,52 +261,62 @@ Item {
             RaohaneSurface {
                 visible: RaohaneBackup.statusMessage.length > 0
                 Layout.fillWidth: true
-                Layout.preferredHeight: 66
-                surfaceRadius: 10
+                Layout.preferredHeight: 78
+                surfaceRadius: 12
                 raised: false
                 showSheen: false
                 border.color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: 10
-                    spacing: 10
+                    anchors.leftMargin: 14
+                    anchors.rightMargin: 12
+                    spacing: 11
 
                     Rectangle {
-                        Layout.preferredWidth: 2
-                        Layout.preferredHeight: 26
-                        radius: 1
+                        Layout.preferredWidth: 3
+                        Layout.preferredHeight: 34
+                        radius: 2
                         color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accent : RaohaneTheme.textMuted
                         opacity: RaohaneBackup.busy || RaohaneBackup.lastSucceeded ? 1 : 0.5
                     }
 
-                    RaohaneIcon {
-                        text: RaohaneBackup.busy
-                            ? "progress_activity"
-                            : RaohaneBackup.lastSucceeded ? "check_circle" : "error"
-                        iconSize: 18
-                        fill: RaohaneBackup.lastSucceeded ? 1 : 0
-                        color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    RaohaneSurface {
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        surfaceRadius: 11
+                        raised: false
+                        active: RaohaneBackup.busy || RaohaneBackup.lastSucceeded
+                        showSheen: false
 
-                        RotationAnimation on rotation {
-                            running: RaohaneBackup.busy
-                            from: 0
-                            to: 360
-                            duration: 1000
-                            loops: Animation.Infinite
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: RaohaneBackup.busy
+                                ? "progress_activity"
+                                : RaohaneBackup.lastSucceeded ? "check_circle" : "error"
+                            iconSize: 19
+                            fill: RaohaneBackup.lastSucceeded ? 1 : 0
+                            color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accent : RaohaneTheme.textMuted
+
+                            RotationAnimation on rotation {
+                                running: RaohaneBackup.busy
+                                from: 0
+                                to: 360
+                                duration: 1000
+                                loops: Animation.Infinite
+                            }
                         }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 1
+                        spacing: 2
 
                         Text {
                             Layout.fillWidth: true
                             text: RaohaneBackup.statusMessage
                             color: RaohaneTheme.text
-                            font.pixelSize: 9
+                            font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
 
@@ -289,7 +324,8 @@ Item {
                             Layout.fillWidth: true
                             text: RaohaneBackup.detailMessage
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 7
+                            font.pixelSize: 8
+                            lineHeight: 1.15
                             wrapMode: Text.WordWrap
                             elide: Text.ElideRight
                         }
@@ -316,6 +352,7 @@ Item {
                 text: qsTr("Before every restore, Raohane automatically stores your current configuration in ~/.local/state/raohane/restore-points.")
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 8
+                lineHeight: 1.18
                 wrapMode: Text.WordWrap
             }
         }
@@ -329,8 +366,8 @@ Item {
         required property string detail
         default property alias body: bodyColumn.data
 
-        Layout.preferredHeight: 154
-        surfaceRadius: 11
+        Layout.preferredHeight: 174
+        surfaceRadius: 13
         raised: false
         showSheen: false
         border.color: RaohaneTheme.borderFaint
@@ -339,39 +376,49 @@ Item {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            anchors.topMargin: 13
-            anchors.bottomMargin: 13
-            width: 2
-            radius: 1
+            anchors.topMargin: 15
+            anchors.bottomMargin: 15
+            width: 3
+            radius: 2
             color: RaohaneTheme.accent
-            opacity: 0.72
+            opacity: 0.76
         }
 
         ColumnLayout {
             id: bodyColumn
             anchors.fill: parent
-            anchors.leftMargin: 15
-            anchors.rightMargin: 13
-            anchors.topMargin: 13
-            anchors.bottomMargin: 12
-            spacing: 6
+            anchors.leftMargin: 17
+            anchors.rightMargin: 15
+            anchors.topMargin: 15
+            anchors.bottomMargin: 14
+            spacing: 8
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: 10
 
-                RaohaneIcon {
-                    text: toolPanel.icon
-                    iconSize: 18
-                    fill: 0.45
-                    color: RaohaneTheme.accent
+                RaohaneSurface {
+                    Layout.preferredWidth: 36
+                    Layout.preferredHeight: 36
+                    surfaceRadius: 11
+                    raised: false
+                    active: true
+                    showSheen: false
+
+                    RaohaneIcon {
+                        anchors.centerIn: parent
+                        text: toolPanel.icon
+                        iconSize: 19
+                        fill: 0.55
+                        color: RaohaneTheme.accent
+                    }
                 }
 
                 Text {
                     Layout.fillWidth: true
                     text: toolPanel.title
                     color: RaohaneTheme.text
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.weight: Font.DemiBold
                 }
             }
@@ -380,8 +427,8 @@ Item {
                 Layout.fillWidth: true
                 text: toolPanel.detail
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 8
-                lineHeight: 1.15
+                font.pixelSize: 9
+                lineHeight: 1.16
                 wrapMode: Text.WordWrap
             }
 
@@ -389,7 +436,7 @@ Item {
         }
     }
 
-    component ActionButton: RaohaneSurface {
+    component ActionButton: FocusScope {
         id: actionButton
 
         required property string icon
@@ -397,37 +444,44 @@ Item {
         property bool emphasized: false
         signal triggered()
 
-        implicitWidth: actionRow.implicitWidth + 20
-        implicitHeight: 32
-        surfaceRadius: 8
-        active: emphasized
-        transparentIdle: !emphasized
-        raised: false
-        showSheen: false
-        interactive: enabled
-        hovered: actionMouse.containsMouse
-        pressed: actionMouse.pressed
-        hoverScale: 1
-        pressedScale: 1
+        implicitWidth: actionRow.implicitWidth + 24
+        implicitHeight: 36
+        activeFocusOnTab: true
         opacity: enabled ? 1 : 0.48
 
-        RowLayout {
-            id: actionRow
-            anchors.centerIn: parent
-            spacing: 6
+        RaohaneSurface {
+            anchors.fill: parent
+            surfaceRadius: 10
+            active: actionButton.emphasized
+            transparentIdle: !actionButton.emphasized && !hovered
+            raised: false
+            showSheen: false
+            interactive: actionButton.enabled
+            hovered: actionMouse.containsMouse || actionButton.activeFocus
+            pressed: actionMouse.pressed
+            hoverScale: 1
+            pressedScale: 1
+            border.color: actionButton.emphasized ? RaohaneTheme.accentBorder
+                : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
-            RaohaneIcon {
-                text: actionButton.icon
-                iconSize: 13
-                fill: actionButton.emphasized ? 1 : 0
-                color: actionButton.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            }
+            RowLayout {
+                id: actionRow
+                anchors.centerIn: parent
+                spacing: 7
 
-            Text {
-                text: actionButton.label
-                color: actionButton.emphasized ? RaohaneTheme.text : RaohaneTheme.textMuted
-                font.pixelSize: 8
-                font.weight: Font.DemiBold
+                RaohaneIcon {
+                    text: actionButton.icon
+                    iconSize: 14
+                    fill: actionButton.emphasized || actionMouse.containsMouse || actionButton.activeFocus ? 1 : 0
+                    color: actionButton.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+
+                Text {
+                    text: actionButton.label
+                    color: actionButton.emphasized ? RaohaneTheme.text : RaohaneTheme.textMuted
+                    font.pixelSize: 9
+                    font.weight: Font.DemiBold
+                }
             }
         }
 
@@ -437,7 +491,17 @@ Item {
             enabled: actionButton.enabled
             hoverEnabled: true
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onPressed: actionButton.forceActiveFocus()
             onClicked: actionButton.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (!actionButton.enabled)
+                return
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                actionButton.triggered()
+                event.accepted = true
+            }
         }
     }
 }

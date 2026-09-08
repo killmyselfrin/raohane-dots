@@ -56,20 +56,20 @@ Item {
         id: studioColumn
 
         width: parent.width
-        spacing: 8
+        spacing: 10
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 9
+            spacing: 10
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
+                spacing: 2
 
                 Text {
                     text: qsTr("Widget Layout")
                     color: RaohaneTheme.text
-                    font.pixelSize: 11
+                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                 }
 
@@ -77,15 +77,16 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Reorder widgets or move them between the primary and secondary desktop rails.")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 9
+                    lineHeight: 1.15
                     wrapMode: Text.WordWrap
                 }
             }
 
             RaohaneSurface {
-                Layout.preferredWidth: resetRow.implicitWidth + 18
-                Layout.preferredHeight: 30
-                surfaceRadius: 8
+                Layout.preferredWidth: resetRow.implicitWidth + 22
+                Layout.preferredHeight: 34
+                surfaceRadius: 10
                 raised: false
                 transparentIdle: true
                 interactive: true
@@ -94,22 +95,23 @@ Item {
                 hoverScale: 1
                 pressedScale: 1
                 showSheen: false
+                border.color: resetMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
                 RowLayout {
                     id: resetRow
                     anchors.centerIn: parent
-                    spacing: 5
+                    spacing: 6
 
                     RaohaneIcon {
                         text: "restart_alt"
-                        iconSize: 13
-                        color: RaohaneTheme.textMuted
+                        iconSize: 14
+                        color: resetMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     }
 
                     Text {
                         text: qsTr("Reset")
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
+                        color: resetMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                     }
                 }
@@ -126,9 +128,9 @@ Item {
 
         GridLayout {
             Layout.fillWidth: true
-            columns: width < 650 ? 1 : 2
-            columnSpacing: 8
-            rowSpacing: 8
+            columns: width < 680 ? 1 : 2
+            columnSpacing: 10
+            rowSpacing: 10
 
             ZoneCard {
                 Layout.fillWidth: true
@@ -156,22 +158,24 @@ Item {
         required property string icon
         required property var items
 
-        Layout.preferredHeight: zoneColumn.implicitHeight + 18
-        surfaceRadius: 10
+        Layout.preferredHeight: zoneColumn.implicitHeight + 24
+        surfaceRadius: 12
         raised: false
         showSheen: false
         border.color: RaohaneTheme.borderFaint
 
         Rectangle {
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.topMargin: 10
-            anchors.bottomMargin: 10
-            width: 2
-            radius: 1
+            anchors {
+                left: parent.left
+                top: parent.top
+                bottom: parent.bottom
+                topMargin: 12
+                bottomMargin: 12
+            }
+            width: 3
+            radius: 2
             color: RaohaneTheme.accent
-            opacity: 0.54
+            opacity: 0.58
         }
 
         ColumnLayout {
@@ -181,18 +185,18 @@ Item {
                 left: parent.left
                 right: parent.right
                 top: parent.top
-                margins: 9
-                leftMargin: 12
+                margins: 12
+                leftMargin: 15
             }
-            spacing: 6
+            spacing: 8
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 7
+                spacing: 8
 
                 RaohaneIcon {
                     text: zoneCard.icon
-                    iconSize: 14
+                    iconSize: 16
                     color: RaohaneTheme.accent
                 }
 
@@ -200,14 +204,14 @@ Item {
                     Layout.fillWidth: true
                     text: zoneCard.title
                     color: RaohaneTheme.text
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
 
                 RaohaneSurface {
-                    implicitWidth: countLabel.implicitWidth + 12
-                    implicitHeight: 20
-                    surfaceRadius: 7
+                    implicitWidth: countLabel.implicitWidth + 14
+                    implicitHeight: 24
+                    surfaceRadius: 8
                     raised: false
                     showSheen: false
                     border.color: RaohaneTheme.borderFaint
@@ -216,8 +220,8 @@ Item {
                         id: countLabel
                         anchors.centerIn: parent
                         text: String(zoneCard.items.length)
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
                         font.weight: Font.DemiBold
                     }
                 }
@@ -228,7 +232,7 @@ Item {
                 Layout.fillWidth: true
                 text: qsTr("This rail is empty")
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 8
+                font.pixelSize: 9
             }
 
             Repeater {
@@ -244,33 +248,33 @@ Item {
                     readonly property var definition: RaohaneDesktopWidgetRegistry.definition(widgetId)
 
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 42
-                    surfaceRadius: 8
+                    Layout.preferredHeight: 50
+                    surfaceRadius: 10
                     raised: false
                     showSheen: false
                     border.color: RaohaneTheme.borderFaint
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 9
-                        anchors.rightMargin: 5
-                        spacing: 7
+                        anchors.leftMargin: 11
+                        anchors.rightMargin: 6
+                        spacing: 8
 
                         RaohaneIcon {
                             text: widgetRow.definition?.icon ?? "widgets"
-                            iconSize: 14
+                            iconSize: 16
                             color: RaohaneTheme.accent
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: -1
+                            spacing: 0
 
                             Text {
                                 Layout.fillWidth: true
                                 text: widgetRow.definition?.title ?? widgetRow.widgetId
                                 color: RaohaneTheme.text
-                                font.pixelSize: 8
+                                font.pixelSize: 9
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
@@ -279,7 +283,7 @@ Item {
                                 Layout.fillWidth: true
                                 text: widgetRow.definition?.detail ?? ""
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 7
+                                font.pixelSize: 8
                                 elide: Text.ElideRight
                             }
                         }
@@ -287,8 +291,8 @@ Item {
                         RaohaneIconButton {
                             enabled: widgetRow.index > 0
                             opacity: enabled ? 1 : 0.30
-                            buttonSize: 25
-                            iconSize: 12
+                            buttonSize: 29
+                            iconSize: 13
                             icon: "arrow_upward"
                             transparentIdle: true
                             showSheen: false
@@ -300,8 +304,8 @@ Item {
                         RaohaneIconButton {
                             enabled: widgetRow.index < zoneCard.items.length - 1
                             opacity: enabled ? 1 : 0.30
-                            buttonSize: 25
-                            iconSize: 12
+                            buttonSize: 29
+                            iconSize: 13
                             icon: "arrow_downward"
                             transparentIdle: true
                             showSheen: false
@@ -311,8 +315,8 @@ Item {
                         }
 
                         RaohaneIconButton {
-                            buttonSize: 25
-                            iconSize: 12
+                            buttonSize: 29
+                            iconSize: 13
                             icon: zoneCard.zone === "primary" ? "arrow_forward" : "arrow_back"
                             transparentIdle: true
                             showSheen: false

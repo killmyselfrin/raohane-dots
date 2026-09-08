@@ -33,15 +33,15 @@ Item {
             left: parent.left
             right: parent.right
         }
-        spacing: 9
+        spacing: 10
 
         GridLayout {
             id: toggleGrid
             visible: !root.pickerOpen
             Layout.fillWidth: true
             columns: Math.max(1, root.tileColumns)
-            columnSpacing: 7
-            rowSpacing: 7
+            columnSpacing: 8
+            rowSpacing: 8
 
             Repeater {
                 model: root.tileLayout
@@ -60,8 +60,8 @@ Item {
         RaohaneSurface {
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 14 : 0
-            surfaceRadius: 15
+            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 18 : 0
+            surfaceRadius: 16
             raised: false
             showSheen: false
             border.color: RaohaneTheme.borderFaint
@@ -72,14 +72,14 @@ Item {
                     left: parent.left
                     top: parent.top
                     bottom: parent.bottom
-                    leftMargin: 1
-                    topMargin: 14
-                    bottomMargin: 14
+                    leftMargin: 2
+                    topMargin: 16
+                    bottomMargin: 16
                 }
-                width: 2
-                radius: 1
+                width: 3
+                radius: 2
                 color: RaohaneTheme.accent
-                opacity: 0.34
+                opacity: 0.38
             }
 
             ColumnLayout {
@@ -88,10 +88,10 @@ Item {
                     left: parent.left
                     right: parent.right
                     verticalCenter: parent.verticalCenter
-                    leftMargin: 7
-                    rightMargin: 7
+                    leftMargin: 9
+                    rightMargin: 9
                 }
-                spacing: 1
+                spacing: 2
 
                 ControlSlider {
                     Layout.fillWidth: true
@@ -168,11 +168,11 @@ Item {
             || (control.iconEnabled && (iconButton.hovered || iconButton.activeFocus))
             || (control.pickerEnabled && pickerButton.hovered)
 
-        implicitHeight: 43
+        implicitHeight: 49
 
         Rectangle {
             anchors.fill: parent
-            radius: 11
+            radius: 12
             color: control.rowHovered || control.pickerActive ? RaohaneTheme.surfaceHover : "transparent"
             border.width: 1
             border.color: control.pickerActive ? RaohaneTheme.accentBorder : "transparent"
@@ -183,20 +183,20 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 5
-            anchors.rightMargin: 5
-            spacing: 7
+            anchors.leftMargin: 6
+            anchors.rightMargin: 6
+            spacing: 8
 
             Item {
-                Layout.preferredWidth: 29
-                Layout.preferredHeight: 29
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
                 Layout.alignment: Qt.AlignVCenter
 
                 RaohaneIcon {
                     visible: !control.iconEnabled
                     anchors.centerIn: parent
                     text: control.icon
-                    iconSize: 14
+                    iconSize: 16
                     color: RaohaneTheme.textMuted
                 }
 
@@ -204,30 +204,32 @@ Item {
                     id: iconButton
                     visible: control.iconEnabled
                     anchors.centerIn: parent
-                    buttonSize: 29
-                    iconSize: 14
+                    buttonSize: 32
+                    iconSize: 16
                     icon: control.icon
                     emphasized: control.rowHovered && !control.pickerActive
                     transparentIdle: true
                     showSheen: false
+                    hoverScale: 1
+                    pressedScale: 1
                     onClicked: control.iconTriggered()
                 }
             }
 
             ColumnLayout {
-                Layout.preferredWidth: 132
+                Layout.preferredWidth: 146
                 Layout.alignment: Qt.AlignVCenter
-                spacing: -1
+                spacing: 0
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 6
 
                     Text {
                         Layout.fillWidth: true
                         text: control.title
                         color: control.pickerActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                        font.pixelSize: 8
+                        font.pixelSize: 9
                         font.weight: Font.Medium
                         elide: Text.ElideRight
                     }
@@ -235,7 +237,7 @@ Item {
                     Text {
                         text: control.displayText
                         color: control.rowHovered || control.pickerActive ? RaohaneTheme.text : RaohaneTheme.textFaint
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         font.weight: Font.DemiBold
                     }
                 }
@@ -245,7 +247,7 @@ Item {
                     visible: control.contextText.length > 0
                     text: control.contextText
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 6
+                    font.pixelSize: 7
                     elide: Text.ElideRight
                 }
             }
@@ -253,12 +255,12 @@ Item {
             RaohaneSlider {
                 id: valueSlider
                 Layout.fillWidth: true
-                Layout.minimumWidth: 112
-                Layout.preferredHeight: 22
+                Layout.minimumWidth: 118
+                Layout.preferredHeight: 24
                 from: 0
                 to: 1
                 stepSize: 0.01
-                trackHeight: 5
+                trackHeight: 6
                 value: control.clampedLiveValue
                 showHandle: control.rowHovered || activeFocus
                 onMoved: value => control.valueChangedByUser(value)
@@ -267,10 +269,10 @@ Item {
             RaohaneIconButton {
                 id: pickerButton
                 visible: control.pickerEnabled
-                Layout.preferredWidth: control.pickerEnabled ? 24 : 0
-                Layout.preferredHeight: 24
-                buttonSize: 24
-                iconSize: 11
+                Layout.preferredWidth: control.pickerEnabled ? 28 : 0
+                Layout.preferredHeight: 28
+                buttonSize: 28
+                iconSize: 12
                 icon: "expand_more"
                 emphasized: control.pickerActive
                 transparentIdle: true

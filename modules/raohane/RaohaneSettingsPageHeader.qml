@@ -11,7 +11,7 @@ Item {
     property bool compact: false
     property int direction: 1
 
-    implicitHeight: 72
+    implicitHeight: 78
 
     function syncImmediately(): void {
         headerSwap.stop()
@@ -42,14 +42,14 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 20
-            anchors.rightMargin: 18
-            spacing: 10
+            anchors.leftMargin: 22
+            anchors.rightMargin: 20
+            spacing: 11
 
             RaohaneSurface {
-                Layout.preferredWidth: 34
-                Layout.preferredHeight: 34
-                surfaceRadius: 10
+                Layout.preferredWidth: 38
+                Layout.preferredHeight: 38
+                surfaceRadius: 11
                 active: true
                 raised: false
                 showSheen: false
@@ -57,7 +57,7 @@ Item {
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: root.displayedPageInfo?.icon ?? "settings"
-                    iconSize: 17
+                    iconSize: 18
                     fill: 1
                     symbolWeight: 550
                     grade: 30
@@ -67,13 +67,13 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: 1
 
                 Text {
                     Layout.fillWidth: true
                     text: root.displayedPageInfo?.name ?? qsTr("Settings")
                     color: RaohaneTheme.text
-                    font.pixelSize: 15
+                    font.pixelSize: 16
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -82,16 +82,16 @@ Item {
                     Layout.fillWidth: true
                     text: root.displayedPageInfo?.subtitle ?? ""
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     elide: Text.ElideRight
                 }
             }
 
             RaohaneSurface {
                 visible: !root.compact
-                Layout.preferredWidth: groupText.implicitWidth + 16
-                Layout.preferredHeight: 22
-                surfaceRadius: 8
+                Layout.preferredWidth: groupText.implicitWidth + 18
+                Layout.preferredHeight: 24
+                surfaceRadius: 9
                 transparentIdle: true
                 showSheen: false
 
@@ -100,14 +100,14 @@ Item {
                     anchors.centerIn: parent
                     text: root.displayedPageInfo?.group ?? qsTr("SYSTEM")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 6
+                    font.pixelSize: 7
                     font.weight: Font.DemiBold
                     font.letterSpacing: 0.75
                 }
             }
 
             Item {
-                Layout.preferredWidth: root.compact ? 40 : 336
+                Layout.preferredWidth: root.compact ? 44 : 344
                 Layout.fillHeight: true
             }
         }
@@ -163,8 +163,8 @@ Item {
             left: parent.left
             right: parent.right
             bottom: parent.bottom
-            leftMargin: 20
-            rightMargin: 18
+            leftMargin: 22
+            rightMargin: 20
         }
         height: 1
         color: RaohaneTheme.borderFaint

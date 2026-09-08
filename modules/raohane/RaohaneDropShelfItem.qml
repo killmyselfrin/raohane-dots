@@ -17,9 +17,9 @@ RaohaneSurface {
     signal removeRequested(int index)
     signal copyRequested(string path)
 
-    width: 112
-    height: 120
-    surfaceRadius: 10
+    width: 126
+    height: 136
+    surfaceRadius: 11
     raised: false
     interactive: true
     hovered: dragMouse.containsMouse || actionRow.hovered
@@ -42,8 +42,8 @@ RaohaneSurface {
             top: parent.top
             bottom: parent.bottom
             leftMargin: 2
-            topMargin: 8
-            bottomMargin: 8
+            topMargin: 9
+            bottomMargin: 9
         }
         width: 2
         radius: 1
@@ -55,15 +55,15 @@ RaohaneSurface {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 7
-        spacing: 4
+        anchors.margins: 8
+        spacing: 5
 
         RaohaneSurface {
             id: preview
 
             Layout.fillWidth: true
-            Layout.preferredHeight: 73
-            surfaceRadius: 8
+            Layout.preferredHeight: 82
+            surfaceRadius: 9
             active: dragMouse.drag.active
             showSheen: false
             color: RaohaneTheme.surfaceSubtle
@@ -85,7 +85,7 @@ RaohaneSurface {
                 anchors.centerIn: parent
                 visible: !previewImage.visible
                 text: root.entryPath.endsWith("/") ? "folder" : "draft"
-                iconSize: 22
+                iconSize: 24
                 fill: dragMouse.containsMouse ? 1 : 0
                 symbolWeight: dragMouse.containsMouse ? 520 : 430
                 color: dragMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -117,7 +117,7 @@ RaohaneSurface {
             Layout.fillWidth: true
             text: root.fileName
             color: RaohaneTheme.text
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.weight: Font.Medium
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideMiddle
@@ -128,14 +128,14 @@ RaohaneSurface {
             property bool hovered: openButton.hovered || revealButton.hovered || copyButton.hovered || removeButton.hovered
 
             Layout.fillWidth: true
-            Layout.preferredHeight: 22
+            Layout.preferredHeight: 26
             spacing: 0
 
             RaohaneIconButton {
                 id: openButton
                 Layout.fillWidth: true
-                buttonSize: 22
-                iconSize: 11
+                buttonSize: 26
+                iconSize: 12
                 icon: "open_in_new"
                 transparentIdle: true
                 showSheen: false
@@ -147,8 +147,8 @@ RaohaneSurface {
             RaohaneIconButton {
                 id: revealButton
                 Layout.fillWidth: true
-                buttonSize: 22
-                iconSize: 11
+                buttonSize: 26
+                iconSize: 12
                 icon: "folder_open"
                 transparentIdle: true
                 showSheen: false
@@ -160,8 +160,8 @@ RaohaneSurface {
             RaohaneIconButton {
                 id: copyButton
                 Layout.fillWidth: true
-                buttonSize: 22
-                iconSize: 11
+                buttonSize: 26
+                iconSize: 12
                 icon: "content_copy"
                 transparentIdle: true
                 showSheen: false
@@ -173,8 +173,8 @@ RaohaneSurface {
             RaohaneIconButton {
                 id: removeButton
                 Layout.fillWidth: true
-                buttonSize: 22
-                iconSize: 11
+                buttonSize: 26
+                iconSize: 12
                 icon: "close"
                 transparentIdle: true
                 showSheen: false

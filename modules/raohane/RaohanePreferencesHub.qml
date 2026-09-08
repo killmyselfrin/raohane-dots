@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 import qs.modules.raohane.config
@@ -178,17 +179,17 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 14
-        spacing: 9
+        anchors.margins: 16
+        spacing: 11
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 42
-            spacing: 8
+            Layout.preferredHeight: 48
+            spacing: 10
 
             RaohaneIconButton {
-                buttonSize: 30
-                iconSize: 14
+                buttonSize: 32
+                iconSize: 15
                 icon: "arrow_back"
                 transparentIdle: true
                 showSheen: false
@@ -198,30 +199,32 @@ Item {
             }
 
             Rectangle {
-                Layout.preferredWidth: 2
-                Layout.preferredHeight: 28
-                radius: 1
+                Layout.preferredWidth: 3
+                Layout.preferredHeight: 34
+                radius: 2
                 color: RaohaneTheme.accent
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: 1
 
                 Text {
                     text: root.section === "motion" ? qsTr("Motion & animations") : qsTr("Keyboard shortcuts")
                     color: RaohaneTheme.text
-                    font.pixelSize: 14
+                    font.pixelSize: 15
                     font.weight: Font.DemiBold
                     font.letterSpacing: -0.1
                 }
 
                 Text {
+                    Layout.fillWidth: true
                     text: root.section === "motion"
                         ? qsTr("Tune Raohane shell motion and Hyprland compositor transitions")
                         : qsTr("All Raohane shell actions in one configurable shortcut map")
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 9
+                    elide: Text.ElideRight
                 }
             }
 
@@ -259,26 +262,37 @@ Item {
         Flickable {
             id: keyFlick
             contentWidth: width
-            contentHeight: keyColumn.implicitHeight + 20
+            contentHeight: keyColumn.implicitHeight + 28
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 2600
 
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                width: 4
+                contentItem: Rectangle {
+                    implicitWidth: 4
+                    radius: 2
+                    color: RaohaneTheme.accent
+                    opacity: 0.42
+                }
+            }
+
             Column {
                 id: keyColumn
-                width: Math.min(keyFlick.width - 24, 840)
+                width: Math.min(keyFlick.width - 32, 880)
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 9
+                spacing: 11
 
                 RowLayout {
                     width: parent.width
-                    height: 30
+                    height: 36
 
                     Text {
                         Layout.fillWidth: true
                         text: qsTr("Raohane actions")
                         color: RaohaneTheme.text
-                        font.pixelSize: 10
+                        font.pixelSize: 11
                         font.weight: Font.DemiBold
                     }
 
@@ -292,7 +306,7 @@ Item {
                 RaohaneSurface {
                     width: parent.width
                     height: actionList.implicitHeight
-                    surfaceRadius: 11
+                    surfaceRadius: 13
                     raised: false
                     showSheen: false
                     color: RaohaneTheme.surfaceDeep
@@ -312,7 +326,7 @@ Item {
                                 required property int index
 
                                 width: actionList.width
-                                height: 56
+                                height: 64
 
                                 Rectangle {
                                     anchors.fill: parent
@@ -330,13 +344,13 @@ Item {
                                         top: parent.top
                                         bottom: parent.bottom
                                         leftMargin: 2
-                                        topMargin: 10
-                                        bottomMargin: 10
+                                        topMargin: 11
+                                        bottomMargin: 11
                                     }
-                                    width: 2
-                                    radius: 1
+                                    width: 3
+                                    radius: 2
                                     color: RaohaneTheme.accent
-                                    opacity: actionPointer.containsMouse ? 0.38 : 0
+                                    opacity: actionPointer.containsMouse ? 0.40 : 0
 
                                     Behavior on opacity {
                                         NumberAnimation { duration: RaohaneMotion.micro }
@@ -345,14 +359,14 @@ Item {
 
                                 RowLayout {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 10
-                                    spacing: 9
+                                    anchors.leftMargin: 14
+                                    anchors.rightMargin: 11
+                                    spacing: 10
 
                                     RaohaneIcon {
-                                        Layout.preferredWidth: 24
+                                        Layout.preferredWidth: 26
                                         text: actionRow.modelData.icon
-                                        iconSize: 15
+                                        iconSize: 17
                                         fill: actionPointer.containsMouse ? 0.38 : 0
                                         symbolWeight: actionPointer.containsMouse ? 500 : 420
                                         color: actionPointer.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -364,25 +378,25 @@ Item {
 
                                     ColumnLayout {
                                         Layout.fillWidth: true
-                                        spacing: 0
+                                        spacing: 2
 
                                         RowLayout {
                                             Layout.fillWidth: true
-                                            spacing: 6
+                                            spacing: 7
 
                                             Text {
                                                 text: actionRow.modelData.label
                                                 color: RaohaneTheme.text
-                                                font.pixelSize: 8
+                                                font.pixelSize: 10
                                                 font.weight: Font.DemiBold
                                             }
 
                                             Text {
                                                 text: actionRow.modelData.category
                                                 color: RaohaneTheme.textFaint
-                                                font.pixelSize: 6
+                                                font.pixelSize: 7
                                                 font.weight: Font.DemiBold
-                                                font.letterSpacing: 0.65
+                                                font.letterSpacing: 0.7
                                             }
                                         }
 
@@ -390,7 +404,7 @@ Item {
                                             Layout.fillWidth: true
                                             text: actionRow.modelData.detail
                                             color: RaohaneTheme.textFaint
-                                            font.pixelSize: 7
+                                            font.pixelSize: 8
                                             elide: Text.ElideRight
                                         }
                                     }
@@ -404,8 +418,8 @@ Item {
                                         left: parent.left
                                         right: parent.right
                                         bottom: parent.bottom
-                                        leftMargin: 12
-                                        rightMargin: 12
+                                        leftMargin: 14
+                                        rightMargin: 14
                                     }
                                     height: 1
                                     color: RaohaneTheme.borderFaint
@@ -427,7 +441,7 @@ Item {
                     width: parent.width
                     text: qsTr("Application shortcuts")
                     color: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     font.weight: Font.DemiBold
                 }
 
@@ -444,7 +458,7 @@ Item {
                     width: parent.width
                     text: qsTr("Click a shortcut chip and press the new combination. Press Backspace while recording to disable it. Duplicate combinations are highlighted before Hyprland applies the map.")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    font.pixelSize: 9
                     lineHeight: 1.20
                     wrapMode: Text.WordWrap
                 }
@@ -458,30 +472,41 @@ Item {
         Flickable {
             id: motionFlick
             contentWidth: width
-            contentHeight: motionColumn.implicitHeight + 20
+            contentHeight: motionColumn.implicitHeight + 28
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 2600
 
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                width: 4
+                contentItem: Rectangle {
+                    implicitWidth: 4
+                    radius: 2
+                    color: RaohaneTheme.accent
+                    opacity: 0.42
+                }
+            }
+
             Column {
                 id: motionColumn
-                width: Math.min(motionFlick.width - 24, 800)
+                width: Math.min(motionFlick.width - 32, 840)
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 9
+                spacing: 11
 
                 Text {
                     width: parent.width
                     text: qsTr("Motion presets")
                     color: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     font.weight: Font.DemiBold
                 }
 
                 GridLayout {
                     width: parent.width
-                    columns: width > 620 ? 4 : 2
-                    columnSpacing: 6
-                    rowSpacing: 6
+                    columns: width > 660 ? 4 : 2
+                    columnSpacing: 8
+                    rowSpacing: 8
 
                     MotionPreset {
                         title: qsTr("Zen")
@@ -513,14 +538,14 @@ Item {
                     width: parent.width
                     text: qsTr("Fine tuning")
                     color: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     font.weight: Font.DemiBold
                 }
 
                 RaohaneSurface {
                     width: parent.width
                     height: motionRows.implicitHeight
-                    surfaceRadius: 11
+                    surfaceRadius: 13
                     raised: false
                     showSheen: false
                     color: RaohaneTheme.surfaceDeep
@@ -585,15 +610,15 @@ Item {
 
                         Item {
                             width: motionRows.width
-                            height: 58
+                            height: 64
 
                             Rectangle {
                                 anchors {
                                     left: parent.left
                                     right: parent.right
                                     bottom: parent.bottom
-                                    leftMargin: 12
-                                    rightMargin: 12
+                                    leftMargin: 14
+                                    rightMargin: 14
                                 }
                                 height: 1
                                 color: RaohaneTheme.borderFaint
@@ -601,25 +626,27 @@ Item {
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 13
-                                anchors.rightMargin: 10
-                                spacing: 12
+                                anchors.leftMargin: 15
+                                anchors.rightMargin: 12
+                                spacing: 14
 
                                 ColumnLayout {
                                     Layout.fillWidth: true
-                                    spacing: 1
+                                    spacing: 2
 
                                     Text {
                                         text: qsTr("Raohane shell motion")
                                         color: RaohaneTheme.text
-                                        font.pixelSize: 8
+                                        font.pixelSize: 10
                                         font.weight: Font.DemiBold
                                     }
 
                                     Text {
+                                        Layout.fillWidth: true
                                         text: qsTr("Scale QML surface transitions independently from Hyprland")
                                         color: RaohaneTheme.textFaint
-                                        font.pixelSize: 7
+                                        font.pixelSize: 8
+                                        elide: Text.ElideRight
                                     }
                                 }
 
@@ -643,13 +670,13 @@ Item {
         property bool recording: false
         readonly property bool conflict: root.conflictCount(configKey) > 0
 
-        implicitWidth: 174
-        implicitHeight: 32
+        implicitWidth: 190
+        implicitHeight: 36
         activeFocusOnTab: true
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 8
+            surfaceRadius: 10
             raised: false
             active: recorder.recording
             hovered: recorderMouse.containsMouse || recorder.activeFocus
@@ -665,13 +692,13 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 8
-                anchors.rightMargin: 7
-                spacing: 5
+                anchors.leftMargin: 10
+                anchors.rightMargin: 9
+                spacing: 6
 
                 RaohaneIcon {
                     text: recorder.conflict ? "warning" : recorder.recording ? "keyboard_alt" : "keyboard"
-                    iconSize: 12
+                    iconSize: 14
                     fill: recorder.recording ? 1 : 0
                     color: recorder.conflict ? RaohaneTheme.critical
                         : recorder.recording ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -682,7 +709,7 @@ Item {
                     text: recorder.recording ? qsTr("Press shortcut…") : (root.keybindValue(recorder.configKey) || qsTr("Disabled"))
                     color: recorder.conflict ? RaohaneTheme.critical
                         : recorder.recording ? RaohaneTheme.accent : RaohaneTheme.text
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     font.weight: Font.DemiBold
                     horizontalAlignment: Text.AlignHCenter
                     elide: Text.ElideRight
@@ -732,8 +759,8 @@ Item {
         property string keysKey: "app" + slot + "Keys"
         property string commandKey: "app" + slot + "Command"
 
-        height: 76
-        surfaceRadius: 10
+        height: 86
+        surfaceRadius: 12
         raised: false
         showSheen: false
         color: RaohaneTheme.surfaceDeep
@@ -745,30 +772,30 @@ Item {
                 top: parent.top
                 bottom: parent.bottom
                 leftMargin: 2
-                topMargin: 10
-                bottomMargin: 10
+                topMargin: 12
+                bottomMargin: 12
             }
-            width: 2
-            radius: 1
+            width: 3
+            radius: 2
             color: RaohaneTheme.accent
-            opacity: 0.18
+            opacity: 0.20
         }
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 10
-            spacing: 8
+            anchors.margins: 12
+            spacing: 10
 
             RaohaneIcon {
-                Layout.preferredWidth: 22
+                Layout.preferredWidth: 24
                 text: "apps"
-                iconSize: 15
+                iconSize: 17
                 color: RaohaneTheme.accent
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 5
+                spacing: 7
 
                 FieldEditor {
                     configKey: appRow.nameKey
@@ -794,8 +821,8 @@ Item {
         property bool monospace: false
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 28
-        surfaceRadius: 7
+        Layout.preferredHeight: 32
+        surfaceRadius: 9
         raised: false
         showSheen: false
         hovered: editorField.activeFocus
@@ -805,14 +832,14 @@ Item {
         TextInput {
             id: editorField
             anchors.fill: parent
-            anchors.leftMargin: 8
-            anchors.rightMargin: 8
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
             verticalAlignment: TextInput.AlignVCenter
             text: root.keybindValue(editor.configKey)
             color: RaohaneTheme.text
             selectionColor: RaohaneTheme.accentSoft
             selectedTextColor: RaohaneTheme.text
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.family: editor.monospace ? "JetBrainsMono Nerd Font" : ""
             clip: true
             onEditingFinished: root.setKeybind(editor.configKey, text)
@@ -822,7 +849,7 @@ Item {
                 verticalAlignment: Text.AlignVCenter
                 text: editor.placeholderText
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 7
+                font.pixelSize: 8
                 visible: editorField.text.length === 0 && !editorField.activeFocus
             }
         }
@@ -837,29 +864,31 @@ Item {
         signal toggled(bool checked)
 
         width: parent?.width ?? 0
-        height: 58
+        height: 64
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 13
-            anchors.rightMargin: 11
-            spacing: 12
+            anchors.leftMargin: 15
+            anchors.rightMargin: 13
+            spacing: 14
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
+                spacing: 2
 
                 Text {
                     text: toggleRow.label
                     color: RaohaneTheme.text
-                    font.pixelSize: 8
+                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
 
                 Text {
+                    Layout.fillWidth: true
                     text: toggleRow.detail
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    font.pixelSize: 8
+                    elide: Text.ElideRight
                 }
             }
 
@@ -874,8 +903,8 @@ Item {
                 left: parent.left
                 right: parent.right
                 bottom: parent.bottom
-                leftMargin: 12
-                rightMargin: 12
+                leftMargin: 14
+                rightMargin: 14
             }
             height: 1
             color: RaohaneTheme.borderFaint
@@ -894,29 +923,31 @@ Item {
         required property real step
 
         width: parent?.width ?? 0
-        height: 58
+        height: 64
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 13
-            anchors.rightMargin: 10
-            spacing: 12
+            anchors.leftMargin: 15
+            anchors.rightMargin: 12
+            spacing: 14
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
+                spacing: 2
 
                 Text {
                     text: numberRow.label
                     color: RaohaneTheme.text
-                    font.pixelSize: 8
+                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
 
                 Text {
+                    Layout.fillWidth: true
                     text: numberRow.detail
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    font.pixelSize: 8
+                    elide: Text.ElideRight
                 }
             }
 
@@ -932,8 +963,8 @@ Item {
                 left: parent.left
                 right: parent.right
                 bottom: parent.bottom
-                leftMargin: 12
-                rightMargin: 12
+                leftMargin: 14
+                rightMargin: 14
             }
             height: 1
             color: RaohaneTheme.borderFaint
@@ -947,9 +978,9 @@ Item {
         signal decrease()
         signal increase()
 
-        Layout.preferredWidth: 124
-        Layout.preferredHeight: 32
-        surfaceRadius: 8
+        Layout.preferredWidth: 136
+        Layout.preferredHeight: 36
+        surfaceRadius: 10
         raised: false
         showSheen: false
         color: RaohaneTheme.surfaceSubtle
@@ -957,13 +988,13 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 2
-            anchors.rightMargin: 2
-            spacing: 1
+            anchors.leftMargin: 3
+            anchors.rightMargin: 3
+            spacing: 2
 
             RaohaneIconButton {
-                buttonSize: 26
-                iconSize: 12
+                buttonSize: 29
+                iconSize: 13
                 icon: "remove"
                 transparentIdle: true
                 showSheen: false
@@ -977,13 +1008,13 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 text: stepControl.valueText
                 color: RaohaneTheme.text
-                font.pixelSize: 8
+                font.pixelSize: 9
                 font.weight: Font.DemiBold
             }
 
             RaohaneIconButton {
-                buttonSize: 26
-                iconSize: 12
+                buttonSize: 29
+                iconSize: 13
                 icon: "add"
                 transparentIdle: true
                 showSheen: false
@@ -1003,8 +1034,8 @@ Item {
         signal clicked()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 66
-        surfaceRadius: 9
+        Layout.preferredHeight: 74
+        surfaceRadius: 11
         raised: false
         hovered: presetMouse.containsMouse || activeFocus
         pressed: presetMouse.pressed
@@ -1022,13 +1053,13 @@ Item {
                 top: parent.top
                 bottom: parent.bottom
                 leftMargin: 2
-                topMargin: 9
-                bottomMargin: 9
+                topMargin: 10
+                bottomMargin: 10
             }
-            width: 2
-            radius: 1
+            width: 3
+            radius: 2
             color: RaohaneTheme.accent
-            opacity: preset.hovered || preset.activeFocus ? 0.48 : 0.16
+            opacity: preset.hovered || preset.activeFocus ? 0.50 : 0.16
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.micro }
@@ -1037,12 +1068,12 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 9
-            spacing: 2
+            anchors.margins: 11
+            spacing: 3
 
             RaohaneIcon {
                 text: preset.icon
-                iconSize: 15
+                iconSize: 17
                 fill: preset.hovered || preset.activeFocus ? 0.45 : 0
                 color: preset.hovered || preset.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
@@ -1050,7 +1081,7 @@ Item {
             Text {
                 text: preset.title
                 color: RaohaneTheme.text
-                font.pixelSize: 8
+                font.pixelSize: 9
                 font.weight: Font.DemiBold
             }
 
@@ -1058,7 +1089,7 @@ Item {
                 Layout.fillWidth: true
                 text: preset.detail
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 6
+                font.pixelSize: 8
                 elide: Text.ElideRight
             }
         }
@@ -1087,13 +1118,13 @@ Item {
         required property string label
         signal clicked()
 
-        implicitWidth: 116
-        implicitHeight: 30
+        implicitWidth: 124
+        implicitHeight: 34
         activeFocusOnTab: true
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 8
+            surfaceRadius: 10
             raised: false
             hovered: smallMouse.containsMouse || smallAction.activeFocus
             pressed: smallMouse.pressed
@@ -1106,11 +1137,11 @@ Item {
 
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 5
+                spacing: 6
 
                 RaohaneIcon {
                     text: smallAction.icon
-                    iconSize: 12
+                    iconSize: 14
                     color: smallAction.activeFocus || smallMouse.containsMouse
                         ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
@@ -1118,7 +1149,7 @@ Item {
                 Text {
                     text: smallAction.label
                     color: RaohaneTheme.text
-                    font.pixelSize: 7
+                    font.pixelSize: 9
                     font.weight: Font.Medium
                 }
             }
@@ -1142,13 +1173,13 @@ Item {
         required property bool active
         signal clicked()
 
-        implicitWidth: 102
-        implicitHeight: 30
+        implicitWidth: 112
+        implicitHeight: 34
         activeFocusOnTab: true
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 8
+            surfaceRadius: 10
             raised: false
             active: tab.active
             transparentIdle: !tab.active && !hovered
@@ -1163,11 +1194,11 @@ Item {
 
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 5
+                spacing: 6
 
                 RaohaneIcon {
                     text: tab.icon
-                    iconSize: 12
+                    iconSize: 14
                     fill: tab.active ? 1 : tab.activeFocus || tabMouse.containsMouse ? 0.35 : 0
                     color: tab.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
@@ -1175,7 +1206,7 @@ Item {
                 Text {
                     text: tab.label
                     color: tab.active ? RaohaneTheme.text : RaohaneTheme.textMuted
-                    font.pixelSize: 7
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                 }
             }

@@ -23,8 +23,8 @@ RaohaneSurface {
 
     Layout.fillWidth: true
     Layout.fillHeight: true
-    Layout.minimumHeight: 132
-    surfaceRadius: 12
+    Layout.minimumHeight: 148
+    surfaceRadius: 14
     raised: false
     hovered: workspaceMouse.containsMouse || activeFocus
     pressed: workspaceMouse.pressed
@@ -38,7 +38,7 @@ RaohaneSurface {
         : root.selected ? RaohaneTheme.borderStrong
         : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
     color: root.activeWorkspace
-        ? Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g, RaohaneTheme.accent.b, 0.075)
+        ? Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g, RaohaneTheme.accent.b, 0.08)
         : root.selected
             ? RaohaneTheme.surfaceRaised
             : RaohaneTheme.surfaceDeep
@@ -50,13 +50,13 @@ RaohaneSurface {
             top: parent.top
             bottom: parent.bottom
             leftMargin: 2
-            topMargin: 10
-            bottomMargin: 10
+            topMargin: 12
+            bottomMargin: 12
         }
-        width: 2
-        radius: 1
+        width: 3
+        radius: 2
         color: root.urgent ? RaohaneTheme.critical : RaohaneTheme.accent
-        opacity: root.urgent || root.activeWorkspace ? 1 : 0.44
+        opacity: root.urgent || root.activeWorkspace ? 1 : 0.46
 
         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
@@ -65,34 +65,34 @@ RaohaneSurface {
     ColumnLayout {
         z: 1
         anchors.fill: parent
-        anchors.margins: 11
-        spacing: 7
+        anchors.margins: 13
+        spacing: 8
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 42
-            spacing: 7
+            Layout.preferredHeight: 46
+            spacing: 8
 
             Text {
                 text: String(root.workspaceId).padStart(2, "0")
                 color: root.urgent ? RaohaneTheme.critical
                     : root.activeWorkspace ? RaohaneTheme.accent : RaohaneTheme.text
-                font.pixelSize: 23
+                font.pixelSize: 25
                 font.weight: Font.Medium
-                font.letterSpacing: -0.6
+                font.letterSpacing: -0.7
 
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
 
             Rectangle {
                 width: 1
-                height: 24
+                height: 28
                 color: RaohaneTheme.borderFaint
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: 1
 
                 Text {
                     Layout.fillWidth: true
@@ -100,7 +100,7 @@ RaohaneSurface {
                         ? root.focusedTitle
                         : (root.activeWorkspace ? qsTr("Active") : qsTr("Empty workspace"))
                     color: root.focusedTitle.length > 0 ? RaohaneTheme.text : RaohaneTheme.textFaint
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     font.weight: root.focusedTitle.length > 0 ? Font.DemiBold : Font.Normal
                     elide: Text.ElideRight
                 }
@@ -108,7 +108,7 @@ RaohaneSurface {
                 Text {
                     text: qsTr("%1 windows").arg(root.windows.length)
                     color: root.urgent ? RaohaneTheme.critical : RaohaneTheme.textFaint
-                    font.pixelSize: 6
+                    font.pixelSize: 7
                     font.weight: Font.Medium
                 }
             }
@@ -116,16 +116,16 @@ RaohaneSurface {
             RaohaneIcon {
                 visible: root.urgent
                 text: "priority_high"
-                iconSize: 14
+                iconSize: 15
                 fill: 1
                 color: RaohaneTheme.critical
             }
 
             RaohaneSurface {
                 visible: root.shortcutLabel.length > 0
-                implicitWidth: 22
-                implicitHeight: 22
-                surfaceRadius: 6
+                implicitWidth: 24
+                implicitHeight: 24
+                surfaceRadius: 7
                 transparentIdle: !root.selected
                 active: root.selected
                 showSheen: false
@@ -135,7 +135,7 @@ RaohaneSurface {
                     anchors.centerIn: parent
                     text: root.shortcutLabel
                     color: root.selected ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     font.weight: Font.DemiBold
                 }
             }
@@ -156,7 +156,7 @@ RaohaneSurface {
 
             ColumnLayout {
                 anchors.fill: parent
-                spacing: 4
+                spacing: 5
 
                 Repeater {
                     model: root.windows.slice(0, 4)
@@ -179,12 +179,12 @@ RaohaneSurface {
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 5
+                        spacing: 6
 
                         RaohaneIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "crop_square"
-                            iconSize: 19
+                            iconSize: 21
                             symbolWeight: 320
                             color: RaohaneTheme.textFaint
                         }
@@ -193,7 +193,7 @@ RaohaneSurface {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: qsTr("Empty workspace")
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
+                            font.pixelSize: 8
                         }
                     }
                 }
@@ -204,13 +204,13 @@ RaohaneSurface {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 16
-            spacing: 5
+            Layout.preferredHeight: 18
+            spacing: 6
 
             Rectangle {
-                width: root.activeWorkspace ? 14 : 5
-                height: 3
-                radius: 1.5
+                width: root.activeWorkspace ? 16 : 6
+                height: 4
+                radius: 2
                 color: root.urgent ? RaohaneTheme.critical
                     : root.activeWorkspace ? RaohaneTheme.accent : RaohaneTheme.textFaint
                 opacity: root.activeWorkspace || root.urgent ? 1 : 0.42
@@ -220,7 +220,7 @@ RaohaneSurface {
                 visible: root.activeWorkspace
                 text: qsTr("Active")
                 color: RaohaneTheme.accent
-                font.pixelSize: 6
+                font.pixelSize: 7
                 font.weight: Font.DemiBold
             }
 
@@ -230,7 +230,7 @@ RaohaneSurface {
                 visible: root.windows.length > 4
                 text: "+" + (root.windows.length - 4)
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: Font.DemiBold
             }
         }

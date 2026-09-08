@@ -65,11 +65,11 @@ Scope {
                 id: menuCard
                 property bool entered: false
 
-                width: 304
-                implicitHeight: menuContent.implicitHeight + 18
-                x: Math.min(Math.max(RaohaneState.desktopMenuX - width / 2, 10), menuWindow.width - width - 10)
-                y: Math.min(Math.max(RaohaneState.desktopMenuY - implicitHeight / 2, 10), menuWindow.height - implicitHeight - 10)
-                surfaceRadius: 14
+                width: 330
+                implicitHeight: menuContent.implicitHeight + 22
+                x: Math.min(Math.max(RaohaneState.desktopMenuX - width / 2, 12), menuWindow.width - width - 12)
+                y: Math.min(Math.max(RaohaneState.desktopMenuY - implicitHeight / 2, 12), menuWindow.height - implicitHeight - 12)
+                surfaceRadius: 15
                 raised: true
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
@@ -90,12 +90,12 @@ Scope {
                         top: parent.top
                         left: parent.left
                         right: parent.right
-                        leftMargin: 13
-                        rightMargin: 13
+                        leftMargin: 15
+                        rightMargin: 15
                     }
                     height: 1
                     color: RaohaneTheme.accent
-                    opacity: 0.36
+                    opacity: 0.40
                 }
 
                 MouseArea {
@@ -109,14 +109,14 @@ Scope {
                         left: parent.left
                         right: parent.right
                         top: parent.top
-                        margins: 9
+                        margins: 11
                     }
-                    spacing: 4
+                    spacing: 5
 
                     RaohaneSurface {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 72
-                        surfaceRadius: 10
+                        Layout.preferredHeight: 80
+                        surfaceRadius: 11
                         raised: false
                         showSheen: false
                         clip: true
@@ -146,34 +146,43 @@ Scope {
                                 right: parent.right
                                 top: parent.top
                                 bottom: parent.bottom
-                                margins: 9
+                                margins: 11
                             }
-                            spacing: 8
+                            spacing: 9
 
                             Rectangle {
                                 Layout.preferredWidth: 2
-                                Layout.preferredHeight: 30
+                                Layout.preferredHeight: 34
                                 radius: 1
                                 color: RaohaneTheme.accent
                             }
 
-                            RaohaneIcon {
-                                text: "desktop_windows"
-                                iconSize: 17
-                                fill: 1
-                                symbolWeight: 540
-                                color: RaohaneTheme.accent
+                            RaohaneSurface {
+                                Layout.preferredWidth: 34
+                                Layout.preferredHeight: 34
+                                surfaceRadius: 10
+                                active: true
+                                showSheen: false
+
+                                RaohaneIcon {
+                                    anchors.centerIn: parent
+                                    text: "desktop_windows"
+                                    iconSize: 18
+                                    fill: 1
+                                    symbolWeight: 540
+                                    color: RaohaneTheme.accent
+                                }
                             }
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: 0
+                                spacing: 1
 
                                 Text {
                                     Layout.fillWidth: true
                                     text: qsTr("Desktop")
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 9
+                                    font.pixelSize: 10
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
@@ -182,7 +191,7 @@ Scope {
                                     Layout.fillWidth: true
                                     text: RaohaneConfig.wallpaperPath.split("/").pop() || qsTr("Wallpaper")
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 7
+                                    font.pixelSize: 8
                                     elide: Text.ElideMiddle
                                 }
                             }
@@ -201,7 +210,7 @@ Scope {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 4
+                        spacing: 5
 
                         CompactAction {
                             Layout.fillWidth: true
@@ -277,7 +286,7 @@ Scope {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 4
+                        spacing: 5
 
                         CompactAction {
                             Layout.fillWidth: true
@@ -326,8 +335,8 @@ Scope {
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 43
-        surfaceRadius: 8
+        Layout.preferredHeight: 48
+        surfaceRadius: 9
         transparentIdle: !hovered
         showSheen: false
         raised: false
@@ -346,8 +355,8 @@ Scope {
                 top: parent.top
                 bottom: parent.bottom
                 leftMargin: 2
-                topMargin: 8
-                bottomMargin: 8
+                topMargin: 9
+                bottomMargin: 9
             }
             width: 2
             radius: 1
@@ -359,13 +368,13 @@ Scope {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 9
-            anchors.rightMargin: 8
-            spacing: 7
+            anchors.leftMargin: 10
+            anchors.rightMargin: 9
+            spacing: 8
 
             RaohaneIcon {
                 text: action.icon
-                iconSize: 14
+                iconSize: 15
                 fill: action.hovered || action.activeFocus ? 0.45 : 0
                 symbolWeight: action.hovered || action.activeFocus ? 510 : 420
                 color: action.hovered || action.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -375,13 +384,13 @@ Scope {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: -1
+                spacing: 0
 
                 Text {
                     Layout.fillWidth: true
                     text: action.title
                     color: RaohaneTheme.text
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -390,14 +399,14 @@ Scope {
                     Layout.fillWidth: true
                     text: action.detail
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 6
+                    font.pixelSize: 7
                     elide: Text.ElideRight
                 }
             }
 
             RaohaneIcon {
                 text: "chevron_right"
-                iconSize: 11
+                iconSize: 12
                 color: action.hovered || action.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textFaint
 
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
@@ -429,8 +438,8 @@ Scope {
         property bool accent: false
         signal triggered()
 
-        Layout.preferredHeight: 32
-        surfaceRadius: 8
+        Layout.preferredHeight: 36
+        surfaceRadius: 9
         active: accent
         transparentIdle: !accent && !hovered
         showSheen: false
@@ -446,11 +455,11 @@ Scope {
 
         Row {
             anchors.centerIn: parent
-            spacing: 5
+            spacing: 6
 
             RaohaneIcon {
                 text: compact.icon
-                iconSize: 12
+                iconSize: 13
                 fill: compact.accent ? 1 : compact.hovered || compact.activeFocus ? 0.4 : 0
                 symbolWeight: compact.accent ? 550 : compact.hovered || compact.activeFocus ? 500 : 420
                 color: compact.accent || compact.hovered || compact.activeFocus
@@ -462,7 +471,7 @@ Scope {
             Text {
                 text: compact.title
                 color: compact.accent ? RaohaneTheme.accent : RaohaneTheme.text
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: Font.Medium
             }
         }

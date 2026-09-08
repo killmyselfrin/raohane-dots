@@ -120,8 +120,8 @@ Scope {
             id: workspace
             property bool entered: false
 
-            width: Math.min(parent.width - 72, 1080)
-            height: Math.min(parent.height - 76, 720)
+            width: Math.min(parent.width - 48, 1140)
+            height: Math.min(parent.height - 56, 760)
             anchors.centerIn: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
@@ -153,13 +153,13 @@ Scope {
                 anchors {
                     left: parent.left
                     top: parent.top
-                    leftMargin: 15
+                    leftMargin: 16
                 }
-                width: workspace.entered ? 40 : 12
+                width: workspace.entered ? 42 : 12
                 height: 2
                 radius: 1
                 color: RaohaneTheme.accent
-                opacity: workspace.entered ? 0.72 : 0
+                opacity: workspace.entered ? 0.68 : 0
 
                 Behavior on width {
                     NumberAnimation {
@@ -187,13 +187,13 @@ Scope {
                 id: settingsSearch
                 visible: !settingsContent.pageOwnsHeader
                 z: 50
-                width: Math.min(278, Math.max(220, workspace.width * 0.265))
-                height: 32
+                width: Math.min(300, Math.max(232, workspace.width * 0.275))
+                height: 34
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 18
-                    rightMargin: 164
+                    topMargin: 21
+                    rightMargin: 170
                 }
                 opacity: workspace.entered ? 1 : 0
 
@@ -216,13 +216,13 @@ Scope {
                 id: commandStrip
                 visible: !settingsContent.pageOwnsHeader
                 z: 50
-                width: 108
-                height: 32
+                width: 112
+                height: 34
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 18
-                    rightMargin: 49
+                    topMargin: 21
+                    rightMargin: 51
                 }
                 surfaceRadius: 10
                 raised: false
@@ -249,7 +249,7 @@ Scope {
                     spacing: 2
 
                     RaohaneIconButton {
-                        buttonSize: 26
+                        buttonSize: 27
                         iconSize: 13
                         icon: "inventory_2"
                         transparentIdle: true
@@ -258,7 +258,7 @@ Scope {
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 26
+                        buttonSize: 27
                         iconSize: 13
                         icon: "keyboard"
                         transparentIdle: true
@@ -267,7 +267,7 @@ Scope {
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 26
+                        buttonSize: 27
                         iconSize: 13
                         icon: "animation"
                         transparentIdle: true
@@ -276,7 +276,7 @@ Scope {
                     }
 
                     RaohaneIconButton {
-                        buttonSize: 26
+                        buttonSize: 27
                         iconSize: 13
                         icon: "language"
                         transparentIdle: true
@@ -291,10 +291,10 @@ Scope {
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 19
-                    rightMargin: 13
+                    topMargin: 22
+                    rightMargin: 14
                 }
-                buttonSize: 28
+                buttonSize: 29
                 iconSize: 14
                 icon: "close"
                 transparentIdle: true

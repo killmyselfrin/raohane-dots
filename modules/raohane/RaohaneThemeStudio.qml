@@ -6,13 +6,13 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 8
+        spacing: 12
 
         RaohaneThemePresetManager {
             Layout.fillWidth: true
-            Layout.leftMargin: 12
-            Layout.rightMargin: 12
-            Layout.topMargin: 10
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            Layout.topMargin: 14
         }
 
         RaohaneThemeCatalog {

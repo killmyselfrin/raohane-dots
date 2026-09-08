@@ -16,11 +16,11 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 11
+        spacing: 12
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 132
+            Layout.preferredHeight: 144
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             clip: true
@@ -54,21 +54,21 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 17
-                spacing: 18
+                anchors.margins: 20
+                spacing: 20
 
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
-                    spacing: 4
+                    spacing: 5
 
                     RowLayout {
-                        spacing: 10
+                        spacing: 11
 
                         Rectangle {
-                            Layout.preferredWidth: 34
-                            Layout.preferredHeight: 34
-                            radius: 11
+                            Layout.preferredWidth: 38
+                            Layout.preferredHeight: 38
+                            radius: 12
                             color: RaohaneTheme.accentSoft
                             border.width: 1
                             border.color: RaohaneTheme.accentBorder
@@ -76,7 +76,7 @@ Item {
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "spa"
-                                iconSize: 18
+                                iconSize: 20
                                 fill: 1
                                 symbolWeight: 560
                                 color: RaohaneTheme.accent
@@ -84,26 +84,26 @@ Item {
                         }
 
                         ColumnLayout {
-                            spacing: 0
+                            spacing: 1
 
                             Text {
                                 text: qsTr("Raohane")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 17
+                                font.pixelSize: 18
                                 font.weight: Font.DemiBold
                             }
 
                             Text {
                                 text: qsTr("A minimal Hyprland shell, shaped live")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
+                                font.pixelSize: 10
                             }
                         }
                     }
 
                     RowLayout {
-                        Layout.topMargin: 9
-                        spacing: 7
+                        Layout.topMargin: 10
+                        spacing: 8
 
                         StatusChip {
                             icon: RaohaneNetwork.materialSymbol
@@ -133,18 +133,18 @@ Item {
 
                 Rectangle {
                     Layout.preferredWidth: 1
-                    Layout.preferredHeight: 74
+                    Layout.preferredHeight: 82
                     color: RaohaneTheme.borderFaint
                 }
 
                 ColumnLayout {
-                    Layout.preferredWidth: 190
+                    Layout.preferredWidth: 202
                     Layout.alignment: Qt.AlignVCenter
-                    spacing: 8
+                    spacing: 9
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 6
+                        spacing: 7
 
                         MoodChip { label: RaohaneTheme.presetName; active: true }
                         MoodChip { label: RaohaneTheme.dark ? qsTr("Dark") : qsTr("Light") }
@@ -162,7 +162,7 @@ Item {
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 66
+            Layout.preferredHeight: 72
             surfaceRadius: 16
             raised: false
             showSheen: false
@@ -171,18 +171,18 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 12
-                anchors.rightMargin: 10
-                spacing: 12
+                anchors.leftMargin: 14
+                anchors.rightMargin: 12
+                spacing: 13
 
                 ColumnLayout {
-                    Layout.preferredWidth: root.width < 760 ? 118 : 150
-                    spacing: 1
+                    Layout.preferredWidth: root.width < 760 ? 126 : 158
+                    spacing: 2
 
                     Text {
                         text: qsTr("Style profile")
                         color: RaohaneTheme.text
-                        font.pixelSize: 10
+                        font.pixelSize: 11
                         font.weight: Font.DemiBold
                     }
 
@@ -190,14 +190,14 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Start broad, tune details later")
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         wrapMode: Text.WordWrap
                     }
                 }
 
                 Rectangle {
                     Layout.preferredWidth: 1
-                    Layout.preferredHeight: 36
+                    Layout.preferredHeight: 40
                     color: RaohaneTheme.borderFaint
                 }
 
@@ -208,8 +208,8 @@ Item {
                 }
 
                 RaohaneIconButton {
-                    buttonSize: 30
-                    iconSize: 14
+                    buttonSize: 32
+                    iconSize: 15
                     icon: "tune"
                     transparentIdle: true
                     showSheen: false
@@ -225,19 +225,19 @@ Item {
             spacing: 10
 
             ColumnLayout {
-                spacing: 1
+                spacing: 2
 
                 Text {
                     text: qsTr("Control deck")
                     color: RaohaneTheme.text
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                 }
 
                 Text {
                     text: qsTr("Open a subsystem directly; every change applies live")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                 }
             }
 
@@ -248,8 +248,8 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             columns: root.width >= 760 ? 3 : 2
-            columnSpacing: 8
-            rowSpacing: 8
+            columnSpacing: 9
+            rowSpacing: 9
 
             DeckCard {
                 Layout.fillWidth: true
@@ -341,7 +341,7 @@ Item {
         required property string path
         required property string icon
 
-        implicitHeight: 31
+        implicitHeight: 33
         surfaceRadius: 10
         transparentIdle: true
         showSheen: false
@@ -353,13 +353,13 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 9
-            anchors.rightMargin: 9
-            spacing: 6
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            spacing: 7
 
             RaohaneIcon {
                 text: pathChip.icon
-                iconSize: 13
+                iconSize: 14
                 color: pathMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
@@ -367,13 +367,13 @@ Item {
                 Layout.fillWidth: true
                 text: pathChip.label
                 color: pathMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
-                font.pixelSize: 8
+                font.pixelSize: 9
                 elide: Text.ElideRight
             }
 
             RaohaneIcon {
                 text: "arrow_outward"
-                iconSize: 11
+                iconSize: 12
                 color: RaohaneTheme.textFaint
             }
         }
@@ -401,7 +401,7 @@ Item {
         required property string detail
         required property string page
 
-        Layout.minimumHeight: 64
+        Layout.minimumHeight: 70
         surfaceRadius: 15
         hovered: cardMouse.containsMouse
         pressed: cardMouse.pressed
@@ -414,14 +414,14 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 11
-            anchors.rightMargin: 10
-            spacing: 9
+            anchors.leftMargin: 12
+            anchors.rightMargin: 11
+            spacing: 10
 
             Rectangle {
-                Layout.preferredWidth: 34
-                Layout.preferredHeight: 34
-                radius: 10
+                Layout.preferredWidth: 36
+                Layout.preferredHeight: 36
+                radius: 11
                 color: cardMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
                 border.width: 1
                 border.color: cardMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
@@ -429,7 +429,7 @@ Item {
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: card.icon
-                    iconSize: 16
+                    iconSize: 17
                     fill: cardMouse.containsMouse ? 0.45 : 0
                     symbolWeight: cardMouse.containsMouse ? 520 : 430
                     color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -438,13 +438,13 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: 3
 
                 Text {
                     Layout.fillWidth: true
                     text: card.title
                     color: RaohaneTheme.text
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -453,7 +453,7 @@ Item {
                     Layout.fillWidth: true
                     text: card.detail
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     maximumLineCount: 1
                     elide: Text.ElideRight
                 }
@@ -461,7 +461,7 @@ Item {
 
             RaohaneIcon {
                 text: "chevron_right"
-                iconSize: 14
+                iconSize: 15
                 color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
             }
         }
@@ -483,8 +483,8 @@ Item {
         property bool active: false
         property bool critical: false
 
-        Layout.preferredWidth: Math.min(164, chipRow.implicitWidth + 18)
-        Layout.preferredHeight: 27
+        Layout.preferredWidth: Math.min(170, chipRow.implicitWidth + 20)
+        Layout.preferredHeight: 29
         radius: 10
         color: RaohaneTheme.surfaceSubtle
         border.width: 1
@@ -494,19 +494,19 @@ Item {
         Row {
             id: chipRow
             anchors.centerIn: parent
-            spacing: 6
+            spacing: 7
 
             RaohaneIcon {
                 text: chip.icon
-                iconSize: 12
+                iconSize: 13
                 color: chip.critical ? RaohaneTheme.critical : chip.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
-                width: Math.min(120, implicitWidth)
+                width: Math.min(126, implicitWidth)
                 text: chip.text
                 color: RaohaneTheme.text
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: Font.Medium
                 elide: Text.ElideRight
             }
@@ -517,8 +517,8 @@ Item {
         required property string label
         property bool active: false
 
-        Layout.preferredWidth: labelText.implicitWidth + 18
-        Layout.preferredHeight: 25
+        Layout.preferredWidth: labelText.implicitWidth + 20
+        Layout.preferredHeight: 27
         radius: 9
         color: active ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
         border.width: 1
@@ -529,7 +529,7 @@ Item {
             anchors.centerIn: parent
             text: label
             color: active ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.weight: Font.Medium
         }
     }
