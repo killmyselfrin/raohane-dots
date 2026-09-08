@@ -23,6 +23,15 @@ Item {
     readonly property string mediaTitle: RaohaneMedia.title
     readonly property string mediaArtist: RaohaneMedia.artist
 
+    readonly property string sceneId: RaohaneScenes.activeSceneId
+    readonly property bool sceneActive: root.sceneId !== "balanced"
+    readonly property bool sceneAutomatic: RaohaneScenes.autoSceneActive
+    readonly property string sceneSourceAppId: RaohaneScenes.autoSourceAppId
+    readonly property var sceneRule: RaohaneScenes.activeRule
+    readonly property string sceneRulePattern: String(root.sceneRule?.pattern ?? "")
+    readonly property string sceneRuleMatch: String(root.sceneRule?.match ?? "")
+    readonly property bool sceneRuleBuiltin: Boolean(root.sceneRule?.builtin ?? false)
+
     readonly property var activeWindow: ToplevelManager.activeToplevel
     readonly property string windowTitle: activeWindow?.title ?? ""
 
@@ -30,6 +39,7 @@ Item {
         : (camera || microphone) ? "privacy"
         : eventTitle.length > 0 ? "event"
         : mediaActive ? "media"
+        : sceneActive ? "scene"
         : windowTitle.length > 0 ? "window"
         : "idle"
 
@@ -38,6 +48,7 @@ Item {
         : microphone ? "mic"
         : eventTitle.length > 0 ? eventIcon
         : mediaActive ? "music_note"
+        : sceneActive ? root.sceneIcon(root.sceneId)
         : windowTitle.length > 0 ? "web_asset"
         : "circle"
 
@@ -48,6 +59,7 @@ Item {
         : microphone ? qsTr("Microphone in use")
         : eventTitle.length > 0 ? eventTitle
         : mediaActive ? (mediaTitle.length > 0 ? mediaTitle : qsTr("Media"))
+        : sceneActive ? root.sceneLabel(root.sceneId)
         : windowTitle.length > 0 ? windowTitle
         : qsTr("Raohane")
 
@@ -69,6 +81,8 @@ Item {
             return eventDetail
         if (mediaActive)
             return mediaArtist
+        if (sceneActive)
+            return root.sceneActivityDetail()
         if (windowTitle.length > 0)
             return qsTr("Active window")
         return qsTr("Hyprland shell")
@@ -125,6 +139,19 @@ Item {
         case "work": return "work"
         default: return "tune"
         }
+    }
+
+    function sceneActivityDetail(): string {
+        if (!root.sceneAutomatic)
+            return qsTr("Manual scene · selected by user")
+        if (root.sceneSourceAppId.length === 0)
+            return qsTr("Automatic scene")
+        if (!root.sceneRule)
+            return qsTr("Auto · %1").arg(root.sceneSourceAppId)
+        return qsTr("Auto · %1 · %2:%3")
+            .arg(root.sceneSourceAppId)
+            .arg(root.sceneRuleMatch)
+            .arg(root.sceneRulePattern)
     }
 
     function showAudioEvent(): void {
@@ -215,7 +242,12 @@ Item {
             detail: detail,
             eventTone: eventTone,
             eventProgress: eventProgress,
-            scene: RaohaneScenes.activeSceneId
+            scene: sceneId,
+            sceneAutomatic: sceneAutomatic,
+            sceneSourceAppId: sceneSourceAppId,
+            sceneRulePattern: sceneRulePattern,
+            sceneRuleMatch: sceneRuleMatch,
+            sceneRuleBuiltin: sceneRuleBuiltin
         })
     }
 
