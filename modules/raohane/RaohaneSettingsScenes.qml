@@ -12,6 +12,7 @@ Item {
     property string rulePattern: ""
     property string ruleScene: "gaming"
     property string ruleMatch: "exact"
+    property string behaviorScene: "gaming"
 
     readonly property var scenes: [
         { id: "balanced", label: qsTr("Balanced"), icon: "tune", detail: qsTr("Restore the normal desktop policy") },
@@ -19,10 +20,16 @@ Item {
         { id: "focus", label: qsTr("Focus"), icon: "center_focus_strong", detail: qsTr("Quiet notifications and reduce distractions") },
         { id: "work", label: qsTr("Work"), icon: "work", detail: qsTr("Keep the session awake for long work") }
     ]
+    readonly property var behaviorScenes: root.scenes.filter(scene => scene.id !== "balanced")
     readonly property var matchChoices: [
         { id: "exact", label: qsTr("Exact appId"), icon: "target" },
         { id: "prefix", label: qsTr("Starts with"), icon: "first_page" },
         { id: "contains", label: qsTr("Contains text"), icon: "manage_search" }
+    ]
+    readonly property var motionChoices: [
+        { id: "balanced", label: qsTr("Balanced motion"), icon: "motion_mode" },
+        { id: "fast", label: qsTr("Fast motion"), icon: "speed" },
+        { id: "quiet", label: qsTr("Quiet motion"), icon: "slow_motion_video" }
     ]
     readonly property var activeMatchRule: RaohaneScenes.matchingRuleFor(RaohaneScenes.activeAppId)
 
@@ -54,6 +61,15 @@ Item {
             return
         if (RaohaneScenes.setRule(pattern, root.ruleMatch, root.ruleScene))
             root.rulePattern = ""
+    }
+
+    function setBehaviorToggle(policyKey: string, checked: bool): void {
+        if (policyKey === "notificationPolicy")
+            RaohaneScenes.setPolicyValue(root.behaviorScene, policyKey, checked ? "dnd" : "inherit")
+        else if (policyKey === "dockPolicy")
+            RaohaneScenes.setPolicyValue(root.behaviorScene, policyKey, checked ? "hide" : "inherit")
+        else
+            RaohaneScenes.setPolicyValue(root.behaviorScene, policyKey, checked)
     }
 
     Flickable {
@@ -274,6 +290,151 @@ Item {
                             if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                 RaohaneScenes.activate(sceneCard.modelData.id, "settings")
                                 event.accepted = true
+                            }
+                        }
+                    }
+                }
+            }
+
+            Text {
+                Layout.leftMargin: 3
+                Layout.topMargin: 3
+                text: qsTr("SCENE BEHAVIOR")
+                color: RaohaneTheme.textFaint
+                font.pixelSize: 9
+                font.weight: Font.DemiBold
+                font.letterSpacing: 1.1
+            }
+
+            RaohaneSurface {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 292
+                surfaceRadius: 12
+                raised: false
+                showSheen: false
+                border.color: RaohaneScenes.hasPolicyOverride(root.behaviorScene) ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 13
+                    spacing: 9
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+
+                            Text {
+                                text: qsTr("Runtime policy")
+                                color: RaohaneTheme.text
+                                font.pixelSize: 11
+                                font.weight: Font.DemiBold
+                            }
+
+                            Text {
+                                text: qsTr("Customize temporary behavior without changing your base Raohane settings.")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                            }
+                        }
+
+                        ActionButton {
+                            icon: "restart_alt"
+                            label: qsTr("Reset defaults")
+                            enabled: RaohaneScenes.hasPolicyOverride(root.behaviorScene)
+                            onClicked: RaohaneScenes.resetScenePolicy(root.behaviorScene)
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+
+                        Repeater {
+                            model: root.behaviorScenes
+
+                            delegate: SceneChoice {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                sceneId: modelData.id
+                                label: modelData.label
+                                icon: modelData.icon
+                                selected: root.behaviorScene === modelData.id
+                                onChosen: root.behaviorScene = modelData.id
+                            }
+                        }
+                    }
+
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 2
+                        columnSpacing: 8
+                        rowSpacing: 8
+
+                        BehaviorToggle {
+                            Layout.fillWidth: true
+                            policyKey: "notificationPolicy"
+                            icon: "notifications_off"
+                            label: qsTr("Do Not Disturb")
+                            detail: qsTr("Pause notification popups while this Scene is active")
+                            checked: RaohaneScenes.policyFor(root.behaviorScene).notificationPolicy === "dnd"
+                            onChanged: checked => root.setBehaviorToggle(policyKey, checked)
+                        }
+
+                        BehaviorToggle {
+                            Layout.fillWidth: true
+                            policyKey: "keepAwake"
+                            icon: "coffee"
+                            label: qsTr("Keep Awake")
+                            detail: qsTr("Temporarily inhibit idle and sleep")
+                            checked: Boolean(RaohaneScenes.policyFor(root.behaviorScene).keepAwake)
+                            onChanged: checked => root.setBehaviorToggle(policyKey, checked)
+                        }
+
+                        BehaviorToggle {
+                            Layout.fillWidth: true
+                            policyKey: "gameMode"
+                            icon: "speed"
+                            label: qsTr("Game Mode")
+                            detail: qsTr("Use the low-latency Hyprland profile")
+                            checked: Boolean(RaohaneScenes.policyFor(root.behaviorScene).gameMode)
+                            onChanged: checked => root.setBehaviorToggle(policyKey, checked)
+                        }
+
+                        BehaviorToggle {
+                            Layout.fillWidth: true
+                            policyKey: "dockPolicy"
+                            icon: "dock_to_bottom"
+                            label: qsTr("Hide Dock")
+                            detail: qsTr("Keep the Dock hidden unless you reveal it")
+                            checked: RaohaneScenes.policyFor(root.behaviorScene).dockPolicy === "hide"
+                            onChanged: checked => root.setBehaviorToggle(policyKey, checked)
+                        }
+                    }
+
+                    Text {
+                        text: qsTr("Motion cadence")
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+
+                        Repeater {
+                            model: root.motionChoices
+
+                            delegate: MatchChoice {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                matchId: modelData.id
+                                label: modelData.label
+                                icon: modelData.icon
+                                selected: RaohaneScenes.policyFor(root.behaviorScene).motionHint === modelData.id
+                                onChosen: RaohaneScenes.setPolicyValue(root.behaviorScene, "motionHint", modelData.id)
                             }
                         }
                     }
@@ -770,6 +931,61 @@ Item {
             if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 choice.chosen()
                 event.accepted = true
+            }
+        }
+    }
+
+    component BehaviorToggle: RaohaneSurface {
+        id: behavior
+
+        required property string policyKey
+        required property string icon
+        required property string label
+        required property string detail
+        property bool checked: false
+        signal changed(bool checked)
+
+        Layout.preferredHeight: 56
+        surfaceRadius: 10
+        raised: false
+        showSheen: false
+        border.color: RaohaneTheme.borderFaint
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            spacing: 8
+
+            RaohaneIcon {
+                text: behavior.icon
+                iconSize: 16
+                color: behavior.checked ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+
+                Text {
+                    text: behavior.label
+                    color: RaohaneTheme.text
+                    font.pixelSize: 9
+                    font.weight: Font.DemiBold
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: behavior.detail
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                    elide: Text.ElideRight
+                }
+            }
+
+            RaohaneSwitch {
+                checked: behavior.checked
+                onToggled: checked => behavior.changed(checked)
             }
         }
     }
