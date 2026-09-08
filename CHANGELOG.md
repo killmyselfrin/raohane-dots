@@ -8,6 +8,10 @@
 - Increase control-row hit areas and text hierarchy for toggles, numeric controls, choices and text inputs.
 - Add explicit section scroll feedback and wider content geometry for long Settings pages.
 - Rebalance Theme Library, user preset management, Style Studio, accent controls and Advanced Surfaces around the 1.1 Settings scale without changing theme/config semantics.
+- Rework Widget Studio and its primary/secondary rail editor with a larger live preview, clearer composition controls and consistent scroll feedback.
+- Bring Sakura ambience controls in Appearance onto the same typography, spacing and choice-button scale as the rest of Settings.
+- Rebalance Bar & Dock Studio, horizontal/vertical layout editing and Settings-only bar/dock previews without changing runtime Bar or Dock geometry.
+- Rebalance Quick Controls Studio preview, active/available tile lists, reorder actions and slider previews while preserving the quick-control layout model.
 
 ## 1.0.0 — First stable release
 
