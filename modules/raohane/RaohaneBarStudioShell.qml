@@ -11,7 +11,7 @@ Item {
     ColumnLayout {
         id: shellColumn
         width: parent.width
-        spacing: 10
+        spacing: 12
 
         RaohaneBarPreview {
             Layout.fillWidth: true
