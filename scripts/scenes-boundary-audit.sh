@@ -14,6 +14,9 @@ SERVICES=modules/raohane/services/qmldir
 UI_QMLDIR=modules/raohane/qmldir
 PATHS=modules/raohane/config/RaohanePaths.qml
 SEARCH=modules/raohane/services/RaohaneSearch.qml
+AUDIO=modules/raohane/services/RaohaneAudio.qml
+RECORDER=modules/raohane/services/RaohaneRecorder.qml
+RECORD_SCRIPT=scripts/videos/record.sh
 CONTEXT=modules/raohane/RaohaneContext.qml
 RUNTIME=modules/raohane/RaohaneRuntimeProbe.qml
 QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
@@ -21,12 +24,14 @@ SWITCHER=modules/raohane/RaohaneSceneSwitcher.qml
 SETTINGS=modules/raohane/RaohaneSettingsScenes.qml
 SETTINGS_REGISTRY=modules/raohane/RaohaneSettingsPageRegistry.qml
 
-for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$CONTEXT" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY"; do
+for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$AUDIO" "$RECORDER" "$RECORD_SCRIPT" "$CONTEXT" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY"; do
   [[ -f "$path" ]] || fail "missing scene integration path: $path"
 done
 
 rg -q '^singleton RaohaneScenes 1\.0 RaohaneScenes\.qml$' "$SERVICES" \
   || fail 'RaohaneScenes is not registered in the native services module'
+rg -q '^singleton RaohaneRecorder 1\.0 RaohaneRecorder\.qml$' "$SERVICES" \
+  || fail 'RaohaneRecorder is not registered in the native services module'
 rg -q '^RaohaneSceneSwitcher 1\.0 RaohaneSceneSwitcher\.qml$' "$UI_QMLDIR" \
   || fail 'RaohaneSceneSwitcher is not registered in the native UI module'
 rg -q '^RaohaneSettingsScenes 1\.0 RaohaneSettingsScenes\.qml$' "$UI_QMLDIR" \
@@ -79,18 +84,41 @@ rg -q 'active: RaohaneScenes\.activeSceneId === "gaming"' "$SEARCH" \
 for contract in \
   'function gamingActionResults\(\): var' \
   'RaohaneAudio\.toggleMicrophoneMute\(\)' \
-  'RaohaneAudio\.toggleMute\(\)' \
+  'RaohaneAudio\.cycleDefaultSink\(\)' \
+  'RaohaneRecorder\.toggleFullscreen\(true\)' \
   'RaohanePerformance\.toggleGameMode\(\)' \
   'RaohaneNotifications\.silent = !RaohaneNotifications\.silent' \
-  'RaohaneIdle\.toggleInhibit\(\)' \
   'RaohaneMedia\.togglePlaying\(\)' \
   'if \(needle\.length === 0\)' \
   'const contextual = root\.gamingActionResults\(\)'; do
   rg -q "$contract" "$SEARCH" || fail "Gaming Launcher actions lost native service contract: $contract"
 done
-if rg -n '\bhyprctl\b|\bwpctl\b|\bnmcli\b' "$SEARCH"; then
+if rg -n '\bhyprctl\b|\bwpctl\b|\bnmcli\b|\bwf-recorder\b|record\.sh|\bpkill\b' "$SEARCH"; then
   fail 'contextual Launcher actions bypass native Raohane services'
 fi
+
+for contract in \
+  'function nextOutputDevice\(\): var' \
+  'function nextOutputName\(\): string' \
+  'function cycleDefaultSink\(\): bool' \
+  'root\.setDefaultSink\(next\)'; do
+  rg -q "$contract" "$AUDIO" || fail "Audio output cycling lost contract: $contract"
+done
+
+for contract in \
+  'recorderScript: Quickshell\.shellPath\("scripts/videos/record\.sh"\)' \
+  'readonly property bool ownedRecording: recordProcess\.running' \
+  'readonly property bool recording: root\.ownedRecording \|\| root\.externalRecording' \
+  'function startFullscreen\(sound\): bool' \
+  'function startRegion\(sound\): bool' \
+  'function stop\(\): bool' \
+  'function toggleFullscreen\(sound\): bool' \
+  'running: root\.externalRecording && !root\.ownedRecording' \
+  'target: "recorder"'; do
+  rg -q "$contract" "$RECORDER" || fail "Recorder service lost contract: $contract"
+done
+rg -q 'exec wf-recorder' "$RECORD_SCRIPT" \
+  || fail 'native recorder no longer delegates to the validated recording script'
 
 rg -q 'RaohaneSceneSwitcher[[:space:]]*\{' "$QUICK_CONTROLS" \
   || fail 'runtime Quick Controls no longer exposes the scene switcher'
@@ -119,11 +147,23 @@ fi
 
 rg -q 'target: RaohaneScenes' "$CONTEXT" \
   || fail 'Context Island no longer consumes scene activation events'
+rg -q 'target: RaohaneRecorder' "$CONTEXT" \
+  || fail 'Context Island no longer consumes recorder activity'
+rg -q 'gameplayRecording: RaohaneRecorder\.recording' "$CONTEXT" \
+  || fail 'Context Island no longer exposes persistent gameplay recording state'
 rg -q 'scene: RaohaneScenes\.activeSceneId' "$CONTEXT" \
   || fail 'Context diagnostics no longer expose active scene'
 rg -q 'active: RaohaneScenes\.activeSceneId' "$RUNTIME" \
   || fail 'Runtime probe no longer exposes active scene'
 rg -q 'policy: RaohaneScenes\.activePolicy' "$RUNTIME" \
   || fail 'Runtime probe no longer exposes effective scene policy'
+for contract in \
+  'recorder: \{' \
+  'recording: RaohaneRecorder\.recording' \
+  'owned: RaohaneRecorder\.ownedRecording' \
+  'elapsed: RaohaneRecorder\.elapsedSeconds' \
+  'error: RaohaneRecorder\.lastError'; do
+  rg -q "$contract" "$RUNTIME" || fail "Runtime recorder diagnostics lost contract: $contract"
+done
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, manual override, Control Center rail, Settings management, contextual Launcher actions and Context/diagnostic integration are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, manual override, Settings management, native gaming audio/recording actions, Context activity and runtime diagnostics are valid\n'
