@@ -26,20 +26,38 @@ rg -q 'sceneStateFile: root\.join\(root\.stateDirectory, "scenes\.json"\)' "$PAT
   || fail 'scene runtime state is not stored in the Raohane state directory'
 
 for contract in \
+  '^import Quickshell\.Wayland$' \
+  'property string selectedSceneId: "balanced"' \
   'property string activeSceneId: "balanced"' \
+  'property bool autoSwitchEnabled: true' \
   'sceneIds: \["balanced", "gaming", "focus", "work"\]' \
+  'activeAppId: String\(ToplevelManager\.activeToplevel\?\.appId' \
   'function policyFor\(sceneId\): var' \
-  'function activate\(sceneId, source\): bool' \
+  'function defaultRules\(\): var' \
+  'pattern: "steam_app_", match: "prefix", scene: "gaming"' \
+  'pattern: "gamescope", match: "contains", scene: "gaming"' \
+  'function matchingSceneFor\(appId\): string' \
+  'function evaluateAutoScene\(\): void' \
+  'function setAppRule\(appId, sceneId\): bool' \
+  'function removeAppRule\(appId\): bool' \
+  'property bool manualOverride:' \
+  'property string manualOverrideAppId:' \
   'property bool baselineCaptured:' \
   'RaohaneNotifications\.silent' \
   'RaohaneIdle\.setInhibit' \
   'RaohanePerformance\.setGameMode' \
+  'selectedScene: root\.selectedSceneId' \
+  'autoSwitch: root\.autoSwitchEnabled' \
+  'rules: root\.sanitizeRules\(root\.appRules\)' \
   'target: "scenes"'; do
   rg -q "$contract" "$SCENES" || fail "scene service lost contract: $contract"
 done
 
 if rg -n 'RaohaneConfig\.[A-Za-z0-9_]+[[:space:]]*=' "$SCENES"; then
   fail 'Scenes must overlay runtime policy instead of mutating persistent base config'
+fi
+if rg -n 'Timer[[:space:]]*\{[^}]*repeat:[[:space:]]*true' "$SCENES"; then
+  fail 'Scenes regressed to permanent polling instead of active-window events/debounce'
 fi
 
 for scene in balanced gaming focus work; do
@@ -58,4 +76,4 @@ rg -q 'active: RaohaneScenes\.activeSceneId' "$RUNTIME" \
 rg -q 'policy: RaohaneScenes\.activePolicy' "$RUNTIME" \
   || fail 'Runtime probe no longer exposes effective scene policy'
 
-printf 'scenes-boundary-audit: native scene state, reversible runtime policy, Launcher actions and Context/diagnostic integration are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, manual override, Launcher actions and Context/diagnostic integration are valid\n'
