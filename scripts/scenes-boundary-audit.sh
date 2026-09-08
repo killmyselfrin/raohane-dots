@@ -25,8 +25,9 @@ SWITCHER=modules/raohane/RaohaneSceneSwitcher.qml
 SETTINGS=modules/raohane/RaohaneSettingsScenes.qml
 SETTINGS_REGISTRY=modules/raohane/RaohaneSettingsPageRegistry.qml
 DOCK=modules/raohane/RaohaneDock.qml
+MOTION=modules/raohane/RaohaneMotion.qml
 
-for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$AUDIO" "$RECORDER" "$RECORD_SCRIPT" "$CONTEXT" "$CONTEXT_ISLAND" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY" "$DOCK"; do
+for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$AUDIO" "$RECORDER" "$RECORD_SCRIPT" "$CONTEXT" "$CONTEXT_ISLAND" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY" "$DOCK" "$MOTION"; do
   [[ -f "$path" ]] || fail "missing scene integration path: $path"
 done
 
@@ -183,6 +184,22 @@ if rg -n 'sceneHidePolicy.*RaohaneConfig\.|RaohaneConfig\.(dockAutoHide|dockPinn
 fi
 
 for contract in \
+  '^import qs\.modules\.raohane\.services$' \
+  'motionScale: RaohaneTheme\.motionScale' \
+  'sceneMotionHint: String\(RaohaneScenes\.activePolicy\?\.motionHint' \
+  'sceneDurationFactor: sceneMotionHint === "fast" \? 0\.72' \
+  ': sceneMotionHint === "quiet" \? 0\.82' \
+  'animationFast \* sceneDurationFactor' \
+  'animationDuration \* sceneDurationFactor' \
+  'animationSlow \* sceneDurationFactor' \
+  'transformMotionEnabled: motionScale > 0\.05'; do
+  rg -q "$contract" "$MOTION" || fail "Motion lost temporary Scene cadence contract: $contract"
+done
+if rg -n 'RaohaneConfig\.[A-Za-z0-9_]+[[:space:]]*=' "$MOTION"; then
+  fail 'Scene motion cadence must not rewrite persisted Style Studio settings'
+fi
+
+for contract in \
   'target: RaohaneScenes' \
   'target: RaohaneRecorder' \
   'gameplayRecording: RaohaneRecorder\.recording' \
@@ -221,4 +238,4 @@ for contract in \
   rg -q "$contract" "$RUNTIME" || fail "Runtime recorder diagnostics lost contract: $contract"
 done
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Settings management, temporary dock policy, native gaming actions, Launcher 2.0 scene management, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Settings management, temporary dock/motion overlays, native gaming actions, Launcher 2.0 scene management, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
