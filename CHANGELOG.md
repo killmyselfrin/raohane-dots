@@ -1,5 +1,13 @@
 # Raohane changelog
 
+## 1.1.0-dev — Whole-shell polish
+
+- Start the post-1.0 polish cycle with Settings while keeping the stable registry/router/config architecture intact.
+- Increase Settings workspace breathing room and rebalance the global search/command chrome.
+- Improve Settings navigation, page headers and profile affordances with more readable typography and spacing.
+- Increase control-row hit areas and text hierarchy for toggles, numeric controls, choices and text inputs.
+- Add explicit section scroll feedback and wider content geometry for long Settings pages.
+
 ## 1.0.0 — First stable release
 
 - Add native configurable desktop widgets for clock/date, live context, system status and ambient copy, with a dedicated searchable Settings page and compact layout.
