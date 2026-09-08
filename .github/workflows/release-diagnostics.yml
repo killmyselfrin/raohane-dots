@@ -28,17 +28,35 @@ jobs:
           - source-lineage-audit.sh
           - theme-library-audit.sh
           - nix-boundary-audit.sh
+          - service-boundary-audit.sh
+          - bar-boundary-audit.sh
+          - core-framework-audit.sh
+          - core-framework-phase3-audit.sh
           - phase4-visible-runtime-audit.sh
           - multimonitor-boundary-audit.sh
           - fullscreen-boundary-audit.sh
           - primary-surface-boundary-audit.sh
           - overview-pointer-boundary-audit.sh
           - privacy-performance-audit.sh
+          - pipewire-probe-performance-audit.sh
           - sidebar-performance-audit.sh
+          - process-performance-audit.sh
           - bluetooth-performance-audit.sh
           - easyeffects-performance-audit.sh
           - keyboard-layout-boundary-audit.sh
           - desktop-widget-boundary-audit.sh
+          - wallpaper-boundary-audit.sh
+          - notification-boundary-audit.sh
+          - lock-boundary-audit.sh
+          - settings-boundary-audit.sh
+          - polkit-boundary-audit.sh
+          - frame-boundary-audit.sh
+          - screen-corners-boundary-audit.sh
+          - osk-boundary-audit.sh
+          - runtime-surface-boundary-audit.sh
+          - standalone-runtime-audit.sh
+          - visual-boundary-audit.sh
+          - ui-polish-audit.sh
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y jq ripgrep
