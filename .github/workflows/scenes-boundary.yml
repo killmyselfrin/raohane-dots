@@ -11,6 +11,7 @@ on:
       - 'modules/raohane/services/qmldir'
       - 'modules/raohane/config/RaohanePaths.qml'
       - 'modules/raohane/RaohaneContext.qml'
+      - 'modules/raohane/RaohaneContextIsland.qml'
       - 'modules/raohane/RaohaneRuntimeProbe.qml'
       - 'modules/raohane/RaohaneSceneSwitcher.qml'
       - 'modules/raohane/RaohaneQuickControls.qml'
@@ -29,6 +30,7 @@ on:
       - 'modules/raohane/services/qmldir'
       - 'modules/raohane/config/RaohanePaths.qml'
       - 'modules/raohane/RaohaneContext.qml'
+      - 'modules/raohane/RaohaneContextIsland.qml'
       - 'modules/raohane/RaohaneRuntimeProbe.qml'
       - 'modules/raohane/RaohaneSceneSwitcher.qml'
       - 'modules/raohane/RaohaneQuickControls.qml'
@@ -67,6 +69,7 @@ jobs:
             modules/raohane/services/RaohaneAudio.qml \
             modules/raohane/services/RaohaneRecorder.qml \
             modules/raohane/RaohaneContext.qml \
+            modules/raohane/RaohaneContextIsland.qml \
             modules/raohane/RaohaneRuntimeProbe.qml \
             modules/raohane/RaohaneSceneSwitcher.qml \
             modules/raohane/RaohaneSettingsScenes.qml \
