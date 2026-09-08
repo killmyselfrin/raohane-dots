@@ -131,13 +131,19 @@ for file in "${shared_surfaces[@]}"; do
   rg -q 'RaohaneSurface[[:space:]]*\{' "$file" || fail "$file no longer uses the shared RaohaneSurface primitive"
 done
 
+# Primary shell chrome uses the raised glass plane. Media Overlay deliberately
+# stays on the flatter fullscreen-friendly plane so it does not become a second
+# heavy glass window over games/video.
 raised_surfaces=(
-  "$launcher" "$media" "$control" "$settings" "$bar" "$vertical" "$dock"
+  "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
   "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
 )
 for file in "${raised_surfaces[@]}"; do
   rg -q 'raised:[[:space:]]*true' "$file" || fail "$file no longer requests a raised primary glass surface"
 done
+if rg -q 'raised:[[:space:]]*true' "$media"; then
+  fail 'Media Overlay reintroduced the raised primary glass plane'
+fi
 
 matte_surfaces=(
   "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
@@ -210,4 +216,4 @@ rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'

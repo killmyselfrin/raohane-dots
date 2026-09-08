@@ -1,6 +1,6 @@
 # Raohane changelog
 
-## Unreleased — Native Serpantinum adoption
+## 1.0.0 — First stable release
 
 - Add native configurable desktop widgets for clock/date, live context, system status and ambient copy, with a dedicated searchable Settings page and compact layout.
 - Rework Control Center quick tiles into a roomier two-column composition with softer entrance and ambient motion.
@@ -15,14 +15,14 @@
 - Guarantee widget stacking by separating wallpaper (`Background`) and widget (`Bottom`) layer-shell levels.
 - Turn the Desktop Widgets settings page into a visual Widget Studio with a live composition preview and large per-widget controls.
 - Give every native Settings section a consistent visual hero with identity, description and control count instead of opening on an anonymous flat list.
-- Add native balanced/left/right desktop-widget compositions plus live scale and opacity controls, adapting the strongest editor ideas from end4-pC and Serpantinum without importing either runtime.
+- Add native balanced/left/right desktop-widget compositions plus live scale and opacity controls, using Raohane-owned editor and composition APIs.
 - Advance native configuration and integrity checks to schema v12 for persisted widget composition settings.
-
 - Add a Raohane-owned theme catalog loader and deterministic CLI importer/exporter.
-- Convert the Serpantinum color-preset library into complete Raohane surface tokens while keeping the active runtime independent from Serpantinum code and paths.
-- Load bundled and user themes live in the existing Theme Library; user overrides live in `~/.config/raohane/themes.json`.
-- Preserve GPLv3 provenance for converted Serpantinum palette data.
-- Replace the stale iNiR/Niri flake with native Raohane packages plus NixOS and Home Manager modules adapted from Serpantinum's deployment model.
+- Keep bundled product themes in Raohane-owned QML and user themes in `~/.config/raohane/themes.json`.
+- Load user themes live in the existing Theme Library with validation and atomic writes.
+- Replace the stale legacy flake with native Raohane packages plus NixOS and Home Manager modules.
+- Complete the standalone runtime boundary and remove the final third-party palette catalog from the active theme system.
+- Promote the committed product version from development builds to `1.0.0`.
 
 ## 0.10.0-dev — Standalone + Minimal Theme System
 
@@ -64,7 +64,7 @@
 - Retained full Raohane settings/config architecture.
 - Added Raohane compatibility launcher.
 - Rebranded Settings window titles.
-- Replaced sidebar media widget with a new Serpantinum-inspired MPRIS/CAVA player.
+- Replaced sidebar media widget with a Raohane MPRIS/CAVA player.
 - Added initial product direction for Living Theme, Game Media Overlay, Focus Scene, Context Island, app profiles, and Japanese visual presets.
 
 ## 0.4.2-dev

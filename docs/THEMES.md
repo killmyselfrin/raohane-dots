@@ -8,7 +8,7 @@ The Settings **Themes** page can save the current effective palette as a user pr
 ~/.config/raohane/themes.json
 ```
 
-The file is watched by `RaohaneThemeLibrary`, so valid catalog changes are picked up without maintaining a second theme database.
+The file is watched by `RaohaneThemeLibrary`, so valid catalog changes are picked up without maintaining a second theme database. Raohane's built-in product presets are defined in the shell itself; this file is only for user themes.
 
 ## Single-theme file
 
@@ -47,7 +47,7 @@ A portable exported theme is one JSON object:
 }
 ```
 
-`id` is normalized to a lowercase slug. `name` is required for a useful UI label. `description`, `tone`, `dark`, and `source` are metadata. Every color token must be a six- or eight-digit hexadecimal color. Eight-digit colors use the same alpha-first representation already used by Raohane's bundled catalogs, for example `#dc111524`.
+`id` is normalized to a lowercase slug. `name` is required for a useful UI label. `description`, `tone`, `dark`, and `source` are metadata. Every color token must be a six- or eight-digit hexadecimal color. Eight-digit colors use the same alpha-first representation used by Raohane, for example `#dc111524`.
 
 The required native color tokens are:
 
@@ -101,13 +101,12 @@ The Settings UI and CLI share `scripts/theme-catalog.py`, so they use the same v
 ```bash
 raohane theme list
 raohane theme import ~/Downloads/nocturne-blue.json
-raohane theme import-serpantinum /path/to/serpantinum/themes
 raohane theme export user-nocturne-blue ~/Downloads/nocturne-blue.json
 raohane theme remove user-nocturne-blue
 ```
 
 The UI additionally uses internal `upsert-json` and `export-json` tool commands to pass an already materialized native palette to the same backend. Those commands do not bypass validation.
 
-## Serpantinum palettes
+## Import boundary
 
-`theme-catalog.py` can convert Serpantinum palette JSON into Raohane's native color-token schema. Only palette data is adopted. Serpantinum runtime QML, services, shell code, and configuration ownership are never loaded by Raohane.
+The stable theme importer accepts Raohane's native single-theme format or a Raohane catalog. It does not contain converters or runtime integration for other desktop shells. This keeps the stable theme path deterministic, self-contained, and easy to validate.

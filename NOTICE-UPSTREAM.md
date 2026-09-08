@@ -15,8 +15,9 @@ Raohane development studied, imported and/or modified material from:
   - system/dependency foundation pin used during migration: `42d0aae17b744a38cd05c9044c189bfc9b13869a`
 - `snowarch/iNiR`
 - `ilyamiro/serpantinum`
-  - its GPLv3 color-preset data is converted into Raohane's native theme-token
-    schema under `defaults/themes/serpantinum.json`;
+  - a converted GPLv3 color-preset catalog existed during development; that
+    catalog was removed before Raohane 1.0.0 and is not distributed by the
+    stable source/runtime theme path;
   - its Nix deployment model informed the Raohane-owned package, NixOS module
     and Home Manager module under `nix/`;
   - its per-monitor widget editor and type-registry interaction model informed

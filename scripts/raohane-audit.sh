@@ -33,7 +33,6 @@ required_root=(
   modules/raohane/services/RaohaneProcesses.qml
   modules/raohane/services/RaohaneLyrics.qml
   defaults/native.json
-  defaults/themes/serpantinum.json
   scripts/raohane
   scripts/lyrics-resolve.py
   scripts/theme-catalog.py
