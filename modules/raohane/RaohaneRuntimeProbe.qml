@@ -31,6 +31,12 @@ Scope {
             ready: RaohaneConfig.ready,
             monitors: root.monitorSnapshot(),
             focusedMonitor: String(Hyprland.focusedMonitor?.name ?? ""),
+            scenes: {
+                ready: RaohaneScenes.ready,
+                active: RaohaneScenes.activeSceneId,
+                source: RaohaneScenes.activationSource,
+                policy: RaohaneScenes.activePolicy
+            },
             bar: {
                 open: RaohaneState.barOpen,
                 vertical: RaohaneConfig.barVertical,
