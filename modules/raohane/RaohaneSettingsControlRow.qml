@@ -18,7 +18,7 @@ Item {
     readonly property var choiceOptions: Array.isArray(root.entry?.options) ? root.entry.options : []
     readonly property bool rowHovered: settingMouse.containsMouse || activeFocus
 
-    height: root.textRow ? 68 : 58
+    height: root.textRow ? 76 : 64
     activeFocusOnTab: root.toggleRow || root.choiceRow
 
     function changeNumber(delta: real): void {
@@ -71,8 +71,8 @@ Item {
             top: parent.top
             bottom: parent.bottom
             leftMargin: 2
-            topMargin: 10
-            bottomMargin: 10
+            topMargin: 12
+            bottomMargin: 12
         }
         width: 2
         radius: 1
@@ -86,19 +86,19 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 14
-        anchors.rightMargin: 11
-        spacing: 14
+        anchors.leftMargin: 16
+        anchors.rightMargin: 14
+        spacing: 16
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 1
+            spacing: 2
 
             Text {
                 Layout.fillWidth: true
                 text: root.entry?.label ?? ""
                 color: RaohaneTheme.text
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
@@ -107,16 +107,16 @@ Item {
                 Layout.fillWidth: true
                 text: root.entry?.detail ?? ""
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 7
-                lineHeight: 1.12
+                font.pixelSize: 8
+                lineHeight: 1.18
                 wrapMode: Text.WordWrap
             }
         }
 
         RaohaneSwitch {
             visible: root.toggleRow
-            Layout.preferredWidth: 40
-            Layout.preferredHeight: 22
+            Layout.preferredWidth: 42
+            Layout.preferredHeight: 24
             checked: root.entry ? Boolean(RaohaneConfig[root.entry.key]) : false
             enabled: false
             opacity: 1
@@ -124,9 +124,9 @@ Item {
 
         RaohaneSurface {
             visible: root.numberRow
-            Layout.preferredWidth: 116
-            Layout.preferredHeight: 32
-            surfaceRadius: 8
+            Layout.preferredWidth: 122
+            Layout.preferredHeight: 34
+            surfaceRadius: 9
             raised: false
             showSheen: false
             color: RaohaneTheme.surfaceDeep
@@ -139,8 +139,8 @@ Item {
                 spacing: 1
 
                 RaohaneIconButton {
-                    buttonSize: 26
-                    iconSize: 12
+                    buttonSize: 28
+                    iconSize: 13
                     icon: "remove"
                     transparentIdle: true
                     showSheen: false
@@ -154,13 +154,13 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     text: root.entry ? String(RaohaneConfig[root.entry.key]) : ""
                     color: RaohaneTheme.text
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                 }
 
                 RaohaneIconButton {
-                    buttonSize: 26
-                    iconSize: 12
+                    buttonSize: 28
+                    iconSize: 13
                     icon: "add"
                     transparentIdle: true
                     showSheen: false
@@ -173,9 +173,9 @@ Item {
 
         RaohaneSurface {
             visible: root.choiceRow
-            Layout.preferredWidth: 184
-            Layout.preferredHeight: 32
-            surfaceRadius: 8
+            Layout.preferredWidth: 192
+            Layout.preferredHeight: 34
+            surfaceRadius: 9
             raised: false
             showSheen: false
             color: RaohaneTheme.surfaceDeep
@@ -189,8 +189,8 @@ Item {
                 spacing: 2
 
                 RaohaneIconButton {
-                    buttonSize: 26
-                    iconSize: 12
+                    buttonSize: 28
+                    iconSize: 13
                     icon: "chevron_left"
                     transparentIdle: true
                     showSheen: false
@@ -201,11 +201,11 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 6
 
                     RaohaneIcon {
                         text: root.currentChoice()?.icon ?? "tune"
-                        iconSize: 13
+                        iconSize: 14
                         color: RaohaneTheme.accent
                     }
 
@@ -213,7 +213,7 @@ Item {
                         Layout.fillWidth: true
                         text: root.currentChoice()?.label ?? ""
                         color: RaohaneTheme.text
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         font.weight: Font.DemiBold
                         horizontalAlignment: Text.AlignHCenter
                         elide: Text.ElideRight
@@ -221,8 +221,8 @@ Item {
                 }
 
                 RaohaneIconButton {
-                    buttonSize: 26
-                    iconSize: 12
+                    buttonSize: 28
+                    iconSize: 13
                     icon: "chevron_right"
                     transparentIdle: true
                     showSheen: false
@@ -235,9 +235,9 @@ Item {
 
         RaohaneSurface {
             visible: root.textRow
-            Layout.preferredWidth: Math.min(296, root.width * 0.40)
-            Layout.preferredHeight: 32
-            surfaceRadius: 8
+            Layout.preferredWidth: Math.min(320, root.width * 0.42)
+            Layout.preferredHeight: 34
+            surfaceRadius: 9
             raised: false
             hovered: field.activeFocus
             showSheen: false
@@ -248,14 +248,14 @@ Item {
             TextInput {
                 id: field
                 anchors.fill: parent
-                anchors.leftMargin: 9
-                anchors.rightMargin: 9
+                anchors.leftMargin: 10
+                anchors.rightMargin: 10
                 verticalAlignment: TextInput.AlignVCenter
                 text: root.entry ? String(RaohaneConfig[root.entry.key] ?? "") : ""
                 color: RaohaneTheme.text
                 selectionColor: RaohaneTheme.accentSoft
                 selectedTextColor: RaohaneTheme.text
-                font.pixelSize: 8
+                font.pixelSize: 9
                 clip: true
                 onEditingFinished: {
                     if (root.entry)
@@ -271,8 +271,8 @@ Item {
             left: parent.left
             right: parent.right
             bottom: parent.bottom
-            leftMargin: 14
-            rightMargin: 14
+            leftMargin: 16
+            rightMargin: 16
         }
         height: 1
         color: RaohaneTheme.borderFaint
