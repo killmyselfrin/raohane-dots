@@ -109,8 +109,8 @@ Scope {
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
-            implicitWidth: 282
-            implicitHeight: 58
+            implicitWidth: 304
+            implicitHeight: 66
 
             WlrLayershell.namespace: "quickshell:raohane-osd"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -122,8 +122,8 @@ Scope {
             }
 
             margins {
-                top: 64
-                bottom: 64
+                top: 68
+                bottom: 68
             }
 
             mask: Region { item: card }
@@ -132,12 +132,12 @@ Scope {
                 id: card
                 property bool entered: false
 
-                width: 254
-                height: 48
+                width: 276
+                height: 54
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: !RaohaneConfig.barBottom ? parent.top : undefined
                 anchors.bottom: RaohaneConfig.barBottom ? parent.bottom : undefined
-                surfaceRadius: 11
+                surfaceRadius: 12
                 raised: true
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
@@ -145,7 +145,7 @@ Scope {
 
                 transform: Translate {
                     id: cardTranslate
-                    y: card.entered ? 0 : (RaohaneConfig.barBottom ? 4 : -4)
+                    y: card.entered ? 0 : (RaohaneConfig.barBottom ? 5 : -5)
 
                     Behavior on y {
                         NumberAnimation {
@@ -170,13 +170,13 @@ Scope {
                         top: parent.top
                         bottom: parent.bottom
                         leftMargin: 2
-                        topMargin: 8
-                        bottomMargin: 8
+                        topMargin: 9
+                        bottomMargin: 9
                     }
-                    width: 2
-                    radius: 1
+                    width: 3
+                    radius: 2
                     color: RaohaneTheme.accent
-                    opacity: 0.88
+                    opacity: 0.90
                 }
 
                 MouseArea {
@@ -188,23 +188,33 @@ Scope {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 11
-                    anchors.rightMargin: 11
-                    spacing: 8
+                    anchors.leftMargin: 13
+                    anchors.rightMargin: 13
+                    spacing: 10
 
-                    RaohaneIcon {
-                        text: root.icon
-                        iconSize: 17
-                        fill: 1
-                        symbolWeight: 540
-                        color: root.currentIndicator === "volume" && RaohaneAudio.muted
-                            ? RaohaneTheme.textFaint
-                            : RaohaneTheme.accent
+                    RaohaneSurface {
+                        Layout.preferredWidth: 32
+                        Layout.preferredHeight: 32
+                        surfaceRadius: 10
+                        raised: false
+                        active: true
+                        showSheen: false
+
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: root.icon
+                            iconSize: 18
+                            fill: 1
+                            symbolWeight: 540
+                            color: root.currentIndicator === "volume" && RaohaneAudio.muted
+                                ? RaohaneTheme.textFaint
+                                : RaohaneTheme.accent
+                        }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: 4
 
                         RowLayout {
                             Layout.fillWidth: true
@@ -212,7 +222,7 @@ Scope {
                             Text {
                                 text: root.label
                                 color: RaohaneTheme.text
-                                font.pixelSize: 7
+                                font.pixelSize: 8
                                 font.weight: Font.DemiBold
                             }
 
@@ -221,15 +231,15 @@ Scope {
                             Text {
                                 text: root.percent + "%"
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 7
+                                font.pixelSize: 8
                                 font.weight: Font.DemiBold
                             }
                         }
 
                         Rectangle {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 3
-                            radius: 1.5
+                            Layout.preferredHeight: 4
+                            radius: 2
                             color: RaohaneTheme.surfaceDeep
                             border.width: 1
                             border.color: RaohaneTheme.borderFaint
