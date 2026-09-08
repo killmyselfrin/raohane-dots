@@ -173,9 +173,16 @@ rg -q 'RaohaneMotion\.standard' "$notifications" || fail 'Notification Center lo
 rg -q 'id:[[:space:]]*cardTranslate' "$osd" || fail 'OSD lost runtime-safe translate target'
 rg -q 'RaohaneMotion\.' "$osd" || fail 'OSD lost shared motion'
 
-if rg -n '#24ffffff|shortDuration|mediumDuration|property bool active:[[:space:]]*false' \
+# The Control Center's local StatusCell intentionally owns a plain `active`
+# flag because it derives from Item rather than RaohaneSurface. Keep stale
+# active-property collision checks focused on reusable interactive surfaces.
+if rg -n '#24ffffff|shortDuration|mediumDuration' \
   "$control" "$quick" "$quick_tile" "$notifications"; then
-  fail 'current system surfaces reintroduced stale colors, motion aliases or active-property collisions'
+  fail 'current system surfaces reintroduced stale colors or motion aliases'
+fi
+if rg -n 'property bool active:[[:space:]]*false' \
+  "$quick" "$quick_tile" "$notifications"; then
+  fail 'reusable system surfaces reintroduced an active-property collision'
 fi
 
 printf 'ui-polish-audit: animated Settings, hardened Control Center, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
