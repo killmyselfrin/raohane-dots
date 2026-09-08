@@ -6,6 +6,8 @@ on:
     paths:
       - 'modules/raohane/services/RaohaneScenes.qml'
       - 'modules/raohane/services/RaohaneSearch.qml'
+      - 'modules/raohane/services/RaohaneAudio.qml'
+      - 'modules/raohane/services/RaohaneRecorder.qml'
       - 'modules/raohane/services/qmldir'
       - 'modules/raohane/config/RaohanePaths.qml'
       - 'modules/raohane/RaohaneContext.qml'
@@ -15,12 +17,15 @@ on:
       - 'modules/raohane/RaohaneSettingsScenes.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
       - 'modules/raohane/qmldir'
+      - 'scripts/videos/record.sh'
       - 'scripts/scenes-boundary-audit.sh'
       - '.github/workflows/scenes-boundary.yml'
   pull_request:
     paths:
       - 'modules/raohane/services/RaohaneScenes.qml'
       - 'modules/raohane/services/RaohaneSearch.qml'
+      - 'modules/raohane/services/RaohaneAudio.qml'
+      - 'modules/raohane/services/RaohaneRecorder.qml'
       - 'modules/raohane/services/qmldir'
       - 'modules/raohane/config/RaohanePaths.qml'
       - 'modules/raohane/RaohaneContext.qml'
@@ -30,6 +35,7 @@ on:
       - 'modules/raohane/RaohaneSettingsScenes.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
       - 'modules/raohane/qmldir'
+      - 'scripts/videos/record.sh'
       - 'scripts/scenes-boundary-audit.sh'
       - '.github/workflows/scenes-boundary.yml'
   workflow_dispatch:
@@ -58,6 +64,8 @@ jobs:
           for file in \
             modules/raohane/services/RaohaneScenes.qml \
             modules/raohane/services/RaohaneSearch.qml \
+            modules/raohane/services/RaohaneAudio.qml \
+            modules/raohane/services/RaohaneRecorder.qml \
             modules/raohane/RaohaneContext.qml \
             modules/raohane/RaohaneRuntimeProbe.qml \
             modules/raohane/RaohaneSceneSwitcher.qml \
