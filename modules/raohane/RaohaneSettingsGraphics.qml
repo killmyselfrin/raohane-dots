@@ -447,6 +447,8 @@ Item {
     }
 
     component InfoCard: RaohaneSurface {
+        id: infoCard
+
         property string icon: "info"
         property string label: ""
         property string value: ""
@@ -473,7 +475,7 @@ Item {
 
                 RaohaneIcon {
                     anchors.centerIn: parent
-                    text: parent.parent.parent.parent.icon
+                    text: infoCard.icon
                     iconSize: 19
                     color: RaohaneTheme.accent
                 }
@@ -484,7 +486,7 @@ Item {
                 spacing: 2
 
                 Text {
-                    text: parent.parent.label
+                    text: infoCard.label
                     color: RaohaneTheme.textFaint
                     font.pixelSize: 9
                     font.weight: Font.DemiBold
@@ -492,7 +494,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: parent.parent.value
+                    text: infoCard.value
                     color: RaohaneTheme.text
                     font.pixelSize: 11
                     font.weight: Font.Medium
@@ -503,6 +505,8 @@ Item {
     }
 
     component ActionButton: Rectangle {
+        id: button
+
         property string icon: ""
         property string label: ""
         property bool emphasized: false
@@ -527,14 +531,14 @@ Item {
             spacing: 7
 
             RaohaneIcon {
-                text: parent.parent.icon
+                text: button.icon
                 iconSize: 15
-                color: parent.parent.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
-                text: parent.parent.label
-                color: parent.parent.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                text: button.label
+                color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 font.pixelSize: 9
                 font.weight: Font.DemiBold
             }
@@ -544,9 +548,9 @@ Item {
             id: actionMouse
             anchors.fill: parent
             hoverEnabled: true
-            enabled: parent.enabled
+            enabled: button.enabled
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: parent.clicked()
+            onClicked: button.clicked()
         }
     }
 }
