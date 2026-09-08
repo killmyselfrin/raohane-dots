@@ -46,15 +46,22 @@ for contract in \
   'property string activeSceneId: "balanced"' \
   'property bool autoSwitchEnabled: true' \
   'sceneIds: \["balanced", "gaming", "focus", "work"\]' \
+  'matchModes: \["exact", "prefix", "contains"\]' \
   'activeAppId: String\(ToplevelManager\.activeToplevel\?\.appId' \
+  'activeRule: root\.autoSceneActive' \
   'function policyFor\(sceneId\): var' \
   'function defaultRules\(\): var' \
   'pattern: "steam_app_", match: "prefix", scene: "gaming"' \
   'pattern: "gamescope", match: "contains", scene: "gaming"' \
+  'function matchingRuleFor\(appId\): var' \
   'function matchingSceneFor\(appId\): string' \
   'function evaluateAutoScene\(\): void' \
+  'function setRule\(patternValue, matchType, sceneId\): bool' \
+  'function removeRule\(patternValue, matchType\): bool' \
   'function setAppRule\(appId, sceneId\): bool' \
   'function removeAppRule\(appId\): bool' \
+  'function setPatternRule\(pattern: string, matchType: string, sceneId: string\): string' \
+  'function removePatternRule\(pattern: string, matchType: string\): string' \
   'property bool manualOverride:' \
   'property string manualOverrideAppId:' \
   'property bool baselineCaptured:' \
@@ -134,29 +141,36 @@ done
 rg -q 'key: "scenes".*source: "RaohaneSettingsScenes\.qml"' "$SETTINGS_REGISTRY" \
   || fail 'Settings registry no longer routes the Scenes page'
 for contract in \
+  'property string ruleMatch: "exact"' \
+  'id: "prefix"' \
+  'id: "contains"' \
   'RaohaneScenes\.activate\(sceneCard\.modelData\.id, "settings"\)' \
   'RaohaneScenes\.setAutoSwitch\(checked\)' \
-  'RaohaneScenes\.setAppRule\(pattern, root\.ruleScene\)' \
-  'RaohaneScenes\.removeAppRule\(ruleCard\.modelData\.pattern\)' \
-  'RaohaneScenes\.activeAppId' \
+  'RaohaneScenes\.setRule\(pattern, root\.ruleMatch, root\.ruleScene\)' \
+  'RaohaneScenes\.removeRule\(ruleCard\.modelData\.pattern, ruleCard\.modelData\.match\)' \
+  'RaohaneScenes\.matchingRuleFor\(RaohaneScenes\.activeAppId\)' \
   'RaohaneScenes\.defaultRules\(\)'; do
-  rg -q "$contract" "$SETTINGS" || fail "Scenes Settings lost native service contract: $contract"
+  rg -q "$contract" "$SETTINGS" || fail "Scenes Settings lost explicit rule-mode contract: $contract"
 done
 if rg -n 'FileView|scenes\.json|RaohanePaths\.sceneStateFile' "$SETTINGS"; then
   fail 'Scenes Settings must use RaohaneScenes instead of reading or writing scene persistence directly'
 fi
 
-rg -q 'target: RaohaneScenes' "$CONTEXT" \
-  || fail 'Context model no longer consumes scene activation events'
-rg -q 'target: RaohaneRecorder' "$CONTEXT" \
-  || fail 'Context model no longer consumes recorder activity'
-rg -q 'gameplayRecording: RaohaneRecorder\.recording' "$CONTEXT" \
-  || fail 'Context model no longer exposes persistent gameplay recording state'
-rg -q 'scene: RaohaneScenes\.activeSceneId' "$CONTEXT" \
-  || fail 'Context diagnostics no longer expose active scene'
+for contract in \
+  'target: RaohaneScenes' \
+  'target: RaohaneRecorder' \
+  'gameplayRecording: RaohaneRecorder\.recording' \
+  'sceneAutomatic: RaohaneScenes\.autoSceneActive' \
+  'sceneRule: RaohaneScenes\.activeRule' \
+  ': sceneActive \? "scene"' \
+  'function sceneActivityDetail\(\): string'; do
+  rg -q "$contract" "$CONTEXT" || fail "Context model lost scene activity contract: $contract"
+done
 
 for contract in \
   'sceneId: RaohaneScenes\.activeSceneId' \
+  'sceneAutomatic: RaohaneContext\.sceneAutomatic' \
+  'RaohaneContext\.mode === "scene"' \
   'sceneMarkerVisible:' \
   'gameplayRecording: RaohaneContext\.gameplayRecording' \
   'indicatorIcon: root\.gameplayRecording \? "stop_circle"' \
@@ -164,10 +178,14 @@ for contract in \
   rg -q "$contract" "$CONTEXT_ISLAND" || fail "Context Island 2.0 lost activity contract: $contract"
 done
 
-rg -q 'active: RaohaneScenes\.activeSceneId' "$RUNTIME" \
-  || fail 'Runtime probe no longer exposes active scene'
-rg -q 'policy: RaohaneScenes\.activePolicy' "$RUNTIME" \
-  || fail 'Runtime probe no longer exposes effective scene policy'
+for contract in \
+  'active: RaohaneScenes\.activeSceneId' \
+  'activeRule: RaohaneScenes\.activeRule' \
+  'policy: RaohaneScenes\.activePolicy' \
+  'sceneRulePattern: RaohaneContext\.sceneRulePattern' \
+  'sceneRuleMatch: RaohaneContext\.sceneRuleMatch'; do
+  rg -q "$contract" "$RUNTIME" || fail "Runtime scene diagnostics lost contract: $contract"
+done
 for contract in \
   'recorder: \{' \
   'recording: RaohaneRecorder\.recording' \
@@ -177,4 +195,4 @@ for contract in \
   rg -q "$contract" "$RUNTIME" || fail "Runtime recorder diagnostics lost contract: $contract"
 done
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, Settings management, native gaming actions, scene-aware Context Island activity and runtime diagnostics are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Settings management, native gaming actions, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
