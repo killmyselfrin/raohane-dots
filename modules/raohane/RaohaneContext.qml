@@ -14,7 +14,8 @@ Item {
     property real eventProgress: -1
     property bool eventSignalsReady: false
 
-    readonly property bool recording: RaohanePrivacy.recordingActive
+    readonly property bool gameplayRecording: RaohaneRecorder.recording
+    readonly property bool recording: root.gameplayRecording || RaohanePrivacy.recordingActive
     readonly property bool microphone: RaohanePrivacy.microphoneActive
     readonly property bool camera: RaohanePrivacy.cameraActive
 
@@ -40,7 +41,8 @@ Item {
         : windowTitle.length > 0 ? "web_asset"
         : "circle"
 
-    readonly property string title: recording ? qsTr("Screen capture")
+    readonly property string title: gameplayRecording ? qsTr("Gameplay recording")
+        : recording ? qsTr("Screen capture")
         : camera && microphone ? qsTr("Camera and microphone")
         : camera ? qsTr("Camera in use")
         : microphone ? qsTr("Microphone in use")
@@ -50,7 +52,12 @@ Item {
         : qsTr("Raohane")
 
     readonly property string detail: {
-        if (recording)
+        if (gameplayRecording) {
+            if (RaohaneRecorder.ownedRecording)
+                return qsTr("Recording · %1").arg(RaohaneRecorder.elapsedText)
+            return qsTr("wf-recorder is active")
+        }
+        if (RaohanePrivacy.recordingActive)
             return RaohanePrivacy.recordingApp || qsTr("Screen sharing or recording")
         if (camera && microphone)
             return RaohanePrivacy.cameraApp || RaohanePrivacy.microphoneApp || qsTr("Privacy capture active")
@@ -194,6 +201,9 @@ Item {
         return JSON.stringify({
             mode: mode,
             recording: recording,
+            gameplayRecording: gameplayRecording,
+            recorderOwned: RaohaneRecorder.ownedRecording,
+            recorderElapsed: RaohaneRecorder.elapsedSeconds,
             microphone: microphone,
             camera: camera,
             unclassifiedVideoCapture: RaohanePrivacy.unclassifiedVideoCaptureActive,
@@ -223,6 +233,40 @@ Item {
         function onMicrophoneActiveChanged(): void {
             if (RaohanePrivacy.microphoneActive)
                 root.clearTransientEvent()
+        }
+    }
+
+    Connections {
+        target: RaohaneRecorder
+
+        function onRecordingChanged(): void {
+            if (RaohaneRecorder.recording) {
+                root.clearTransientEvent()
+                return
+            }
+            if (!root.eventSignalsReady)
+                return
+            root.showEvent(
+                qsTr("Recording stopped"),
+                qsTr("Gameplay capture finished"),
+                "stop_circle",
+                "success",
+                -1,
+                2400
+            )
+        }
+
+        function onLastErrorChanged(): void {
+            if (!root.eventSignalsReady || RaohaneRecorder.lastError.length === 0)
+                return
+            root.showEvent(
+                qsTr("Recording unavailable"),
+                RaohaneRecorder.lastError,
+                "error",
+                "warning",
+                -1,
+                3000
+            )
         }
     }
 
