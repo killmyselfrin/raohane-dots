@@ -6,7 +6,7 @@ A desktop shell for Hyprland, built with Quickshell and Qt/QML. Dark glass surfa
 [![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
 [![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 
-**Status:** `1.0.0` — the first stable Raohane release. See the [release validation guide](docs/RELEASE-VALIDATION.md) and [roadmap](docs/ROADMAP.md) for validation and future work.
+**Status:** `1.1.0` — stable whole-shell polish release with refreshed Settings and runtime surfaces plus targeted startup/open-path performance improvements. See the [release validation guide](docs/RELEASE-VALIDATION.md) and [roadmap](docs/ROADMAP.md) for validation and future work.
 
 ## Features
 
