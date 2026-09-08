@@ -17,7 +17,7 @@ Shell:
   run | start | stop | restart | status | logs
   launcher | control | settings | media | desktop | session | translate
   wallpaper [toggle|random]
-  theme [list|import FILE|import-serpantinum PATH|remove ID|export ID FILE]
+  theme [list|import FILE|remove ID|export ID FILE]
 
 Diagnostics:
   doctor [all|graphics|deps|services|runtime|phase4]
@@ -523,10 +523,6 @@ case "${1:-help}" in
       import)
         [[ -n "${3:-}" ]] || { echo 'Usage: raohane theme import FILE' >&2; exit 2; }
         python3 "$theme_tool" import "$3"
-        ;;
-      import-serpantinum)
-        [[ -n "${3:-}" ]] || { echo 'Usage: raohane theme import-serpantinum PATH' >&2; exit 2; }
-        python3 "$theme_tool" import-serpantinum "$3"
         ;;
       remove)
         [[ -n "${3:-}" ]] || { echo 'Usage: raohane theme remove ID' >&2; exit 2; }
