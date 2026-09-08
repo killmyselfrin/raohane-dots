@@ -18,8 +18,10 @@ CONTEXT=modules/raohane/RaohaneContext.qml
 RUNTIME=modules/raohane/RaohaneRuntimeProbe.qml
 QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
 SWITCHER=modules/raohane/RaohaneSceneSwitcher.qml
+SETTINGS=modules/raohane/RaohaneSettingsScenes.qml
+SETTINGS_REGISTRY=modules/raohane/RaohaneSettingsPageRegistry.qml
 
-for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$CONTEXT" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER"; do
+for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$CONTEXT" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER" "$SETTINGS" "$SETTINGS_REGISTRY"; do
   [[ -f "$path" ]] || fail "missing scene integration path: $path"
 done
 
@@ -27,6 +29,8 @@ rg -q '^singleton RaohaneScenes 1\.0 RaohaneScenes\.qml$' "$SERVICES" \
   || fail 'RaohaneScenes is not registered in the native services module'
 rg -q '^RaohaneSceneSwitcher 1\.0 RaohaneSceneSwitcher\.qml$' "$UI_QMLDIR" \
   || fail 'RaohaneSceneSwitcher is not registered in the native UI module'
+rg -q '^RaohaneSettingsScenes 1\.0 RaohaneSettingsScenes\.qml$' "$UI_QMLDIR" \
+  || fail 'RaohaneSettingsScenes is not registered in the native UI module'
 rg -q 'sceneStateFile: root\.join\(root\.stateDirectory, "scenes\.json"\)' "$PATHS" \
   || fail 'scene runtime state is not stored in the Raohane state directory'
 
@@ -98,6 +102,21 @@ for contract in \
   rg -q "$contract" "$SWITCHER" || fail "Scene switcher lost contract: $contract"
 done
 
+rg -q 'key: "scenes".*source: "RaohaneSettingsScenes\.qml"' "$SETTINGS_REGISTRY" \
+  || fail 'Settings registry no longer routes the Scenes page'
+for contract in \
+  'RaohaneScenes\.activate\(sceneCard\.modelData\.id, "settings"\)' \
+  'RaohaneScenes\.setAutoSwitch\(checked\)' \
+  'RaohaneScenes\.setAppRule\(pattern, root\.ruleScene\)' \
+  'RaohaneScenes\.removeAppRule\(ruleCard\.modelData\.pattern\)' \
+  'RaohaneScenes\.activeAppId' \
+  'RaohaneScenes\.defaultRules\(\)'; do
+  rg -q "$contract" "$SETTINGS" || fail "Scenes Settings lost native service contract: $contract"
+done
+if rg -n 'FileView|scenes\.json|RaohanePaths\.sceneStateFile' "$SETTINGS"; then
+  fail 'Scenes Settings must use RaohaneScenes instead of reading or writing scene persistence directly'
+fi
+
 rg -q 'target: RaohaneScenes' "$CONTEXT" \
   || fail 'Context Island no longer consumes scene activation events'
 rg -q 'scene: RaohaneScenes\.activeSceneId' "$CONTEXT" \
@@ -107,4 +126,4 @@ rg -q 'active: RaohaneScenes\.activeSceneId' "$RUNTIME" \
 rg -q 'policy: RaohaneScenes\.activePolicy' "$RUNTIME" \
   || fail 'Runtime probe no longer exposes effective scene policy'
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, manual override, Control Center rail, contextual Launcher actions and Context/diagnostic integration are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, manual override, Control Center rail, Settings management, contextual Launcher actions and Context/diagnostic integration are valid\n'
