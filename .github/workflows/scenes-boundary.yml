@@ -10,6 +10,11 @@ on:
       - 'modules/raohane/config/RaohanePaths.qml'
       - 'modules/raohane/RaohaneContext.qml'
       - 'modules/raohane/RaohaneRuntimeProbe.qml'
+      - 'modules/raohane/RaohaneSceneSwitcher.qml'
+      - 'modules/raohane/RaohaneQuickControls.qml'
+      - 'modules/raohane/RaohaneSettingsScenes.qml'
+      - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
+      - 'modules/raohane/qmldir'
       - 'scripts/scenes-boundary-audit.sh'
       - '.github/workflows/scenes-boundary.yml'
   pull_request:
@@ -20,6 +25,11 @@ on:
       - 'modules/raohane/config/RaohanePaths.qml'
       - 'modules/raohane/RaohaneContext.qml'
       - 'modules/raohane/RaohaneRuntimeProbe.qml'
+      - 'modules/raohane/RaohaneSceneSwitcher.qml'
+      - 'modules/raohane/RaohaneQuickControls.qml'
+      - 'modules/raohane/RaohaneSettingsScenes.qml'
+      - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
+      - 'modules/raohane/qmldir'
       - 'scripts/scenes-boundary-audit.sh'
       - '.github/workflows/scenes-boundary.yml'
   workflow_dispatch:
@@ -49,7 +59,10 @@ jobs:
             modules/raohane/services/RaohaneScenes.qml \
             modules/raohane/services/RaohaneSearch.qml \
             modules/raohane/RaohaneContext.qml \
-            modules/raohane/RaohaneRuntimeProbe.qml; do
+            modules/raohane/RaohaneRuntimeProbe.qml \
+            modules/raohane/RaohaneSceneSwitcher.qml \
+            modules/raohane/RaohaneSettingsScenes.qml \
+            modules/raohane/RaohaneSettingsPageRegistry.qml; do
             "$QMLFORMAT" "$file" >/dev/null
           done
 
