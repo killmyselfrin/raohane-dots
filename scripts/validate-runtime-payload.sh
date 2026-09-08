@@ -28,7 +28,6 @@ required=(
   assets
   translations
   defaults/native.json
-  defaults/themes/serpantinum.json
   install/arch/required.txt
   install/arch/features.txt
   modules/raohane
