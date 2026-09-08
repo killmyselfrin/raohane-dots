@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 Item {
@@ -35,7 +36,7 @@ Item {
         const normalized = needle.toLowerCase()
         const index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(normalized) || entry.key.toLowerCase().includes(normalized))
         if (index >= 0)
-            settingsFlick.contentY = Math.max(0, index * 68 - 18)
+            settingsFlick.contentY = Math.max(0, index * 72 - 18)
     }
 
     onSectionKeyChanged: Qt.callLater(root.replayEntrance)
@@ -66,22 +67,35 @@ Item {
         id: settingsFlick
         anchors.fill: parent
         contentWidth: width
-        contentHeight: sectionColumn.implicitHeight + 42
+        contentHeight: sectionColumn.implicitHeight + 52
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 2600
 
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+            width: 4
+            anchors.right: parent.right
+            anchors.rightMargin: 4
+            contentItem: Rectangle {
+                implicitWidth: 4
+                radius: 2
+                color: RaohaneTheme.accent
+                opacity: 0.38
+            }
+        }
+
         Column {
             id: sectionColumn
-            y: 18
-            width: Math.min(settingsFlick.width - 48, 720)
+            y: 20
+            width: Math.min(settingsFlick.width - 52, 760)
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 14
+            spacing: 16
 
             RaohaneSurface {
                 id: sectionHero
                 width: parent.width
-                height: 104
+                height: 110
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
@@ -106,17 +120,17 @@ Item {
                 }
 
                 Rectangle {
-                    width: 150
-                    height: 150
-                    radius: 75
+                    width: 158
+                    height: 158
+                    radius: 79
                     anchors {
                         right: parent.right
                         top: parent.top
-                        rightMargin: -45
-                        topMargin: -72
+                        rightMargin: -46
+                        topMargin: -74
                     }
                     color: RaohaneTheme.accentSoft
-                    opacity: root.headerEntered ? 0.48 : 0.15
+                    opacity: root.headerEntered ? 0.44 : 0.14
 
                     Behavior on opacity {
                         NumberAnimation { duration: RaohaneMotion.relaxed }
@@ -125,13 +139,13 @@ Item {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 18
-                    anchors.rightMargin: 18
-                    spacing: 14
+                    anchors.leftMargin: 20
+                    anchors.rightMargin: 20
+                    spacing: 15
 
                     RaohaneSurface {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
+                        Layout.preferredWidth: 50
+                        Layout.preferredHeight: 50
                         surfaceRadius: 15
                         active: true
                         showSheen: false
@@ -139,7 +153,7 @@ Item {
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: root.pageInfo?.icon ?? "tune"
-                            iconSize: 23
+                            iconSize: 24
                             fill: 1
                             color: RaohaneTheme.accent
                         }
@@ -147,12 +161,12 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: 4
 
                         Text {
                             text: root.pageInfo?.name ?? qsTr("Settings")
                             color: RaohaneTheme.text
-                            font.pixelSize: 15
+                            font.pixelSize: 16
                             font.weight: Font.DemiBold
                         }
 
@@ -161,14 +175,14 @@ Item {
                             text: RaohaneSettingsPageRegistry.sectionDescription(root.sectionKey)
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 9
-                            lineHeight: 1.2
+                            lineHeight: 1.22
                             wrapMode: Text.WordWrap
                         }
                     }
 
                     RaohaneSurface {
-                        Layout.preferredWidth: settingCount.implicitWidth + 22
-                        Layout.preferredHeight: 28
+                        Layout.preferredWidth: settingCount.implicitWidth + 24
+                        Layout.preferredHeight: 30
                         surfaceRadius: 12
                         transparentIdle: true
                         showSheen: false
