@@ -6,7 +6,7 @@ A desktop shell for Hyprland, built with Quickshell and Qt/QML. Dark glass surfa
 [![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
 [![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 
-**Status:** `0.10.0-dev`. Active development; hardware and session validation remain open. See the [roadmap](docs/ROADMAP.md) for current priorities.
+**Status:** `1.0.0` — the first stable Raohane release. See the [release validation guide](docs/RELEASE-VALIDATION.md) and [roadmap](docs/ROADMAP.md) for validation and future work.
 
 ## Features
 
@@ -77,7 +77,7 @@ The launcher supports application names, `/` for built-in actions, `>` for comma
 
 Settings are stored in `~/.config/raohane/native.json`. User autostart commands belong in `~/.config/raohane/autostart.conf`.
 
-The default **Raohane** theme uses dark charcoal glass and violet accents. Paper, Sakura, Matcha, Slate, Sand, Sumi, Midnight, and converted Serpantinum palettes are also available. Themes can be selected in Settings or managed through `raohane theme`; see the [theme format](docs/THEMES.md).
+The default **Raohane** theme uses dark charcoal glass and violet accents. Paper, Sakura, Matcha, Slate, Sand, Sumi, and Midnight are included as built-in alternatives. Themes can be selected in Settings or managed through `raohane theme`; see the [theme format](docs/THEMES.md).
 
 ## Troubleshooting
 
@@ -114,4 +114,4 @@ Run the relevant feature checks as well. Static checks do not replace testing in
 
 ## License
 
-Raohane is distributed under [GPLv3](LICENSE). Retained and adapted code, palettes, translations, and assets keep their applicable attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md).
+Raohane is distributed under [GPLv3](LICENSE). Retained and adapted code, translations, data, and assets keep their applicable attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md).
