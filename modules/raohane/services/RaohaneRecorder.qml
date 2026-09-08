@@ -177,7 +177,11 @@ Singleton {
         }
 
         function toggle(): string {
-            return root.toggleFullscreen(true) ? (root.recording ? "stopping" : "started") : "unavailable"
+            const wasRecording = root.recording
+            const changed = root.toggleFullscreen(true)
+            if (!changed)
+                return "unavailable"
+            return wasRecording ? "stopping" : "started"
         }
     }
 
