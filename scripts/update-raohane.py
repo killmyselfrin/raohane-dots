@@ -8,9 +8,12 @@ import os
 import pathlib
 import re
 import shutil
+import socket
 import subprocess
 import tarfile
 import tempfile
+import time
+import urllib.error
 import urllib.request
 
 REPOSITORY = "killmyselfrin/raohane-dots"
@@ -18,6 +21,9 @@ BRANCH = "main"
 GIT_REMOTE_URL = f"https://github.com/{REPOSITORY}.git"
 ARCHIVE_URL = f"https://codeload.github.com/{REPOSITORY}/tar.gz"
 MAX_ARCHIVE_BYTES = 96 * 1024 * 1024
+DOWNLOAD_ATTEMPTS = 3
+DOWNLOAD_TIMEOUT = 35
+REVISION_ATTEMPTS = 2
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -82,34 +88,59 @@ def _request(url: str):
     return urllib.request.Request(url, headers={"User-Agent": "Raohane-Updater/2"})
 
 
+def _retryable_network_error(exc: BaseException) -> bool:
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code in {408, 429, 500, 502, 503, 504}
+    if isinstance(exc, urllib.error.URLError):
+        return True
+    if isinstance(exc, (TimeoutError, socket.timeout, ConnectionError)):
+        return True
+    message = str(exc).lower()
+    return "timed out" in message or "temporary failure" in message or "connection reset" in message
+
+
 def _latest_revision() -> str:
     git = shutil.which("git")
     if not git:
         raise RuntimeError("git is required to check for Raohane updates")
 
     ref = f"refs/heads/{BRANCH}"
-    try:
-        result = subprocess.run(
-            [git, "ls-remote", "--heads", GIT_REMOTE_URL, ref],
-            check=True,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=15,
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError("GitHub revision check timed out") from exc
-    except subprocess.CalledProcessError as exc:
-        detail = (exc.stderr or "").strip().splitlines()
-        raise RuntimeError(detail[-1] if detail else "git ls-remote failed") from exc
+    last_error = "GitHub revision check failed"
+    for attempt in range(1, REVISION_ATTEMPTS + 1):
+        try:
+            result = subprocess.run(
+                [git, "ls-remote", "--heads", GIT_REMOTE_URL, ref],
+                check=True,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=15 if attempt == 1 else 25,
+            )
+        except subprocess.TimeoutExpired:
+            last_error = "GitHub revision check timed out"
+            if attempt < REVISION_ATTEMPTS:
+                time.sleep(attempt)
+                continue
+            raise RuntimeError(last_error)
+        except subprocess.CalledProcessError as exc:
+            detail = (exc.stderr or "").strip().splitlines()
+            last_error = detail[-1] if detail else "git ls-remote failed"
+            if attempt < REVISION_ATTEMPTS:
+                time.sleep(attempt)
+                continue
+            raise RuntimeError(last_error) from exc
 
-    for line in result.stdout.splitlines():
-        fields = line.split()
-        if len(fields) >= 2 and fields[1] == ref:
-            revision = fields[0].lower()
-            if SHA_RE.fullmatch(revision):
-                return revision
-    raise RuntimeError("GitHub returned an invalid main revision")
+        for line in result.stdout.splitlines():
+            fields = line.split()
+            if len(fields) >= 2 and fields[1] == ref:
+                revision = fields[0].lower()
+                if SHA_RE.fullmatch(revision):
+                    return revision
+        last_error = "GitHub returned an invalid main revision"
+        if attempt < REVISION_ATTEMPTS:
+            time.sleep(attempt)
+
+    raise RuntimeError(last_error)
 
 
 def _installed_revision() -> str:
@@ -154,16 +185,36 @@ def check() -> int:
 
 
 def _download_archive(revision: str, destination: pathlib.Path) -> None:
-    total = 0
-    with urllib.request.urlopen(_request(f"{ARCHIVE_URL}/{revision}"), timeout=20) as response, destination.open("wb") as output:
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
+    url = f"{ARCHIVE_URL}/{revision}"
+    last_error: BaseException | None = None
+
+    for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
+        destination.unlink(missing_ok=True)
+        total = 0
+        try:
+            with urllib.request.urlopen(_request(url), timeout=DOWNLOAD_TIMEOUT) as response, destination.open("wb") as output:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > MAX_ARCHIVE_BYTES:
+                        raise RuntimeError("update archive exceeds the safety limit")
+                    output.write(chunk)
+            if total <= 0:
+                raise RuntimeError("update archive is empty")
+            return
+        except Exception as exc:
+            destination.unlink(missing_ok=True)
+            last_error = exc
+            if not _retryable_network_error(exc) or attempt >= DOWNLOAD_ATTEMPTS:
                 break
-            total += len(chunk)
-            if total > MAX_ARCHIVE_BYTES:
-                raise RuntimeError("update archive exceeds the safety limit")
-            output.write(chunk)
+            _log(f"Archive download attempt {attempt}/{DOWNLOAD_ATTEMPTS} failed: {exc}; retrying.")
+            time.sleep(attempt * 2)
+
+    if last_error is not None and (isinstance(last_error, (TimeoutError, socket.timeout)) or "timed out" in str(last_error).lower()):
+        raise RuntimeError(f"GitHub archive download timed out after {DOWNLOAD_ATTEMPTS} attempts") from last_error
+    raise RuntimeError(f"GitHub archive download failed after {DOWNLOAD_ATTEMPTS} attempts: {last_error}") from last_error
 
 
 def _safe_extract(archive: pathlib.Path, destination: pathlib.Path) -> pathlib.Path:
