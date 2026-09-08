@@ -174,7 +174,84 @@ Singleton {
         })
     }
 
+    function gamingActionResults(): var {
+        if (RaohaneScenes.activeSceneId !== "gaming")
+            return []
+
+        return [
+            {
+                name: qsTr("Microphone"),
+                iconName: RaohaneAudio.microphoneMuted ? "mic_off" : "mic",
+                iconType: "material",
+                verb: RaohaneAudio.microphoneMuted ? qsTr("UNMUTE") : qsTr("MUTE"),
+                type: qsTr("Gaming action"),
+                comment: RaohaneAudio.sourceName || qsTr("Microphone input"),
+                execute: () => RaohaneAudio.toggleMicrophoneMute()
+            },
+            {
+                name: qsTr("Audio"),
+                iconName: RaohaneAudio.muted ? "volume_off" : "volume_up",
+                iconType: "material",
+                verb: RaohaneAudio.muted ? qsTr("UNMUTE") : qsTr("MUTE"),
+                type: qsTr("Gaming action"),
+                comment: RaohaneAudio.sinkName || qsTr("Audio output"),
+                execute: () => RaohaneAudio.toggleMute()
+            },
+            {
+                name: qsTr("Game Mode"),
+                iconName: "speed",
+                iconType: "material",
+                verb: RaohanePerformance.gameModeActive ? qsTr("DISABLE") : qsTr("ENABLE"),
+                type: qsTr("Gaming action"),
+                comment: qsTr("Performance profile"),
+                execute: () => RaohanePerformance.toggleGameMode()
+            },
+            {
+                name: qsTr("Do Not Disturb"),
+                iconName: RaohaneNotifications.silent ? "notifications_off" : "notifications_active",
+                iconType: "material",
+                verb: RaohaneNotifications.silent ? qsTr("DISABLE") : qsTr("ENABLE"),
+                type: qsTr("Gaming action"),
+                comment: qsTr("Notification popups"),
+                execute: () => RaohaneNotifications.silent = !RaohaneNotifications.silent
+            },
+            {
+                name: qsTr("Keep Awake"),
+                iconName: RaohaneIdle.inhibit ? "coffee" : "bedtime",
+                iconType: "material",
+                verb: RaohaneIdle.inhibit ? qsTr("DISABLE") : qsTr("ENABLE"),
+                type: qsTr("Gaming action"),
+                comment: qsTr("Idle inhibition"),
+                execute: () => RaohaneIdle.toggleInhibit()
+            },
+            {
+                name: qsTr("Media"),
+                iconName: RaohaneMedia.isPlaying ? "pause" : "play_arrow",
+                iconType: "material",
+                verb: RaohaneMedia.available
+                    ? (RaohaneMedia.isPlaying ? qsTr("PAUSE") : qsTr("PLAY"))
+                    : qsTr("OPEN"),
+                type: qsTr("Gaming action"),
+                comment: RaohaneMedia.available && RaohaneMedia.title.length > 0
+                    ? RaohaneMedia.title
+                    : qsTr("Media overlay"),
+                execute: () => {
+                    if (RaohaneMedia.available)
+                        RaohaneMedia.togglePlaying()
+                    else
+                        Quickshell.execDetached(["raohane", "media"])
+                }
+            }
+        ]
+    }
+
     function actionResults(needle: string): var {
+        if (needle.length === 0) {
+            const contextual = root.gamingActionResults()
+            if (contextual.length > 0)
+                return contextual
+        }
+
         return root.builtInActions
             .filter(action => {
                 const haystack = root.normalized(`${action.name} ${action.keywords}`)
