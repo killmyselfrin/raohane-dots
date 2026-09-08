@@ -7,6 +7,7 @@
 - Improve Settings navigation, page headers and profile affordances with more readable typography and spacing.
 - Increase control-row hit areas and text hierarchy for toggles, numeric controls, choices and text inputs.
 - Add explicit section scroll feedback and wider content geometry for long Settings pages.
+- Rebalance Theme Library, user preset management, Style Studio, accent controls and Advanced Surfaces around the 1.1 Settings scale without changing theme/config semantics.
 
 ## 1.0.0 — First stable release
 
