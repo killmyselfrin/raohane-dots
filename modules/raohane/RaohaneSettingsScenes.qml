@@ -11,6 +11,7 @@ Item {
 
     property string rulePattern: ""
     property string ruleScene: "gaming"
+    property string ruleMatch: "exact"
 
     readonly property var scenes: [
         { id: "balanced", label: qsTr("Balanced"), icon: "tune", detail: qsTr("Restore the normal desktop policy") },
@@ -18,6 +19,12 @@ Item {
         { id: "focus", label: qsTr("Focus"), icon: "center_focus_strong", detail: qsTr("Quiet notifications and reduce distractions") },
         { id: "work", label: qsTr("Work"), icon: "work", detail: qsTr("Keep the session awake for long work") }
     ]
+    readonly property var matchChoices: [
+        { id: "exact", label: qsTr("Exact appId"), icon: "target" },
+        { id: "prefix", label: qsTr("Starts with"), icon: "first_page" },
+        { id: "contains", label: qsTr("Contains text"), icon: "manage_search" }
+    ]
+    readonly property var activeMatchRule: RaohaneScenes.matchingRuleFor(RaohaneScenes.activeAppId)
 
     function sceneLabel(sceneId): string {
         const scene = root.scenes.find(item => item.id === String(sceneId ?? ""))
@@ -29,16 +36,23 @@ Item {
         return scene ? scene.icon : "tune"
     }
 
+    function matchLabel(matchId): string {
+        const mode = root.matchChoices.find(item => item.id === String(matchId ?? ""))
+        return mode ? mode.label : qsTr("Exact appId")
+    }
+
     function useCurrentApp(): void {
-        if (RaohaneScenes.activeAppId.length > 0)
+        if (RaohaneScenes.activeAppId.length > 0) {
             root.rulePattern = RaohaneScenes.activeAppId
+            root.ruleMatch = "exact"
+        }
     }
 
     function saveRule(): void {
         const pattern = root.rulePattern.trim().toLowerCase()
         if (pattern.length === 0)
             return
-        if (RaohaneScenes.setAppRule(pattern, root.ruleScene))
+        if (RaohaneScenes.setRule(pattern, root.ruleMatch, root.ruleScene))
             root.rulePattern = ""
     }
 
@@ -325,11 +339,11 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 78
+                Layout.preferredHeight: 82
                 surfaceRadius: 12
                 raised: false
                 showSheen: false
-                border.color: RaohaneTheme.borderFaint
+                border.color: root.activeMatchRule ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
                 RowLayout {
                     anchors.fill: parent
@@ -366,11 +380,15 @@ Item {
                         }
 
                         Text {
-                            text: RaohaneScenes.matchingSceneFor(RaohaneScenes.activeAppId).length > 0
-                                ? qsTr("Matches %1").arg(root.sceneLabel(RaohaneScenes.matchingSceneFor(RaohaneScenes.activeAppId)))
+                            text: root.activeMatchRule
+                                ? qsTr("%1 · %2 rule · %3")
+                                    .arg(root.sceneLabel(root.activeMatchRule.scene))
+                                    .arg(root.matchLabel(root.activeMatchRule.match))
+                                    .arg(root.activeMatchRule.builtin ? qsTr("built-in") : qsTr("custom"))
                                 : qsTr("No scene rule matches this application")
-                            color: RaohaneScenes.matchingSceneFor(RaohaneScenes.activeAppId).length > 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                            color: root.activeMatchRule ? RaohaneTheme.accent : RaohaneTheme.textMuted
                             font.pixelSize: 8
+                            elide: Text.ElideRight
                         }
                     }
 
@@ -395,7 +413,7 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 150
+                Layout.preferredHeight: 205
                 surfaceRadius: 12
                 raised: false
                 showSheen: false
@@ -404,7 +422,7 @@ Item {
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 13
-                    spacing: 9
+                    spacing: 8
 
                     RowLayout {
                         Layout.fillWidth: true
@@ -424,7 +442,7 @@ Item {
                                 anchors.leftMargin: 10
                                 anchors.rightMargin: 10
                                 text: root.rulePattern
-                                placeholderText: qsTr("appId, for example code or steam_app_123456")
+                                placeholderText: qsTr("appId or match pattern")
                                 color: RaohaneTheme.text
                                 placeholderTextColor: RaohaneTheme.textFaint
                                 font.pixelSize: 9
@@ -446,7 +464,32 @@ Item {
                     }
 
                     Text {
-                        text: qsTr("When this exact appId becomes active, switch to:")
+                        text: qsTr("Match mode")
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
+
+                        Repeater {
+                            model: root.matchChoices
+
+                            delegate: MatchChoice {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                matchId: modelData.id
+                                label: modelData.label
+                                icon: modelData.icon
+                                selected: root.ruleMatch === modelData.id
+                                onChosen: root.ruleMatch = modelData.id
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: qsTr("Switch matching applications to")
                         color: RaohaneTheme.textMuted
                         font.pixelSize: 8
                     }
@@ -494,7 +537,11 @@ Item {
                     surfaceRadius: 11
                     raised: false
                     showSheen: false
-                    border.color: RaohaneTheme.borderFaint
+                    border.color: root.activeMatchRule
+                            && root.activeMatchRule.pattern === ruleCard.modelData.pattern
+                            && root.activeMatchRule.match === ruleCard.modelData.match
+                        ? RaohaneTheme.accentBorder
+                        : RaohaneTheme.borderFaint
 
                     RowLayout {
                         anchors.fill: parent
@@ -522,17 +569,16 @@ Item {
                             }
 
                             Text {
-                                text: qsTr("%1 match · %2").arg(ruleCard.modelData.match).arg(root.sceneLabel(ruleCard.modelData.scene))
+                                text: qsTr("%1 · %2").arg(root.matchLabel(ruleCard.modelData.match)).arg(root.sceneLabel(ruleCard.modelData.scene))
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 8
                             }
                         }
 
                         ActionButton {
-                            visible: ruleCard.modelData.match === "exact"
                             icon: "delete"
                             label: qsTr("Remove")
-                            onClicked: RaohaneScenes.removeAppRule(ruleCard.modelData.pattern)
+                            onClicked: RaohaneScenes.removeRule(ruleCard.modelData.pattern, ruleCard.modelData.match)
                         }
                     }
                 }
@@ -560,7 +606,12 @@ Item {
                     surfaceRadius: 11
                     raised: false
                     showSheen: false
-                    border.color: RaohaneTheme.borderFaint
+                    border.color: root.activeMatchRule
+                            && root.activeMatchRule.builtin
+                            && root.activeMatchRule.pattern === builtinCard.modelData.pattern
+                            && root.activeMatchRule.match === builtinCard.modelData.match
+                        ? RaohaneTheme.accentBorder
+                        : RaohaneTheme.borderFaint
 
                     RowLayout {
                         anchors.fill: parent
@@ -586,7 +637,9 @@ Item {
                             }
 
                             Text {
-                                text: qsTr("%1 match · %2 · protected default").arg(builtinCard.modelData.match).arg(root.sceneLabel(builtinCard.modelData.scene))
+                                text: qsTr("%1 · %2 · protected default")
+                                    .arg(root.matchLabel(builtinCard.modelData.match))
+                                    .arg(root.sceneLabel(builtinCard.modelData.scene))
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 8
                             }
@@ -630,6 +683,68 @@ Item {
                 RaohaneIcon {
                     text: choice.icon
                     iconSize: 13
+                    color: choice.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+
+                Text {
+                    text: choice.label
+                    color: choice.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
+                    font.pixelSize: 8
+                    font.weight: choice.selected ? Font.DemiBold : Font.Medium
+                }
+            }
+        }
+
+        MouseArea {
+            id: choiceMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onPressed: choice.forceActiveFocus()
+            onClicked: choice.chosen()
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                choice.chosen()
+                event.accepted = true
+            }
+        }
+    }
+
+    component MatchChoice: FocusScope {
+        id: choice
+
+        required property string matchId
+        required property string label
+        required property string icon
+        property bool selected: false
+        signal chosen()
+
+        implicitHeight: 34
+        activeFocusOnTab: true
+
+        RaohaneSurface {
+            anchors.fill: parent
+            surfaceRadius: 9
+            raised: false
+            active: choice.selected
+            hovered: choiceMouse.containsMouse || choice.activeFocus
+            pressed: choiceMouse.pressed
+            interactive: true
+            transparentIdle: !choice.selected && !hovered
+            hoverScale: 1
+            pressedScale: 1
+            showSheen: false
+            border.color: choice.selected ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+
+            RowLayout {
+                anchors.centerIn: parent
+                spacing: 5
+
+                RaohaneIcon {
+                    text: choice.icon
+                    iconSize: 12
                     color: choice.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
 
