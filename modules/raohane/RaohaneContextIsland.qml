@@ -21,6 +21,18 @@ RaohaneSurface {
         : root.mediaProgressMode ? RaohaneMedia.progress : 0
     readonly property bool morphMotionAllowed: RaohaneMotion.transformMotionEnabled
         && !RaohanePerformance.gameModeActive
+
+    readonly property string sceneId: RaohaneScenes.activeSceneId
+    readonly property bool sceneActive: root.sceneId !== "balanced"
+    readonly property bool sceneMarkerVisible: root.sceneActive
+        && !root.priorityMode
+        && RaohaneContext.mode !== "event"
+        && !root.showProgress
+    readonly property bool gameplayRecording: RaohaneContext.gameplayRecording
+    readonly property bool indicatorIsIcon: RaohaneContext.mode === "media"
+        || root.gameplayRecording
+        || (root.sceneActive && !root.priorityMode && RaohaneContext.mode !== "event")
+
     readonly property color eventColor: RaohaneContext.eventTone === "success"
         ? RaohaneTheme.success
         : RaohaneContext.eventTone === "warning"
@@ -39,17 +51,38 @@ RaohaneSurface {
                 : RaohaneContext.mode === "window"
                     ? RaohaneTheme.accentSecondary
                     : RaohaneTheme.accent
+    readonly property color sceneColor: root.sceneId === "gaming"
+        ? RaohaneTheme.accent
+        : root.sceneId === "focus"
+            ? RaohaneTheme.info
+            : root.sceneId === "work"
+                ? RaohaneTheme.success
+                : RaohaneTheme.textFaint
     readonly property int modeMinimumWidth: RaohaneContext.mode === "media" ? 220
         : RaohaneContext.mode === "privacy" ? 208
-        : RaohaneContext.mode === "recording" ? 198
+        : RaohaneContext.mode === "recording" ? 218
         : RaohaneContext.mode === "event" ? (root.progressMode ? 214 : 196)
         : RaohaneContext.mode === "window" ? 186
         : 168
 
+    function sceneIcon(sceneId): string {
+        switch (String(sceneId ?? "")) {
+        case "gaming": return "sports_esports"
+        case "focus": return "center_focus_strong"
+        case "work": return "work"
+        default: return "circle"
+        }
+    }
+
+    readonly property string indicatorIcon: root.gameplayRecording ? "stop_circle"
+        : RaohaneContext.mode === "media" ? (RaohaneMedia.isPlaying ? "pause" : "play_arrow")
+        : root.sceneActive ? root.sceneIcon(root.sceneId)
+        : "circle"
+
     implicitWidth: {
         const titleWidth = titleMetrics.advanceWidth
         const detailWidth = root.showDetail ? detailMetrics.advanceWidth : 0
-        const indicatorSpace = root.showIndicators ? 28 : 10
+        const indicatorSpace = root.showIndicators ? (root.indicatorIsIcon ? 34 : 28) : 10
         const contentWidth = Math.max(titleWidth, detailWidth) + 58 + indicatorSpace
         return Math.max(root.modeMinimumWidth, Math.min(440, Math.round(contentWidth * root.islandScale)))
     }
@@ -62,7 +95,9 @@ RaohaneSurface {
         ? Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b, 0.72)
         : RaohaneContext.mode === "event"
             ? Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b, 0.42)
-            : RaohaneTheme.borderStrong
+            : root.sceneActive
+                ? Qt.rgba(root.sceneColor.r, root.sceneColor.g, root.sceneColor.b, 0.30)
+                : RaohaneTheme.borderStrong
 
     Behavior on implicitWidth {
         enabled: root.morphMotionAllowed
@@ -92,6 +127,29 @@ RaohaneSurface {
         color: root.modeColor
         opacity: 0.045
 
+        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+    }
+
+    Rectangle {
+        id: sceneMarker
+        visible: root.sceneMarkerVisible
+        anchors {
+            right: parent.right
+            bottom: parent.bottom
+            rightMargin: 14
+            bottomMargin: 4
+        }
+        width: Math.max(22, Math.min(42, Math.round(root.width * 0.12)))
+        height: 2
+        radius: 1
+        color: root.sceneColor
+        opacity: RaohaneScenes.autoSceneActive ? 0.94 : 0.62
+
+        Behavior on width {
+            enabled: root.morphMotionAllowed
+            NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
+        }
         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
     }
@@ -164,14 +222,14 @@ RaohaneSurface {
         visible: root.showIndicators
         anchors {
             right: parent.right
-            rightMargin: 11
+            rightMargin: 10
             verticalCenter: parent.verticalCenter
         }
-        width: 12
-        height: 18
+        width: root.indicatorIsIcon ? 18 : 12
+        height: 20
 
         Rectangle {
-            visible: RaohaneContext.mode !== "media"
+            visible: !root.indicatorIsIcon
             anchors.centerIn: parent
             width: root.priorityMode ? 3 : 6
             height: root.priorityMode ? 15 : 6
@@ -192,15 +250,28 @@ RaohaneSurface {
         }
 
         RaohaneIcon {
-            visible: RaohaneContext.mode === "media"
+            visible: root.indicatorIsIcon
             anchors.centerIn: parent
-            text: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
-            iconSize: 11
+            text: root.indicatorIcon
+            iconSize: root.gameplayRecording ? 14 : 12
             fill: 1
             symbolWeight: 600
-            color: root.modeColor
+            color: root.gameplayRecording ? RaohaneTheme.critical
+                : RaohaneContext.mode === "media" ? root.modeColor
+                : root.sceneColor
+            scale: recorderMouse.containsMouse && root.gameplayRecording ? 1.08 : 1
 
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on scale { NumberAnimation { duration: RaohaneMotion.micro } }
+        }
+
+        MouseArea {
+            id: recorderMouse
+            anchors.fill: parent
+            enabled: root.gameplayRecording
+            hoverEnabled: enabled
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: RaohaneRecorder.stop()
         }
     }
 
