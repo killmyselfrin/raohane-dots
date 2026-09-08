@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 import qs.modules.raohane.config
@@ -9,6 +10,7 @@ Item {
     id: root
 
     property string themeQuery: ""
+
     readonly property var themes: {
         const query = root.themeQuery.trim().toLowerCase()
         if (query.length === 0)
@@ -16,6 +18,7 @@ Item {
         return RaohaneTheme.presets.filter(theme => [theme.name, theme.tone, theme.description, theme.source]
             .some(value => String(value ?? "").toLowerCase().includes(query)))
     }
+
     readonly property var accents: [
         { id: "theme", name: qsTr("Theme") },
         { id: "ink", name: qsTr("Ink") },
@@ -25,6 +28,7 @@ Item {
         { id: "sand", name: qsTr("Sand") },
         { id: "custom", name: qsTr("Custom") }
     ]
+
     readonly property var palette: [
         "#ef4444", "#f97316", "#eab308", "#84cc16", "#22c55e", "#14b8a6",
         "#06b6d4", "#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7",
@@ -74,33 +78,45 @@ Item {
     }
 
     Flickable {
+        id: themeFlick
         anchors.fill: parent
         contentWidth: width
-        contentHeight: content.implicitHeight + 20
+        contentHeight: content.implicitHeight + 28
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 2400
 
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+            width: 4
+            contentItem: Rectangle {
+                implicitWidth: 4
+                radius: 2
+                color: RaohaneTheme.accent
+                opacity: 0.42
+            }
+        }
+
         ColumnLayout {
             id: content
             width: parent.width
-            spacing: 12
+            spacing: 16
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                Layout.topMargin: 10
-                spacing: 10
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                Layout.topMargin: 14
+                spacing: 12
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 1
+                    spacing: 2
 
                     Text {
                         text: qsTr("Theme Library")
                         color: RaohaneTheme.text
-                        font.pixelSize: 16
+                        font.pixelSize: 17
                         font.weight: Font.DemiBold
                     }
 
@@ -108,15 +124,16 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Choose a base mood, then tune the whole shell without changing its layout or behavior.")
                         color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
+                        font.pixelSize: 9
+                        lineHeight: 1.15
                         wrapMode: Text.WordWrap
                     }
                 }
 
                 RaohaneSurface {
-                    Layout.preferredWidth: Math.min(220, Math.max(166, root.width * 0.23))
-                    Layout.preferredHeight: 30
-                    surfaceRadius: 9
+                    Layout.preferredWidth: Math.min(248, Math.max(190, root.width * 0.25))
+                    Layout.preferredHeight: 36
+                    surfaceRadius: 11
                     raised: false
                     showSheen: false
                     active: themeSearch.activeFocus
@@ -124,15 +141,15 @@ Item {
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 9
-                        anchors.rightMargin: 7
-                        spacing: 6
+                        anchors.leftMargin: 11
+                        anchors.rightMargin: 8
+                        spacing: 7
 
                         RaohaneIcon {
                             text: "search"
-                            fill: 0
+                            fill: themeSearch.activeFocus ? 1 : 0
                             color: themeSearch.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                            iconSize: 13
+                            iconSize: 15
                         }
 
                         TextInput {
@@ -142,7 +159,7 @@ Item {
                             color: RaohaneTheme.text
                             selectionColor: RaohaneTheme.accentSoft
                             selectedTextColor: RaohaneTheme.text
-                            font.pixelSize: 8
+                            font.pixelSize: 9
                             clip: true
                             onTextEdited: root.themeQuery = text
 
@@ -158,8 +175,8 @@ Item {
 
                         RaohaneIconButton {
                             visible: root.themeQuery.length > 0
-                            buttonSize: 20
-                            iconSize: 11
+                            buttonSize: 24
+                            iconSize: 12
                             icon: "close"
                             transparentIdle: true
                             showSheen: false
@@ -175,21 +192,21 @@ Item {
                 }
 
                 RaohaneSurface {
-                    Layout.preferredWidth: activeLabel.implicitWidth + 22
-                    Layout.preferredHeight: 30
-                    surfaceRadius: 9
+                    Layout.preferredWidth: activeLabel.implicitWidth + 24
+                    Layout.preferredHeight: 36
+                    surfaceRadius: 11
                     showSheen: false
                     raised: false
                     border.color: RaohaneTheme.borderFaint
 
                     Row {
                         anchors.centerIn: parent
-                        spacing: 5
+                        spacing: 7
 
                         Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 5
-                            height: 5
+                            width: 6
+                            height: 6
                             radius: 3
                             color: RaohaneTheme.accent
                         }
@@ -199,7 +216,7 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
                             text: qsTr("Active · %1").arg(RaohaneTheme.presetName)
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
+                            font.pixelSize: 9
                             font.weight: Font.Medium
                         }
                     }
@@ -208,11 +225,11 @@ Item {
 
             GridLayout {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                columns: root.width >= 930 ? 4 : root.width >= 650 ? 3 : 2
-                columnSpacing: 8
-                rowSpacing: 8
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                columns: root.width >= 980 ? 4 : root.width >= 690 ? 3 : 2
+                columnSpacing: 10
+                rowSpacing: 10
 
                 Repeater {
                     model: root.themes
@@ -226,8 +243,8 @@ Item {
                         readonly property bool hovered: themeMouse.containsMouse
 
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 112
-                        radius: 12
+                        Layout.preferredHeight: 128
+                        radius: 14
                         color: modelData.surfaceRaised
                         border.width: selected ? 2 : 1
                         border.color: selected ? modelData.accent : hovered ? modelData.textMuted : modelData.border
@@ -240,24 +257,27 @@ Item {
                         Rectangle {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 2
-                            height: themeCard.selected ? 34 : themeCard.hovered ? 18 : 8
-                            radius: 1
+                            width: 3
+                            height: themeCard.selected ? 42 : themeCard.hovered ? 24 : 10
+                            radius: 2
                             color: themeCard.modelData.accent
-                            opacity: themeCard.selected ? 1 : themeCard.hovered ? 0.48 : 0
+                            opacity: themeCard.selected ? 1 : themeCard.hovered ? 0.52 : 0
 
+                            Behavior on height {
+                                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                            }
                             Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
                         }
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 9
-                            spacing: 6
+                            anchors.margins: 11
+                            spacing: 8
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 54
-                                radius: 8
+                                Layout.preferredHeight: 62
+                                radius: 10
                                 color: themeCard.modelData.background
                                 border.width: 1
                                 border.color: themeCard.modelData.border
@@ -268,24 +288,24 @@ Item {
                                         top: parent.top
                                         left: parent.left
                                         right: parent.right
-                                        margins: 6
+                                        margins: 7
                                     }
-                                    height: 13
-                                    radius: 6
+                                    height: 15
+                                    radius: 7
                                     color: themeCard.modelData.surfaceRaised
                                     border.width: 1
                                     border.color: themeCard.modelData.border
 
                                     Row {
                                         anchors.centerIn: parent
-                                        spacing: 6
+                                        spacing: 7
 
                                         Repeater {
                                             model: 4
 
                                             Rectangle {
                                                 required property int index
-                                                width: index === 1 ? 13 : 4
+                                                width: index === 1 ? 15 : 5
                                                 height: 3
                                                 radius: 2
                                                 color: index === 1 ? themeCard.modelData.accent : themeCard.modelData.textMuted
@@ -299,11 +319,11 @@ Item {
                                     anchors {
                                         horizontalCenter: parent.horizontalCenter
                                         bottom: parent.bottom
-                                        bottomMargin: 6
+                                        bottomMargin: 7
                                     }
-                                    width: parent.width * 0.58
-                                    height: 22
-                                    radius: 7
+                                    width: parent.width * 0.60
+                                    height: 26
+                                    radius: 8
                                     color: themeCard.modelData.surface
                                     border.width: 1
                                     border.color: themeCard.modelData.border
@@ -312,7 +332,7 @@ Item {
                                         anchors {
                                             left: parent.left
                                             top: parent.top
-                                            margins: 5
+                                            margins: 6
                                         }
                                         width: parent.width * 0.46
                                         height: 3
@@ -325,12 +345,12 @@ Item {
                                         anchors {
                                             left: parent.left
                                             bottom: parent.bottom
-                                            leftMargin: 5
-                                            bottomMargin: 5
+                                            leftMargin: 6
+                                            bottomMargin: 6
                                         }
-                                        width: parent.width * 0.28
-                                        height: 2
-                                        radius: 1
+                                        width: parent.width * 0.30
+                                        height: 3
+                                        radius: 2
                                         color: themeCard.modelData.accent
                                     }
                                 }
@@ -338,17 +358,17 @@ Item {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 6
+                                spacing: 7
 
                                 ColumnLayout {
                                     Layout.fillWidth: true
-                                    spacing: 0
+                                    spacing: 1
 
                                     Text {
                                         Layout.fillWidth: true
                                         text: themeCard.modelData.name
                                         color: themeCard.modelData.text
-                                        font.pixelSize: 9
+                                        font.pixelSize: 10
                                         font.weight: Font.DemiBold
                                         elide: Text.ElideRight
                                     }
@@ -357,7 +377,7 @@ Item {
                                         Layout.fillWidth: true
                                         text: themeCard.modelData.tone
                                         color: themeCard.modelData.textMuted
-                                        font.pixelSize: 7
+                                        font.pixelSize: 8
                                         elide: Text.ElideRight
                                     }
                                 }
@@ -365,7 +385,7 @@ Item {
                                 RaohaneIcon {
                                     visible: themeCard.selected
                                     text: "check_circle"
-                                    iconSize: 16
+                                    iconSize: 17
                                     fill: 1
                                     symbolWeight: 560
                                     color: themeCard.modelData.accent
@@ -386,8 +406,8 @@ Item {
 
             SectionHeader {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
                 title: qsTr("Style Studio")
                 detail: qsTr("Global material, geometry and motion. Every value is saved in native.json.")
                 actionText: qsTr("Reset style")
@@ -396,11 +416,11 @@ Item {
 
             GridLayout {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                columns: root.width >= 800 ? 2 : 1
-                columnSpacing: 8
-                rowSpacing: 8
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                columns: root.width >= 840 ? 2 : 1
+                columnSpacing: 10
+                rowSpacing: 10
 
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Glass opacity"); detail: qsTr("How solid the frosted surfaces feel"); value: Number(root.styleValue("glassOpacity", 1.0)); minimum: 0.55; maximum: 1.0; step: 0.05; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("glassOpacity", value) }
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Border strength"); detail: qsTr("Hairline contrast around cards and islands"); value: Number(root.styleValue("borderStrength", 1.0)); minimum: 0.45; maximum: 1.5; step: 0.05; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("borderStrength", value) }
@@ -412,10 +432,10 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                Layout.preferredHeight: accentBlock.implicitHeight + 20
-                surfaceRadius: 11
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                Layout.preferredHeight: accentBlock.implicitHeight + 26
+                surfaceRadius: 14
                 showSheen: false
                 raised: false
                 color: RaohaneTheme.surfaceSubtle
@@ -427,9 +447,9 @@ Item {
                         left: parent.left
                         right: parent.right
                         top: parent.top
-                        margins: 10
+                        margins: 13
                     }
-                    spacing: 8
+                    spacing: 10
 
                     RowLayout {
                         Layout.fillWidth: true
@@ -437,7 +457,7 @@ Item {
                         Text {
                             text: qsTr("Accent color")
                             color: RaohaneTheme.text
-                            font.pixelSize: 10
+                            font.pixelSize: 11
                             font.weight: Font.DemiBold
                         }
 
@@ -446,15 +466,15 @@ Item {
                         Text {
                             text: qsTr("one accent across the whole shell")
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
+                            font.pixelSize: 9
                         }
                     }
 
                     GridLayout {
                         Layout.fillWidth: true
-                        columns: root.width >= 760 ? 7 : 4
-                        columnSpacing: 6
-                        rowSpacing: 6
+                        columns: root.width >= 800 ? 7 : 4
+                        columnSpacing: 7
+                        rowSpacing: 7
 
                         Repeater {
                             model: root.accents
@@ -466,8 +486,8 @@ Item {
                                 readonly property bool selected: String(root.styleValue("accentMode", "theme")) === String(modelData.id)
 
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 28
-                                surfaceRadius: 8
+                                Layout.preferredHeight: 34
+                                surfaceRadius: 10
                                 showSheen: false
                                 raised: false
                                 active: selected
@@ -479,12 +499,12 @@ Item {
 
                                 Row {
                                     anchors.centerIn: parent
-                                    spacing: 5
+                                    spacing: 7
 
                                     Rectangle {
-                                        width: 9
-                                        height: 9
-                                        radius: 5
+                                        width: 11
+                                        height: 11
+                                        radius: 6
                                         anchors.verticalCenter: parent.verticalCenter
                                         color: root.accentColor(String(accentButton.modelData.id))
                                         border.width: 1
@@ -495,7 +515,8 @@ Item {
                                         anchors.verticalCenter: parent.verticalCenter
                                         text: accentButton.modelData.name
                                         color: accentButton.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                        font.pixelSize: 8
+                                        font.pixelSize: 9
+                                        font.weight: accentButton.selected ? Font.DemiBold : Font.Normal
                                     }
                                 }
 
@@ -512,9 +533,9 @@ Item {
 
                     GridLayout {
                         Layout.fillWidth: true
-                        columns: root.width >= 850 ? 12 : root.width >= 620 ? 8 : 6
-                        columnSpacing: 6
-                        rowSpacing: 6
+                        columns: root.width >= 900 ? 12 : root.width >= 650 ? 8 : 6
+                        columnSpacing: 7
+                        rowSpacing: 7
 
                         Repeater {
                             model: root.palette
@@ -526,19 +547,24 @@ Item {
                                 readonly property bool selected: String(root.styleValue("accentMode", "theme")) === "custom"
                                     && String(root.styleValue("customAccent", "#657987")).toLowerCase() === String(modelData).toLowerCase()
 
-                                Layout.preferredWidth: 24
-                                Layout.preferredHeight: 24
-                                radius: 6
+                                Layout.preferredWidth: 28
+                                Layout.preferredHeight: 28
+                                radius: 8
                                 color: String(modelData)
                                 border.width: selected ? 2 : 1
                                 border.color: selected ? RaohaneTheme.text : RaohaneTheme.borderStrong
+                                scale: swatchMouse.containsMouse && RaohaneMotion.transformMotionEnabled ? 1.08 : 1
+
+                                Behavior on scale {
+                                    NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                                }
 
                                 Rectangle {
                                     visible: swatch.selected
                                     anchors.centerIn: parent
-                                    width: 6
-                                    height: 6
-                                    radius: 3
+                                    width: 7
+                                    height: 7
+                                    radius: 4
                                     color: RaohaneTheme.dark ? "#101010" : "#f8f7f4"
                                     opacity: 0.78
                                 }
@@ -556,21 +582,21 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: 9
 
                         Rectangle {
-                            width: 28
-                            height: 28
-                            radius: 7
+                            width: 32
+                            height: 32
+                            radius: 9
                             color: String(root.styleValue("customAccent", "#657987"))
                             border.width: 1
                             border.color: RaohaneTheme.borderStrong
                         }
 
                         RaohaneSurface {
-                            Layout.preferredWidth: 146
-                            Layout.preferredHeight: 30
-                            surfaceRadius: 8
+                            Layout.preferredWidth: 156
+                            Layout.preferredHeight: 34
+                            surfaceRadius: 10
                             showSheen: false
                             raised: false
                             active: customHex.activeFocus
@@ -579,13 +605,14 @@ Item {
                             TextInput {
                                 id: customHex
                                 anchors.fill: parent
-                                anchors.leftMargin: 9
-                                anchors.rightMargin: 9
+                                anchors.leftMargin: 11
+                                anchors.rightMargin: 11
                                 verticalAlignment: TextInput.AlignVCenter
                                 text: String(root.styleValue("customAccent", "#657987")).toUpperCase()
                                 color: RaohaneTheme.text
                                 selectionColor: RaohaneTheme.accentSoft
-                                font.pixelSize: 8
+                                selectedTextColor: RaohaneTheme.text
+                                font.pixelSize: 9
                                 maximumLength: 7
                                 validator: RegularExpressionValidator { regularExpression: /^#[0-9A-Fa-f]{6}$/ }
                                 onAccepted: root.applyCustomAccent(text)
@@ -596,7 +623,7 @@ Item {
                         Text {
                             text: qsTr("Press Enter to apply any #RRGGBB color")
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
+                            font.pixelSize: 9
                         }
 
                         Item { Layout.fillWidth: true }
@@ -614,19 +641,19 @@ Item {
 
             SectionHeader {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
                 title: qsTr("Advanced Surfaces")
                 detail: qsTr("Tune individual shell surfaces while they continue inheriting the active theme and accent.")
             }
 
             GridLayout {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                columns: root.width >= 800 ? 2 : 1
-                columnSpacing: 8
-                rowSpacing: 8
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                columns: root.width >= 840 ? 2 : 1
+                columnSpacing: 10
+                rowSpacing: 10
 
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Bar pod size"); detail: qsTr("Height of the left and right floating bar capsules"); value: Number(root.styleValue("barScale", 1.0)); minimum: 0.85; maximum: 1.15; step: 0.05; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("barScale", value) }
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Dock height"); detail: qsTr("Overall dock surface height"); value: RaohaneConfig.dockHeight; minimum: 48; maximum: 96; step: 2; multiplier: 1; suffix: " px"; onUserChanged: value => RaohaneConfig.dockHeight = Math.round(value) }
@@ -639,10 +666,10 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                Layout.preferredHeight: advancedToggles.implicitHeight + 18
-                surfaceRadius: 11
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                Layout.preferredHeight: advancedToggles.implicitHeight + 24
+                surfaceRadius: 14
                 showSheen: false
                 raised: false
                 color: RaohaneTheme.surfaceSubtle
@@ -654,9 +681,9 @@ Item {
                         left: parent.left
                         right: parent.right
                         top: parent.top
-                        margins: 9
+                        margins: 12
                     }
-                    spacing: 6
+                    spacing: 8
 
                     StyleToggle { Layout.fillWidth: true; title: qsTr("Context detail"); detail: qsTr("Show the second line inside Context Island"); checked: Boolean(root.styleValue("contextIslandDetail", true)); onUserToggled: value => root.setStyle("contextIslandDetail", value) }
                     StyleToggle { Layout.fillWidth: true; title: qsTr("Context indicators"); detail: qsTr("Show the three quiet state dots on the right"); checked: Boolean(root.styleValue("contextIslandIndicators", true)); onUserToggled: value => root.setStyle("contextIslandIndicators", value) }
@@ -666,12 +693,12 @@ Item {
 
             Text {
                 Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                Layout.bottomMargin: 12
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                Layout.bottomMargin: 16
                 text: qsTr("Theme, Style Studio, custom accent and Advanced Surfaces are saved in ~/.config/raohane/native.json.")
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 8
+                font.pixelSize: 9
                 wrapMode: Text.WordWrap
             }
         }
@@ -685,16 +712,16 @@ Item {
         property string actionText: ""
         signal action()
 
-        spacing: 9
+        spacing: 10
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 1
+            spacing: 2
 
             Text {
                 text: header.title
                 color: RaohaneTheme.text
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.weight: Font.DemiBold
             }
 
@@ -702,7 +729,8 @@ Item {
                 Layout.fillWidth: true
                 text: header.detail
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 8
+                font.pixelSize: 9
+                lineHeight: 1.15
                 wrapMode: Text.WordWrap
             }
         }
@@ -711,9 +739,9 @@ Item {
             id: actionButton
 
             visible: header.actionText !== ""
-            implicitWidth: actionLabel.implicitWidth + 20
-            implicitHeight: 30
-            surfaceRadius: 9
+            implicitWidth: actionLabel.implicitWidth + 22
+            implicitHeight: 34
+            surfaceRadius: 10
             showSheen: false
             raised: false
             transparentIdle: true
@@ -722,13 +750,14 @@ Item {
             interactive: true
             hoverScale: 1
             pressedScale: 1
+            border.color: actionButton.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
             Text {
                 id: actionLabel
                 anchors.centerIn: parent
                 text: header.actionText
                 color: actionButton.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
-                font.pixelSize: 8
+                font.pixelSize: 9
                 font.weight: Font.DemiBold
             }
 
@@ -750,35 +779,39 @@ Item {
         property bool checked: false
         signal userToggled(bool value)
 
-        Layout.preferredHeight: 46
-        surfaceRadius: 9
+        Layout.preferredHeight: 54
+        surfaceRadius: 11
         raised: false
         showSheen: false
         border.color: RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 9
-            spacing: 9
+            anchors.leftMargin: 12
+            anchors.rightMargin: 11
+            spacing: 10
 
             Rectangle {
-                Layout.preferredWidth: 2
-                Layout.preferredHeight: toggle.checked ? 18 : 8
-                radius: 1
+                Layout.preferredWidth: 3
+                Layout.preferredHeight: toggle.checked ? 22 : 10
+                radius: 2
                 color: RaohaneTheme.accent
                 opacity: toggle.checked ? 0.9 : 0.16
+
+                Behavior on Layout.preferredHeight {
+                    NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: 1
 
                 Text {
                     Layout.fillWidth: true
                     text: toggle.title
                     color: RaohaneTheme.text
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -787,7 +820,7 @@ Item {
                     Layout.fillWidth: true
                     text: toggle.detail
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     elide: Text.ElideRight
                 }
             }
@@ -814,8 +847,8 @@ Item {
 
         readonly property string shownValue: String(Math.round(value * multiplier)) + suffix
 
-        Layout.preferredHeight: 68
-        surfaceRadius: 11
+        Layout.preferredHeight: 78
+        surfaceRadius: 13
         showSheen: false
         raised: false
         color: RaohaneTheme.surfaceSubtle
@@ -823,22 +856,22 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 9
-            spacing: 4
+            anchors.margins: 11
+            spacing: 6
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 7
+                spacing: 8
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 0
+                    spacing: 1
 
                     Text {
                         Layout.fillWidth: true
                         text: control.title
                         color: RaohaneTheme.text
-                        font.pixelSize: 9
+                        font.pixelSize: 10
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
@@ -847,15 +880,15 @@ Item {
                         Layout.fillWidth: true
                         text: control.detail
                         color: RaohaneTheme.textMuted
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         elide: Text.ElideRight
                     }
                 }
 
                 RaohaneSurface {
-                    implicitWidth: styleValueLabel.implicitWidth + 14
-                    implicitHeight: 20
-                    surfaceRadius: 7
+                    implicitWidth: styleValueLabel.implicitWidth + 16
+                    implicitHeight: 24
+                    surfaceRadius: 8
                     raised: false
                     showSheen: false
                     hovered: studioSlider.hovered || studioSlider.activeFocus
@@ -866,7 +899,7 @@ Item {
                         anchors.centerIn: parent
                         text: control.shownValue
                         color: studioSlider.hovered || studioSlider.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                        font.pixelSize: 8
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
 
                         Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
@@ -877,7 +910,7 @@ Item {
             RaohaneSlider {
                 id: studioSlider
                 Layout.fillWidth: true
-                Layout.preferredHeight: 18
+                Layout.preferredHeight: 20
                 from: control.minimum
                 to: control.maximum
                 value: control.value
