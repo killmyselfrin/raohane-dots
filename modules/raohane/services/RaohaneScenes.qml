@@ -14,11 +14,19 @@ Singleton {
     property string activeSceneId: "balanced"
     property string activationSource: "startup"
 
+    property bool baselineCaptured: false
+    property bool baselineDnd: false
+    property bool baselineKeepAwake: false
+    property bool baselineGameMode: false
+    property bool restoringBaseline: false
+    property bool desiredGameMode: false
+
     readonly property var sceneIds: ["balanced", "gaming", "focus", "work"]
     readonly property var activePolicy: root.policyFor(root.activeSceneId)
     readonly property bool gaming: root.activeSceneId === "gaming"
 
     signal sceneActivated(string sceneId, string source)
+    signal policyApplied(string sceneId)
 
     function sanitizeSceneId(value): string {
         const requested = String(value ?? "").trim().toLowerCase()
@@ -66,18 +74,75 @@ Singleton {
         }
     }
 
+    function captureBaseline(): void {
+        if (root.baselineCaptured)
+            return
+        root.baselineDnd = RaohaneNotifications.silent
+        root.baselineKeepAwake = RaohaneIdle.inhibit
+        root.baselineGameMode = RaohanePerformance.gameModeActive
+        root.baselineCaptured = true
+    }
+
+    function requestGameMode(enabled: bool): void {
+        root.desiredGameMode = Boolean(enabled)
+        if (RaohanePerformance.busy) {
+            gameModeRetry.restart()
+            return
+        }
+        if (RaohanePerformance.gameModeActive !== root.desiredGameMode)
+            RaohanePerformance.setGameMode(root.desiredGameMode)
+        else
+            root.finishBaselineRestoreIfReady()
+    }
+
+    function finishBaselineRestoreIfReady(): void {
+        if (!root.restoringBaseline)
+            return
+        if (RaohanePerformance.busy || RaohanePerformance.gameModeActive !== root.desiredGameMode)
+            return
+        root.restoringBaseline = false
+        root.baselineCaptured = false
+    }
+
+    function applyActivePolicy(): void {
+        if (!root.ready)
+            return
+
+        if (root.activeSceneId === "balanced") {
+            if (!root.baselineCaptured)
+                return
+            root.restoringBaseline = true
+            RaohaneNotifications.silent = root.baselineDnd
+            RaohaneIdle.setInhibit(root.baselineKeepAwake)
+            root.requestGameMode(root.baselineGameMode)
+            root.policyApplied(root.activeSceneId)
+            return
+        }
+
+        root.restoringBaseline = false
+        root.captureBaseline()
+        const policy = root.activePolicy
+        RaohaneNotifications.silent = policy.notificationPolicy === "dnd"
+            ? true
+            : root.baselineDnd
+        RaohaneIdle.setInhibit(policy.keepAwake ? true : root.baselineKeepAwake)
+        root.requestGameMode(Boolean(policy.gameMode))
+        root.policyApplied(root.activeSceneId)
+    }
+
     function activate(sceneId, source): bool {
-        const next = root.sanitizeSceneId(sceneId)
-        if (!root.sceneIds.includes(String(sceneId ?? "").trim().toLowerCase()))
+        const requested = String(sceneId ?? "").trim().toLowerCase()
+        if (!root.sceneIds.includes(requested))
             return false
 
         root.activationSource = String(source ?? "manual") || "manual"
-        if (root.activeSceneId !== next)
-            root.activeSceneId = next
+        if (root.activeSceneId !== requested)
+            root.activeSceneId = requested
         else if (root.ready)
             saveTimer.restart()
 
-        root.sceneActivated(next, root.activationSource)
+        root.sceneActivated(requested, root.activationSource)
+        sceneApplyTimer.restart()
         return true
     }
 
@@ -100,7 +165,9 @@ Singleton {
             console.warn("[RaohaneScenes] Invalid scene state, using balanced:", error)
             root.activeSceneId = "balanced"
         }
+        root.activationSource = "startup"
         root.ready = true
+        startupApply.restart()
     }
 
     function saveNow(): void {
@@ -114,11 +181,43 @@ Singleton {
             saveTimer.restart()
     }
 
+    Connections {
+        target: RaohanePerformance
+
+        function onGameModeApplied(enabled: bool): void {
+            if (enabled !== root.desiredGameMode)
+                gameModeRetry.restart()
+            else
+                root.finishBaselineRestoreIfReady()
+        }
+    }
+
     Timer {
         id: saveTimer
         interval: 120
         repeat: false
         onTriggered: root.saveNow()
+    }
+
+    Timer {
+        id: sceneApplyTimer
+        interval: 20
+        repeat: false
+        onTriggered: root.applyActivePolicy()
+    }
+
+    Timer {
+        id: startupApply
+        interval: 900
+        repeat: false
+        onTriggered: root.applyActivePolicy()
+    }
+
+    Timer {
+        id: gameModeRetry
+        interval: 220
+        repeat: false
+        onTriggered: root.requestGameMode(root.desiredGameMode)
     }
 
     Process {
