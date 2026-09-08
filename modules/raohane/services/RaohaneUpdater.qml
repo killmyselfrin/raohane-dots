@@ -19,6 +19,7 @@ Singleton {
     property string latestRevision: ""
     property string channel: "main"
     property string errorText: ""
+    property string lastApplyError: ""
     property string lastCheckedText: ""
     property bool autoApplyAfterCheck: false
 
@@ -46,6 +47,7 @@ Singleton {
         if (root.applying || root.checking || !root.updateAvailable || root.latestRevision.length !== 40)
             return
         root.errorText = ""
+        root.lastApplyError = ""
         root.applying = true
         const transactionId = `${root.latestShortRevision}-${Date.now()}`
         applyProcess.command = [
@@ -77,9 +79,8 @@ Singleton {
             root.channel = String(data.channel ?? "main")
             root.updateAvailable = Boolean(data.available)
             root.lastCheckedText = Qt.formatDateTime(new Date(), "HH:mm")
-            const persistedError = String(data.last_error ?? "")
-            if (persistedError.length > 0)
-                root.errorText = persistedError
+            root.errorText = ""
+            root.lastApplyError = String(data.last_error ?? "")
 
             if (root.updateAvailable && root.automaticUpdates && root.autoApplyAfterCheck)
                 Qt.callLater(root.applyUpdate)
@@ -172,8 +173,12 @@ Singleton {
                     return
                 try {
                     const data = JSON.parse(lines[lines.length - 1])
-                    if (!data.ok)
+                    if (!data.ok) {
                         root.errorText = String(data.error ?? qsTr("Update failed"))
+                        root.lastApplyError = root.errorText
+                    } else {
+                        root.lastApplyError = ""
+                    }
                 } catch (error) {
                     // The updater may write progress before its final JSON record.
                 }
@@ -183,15 +188,19 @@ Singleton {
         stderr: StdioCollector {
             onStreamFinished: {
                 const value = String(text ?? "").trim()
-                if (value.length > 0 && root.errorText.length === 0)
+                if (value.length > 0 && root.errorText.length === 0) {
                     root.errorText = value.split("\n").pop()
+                    root.lastApplyError = root.errorText
+                }
             }
         }
 
         onExited: (exitCode, exitStatus) => {
             root.applying = false
-            if (exitCode !== 0 && root.errorText.length === 0)
+            if (exitCode !== 0 && root.errorText.length === 0) {
                 root.errorText = qsTr("Update installation failed")
+                root.lastApplyError = root.errorText
+            }
             if (exitCode === 0)
                 Qt.callLater(() => root.checkNow(false))
         }
