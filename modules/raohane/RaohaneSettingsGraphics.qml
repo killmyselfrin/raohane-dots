@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 
@@ -113,25 +114,38 @@ Item {
     }
 
     Flickable {
+        id: graphicsFlick
         anchors.fill: parent
         clip: true
         contentWidth: width
-        contentHeight: contentColumn.implicitHeight + 30
+        contentHeight: contentColumn.implicitHeight + 36
         boundsBehavior: Flickable.StopAtBounds
+        flickDeceleration: 2600
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+            width: 4
+            contentItem: Rectangle {
+                implicitWidth: 4
+                radius: 2
+                color: RaohaneTheme.accent
+                opacity: 0.42
+            }
+        }
 
         ColumnLayout {
             id: contentColumn
 
-            width: Math.min(parent.width - 32, 900)
+            width: Math.min(parent.width - 40, 920)
             anchors.top: parent.top
-            anchors.topMargin: 14
+            anchors.topMargin: 16
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 10
+            spacing: 12
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 112
-                surfaceRadius: 11
+                Layout.preferredHeight: 126
+                surfaceRadius: 14
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
@@ -140,37 +154,48 @@ Item {
                     anchors.left: parent.left
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
-                    anchors.topMargin: 14
-                    anchors.bottomMargin: 14
-                    width: 2
-                    radius: 1
+                    anchors.topMargin: 16
+                    anchors.bottomMargin: 16
+                    width: 3
+                    radius: 2
                     color: root.statusColor
                 }
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 12
-                    spacing: 12
+                    anchors.leftMargin: 18
+                    anchors.rightMargin: 14
+                    spacing: 14
 
-                    RaohaneIcon {
-                        text: root.statusIcon
-                        iconSize: 28
-                        fill: 1
-                        symbolWeight: 470
-                        grade: 25
-                        color: root.statusColor
+                    RaohaneSurface {
+                        Layout.preferredWidth: 46
+                        Layout.preferredHeight: 46
+                        surfaceRadius: 14
+                        raised: false
+                        active: true
+                        showSheen: false
+                        border.color: Qt.rgba(root.statusColor.r, root.statusColor.g, root.statusColor.b, 0.45)
+
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: root.statusIcon
+                            iconSize: 25
+                            fill: 1
+                            symbolWeight: 480
+                            grade: 25
+                            color: root.statusColor
+                        }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: 4
 
                         Text {
                             Layout.fillWidth: true
                             text: root.statusTitle
                             color: RaohaneTheme.text
-                            font.pixelSize: 15
+                            font.pixelSize: 16
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
@@ -180,6 +205,7 @@ Item {
                             text: root.statusDetail
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 9
+                            lineHeight: 1.16
                             wrapMode: Text.WordWrap
                             maximumLineCount: 3
                             elide: Text.ElideRight
@@ -199,9 +225,9 @@ Item {
 
             GridLayout {
                 Layout.fillWidth: true
-                columns: width >= 720 ? 2 : 1
-                columnSpacing: 8
-                rowSpacing: 8
+                columns: width >= 760 ? 2 : 1
+                columnSpacing: 10
+                rowSpacing: 10
 
                 InfoCard {
                     icon: "developer_board"
@@ -232,8 +258,8 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: updateColumn.implicitHeight + 28
-                surfaceRadius: 11
+                Layout.preferredHeight: updateColumn.implicitHeight + 32
+                surfaceRadius: 14
                 raised: false
                 showSheen: false
                 border.color: RaohaneGraphics.updateAvailable ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
@@ -243,29 +269,40 @@ Item {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
-                    anchors.margins: 14
-                    spacing: 8
+                    anchors.margins: 16
+                    spacing: 10
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 10
+                        spacing: 12
 
-                        RaohaneIcon {
-                            text: RaohaneGraphics.updateAvailable ? "system_update_alt" : "shield"
-                            iconSize: 22
-                            color: RaohaneGraphics.updateAvailable ? RaohaneTheme.warning : RaohaneTheme.accent
+                        RaohaneSurface {
+                            Layout.preferredWidth: 40
+                            Layout.preferredHeight: 40
+                            surfaceRadius: 12
+                            raised: false
+                            active: RaohaneGraphics.updateAvailable
+                            showSheen: false
+
+                            RaohaneIcon {
+                                anchors.centerIn: parent
+                                text: RaohaneGraphics.updateAvailable ? "system_update_alt" : "shield"
+                                iconSize: 22
+                                fill: RaohaneGraphics.updateAvailable ? 1 : 0
+                                color: RaohaneGraphics.updateAvailable ? RaohaneTheme.warning : RaohaneTheme.accent
+                            }
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 2
+                            spacing: 3
 
                             Text {
                                 text: RaohaneGraphics.updateAvailable
                                     ? qsTr("Update drivers safely")
                                     : qsTr("Driver families stay under your control")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 11
+                                font.pixelSize: 12
                                 font.weight: Font.DemiBold
                             }
 
@@ -276,12 +313,13 @@ Item {
                                     : qsTr("Raohane detects NVIDIA, nouveau, AMD and Intel stacks, but never converts one driver family into another.")
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 9
+                                lineHeight: 1.16
                                 wrapMode: Text.WordWrap
                             }
                         }
 
                         RowLayout {
-                            spacing: 6
+                            spacing: 8
 
                             ActionButton {
                                 visible: RaohaneGraphics.updateAvailable
@@ -319,8 +357,8 @@ Item {
                     RaohaneSurface {
                         visible: RaohaneGraphics.updateStatus !== "idle"
                         Layout.fillWidth: true
-                        Layout.preferredHeight: updateStateRow.implicitHeight + 20
-                        surfaceRadius: 8
+                        Layout.preferredHeight: updateStateRow.implicitHeight + 22
+                        surfaceRadius: 10
                         raised: false
                         showSheen: false
                         border.color: root.updateResultColor
@@ -330,13 +368,13 @@ Item {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
-                            spacing: 8
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            spacing: 9
 
                             RaohaneIcon {
                                 text: root.updateResultIcon
-                                iconSize: 16
+                                iconSize: 17
                                 color: root.updateResultColor
                             }
 
@@ -345,6 +383,7 @@ Item {
                                 text: root.updateResultText
                                 color: root.updateResultColor
                                 font.pixelSize: 9
+                                lineHeight: 1.15
                                 wrapMode: Text.WordWrap
                             }
                         }
@@ -353,16 +392,16 @@ Item {
                     RaohaneSurface {
                         visible: RaohaneGraphics.updateAvailable && RaohaneGraphics.updateCommand.length > 0
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 34
-                        surfaceRadius: 8
+                        Layout.preferredHeight: 38
+                        surfaceRadius: 10
                         raised: false
                         showSheen: false
                         border.color: RaohaneTheme.borderFaint
 
                         Text {
                             anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
                             verticalAlignment: Text.AlignVCenter
                             text: RaohaneGraphics.updateCommand
                             color: RaohaneTheme.text
@@ -377,8 +416,8 @@ Item {
             RaohaneSurface {
                 visible: RaohaneGraphics.notes.length > 0 && !RaohaneGraphics.updateAvailable
                 Layout.fillWidth: true
-                Layout.preferredHeight: noteText.implicitHeight + 24
-                surfaceRadius: 10
+                Layout.preferredHeight: noteText.implicitHeight + 28
+                surfaceRadius: 12
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
@@ -386,10 +425,11 @@ Item {
                 Text {
                     id: noteText
                     anchors.fill: parent
-                    anchors.margins: 12
+                    anchors.margins: 14
                     text: RaohaneGraphics.notes
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 9
+                    lineHeight: 1.16
                     wrapMode: Text.WordWrap
                 }
             }
@@ -397,13 +437,13 @@ Item {
     }
 
     component SectionLabel: Text {
-        Layout.topMargin: 4
-        Layout.leftMargin: 2
+        Layout.topMargin: 6
+        Layout.leftMargin: 3
         text: ""
         color: RaohaneTheme.textFaint
-        font.pixelSize: 8
+        font.pixelSize: 9
         font.weight: Font.DemiBold
-        font.letterSpacing: 0.9
+        font.letterSpacing: 1.0
     }
 
     component InfoCard: RaohaneSurface {
@@ -412,21 +452,31 @@ Item {
         property string value: ""
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 72
-        surfaceRadius: 10
+        Layout.preferredHeight: 82
+        surfaceRadius: 12
         raised: false
         showSheen: false
         border.color: RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 9
+            anchors.margins: 14
+            spacing: 11
 
-            RaohaneIcon {
-                text: parent.parent.icon
-                iconSize: 20
-                color: RaohaneTheme.accent
+            RaohaneSurface {
+                Layout.preferredWidth: 36
+                Layout.preferredHeight: 36
+                surfaceRadius: 11
+                raised: false
+                active: true
+                showSheen: false
+
+                RaohaneIcon {
+                    anchors.centerIn: parent
+                    text: parent.parent.parent.parent.icon
+                    iconSize: 19
+                    color: RaohaneTheme.accent
+                }
             }
 
             ColumnLayout {
@@ -436,7 +486,7 @@ Item {
                 Text {
                     text: parent.parent.label
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                 }
 
@@ -444,7 +494,8 @@ Item {
                     Layout.fillWidth: true
                     text: parent.parent.value
                     color: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 11
+                    font.weight: Font.Medium
                     elide: Text.ElideRight
                 }
             }
@@ -457,22 +508,23 @@ Item {
         property bool emphasized: false
         signal clicked()
 
-        implicitWidth: buttonRow.implicitWidth + 20
-        implicitHeight: 32
-        radius: 9
+        implicitWidth: buttonRow.implicitWidth + 22
+        implicitHeight: 36
+        radius: 10
         color: emphasized
             ? RaohaneTheme.accentSoft
             : actionMouse.containsMouse
                 ? RaohaneTheme.surfaceHover
                 : RaohaneTheme.surfaceSubtle
         border.width: 1
-        border.color: emphasized ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+        border.color: emphasized ? RaohaneTheme.accentBorder
+            : actionMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
         opacity: enabled ? 1 : 0.45
 
         RowLayout {
             id: buttonRow
             anchors.centerIn: parent
-            spacing: 6
+            spacing: 7
 
             RaohaneIcon {
                 text: parent.parent.icon
@@ -483,7 +535,7 @@ Item {
             Text {
                 text: parent.parent.label
                 color: parent.parent.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                font.pixelSize: 8
+                font.pixelSize: 9
                 font.weight: Font.DemiBold
             }
         }
@@ -493,7 +545,7 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             enabled: parent.enabled
-            cursorShape: Qt.PointingHandCursor
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: parent.clicked()
         }
     }
