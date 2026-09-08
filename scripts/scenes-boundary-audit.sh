@@ -11,17 +11,22 @@ fail() {
 
 SCENES=modules/raohane/services/RaohaneScenes.qml
 SERVICES=modules/raohane/services/qmldir
+UI_QMLDIR=modules/raohane/qmldir
 PATHS=modules/raohane/config/RaohanePaths.qml
 SEARCH=modules/raohane/services/RaohaneSearch.qml
 CONTEXT=modules/raohane/RaohaneContext.qml
 RUNTIME=modules/raohane/RaohaneRuntimeProbe.qml
+QUICK_CONTROLS=modules/raohane/RaohaneQuickControls.qml
+SWITCHER=modules/raohane/RaohaneSceneSwitcher.qml
 
-for path in "$SCENES" "$SERVICES" "$PATHS" "$SEARCH" "$CONTEXT" "$RUNTIME"; do
+for path in "$SCENES" "$SERVICES" "$UI_QMLDIR" "$PATHS" "$SEARCH" "$CONTEXT" "$RUNTIME" "$QUICK_CONTROLS" "$SWITCHER"; do
   [[ -f "$path" ]] || fail "missing scene integration path: $path"
 done
 
 rg -q '^singleton RaohaneScenes 1\.0 RaohaneScenes\.qml$' "$SERVICES" \
   || fail 'RaohaneScenes is not registered in the native services module'
+rg -q '^RaohaneSceneSwitcher 1\.0 RaohaneSceneSwitcher\.qml$' "$UI_QMLDIR" \
+  || fail 'RaohaneSceneSwitcher is not registered in the native UI module'
 rg -q 'sceneStateFile: root\.join\(root\.stateDirectory, "scenes\.json"\)' "$PATHS" \
   || fail 'scene runtime state is not stored in the Raohane state directory'
 
@@ -67,6 +72,32 @@ done
 rg -q 'active: RaohaneScenes\.activeSceneId === "gaming"' "$SEARCH" \
   || fail 'Launcher no longer exposes active scene state'
 
+for contract in \
+  'function gamingActionResults\(\): var' \
+  'RaohaneAudio\.toggleMicrophoneMute\(\)' \
+  'RaohaneAudio\.toggleMute\(\)' \
+  'RaohanePerformance\.toggleGameMode\(\)' \
+  'RaohaneNotifications\.silent = !RaohaneNotifications\.silent' \
+  'RaohaneIdle\.toggleInhibit\(\)' \
+  'RaohaneMedia\.togglePlaying\(\)' \
+  'if \(needle\.length === 0\)' \
+  'const contextual = root\.gamingActionResults\(\)'; do
+  rg -q "$contract" "$SEARCH" || fail "Gaming Launcher actions lost native service contract: $contract"
+done
+if rg -n '\bhyprctl\b|\bwpctl\b|\bnmcli\b' "$SEARCH"; then
+  fail 'contextual Launcher actions bypass native Raohane services'
+fi
+
+rg -q 'RaohaneSceneSwitcher[[:space:]]*\{' "$QUICK_CONTROLS" \
+  || fail 'runtime Quick Controls no longer exposes the scene switcher'
+for contract in \
+  'RaohaneScenes\.activate\(sceneButton\.modelData\.id, "control-center"\)' \
+  'RaohaneScenes\.setAutoSwitch\(!RaohaneScenes\.autoSwitchEnabled\)' \
+  'RaohaneScenes\.autoSceneActive' \
+  'RaohaneScenes\.activeSceneId'; do
+  rg -q "$contract" "$SWITCHER" || fail "Scene switcher lost contract: $contract"
+done
+
 rg -q 'target: RaohaneScenes' "$CONTEXT" \
   || fail 'Context Island no longer consumes scene activation events'
 rg -q 'scene: RaohaneScenes\.activeSceneId' "$CONTEXT" \
@@ -76,4 +107,4 @@ rg -q 'active: RaohaneScenes\.activeSceneId' "$RUNTIME" \
 rg -q 'policy: RaohaneScenes\.activePolicy' "$RUNTIME" \
   || fail 'Runtime probe no longer exposes effective scene policy'
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, manual override, Launcher actions and Context/diagnostic integration are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, event-driven app rules, manual override, Control Center rail, contextual Launcher actions and Context/diagnostic integration are valid\n'
