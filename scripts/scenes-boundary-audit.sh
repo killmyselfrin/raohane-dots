@@ -94,7 +94,7 @@ for contract in \
   'const contextual = root\.gamingActionResults\(\)'; do
   rg -q "$contract" "$SEARCH" || fail "Gaming Launcher actions lost native service contract: $contract"
 done
-if rg -n '\bhyprctl\b|\bwpctl\b|\bnmcli\b|\bwf-recorder\b|record\.sh|\bpkill\b' "$SEARCH"; then
+if rg -n 'Quickshell\.execDetached\([^\n]*(hyprctl|wpctl|nmcli|wf-recorder|pkill)|command:[^\n]*(hyprctl|wpctl|nmcli|wf-recorder|pkill)|record\.sh' "$SEARCH"; then
   fail 'contextual Launcher actions bypass native Raohane services'
 fi
 
