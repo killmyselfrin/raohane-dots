@@ -6,7 +6,7 @@ A desktop shell for Hyprland, built with Quickshell and Qt/QML. Dark glass surfa
 [![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
 [![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 
-**Status:** `1.2.0` — stable contextual-shell release with Scenes, application-aware switching, Launcher 2.0 actions, Context Island 2.0 activity states, native recording, and reversible runtime policy overlays. See the [release validation guide](docs/RELEASE-VALIDATION.md) and [roadmap](docs/ROADMAP.md) for validation and future work.
+**Status:** `1.2.1` — stable contextual-shell release with the 1.2 Scenes/Launcher/Context foundation plus improved lyrics readability and synced line transitions. See the [release validation guide](docs/RELEASE-VALIDATION.md) and [roadmap](docs/ROADMAP.md) for validation and future work.
 
 ## Features
 
@@ -15,7 +15,7 @@ A desktop shell for Hyprland, built with Quickshell and Qt/QML. Dark glass surfa
 - Application launcher with scene-aware actions, workspace overview, and configurable desktop widgets.
 - Control Center with Wi-Fi, Bluetooth, audio, microphone, brightness, notifications, and Scene switching.
 - Settings, theme import/export, image or video wallpapers, and per-Scene behavior controls.
-- MPRIS media controls, lyrics, and a media overlay for fullscreen applications.
+- MPRIS media controls, synced/plain lyrics, and a media overlay for fullscreen applications.
 - Screenshots, native gameplay recording, OCR, screen translation, clipboard tools, and an on-screen keyboard.
 - Lock screen, session controls, Polkit authentication, and a process manager.
 
