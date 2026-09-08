@@ -178,6 +178,11 @@ Singleton {
         if (RaohaneScenes.activeSceneId !== "gaming")
             return []
 
+        const nextOutput = RaohaneAudio.nextOutputName()
+        const outputDetail = nextOutput.length > 0 && nextOutput !== RaohaneAudio.sinkName
+            ? qsTr("%1 → %2").arg(RaohaneAudio.sinkName || qsTr("Current output")).arg(nextOutput)
+            : (RaohaneAudio.sinkName || qsTr("Audio output"))
+
         return [
             {
                 name: qsTr("Microphone"),
@@ -189,13 +194,24 @@ Singleton {
                 execute: () => RaohaneAudio.toggleMicrophoneMute()
             },
             {
-                name: qsTr("Audio"),
-                iconName: RaohaneAudio.muted ? "volume_off" : "volume_up",
+                name: qsTr("Audio output"),
+                iconName: "speaker",
                 iconType: "material",
-                verb: RaohaneAudio.muted ? qsTr("UNMUTE") : qsTr("MUTE"),
+                verb: qsTr("SWITCH"),
                 type: qsTr("Gaming action"),
-                comment: RaohaneAudio.sinkName || qsTr("Audio output"),
-                execute: () => RaohaneAudio.toggleMute()
+                comment: outputDetail,
+                execute: () => RaohaneAudio.cycleDefaultSink()
+            },
+            {
+                name: RaohaneRecorder.recording ? qsTr("Stop recording") : qsTr("Record gameplay"),
+                iconName: RaohaneRecorder.recording ? "stop_circle" : "fiber_manual_record",
+                iconType: "material",
+                verb: RaohaneRecorder.recording ? qsTr("STOP") : qsTr("RECORD"),
+                type: qsTr("Gaming action"),
+                comment: RaohaneRecorder.recording
+                    ? qsTr("Recording · %1").arg(RaohaneRecorder.ownedRecording ? RaohaneRecorder.elapsedText : qsTr("active"))
+                    : (RaohaneRecorder.available ? qsTr("Focused monitor with audio") : qsTr("wf-recorder unavailable")),
+                execute: () => RaohaneRecorder.toggleFullscreen(true)
             },
             {
                 name: qsTr("Game Mode"),
@@ -214,15 +230,6 @@ Singleton {
                 type: qsTr("Gaming action"),
                 comment: qsTr("Notification popups"),
                 execute: () => RaohaneNotifications.silent = !RaohaneNotifications.silent
-            },
-            {
-                name: qsTr("Keep Awake"),
-                iconName: RaohaneIdle.inhibit ? "coffee" : "bedtime",
-                iconType: "material",
-                verb: RaohaneIdle.inhibit ? qsTr("DISABLE") : qsTr("ENABLE"),
-                type: qsTr("Gaming action"),
-                comment: qsTr("Idle inhibition"),
-                execute: () => RaohaneIdle.toggleInhibit()
             },
             {
                 name: qsTr("Media"),
