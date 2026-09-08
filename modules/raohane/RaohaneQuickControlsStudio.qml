@@ -53,11 +53,11 @@ Item {
     ColumnLayout {
         id: studioColumn
         width: parent.width
-        spacing: 10
+        spacing: 12
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
+            spacing: 12
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -66,7 +66,7 @@ Item {
                 Text {
                     text: qsTr("Quick Controls Studio")
                     color: RaohaneTheme.text
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                 }
 
@@ -74,15 +74,16 @@ Item {
                     Layout.fillWidth: true
                     text: qsTr("Choose and reorder Control Center tiles. Changes apply live and are saved automatically.")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 9
+                    lineHeight: 1.15
                     wrapMode: Text.WordWrap
                 }
             }
 
             RaohaneSurface {
-                Layout.preferredWidth: resetRow.implicitWidth + 20
-                Layout.preferredHeight: 32
-                surfaceRadius: 10
+                Layout.preferredWidth: resetRow.implicitWidth + 22
+                Layout.preferredHeight: 36
+                surfaceRadius: 11
                 raised: false
                 interactive: true
                 hovered: resetMouse.containsMouse
@@ -90,22 +91,23 @@ Item {
                 showSheen: false
                 hoverScale: 1
                 pressedScale: 1
+                border.color: resetMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
                 RowLayout {
                     id: resetRow
                     anchors.centerIn: parent
-                    spacing: 5
+                    spacing: 6
 
                     RaohaneIcon {
                         text: "restart_alt"
-                        iconSize: 14
+                        iconSize: 15
                         color: resetMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     }
 
                     Text {
                         text: qsTr("Reset")
                         color: resetMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
-                        font.pixelSize: 8
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                     }
                 }
@@ -122,7 +124,7 @@ Item {
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: previewColumn.implicitHeight + 24
+            Layout.preferredHeight: previewColumn.implicitHeight + 28
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
@@ -136,9 +138,9 @@ Item {
                     topMargin: -68
                     rightMargin: -42
                 }
-                width: 150
-                height: 150
-                radius: 75
+                width: 158
+                height: 158
+                radius: 79
                 color: RaohaneTheme.accentSoft
                 opacity: 0.34
             }
@@ -149,17 +151,17 @@ Item {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    margins: 12
+                    margins: 14
                 }
-                spacing: 8
+                spacing: 10
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: 9
 
                     RaohaneIcon {
                         text: "dashboard_customize"
-                        iconSize: 15
+                        iconSize: 17
                         fill: 1
                         color: RaohaneTheme.accent
                     }
@@ -168,13 +170,13 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("Active tiles")
                         color: RaohaneTheme.text
-                        font.pixelSize: 9
+                        font.pixelSize: 10
                         font.weight: Font.DemiBold
                     }
 
                     RaohaneSurface {
-                        Layout.preferredWidth: previewCount.implicitWidth + 16
-                        Layout.preferredHeight: 22
+                        Layout.preferredWidth: previewCount.implicitWidth + 18
+                        Layout.preferredHeight: 26
                         surfaceRadius: 9
                         transparentIdle: true
                         showSheen: false
@@ -184,7 +186,7 @@ Item {
                             anchors.centerIn: parent
                             text: qsTr("%1 tiles").arg(root.layout.length)
                             color: RaohaneTheme.accent
-                            font.pixelSize: 7
+                            font.pixelSize: 8
                             font.weight: Font.DemiBold
                         }
                     }
@@ -193,8 +195,8 @@ Item {
                 GridLayout {
                     Layout.fillWidth: true
                     columns: 2
-                    columnSpacing: 6
-                    rowSpacing: 6
+                    columnSpacing: 8
+                    rowSpacing: 8
 
                     Repeater {
                         model: root.layout
@@ -206,21 +208,21 @@ Item {
                             readonly property string tileId: String(modelData)
 
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 39
-                            surfaceRadius: 11
+                            Layout.preferredHeight: 46
+                            surfaceRadius: 12
                             raised: false
                             showSheen: false
                             border.color: RaohaneTheme.borderFaint
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 9
-                                anchors.rightMargin: 9
-                                spacing: 7
+                                anchors.leftMargin: 11
+                                anchors.rightMargin: 11
+                                spacing: 8
 
                                 RaohaneIcon {
                                     text: RaohaneQuickControlRegistry.definition(previewTile.tileId)?.icon ?? "toggle_on"
-                                    iconSize: 14
+                                    iconSize: 16
                                     fill: 0.25
                                     color: RaohaneTheme.accent
                                 }
@@ -229,14 +231,14 @@ Item {
                                     Layout.fillWidth: true
                                     text: RaohaneQuickControlRegistry.label(previewTile.tileId)
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 8
+                                    font.pixelSize: 9
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
 
                                 Rectangle {
-                                    Layout.preferredWidth: 5
-                                    Layout.preferredHeight: 5
+                                    Layout.preferredWidth: 6
+                                    Layout.preferredHeight: 6
                                     radius: 3
                                     color: RaohaneTheme.accent
                                     opacity: 0.62
@@ -249,8 +251,8 @@ Item {
                 RaohaneSurface {
                     visible: root.sliderCount > 0
                     Layout.fillWidth: true
-                    Layout.preferredHeight: visible ? sliderPreviewRow.implicitHeight + 10 : 0
-                    surfaceRadius: 11
+                    Layout.preferredHeight: visible ? sliderPreviewRow.implicitHeight + 12 : 0
+                    surfaceRadius: 12
                     raised: false
                     showSheen: false
                     border.color: RaohaneTheme.borderFaint
@@ -261,10 +263,10 @@ Item {
                             left: parent.left
                             right: parent.right
                             verticalCenter: parent.verticalCenter
-                            leftMargin: 8
-                            rightMargin: 8
+                            leftMargin: 10
+                            rightMargin: 10
                         }
-                        spacing: 8
+                        spacing: 10
 
                         SliderPreview {
                             visible: RaohaneConfig.quickSliderBrightness
@@ -297,12 +299,12 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
-            spacing: 10
+            spacing: 12
 
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignTop
-                Layout.preferredHeight: activeColumn.implicitHeight + 22
+                Layout.preferredHeight: activeColumn.implicitHeight + 26
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
@@ -314,17 +316,17 @@ Item {
                         left: parent.left
                         right: parent.right
                         top: parent.top
-                        margins: 11
+                        margins: 13
                     }
-                    spacing: 7
+                    spacing: 9
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 8
+                        spacing: 9
 
                         RaohaneIcon {
                             text: "view_agenda"
-                            iconSize: 15
+                            iconSize: 17
                             color: RaohaneTheme.accent
                         }
 
@@ -332,7 +334,7 @@ Item {
                             Layout.fillWidth: true
                             text: qsTr("Active tiles")
                             color: RaohaneTheme.text
-                            font.pixelSize: 9
+                            font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
                     }
@@ -348,21 +350,21 @@ Item {
                             readonly property string tileId: String(modelData)
 
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 43
-                            surfaceRadius: 11
+                            Layout.preferredHeight: 50
+                            surfaceRadius: 12
                             raised: false
                             showSheen: false
                             border.color: RaohaneTheme.borderFaint
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 9
-                                anchors.rightMargin: 5
-                                spacing: 6
+                                anchors.leftMargin: 11
+                                anchors.rightMargin: 6
+                                spacing: 8
 
                                 RaohaneIcon {
                                     text: RaohaneQuickControlRegistry.definition(activeRow.tileId)?.icon ?? "toggle_on"
-                                    iconSize: 14
+                                    iconSize: 16
                                     color: RaohaneTheme.accent
                                 }
 
@@ -370,7 +372,7 @@ Item {
                                     Layout.fillWidth: true
                                     text: RaohaneQuickControlRegistry.label(activeRow.tileId)
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 8
+                                    font.pixelSize: 9
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
@@ -378,8 +380,8 @@ Item {
                                 RaohaneIconButton {
                                     enabled: activeRow.index > 0
                                     opacity: enabled ? 1 : 0.28
-                                    buttonSize: 25
-                                    iconSize: 12
+                                    buttonSize: 29
+                                    iconSize: 13
                                     icon: "arrow_upward"
                                     transparentIdle: true
                                     showSheen: false
@@ -391,8 +393,8 @@ Item {
                                 RaohaneIconButton {
                                     enabled: activeRow.index < root.layout.length - 1
                                     opacity: enabled ? 1 : 0.28
-                                    buttonSize: 25
-                                    iconSize: 12
+                                    buttonSize: 29
+                                    iconSize: 13
                                     icon: "arrow_downward"
                                     transparentIdle: true
                                     showSheen: false
@@ -404,8 +406,8 @@ Item {
                                 RaohaneIconButton {
                                     enabled: root.layout.length > 1
                                     opacity: enabled ? 1 : 0.28
-                                    buttonSize: 25
-                                    iconSize: 12
+                                    buttonSize: 29
+                                    iconSize: 13
                                     icon: "close"
                                     transparentIdle: true
                                     showSheen: false
@@ -422,7 +424,7 @@ Item {
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignTop
-                Layout.preferredHeight: Math.max(74, availableColumn.implicitHeight + 22)
+                Layout.preferredHeight: Math.max(82, availableColumn.implicitHeight + 26)
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
@@ -434,17 +436,17 @@ Item {
                         left: parent.left
                         right: parent.right
                         top: parent.top
-                        margins: 11
+                        margins: 13
                     }
-                    spacing: 7
+                    spacing: 9
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 8
+                        spacing: 9
 
                         RaohaneIcon {
                             text: "add_circle"
-                            iconSize: 15
+                            iconSize: 17
                             color: RaohaneTheme.textMuted
                         }
 
@@ -452,7 +454,7 @@ Item {
                             Layout.fillWidth: true
                             text: qsTr("Available tiles")
                             color: RaohaneTheme.text
-                            font.pixelSize: 9
+                            font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
                     }
@@ -462,7 +464,7 @@ Item {
                         Layout.fillWidth: true
                         text: qsTr("All Quick Control tiles are active.")
                         color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
+                        font.pixelSize: 9
                         wrapMode: Text.WordWrap
                     }
 
@@ -476,21 +478,21 @@ Item {
                             readonly property string tileId: String(modelData)
 
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 43
-                            surfaceRadius: 11
+                            Layout.preferredHeight: 50
+                            surfaceRadius: 12
                             raised: false
                             showSheen: false
                             border.color: RaohaneTheme.borderFaint
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 9
-                                anchors.rightMargin: 6
-                                spacing: 7
+                                anchors.leftMargin: 11
+                                anchors.rightMargin: 7
+                                spacing: 8
 
                                 RaohaneIcon {
                                     text: RaohaneQuickControlRegistry.definition(availableRow.tileId)?.icon ?? "toggle_on"
-                                    iconSize: 14
+                                    iconSize: 16
                                     color: RaohaneTheme.textMuted
                                 }
 
@@ -498,13 +500,13 @@ Item {
                                     Layout.fillWidth: true
                                     text: RaohaneQuickControlRegistry.label(availableRow.tileId)
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 8
+                                    font.pixelSize: 9
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
 
                                 RaohaneIconButton {
-                                    buttonSize: 27
+                                    buttonSize: 29
                                     iconSize: 13
                                     icon: "add"
                                     transparentIdle: true
@@ -528,34 +530,34 @@ Item {
         required property string label
         required property real value
 
-        implicitHeight: 30
+        implicitHeight: 34
 
         RowLayout {
             anchors.fill: parent
-            spacing: 5
+            spacing: 6
 
             RaohaneIcon {
                 text: sliderPreview.icon
-                iconSize: 12
+                iconSize: 13
                 color: RaohaneTheme.textMuted
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: 3
 
                 Text {
                     Layout.fillWidth: true
                     text: sliderPreview.label
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 6
+                    font.pixelSize: 7
                     font.weight: Font.Medium
                     elide: Text.ElideRight
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 3
+                    Layout.preferredHeight: 4
                     radius: 2
                     color: RaohaneTheme.borderFaint
 
