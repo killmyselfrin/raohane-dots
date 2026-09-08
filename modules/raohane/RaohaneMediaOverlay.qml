@@ -99,8 +99,8 @@ Scope {
         visible: RaohaneState.mediaOverlayOpen
         screen: root.focusedScreen
         exclusiveZone: 0
-        implicitWidth: root.lyricsFocus ? 560 : root.lyricsOpen ? 500 : 410
-        implicitHeight: root.lyricsFocus ? 430 : root.lyricsOpen ? 360 : 236
+        implicitWidth: root.lyricsFocus ? 620 : root.lyricsOpen ? 540 : 450
+        implicitHeight: root.lyricsFocus ? 470 : root.lyricsOpen ? 390 : 260
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-media-overlay"
@@ -112,8 +112,8 @@ Scope {
             right: true
         }
         margins {
-            top: 18
-            right: 18
+            top: 20
+            right: 20
         }
 
         RaohaneSurface {
@@ -135,8 +135,8 @@ Scope {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: root.lyricsFocus ? 4 : 12
-                spacing: root.lyricsFocus ? 0 : 9
+                anchors.margins: root.lyricsFocus ? 4 : 14
+                spacing: root.lyricsFocus ? 0 : 10
 
                 Item {
                     Layout.fillWidth: true
@@ -145,13 +145,13 @@ Scope {
 
                     RowLayout {
                         anchors.fill: parent
-                        spacing: 12
+                        spacing: 14
 
                         RaohaneSurface {
-                            Layout.preferredWidth: 92
-                            Layout.preferredHeight: 92
+                            Layout.preferredWidth: 102
+                            Layout.preferredHeight: 102
                             Layout.alignment: Qt.AlignVCenter
-                            surfaceRadius: 14
+                            surfaceRadius: 16
                             raised: false
                             showSheen: false
                             clip: true
@@ -170,13 +170,13 @@ Scope {
                             Column {
                                 anchors.centerIn: parent
                                 visible: !RaohaneMedia.available || coverArt.status !== Image.Ready
-                                spacing: 2
+                                spacing: 3
 
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "音"
                                     color: RaohaneTheme.accent
-                                    font.pixelSize: 27
+                                    font.pixelSize: 30
                                     font.weight: Font.DemiBold
                                 }
 
@@ -184,8 +184,8 @@ Scope {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "RAOHANE"
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 6
-                                    font.letterSpacing: 0.8
+                                    font.pixelSize: 7
+                                    font.letterSpacing: 0.9
                                 }
                             }
                         }
@@ -193,11 +193,11 @@ Scope {
                         ColumnLayout {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            spacing: 3
+                            spacing: 4
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 5
+                                spacing: 6
 
                                 Text {
                                     Layout.fillWidth: true
@@ -205,7 +205,7 @@ Scope {
                                         ? (RaohaneMedia.playerName || qsTr("Media player"))
                                         : qsTr("No player")
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 6
+                                    font.pixelSize: 7
                                     font.weight: Font.Medium
                                     elide: Text.ElideRight
                                 }
@@ -232,7 +232,7 @@ Scope {
                                     ? RaohaneMedia.title
                                     : qsTr("Nothing is playing")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 13
+                                font.pixelSize: 14
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
@@ -243,7 +243,7 @@ Scope {
                                     ? RaohaneMedia.artist
                                     : qsTr("Start a MPRIS-compatible player")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 8
+                                font.pixelSize: 9
                                 elide: Text.ElideRight
                             }
 
@@ -251,14 +251,14 @@ Scope {
 
                             RaohaneSlider {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 18
+                                Layout.preferredHeight: 20
                                 from: 0
                                 to: 1
                                 stepSize: 0.001
                                 value: RaohaneMedia.progress
                                 enabled: RaohaneMedia.canSeek
                                 showHandle: false
-                                trackHeight: 4
+                                trackHeight: 5
                                 onMoved: ratio => RaohaneMedia.seekRatio(ratio)
                             }
 
@@ -268,7 +268,7 @@ Scope {
                                 Text {
                                     text: RaohaneMedia.formatTime(RaohaneMedia.position)
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 6
+                                    font.pixelSize: 7
                                 }
                                 Item { Layout.fillWidth: true }
                                 Text {
@@ -276,7 +276,7 @@ Scope {
                                         ? RaohaneMedia.formatTime(RaohaneMedia.length)
                                         : "—"
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 6
+                                    font.pixelSize: 7
                                 }
                             }
                         }
@@ -288,7 +288,7 @@ Scope {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     visible: root.lyricsOpen
-                    surfaceRadius: root.lyricsFocus ? 0 : 14
+                    surfaceRadius: root.lyricsFocus ? 0 : 15
                     showSheen: false
                     showInnerRim: !root.lyricsFocus
                     raised: false
@@ -299,13 +299,13 @@ Scope {
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: root.lyricsFocus ? 14 : 9
-                        spacing: root.lyricsFocus ? 0 : 7
+                        anchors.margins: root.lyricsFocus ? 16 : 10
+                        spacing: root.lyricsFocus ? 0 : 8
 
                         RowLayout {
                             Layout.fillWidth: true
                             visible: !root.lyricsFocus
-                            spacing: 7
+                            spacing: 8
 
                             MiniButton {
                                 icon: "arrow_back"
@@ -315,13 +315,13 @@ Scope {
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: 0
+                                spacing: 1
 
                                 Text {
                                     Layout.fillWidth: true
                                     text: qsTr("Lyrics")
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 11
+                                    font.pixelSize: 12
                                     font.weight: Font.DemiBold
                                 }
 
@@ -331,7 +331,7 @@ Scope {
                                         ? qsTr("Synced · %1").arg(RaohaneLyrics.providerName)
                                         : qsTr("%1 · %2").arg(RaohaneMedia.artist).arg(RaohaneMedia.title)
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 6
+                                    font.pixelSize: 7
                                     elide: Text.ElideRight
                                 }
                             }
@@ -364,39 +364,39 @@ Scope {
                             Column {
                                 anchors.centerIn: parent
                                 visible: RaohaneLyrics.loading
-                                spacing: 7
+                                spacing: 8
 
                                 RaohaneIcon {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "lyrics"
-                                    iconSize: 26
+                                    iconSize: 28
                                     color: RaohaneTheme.accent
                                 }
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: qsTr("Looking for lyrics…")
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 9
+                                    font.pixelSize: 10
                                 }
                             }
 
                             Column {
                                 anchors.centerIn: parent
-                                width: Math.min(parent.width - 28, 390)
+                                width: Math.min(parent.width - 32, 420)
                                 visible: !RaohaneLyrics.loading && RaohaneLyrics.instrumental
-                                spacing: 6
+                                spacing: 7
 
                                 RaohaneIcon {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "graphic_eq"
-                                    iconSize: 28
+                                    iconSize: 30
                                     color: RaohaneTheme.accent
                                 }
                                 Text {
                                     width: parent.width
                                     text: qsTr("Instrumental track")
                                     color: RaohaneTheme.text
-                                    font.pixelSize: 11
+                                    font.pixelSize: 12
                                     font.weight: Font.DemiBold
                                     horizontalAlignment: Text.AlignHCenter
                                 }
@@ -404,7 +404,7 @@ Scope {
                                     width: parent.width
                                     text: qsTr("No vocal lyrics are expected for this recording.")
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 8
+                                    font.pixelSize: 9
                                     horizontalAlignment: Text.AlignHCenter
                                     wrapMode: Text.WordWrap
                                 }
@@ -412,14 +412,14 @@ Scope {
 
                             Column {
                                 anchors.centerIn: parent
-                                width: Math.min(parent.width - 28, 390)
+                                width: Math.min(parent.width - 32, 420)
                                 visible: !RaohaneLyrics.loading && !RaohaneLyrics.available && !RaohaneLyrics.instrumental
-                                spacing: 6
+                                spacing: 7
 
                                 RaohaneIcon {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "lyrics"
-                                    iconSize: 26
+                                    iconSize: 28
                                     color: RaohaneTheme.textFaint
                                 }
                                 Text {
@@ -428,7 +428,7 @@ Scope {
                                         ? RaohaneLyrics.errorText
                                         : qsTr("Lyrics are not available yet")
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 8
+                                    font.pixelSize: 9
                                     horizontalAlignment: Text.AlignHCenter
                                     wrapMode: Text.WordWrap
                                 }
@@ -439,7 +439,7 @@ Scope {
                                 anchors.fill: parent
                                 visible: !RaohaneLyrics.loading && RaohaneLyrics.available && !RaohaneLyrics.instrumental
                                 clip: true
-                                spacing: root.lyricsFocus ? 8 : 2
+                                spacing: root.lyricsFocus ? 9 : 3
                                 model: RaohaneLyrics.displayLines
                                 currentIndex: RaohaneLyrics.syncedAvailable ? RaohaneLyrics.currentLineIndex : -1
                                 boundsBehavior: Flickable.StopAtBounds
@@ -466,7 +466,7 @@ Scope {
                                         : Math.abs(index - RaohaneLyrics.currentLineIndex)
 
                                     width: ListView.view.width
-                                    height: lyricText.implicitHeight + (root.lyricsFocus ? 28 : 12)
+                                    height: lyricText.implicitHeight + (root.lyricsFocus ? 30 : 14)
                                     opacity: !root.lyricsFocus
                                         ? 1
                                         : current
@@ -486,7 +486,7 @@ Scope {
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        radius: 9
+                                        radius: 10
                                         color: lyricLine.current && !root.lyricsFocus
                                             ? RaohaneTheme.accentSoft
                                             : "transparent"
@@ -500,14 +500,14 @@ Scope {
                                             left: parent.left
                                             right: parent.right
                                             verticalCenter: parent.verticalCenter
-                                            leftMargin: root.lyricsFocus ? 18 : 9
-                                            rightMargin: root.lyricsFocus ? 18 : 9
+                                            leftMargin: root.lyricsFocus ? 20 : 10
+                                            rightMargin: root.lyricsFocus ? 20 : 10
                                         }
                                         text: String(lyricLine.modelData.text ?? "")
                                         color: root.lyricsFocus
                                             ? (lyricLine.current ? root.lyricsFocusActive : root.lyricsFocusSecondary)
                                             : (lyricLine.current ? RaohaneTheme.text : RaohaneTheme.textMuted)
-                                        font.pixelSize: root.lyricsFocus ? 13 : 9
+                                        font.pixelSize: root.lyricsFocus ? 14 : 10
                                         font.weight: lyricLine.current ? Font.DemiBold : root.lyricsFocus ? Font.Medium : Font.Normal
                                         wrapMode: Text.WordWrap
                                         horizontalAlignment: Text.AlignHCenter
@@ -567,18 +567,18 @@ Scope {
                 RaohaneSurface {
                     id: transportRail
                     Layout.fillWidth: true
-                    Layout.preferredHeight: root.lyricsFocus ? 0 : 50
+                    Layout.preferredHeight: root.lyricsFocus ? 0 : 54
                     visible: !root.lyricsFocus
-                    surfaceRadius: 13
+                    surfaceRadius: 14
                     showSheen: false
                     raised: false
                     border.color: RaohaneTheme.borderFaint
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 8
-                        spacing: 6
+                        anchors.leftMargin: 9
+                        anchors.rightMargin: 9
+                        spacing: 7
 
                         MiniButton {
                             visible: root.lyricsOpen
@@ -640,8 +640,8 @@ Scope {
 
     component MiniButton: RaohaneIconButton {
         property string tooltip: ""
-        buttonSize: 28
-        iconSize: 14
+        buttonSize: 30
+        iconSize: 15
         transparentIdle: true
         showSheen: false
         hoverScale: 1
@@ -650,9 +650,9 @@ Scope {
 
     component MainButton: RaohaneIconButton {
         id: control
-        buttonSize: control.emphasized ? 36 : 32
-        iconSize: control.emphasized ? 18 : 16
-        surfaceRadius: control.emphasized ? 12 : 10
+        buttonSize: control.emphasized ? 38 : 34
+        iconSize: control.emphasized ? 19 : 17
+        surfaceRadius: control.emphasized ? 13 : 11
         showSheen: false
         hoverScale: 1
         pressedScale: 1
