@@ -101,6 +101,20 @@ for contract in \
   'const contextual = root\.gamingActionResults\(\)'; do
   rg -q "$contract" "$SEARCH" || fail "Gaming Launcher actions lost native service contract: $contract"
 done
+
+for contract in \
+  'function sceneManagementResults\(needle: string\): var' \
+  'RaohaneScenes\.setAutoSwitch\(!RaohaneScenes\.autoSwitchEnabled\)' \
+  'RaohaneScenes\.clearManualOverride\(\)' \
+  'for \(const sceneId of RaohaneScenes\.sceneIds\)' \
+  'RaohaneScenes\.setRule\(appId, "exact", sceneId\)' \
+  'RaohaneScenes\.matchingRuleFor\(appId\)' \
+  'RaohaneScenes\.removeRule\(activeRule\.pattern, activeRule\.match\)' \
+  'const contextualManagement = root\.sceneManagementResults\(needle\)' \
+  'return contextualManagement\.concat\(builtIns\)'; do
+  rg -q "$contract" "$SEARCH" || fail "Launcher 2.0 scene management lost native contract: $contract"
+done
+
 if rg -n 'Quickshell\.execDetached\([^\n]*(hyprctl|wpctl|nmcli|wf-recorder|pkill)|command:[^\n]*(hyprctl|wpctl|nmcli|wf-recorder|pkill)|record\.sh' "$SEARCH"; then
   fail 'contextual Launcher actions bypass native Raohane services'
 fi
@@ -195,4 +209,4 @@ for contract in \
   rg -q "$contract" "$RUNTIME" || fail "Runtime recorder diagnostics lost contract: $contract"
 done
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Settings management, native gaming actions, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Settings management, native gaming actions, Launcher 2.0 scene management, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
