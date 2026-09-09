@@ -175,6 +175,8 @@ QtObject {
         { section: "themes", key: "themePreset", label: qsTr("Theme library"), detail: qsTr("Themes") },
         { section: "bar", key: "barModuleLayout", label: qsTr("Bar modules"), detail: qsTr("Bar Studio") },
         { section: "quick", key: "quickControlTiles", label: qsTr("Quick Control tiles"), detail: qsTr("Quick Controls Studio") },
+        { section: "general", key: "mediaOverlayPosition", label: qsTr("Player position"), detail: qsTr("Media & OSD") },
+        { section: "general", key: "mediaOverlayGamingPosition", label: qsTr("Gaming position"), detail: qsTr("Media & OSD") },
         { section: "scenes", key: "scenes", label: qsTr("Scenes and app rules"), detail: qsTr("Scenes") },
         { section: "widgets", key: "desktopWidgetsLayout", label: qsTr("Composition preset"), detail: qsTr("Desktop Widgets") },
         { section: "widgets", key: "desktopWidgetComposition", label: qsTr("Widget positions"), detail: qsTr("Desktop Widgets") },

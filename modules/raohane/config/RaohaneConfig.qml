@@ -106,6 +106,9 @@ Singleton {
 
     property bool contextIslandEnabled: true
     property bool mediaOverlayEnabled: true
+    property string mediaOverlayPosition: "bottom-right"
+    property string mediaOverlayGamingPosition: "bottom-right"
+    property int mediaOverlayGamingAutoHideSeconds: 8
     property bool integrationMode: true
     property string themePreset: "zen-mist"
 
@@ -356,6 +359,18 @@ Singleton {
         return Math.max(minimum, Math.min(maximum, number))
     }
 
+    function sanitizeMediaOverlayPosition(value): string {
+        const requested = String(value ?? "").trim().toLowerCase()
+        const allowed = ["top-left", "top-right", "bottom-left", "bottom-right"]
+        return allowed.includes(requested) ? requested : "bottom-right"
+    }
+
+    function sanitizeMediaOverlayGamingAutoHideSeconds(value): int {
+        const requested = Math.round(Number(value))
+        const allowed = [0, 4, 8, 15]
+        return allowed.includes(requested) ? requested : 8
+    }
+
     function sanitizeStyle(value): var {
         const input = value && typeof value === "object" ? value : {}
         const allowedModes = ["theme", "ink", "sakura", "matcha", "slate", "sand", "custom"]
@@ -487,6 +502,9 @@ Singleton {
             features: {
                 contextIsland: root.contextIslandEnabled,
                 mediaOverlay: root.mediaOverlayEnabled,
+                mediaOverlayPosition: root.sanitizeMediaOverlayPosition(root.mediaOverlayPosition),
+                mediaOverlayGamingPosition: root.sanitizeMediaOverlayPosition(root.mediaOverlayGamingPosition),
+                mediaOverlayGamingAutoHideSeconds: root.sanitizeMediaOverlayGamingAutoHideSeconds(root.mediaOverlayGamingAutoHideSeconds),
                 integrationMode: root.integrationMode,
                 themePreset: root.themePreset
             },
@@ -628,6 +646,9 @@ Singleton {
 
         root.assignIfPresent(features, "contextIsland", value => root.contextIslandEnabled = Boolean(value))
         root.assignIfPresent(features, "mediaOverlay", value => root.mediaOverlayEnabled = Boolean(value))
+        root.assignIfPresent(features, "mediaOverlayPosition", value => root.mediaOverlayPosition = root.sanitizeMediaOverlayPosition(value))
+        root.assignIfPresent(features, "mediaOverlayGamingPosition", value => root.mediaOverlayGamingPosition = root.sanitizeMediaOverlayPosition(value))
+        root.assignIfPresent(features, "mediaOverlayGamingAutoHideSeconds", value => root.mediaOverlayGamingAutoHideSeconds = root.sanitizeMediaOverlayGamingAutoHideSeconds(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
         root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "zen-mist"))
 
@@ -766,6 +787,9 @@ Singleton {
     onDesktopWidgetsOpacityChanged: scheduleSave()
     onContextIslandEnabledChanged: scheduleSave()
     onMediaOverlayEnabledChanged: scheduleSave()
+    onMediaOverlayPositionChanged: scheduleSave()
+    onMediaOverlayGamingPositionChanged: scheduleSave()
+    onMediaOverlayGamingAutoHideSecondsChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
     onThemePresetChanged: scheduleSave()
     onSakuraEnabledChanged: scheduleSave()

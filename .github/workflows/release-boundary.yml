@@ -51,7 +51,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install audit dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq ripgrep
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r source; do
+            [[ -n "$source" ]] || continue
+            sudo mv "$source" "$source.disabled"
+          done < <(grep -RIl 'dl.google.com/linux/chrome-stable/deb' /etc/apt/sources.list.d 2>/dev/null || true)
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y jq ripgrep
 
       - name: Validate release scripts
         shell: bash

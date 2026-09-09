@@ -13,13 +13,19 @@ Item {
     property string eventTone: "info"
     property real eventProgress: -1
     property bool eventSignalsReady: false
+    property bool sceneTransitionMuted: false
 
     readonly property bool gameplayRecording: RaohaneRecorder.recording
     readonly property bool recording: root.gameplayRecording || RaohanePrivacy.recordingActive
     readonly property bool microphone: RaohanePrivacy.microphoneActive
     readonly property bool camera: RaohanePrivacy.cameraActive
 
-    readonly property bool mediaActive: RaohaneMedia.available
+    // The Context Island is the compact media surface. Once the dedicated
+    // overlay is open, do not repeat the same track in two places; fall
+    // through to the active Scene/window while keeping recording, privacy and
+    // transient events at their higher priorities.
+    readonly property bool mediaOverlayVisible: RaohaneState.mediaOverlayOpen
+    readonly property bool mediaActive: RaohaneMedia.available && !root.mediaOverlayVisible
     readonly property string mediaTitle: RaohaneMedia.title
     readonly property string mediaArtist: RaohaneMedia.artist
 
@@ -235,6 +241,7 @@ Item {
             camera: camera,
             unclassifiedVideoCapture: RaohanePrivacy.unclassifiedVideoCaptureActive,
             mediaActive: mediaActive,
+            mediaOverlayVisible: mediaOverlayVisible,
             mediaTitle: mediaTitle,
             mediaArtist: mediaArtist,
             windowTitle: windowTitle,
@@ -247,7 +254,8 @@ Item {
             sceneSourceAppId: sceneSourceAppId,
             sceneRulePattern: sceneRulePattern,
             sceneRuleMatch: sceneRuleMatch,
-            sceneRuleBuiltin: sceneRuleBuiltin
+            sceneRuleBuiltin: sceneRuleBuiltin,
+            sceneTransitionMuted: sceneTransitionMuted
         })
     }
 
@@ -308,6 +316,8 @@ Item {
         function onSceneActivated(sceneId: string, source: string): void {
             if (!root.eventSignalsReady)
                 return
+            root.sceneTransitionMuted = true
+            sceneTransitionTimer.restart()
             root.showEvent(
                 root.sceneLabel(sceneId),
                 root.sceneDetail(sceneId),
@@ -316,6 +326,12 @@ Item {
                 -1,
                 2800
             )
+        }
+
+        function onPolicyApplied(sceneId: string): void {
+            if (!root.sceneTransitionMuted)
+                return
+            sceneTransitionTimer.restart()
         }
     }
 
@@ -373,7 +389,7 @@ Item {
         target: RaohaneNotifications
 
         function onSilentChanged(): void {
-            if (!root.eventSignalsReady)
+            if (!root.eventSignalsReady || root.sceneTransitionMuted)
                 return
             root.showEvent(
                 RaohaneNotifications.silent ? qsTr("Do Not Disturb") : qsTr("Notifications on"),
@@ -390,7 +406,7 @@ Item {
         target: RaohanePerformance
 
         function onGameModeApplied(enabled: bool): void {
-            if (!root.eventSignalsReady)
+            if (!root.eventSignalsReady || root.sceneTransitionMuted)
                 return
             root.showEvent(
                 enabled ? qsTr("Performance mode") : qsTr("Desktop effects restored"),
@@ -424,7 +440,7 @@ Item {
         target: RaohaneIdle
 
         function onInhibitChanged(): void {
-            if (!root.eventSignalsReady)
+            if (!root.eventSignalsReady || root.sceneTransitionMuted)
                 return
             root.showEvent(
                 RaohaneIdle.inhibit ? qsTr("Keep Awake") : qsTr("Normal idle"),
@@ -473,6 +489,13 @@ Item {
         interval: 140
         repeat: false
         onTriggered: root.showNetworkEvent()
+    }
+
+    Timer {
+        id: sceneTransitionTimer
+        interval: 1800
+        repeat: false
+        onTriggered: root.sceneTransitionMuted = false
     }
 
     Timer {

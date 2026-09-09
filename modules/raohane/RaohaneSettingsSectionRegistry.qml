@@ -19,6 +19,14 @@ QtObject {
             source: "RaohaneQuickControlsStudio.qml",
             controlKeys: ["quickControlTiles"]
         },
+        general: {
+            source: "RaohaneMediaStudio.qml",
+            controlKeys: [
+                "mediaOverlayPosition",
+                "mediaOverlayGamingPosition",
+                "mediaOverlayGamingAutoHideSeconds"
+            ]
+        },
         interface: {
             source: "RaohaneSakuraSettings.qml",
             controlKeys: [

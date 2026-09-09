@@ -1,5 +1,23 @@
 # Raohane changelog
 
+## 1.3.0-dev — Media experience
+
+- Start the 1.3 feature cycle from stable 1.2.1 with a dedicated media/player redesign instead of extending the old stacked-card composition.
+- Move the media overlay out of the screen-center focus area and rebuild it as an adaptive edge player that shares one native MPRIS implementation across desktop and Gaming use.
+- Keep Gaming Scene intentionally compact at 430×108 with artwork, title/artist, progress and previous/play-next while suppressing secondary album, volume, Raise Player and player-selection chrome.
+- Add independent persisted `Player position` and `Gaming position` controls under Settings → Media & OSD with Top Left, Top Right, Bottom Left and Bottom Right choices.
+- Replace the initial generic position rows with a visual Media Position Studio: separate Desktop/Gaming monitor previews, directly clickable corners, active-policy state and a live action that opens the real overlay from Settings.
+- Apply corner changes live through `RaohaneConfig` without shell commands or polling, with sanitized fallback to Bottom Right for invalid or legacy configuration values.
+- Keep Lyrics attached to the selected media corner and let the Gaming position remain authoritative while Gaming Scene is active; lyrics-only stays a clean high-contrast overlay rather than inheriting the compact player geometry.
+- Remove lyric-line scale animation and animated color/style/opacity Behaviors so synced text remains a stable reading target; only the ListView position may move to recenter the current line.
+- Add compact elapsed/remaining timeline feedback around the existing seek slider without increasing the 430×108 Gaming geometry.
+- Make Context Island a compact media entry point instead of a second partial player: clicking media context opens the dedicated overlay, and the Island stops duplicating track state while that overlay is visible.
+- Coalesce Scene activation feedback so DND, Keep Awake and Game Mode changes applied by the Scene do not cascade into several distracting Context Island events; manual changes outside the transition window still surface normally.
+- Preserve recording/privacy/transient-event priority above media/scene context and expose media-overlay/scene-transition state through runtime diagnostics.
+- Preserve click-to-seek, LRCLIB resolution, player cycling, optional MPRIS volume and native `RaohaneMedia` ownership without adding `playerctl` or presentation-layer shell processes.
+- Expand the Media Overlay boundary across overlay geometry, native config persistence, Settings ownership, visual positioning, live preview, timeline feedback and Context Island handoff so the 1.3 interaction model cannot silently regress.
+- Harden media/general/release CI dependency setup against unrelated hosted-runner Chrome apt Hash Sum mismatches while keeping runtime code unchanged.
+
 ## 1.2.1 — Lyrics flow hotfix
 
 - Fix lyrics-only rendering for plain LRCLIB lyrics so non-synced text stays readable instead of inheriting the distant-line fade intended for synced lyrics.

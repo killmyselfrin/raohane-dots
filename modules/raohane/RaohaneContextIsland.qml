@@ -12,7 +12,8 @@ RaohaneSurface {
     readonly property bool showIndicators: styleConfig.contextIslandIndicators === undefined ? true : Boolean(styleConfig.contextIslandIndicators)
     readonly property bool priorityMode: RaohaneContext.mode === "recording" || RaohaneContext.mode === "privacy"
     readonly property bool progressMode: RaohaneContext.mode === "event" && RaohaneContext.eventProgress >= 0
-    readonly property bool mediaProgressMode: RaohaneContext.mode === "media"
+    readonly property bool mediaMode: RaohaneContext.mode === "media"
+    readonly property bool mediaProgressMode: root.mediaMode
         && RaohaneMedia.available
         && RaohaneMedia.length > 0
     readonly property bool showProgress: root.progressMode || root.mediaProgressMode
@@ -31,7 +32,7 @@ RaohaneSurface {
         && RaohaneContext.mode !== "event"
         && !root.showProgress
     readonly property bool gameplayRecording: RaohaneContext.gameplayRecording
-    readonly property bool indicatorIsIcon: RaohaneContext.mode === "media"
+    readonly property bool indicatorIsIcon: root.mediaMode
         || RaohaneContext.mode === "scene"
         || root.gameplayRecording
         || (root.sceneActive && !root.priorityMode && RaohaneContext.mode !== "event")
@@ -63,7 +64,7 @@ RaohaneSurface {
                     : RaohaneContext.mode === "window"
                         ? RaohaneTheme.accentSecondary
                         : RaohaneTheme.accent
-    readonly property int modeMinimumWidth: RaohaneContext.mode === "media" ? 220
+    readonly property int modeMinimumWidth: root.mediaMode ? 220
         : RaohaneContext.mode === "privacy" ? 208
         : RaohaneContext.mode === "recording" ? 218
         : RaohaneContext.mode === "event" ? (root.progressMode ? 214 : 196)
@@ -81,7 +82,7 @@ RaohaneSurface {
     }
 
     readonly property string indicatorIcon: root.gameplayRecording ? "stop_circle"
-        : RaohaneContext.mode === "media" ? (RaohaneMedia.isPlaying ? "pause" : "play_arrow")
+        : root.mediaMode ? "open_in_new"
         : RaohaneContext.mode === "scene" ? (root.sceneAutomatic ? "auto_awesome" : "touch_app")
         : root.sceneActive ? root.sceneIcon(root.sceneId)
         : "circle"
@@ -184,7 +185,7 @@ RaohaneSurface {
             anchors.centerIn: parent
             text: RaohaneContext.icon
             iconSize: root.priorityMode ? 16 : 15
-            fill: RaohaneContext.mode === "media"
+            fill: root.mediaMode
                 || RaohaneContext.mode === "recording"
                 || RaohaneContext.mode === "privacy"
                 || RaohaneContext.mode === "event"
@@ -269,7 +270,7 @@ RaohaneSurface {
             fill: 1
             symbolWeight: 600
             color: root.gameplayRecording ? RaohaneTheme.critical
-                : RaohaneContext.mode === "media" ? root.modeColor
+                : root.mediaMode ? root.modeColor
                 : root.sceneColor
             scale: recorderMouse.containsMouse && root.gameplayRecording ? 1.08 : 1
 
@@ -314,6 +315,16 @@ RaohaneSurface {
             }
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
+    }
+
+    MouseArea {
+        id: mediaOpenArea
+        anchors.fill: parent
+        z: 40
+        enabled: root.mediaMode
+        hoverEnabled: enabled
+        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+        onClicked: RaohaneState.mediaOverlayOpen = true
     }
 
     TextMetrics {

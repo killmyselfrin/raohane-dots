@@ -16,7 +16,7 @@ Item {
     readonly property bool textRow: root.entry?.type === "text"
     readonly property bool choiceRow: root.entry?.type === "choice"
     readonly property var choiceOptions: Array.isArray(root.entry?.options) ? root.entry.options : []
-    readonly property bool rowHovered: settingMouse.containsMouse || activeFocus
+    readonly property bool rowHovered: rowHover.hovered || activeFocus
 
     height: root.textRow ? 76 : 64
     activeFocusOnTab: root.toggleRow || root.choiceRow
@@ -278,15 +278,21 @@ Item {
         color: RaohaneTheme.borderFaint
     }
 
+    // Hover feedback must remain passive. A row-wide MouseArea above the
+    // control surfaces would steal pointer input from choice/number/text rows.
+    HoverHandler {
+        id: rowHover
+    }
+
     MouseArea {
         id: settingMouse
         anchors.fill: parent
-        hoverEnabled: true
-        acceptedButtons: root.toggleRow ? Qt.LeftButton : Qt.NoButton
-        cursorShape: root.toggleRow ? Qt.PointingHandCursor : Qt.ArrowCursor
+        enabled: root.toggleRow
+        acceptedButtons: Qt.LeftButton
+        cursorShape: Qt.PointingHandCursor
         onPressed: root.forceActiveFocus()
         onClicked: {
-            if (root.toggleRow && root.entry)
+            if (root.entry)
                 RaohaneConfig[root.entry.key] = !Boolean(RaohaneConfig[root.entry.key])
         }
     }
