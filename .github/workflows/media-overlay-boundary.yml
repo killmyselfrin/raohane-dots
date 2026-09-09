@@ -1,0 +1,41 @@
+name: Media overlay boundary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/raohane/RaohaneMediaOverlay.qml'
+      - 'modules/raohane/services/RaohaneMedia.qml'
+      - 'modules/raohane/services/RaohaneLyrics.qml'
+      - 'scripts/media-overlay-boundary-audit.sh'
+      - '.github/workflows/media-overlay-boundary.yml'
+  pull_request:
+    paths:
+      - 'modules/raohane/RaohaneMediaOverlay.qml'
+      - 'modules/raohane/services/RaohaneMedia.qml'
+      - 'modules/raohane/services/RaohaneLyrics.qml'
+      - 'scripts/media-overlay-boundary-audit.sh'
+      - '.github/workflows/media-overlay-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  media-overlay-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Install audit dependencies
+        run: sudo apt-get update && sudo apt-get install -y ripgrep qt6-declarative-dev-tools
+
+      - name: Validate audit syntax
+        run: bash -n scripts/media-overlay-boundary-audit.sh
+
+      - name: Parse media overlay QML
+        run: /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaOverlay.qml >/dev/null
+
+      - name: Validate media overlay boundary
+        run: bash scripts/media-overlay-boundary-audit.sh
