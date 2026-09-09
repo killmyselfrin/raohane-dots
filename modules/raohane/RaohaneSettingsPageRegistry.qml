@@ -69,13 +69,6 @@ QtObject {
         "quick", "general", "bar", "desktop", "widgets", "interface", "hyprland", "services", "profile"
     ]
 
-    readonly property var mediaPositionOptions: [
-        { value: "top-left", label: qsTr("Top left"), icon: "north_west" },
-        { value: "top-right", label: qsTr("Top right"), icon: "north_east" },
-        { value: "bottom-left", label: qsTr("Bottom left"), icon: "south_west" },
-        { value: "bottom-right", label: qsTr("Bottom right"), icon: "south_east" }
-    ]
-
     readonly property var sectionSchemas: ({
         quick: {
             description: qsTr("Choose the controls that belong in the compact Control Center surface."),
@@ -90,8 +83,6 @@ QtObject {
             entries: [
                 { type: "toggle", key: "contextIslandEnabled", label: qsTr("Context Island"), detail: qsTr("Show live media, privacy and active-window context") },
                 { type: "toggle", key: "mediaOverlayEnabled", label: qsTr("Media overlay"), detail: qsTr("Enable Raohane media overlay surfaces") },
-                { type: "choice", key: "mediaOverlayPosition", label: qsTr("Player position"), detail: qsTr("Choose the screen corner used by the media overlay"), options: root.mediaPositionOptions },
-                { type: "choice", key: "mediaOverlayGamingPosition", label: qsTr("Gaming position"), detail: qsTr("Use a separate corner while the Gaming Scene is active"), options: root.mediaPositionOptions },
                 { type: "number", key: "osdTimeout", label: qsTr("OSD timeout"), detail: qsTr("Milliseconds before the native OSD closes"), min: 250, max: 10000, step: 250 },
                 { type: "number", key: "colorTemperature", label: qsTr("Night temperature"), detail: qsTr("Target color temperature in Kelvin"), min: 1000, max: 10000, step: 250 },
                 { type: "toggle", key: "nightLightAutomatic", label: qsTr("Automatic night light"), detail: qsTr("Allow Raohane display service to automate color temperature") }
@@ -184,6 +175,8 @@ QtObject {
         { section: "themes", key: "themePreset", label: qsTr("Theme library"), detail: qsTr("Themes") },
         { section: "bar", key: "barModuleLayout", label: qsTr("Bar modules"), detail: qsTr("Bar Studio") },
         { section: "quick", key: "quickControlTiles", label: qsTr("Quick Control tiles"), detail: qsTr("Quick Controls Studio") },
+        { section: "general", key: "mediaOverlayPosition", label: qsTr("Player position"), detail: qsTr("Media & OSD") },
+        { section: "general", key: "mediaOverlayGamingPosition", label: qsTr("Gaming position"), detail: qsTr("Media & OSD") },
         { section: "scenes", key: "scenes", label: qsTr("Scenes and app rules"), detail: qsTr("Scenes") },
         { section: "widgets", key: "desktopWidgetsLayout", label: qsTr("Composition preset"), detail: qsTr("Desktop Widgets") },
         { section: "widgets", key: "desktopWidgetComposition", label: qsTr("Widget positions"), detail: qsTr("Desktop Widgets") },
