@@ -21,7 +21,6 @@
   "LIVE · GAMING": "LIVE · ИГРА",
   "LIVE · DESKTOP": "LIVE · DESKTOP",
   "STANDBY": "ОЖИДАНИЕ",
-  "ACTIVE": "АКТИВНО",
   "Changes are saved immediately. Preview opens the real overlay using the policy active for the current Scene.": "Изменения сохраняются сразу. Preview открывает настоящий overlay с политикой, активной для текущей Scene.",
   "in use now": "используется сейчас",
   "saved": "сохранено"
