@@ -10,13 +10,14 @@ fail() {
 }
 
 MEDIA=modules/raohane/RaohaneMediaOverlay.qml
+CONTEXT=modules/raohane/RaohaneContext.qml
 CONFIG=modules/raohane/config/RaohaneConfig.qml
 SETTINGS=modules/raohane/RaohaneSettingsPageRegistry.qml
 SECTIONS=modules/raohane/RaohaneSettingsSectionRegistry.qml
 STUDIO=modules/raohane/RaohaneMediaStudio.qml
 DEFAULTS=defaults/native.json
 
-for file in "$MEDIA" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
+for file in "$MEDIA" "$CONTEXT" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
   [[ -f "$file" ]] || fail "missing media placement contract file: $file"
 done
 
@@ -50,8 +51,19 @@ for contract in \
   'id: lyricsScrollAnimation' \
   'duration: RaohaneMotion\.standard' \
   'RaohaneMedia\.seekRatio' \
+  'RaohaneMedia\.formatTime\(RaohaneMedia\.position\)' \
+  'RaohaneMedia\.formatTime\(Math\.max\(0, RaohaneMedia\.length - RaohaneMedia\.position\)\)' \
   'RaohaneLyrics\.currentLineIndex'; do
   rg -q "$contract" "$MEDIA" || fail "media overlay lost contract: $contract"
+done
+
+# The Context Island owns compact media context only while the dedicated media
+# overlay is closed. Recording/privacy/transient event priority stays intact.
+for contract in \
+  'readonly property bool mediaOverlayVisible: RaohaneState\.mediaOverlayOpen' \
+  'readonly property bool mediaActive: RaohaneMedia\.available && !root\.mediaOverlayVisible' \
+  'mediaOverlayVisible: mediaOverlayVisible'; do
+  rg -q "$contract" "$CONTEXT" || fail "Context Island media handoff lost contract: $contract"
 done
 
 for contract in \
@@ -123,6 +135,13 @@ rg -q 'visible: !root\.gamingEdgeMode.*RaohaneMedia\.canRaise' "$MEDIA" \
 rg -q 'visible: !root\.gamingEdgeMode && !root\.lyricsOpen && RaohaneMedia\.volumeSupported' "$MEDIA" \
   || fail 'gaming edge mode no longer suppresses the volume rail'
 
+# Timeline feedback must reuse the existing compact geometry rather than
+# growing the Gaming surface or adding a detached status strip.
+rg -q 'Layout\.preferredWidth: root\.gamingEdgeMode \? 31 : 35' "$MEDIA" \
+  || fail 'elapsed timeline label lost compact Gaming sizing'
+rg -q 'Layout\.preferredWidth: root\.gamingEdgeMode \? 35 : 40' "$MEDIA" \
+  || fail 'remaining timeline label lost compact Gaming sizing'
+
 # The outer surface may fade and the ListView may move to keep the current
 # synced line centered. Glyphs themselves must stay stable: no zooming and no
 # animated color/style/opacity transitions on lyric lines.
@@ -140,8 +159,8 @@ fi
 
 # Media actions remain native MPRIS/service calls. Do not grow shell-process
 # control paths inside presentation QML.
-if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$STUDIO"; then
+if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$STUDIO" "$CONTEXT"; then
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: visual corner studio, live scene preview, compact gaming mode, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, context handoff, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
