@@ -167,7 +167,7 @@ Scope {
             width: Math.min(parent.width - 80, 1200)
             height: Math.min(parent.height - 92, 760)
             anchors.centerIn: parent
-            surfaceRadius: 20
+            surfaceRadius: RaohaneTheme.radiusHero
             raised: true
             showSheen: true
             border.color: RaohaneTheme.borderStrong
