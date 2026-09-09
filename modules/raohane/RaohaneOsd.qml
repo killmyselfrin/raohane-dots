@@ -137,7 +137,7 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: !RaohaneConfig.barBottom ? parent.top : undefined
                 anchors.bottom: RaohaneConfig.barBottom ? parent.bottom : undefined
-                surfaceRadius: 12
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: true
                 showSheen: false
                 border.color: RaohaneTheme.borderStrong
