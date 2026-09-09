@@ -3,16 +3,15 @@
 ## 1.3.0-dev — Media experience
 
 - Start the 1.3 feature cycle from stable 1.2.1 with a dedicated media/player redesign instead of extending the old stacked-card composition.
-- Rebuild the default media overlay as a wide split now-playing deck: full-height artwork on the left and a dedicated information/control plane on the right.
-- Make artwork part of the window geometry instead of nesting it inside another card, with artwork-derived accent used for status and reading emphasis.
-- Promote title, artist and album into a clearer hierarchy and remove most tiny metadata from the primary player view.
-- Integrate progress, transport, optional MPRIS volume and native Raise Player action into the information deck while preserving previous/play-next/seek semantics.
-- Keep multi-player MPRIS cycling available without turning player selection into a separate surface.
-- Rebuild Lyrics as a second mode of the same outer media surface: compact now-playing strip, clean lyric viewport and integrated footer transport instead of nested lyrics/transport cards.
+- Move the media overlay out of the screen-center focus area and rebuild it as an adaptive edge player that shares one native MPRIS implementation across desktop and Gaming use.
+- Keep Gaming Scene intentionally compact at 430×108 with artwork, title/artist, progress and previous/play-next while suppressing secondary album, volume, Raise Player and player-selection chrome.
+- Add independent persisted `Player position` and `Gaming position` controls under Settings → Media & OSD with Top Left, Top Right, Bottom Left and Bottom Right choices.
+- Apply corner changes live through `RaohaneConfig` without shell commands or polling, with sanitized fallback to Bottom Right for invalid or legacy configuration values.
+- Keep Lyrics attached to the selected media corner and let the Gaming position remain authoritative while Gaming Scene is active; lyrics-only stays a clean high-contrast overlay rather than inheriting the compact player geometry.
 - Remove lyric-line scale animation and animated color/style/opacity Behaviors so synced text remains a stable reading target; only the ListView position may move to recenter the current line.
-- Preserve lyrics-only mode with high-contrast light text and a dark halo over arbitrary Wayland application content, plus artwork-derived active-line accent.
-- Preserve click-to-seek, LRCLIB resolution and native `RaohaneMedia` MPRIS ownership without adding `playerctl` or presentation-layer shell processes.
-- Add a dedicated Media Overlay boundary workflow protecting split-deck geometry, native MPRIS routing and stable lyric typography.
+- Preserve click-to-seek, LRCLIB resolution, player cycling, optional MPRIS volume and native `RaohaneMedia` ownership without adding `playerctl` or presentation-layer shell processes.
+- Expand the Media Overlay boundary across overlay geometry, native config persistence, Settings choices and defaults so configurable corner placement cannot silently regress.
+- Harden media/general/release CI dependency setup against unrelated hosted-runner Chrome apt Hash Sum mismatches while keeping runtime code unchanged.
 
 ## 1.2.1 — Lyrics flow hotfix
 
