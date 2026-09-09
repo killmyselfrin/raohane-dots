@@ -51,4 +51,4 @@ Use `raohane validate release --full` and follow the [release validation guide](
 
 Feature planning resumes only after the 1.3 stable release is closed. At that point, new ideas should be evaluated against three rules: they must add a clear user benefit, integrate through Raohane-owned services/configuration, and avoid duplicating an existing shell surface.
 
-The next feature cycle will be planned separately rather than keeping speculative features in the 1.3 release checklist.
+The next feature cycle will be planned separately rather than keeping speculative features in the 1.3 release checklist. We can then rank new ideas by impact, implementation cost and how strongly they reinforce Raohane's identity instead of simply increasing feature count.
