@@ -4,18 +4,24 @@ import QtQuick
 import QtQuick.Layouts
 
 import qs.modules.raohane.config
+import qs.modules.raohane.services
 
 Item {
     id: root
 
     implicitHeight: studioColumn.implicitHeight
 
+    readonly property bool gamingActive: RaohaneScenes.gaming
     readonly property var positionOptions: [
         { value: "top-left", label: qsTr("Top left"), icon: "north_west" },
         { value: "top-right", label: qsTr("Top right"), icon: "north_east" },
         { value: "bottom-left", label: qsTr("Bottom left"), icon: "south_west" },
         { value: "bottom-right", label: qsTr("Bottom right"), icon: "south_east" }
     ]
+
+    function previewPlayer(): void {
+        RaohaneState.mediaOverlayOpen = true
+    }
 
     ColumnLayout {
         id: studioColumn
@@ -26,7 +32,7 @@ Item {
             Layout.fillWidth: true
             Layout.leftMargin: 4
             Layout.rightMargin: 4
-            spacing: 12
+            spacing: 10
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -48,6 +54,17 @@ Item {
                 }
             }
 
+            RaohaneIconButton {
+                buttonSize: 30
+                iconSize: 15
+                icon: "visibility"
+                transparentIdle: true
+                showSheen: false
+                hoverScale: 1
+                pressedScale: 1
+                onClicked: root.previewPlayer()
+            }
+
             RaohaneSurface {
                 Layout.preferredWidth: liveLabel.implicitWidth + 24
                 Layout.preferredHeight: 28
@@ -60,7 +77,7 @@ Item {
                 Text {
                     id: liveLabel
                     anchors.centerIn: parent
-                    text: qsTr("LIVE")
+                    text: root.gamingActive ? qsTr("LIVE · GAMING") : qsTr("LIVE · DESKTOP")
                     color: RaohaneTheme.accent
                     font.pixelSize: 8
                     font.weight: Font.DemiBold
@@ -76,7 +93,8 @@ Item {
                 Layout.fillWidth: true
                 title: qsTr("Desktop")
                 subtitle: qsTr("Default media position")
-                badge: qsTr("NORMAL")
+                badge: root.gamingActive ? qsTr("STANDBY") : qsTr("ACTIVE")
+                activePolicy: !root.gamingActive
                 value: RaohaneConfig.mediaOverlayPosition
                 gaming: false
                 positions: root.positionOptions
@@ -87,7 +105,8 @@ Item {
                 Layout.fillWidth: true
                 title: qsTr("Gaming")
                 subtitle: qsTr("Used automatically in Gaming Scene")
-                badge: qsTr("GAMING")
+                badge: root.gamingActive ? qsTr("ACTIVE") : qsTr("STANDBY")
+                activePolicy: root.gamingActive
                 value: RaohaneConfig.mediaOverlayGamingPosition
                 gaming: true
                 positions: root.positionOptions
@@ -95,14 +114,25 @@ Item {
             }
         }
 
-        Text {
+        RowLayout {
             Layout.fillWidth: true
             Layout.leftMargin: 4
             Layout.rightMargin: 4
-            text: qsTr("The player moves immediately. Gaming keeps the compact 430×108 layout; only its screen corner changes.")
-            color: RaohaneTheme.textFaint
-            font.pixelSize: 8
-            wrapMode: Text.WordWrap
+            spacing: 8
+
+            RaohaneIcon {
+                text: "visibility"
+                iconSize: 12
+                color: RaohaneTheme.textFaint
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Changes are saved immediately. Preview opens the real overlay using the policy active for the current Scene.")
+                color: RaohaneTheme.textFaint
+                font.pixelSize: 8
+                wrapMode: Text.WordWrap
+            }
         }
     }
 
@@ -114,6 +144,7 @@ Item {
         required property string badge
         required property string value
         required property bool gaming
+        required property bool activePolicy
         required property var positions
         signal selected(string position)
 
@@ -121,7 +152,7 @@ Item {
         surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
         showSheen: false
-        border.color: RaohaneTheme.borderFaint
+        border.color: card.activePolicy ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
         ColumnLayout {
             anchors.fill: parent
@@ -154,7 +185,7 @@ Item {
 
                 Text {
                     text: card.badge
-                    color: card.gaming ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    color: card.activePolicy ? RaohaneTheme.accent : RaohaneTheme.textFaint
                     font.pixelSize: 7
                     font.weight: Font.DemiBold
                 }
@@ -167,7 +198,7 @@ Item {
                 radius: 15
                 color: RaohaneTheme.surfaceDeep
                 border.width: 1
-                border.color: RaohaneTheme.borderFaint
+                border.color: card.activePolicy ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
                 clip: true
 
                 Rectangle {
@@ -195,8 +226,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: card.gaming ? qsTr("GAME") : qsTr("DESKTOP")
-                        color: RaohaneTheme.textFaint
-                        opacity: 0.45
+                        color: card.activePolicy ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                        opacity: card.activePolicy ? 0.66 : 0.42
                         font.pixelSize: 8
                         font.weight: Font.DemiBold
                     }
@@ -220,7 +251,7 @@ Item {
                             color: active ? RaohaneTheme.accentSoft
                                 : cornerMouse.containsMouse ? RaohaneTheme.surfaceRaised
                                 : RaohaneTheme.surfaceDeep
-                            border.width: active ? 1 : 1
+                            border.width: 1
                             border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
                             Behavior on color {
@@ -280,9 +311,10 @@ Item {
                 }
 
                 Text {
-                    text: qsTr("saved automatically")
-                    color: RaohaneTheme.textFaint
+                    text: card.activePolicy ? qsTr("in use now") : qsTr("saved")
+                    color: card.activePolicy ? RaohaneTheme.accent : RaohaneTheme.textFaint
                     font.pixelSize: 7
+                    font.weight: card.activePolicy ? Font.DemiBold : Font.Normal
                 }
             }
         }
