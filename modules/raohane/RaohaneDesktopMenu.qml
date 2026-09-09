@@ -294,8 +294,7 @@ Scope {
                             title: qsTr("Reload")
                             onTriggered: {
                                 root.close()
-                                Quickshell.execDetached(["hyprctl", "reload"])
-                                Quickshell.reload(true)
+                                RaohaneSession.reloadDesktop()
                             }
                         }
 
