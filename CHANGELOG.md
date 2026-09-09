@@ -1,22 +1,28 @@
 # Raohane changelog
 
-## 1.3.0-dev — Media experience
+## 1.3.0-rc1 — Media experience + release polish
 
 - Start the 1.3 feature cycle from stable 1.2.1 with a dedicated media/player redesign instead of extending the old stacked-card composition.
 - Move the media overlay out of the screen-center focus area and rebuild it as an adaptive edge player that shares one native MPRIS implementation across desktop and Gaming use.
 - Keep Gaming Scene intentionally compact at 430×108 with artwork, title/artist, progress and previous/play-next while suppressing secondary album, volume, Raise Player and player-selection chrome.
 - Add independent persisted `Player position` and `Gaming position` controls under Settings → Media & OSD with Top Left, Top Right, Bottom Left and Bottom Right choices.
 - Replace the initial generic position rows with a visual Media Position Studio: separate Desktop/Gaming monitor previews, directly clickable corners, active-policy state and a live action that opens the real overlay from Settings.
-- Apply corner changes live through `RaohaneConfig` without shell commands or polling, with sanitized fallback to Bottom Right for invalid or legacy configuration values.
+- Add a persisted Gaming auto-hide policy with Off / 4s / 8s / 15s choices; the compact Gaming player pauses dismissal while hovered and never auto-closes expanded lyrics or lyrics-only mode.
+- Apply corner and auto-hide changes live through `RaohaneConfig` without shell commands or polling, with sanitized defaults for invalid or legacy configuration values.
 - Keep Lyrics attached to the selected media corner and let the Gaming position remain authoritative while Gaming Scene is active; lyrics-only stays a clean high-contrast overlay rather than inheriting the compact player geometry.
 - Remove lyric-line scale animation and animated color/style/opacity Behaviors so synced text remains a stable reading target; only the ListView position may move to recenter the current line.
 - Add compact elapsed/remaining timeline feedback around the existing seek slider without increasing the 430×108 Gaming geometry.
 - Make Context Island a compact media entry point instead of a second partial player: clicking media context opens the dedicated overlay, and the Island stops duplicating track state while that overlay is visible.
 - Coalesce Scene activation feedback so DND, Keep Awake and Game Mode changes applied by the Scene do not cascade into several distracting Context Island events; manual changes outside the transition window still surface normally.
 - Preserve recording/privacy/transient-event priority above media/scene context and expose media-overlay/scene-transition state through runtime diagnostics.
-- Preserve click-to-seek, LRCLIB resolution, player cycling, optional MPRIS volume and native `RaohaneMedia` ownership without adding `playerctl` or presentation-layer shell processes.
+- Preserve click-to-seek, LRCLIB resolution, player cycling, optional MPRIS volume and native `RaohaneMedia` ownership without adding `playerctl` or presentation-layer media shell processes.
+- Complete Settings search ownership for Player position, Gaming position and Gaming auto-hide, including direct `player` / `media player` routing into Media & OSD without reintroducing duplicate generic controls.
+- Route Desktop Menu reload through `RaohaneSession.reloadDesktop()` instead of invoking `hyprctl` directly from presentation QML, and protect that ownership in the runtime-surface boundary.
+- Align large shared surfaces with the current Raohane geometry system where the mapping is exact: Overview follows `radiusHero` and OSD follows `radiusLarge` without changing their default appearance.
+- Advance the documented persistent product contract to native schema v13 for Media placement/auto-hide state and synchronize the release roadmap/validation guide with the real 1.3 RC flow.
 - Expand the Media Overlay boundary across overlay geometry, native config persistence, Settings ownership, visual positioning, live preview, timeline feedback and Context Island handoff so the 1.3 interaction model cannot silently regress.
 - Harden media/general/release CI dependency setup against unrelated hosted-runner Chrome apt Hash Sum mismatches while keeping runtime code unchanged.
+- Enter `1.3.0-rc1` release-polish mode with experimental feature scope frozen until final real Hyprland validation is accepted.
 
 ## 1.2.1 — Lyrics flow hotfix
 
