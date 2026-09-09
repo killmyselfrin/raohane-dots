@@ -1,18 +1,32 @@
 # Raohane release validation
 
-Raohane's standalone source/runtime boundary is automated. A stable release still depends on evidence from a **real Hyprland / Wayland / PAM / GPU session**, so those gates must never be marked complete from CI alone.
+Raohane's standalone source/runtime boundary is automated, but a stable release still depends on evidence from a **real Hyprland / Wayland / PAM / GPU session**. Static CI must never be presented as proof that compositor, hardware or authentication behavior works on a real machine.
 
-## 1. Install the release candidate
+The current candidate is `1.3.0-rc1` on `release/v1.3`. Live validation is the **final stage** after static release polish is complete.
+
+## 1. Install the exact release candidate
+
+Do not validate 1.3 from `main` while the release candidate is still isolated on its release branch.
 
 From an existing checkout:
 
 ```bash
-git checkout main
+git fetch origin
+git switch release/v1.3
 git pull --ff-only
 ./install-raohane.sh --deps
 hyprctl reload
 raohane restart
 ```
+
+Confirm the candidate before collecting evidence:
+
+```bash
+cat VERSION
+raohane status
+```
+
+`VERSION` must match the candidate being validated.
 
 For runtime debugging, stop the user service and run Quickshell in the foreground:
 
@@ -35,57 +49,44 @@ From a source checkout the same validator can be invoked directly:
 ./scripts/release-live-check.sh --full
 ```
 
-The release validator now runs three layers.
+The release validator combines installed-runtime integrity, current-product probes and interactive gates.
 
 ### Installed-runtime integrity
 
-It verifies that the installed payload contains the current standalone product, including:
+It verifies that the installed payload contains the current standalone Raohane product, including:
 
-- `RaohaneFamily` and the native module graph;
+- the native Raohane module/service graph;
+- Bar/Dock, Settings, Scenes and Context Island surfaces;
 - native Task Manager + process service;
-- Command Deck / Overlay;
-- native MPRIS + Lyrics service;
-- `lyrics-resolve.py`;
-- product, Phase 4 and release live validators;
+- native MPRIS + Lyrics service and `lyrics-resolve.py`;
+- Media Overlay and its current configuration boundary;
+- product/release live validators;
 - strict runtime-payload validation after pruning.
 
 ### Current product live probe
 
-`product-live-check.sh` performs non-destructive runtime checks against the running shell:
+`product-live-check.sh` performs non-destructive checks against the running shell. It reads the runtime probe, exercises supported IPC routes and records whether live product state can be observed without inventing a pass when evidence is unavailable.
 
-- reads the live `RaohaneRuntimeProbe` snapshot;
-- opens the native Task Manager through IPC;
-- waits for a real current-user process snapshot;
-- closes Task Manager and confirms coordinator state returns to closed;
-- opens/closes the fullscreen Command Deck through IPC;
-- inspects current MPRIS/Lyrics runtime state;
-- treats resolver/network/timeout failures as hard product failures when an active player is available;
-- treats a legitimate `not-found` lyrics result or lack of an active MPRIS player as incomplete evidence rather than inventing a pass.
+A missing active MPRIS player, unavailable hardware path or legitimate lyrics `not-found` result is **incomplete evidence**, not a successful validation of that feature.
 
-The same product probe is also run by the default non-interactive release validator:
+The safe non-interactive release probe remains:
 
 ```bash
 raohane validate release
 ```
 
-### Phase 4 + interactive release gates
+### Interactive release gates
 
-`--full` additionally runs:
+`--full` additionally runs the interactive release path, including Phase 4 checks where supported. Some gates require real user interaction and may enter secure/session surfaces. Follow the prompts on screen and unlock/cancel normally.
 
-```bash
-phase4-live-check.sh --full
-```
+The final pass must verify the parts scripts cannot judge reliably:
 
-That sequence exercises the real vertical Bar, Lock/PAM path, screenshot/capture flow and screen translation path. It can enter `WlSessionLock`; unlock normally. Capture/translation checks use real region selection and must be completed on screen.
-
-The release validator then asks for human confirmation of the parts that cannot be judged reliably from scripts:
-
-- clean/fresh installation context;
-- visible graphics/render stability;
-- native Task Manager presentation and safe End/Force-stop UX;
-- correct lyrics for a known LRCLIB-supported track, including synchronization when synced LRC is available;
-- multi-monitor placement/focus when at least two outputs are present;
-- fullscreen/game behavior for Bar/Dock, Command Deck and Media Overlay.
+- visible rendering and animation stability;
+- multi-monitor placement/focus where multiple outputs are available;
+- fullscreen/game behavior for Bar, Dock, Media Overlay and Context Island;
+- all four normal/Gaming Media positions and Gaming auto-hide;
+- authentication/session behavior;
+- correct MPRIS/lyrics behavior with real players.
 
 ## 3. Useful validation modes
 
@@ -135,32 +136,31 @@ Result codes:
 
 For example, a single-monitor machine must produce a partial multi-monitor result instead of claiming multi-monitor validation.
 
-## 5. Recommended manual pass
+## 5. Recommended final manual pass
 
-After the automated sequence, verify the normal product flow once on the same installed build:
+After the automated sequence, verify the normal product flow once on the same installed candidate:
 
-1. Bar and Context Island in normal applications.
-2. Vertical Bar mode and Super reveal.
-3. Dock pinned/running apps, focus cycling, middle-click, pin/unpin and autohide.
-4. Spaces / Overview workspace and individual-window activation.
-5. Launcher app search plus `/`, `>`, `=` and `:` modes.
-6. Control Center: Wi-Fi, Bluetooth, audio, microphone, brightness/night light and notifications.
-7. Settings: Theme Library, global search and several live-persisted controls.
+1. Horizontal and vertical Bar, Context Island, Super reveal and fullscreen behavior.
+2. Dock pinned/running apps, focus cycling, pin/unpin and auto-hide.
+3. Spaces / Overview workspace and individual-window activation.
+4. Launcher search plus `/`, `>`, `=` and `:` modes.
+5. Control Center: Wi-Fi, Bluetooth, audio, microphone, brightness/night light, notifications and Scenes.
+6. Settings: global search, Theme/Widget/Bar/Quick Control studios, Media Position Studio and several persisted controls.
+7. Scene manual/automatic switching and application-rule behavior.
 8. Wallpaper image/video preview, apply and random/slideshow behavior.
-9. Notification popup, history and actions.
-10. OSD for audio/display changes.
-11. Media controls with at least one native MPRIS player and one browser MPRIS source.
-12. Lyrics with a known supported track; confirm the correct artist/title is selected and synced lines follow playback.
-13. Native Task Manager search/sort/process details; test graceful End on a disposable process.
-14. Command Deck in a normal workspace and in a real fullscreen application.
-15. Screenshot/OCR/translation/recording.
-16. OSK and DropShelf.
-17. Lock/password, fingerprint if configured, and Polkit authentication.
-18. Session actions/warnings.
+9. Notification popup/history/actions and OSD feedback.
+10. Media Overlay with desktop and Gaming policies, seek, player switching, volume where supported and auto-hide.
+11. Lyrics with a known LRCLIB-supported track; verify plain, synced and lyrics-only presentation.
+12. Context Island priority/handoff for media, recording, privacy and Scene feedback.
+13. Native Task Manager search/sort/process details; test graceful End only on a disposable process.
+14. Screenshot, gameplay recording, OCR and translation.
+15. OSK and DropShelf.
+16. Lock/password, fingerprint if configured, and Polkit authentication.
+17. Suspend, hibernate, logout, reboot and poweroff.
 
 ## 6. Hardware coverage
 
-One machine cannot close every release checkbox. A release candidate should retain reports from at least:
+One machine cannot close every release checkbox. A release candidate should eventually retain evidence from at least:
 
 - one NVIDIA Hyprland system;
 - one AMD or Intel graphics system (preferably both over time);
@@ -169,11 +169,11 @@ One machine cannot close every release checkbox. A release candidate should reta
 - one system capable of exercising password/PAM lock;
 - fingerprint hardware when fingerprint support is advertised as validated.
 
-Unsupported hardware should remain marked **partial**, not silently treated as passed.
+Unsupported hardware remains **partial**, never silently passed.
 
-## 7. Source package after live validation
+## 7. Promote the candidate only after live validation
 
-After the relevant live gates pass and the release commit is clean:
+After the required live gates pass and the release branch is clean:
 
 ```bash
 ./scripts/source-lineage-audit.sh
@@ -195,4 +195,4 @@ cd dist
 sha256sum -c Raohane-<VERSION>.tar.gz.sha256
 ```
 
-`0.10.0-dev` must remain a development version until the required real-session reports are collected. Static CI proves source/integration/release boundaries; it cannot substitute for compositor, PAM, GPU, monitor or fullscreen evidence.
+Only after runtime acceptance should `VERSION` move from `1.3.0-rc1` to `1.3.0`, the changelog heading be promoted to stable, and the release candidate be merged/published. Static CI proves source, integration and release-boundary consistency; it cannot substitute for compositor, PAM, GPU, monitor or fullscreen evidence.

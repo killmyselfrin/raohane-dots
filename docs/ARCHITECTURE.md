@@ -61,15 +61,15 @@ Visible hosts consume these registries instead of hard-coding product compositio
 
 ## Persistent state and product schema
 
-Raohane owns native schema v12 in:
+Raohane owns native schema v13 in:
 
 ```text
 ~/.config/raohane/native.json
 ```
 
-`RaohaneConfig.qml` owns runtime serialization and reload behavior. The current persisted product contract covers wallpaper/lock wallpaper, Overview, Dock, horizontal/vertical Bar composition, Quick Controls composition, desktop widgets and widget layout, Theme Library selection, screen frame/corners, hot-corner behavior, OSK, OSD, display/night-light behavior, helper application commands, profile identity and current feature flags. Settings controls resolve into `RaohaneConfig` properties rather than writing files directly from visible UI.
+`RaohaneConfig.qml` owns runtime serialization and reload behavior. The current persisted product contract covers wallpaper/lock wallpaper, Overview, Dock, horizontal/vertical Bar composition, Quick Controls composition, desktop widgets and widget layout, Theme Library selection, screen frame/corners, hot-corner behavior, OSK, OSD, display/night-light behavior, helper application commands, profile identity and current feature flags, including normal/Gaming Media Overlay placement and Gaming auto-hide policy. Settings controls resolve into `RaohaneConfig` properties rather than writing files directly from visible UI.
 
-The installer seeds `defaults/native.json`. During upgrades, `scripts/prune-runtime.sh` deep-merges an older native document with current defaults before Quickshell starts, preserving existing values and forward-compatible unknown keys while normalizing the document to schema v12.
+The installer seeds `defaults/native.json`. During upgrades, `scripts/prune-runtime.sh` deep-merges an older native document with current defaults before Quickshell starts, preserving existing values and forward-compatible unknown keys while normalizing the document to schema v13.
 
 The optional `scripts/migrate-legacy-config.py` exists only as an install-time importer for users explicitly migrating supported values from an older shell configuration; it is removed from the installed runtime and is not a runtime dependency.
 

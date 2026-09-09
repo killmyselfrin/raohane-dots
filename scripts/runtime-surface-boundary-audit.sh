@@ -215,9 +215,13 @@ for contract in \
   'RaohaneConfig\.wallpaperPath' \
   'RaohaneWallpapers\.randomFromCurrentFolder' \
   'RaohaneDropShelf\.show' \
+  'RaohaneSession\.reloadDesktop\(\)' \
   'RaohaneIcon[[:space:]]*\{'; do
   rg -q "$contract" modules/raohane/RaohaneDesktopMenu.qml \
     || fail "native desktop menu lost contract: $contract"
 done
+if rg -n 'Quickshell\.execDetached|hyprctl[[:space:]]*,?[[:space:]]*"reload"' modules/raohane/RaohaneDesktopMenu.qml; then
+  fail 'desktop menu bypasses RaohaneSession for reload ownership'
+fi
 
-printf 'runtime-surface-boundary-audit: native bootstrap, idle-safe overlay, capture/OCR/search and active family boundaries are valid\n'
+printf 'runtime-surface-boundary-audit: native bootstrap, idle-safe overlay, capture/OCR/search, desktop reload ownership and active family boundaries are valid\n'
