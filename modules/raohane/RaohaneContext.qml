@@ -19,7 +19,12 @@ Item {
     readonly property bool microphone: RaohanePrivacy.microphoneActive
     readonly property bool camera: RaohanePrivacy.cameraActive
 
-    readonly property bool mediaActive: RaohaneMedia.available
+    // The Context Island is the compact media surface. Once the dedicated
+    // overlay is open, do not repeat the same track in two places; fall
+    // through to the active Scene/window while keeping recording, privacy and
+    // transient events at their higher priorities.
+    readonly property bool mediaOverlayVisible: RaohaneState.mediaOverlayOpen
+    readonly property bool mediaActive: RaohaneMedia.available && !root.mediaOverlayVisible
     readonly property string mediaTitle: RaohaneMedia.title
     readonly property string mediaArtist: RaohaneMedia.artist
 
@@ -235,6 +240,7 @@ Item {
             camera: camera,
             unclassifiedVideoCapture: RaohanePrivacy.unclassifiedVideoCaptureActive,
             mediaActive: mediaActive,
+            mediaOverlayVisible: mediaOverlayVisible,
             mediaTitle: mediaTitle,
             mediaArtist: mediaArtist,
             windowTitle: windowTitle,
