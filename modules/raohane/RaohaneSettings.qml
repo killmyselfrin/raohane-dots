@@ -42,6 +42,7 @@ Scope {
         }
 
         function dismissVisual(): void {
+            settingsSearch.clear()
             workspace.entered = false
             closeTimer.restart()
         }
@@ -181,19 +182,35 @@ Scope {
             RaohaneSettingsContentV3 {
                 id: settingsContent
                 anchors.fill: parent
+                anchors.topMargin: 64
+            }
+
+            Text {
+                anchors.left: parent.left
+                anchors.leftMargin: 22
+                y: 16
+                height: 34
+                width: Math.max(0, settingsSearch.x - 36)
+                verticalAlignment: Text.AlignVCenter
+                text: qsTr("Settings")
+                color: RaohaneTheme.text
+                font.pixelSize: 14
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
             }
 
             RaohaneSettingsSearch {
                 id: settingsSearch
-                visible: !settingsContent.pageOwnsHeader
                 z: 50
-                width: Math.min(300, Math.max(232, workspace.width * 0.275))
+                width: Math.min(420, Math.max(120, workspace.width - anchors.rightMargin - 130))
                 height: 34
+                maximumResultsHeight: workspace.height - y - height - 21
+                onActivated: workspace.forceActiveFocus()
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 21
-                    rightMargin: 170
+                    topMargin: 16
+                    rightMargin: commandStrip.visible ? 170 : 51
                 }
                 opacity: workspace.entered ? 1 : 0
 
@@ -214,14 +231,14 @@ Scope {
 
             RaohaneSurface {
                 id: commandStrip
-                visible: !settingsContent.pageOwnsHeader
+                visible: workspace.width >= 560 && !settingsContent.pageOwnsHeader
                 z: 50
                 width: 112
                 height: 34
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 21
+                    topMargin: 16
                     rightMargin: 51
                 }
                 surfaceRadius: 10
@@ -291,7 +308,7 @@ Scope {
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 22
+                    topMargin: 18
                     rightMargin: 14
                 }
                 buttonSize: 29

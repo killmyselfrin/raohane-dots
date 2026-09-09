@@ -2,6 +2,10 @@
 
 ## 1.3.0-dev — Media experience
 
+- Keep Settings search available on every page in a separate responsive toolbar, without overlapping page titles or hiding it in Keyboard & Motion.
+- Search every Settings page and control using ranked multiword queries, descriptions, page aliases and native keys; preserve all matches in a bounded scrollable list and normalize Russian е/ё.
+- Reveal keyboard-selected search results and navigation items automatically, add arrow/Home/End navigation and compact-sidebar tooltips, and dismiss search results when focus leaves the search area.
+- Fix page transitions to use a translation transform instead of moving an anchored item; respect reduced motion and prevent interaction with outgoing pages.
 - Start the 1.3 feature cycle from stable 1.2.1 with a dedicated media/player redesign instead of extending the old stacked-card composition.
 - Move the media overlay out of the screen-center focus area and rebuild it as an adaptive edge player that shares one native MPRIS implementation across desktop and Gaming use.
 - Keep Gaming Scene intentionally compact at 430×108 with artwork, title/artist, progress and previous/play-next while suppressing secondary album, volume, Raise Player and player-selection chrome.

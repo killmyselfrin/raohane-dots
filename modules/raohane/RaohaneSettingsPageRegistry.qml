@@ -231,6 +231,18 @@ QtObject {
 
     function searchEntries(): var {
         const result = root.searchOnlyEntries.slice()
+        for (const pageInfo of root.pages) {
+            if (!result.some(entry => entry.section === pageInfo.key && entry.label === pageInfo.name)) {
+                result.push({
+                    section: pageInfo.key,
+                    key: "",
+                    label: pageInfo.name,
+                    detail: pageInfo.group,
+                    description: pageInfo.subtitle,
+                    icon: pageInfo.icon
+                })
+            }
+        }
         for (let i = 0; i < root.sectionOrder.length; ++i) {
             const sectionKey = root.sectionOrder[i]
             const pageInfo = root.page(sectionKey)
@@ -241,10 +253,42 @@ QtObject {
                     section: sectionKey,
                     key: entry.key,
                     label: entry.label,
-                    detail: pageInfo?.name ?? sectionKey
+                    detail: pageInfo?.name ?? sectionKey,
+                    description: entry.detail,
+                    icon: pageInfo?.icon ?? "tune"
                 })
             }
         }
         return result
+    }
+
+    function normalizeSearch(value: string): string {
+        return String(value ?? "").replace(/([a-z])([A-Z])/g, "$1 $2")
+            .toLowerCase().replace(/ё/g, "е").trim().replace(/\s+/g, " ")
+    }
+
+    function rankedSearch(entries: var, value: string): var {
+        const query = root.normalizeSearch(value)
+        if (query.length === 0)
+            return []
+        const words = query.split(" ")
+        const ranked = []
+        for (let index = 0; index < entries.length; ++index) {
+            const entry = entries[index]
+            const label = root.normalizeSearch(entry.label)
+            const key = root.normalizeSearch(entry.key)
+            const aliases = Object.keys(root.aliases).filter(alias => root.aliases[alias] === entry.section)
+            const text = root.normalizeSearch([entry.label, entry.detail, entry.description ?? "",
+                entry.key, entry.section, aliases.join(" ")].join(" "))
+            if (!words.every(word => text.includes(word)))
+                continue
+            const score = label === query || key === query ? 100
+                : label.startsWith(query) ? 80
+                : label.includes(query) ? 60
+                : words.every(word => label.includes(word)) ? 40 : 20
+            ranked.push({ entry: entry, score: score, index: index })
+        }
+        ranked.sort((a, b) => b.score - a.score || a.index - b.index)
+        return ranked.map(match => match.entry)
     }
 }
