@@ -13,13 +13,16 @@ MEDIA=modules/raohane/RaohaneMediaOverlay.qml
 [[ -f "$MEDIA" ]] || fail "missing media overlay: $MEDIA"
 
 for contract in \
-  'implicitWidth: root\.lyricsFocus \? 720 : 820' \
-  'implicitHeight: root\.lyricsFocus \? 520 : root\.lyricsOpen \? 520 : 164' \
-  'left: true' \
+  'readonly property bool gamingEdgeMode: RaohaneScenes\.gaming' \
+  'implicitWidth: root\.lyricsFocus \? 720' \
+  ': root\.gamingEdgeMode \? 430' \
+  ': root\.gamingEdgeMode \? 108' \
+  'right: true' \
   'bottom: true' \
-  'bottom: 28' \
+  'right: 24' \
+  'bottom: 26' \
   'id: playerHud' \
-  'Layout\.preferredHeight: root\.lyricsFocus \? 0 : 132' \
+  ': root\.gamingEdgeMode \? 90' \
   'id: hudCover' \
   'id: lyricsStage' \
   'visible: root\.lyricsOpen' \
@@ -35,11 +38,18 @@ for contract in \
   rg -q "$contract" "$MEDIA" || fail "media overlay lost contract: $contract"
 done
 
-# The media surface is now a bottom floating HUD. Lyrics expand above the same
-# persistent transport surface instead of replacing it with another card.
-if rg -n 'id:[[:space:]]*(artworkPane|transportRail|lyricsTransport)' "$MEDIA"; then
-  fail 'media overlay regressed to a detached card/deck layout'
+# The player must stay at an edge. Do not bring back screen-width centering math
+# or the old split/deck presentation that occupied the visual focus area.
+if rg -n 'focusedScreen.*width.*implicitWidth|id:[[:space:]]*(artworkPane|transportRail|lyricsTransport)' "$MEDIA"; then
+  fail 'media overlay regressed to centered or detached-card geometry'
 fi
+
+# Gaming is a compact presentation of the same native player. It should hide
+# secondary metadata/volume/raise controls instead of spawning a second player.
+rg -q 'visible: !root\.gamingEdgeMode.*RaohaneMedia\.canRaise' "$MEDIA" \
+  || fail 'gaming edge mode no longer suppresses the secondary Raise Player action'
+rg -q 'visible: !root\.gamingEdgeMode && !root\.lyricsOpen && RaohaneMedia\.volumeSupported' "$MEDIA" \
+  || fail 'gaming edge mode no longer suppresses the volume rail'
 
 # The outer surface may fade and the ListView may move to keep the current
 # synced line centered. Glyphs themselves must stay stable: no zooming and no
@@ -62,4 +72,4 @@ if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA"; 
   fail 'media presentation bypasses native RaohaneMedia services'
 fi
 
-printf 'media-overlay-boundary-audit: bottom floating HUD, expanding lyrics, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: adaptive right-edge player, compact gaming mode, native MPRIS controls and stable lyric typography are valid\n'
