@@ -18,6 +18,27 @@ Item {
 
     implicitWidth: compact ? 78 : 226
 
+    function revealPage(index: int): void {
+        const item = navRepeater.itemAt(index)
+        if (!item)
+            return
+        const top = item.y + item.height - 36
+        const bottom = item.y + item.height
+        const nextY = top < navigation.contentY ? top
+            : bottom > navigation.contentY + navigation.height ? bottom - navigation.height
+            : navigation.contentY
+        navigation.contentY = Math.max(0, Math.min(Math.max(0, navigation.contentHeight - navigation.height), nextY))
+    }
+
+    function focusPage(index: int): void {
+        const item = navRepeater.itemAt(Math.max(0, Math.min(root.pages.length - 1, index)))
+        if (item)
+            item.focusControl()
+    }
+
+    onCurrentPageChanged: Qt.callLater(() => root.revealPage(root.currentPage))
+    onCompactChanged: Qt.callLater(() => root.revealPage(root.currentPage))
+
     Rectangle {
         anchors.fill: parent
         color: RaohaneTheme.surfaceSubtle
@@ -106,6 +127,7 @@ Item {
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 2600
+            onHeightChanged: Qt.callLater(() => root.revealPage(root.currentPage))
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
@@ -186,6 +208,10 @@ Item {
                             readonly property bool firstInGroup: RaohaneSettingsPageRegistry.isFirstInGroup(index)
                             readonly property bool selected: root.currentPage === navDelegate.index
 
+                            function focusControl(): void {
+                                navItem.forceActiveFocus(Qt.TabFocusReason)
+                            }
+
                             width: navColumn.width
                             height: root.compact ? 43 : (firstInGroup ? 58 : 40)
 
@@ -222,6 +248,16 @@ Item {
                                 hoverScale: 1
                                 pressedScale: 1
                                 activeFocusOnTab: true
+                                Accessible.role: Accessible.Button
+                                Accessible.name: navDelegate.modelData.name
+                                Accessible.onPressAction: root.pageRequested(navDelegate.index)
+                                onActiveFocusChanged: {
+                                    if (activeFocus)
+                                        root.revealPage(navDelegate.index)
+                                }
+                                ToolTip.visible: root.compact && navMouse.containsMouse
+                                ToolTip.text: navDelegate.modelData.name
+                                ToolTip.delay: 500
                                 border.color: navDelegate.selected
                                     ? "transparent"
                                     : navItem.hovered
@@ -302,6 +338,12 @@ Item {
                                 Keys.onPressed: event => {
                                     if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                         root.pageRequested(navDelegate.index)
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
+                                        root.focusPage(navDelegate.index + (event.key === Qt.Key_Down ? 1 : -1))
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Home || event.key === Qt.Key_End) {
+                                        root.focusPage(event.key === Qt.Key_Home ? 0 : root.pages.length - 1)
                                         event.accepted = true
                                     }
                                 }

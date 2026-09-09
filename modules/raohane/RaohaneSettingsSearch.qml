@@ -1,30 +1,37 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
-Item {
+FocusScope {
     id: root
 
     property string query: ""
     property int currentIndex: 0
-    readonly property bool active: searchInput.activeFocus || root.query.length > 0
+    property real maximumResultsHeight: 340
+    readonly property bool active: root.activeFocus
+    readonly property bool resultsOpen: root.activeFocus && root.query.trim().length > 0
     readonly property var entries: RaohaneSettingsPageRegistry.searchEntries()
     readonly property var filteredEntries: root.filtered(root.query)
+    signal activated()
 
     implicitWidth: 300
     implicitHeight: 34
     z: 100
 
     function filtered(value: string): var {
-        const needle = String(value ?? "").trim().toLowerCase()
-        if (needle.length === 0)
-            return []
-        return root.entries.filter(entry => {
-            return entry.label.toLowerCase().includes(needle)
-                || entry.detail.toLowerCase().includes(needle)
-                || entry.key.toLowerCase().includes(needle)
-        }).slice(0, 7)
+        return RaohaneSettingsPageRegistry.rankedSearch(root.entries, value)
+    }
+
+    function selectResult(index: int): void {
+        root.currentIndex = Math.max(0, Math.min(root.filteredEntries.length - 1, index))
+        resultsList.positionViewAtIndex(root.currentIndex, ListView.Contain)
+    }
+
+    onFilteredEntriesChanged: {
+        root.currentIndex = 0
+        Qt.callLater(() => resultsList.positionViewAtBeginning())
     }
 
     function focusSearch(): void {
@@ -35,7 +42,6 @@ Item {
     function clear(): void {
         root.query = ""
         root.currentIndex = 0
-        searchInput.text = ""
     }
 
     function activate(index: int): void {
@@ -45,6 +51,7 @@ Item {
         const entry = root.filteredEntries[safeIndex]
         RaohaneSettingsRouter.requestSearch(entry.section, entry.key)
         root.clear()
+        root.activated()
     }
 
     RaohaneSurface {
@@ -81,9 +88,11 @@ Item {
                     color: RaohaneTheme.text
                     selectionColor: RaohaneTheme.accentSoft
                     selectedTextColor: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     clip: true
                     text: root.query
+                    activeFocusOnTab: true
+                    Accessible.name: qsTr("Search settings")
 
                     onTextChanged: {
                         if (root.query !== text)
@@ -93,17 +102,16 @@ Item {
 
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Down && root.filteredEntries.length > 0) {
-                            root.currentIndex = Math.min(root.filteredEntries.length - 1, root.currentIndex + 1)
+                            root.selectResult(root.currentIndex + 1)
                             event.accepted = true
                         } else if (event.key === Qt.Key_Up && root.filteredEntries.length > 0) {
-                            root.currentIndex = Math.max(0, root.currentIndex - 1)
+                            root.selectResult(root.currentIndex - 1)
                             event.accepted = true
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                             root.activate(root.currentIndex)
                             event.accepted = true
-                        } else if (event.key === Qt.Key_Escape) {
+                        } else if (event.key === Qt.Key_Escape && root.query.length > 0) {
                             root.clear()
-                            focus = false
                             event.accepted = true
                         }
                     }
@@ -114,7 +122,7 @@ Item {
                     visible: root.query.length === 0 && !searchInput.activeFocus
                     text: qsTr("Search settings")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                 }
             }
 
@@ -153,21 +161,22 @@ Item {
 
     RaohaneSurface {
         id: resultsPanel
-        visible: root.query.length > 0
+        visible: root.resultsOpen
         anchors {
             top: searchBox.bottom
             topMargin: 7
             left: parent.left
             right: parent.right
         }
-        height: root.filteredEntries.length > 0 ? Math.min(310, resultsList.contentHeight + 14) : 50
+        height: Math.max(0, Math.min(root.maximumResultsHeight,
+            root.filteredEntries.length > 0 ? root.filteredEntries.length * 49 + 11 : 50))
         surfaceRadius: 14
         raised: true
         showSheen: false
         border.color: RaohaneTheme.borderStrong
         clip: true
         z: 101
-        opacity: root.query.length > 0 ? 1 : 0
+        opacity: root.resultsOpen ? 1 : 0
 
         Behavior on opacity {
             NumberAnimation {
@@ -193,14 +202,27 @@ Item {
             spacing: 3
             clip: true
             boundsBehavior: Flickable.StopAtBounds
+            currentIndex: root.currentIndex
+            keyNavigationEnabled: false
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
 
             delegate: FocusScope {
                 id: resultRow
                 required property var modelData
                 required property int index
                 width: resultsList.width
-                height: 40
+                height: 46
                 activeFocusOnTab: true
+                Accessible.role: Accessible.Button
+                Accessible.name: modelData.label + ", " + modelData.detail
+                Accessible.onPressAction: root.activate(resultRow.index)
+                onActiveFocusChanged: {
+                    if (activeFocus)
+                        root.selectResult(index)
+                }
 
                 RaohaneSurface {
                     anchors.fill: parent
@@ -218,25 +240,34 @@ Item {
                         spacing: 9
 
                         RaohaneIcon {
-                            text: "tune"
+                            text: resultRow.modelData.icon ?? "tune"
                             iconSize: 15
                             fill: resultRow.index === root.currentIndex ? 1 : 0
                             color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textMuted
                         }
 
-                        Text {
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            text: resultRow.modelData.label
-                            color: RaohaneTheme.text
-                            font.pixelSize: 10
-                            font.weight: resultRow.index === root.currentIndex ? Font.DemiBold : Font.Medium
-                            elide: Text.ElideRight
-                        }
+                            spacing: 2
 
-                        Text {
-                            text: resultRow.modelData.detail
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
+                            Text {
+                                Layout.fillWidth: true
+                                text: resultRow.modelData.label
+                                textFormat: Text.PlainText
+                                color: RaohaneTheme.text
+                                font.pixelSize: 11
+                                font.weight: resultRow.index === root.currentIndex ? Font.DemiBold : Font.Medium
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: resultRow.modelData.detail
+                                textFormat: Text.PlainText
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 9
+                                elide: Text.ElideRight
+                            }
                         }
 
                         RaohaneIcon {
@@ -262,6 +293,10 @@ Item {
                 Keys.onPressed: event => {
                     if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                         root.activate(resultRow.index)
+                        event.accepted = true
+                    } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
+                        searchInput.forceActiveFocus()
+                        root.selectResult(resultRow.index + (event.key === Qt.Key_Down ? 1 : -1))
                         event.accepted = true
                     }
                 }
