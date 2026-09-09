@@ -88,8 +88,16 @@ for value in top-left top-right bottom-left bottom-right; do
 done
 
 for contract in \
+  'import qs\.modules\.raohane\.services' \
+  'readonly property bool gamingActive: RaohaneScenes\.gaming' \
+  'function previewPlayer\(\)' \
+  'RaohaneState\.mediaOverlayOpen = true' \
+  'qsTr\("LIVE · GAMING"\)' \
+  'qsTr\("LIVE · DESKTOP"\)' \
   'title: qsTr\("Desktop"\)' \
   'title: qsTr\("Gaming"\)' \
+  'activePolicy: !root\.gamingActive' \
+  'activePolicy: root\.gamingActive' \
   'onSelected: position => RaohaneConfig\.mediaOverlayPosition = position' \
   'onSelected: position => RaohaneConfig\.mediaOverlayGamingPosition = position' \
   'MouseArea[[:space:]]*\{' \
@@ -136,4 +144,4 @@ if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: visual corner studio, compact gaming mode, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: visual corner studio, live scene preview, compact gaming mode, native MPRIS controls and stable lyric typography are valid\n'
