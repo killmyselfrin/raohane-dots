@@ -6,6 +6,7 @@ on:
     paths:
       - 'defaults/native.json'
       - 'modules/raohane/RaohaneContext.qml'
+      - 'modules/raohane/RaohaneContextIsland.qml'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
       - 'modules/raohane/RaohaneMediaStudio.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
@@ -19,6 +20,7 @@ on:
     paths:
       - 'defaults/native.json'
       - 'modules/raohane/RaohaneContext.qml'
+      - 'modules/raohane/RaohaneContextIsland.qml'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
       - 'modules/raohane/RaohaneMediaStudio.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
@@ -62,6 +64,7 @@ jobs:
         shell: bash
         run: |
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneContext.qml >/dev/null
+          /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneContextIsland.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaOverlay.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaStudio.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/config/RaohaneConfig.qml >/dev/null
