@@ -15,8 +15,10 @@ Scope {
     property bool lyricsOpen: false
     property bool lyricsFocus: false
 
-    // Lyrics-only floats above arbitrary Wayland clients. Stable light ink with
-    // a dark outline is more reliable than trying to infer application colors.
+    // The default player lives at the screen edge. Gaming scenes use an even
+    // denser presentation so media controls never sit on the aiming/focus area.
+    readonly property bool gamingEdgeMode: RaohaneScenes.gaming && !root.lyricsFocus
+
     readonly property color lyricsFocusForeground: "#fffdfc"
     readonly property color lyricsFocusSecondary: "#e7e5ef"
     readonly property color lyricsFocusHalo: Qt.rgba(0.01, 0.012, 0.02, 0.88)
@@ -75,7 +77,7 @@ Scope {
         const targetContentY = Math.max(0, Math.min(maxContentY,
             item.y + item.height / 2 - lyricsList.height / 2))
 
-        // Only the viewport is animated. Lyric glyphs never zoom/fade/morph.
+        // Motion belongs to the viewport, never to the lyric glyphs.
         if (animated && RaohaneMotion.enabled) {
             lyricsScrollAnimation.stop()
             lyricsScrollAnimation.from = lyricsList.contentY
@@ -101,8 +103,14 @@ Scope {
         visible: RaohaneState.mediaOverlayOpen
         screen: root.focusedScreen
         exclusiveZone: 0
-        implicitWidth: root.lyricsFocus ? 720 : 820
-        implicitHeight: root.lyricsFocus ? 520 : root.lyricsOpen ? 520 : 164
+        implicitWidth: root.lyricsFocus ? 720
+            : root.lyricsOpen ? 620
+            : root.gamingEdgeMode ? 430
+            : 540
+        implicitHeight: root.lyricsFocus ? 520
+            : root.lyricsOpen ? 470
+            : root.gamingEdgeMode ? 108
+            : 126
         color: "transparent"
 
         WlrLayershell.namespace: "quickshell:raohane-media-overlay"
@@ -110,12 +118,12 @@ Scope {
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
         anchors {
-            left: true
+            right: true
             bottom: true
         }
         margins {
-            left: Math.max(24, ((root.focusedScreen?.width ?? panelWindow.implicitWidth) - panelWindow.implicitWidth) / 2)
-            bottom: 28
+            right: 24
+            bottom: 26
         }
 
         RaohaneSurface {
@@ -137,8 +145,8 @@ Scope {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: root.lyricsFocus ? 6 : 10
-                spacing: root.lyricsOpen && !root.lyricsFocus ? 8 : 0
+                anchors.margins: root.lyricsFocus ? 6 : 9
+                spacing: root.lyricsOpen && !root.lyricsFocus ? 7 : 0
 
                 Item {
                     id: lyricsStage
@@ -152,14 +160,14 @@ Scope {
 
                         Item {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: root.lyricsFocus ? 0 : 48
+                            Layout.preferredHeight: root.lyricsFocus ? 0 : 46
                             visible: !root.lyricsFocus
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 4
-                                anchors.rightMargin: 4
-                                spacing: 9
+                                anchors.leftMargin: 3
+                                anchors.rightMargin: 3
+                                spacing: 8
 
                                 MiniButton {
                                     icon: "arrow_back"
@@ -168,13 +176,13 @@ Scope {
                                 }
 
                                 Item {
-                                    Layout.preferredWidth: 34
-                                    Layout.preferredHeight: 34
+                                    Layout.preferredWidth: 32
+                                    Layout.preferredHeight: 32
                                     clip: true
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        radius: 9
+                                        radius: 8
                                         color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.12)
                                     }
 
@@ -193,7 +201,7 @@ Scope {
                                         visible: lyricsMiniCover.status !== Image.Ready
                                         text: "音"
                                         color: root.playerAccent
-                                        font.pixelSize: 17
+                                        font.pixelSize: 16
                                         font.weight: Font.DemiBold
                                     }
                                 }
@@ -276,7 +284,7 @@ Scope {
 
                             Column {
                                 anchors.centerIn: parent
-                                width: Math.min(parent.width - 48, 460)
+                                width: Math.min(parent.width - 44, 440)
                                 visible: !RaohaneLyrics.loading && RaohaneLyrics.instrumental
                                 spacing: 7
 
@@ -306,7 +314,7 @@ Scope {
 
                             Column {
                                 anchors.centerIn: parent
-                                width: Math.min(parent.width - 48, 460)
+                                width: Math.min(parent.width - 44, 440)
                                 visible: !RaohaneLyrics.loading && !RaohaneLyrics.available && !RaohaneLyrics.instrumental
                                 spacing: 7
 
@@ -331,8 +339,8 @@ Scope {
                             ListView {
                                 id: lyricsList
                                 anchors.fill: parent
-                                anchors.topMargin: root.lyricsFocus ? 0 : 8
-                                anchors.bottomMargin: root.lyricsFocus ? 0 : 8
+                                anchors.topMargin: root.lyricsFocus ? 0 : 7
+                                anchors.bottomMargin: root.lyricsFocus ? 0 : 7
                                 visible: !RaohaneLyrics.loading && RaohaneLyrics.available && !RaohaneLyrics.instrumental
                                 clip: true
                                 spacing: root.lyricsFocus ? 9 : 4
@@ -417,8 +425,6 @@ Scope {
                         }
                     }
 
-                    // Lyrics-only remains visually pure. Right-click returns to
-                    // the expanded HUD without persistent chrome over the game.
                     MouseArea {
                         anchors.fill: parent
                         z: 200
@@ -438,26 +444,29 @@ Scope {
                 Item {
                     id: playerHud
                     Layout.fillWidth: true
-                    Layout.preferredHeight: root.lyricsFocus ? 0 : 132
+                    Layout.preferredHeight: root.lyricsFocus ? 0
+                        : root.lyricsOpen ? 74
+                        : root.gamingEdgeMode ? 90
+                        : 108
                     visible: !root.lyricsFocus
 
                     RowLayout {
                         anchors.fill: parent
                         anchors.margins: 2
-                        spacing: 14
+                        spacing: root.gamingEdgeMode ? 9 : 12
 
                         Item {
-                            Layout.preferredWidth: 112
-                            Layout.preferredHeight: 112
+                            Layout.preferredWidth: root.lyricsOpen ? 60 : root.gamingEdgeMode ? 76 : 90
+                            Layout.preferredHeight: root.lyricsOpen ? 60 : root.gamingEdgeMode ? 76 : 90
                             Layout.alignment: Qt.AlignVCenter
                             clip: true
 
                             Rectangle {
                                 anchors.fill: parent
-                                radius: 18
+                                radius: root.lyricsOpen ? 13 : 16
                                 color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.13)
                                 border.width: 1
-                                border.color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.30)
+                                border.color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.28)
                             }
 
                             Image {
@@ -470,27 +479,13 @@ Scope {
                                 visible: status === Image.Ready
                             }
 
-                            Column {
+                            Text {
                                 anchors.centerIn: parent
                                 visible: !RaohaneMedia.available || hudCover.status !== Image.Ready
-                                spacing: 3
-
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "音"
-                                    color: root.playerAccent
-                                    font.pixelSize: 34
-                                    font.weight: Font.DemiBold
-                                }
-
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "RAOHANE"
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 7
-                                    font.weight: Font.DemiBold
-                                    font.letterSpacing: 1.2
-                                }
+                                text: "音"
+                                color: root.playerAccent
+                                font.pixelSize: root.gamingEdgeMode ? 26 : 30
+                                font.weight: Font.DemiBold
                             }
                         }
 
@@ -501,12 +496,12 @@ Scope {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 24
+                                Layout.preferredHeight: root.gamingEdgeMode ? 14 : 18
                                 spacing: 5
 
                                 Rectangle {
-                                    width: 6
-                                    height: 6
+                                    width: 5
+                                    height: 5
                                     radius: 3
                                     color: RaohaneMedia.isPlaying ? root.playerAccent : RaohaneTheme.textFaint
                                 }
@@ -517,28 +512,20 @@ Scope {
                                         ? (RaohaneMedia.playerName || qsTr("Media player"))
                                         : qsTr("No player")
                                     color: RaohaneTheme.textFaint
-                                    font.pixelSize: 8
+                                    font.pixelSize: 7
                                     font.weight: Font.DemiBold
                                     elide: Text.ElideRight
                                 }
 
                                 MiniButton {
-                                    visible: RaohaneMedia.playerCount > 1
+                                    visible: !root.gamingEdgeMode && RaohaneMedia.playerCount > 1
                                     icon: "chevron_left"
                                     tooltip: qsTr("Previous player")
                                     onClicked: RaohaneMedia.cyclePlayer(-1)
                                 }
 
-                                Text {
-                                    visible: RaohaneMedia.playerCount > 1
-                                    text: (RaohaneMedia.activePlayerIndex + 1) + "/" + RaohaneMedia.playerCount
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 8
-                                    font.weight: Font.Medium
-                                }
-
                                 MiniButton {
-                                    visible: RaohaneMedia.playerCount > 1
+                                    visible: !root.gamingEdgeMode && RaohaneMedia.playerCount > 1
                                     icon: "chevron_right"
                                     tooltip: qsTr("Next player")
                                     onClicked: RaohaneMedia.cyclePlayer(1)
@@ -551,7 +538,7 @@ Scope {
                                     ? RaohaneMedia.title
                                     : qsTr("Nothing is playing")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 16
+                                font.pixelSize: root.gamingEdgeMode ? 13 : 15
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
@@ -562,17 +549,18 @@ Scope {
                                     ? RaohaneMedia.artist
                                     : qsTr("Start a MPRIS-compatible player")
                                 color: RaohaneTheme.textMuted
-                                font.pixelSize: 10
+                                font.pixelSize: root.gamingEdgeMode ? 8 : 9
                                 font.weight: Font.Medium
                                 elide: Text.ElideRight
                             }
 
                             Text {
                                 Layout.fillWidth: true
-                                visible: RaohaneMedia.available && RaohaneMedia.album.length > 0
+                                visible: !root.gamingEdgeMode && !root.lyricsOpen
+                                    && RaohaneMedia.available && RaohaneMedia.album.length > 0
                                 text: RaohaneMedia.album
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 8
+                                font.pixelSize: 7
                                 elide: Text.ElideRight
                             }
 
@@ -580,56 +568,27 @@ Scope {
 
                             RaohaneSlider {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 18
+                                Layout.preferredHeight: 15
                                 from: 0
                                 to: 1
                                 stepSize: 0.001
                                 value: RaohaneMedia.progress
                                 enabled: RaohaneMedia.canSeek
                                 showHandle: hovered || activeFocus
-                                trackHeight: 5
+                                trackHeight: root.gamingEdgeMode ? 3 : 4
                                 onMoved: ratio => RaohaneMedia.seekRatio(ratio)
                             }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 15
-
-                                Text {
-                                    text: RaohaneMedia.formatTime(RaohaneMedia.position)
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 8
-                                    font.weight: Font.Medium
-                                }
-                                Item { Layout.fillWidth: true }
-                                Text {
-                                    text: RaohaneMedia.length > 0
-                                        ? RaohaneMedia.formatTime(RaohaneMedia.length)
-                                        : "—"
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 8
-                                    font.weight: Font.Medium
-                                }
-                            }
-                        }
-
-                        Rectangle {
-                            Layout.preferredWidth: 1
-                            Layout.fillHeight: true
-                            Layout.topMargin: 8
-                            Layout.bottomMargin: 8
-                            color: RaohaneTheme.borderFaint
                         }
 
                         ColumnLayout {
-                            Layout.preferredWidth: 190
+                            Layout.preferredWidth: root.gamingEdgeMode ? 118 : 142
                             Layout.fillHeight: true
-                            spacing: 4
+                            spacing: 2
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 30
-                                spacing: 4
+                                Layout.preferredHeight: 28
+                                spacing: 3
 
                                 MiniButton {
                                     icon: "lyrics"
@@ -639,7 +598,7 @@ Scope {
                                 }
 
                                 MiniButton {
-                                    visible: RaohaneMedia.canRaise
+                                    visible: !root.gamingEdgeMode && RaohaneMedia.canRaise
                                     icon: "open_in_new"
                                     tooltip: qsTr("Open player")
                                     onClicked: RaohaneMedia.raisePlayer()
@@ -658,12 +617,13 @@ Scope {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 46
-                                spacing: 7
+                                Layout.preferredHeight: 42
+                                spacing: root.gamingEdgeMode ? 3 : 5
 
                                 MainButton {
                                     icon: "skip_previous"
                                     enabled: RaohaneMedia.canGoPrevious
+                                    compact: root.gamingEdgeMode
                                     onClicked: RaohaneMedia.previous()
                                 }
 
@@ -671,52 +631,40 @@ Scope {
                                     icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
                                     enabled: RaohaneMedia.canTogglePlaying
                                     emphasized: true
+                                    compact: root.gamingEdgeMode
                                     onClicked: RaohaneMedia.togglePlaying()
                                 }
 
                                 MainButton {
                                     icon: "skip_next"
                                     enabled: RaohaneMedia.canGoNext
+                                    compact: root.gamingEdgeMode
                                     onClicked: RaohaneMedia.next()
                                 }
                             }
 
-                            Item { Layout.fillHeight: true }
-
                             RowLayout {
+                                visible: !root.gamingEdgeMode && !root.lyricsOpen && RaohaneMedia.volumeSupported
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 24
-                                spacing: 7
+                                Layout.preferredHeight: visible ? 20 : 0
+                                spacing: 5
 
                                 RaohaneIcon {
-                                    visible: RaohaneMedia.volumeSupported
                                     text: RaohaneMedia.volume <= 0.01 ? "volume_off" : "volume_up"
-                                    iconSize: 14
+                                    iconSize: 12
                                     color: RaohaneTheme.textMuted
                                 }
 
                                 RaohaneSlider {
-                                    visible: RaohaneMedia.volumeSupported
                                     Layout.fillWidth: true
-                                    Layout.preferredHeight: 20
+                                    Layout.preferredHeight: 18
                                     from: 0
                                     to: 1
                                     stepSize: 0.01
                                     value: RaohaneMedia.volume
                                     showHandle: hovered || activeFocus
-                                    trackHeight: 4
+                                    trackHeight: 3
                                     onMoved: value => RaohaneMedia.setVolume(value)
-                                }
-
-                                Text {
-                                    visible: !RaohaneMedia.volumeSupported
-                                    Layout.fillWidth: true
-                                    text: RaohaneMedia.available ? RaohaneMedia.playerName : "RAOHANE"
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 7
-                                    font.weight: Font.DemiBold
-                                    horizontalAlignment: Text.AlignRight
-                                    elide: Text.ElideRight
                                 }
                             }
                         }
@@ -742,8 +690,8 @@ Scope {
 
     component MiniButton: RaohaneIconButton {
         property string tooltip: ""
-        buttonSize: 30
-        iconSize: 15
+        buttonSize: 28
+        iconSize: 14
         transparentIdle: true
         showSheen: false
         hoverScale: 1
@@ -752,9 +700,14 @@ Scope {
 
     component MainButton: RaohaneIconButton {
         id: control
-        buttonSize: control.emphasized ? 44 : 38
-        iconSize: control.emphasized ? 21 : 18
-        surfaceRadius: control.emphasized ? 15 : 12
+        property bool compact: false
+        buttonSize: control.compact
+            ? (control.emphasized ? 36 : 32)
+            : (control.emphasized ? 40 : 36)
+        iconSize: control.compact
+            ? (control.emphasized ? 18 : 16)
+            : (control.emphasized ? 20 : 17)
+        surfaceRadius: control.emphasized ? 13 : 11
         showSheen: false
         hoverScale: 1
         pressedScale: 1
