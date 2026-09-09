@@ -6,7 +6,9 @@ on:
     paths:
       - 'defaults/native.json'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
+      - 'modules/raohane/RaohaneMediaStudio.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
+      - 'modules/raohane/RaohaneSettingsSectionRegistry.qml'
       - 'modules/raohane/config/RaohaneConfig.qml'
       - 'modules/raohane/services/RaohaneMedia.qml'
       - 'modules/raohane/services/RaohaneLyrics.qml'
@@ -16,7 +18,9 @@ on:
     paths:
       - 'defaults/native.json'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
+      - 'modules/raohane/RaohaneMediaStudio.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
+      - 'modules/raohane/RaohaneSettingsSectionRegistry.qml'
       - 'modules/raohane/config/RaohaneConfig.qml'
       - 'modules/raohane/services/RaohaneMedia.qml'
       - 'modules/raohane/services/RaohaneLyrics.qml'
@@ -56,8 +60,10 @@ jobs:
         shell: bash
         run: |
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaOverlay.qml >/dev/null
+          /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaStudio.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/config/RaohaneConfig.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneSettingsPageRegistry.qml >/dev/null
+          /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneSettingsSectionRegistry.qml >/dev/null
 
       - name: Validate media overlay boundary
         run: bash scripts/media-overlay-boundary-audit.sh
