@@ -8,5 +8,14 @@
   "Top left": "Сверху слева",
   "Top right": "Сверху справа",
   "Bottom left": "Снизу слева",
-  "Bottom right": "Снизу справа"
+  "Bottom right": "Снизу справа",
+  "Media Position Studio": "Студия расположения плеера",
+  "Choose where the media surface appears in normal use and while Gaming Scene is active.": "Выберите, где медиа-поверхность появляется в обычном режиме и при активной Gaming Scene.",
+  "Default media position": "Обычная позиция плеера",
+  "NORMAL": "ОБЫЧНЫЙ",
+  "GAMING": "ИГРОВОЙ",
+  "GAME": "ИГРА",
+  "Used automatically in Gaming Scene": "Используется автоматически в Gaming Scene",
+  "The player moves immediately. Gaming keeps the compact 430×108 layout; only its screen corner changes.": "Плеер перемещается сразу. В Gaming сохраняется компактный размер 430×108 — меняется только угол экрана.",
+  "saved automatically": "сохраняется автоматически"
 }
