@@ -21,6 +21,9 @@ Scope {
     // controls never sit on the aiming/focus area.
     readonly property bool gamingScene: RaohaneScenes.gaming
     readonly property bool gamingEdgeMode: root.gamingScene && !root.lyricsFocus
+    readonly property int gamingAutoHideSeconds: RaohaneConfig.sanitizeMediaOverlayGamingAutoHideSeconds(
+        RaohaneConfig.mediaOverlayGamingAutoHideSeconds)
+    readonly property bool gamingAutoHideEnabled: root.gamingScene && root.gamingAutoHideSeconds > 0
     readonly property string overlayPosition: root.gamingScene
         ? RaohaneConfig.sanitizeMediaOverlayPosition(RaohaneConfig.mediaOverlayGamingPosition)
         : RaohaneConfig.sanitizeMediaOverlayPosition(RaohaneConfig.mediaOverlayPosition)
@@ -46,14 +49,34 @@ Scope {
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
 
-    function toggle(): void { RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen }
-    function open(): void { RaohaneState.mediaOverlayOpen = true }
+    function armGamingAutoHide(): void {
+        gamingAutoHideTimer.stop()
+        if (!RaohaneState.mediaOverlayOpen
+                || !root.gamingAutoHideEnabled
+                || root.lyricsOpen
+                || root.lyricsFocus
+                || mediaHover.hovered)
+            return
+        gamingAutoHideTimer.interval = root.gamingAutoHideSeconds * 1000
+        gamingAutoHideTimer.restart()
+    }
+
+    function toggle(): void {
+        RaohaneState.mediaOverlayOpen = !RaohaneState.mediaOverlayOpen
+        Qt.callLater(root.armGamingAutoHide)
+    }
+    function open(): void {
+        RaohaneState.mediaOverlayOpen = true
+        Qt.callLater(root.armGamingAutoHide)
+    }
     function close(): void {
+        gamingAutoHideTimer.stop()
         RaohaneState.mediaOverlayOpen = false
         root.lyricsOpen = false
         root.lyricsFocus = false
     }
     function showLyrics(): void {
+        gamingAutoHideTimer.stop()
         RaohaneState.mediaOverlayOpen = true
         root.lyricsOpen = true
         root.lyricsFocus = false
@@ -65,11 +88,13 @@ Scope {
         if (root.lyricsOpen) {
             root.lyricsOpen = false
             root.lyricsFocus = false
+            Qt.callLater(root.armGamingAutoHide)
         } else {
             root.showLyrics()
         }
     }
     function toggleLyricsFocus(): void {
+        gamingAutoHideTimer.stop()
         root.lyricsFocus = !root.lyricsFocus
         Qt.callLater(() => root.centerCurrentLyric(false))
     }
@@ -95,6 +120,19 @@ Scope {
             lyricsScrollAnimation.start()
         } else {
             lyricsList.contentY = targetContentY
+        }
+    }
+
+    onGamingSceneChanged: Qt.callLater(root.armGamingAutoHide)
+    onGamingAutoHideSecondsChanged: Qt.callLater(root.armGamingAutoHide)
+
+    Connections {
+        target: RaohaneState
+        function onMediaOverlayOpenChanged(): void {
+            if (RaohaneState.mediaOverlayOpen)
+                Qt.callLater(root.armGamingAutoHide)
+            else
+                gamingAutoHideTimer.stop()
         }
     }
 
@@ -153,6 +191,16 @@ Scope {
             clip: true
             opacity: panelWindow.visible ? 1 : 0
 
+            HoverHandler {
+                id: mediaHover
+                onHoveredChanged: {
+                    if (hovered)
+                        gamingAutoHideTimer.stop()
+                    else
+                        root.armGamingAutoHide()
+                }
+            }
+
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
             }
@@ -186,7 +234,10 @@ Scope {
                                 MiniButton {
                                     icon: "arrow_back"
                                     tooltip: qsTr("Back to player")
-                                    onClicked: root.lyricsOpen = false
+                                    onClicked: {
+                                        root.lyricsOpen = false
+                                        Qt.callLater(root.armGamingAutoHide)
+                                    }
                                 }
 
                                 Item {
@@ -711,6 +762,22 @@ Scope {
                     }
                 }
             }
+        }
+    }
+
+    Timer {
+        id: gamingAutoHideTimer
+        interval: Math.max(1000, root.gamingAutoHideSeconds * 1000)
+        repeat: false
+        onTriggered: {
+            if (root.gamingAutoHideEnabled
+                    && RaohaneState.mediaOverlayOpen
+                    && !root.lyricsOpen
+                    && !root.lyricsFocus
+                    && !mediaHover.hovered)
+                root.close()
+            else
+                root.armGamingAutoHide()
         }
     }
 
