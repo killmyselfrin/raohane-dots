@@ -18,6 +18,12 @@ Item {
         { value: "bottom-left", label: qsTr("Bottom left"), icon: "south_west" },
         { value: "bottom-right", label: qsTr("Bottom right"), icon: "south_east" }
     ]
+    readonly property var autoHideOptions: [
+        { value: 0, label: qsTr("Off") },
+        { value: 4, label: "4s" },
+        { value: 8, label: "8s" },
+        { value: 15, label: "15s" }
+    ]
 
     function previewPlayer(): void {
         RaohaneState.mediaOverlayOpen = true
@@ -111,6 +117,100 @@ Item {
                 gaming: true
                 positions: root.positionOptions
                 onSelected: position => RaohaneConfig.mediaOverlayGamingPosition = position
+            }
+        }
+
+        RaohaneSurface {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 82
+            surfaceRadius: RaohaneTheme.radiusLarge
+            raised: false
+            showSheen: false
+            border.color: root.gamingActive ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 14
+                spacing: 14
+
+                RaohaneIcon {
+                    text: "timer"
+                    iconSize: 18
+                    color: root.gamingActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    Text {
+                        text: qsTr("Gaming auto-hide")
+                        color: RaohaneTheme.text
+                        font.pixelSize: 10
+                        font.weight: Font.DemiBold
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Close the compact player automatically after interaction")
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Hover pauses the timer. Lyrics stay open until you close them.")
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 7
+                        elide: Text.ElideRight
+                    }
+                }
+
+                RowLayout {
+                    spacing: 5
+
+                    Repeater {
+                        model: root.autoHideOptions
+
+                        delegate: Rectangle {
+                            id: autoHideButton
+                            required property var modelData
+
+                            readonly property int optionValue: Number(modelData.value)
+                            readonly property bool active: RaohaneConfig.mediaOverlayGamingAutoHideSeconds === optionValue
+
+                            width: optionValue === 0 ? 48 : 42
+                            height: 30
+                            radius: 10
+                            color: active ? RaohaneTheme.accentSoft
+                                : autoHideMouse.containsMouse ? RaohaneTheme.surfaceRaised
+                                : RaohaneTheme.surfaceDeep
+                            border.width: 1
+                            border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+
+                            Behavior on color {
+                                ColorAnimation { duration: RaohaneMotion.micro }
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: String(autoHideButton.modelData.label)
+                                color: autoHideButton.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                                font.weight: autoHideButton.active ? Font.DemiBold : Font.Medium
+                            }
+
+                            MouseArea {
+                                id: autoHideMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: RaohaneConfig.mediaOverlayGamingAutoHideSeconds = autoHideButton.optionValue
+                            }
+                        }
+                    }
+                }
             }
         }
 
