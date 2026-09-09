@@ -115,6 +115,7 @@
     "mediaOverlay": true,
     "mediaOverlayPosition": "bottom-right",
     "mediaOverlayGamingPosition": "bottom-right",
+    "mediaOverlayGamingAutoHideSeconds": 8,
     "integrationMode": true,
     "themePreset": "zen-mist"
   },
