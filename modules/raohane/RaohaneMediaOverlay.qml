@@ -580,17 +580,43 @@ Scope {
 
                             Item { Layout.fillHeight: true }
 
-                            RaohaneSlider {
+                            RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 15
-                                from: 0
-                                to: 1
-                                stepSize: 0.001
-                                value: RaohaneMedia.progress
-                                enabled: RaohaneMedia.canSeek
-                                showHandle: hovered || activeFocus
-                                trackHeight: root.gamingEdgeMode ? 3 : 4
-                                onMoved: ratio => RaohaneMedia.seekRatio(ratio)
+                                Layout.preferredHeight: 16
+                                spacing: root.gamingEdgeMode ? 4 : 6
+
+                                Text {
+                                    Layout.preferredWidth: root.gamingEdgeMode ? 31 : 35
+                                    text: RaohaneMedia.length > 0
+                                        ? RaohaneMedia.formatTime(RaohaneMedia.position)
+                                        : "--:--"
+                                    color: RaohaneTheme.textFaint
+                                    font.pixelSize: root.gamingEdgeMode ? 7 : 8
+                                    horizontalAlignment: Text.AlignLeft
+                                }
+
+                                RaohaneSlider {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 15
+                                    from: 0
+                                    to: 1
+                                    stepSize: 0.001
+                                    value: RaohaneMedia.progress
+                                    enabled: RaohaneMedia.canSeek
+                                    showHandle: hovered || activeFocus
+                                    trackHeight: root.gamingEdgeMode ? 3 : 4
+                                    onMoved: ratio => RaohaneMedia.seekRatio(ratio)
+                                }
+
+                                Text {
+                                    Layout.preferredWidth: root.gamingEdgeMode ? 35 : 40
+                                    text: RaohaneMedia.length > 0
+                                        ? "−" + RaohaneMedia.formatTime(Math.max(0, RaohaneMedia.length - RaohaneMedia.position))
+                                        : "--:--"
+                                    color: RaohaneTheme.textFaint
+                                    font.pixelSize: root.gamingEdgeMode ? 7 : 8
+                                    horizontalAlignment: Text.AlignRight
+                                }
                             }
                         }
 
