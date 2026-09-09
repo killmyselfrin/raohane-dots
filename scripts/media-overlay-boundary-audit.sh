@@ -26,6 +26,11 @@ for contract in \
   'import qs\.modules\.raohane\.config' \
   'readonly property bool gamingScene: RaohaneScenes\.gaming' \
   'readonly property bool gamingEdgeMode: root\.gamingScene' \
+  'readonly property int gamingAutoHideSeconds:' \
+  'readonly property bool gamingAutoHideEnabled:' \
+  'function armGamingAutoHide\(\): void' \
+  'id: gamingAutoHideTimer' \
+  'id: mediaHover' \
   'RaohaneConfig\.mediaOverlayPosition' \
   'RaohaneConfig\.mediaOverlayGamingPosition' \
   'left: root\.positionLeft' \
@@ -100,24 +105,31 @@ fi
 for contract in \
   'property string mediaOverlayPosition: "bottom-right"' \
   'property string mediaOverlayGamingPosition: "bottom-right"' \
+  'property int mediaOverlayGamingAutoHideSeconds: 8' \
   'function sanitizeMediaOverlayPosition' \
+  'function sanitizeMediaOverlayGamingAutoHideSeconds' \
   'mediaOverlayPosition: root\.sanitizeMediaOverlayPosition' \
   'mediaOverlayGamingPosition: root\.sanitizeMediaOverlayPosition' \
+  'mediaOverlayGamingAutoHideSeconds: root\.sanitizeMediaOverlayGamingAutoHideSeconds' \
   'onMediaOverlayPositionChanged: scheduleSave\(\)' \
-  'onMediaOverlayGamingPositionChanged: scheduleSave\(\)'; do
+  'onMediaOverlayGamingPositionChanged: scheduleSave\(\)' \
+  'onMediaOverlayGamingAutoHideSecondsChanged: scheduleSave\(\)'; do
   rg -q "$contract" "$CONFIG" || fail "native config lost media placement contract: $contract"
 done
 
-# Position controls belong to one visual studio. Generic arrow-choice rows must
-# not reappear beside the studio and duplicate the same setting.
+# Media controls belong to one visual studio. Generic rows must not reappear
+# beside the studio and duplicate the same settings. Keep the ownership check
+# key-based so formatting the array over multiple lines cannot break CI.
 rg -q 'source: "RaohaneMediaStudio\.qml"' "$SECTIONS" \
   || fail 'Media & OSD lost the visual Media Position Studio extension'
-rg -q 'controlKeys: \["mediaOverlayPosition", "mediaOverlayGamingPosition"\]' "$SECTIONS" \
-  || fail 'Settings search routing lost media placement controls'
-
-for key in mediaOverlayPosition mediaOverlayGamingPosition; do
+for key in mediaOverlayPosition mediaOverlayGamingPosition mediaOverlayGamingAutoHideSeconds; do
+  rg -q "\"$key\"" "$SECTIONS" \
+    || fail "Media Studio ownership lost control key: $key"
   rg -q "RaohaneConfig\.$key" "$STUDIO" \
     || fail "Media Position Studio lost config binding: $key"
+done
+
+for key in mediaOverlayPosition mediaOverlayGamingPosition; do
   if rg -q "type: \"choice\", key: \"$key\"" "$SETTINGS"; then
     fail "Media & OSD duplicated $key as both generic choice and visual studio"
   fi
@@ -139,10 +151,16 @@ for contract in \
   'qsTr\("LIVE · DESKTOP"\)' \
   'title: qsTr\("Desktop"\)' \
   'title: qsTr\("Gaming"\)' \
+  'qsTr\("Gaming auto-hide"\)' \
+  'value: 0, label: qsTr\("Off"\)' \
+  'value: 4, label: "4s"' \
+  'value: 8, label: "8s"' \
+  'value: 15, label: "15s"' \
   'activePolicy: !root\.gamingActive' \
   'activePolicy: root\.gamingActive' \
   'onSelected: position => RaohaneConfig\.mediaOverlayPosition = position' \
   'onSelected: position => RaohaneConfig\.mediaOverlayGamingPosition = position' \
+  'onClicked: RaohaneConfig\.mediaOverlayGamingAutoHideSeconds = autoHideButton\.optionValue' \
   'MouseArea[[:space:]]*\{' \
   'cursorShape: Qt\.PointingHandCursor'; do
   rg -q "$contract" "$STUDIO" || fail "Media Position Studio lost interaction contract: $contract"
@@ -150,8 +168,8 @@ done
 
 jq -e '.schemaVersion == 13' "$DEFAULTS" >/dev/null \
   || fail 'native defaults schema unexpectedly changed'
-jq -e '.features.mediaOverlayPosition == "bottom-right" and .features.mediaOverlayGamingPosition == "bottom-right"' "$DEFAULTS" >/dev/null \
-  || fail 'native defaults lost media placement defaults'
+jq -e '.features.mediaOverlayPosition == "bottom-right" and .features.mediaOverlayGamingPosition == "bottom-right" and .features.mediaOverlayGamingAutoHideSeconds == 8' "$DEFAULTS" >/dev/null \
+  || fail 'native defaults lost media placement or Gaming auto-hide defaults'
 
 # The player must stay at a corner. Do not bring back screen-width centering
 # math or the old split/deck presentation that occupied the visual focus area.
@@ -165,6 +183,16 @@ rg -q 'visible: !root\.gamingEdgeMode.*RaohaneMedia\.canRaise' "$MEDIA" \
   || fail 'gaming edge mode no longer suppresses the secondary Raise Player action'
 rg -q 'visible: !root\.gamingEdgeMode && !root\.lyricsOpen && RaohaneMedia\.volumeSupported' "$MEDIA" \
   || fail 'gaming edge mode no longer suppresses the volume rail'
+
+# Gaming auto-hide is opt-out, hover-aware and must never dismiss lyrics.
+rg -q '!root\.lyricsOpen' "$MEDIA" \
+  || fail 'Gaming auto-hide no longer protects expanded lyrics'
+rg -q '!root\.lyricsFocus' "$MEDIA" \
+  || fail 'Gaming auto-hide no longer protects lyrics-only focus mode'
+rg -q 'if \(hovered\)' "$MEDIA" \
+  || fail 'Gaming auto-hide no longer pauses on pointer hover'
+rg -q 'gamingAutoHideTimer\.stop\(\)' "$MEDIA" \
+  || fail 'Gaming auto-hide lost explicit timer cancellation'
 
 # Timeline feedback must reuse the existing compact geometry rather than
 # growing the Gaming surface or adding a detached status strip.
@@ -194,4 +222,4 @@ if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, context handoff, media island entrypoint, scene coalescing, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, Gaming auto-hide, context handoff, media island entrypoint, scene coalescing, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
