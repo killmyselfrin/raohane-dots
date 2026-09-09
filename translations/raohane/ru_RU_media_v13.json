@@ -17,5 +17,12 @@
   "GAME": "ИГРА",
   "Used automatically in Gaming Scene": "Используется автоматически в Gaming Scene",
   "The player moves immediately. Gaming keeps the compact 430×108 layout; only its screen corner changes.": "Плеер перемещается сразу. В Gaming сохраняется компактный размер 430×108 — меняется только угол экрана.",
-  "saved automatically": "сохраняется автоматически"
+  "saved automatically": "сохраняется автоматически",
+  "LIVE · GAMING": "LIVE · ИГРА",
+  "LIVE · DESKTOP": "LIVE · DESKTOP",
+  "STANDBY": "ОЖИДАНИЕ",
+  "ACTIVE": "АКТИВНО",
+  "Changes are saved immediately. Preview opens the real overlay using the policy active for the current Scene.": "Изменения сохраняются сразу. Preview открывает настоящий overlay с политикой, активной для текущей Scene.",
+  "in use now": "используется сейчас",
+  "saved": "сохранено"
 }
