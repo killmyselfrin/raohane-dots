@@ -133,9 +133,16 @@ for key in mediaOverlayPosition mediaOverlayGamingPosition; do
   if rg -q "type: \"choice\", key: \"$key\"" "$SETTINGS"; then
     fail "Media & OSD duplicated $key as both generic choice and visual studio"
   fi
+done
+
+for key in mediaOverlayPosition mediaOverlayGamingPosition mediaOverlayGamingAutoHideSeconds; do
   rg -q "section: \"general\", key: \"$key\"" "$SETTINGS" \
     || fail "Settings search lost visual studio route: $key"
 done
+rg -q '"media player": "general"' "$SETTINGS" \
+  || fail 'Settings page aliases lost media-player routing'
+rg -q '"player": "general"' "$SETTINGS" \
+  || fail 'Settings page aliases lost player routing'
 
 for value in top-left top-right bottom-left bottom-right; do
   rg -q "value: \"$value\"" "$STUDIO" \
@@ -222,4 +229,4 @@ if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, Gaming auto-hide, context handoff, media island entrypoint, scene coalescing, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: visual corner studio, complete Settings search routing, compact timeline, Gaming auto-hide, context handoff, media island entrypoint, scene coalescing, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
