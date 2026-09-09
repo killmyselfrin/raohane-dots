@@ -11,13 +11,14 @@ fail() {
 
 MEDIA=modules/raohane/RaohaneMediaOverlay.qml
 CONTEXT=modules/raohane/RaohaneContext.qml
+ISLAND=modules/raohane/RaohaneContextIsland.qml
 CONFIG=modules/raohane/config/RaohaneConfig.qml
 SETTINGS=modules/raohane/RaohaneSettingsPageRegistry.qml
 SECTIONS=modules/raohane/RaohaneSettingsSectionRegistry.qml
 STUDIO=modules/raohane/RaohaneMediaStudio.qml
 DEFAULTS=defaults/native.json
 
-for file in "$MEDIA" "$CONTEXT" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
+for file in "$MEDIA" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
   [[ -f "$file" ]] || fail "missing media placement contract file: $file"
 done
 
@@ -64,6 +65,18 @@ for contract in \
   'readonly property bool mediaActive: RaohaneMedia\.available && !root\.mediaOverlayVisible' \
   'mediaOverlayVisible: mediaOverlayVisible'; do
   rg -q "$contract" "$CONTEXT" || fail "Context Island media handoff lost contract: $contract"
+done
+
+# Compact media context is an entry point to the dedicated player, not a second
+# half-working mini-player. Clicking the Island opens the overlay and the icon
+# communicates that transition explicitly.
+for contract in \
+  'readonly property bool mediaMode: RaohaneContext\.mode === "media"' \
+  'root\.mediaMode \? "open_in_new"' \
+  'id: mediaOpenArea' \
+  'enabled: root\.mediaMode' \
+  'onClicked: RaohaneState\.mediaOverlayOpen = true'; do
+  rg -q "$contract" "$ISLAND" || fail "Context Island media entrypoint lost contract: $contract"
 done
 
 # One Scene change should produce one coherent Island event. DND, Game Mode and
@@ -177,8 +190,8 @@ fi
 
 # Media actions remain native MPRIS/service calls. Do not grow shell-process
 # control paths inside presentation QML.
-if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$STUDIO" "$CONTEXT"; then
+if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$STUDIO" "$CONTEXT" "$ISLAND"; then
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, context handoff, scene coalescing, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, context handoff, media island entrypoint, scene coalescing, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
