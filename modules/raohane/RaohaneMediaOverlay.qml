@@ -7,6 +7,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
+import qs.modules.raohane.config
 import qs.modules.raohane.services
 
 Scope {
@@ -15,9 +16,18 @@ Scope {
     property bool lyricsOpen: false
     property bool lyricsFocus: false
 
-    // The default player lives at the screen edge. Gaming scenes use an even
-    // denser presentation so media controls never sit on the aiming/focus area.
-    readonly property bool gamingEdgeMode: RaohaneScenes.gaming && !root.lyricsFocus
+    // The default player lives at a configurable screen edge. Gaming scenes
+    // keep their own corner and use an even denser presentation so media
+    // controls never sit on the aiming/focus area.
+    readonly property bool gamingScene: RaohaneScenes.gaming
+    readonly property bool gamingEdgeMode: root.gamingScene && !root.lyricsFocus
+    readonly property string overlayPosition: root.gamingScene
+        ? RaohaneConfig.sanitizeMediaOverlayPosition(RaohaneConfig.mediaOverlayGamingPosition)
+        : RaohaneConfig.sanitizeMediaOverlayPosition(RaohaneConfig.mediaOverlayPosition)
+    readonly property bool positionLeft: root.overlayPosition.endsWith("-left")
+    readonly property bool positionRight: root.overlayPosition.endsWith("-right")
+    readonly property bool positionTop: root.overlayPosition.startsWith("top-")
+    readonly property bool positionBottom: root.overlayPosition.startsWith("bottom-")
 
     readonly property color lyricsFocusForeground: "#fffdfc"
     readonly property color lyricsFocusSecondary: "#e7e5ef"
@@ -118,12 +128,16 @@ Scope {
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
         anchors {
-            right: true
-            bottom: true
+            left: root.positionLeft
+            right: root.positionRight
+            top: root.positionTop
+            bottom: root.positionBottom
         }
         margins {
-            right: 24
-            bottom: 26
+            left: root.positionLeft ? 24 : 0
+            right: root.positionRight ? 24 : 0
+            top: root.positionTop ? 26 : 0
+            bottom: root.positionBottom ? 26 : 0
         }
 
         RaohaneSurface {

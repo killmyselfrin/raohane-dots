@@ -10,17 +10,31 @@ fail() {
 }
 
 MEDIA=modules/raohane/RaohaneMediaOverlay.qml
-[[ -f "$MEDIA" ]] || fail "missing media overlay: $MEDIA"
+CONFIG=modules/raohane/config/RaohaneConfig.qml
+SETTINGS=modules/raohane/RaohaneSettingsPageRegistry.qml
+DEFAULTS=defaults/native.json
+
+for file in "$MEDIA" "$CONFIG" "$SETTINGS" "$DEFAULTS"; do
+  [[ -f "$file" ]] || fail "missing media placement contract file: $file"
+done
 
 for contract in \
-  'readonly property bool gamingEdgeMode: RaohaneScenes\.gaming' \
+  'import qs\.modules\.raohane\.config' \
+  'readonly property bool gamingScene: RaohaneScenes\.gaming' \
+  'readonly property bool gamingEdgeMode: root\.gamingScene' \
+  'RaohaneConfig\.mediaOverlayPosition' \
+  'RaohaneConfig\.mediaOverlayGamingPosition' \
+  'left: root\.positionLeft' \
+  'right: root\.positionRight' \
+  'top: root\.positionTop' \
+  'bottom: root\.positionBottom' \
+  'left: root\.positionLeft \? 24 : 0' \
+  'right: root\.positionRight \? 24 : 0' \
+  'top: root\.positionTop \? 26 : 0' \
+  'bottom: root\.positionBottom \? 26 : 0' \
   'implicitWidth: root\.lyricsFocus \? 720' \
   ': root\.gamingEdgeMode \? 430' \
   ': root\.gamingEdgeMode \? 108' \
-  'right: true' \
-  'bottom: true' \
-  'right: 24' \
-  'bottom: 26' \
   'id: playerHud' \
   ': root\.gamingEdgeMode \? 90' \
   'id: hudCover' \
@@ -38,8 +52,33 @@ for contract in \
   rg -q "$contract" "$MEDIA" || fail "media overlay lost contract: $contract"
 done
 
-# The player must stay at an edge. Do not bring back screen-width centering math
-# or the old split/deck presentation that occupied the visual focus area.
+for contract in \
+  'property string mediaOverlayPosition: "bottom-right"' \
+  'property string mediaOverlayGamingPosition: "bottom-right"' \
+  'function sanitizeMediaOverlayPosition' \
+  'mediaOverlayPosition: root\.sanitizeMediaOverlayPosition' \
+  'mediaOverlayGamingPosition: root\.sanitizeMediaOverlayPosition' \
+  'onMediaOverlayPositionChanged: scheduleSave\(\)' \
+  'onMediaOverlayGamingPositionChanged: scheduleSave\(\)'; do
+  rg -q "$contract" "$CONFIG" || fail "native config lost media placement contract: $contract"
+done
+
+for key in mediaOverlayPosition mediaOverlayGamingPosition; do
+  rg -q "type: \"choice\", key: \"$key\"" "$SETTINGS" \
+    || fail "Media & OSD settings lost choice: $key"
+done
+for value in top-left top-right bottom-left bottom-right; do
+  rg -q "value: \"$value\"" "$SETTINGS" \
+    || fail "Media & OSD settings lost position option: $value"
+done
+
+jq -e '.schemaVersion == 13' "$DEFAULTS" >/dev/null \
+  || fail 'native defaults schema unexpectedly changed'
+jq -e '.features.mediaOverlayPosition == "bottom-right" and .features.mediaOverlayGamingPosition == "bottom-right"' "$DEFAULTS" >/dev/null \
+  || fail 'native defaults lost media placement defaults'
+
+# The player must stay at a corner. Do not bring back screen-width centering
+# math or the old split/deck presentation that occupied the visual focus area.
 if rg -n 'focusedScreen.*width.*implicitWidth|id:[[:space:]]*(artworkPane|transportRail|lyricsTransport)' "$MEDIA"; then
   fail 'media overlay regressed to centered or detached-card geometry'
 fi
@@ -72,4 +111,4 @@ if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA"; 
   fail 'media presentation bypasses native RaohaneMedia services'
 fi
 
-printf 'media-overlay-boundary-audit: adaptive right-edge player, compact gaming mode, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: configurable corner placement, compact gaming mode, native MPRIS controls and stable lyric typography are valid\n'

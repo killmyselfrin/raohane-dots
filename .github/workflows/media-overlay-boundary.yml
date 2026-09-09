@@ -4,14 +4,20 @@ on:
   push:
     branches: [main]
     paths:
+      - 'defaults/native.json'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
+      - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
+      - 'modules/raohane/config/RaohaneConfig.qml'
       - 'modules/raohane/services/RaohaneMedia.qml'
       - 'modules/raohane/services/RaohaneLyrics.qml'
       - 'scripts/media-overlay-boundary-audit.sh'
       - '.github/workflows/media-overlay-boundary.yml'
   pull_request:
     paths:
+      - 'defaults/native.json'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
+      - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
+      - 'modules/raohane/config/RaohaneConfig.qml'
       - 'modules/raohane/services/RaohaneMedia.qml'
       - 'modules/raohane/services/RaohaneLyrics.qml'
       - 'scripts/media-overlay-boundary-audit.sh'
@@ -41,13 +47,17 @@ jobs:
             sudo mv "$source" "$source.disabled"
           done < <(grep -RIl 'dl.google.com/linux/chrome-stable/deb' /etc/apt/sources.list.d 2>/dev/null || true)
           sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get install -y ripgrep qt6-declarative-dev-tools
+          sudo apt-get install -y jq ripgrep qt6-declarative-dev-tools
 
       - name: Validate audit syntax
         run: bash -n scripts/media-overlay-boundary-audit.sh
 
-      - name: Parse media overlay QML
-        run: /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaOverlay.qml >/dev/null
+      - name: Parse media placement QML
+        shell: bash
+        run: |
+          /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaOverlay.qml >/dev/null
+          /usr/lib/qt6/bin/qmlformat modules/raohane/config/RaohaneConfig.qml >/dev/null
+          /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneSettingsPageRegistry.qml >/dev/null
 
       - name: Validate media overlay boundary
         run: bash scripts/media-overlay-boundary-audit.sh

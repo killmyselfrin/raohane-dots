@@ -1,3 +1,12 @@
 {
-  "%1 · synced by %2": "%1 · синхронизация: %2"
+  "%1 · synced by %2": "%1 · синхронизация: %2",
+  "MEDIA": "МЕДИА",
+  "Player position": "Позиция плеера",
+  "Choose the screen corner used by the media overlay": "Выберите угол экрана для медиа-плеера",
+  "Gaming position": "Позиция в играх",
+  "Use a separate corner while the Gaming Scene is active": "Используйте отдельный угол при активной игровой сцене",
+  "Top left": "Сверху слева",
+  "Top right": "Сверху справа",
+  "Bottom left": "Снизу слева",
+  "Bottom right": "Снизу справа"
 }

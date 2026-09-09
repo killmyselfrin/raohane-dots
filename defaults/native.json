@@ -113,6 +113,8 @@
   "features": {
     "contextIsland": true,
     "mediaOverlay": true,
+    "mediaOverlayPosition": "bottom-right",
+    "mediaOverlayGamingPosition": "bottom-right",
     "integrationMode": true,
     "themePreset": "zen-mist"
   },
