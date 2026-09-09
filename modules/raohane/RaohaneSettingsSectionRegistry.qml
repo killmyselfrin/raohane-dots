@@ -21,7 +21,11 @@ QtObject {
         },
         general: {
             source: "RaohaneMediaStudio.qml",
-            controlKeys: ["mediaOverlayPosition", "mediaOverlayGamingPosition"]
+            controlKeys: [
+                "mediaOverlayPosition",
+                "mediaOverlayGamingPosition",
+                "mediaOverlayGamingAutoHideSeconds"
+            ]
         },
         interface: {
             source: "RaohaneSakuraSettings.qml",
