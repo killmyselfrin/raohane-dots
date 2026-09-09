@@ -12,9 +12,11 @@ fail() {
 MEDIA=modules/raohane/RaohaneMediaOverlay.qml
 CONFIG=modules/raohane/config/RaohaneConfig.qml
 SETTINGS=modules/raohane/RaohaneSettingsPageRegistry.qml
+SECTIONS=modules/raohane/RaohaneSettingsSectionRegistry.qml
+STUDIO=modules/raohane/RaohaneMediaStudio.qml
 DEFAULTS=defaults/native.json
 
-for file in "$MEDIA" "$CONFIG" "$SETTINGS" "$DEFAULTS"; do
+for file in "$MEDIA" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
   [[ -f "$file" ]] || fail "missing media placement contract file: $file"
 done
 
@@ -63,13 +65,36 @@ for contract in \
   rg -q "$contract" "$CONFIG" || fail "native config lost media placement contract: $contract"
 done
 
+# Position controls belong to one visual studio. Generic arrow-choice rows must
+# not reappear beside the studio and duplicate the same setting.
+rg -q 'source: "RaohaneMediaStudio\.qml"' "$SECTIONS" \
+  || fail 'Media & OSD lost the visual Media Position Studio extension'
+rg -q 'controlKeys: \["mediaOverlayPosition", "mediaOverlayGamingPosition"\]' "$SECTIONS" \
+  || fail 'Settings search routing lost media placement controls'
+
 for key in mediaOverlayPosition mediaOverlayGamingPosition; do
-  rg -q "type: \"choice\", key: \"$key\"" "$SETTINGS" \
-    || fail "Media & OSD settings lost choice: $key"
+  rg -q "RaohaneConfig\.$key" "$STUDIO" \
+    || fail "Media Position Studio lost config binding: $key"
+  if rg -q "type: \"choice\", key: \"$key\"" "$SETTINGS"; then
+    fail "Media & OSD duplicated $key as both generic choice and visual studio"
+  fi
+  rg -q "section: \"general\", key: \"$key\"" "$SETTINGS" \
+    || fail "Settings search lost visual studio route: $key"
 done
+
 for value in top-left top-right bottom-left bottom-right; do
-  rg -q "value: \"$value\"" "$SETTINGS" \
-    || fail "Media & OSD settings lost position option: $value"
+  rg -q "value: \"$value\"" "$STUDIO" \
+    || fail "Media Position Studio lost position option: $value"
+done
+
+for contract in \
+  'title: qsTr\("Desktop"\)' \
+  'title: qsTr\("Gaming"\)' \
+  'onSelected: position => RaohaneConfig\.mediaOverlayPosition = position' \
+  'onSelected: position => RaohaneConfig\.mediaOverlayGamingPosition = position' \
+  'MouseArea[[:space:]]*\{' \
+  'cursorShape: Qt\.PointingHandCursor'; do
+  rg -q "$contract" "$STUDIO" || fail "Media Position Studio lost interaction contract: $contract"
 done
 
 jq -e '.schemaVersion == 13' "$DEFAULTS" >/dev/null \
@@ -107,8 +132,8 @@ fi
 
 # Media actions remain native MPRIS/service calls. Do not grow shell-process
 # control paths inside presentation QML.
-if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA"; then
-  fail 'media presentation bypasses native RaohaneMedia services'
+if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$STUDIO"; then
+  fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: configurable corner placement, compact gaming mode, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: visual corner studio, compact gaming mode, native MPRIS controls and stable lyric typography are valid\n'
