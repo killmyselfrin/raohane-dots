@@ -66,6 +66,24 @@ for contract in \
   rg -q "$contract" "$CONTEXT" || fail "Context Island media handoff lost contract: $contract"
 done
 
+# One Scene change should produce one coherent Island event. DND, Game Mode and
+# Keep Awake changes applied by that Scene are implementation details and must
+# not cascade over the scene feedback. Manual changes outside this short
+# transition window still surface normally.
+for contract in \
+  'property bool sceneTransitionMuted: false' \
+  'root\.sceneTransitionMuted = true' \
+  'sceneTransitionTimer\.restart\(\)' \
+  'id: sceneTransitionTimer' \
+  'interval: 1800' \
+  'if \(!root\.eventSignalsReady \|\| root\.sceneTransitionMuted\)'; do
+  rg -q "$contract" "$CONTEXT" || fail "Context Island scene coalescing lost contract: $contract"
+done
+coalesced_guards="$(rg -c 'if \(!root\.eventSignalsReady \|\| root\.sceneTransitionMuted\)' "$CONTEXT" || true)"
+if (( coalesced_guards < 3 )); then
+  fail 'scene transition no longer suppresses DND, Game Mode and Keep Awake event cascades'
+fi
+
 for contract in \
   'property string mediaOverlayPosition: "bottom-right"' \
   'property string mediaOverlayGamingPosition: "bottom-right"' \
@@ -163,4 +181,4 @@ if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, context handoff, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, context handoff, scene coalescing, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
