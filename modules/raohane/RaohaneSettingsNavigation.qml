@@ -37,11 +37,8 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        anchors.topMargin: 13
-        anchors.bottomMargin: 12
-        spacing: 8
+        anchors.margins: RaohaneTheme.panelPadding
+        spacing: RaohaneTheme.spacingSmall
 
         Item {
             Layout.fillWidth: true
@@ -49,12 +46,12 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                spacing: 10
+                spacing: RaohaneTheme.spacing
 
                 RaohaneSurface {
                     Layout.preferredWidth: 36
                     Layout.preferredHeight: 36
-                    surfaceRadius: 11
+                    surfaceRadius: RaohaneTheme.radiusLarge
                     active: true
                     showSheen: false
 
@@ -72,7 +69,7 @@ Item {
                 ColumnLayout {
                     Layout.fillWidth: true
                     visible: !root.compact
-                    spacing: 1
+                    spacing: RaohaneTheme.spacingTiny / 3
 
                     Text {
                         text: "RAOHANE"
@@ -137,24 +134,15 @@ Item {
                     height: 36
                     visible: navContent.selectedDelegate !== null
                     opacity: visible ? 1 : 0
-                    surfaceRadius: 10
+                    surfaceRadius: RaohaneTheme.radius
                     active: true
                     raised: false
                     showSheen: false
-                    border.color: RaohaneTheme.accentBorder
-
-                    Rectangle {
-                        anchors {
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                            leftMargin: 2
-                        }
-                        width: 2
-                        height: 18
-                        radius: 1
-                        color: RaohaneTheme.accent
-                        opacity: 0.90
-                    }
+                    activeBorderColor: RaohaneTheme.accentBorder
+                    showStateRail: true
+                    stateRailWidth: 2
+                    stateRailLength: 18
+                    stateRailOpacity: 0.90
 
                     Behavior on y {
                         enabled: RaohaneMotion.transformMotionEnabled
@@ -173,7 +161,7 @@ Item {
                     id: navColumn
                     z: 1
                     width: navContent.width
-                    spacing: 2
+                    spacing: RaohaneTheme.spacingTiny - 1
 
                     Repeater {
                         id: navRepeater
@@ -193,9 +181,9 @@ Item {
                                 visible: !root.compact && navDelegate.firstInGroup
                                 anchors {
                                     left: parent.left
-                                    leftMargin: 10
+                                    leftMargin: RaohaneTheme.spacing
                                     top: parent.top
-                                    topMargin: 8
+                                    topMargin: RaohaneTheme.spacingSmall
                                 }
                                 text: navDelegate.modelData.group
                                 color: RaohaneTheme.textFaint
@@ -212,45 +200,29 @@ Item {
                                     bottom: parent.bottom
                                 }
                                 height: 36
-                                surfaceRadius: 10
+                                surfaceRadius: RaohaneTheme.radius
                                 active: false
                                 transparentIdle: true
                                 showSheen: false
+                                showInnerRim: false
                                 interactive: true
-                                hovered: navMouse.containsMouse || activeFocus
-                                pressed: navMouse.pressed
+                                hovered: !navDelegate.selected && (navMouse.containsMouse || activeFocus)
+                                pressed: !navDelegate.selected && navMouse.pressed
                                 hoverScale: 1
                                 pressedScale: 1
                                 activeFocusOnTab: true
-                                border.color: navDelegate.selected
-                                    ? "transparent"
-                                    : navItem.hovered
-                                        ? RaohaneTheme.borderStrong
-                                        : "transparent"
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 10
-                                    color: RaohaneTheme.surfaceSubtle
-                                    opacity: !navDelegate.selected && navItem.hovered ? 0.36 : 0
-
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: RaohaneMotion.micro
-                                            easing.type: RaohaneMotion.easeStandard
-                                        }
-                                    }
-                                }
+                                hoverColor: RaohaneTheme.surfaceSubtle
+                                hoverBorderColor: RaohaneTheme.borderStrong
 
                                 RowLayout {
                                     id: navRow
                                     anchors.fill: parent
-                                    anchors.leftMargin: root.compact ? 0 : 11
-                                    anchors.rightMargin: root.compact ? 0 : 9
-                                    spacing: 9
+                                    anchors.leftMargin: root.compact ? 0 : RaohaneTheme.spacing + 2
+                                    anchors.rightMargin: root.compact ? 0 : RaohaneTheme.spacing
+                                    spacing: RaohaneTheme.spacing
 
                                     transform: Translate {
-                                        x: navItem.hovered && !navDelegate.selected && RaohaneMotion.transformMotionEnabled ? 2 : 0
+                                        x: navItem.hovered && RaohaneMotion.transformMotionEnabled ? 2 : 0
                                         Behavior on x {
                                             NumberAnimation {
                                                 duration: RaohaneMotion.micro
@@ -321,7 +293,7 @@ Item {
         RaohaneSurface {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
-            surfaceRadius: 12
+            surfaceRadius: RaohaneTheme.radiusLarge
             transparentIdle: true
             showSheen: false
             interactive: true
@@ -329,12 +301,14 @@ Item {
             pressed: profileMouse.pressed
             hoverScale: 1
             pressedScale: 1
+            hoverColor: RaohaneTheme.surfaceSubtle
+            hoverBorderColor: RaohaneTheme.borderStrong
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: root.compact ? 6 : 7
-                anchors.rightMargin: 7
-                spacing: 9
+                anchors.leftMargin: root.compact ? RaohaneTheme.spacingSmall : RaohaneTheme.spacingSmall + 1
+                anchors.rightMargin: RaohaneTheme.spacingSmall + 1
+                spacing: RaohaneTheme.spacing
 
                 transform: Translate {
                     x: profileMouse.containsMouse && RaohaneMotion.transformMotionEnabled ? 2 : 0
@@ -349,7 +323,7 @@ Item {
                 RaohaneSurface {
                     Layout.preferredWidth: 34
                     Layout.preferredHeight: 34
-                    surfaceRadius: 11
+                    surfaceRadius: RaohaneTheme.radiusLarge
                     showSheen: false
                     clip: true
 
