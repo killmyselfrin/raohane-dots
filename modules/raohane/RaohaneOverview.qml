@@ -151,7 +151,7 @@ Scope {
             opacity: overviewPanel.entered ? 1 : 0
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
 
             MouseArea {
@@ -167,29 +167,15 @@ Scope {
             width: Math.min(parent.width - 80, 1200)
             height: Math.min(parent.height - 92, 760)
             anchors.centerIn: parent
-            surfaceRadius: 20
+            surfaceRadius: RaohaneTheme.radiusHero
             raised: true
             showSheen: true
-            border.color: RaohaneTheme.borderStrong
+            idleBorderColor: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeStandard }
-            }
-
-            Rectangle {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                    leftMargin: 20
-                    rightMargin: 20
-                }
-                height: 2
-                radius: 1
-                color: RaohaneTheme.accent
-                opacity: 0.38
+                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
 
             MouseArea {
@@ -227,24 +213,37 @@ Scope {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 18
-                spacing: 12
+                anchors.margins: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
+                spacing: RaohaneTheme.spacingLarge
 
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 56
-                    spacing: 11
+                    spacing: RaohaneTheme.spacing + 2
 
-                    Rectangle {
-                        Layout.preferredWidth: 3
-                        Layout.preferredHeight: 34
-                        radius: 2
-                        color: RaohaneTheme.accent
+                    RaohaneSurface {
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        surfaceRadius: RaohaneTheme.radiusLarge
+                        active: true
+                        raised: false
+                        showSheen: false
+                        showInnerRim: false
+
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "view_cozy"
+                            iconSize: 19
+                            fill: 1
+                            symbolWeight: 550
+                            grade: 30
+                            color: RaohaneTheme.accent
+                        }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 1
+                        spacing: Math.max(1, RaohaneTheme.spacingTiny - 2)
 
                         Text {
                             text: qsTr("Spaces")
@@ -262,16 +261,17 @@ Scope {
                     }
 
                     RaohaneSurface {
-                        implicitWidth: currentWorkspaceRow.implicitWidth + 18
+                        implicitWidth: currentWorkspaceRow.implicitWidth + RaohaneTheme.spacingLarge
                         implicitHeight: 30
-                        surfaceRadius: 9
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         active: true
                         showSheen: false
+                        showInnerRim: false
 
                         Row {
                             id: currentWorkspaceRow
                             anchors.centerIn: parent
-                            spacing: 6
+                            spacing: RaohaneTheme.spacingSmall
 
                             Rectangle {
                                 width: 6
@@ -291,11 +291,12 @@ Scope {
                     }
 
                     RaohaneSurface {
-                        implicitWidth: groupText.implicitWidth + 18
+                        implicitWidth: groupText.implicitWidth + RaohaneTheme.spacingLarge
                         implicitHeight: 30
-                        surfaceRadius: 9
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         transparentIdle: true
                         showSheen: false
+                        showInnerRim: false
 
                         Text {
                             id: groupText
@@ -329,8 +330,8 @@ Scope {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     columns: root.columns
-                    columnSpacing: 10
-                    rowSpacing: 10
+                    columnSpacing: RaohaneTheme.spacing + 1
+                    rowSpacing: RaohaneTheme.spacing + 1
 
                     Repeater {
                         model: root.workspaceIds
@@ -361,7 +362,7 @@ Scope {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 30
-                    spacing: 9
+                    spacing: RaohaneTheme.spacing
 
                     RaohaneIcon {
                         text: "keyboard"
