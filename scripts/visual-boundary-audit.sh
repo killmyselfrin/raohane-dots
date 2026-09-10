@@ -19,6 +19,8 @@ media_hud='modules/raohane/RaohaneMediaPlayerHud.qml'
 media_header='modules/raohane/RaohaneMediaLyricsHeader.qml'
 media_status='modules/raohane/RaohaneMediaLyricsStatus.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
+control_header='modules/raohane/RaohaneControlCenterHeader.qml'
+control_footer='modules/raohane/RaohaneControlCenterFooter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
 settings_navigation='modules/raohane/RaohaneSettingsNavigation.qml'
@@ -52,7 +54,7 @@ osk='modules/raohane/RaohaneOnScreenKeyboard.qml'
 osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
-  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$media_hud" "$media_header" "$media_status" "$control" "$settings" "$settings_content" \
+  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$media_hud" "$media_header" "$media_status" "$control" "$control_header" "$control_footer" "$settings" "$settings_content" \
   "$settings_navigation" "$settings_header" "$settings_section" "$settings_control" "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" \
   "$context" "$notification" "$surface" "$icon_button" "$motion" "$slider" "$switch" "$clock" "$quick" "$quick_tile" "$sidebar" \
   "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
@@ -121,12 +123,16 @@ rg -q 'RaohaneSwitch[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed f
 rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_control" || fail 'Settings control rows regressed from the shared switch'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_control" || fail 'Settings numeric controls regressed from shared icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$media_hud" || fail 'Media Player HUD regressed from shared tactile icon buttons'
-rg -q 'RaohaneIconButton[[:space:]]*\{' "$control" || fail 'Control Center regressed from shared tactile icon buttons'
+rg -q 'RaohaneControlCenterHeader[[:space:]]*\{' "$control" || fail 'Control Center lost the extracted tactile header'
+rg -q 'RaohaneControlCenterFooter[[:space:]]*\{' "$control" || fail 'Control Center lost the extracted tactile footer'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$control_header" || fail 'Control Center header regressed from shared tactile icon buttons'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$control_footer" || fail 'Control Center footer regressed from shared tactile icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$osk" || fail 'OSK shell regressed from shared tactile icon buttons'
 rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$settings_section" || fail 'Settings section no longer composes reusable control rows'
 
-# The coordinator is intentionally presentation-light. Shared surfaces for
-# Settings live in the extracted navigation/header/section implementations.
+# Coordinators are intentionally presentation-light. Shared surfaces for
+# Settings live in extracted navigation/header/section implementations, while
+# Control Center frame buttons live in its extracted Header/Footer components.
 shared_surfaces=(
   "$launcher" "$media" "$control" "$settings" "$settings_navigation" "$settings_header" "$settings_section" "$settings_home" \
   "$bar" "$vertical" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
@@ -223,4 +229,4 @@ rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted media HUD/header/status surfaces, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted media HUD/header/status surfaces, extracted Control Center frame buttons, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
