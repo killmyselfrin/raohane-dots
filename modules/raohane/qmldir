@@ -107,6 +107,8 @@ RaohaneScreenTranslator 1.0 RaohaneScreenTranslator.qml
 RaohaneDropShelfPanel 1.0 RaohaneDropShelfPanel.qml
 RaohaneDropShelfItem 1.0 RaohaneDropShelfItem.qml
 RaohaneLauncher 1.0 RaohaneLauncher.qml
+RaohaneLauncherSearchBar 1.0 RaohaneLauncherSearchBar.qml
+RaohaneLauncherModeBar 1.0 RaohaneLauncherModeBar.qml
 RaohaneTaskManager 1.0 RaohaneTaskManager.qml
 RaohaneOsd 1.0 RaohaneOsd.qml
 RaohaneNotificationPopup 1.0 RaohaneNotificationPopup.qml
