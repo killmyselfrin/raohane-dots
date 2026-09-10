@@ -11,6 +11,7 @@ fail() {
 
 MEDIA=modules/raohane/RaohaneMediaOverlay.qml
 HUD=modules/raohane/RaohaneMediaPlayerHud.qml
+LYRICS_STAGE=modules/raohane/RaohaneMediaLyricsStage.qml
 HEADER=modules/raohane/RaohaneMediaLyricsHeader.qml
 STATUS=modules/raohane/RaohaneMediaLyricsStatus.qml
 VIEWPORT=modules/raohane/RaohaneMediaLyricsViewport.qml
@@ -22,7 +23,7 @@ SECTIONS=modules/raohane/RaohaneSettingsSectionRegistry.qml
 STUDIO=modules/raohane/RaohaneMediaStudio.qml
 DEFAULTS=defaults/native.json
 
-for file in "$MEDIA" "$HUD" "$HEADER" "$STATUS" "$VIEWPORT" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
+for file in "$MEDIA" "$HUD" "$LYRICS_STAGE" "$HEADER" "$STATUS" "$VIEWPORT" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
   [[ -f "$file" ]] || fail "missing media placement contract file: $file"
 done
 
@@ -50,13 +51,12 @@ for contract in \
   ': root\.gamingEdgeMode \? 108' \
   'RaohaneMediaPlayerHud[[:space:]]*\{' \
   'id: playerHud' \
+  'RaohaneMediaLyricsStage[[:space:]]*\{' \
   'id: lyricsStage' \
   'visible: root\.lyricsOpen' \
-  'RaohaneMediaLyricsHeader[[:space:]]*\{' \
-  'RaohaneMediaLyricsStatus[[:space:]]*\{' \
-  'RaohaneMediaLyricsViewport[[:space:]]*\{' \
-  'id: lyricsViewport' \
-  'lyricsViewport\.centerCurrentLine\(animated\)' \
+  'lyricsStage\.centerCurrentLine\(animated\)' \
+  'lines: RaohaneLyrics\.displayLines' \
+  'syncedIndex: RaohaneLyrics\.currentLineIndex' \
   'RaohaneMedia\.cyclePlayer\(step\)' \
   'RaohaneMedia\.raisePlayer\(\)' \
   'RaohaneMedia\.setVolume\(value\)' \
@@ -69,6 +69,19 @@ for contract in \
   'RaohaneLyrics\.currentLineIndex'; do
   rg -q "$contract" "$MEDIA" || fail "media overlay lost contract: $contract"
 done
+
+# Lyrics presentation is composed through one Stage. The coordinator owns
+# service state/actions and must not rebuild Header/Status/Viewport directly.
+for contract in \
+  'RaohaneMediaLyricsHeader[[:space:]]*\{' \
+  'RaohaneMediaLyricsStatus[[:space:]]*\{' \
+  'RaohaneMediaLyricsViewport[[:space:]]*\{' \
+  'lyricsViewport\.centerCurrentLine\(animated\)'; do
+  rg -q "$contract" "$LYRICS_STAGE" || fail "lyrics stage lost leaf composition contract: $contract"
+done
+if rg -n 'RaohaneMediaLyrics(Header|Status|Viewport)[[:space:]]*\{' "$MEDIA"; then
+  fail 'media overlay regained direct lyrics leaf composition'
+fi
 
 # The Context Island owns compact media context only while the dedicated media
 # overlay is closed. Recording/privacy/transient event priority stays intact.
@@ -194,12 +207,12 @@ rg -q 'if \(hovered\)' "$MEDIA" \
 rg -q 'gamingAutoHideTimer\.stop\(\)' "$MEDIA" \
   || fail 'Gaming auto-hide lost explicit timer cancellation'
 
-# The outer surface may fade while the extracted viewport animates contentY to
+# The outer surface may fade while the nested viewport animates contentY to
 # center the current synced line. Lyric glyphs themselves must stay stable.
-if rg -n 'Behavior on (scale|color|styleColor)' "$MEDIA" "$VIEWPORT"; then
+if rg -n 'Behavior on (scale|color|styleColor)' "$MEDIA" "$LYRICS_STAGE" "$VIEWPORT"; then
   fail 'lyric/player text regained transform or color Behaviors'
 fi
-if rg -n '^[[:space:]]*scale:[[:space:]]' "$MEDIA" "$VIEWPORT"; then
+if rg -n '^[[:space:]]*scale:[[:space:]]' "$MEDIA" "$LYRICS_STAGE" "$VIEWPORT"; then
   fail 'media presentation contains text/item scale state again'
 fi
 
@@ -210,8 +223,8 @@ fi
 
 # Media actions remain native MPRIS/service calls. Neither coordinator nor
 # extracted presentation components may grow shell-process control paths.
-if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$HUD" "$HEADER" "$STATUS" "$VIEWPORT" "$STUDIO" "$CONTEXT" "$ISLAND"; then
+if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$HUD" "$LYRICS_STAGE" "$HEADER" "$STATUS" "$VIEWPORT" "$STUDIO" "$CONTEXT" "$ISLAND"; then
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: corner placement, Gaming auto-hide, extracted lyrics presentation, context handoff, media island entrypoint, scene coalescing and native coordinator-owned MPRIS controls are valid\n'
+printf 'media-overlay-boundary-audit: corner placement, Gaming auto-hide, staged lyrics presentation, context handoff, media island entrypoint, scene coalescing and native coordinator-owned MPRIS controls are valid\n'
