@@ -7,6 +7,7 @@ on:
       - 'defaults/native.json'
       - 'modules/raohane/RaohaneContext.qml'
       - 'modules/raohane/RaohaneContextIsland.qml'
+      - 'modules/raohane/RaohaneMediaLyricLine.qml'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
       - 'modules/raohane/RaohaneMediaStudio.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
@@ -14,6 +15,7 @@ on:
       - 'modules/raohane/config/RaohaneConfig.qml'
       - 'modules/raohane/services/RaohaneMedia.qml'
       - 'modules/raohane/services/RaohaneLyrics.qml'
+      - 'scripts/media-lyric-boundary-audit.sh'
       - 'scripts/media-overlay-boundary-audit.sh'
       - '.github/workflows/media-overlay-boundary.yml'
   pull_request:
@@ -21,6 +23,7 @@ on:
       - 'defaults/native.json'
       - 'modules/raohane/RaohaneContext.qml'
       - 'modules/raohane/RaohaneContextIsland.qml'
+      - 'modules/raohane/RaohaneMediaLyricLine.qml'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
       - 'modules/raohane/RaohaneMediaStudio.qml'
       - 'modules/raohane/RaohaneSettingsPageRegistry.qml'
@@ -28,6 +31,7 @@ on:
       - 'modules/raohane/config/RaohaneConfig.qml'
       - 'modules/raohane/services/RaohaneMedia.qml'
       - 'modules/raohane/services/RaohaneLyrics.qml'
+      - 'scripts/media-lyric-boundary-audit.sh'
       - 'scripts/media-overlay-boundary-audit.sh'
       - '.github/workflows/media-overlay-boundary.yml'
   workflow_dispatch:
@@ -58,13 +62,16 @@ jobs:
           sudo apt-get install -y jq ripgrep qt6-declarative-dev-tools
 
       - name: Validate audit syntax
-        run: bash -n scripts/media-overlay-boundary-audit.sh
+        run: |
+          bash -n scripts/media-overlay-boundary-audit.sh
+          bash -n scripts/media-lyric-boundary-audit.sh
 
       - name: Parse media placement QML
         shell: bash
         run: |
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneContext.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneContextIsland.qml >/dev/null
+          /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaLyricLine.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaOverlay.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaStudio.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/config/RaohaneConfig.qml >/dev/null
@@ -72,4 +79,6 @@ jobs:
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneSettingsSectionRegistry.qml >/dev/null
 
       - name: Validate media overlay boundary
-        run: bash scripts/media-overlay-boundary-audit.sh
+        run: |
+          bash scripts/media-overlay-boundary-audit.sh
+          bash scripts/media-lyric-boundary-audit.sh
