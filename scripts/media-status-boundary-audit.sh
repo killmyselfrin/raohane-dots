@@ -10,24 +10,37 @@ fail() {
 }
 
 MEDIA='modules/raohane/RaohaneMediaOverlay.qml'
+STAGE='modules/raohane/RaohaneMediaLyricsStage.qml'
 STATUS='modules/raohane/RaohaneMediaLyricsStatus.qml'
 VIEWPORT='modules/raohane/RaohaneMediaLyricsViewport.qml'
 
-for path in "$MEDIA" "$STATUS" "$VIEWPORT"; do
+for path in "$MEDIA" "$STAGE" "$STATUS" "$VIEWPORT"; do
   [[ -f "$path" ]] || fail "missing media status boundary path: $path"
 done
 
+# Overlay owns service state and passes status-ready values through Stage.
+for contract in \
+  'RaohaneMediaLyricsStage[[:space:]]*\{' \
+  'lyricsLoading: RaohaneLyrics\.loading' \
+  'instrumental: RaohaneLyrics\.instrumental' \
+  'lyricsAvailable: RaohaneLyrics\.available' \
+  'errorText: RaohaneLyrics\.errorText' \
+  'accent: root\.playerAccent'; do
+  rg -q "$contract" "$MEDIA" || fail "overlay lost lyrics-status stage contract: $contract"
+done
+
+# Stage owns the status/viewport composition, never the underlying services.
 for contract in \
   'RaohaneMediaLyricsStatus[[:space:]]*\{' \
-  'loading: RaohaneLyrics\.loading' \
-  'instrumental: RaohaneLyrics\.instrumental' \
-  'available: RaohaneLyrics\.available' \
-  'errorText: RaohaneLyrics\.errorText' \
-  'accent: root\.playerAccent' \
+  'loading: root\.lyricsLoading' \
+  'instrumental: root\.instrumental' \
+  'available: root\.lyricsAvailable' \
+  'errorText: root\.errorText' \
+  'accent: root\.accent' \
   'RaohaneMediaLyricsViewport[[:space:]]*\{' \
   'id: lyricsViewport' \
-  'visible: !RaohaneLyrics\.loading && RaohaneLyrics\.available && !RaohaneLyrics\.instrumental'; do
-  rg -q "$contract" "$MEDIA" || fail "overlay lost lyrics-status/viewport ownership contract: $contract"
+  'visible: !root\.lyricsLoading && root\.lyricsAvailable && !root\.instrumental'; do
+  rg -q "$contract" "$STAGE" || fail "lyrics stage lost status/viewport ownership contract: $contract"
 done
 
 for contract in \
@@ -44,19 +57,24 @@ for contract in \
   rg -q "$contract" "$STATUS" || fail "lyrics status lost presentation contract: $contract"
 done
 
-if rg -n '^import qs\.modules\.raohane\.(services|config)' "$STATUS"; then
-  fail 'lyrics status imported service/config modules'
-fi
-if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$STATUS"; then
-  fail 'lyrics status bypasses the overlay/service boundary'
-fi
+for file in "$STAGE" "$STATUS"; do
+  if rg -n '^import qs\.modules\.raohane\.(services|config)' "$file"; then
+    fail "$file imported service/config modules"
+  fi
+  if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)\.|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$file"; then
+    fail "$file bypasses the overlay/service boundary"
+  fi
+done
 
-# Status rendering stays isolated from synced-line mechanics. The extracted
-# viewport owns ListView/scrolling/seek signaling and is validated separately.
+# Status rendering stays isolated from synced-line mechanics. Stage may compose
+# the separate viewport, but the Status leaf itself must never absorb it.
 if rg -n 'ListView[[:space:]]*\{|RaohaneMediaLyricLine|seekRequested|contentY' "$STATUS"; then
   fail 'lyrics status absorbed synced-list/seek responsibilities'
 fi
 rg -q 'ListView[[:space:]]*\{' "$VIEWPORT" \
-  || fail 'synced viewport lost ListView ownership after status extraction'
+  || fail 'synced viewport lost ListView ownership after Stage extraction'
+if rg -n 'RaohaneMediaLyrics(Status|Viewport)[[:space:]]*\{' "$MEDIA"; then
+  fail 'Overlay regained direct lyrics status/viewport composition'
+fi
 
-printf 'media-status-boundary-audit: loading/instrumental/unavailable states remain presentation-only while synced scrolling belongs to the extracted viewport\n'
+printf 'media-status-boundary-audit: status states remain presentation-only behind Stage while synced scrolling belongs to the extracted viewport\n'
