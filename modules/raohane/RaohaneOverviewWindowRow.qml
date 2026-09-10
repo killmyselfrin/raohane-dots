@@ -10,56 +10,44 @@ RaohaneSurface {
     signal activated(var toplevel)
 
     readonly property bool activeWindow: Boolean(root.toplevel?.activated)
+    readonly property bool urgentWindow: Boolean(root.toplevel?.urgent)
 
     Layout.fillWidth: true
     Layout.preferredHeight: 34
-    surfaceRadius: 8
+    surfaceRadius: RaohaneTheme.radiusSmall
     transparentIdle: !root.activeWindow && !root.hovered
     active: root.activeWindow
     hovered: pointer.containsMouse || activeFocus
     pressed: pointer.pressed
     interactive: true
     showSheen: false
+    showInnerRim: root.activeWindow
     hoverScale: 1
     pressedScale: 1
     activeFocusOnTab: !!root.toplevel?.wayland
     opacity: root.toplevel?.wayland ? 1 : 0.62
-    border.color: root.activeWindow
-        ? RaohaneTheme.accentBorder
-        : root.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
-
-    Rectangle {
-        anchors {
-            left: parent.left
-            top: parent.top
-            bottom: parent.bottom
-            leftMargin: 2
-            topMargin: 8
-            bottomMargin: 8
-        }
-        width: 3
-        radius: 2
-        color: root.toplevel?.urgent
-            ? RaohaneTheme.critical
-            : root.activeWindow ? RaohaneTheme.accent : RaohaneTheme.textFaint
-        opacity: root.activeWindow || root.toplevel?.urgent ? 1 : 0.30
-
-        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
-    }
+    idleBorderColor: root.urgentWindow ? RaohaneTheme.critical : RaohaneTheme.borderFaint
+    hoverBorderColor: root.urgentWindow ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+    pressedBorderColor: root.urgentWindow ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+    activeBorderColor: root.urgentWindow ? RaohaneTheme.critical : RaohaneTheme.accentBorder
+    showStateRail: root.activeWindow || root.urgentWindow
+    stateRailColor: root.urgentWindow ? RaohaneTheme.critical : RaohaneTheme.accent
+    stateRailOpacity: root.activeWindow || root.urgentWindow ? 1 : 0.30
+    stateRailWidth: 3
+    stateRailLength: 18
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 9
-        anchors.rightMargin: 8
-        spacing: 7
+        anchors.leftMargin: RaohaneTheme.spacing
+        anchors.rightMargin: RaohaneTheme.spacingSmall + 2
+        spacing: RaohaneTheme.spacingSmall + 1
 
         RaohaneIcon {
-            text: root.toplevel?.urgent ? "priority_high" : "web_asset"
+            text: root.urgentWindow ? "priority_high" : "web_asset"
             iconSize: 13
-            fill: root.activeWindow || root.toplevel?.urgent ? 1 : 0
+            fill: root.activeWindow || root.urgentWindow ? 1 : 0
             symbolWeight: root.activeWindow ? 520 : 390
-            color: root.toplevel?.urgent
+            color: root.urgentWindow
                 ? RaohaneTheme.critical
                 : root.activeWindow ? RaohaneTheme.accent : RaohaneTheme.textFaint
         }
