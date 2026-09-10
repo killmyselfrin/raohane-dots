@@ -1,0 +1,35 @@
+name: Launcher boundary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/raohane/RaohaneLauncher.qml'
+      - 'modules/raohane/RaohaneLauncherSearchBar.qml'
+      - 'modules/raohane/RaohaneLauncherModeBar.qml'
+      - 'scripts/launcher-boundary-audit.sh'
+      - '.github/workflows/launcher-boundary.yml'
+  pull_request:
+    paths:
+      - 'modules/raohane/RaohaneLauncher.qml'
+      - 'modules/raohane/RaohaneLauncherSearchBar.qml'
+      - 'modules/raohane/RaohaneLauncherModeBar.qml'
+      - 'scripts/launcher-boundary-audit.sh'
+      - '.github/workflows/launcher-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  launcher-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Validate Launcher ownership
+        shell: bash
+        run: |
+          bash -n scripts/launcher-boundary-audit.sh
+          bash scripts/launcher-boundary-audit.sh
