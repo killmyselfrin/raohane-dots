@@ -32,10 +32,8 @@ Scope {
     Connections {
         target: RaohaneState
         function onLeftSidebarOpenChanged(): void {
-            if (RaohaneState.leftSidebarOpen) {
+            if (RaohaneState.leftSidebarOpen)
                 root.now = new Date()
-                RaohaneAudio.refresh()
-            }
         }
     }
 
@@ -63,8 +61,11 @@ Scope {
         }
 
         margins {
-            left: 16
-            top: Math.max(72, Math.round(((root.focusedScreen?.height ?? 800) - sidebarWindow.implicitHeight) / 2))
+            left: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
+            top: Math.max(
+                RaohaneTheme.barHeight + (RaohaneTheme.panelPadding * 2),
+                Math.round(((root.focusedScreen?.height ?? 800) - sidebarWindow.implicitHeight) / 2)
+            )
         }
 
         WlrLayershell.namespace: "quickshell:raohane-sidebar-left"
@@ -79,7 +80,7 @@ Scope {
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: true
             showSheen: true
-            border.color: RaohaneTheme.borderStrong
+            idleBorderColor: RaohaneTheme.borderStrong
             opacity: entered ? 1 : 0
 
             Behavior on opacity {
@@ -93,28 +94,31 @@ Scope {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 10
-                spacing: 6
+                anchors.margins: RaohaneTheme.spacing + 1
+                spacing: RaohaneTheme.spacingSmall
 
                 RaohaneSurface {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 54
-                    surfaceRadius: 13
+                    surfaceRadius: RaohaneTheme.radiusLarge
                     active: true
                     showSheen: false
+                    showInnerRim: false
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 9
-                        anchors.rightMargin: 9
-                        spacing: 8
+                        anchors.leftMargin: RaohaneTheme.spacing
+                        anchors.rightMargin: RaohaneTheme.spacing
+                        spacing: RaohaneTheme.spacingSmall + 2
 
                         RaohaneSurface {
                             Layout.preferredWidth: 32
                             Layout.preferredHeight: 32
-                            surfaceRadius: 10
+                            surfaceRadius: RaohaneTheme.radius
                             active: true
+                            raised: false
                             showSheen: false
+                            showInnerRim: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
@@ -151,73 +155,6 @@ Scope {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 1
                     color: RaohaneTheme.borderFaint
-                }
-
-                RaohaneSurface {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 62
-                    surfaceRadius: 11
-                    raised: false
-                    showSheen: false
-                    color: RaohaneTheme.surfaceDeep
-                    border.color: RaohaneTheme.borderFaint
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 7
-                        anchors.rightMargin: 7
-                        anchors.topMargin: 5
-                        anchors.bottomMargin: 5
-                        spacing: 1
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 28
-                            spacing: 5
-
-                            RaohaneIconButton {
-                                buttonSize: 27
-                                iconSize: 14
-                                icon: RaohaneAudio.muted || RaohaneAudio.volume <= 0.001
-                                    ? "volume_off"
-                                    : RaohaneAudio.volume < 0.5 ? "volume_down" : "volume_up"
-                                emphasized: !RaohaneAudio.muted && RaohaneAudio.volume > 0.001
-                                transparentIdle: RaohaneAudio.muted || RaohaneAudio.volume <= 0.001
-                                showSheen: false
-                                hoverScale: 1
-                                pressedScale: 1
-                                onClicked: RaohaneAudio.toggleMute()
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: qsTr("Volume")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 8
-                                font.weight: Font.Medium
-                            }
-
-                            Text {
-                                text: Math.round(RaohaneAudio.volume * 100) + "%"
-                                color: RaohaneAudio.muted ? RaohaneTheme.textFaint : RaohaneTheme.accent
-                                font.pixelSize: 8
-                                font.weight: Font.DemiBold
-                            }
-                        }
-
-                        RaohaneSlider {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 22
-                            from: 0
-                            to: 1
-                            stepSize: 0.02
-                            value: RaohaneAudio.volume
-                            showHandle: false
-                            trackHeight: 4
-                            enabled: RaohaneAudio.ready
-                            onMoved: nextValue => RaohaneAudio.setVolume(nextValue)
-                        }
-                    }
                 }
 
                 RailAction {
@@ -293,23 +230,28 @@ Scope {
 
         Layout.fillWidth: true
         Layout.preferredHeight: 42
-        surfaceRadius: 11
+        surfaceRadius: RaohaneTheme.radiusLarge
         active: action.accent || action.selected
         transparentIdle: !action.accent && !action.selected && !action.hovered
         raised: false
         showSheen: false
+        showInnerRim: action.accent || action.selected
         interactive: true
         hovered: actionMouse.containsMouse || activeFocus
         pressed: actionMouse.pressed
         hoverScale: 1
         pressedScale: 1
         activeFocusOnTab: true
+        idleBorderColor: "transparent"
+        hoverBorderColor: RaohaneTheme.borderStrong
+        pressedBorderColor: RaohaneTheme.borderStrong
+        activeBorderColor: RaohaneTheme.accentBorder
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 9
-            anchors.rightMargin: 8
-            spacing: 8
+            anchors.leftMargin: RaohaneTheme.spacing
+            anchors.rightMargin: RaohaneTheme.spacingSmall + 2
+            spacing: RaohaneTheme.spacingSmall + 2
 
             RaohaneIcon {
                 text: action.icon
