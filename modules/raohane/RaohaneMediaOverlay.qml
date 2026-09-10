@@ -423,67 +423,25 @@ Scope {
                                     easing.type: RaohaneMotion.easeStandard
                                 }
 
-                                delegate: Item {
-                                    id: lyricLine
+                                delegate: RaohaneMediaLyricLine {
                                     required property var modelData
                                     required property int index
 
-                                    readonly property bool current: RaohaneLyrics.syncedAvailable
-                                        && index === RaohaneLyrics.currentLineIndex
-
                                     width: ListView.view.width
-                                    height: lyricText.implicitHeight + (root.lyricsFocus ? 28 : 16)
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        radius: 10
-                                        color: lyricLine.current && !root.lyricsFocus
-                                            ? RaohaneTheme.accentSoft
-                                            : "transparent"
-                                    }
-
-                                    Rectangle {
-                                        visible: lyricLine.current && !root.lyricsFocus
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: 2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        width: 3
-                                        height: Math.min(parent.height - 16, 28)
-                                        radius: 2
-                                        color: root.playerAccent
-                                    }
-
-                                    Text {
-                                        id: lyricText
-                                        anchors {
-                                            left: parent.left
-                                            right: parent.right
-                                            verticalCenter: parent.verticalCenter
-                                            leftMargin: root.lyricsFocus ? 24 : 14
-                                            rightMargin: root.lyricsFocus ? 24 : 14
-                                        }
-                                        text: String(lyricLine.modelData.text ?? "")
-                                        color: root.lyricsFocus
-                                            ? (lyricLine.current ? root.lyricsFocusActive : root.lyricsFocusSecondary)
-                                            : (lyricLine.current ? RaohaneTheme.text : RaohaneTheme.textMuted)
-                                        font.pixelSize: root.lyricsFocus ? 15 : 10
-                                        font.weight: lyricLine.current ? Font.DemiBold : root.lyricsFocus ? Font.Medium : Font.Normal
-                                        wrapMode: Text.WordWrap
-                                        horizontalAlignment: Text.AlignHCenter
-                                        style: root.lyricsFocus ? Text.Outline : Text.Normal
-                                        styleColor: root.lyricsFocus ? root.lyricsFocusHalo : "transparent"
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        enabled: RaohaneLyrics.syncedAvailable
-                                            && Number(lyricLine.modelData.time) >= 0
-                                            && RaohaneMedia.canSeek
-                                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                        onClicked: {
-                                            if (RaohaneMedia.length > 0)
-                                                RaohaneMedia.seekRatio(Number(lyricLine.modelData.time) / RaohaneMedia.length)
-                                        }
+                                    lineData: modelData
+                                    current: RaohaneLyrics.syncedAvailable
+                                        && index === RaohaneLyrics.currentLineIndex
+                                    focusMode: root.lyricsFocus
+                                    seekEnabled: RaohaneLyrics.syncedAvailable
+                                        && Number(modelData.time) >= 0
+                                        && RaohaneMedia.canSeek
+                                    accent: root.playerAccent
+                                    focusActive: root.lyricsFocusActive
+                                    focusSecondary: root.lyricsFocusSecondary
+                                    focusHalo: root.lyricsFocusHalo
+                                    onSeekRequested: time => {
+                                        if (RaohaneMedia.length > 0)
+                                            RaohaneMedia.seekRatio(time / RaohaneMedia.length)
                                     }
                                 }
                             }
