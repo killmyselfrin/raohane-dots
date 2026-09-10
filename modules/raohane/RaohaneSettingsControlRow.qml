@@ -5,7 +5,7 @@ import QtQuick.Layouts
 
 import qs.modules.raohane.config
 
-Item {
+RaohaneSurface {
     id: root
 
     property var entry: null
@@ -20,6 +20,18 @@ Item {
 
     height: root.textRow ? 76 : 64
     activeFocusOnTab: root.toggleRow || root.choiceRow
+    surfaceRadius: RaohaneTheme.radiusSmall
+    transparentIdle: true
+    showSheen: false
+    showInnerRim: false
+    hovered: root.rowHovered
+    hoverColor: RaohaneTheme.surfaceSubtle
+    border.width: 0
+    showStateRail: root.rowHovered
+    stateRailColor: RaohaneTheme.accent
+    stateRailOpacity: activeFocus ? 0.54 : 0.34
+    stateRailWidth: 2
+    stateRailLength: Math.max(16, root.height - 24)
 
     function changeNumber(delta: real): void {
         if (!root.entry)
@@ -53,35 +65,6 @@ Item {
         const current = Math.max(0, root.currentChoiceIndex())
         const nextIndex = (current + delta + root.choiceOptions.length) % root.choiceOptions.length
         RaohaneConfig[root.entry.key] = String(root.choiceOptions[nextIndex].value)
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        color: RaohaneTheme.surfaceSubtle
-        opacity: root.rowHovered ? 0.54 : 0
-
-        Behavior on opacity {
-            NumberAnimation { duration: RaohaneMotion.micro }
-        }
-    }
-
-    Rectangle {
-        anchors {
-            left: parent.left
-            top: parent.top
-            bottom: parent.bottom
-            leftMargin: 2
-            topMargin: 12
-            bottomMargin: 12
-        }
-        width: 2
-        radius: 1
-        color: RaohaneTheme.accent
-        opacity: root.rowHovered ? 0.36 : 0
-
-        Behavior on opacity {
-            NumberAnimation { duration: RaohaneMotion.micro }
-        }
     }
 
     RowLayout {
@@ -129,8 +112,8 @@ Item {
             surfaceRadius: 9
             raised: false
             showSheen: false
-            color: RaohaneTheme.surfaceDeep
-            border.color: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            idleColor: RaohaneTheme.surfaceDeep
+            idleBorderColor: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
 
             RowLayout {
                 anchors.fill: parent
@@ -178,9 +161,11 @@ Item {
             surfaceRadius: 9
             raised: false
             showSheen: false
-            color: RaohaneTheme.surfaceDeep
-            border.color: root.activeFocus ? RaohaneTheme.accentBorder
-                : root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            active: root.activeFocus
+            idleColor: RaohaneTheme.surfaceDeep
+            activeColor: RaohaneTheme.surfaceDeep
+            idleBorderColor: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            activeBorderColor: RaohaneTheme.accentBorder
 
             RowLayout {
                 anchors.fill: parent
@@ -239,11 +224,12 @@ Item {
             Layout.preferredHeight: 34
             surfaceRadius: 9
             raised: false
-            hovered: field.activeFocus
+            active: field.activeFocus
             showSheen: false
-            color: RaohaneTheme.surfaceDeep
-            border.color: field.activeFocus ? RaohaneTheme.accentBorder
-                : root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            idleColor: RaohaneTheme.surfaceDeep
+            activeColor: RaohaneTheme.surfaceDeep
+            idleBorderColor: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            activeBorderColor: RaohaneTheme.accentBorder
 
             TextInput {
                 id: field
