@@ -20,14 +20,17 @@ rg -q 'if \(RaohaneState\.leftSidebarOpen\)' "$sidebar" \
   || fail 'sidebar open-state handler does not guard the immediate refresh'
 rg -q 'root\.now = new Date\(\)' "$sidebar" \
   || fail 'sidebar no longer updates its displayed clock'
-rg -q 'RaohaneAudio\.refresh\(\)' "$sidebar" \
-  || fail 'sidebar no longer requests the cached audio snapshot when opened'
 
-if rg -n 'RaohaneAudio\.refresh\(true\)' "$sidebar"; then
-  fail 'sidebar bypasses the shared audio cache on every open'
+# Audio controls belong to Control Center. The navigation-only left rail should
+# not wake the audio snapshot path simply because it becomes visible.
+if rg -n 'RaohaneAudio\.refresh\(' "$sidebar"; then
+  fail 'navigation-only sidebar regressed to requesting audio snapshots on open'
+fi
+if rg -n 'RaohaneAudio\.(setVolume|toggleMute|setMuted)' "$sidebar"; then
+  fail 'navigation-only sidebar regressed to owning audio controls'
 fi
 if rg -n 'running:[[:space:]]*true' "$sidebar"; then
   fail 'sidebar contains an unconditional always-running timer/process'
 fi
 
-printf 'sidebar-performance-audit: clock is visibility-gated and audio opens reuse the shared cache\n'
+printf 'sidebar-performance-audit: clock is visibility-gated and navigation rail does not poll audio\n'
