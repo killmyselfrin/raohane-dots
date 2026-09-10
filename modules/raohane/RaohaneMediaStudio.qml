@@ -32,17 +32,17 @@ Item {
     ColumnLayout {
         id: studioColumn
         width: parent.width
-        spacing: 12
+        spacing: RaohaneTheme.spacingLarge
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.leftMargin: 4
-            Layout.rightMargin: 4
-            spacing: 10
+            Layout.leftMargin: RaohaneTheme.spacingTiny
+            Layout.rightMargin: RaohaneTheme.spacingTiny
+            spacing: RaohaneTheme.spacing
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 3
+                spacing: RaohaneTheme.spacingTiny
 
                 Text {
                     text: qsTr("Media Position Studio")
@@ -72,13 +72,19 @@ Item {
             }
 
             RaohaneSurface {
-                Layout.preferredWidth: liveLabel.implicitWidth + 24
+                Layout.preferredWidth: liveLabel.implicitWidth + 2 * RaohaneTheme.panelPadding
                 Layout.preferredHeight: 28
-                surfaceRadius: 11
+                surfaceRadius: RaohaneTheme.radiusLarge
+                active: true
                 raised: false
                 showSheen: false
-                color: RaohaneTheme.accentSoft
-                border.color: RaohaneTheme.accentBorder
+                showInnerRim: false
+                activeColor: RaohaneTheme.accentSoft
+                activeBorderColor: RaohaneTheme.accentBorder
+                showStateRail: true
+                stateRailWidth: 2
+                stateRailLength: 14
+                stateRailOpacity: 0.82
 
                 Text {
                     id: liveLabel
@@ -93,7 +99,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 12
+            spacing: RaohaneTheme.spacingLarge
 
             PlacementCard {
                 Layout.fillWidth: true
@@ -126,22 +132,43 @@ Item {
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
-            border.color: root.gamingActive ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+            active: root.gamingActive
+            activeColor: RaohaneTheme.surface
+            idleBorderColor: RaohaneTheme.borderFaint
+            activeBorderColor: RaohaneTheme.accentBorder
+            showStateRail: root.gamingActive
+            stateRailWidth: 3
+            stateRailLength: 28
+            stateRailOpacity: 0.70
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 14
-                spacing: 14
+                anchors.margins: RaohaneTheme.spacingLarge
+                spacing: RaohaneTheme.spacingLarge
 
-                RaohaneIcon {
-                    text: "timer"
-                    iconSize: 18
-                    color: root.gamingActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                RaohaneSurface {
+                    Layout.preferredWidth: 34
+                    Layout.preferredHeight: 34
+                    Layout.alignment: Qt.AlignVCenter
+                    surfaceRadius: RaohaneTheme.radiusLarge
+                    active: root.gamingActive
+                    showSheen: false
+                    showInnerRim: false
+                    idleColor: RaohaneTheme.surfaceSubtle
+                    idleBorderColor: RaohaneTheme.borderFaint
+
+                    RaohaneIcon {
+                        anchors.centerIn: parent
+                        text: "timer"
+                        iconSize: 18
+                        fill: root.gamingActive ? 1 : 0
+                        color: root.gamingActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    }
                 }
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 2
+                    spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
                     Text {
                         text: qsTr("Gaming auto-hide")
@@ -168,37 +195,44 @@ Item {
                 }
 
                 RowLayout {
-                    spacing: 5
+                    spacing: Math.max(2, RaohaneTheme.spacingSmall - 1)
 
                     Repeater {
                         model: root.autoHideOptions
 
-                        delegate: Rectangle {
+                        delegate: RaohaneSurface {
                             id: autoHideButton
                             required property var modelData
 
                             readonly property int optionValue: Number(modelData.value)
-                            readonly property bool active: RaohaneConfig.mediaOverlayGamingAutoHideSeconds === optionValue
+                            readonly property bool selected: RaohaneConfig.mediaOverlayGamingAutoHideSeconds === optionValue
 
                             width: optionValue === 0 ? 48 : 42
                             height: 30
-                            radius: 10
-                            color: active ? RaohaneTheme.accentSoft
-                                : autoHideMouse.containsMouse ? RaohaneTheme.surfaceRaised
-                                : RaohaneTheme.surfaceDeep
-                            border.width: 1
-                            border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
-
-                            Behavior on color {
-                                ColorAnimation { duration: RaohaneMotion.micro }
-                            }
+                            surfaceRadius: RaohaneTheme.radius
+                            active: selected
+                            raised: false
+                            showSheen: false
+                            showInnerRim: false
+                            interactive: true
+                            hovered: autoHideMouse.containsMouse || activeFocus
+                            pressed: autoHideMouse.pressed
+                            hoverScale: 1
+                            pressedScale: 1
+                            activeFocusOnTab: true
+                            idleColor: RaohaneTheme.surfaceDeep
+                            hoverColor: RaohaneTheme.surfaceRaised
+                            activeColor: RaohaneTheme.accentSoft
+                            idleBorderColor: RaohaneTheme.borderFaint
+                            hoverBorderColor: RaohaneTheme.borderStrong
+                            activeBorderColor: RaohaneTheme.accentBorder
 
                             Text {
                                 anchors.centerIn: parent
                                 text: String(autoHideButton.modelData.label)
-                                color: autoHideButton.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                color: autoHideButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                 font.pixelSize: 8
-                                font.weight: autoHideButton.active ? Font.DemiBold : Font.Medium
+                                font.weight: autoHideButton.selected ? Font.DemiBold : Font.Medium
                             }
 
                             MouseArea {
@@ -206,7 +240,15 @@ Item {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                onPressed: autoHideButton.forceActiveFocus()
                                 onClicked: RaohaneConfig.mediaOverlayGamingAutoHideSeconds = autoHideButton.optionValue
+                            }
+
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    RaohaneConfig.mediaOverlayGamingAutoHideSeconds = autoHideButton.optionValue
+                                    event.accepted = true
+                                }
                             }
                         }
                     }
@@ -216,9 +258,9 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.leftMargin: 4
-            Layout.rightMargin: 4
-            spacing: 8
+            Layout.leftMargin: RaohaneTheme.spacingTiny
+            Layout.rightMargin: RaohaneTheme.spacingTiny
+            spacing: RaohaneTheme.spacingSmall + 2
 
             RaohaneIcon {
                 text: "visibility"
@@ -252,20 +294,27 @@ Item {
         surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
         showSheen: false
-        border.color: card.activePolicy ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+        active: card.activePolicy
+        activeColor: RaohaneTheme.surface
+        idleBorderColor: RaohaneTheme.borderFaint
+        activeBorderColor: RaohaneTheme.accentBorder
+        showStateRail: card.activePolicy
+        stateRailWidth: 3
+        stateRailLength: 30
+        stateRailOpacity: 0.72
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 16
-            spacing: 12
+            anchors.margins: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
+            spacing: RaohaneTheme.spacingLarge
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: RaohaneTheme.spacing
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 2
+                    spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
                     Text {
                         text: card.title
@@ -291,23 +340,30 @@ Item {
                 }
             }
 
-            Rectangle {
+            RaohaneSurface {
                 id: monitor
                 Layout.fillWidth: true
                 Layout.preferredHeight: 184
-                radius: 15
-                color: RaohaneTheme.surfaceDeep
-                border.width: 1
-                border.color: card.activePolicy ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                surfaceRadius: RaohaneTheme.radiusHero
+                active: card.activePolicy
+                raised: false
+                showSheen: false
+                showInnerRim: true
+                idleColor: RaohaneTheme.surfaceDeep
+                activeColor: RaohaneTheme.surfaceDeep
+                idleBorderColor: RaohaneTheme.borderFaint
+                activeBorderColor: RaohaneTheme.accentBorder
                 clip: true
 
-                Rectangle {
+                RaohaneSurface {
                     anchors.fill: parent
-                    anchors.margins: 10
-                    radius: 10
-                    color: RaohaneTheme.surfaceSubtle
-                    border.width: 1
-                    border.color: RaohaneTheme.borderFaint
+                    anchors.margins: RaohaneTheme.spacing + 1
+                    surfaceRadius: RaohaneTheme.radius
+                    raised: false
+                    showSheen: false
+                    showInnerRim: false
+                    idleColor: RaohaneTheme.surfaceSubtle
+                    idleBorderColor: RaohaneTheme.borderFaint
 
                     Rectangle {
                         anchors.centerIn: parent
@@ -335,47 +391,54 @@ Item {
                     Repeater {
                         model: card.positions
 
-                        delegate: Rectangle {
+                        delegate: RaohaneSurface {
                             id: cornerButton
                             required property var modelData
 
-                            readonly property bool active: card.value === String(modelData.value)
+                            readonly property bool selected: card.value === String(modelData.value)
                             readonly property bool leftSide: String(modelData.value).endsWith("left")
                             readonly property bool topSide: String(modelData.value).startsWith("top")
 
                             width: card.gaming ? 82 : 92
                             height: card.gaming ? 31 : 34
-                            x: leftSide ? 9 : parent.width - width - 9
-                            y: topSide ? 9 : parent.height - height - 9
-                            radius: 9
-                            color: active ? RaohaneTheme.accentSoft
-                                : cornerMouse.containsMouse ? RaohaneTheme.surfaceRaised
-                                : RaohaneTheme.surfaceDeep
-                            border.width: 1
-                            border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
-
-                            Behavior on color {
-                                ColorAnimation { duration: RaohaneMotion.micro }
-                            }
+                            x: leftSide ? RaohaneTheme.spacing : parent.width - width - RaohaneTheme.spacing
+                            y: topSide ? RaohaneTheme.spacing : parent.height - height - RaohaneTheme.spacing
+                            surfaceRadius: RaohaneTheme.radiusSmall
+                            active: selected
+                            raised: false
+                            showSheen: false
+                            showInnerRim: false
+                            interactive: true
+                            hovered: cornerMouse.containsMouse || activeFocus
+                            pressed: cornerMouse.pressed
+                            hoverScale: 1
+                            pressedScale: 1
+                            activeFocusOnTab: true
+                            idleColor: RaohaneTheme.surfaceDeep
+                            hoverColor: RaohaneTheme.surfaceRaised
+                            activeColor: RaohaneTheme.accentSoft
+                            idleBorderColor: RaohaneTheme.borderFaint
+                            hoverBorderColor: RaohaneTheme.borderStrong
+                            activeBorderColor: RaohaneTheme.accentBorder
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 8
-                                anchors.rightMargin: 8
-                                spacing: 5
+                                anchors.leftMargin: RaohaneTheme.spacingSmall + 2
+                                anchors.rightMargin: RaohaneTheme.spacingSmall + 2
+                                spacing: Math.max(2, RaohaneTheme.spacingSmall - 1)
 
                                 RaohaneIcon {
                                     text: String(cornerButton.modelData.icon)
                                     iconSize: card.gaming ? 11 : 12
-                                    color: cornerButton.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                    color: cornerButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
                                 }
 
                                 Text {
                                     Layout.fillWidth: true
                                     text: String(cornerButton.modelData.label)
-                                    color: cornerButton.active ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                    color: cornerButton.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
                                     font.pixelSize: 7
-                                    font.weight: cornerButton.active ? Font.DemiBold : Font.Medium
+                                    font.weight: cornerButton.selected ? Font.DemiBold : Font.Medium
                                     elide: Text.ElideRight
                                 }
                             }
@@ -385,7 +448,15 @@ Item {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                onPressed: cornerButton.forceActiveFocus()
                                 onClicked: card.selected(String(cornerButton.modelData.value))
+                            }
+
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    card.selected(String(cornerButton.modelData.value))
+                                    event.accepted = true
+                                }
                             }
                         }
                     }
@@ -394,7 +465,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 7
+                spacing: RaohaneTheme.spacingSmall + 1
 
                 RaohaneIcon {
                     text: card.positions.find(item => String(item.value) === card.value)?.icon ?? "south_east"
