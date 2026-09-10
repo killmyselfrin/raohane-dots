@@ -93,6 +93,7 @@ RaohaneBackupSettings 1.0 RaohaneBackupSettings.qml
 RaohaneHyprlandPreferences 1.0 RaohaneHyprlandPreferences.qml
 RaohanePreferencesHub 1.0 RaohanePreferencesHub.qml
 RaohaneMediaOverlay 1.0 RaohaneMediaOverlay.qml
+RaohaneMediaStudio 1.0 RaohaneMediaStudio.qml
 RaohaneMediaPlayerHud 1.0 RaohaneMediaPlayerHud.qml
 RaohaneMediaLyricLine 1.0 RaohaneMediaLyricLine.qml
 RaohaneMediaLyricsHeader 1.0 RaohaneMediaLyricsHeader.qml
