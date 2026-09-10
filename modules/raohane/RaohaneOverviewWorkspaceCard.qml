@@ -24,54 +24,47 @@ RaohaneSurface {
     Layout.fillWidth: true
     Layout.fillHeight: true
     Layout.minimumHeight: 148
-    surfaceRadius: 14
+    surfaceRadius: RaohaneTheme.radiusHero
     raised: false
+    active: root.activeWorkspace || root.selected || root.urgent
     hovered: workspaceMouse.containsMouse || activeFocus
     pressed: workspaceMouse.pressed
     interactive: true
     showSheen: false
+    showInnerRim: root.activeWorkspace || root.urgent
     hoverScale: 1
     pressedScale: 1
     activeFocusOnTab: true
-    border.color: root.urgent ? RaohaneTheme.critical
-        : root.activeWorkspace ? RaohaneTheme.accentBorder
-        : root.selected ? RaohaneTheme.borderStrong
-        : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
-    color: root.activeWorkspace
-        ? Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g, RaohaneTheme.accent.b, 0.08)
-        : root.selected
-            ? RaohaneTheme.surfaceRaised
-            : RaohaneTheme.surfaceDeep
-
-    Rectangle {
-        visible: root.activeWorkspace || root.urgent || root.selected
-        anchors {
-            left: parent.left
-            top: parent.top
-            bottom: parent.bottom
-            leftMargin: 2
-            topMargin: 12
-            bottomMargin: 12
-        }
-        width: 3
-        radius: 2
-        color: root.urgent ? RaohaneTheme.critical : RaohaneTheme.accent
-        opacity: root.urgent || root.activeWorkspace ? 1 : 0.46
-
-        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
-    }
+    idleColor: RaohaneTheme.surfaceDeep
+    hoverColor: RaohaneTheme.surfaceRaised
+    pressedColor: RaohaneTheme.surfacePressed
+    activeColor: root.urgent
+        ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.06)
+        : root.activeWorkspace
+            ? Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g, RaohaneTheme.accent.b, 0.08)
+            : RaohaneTheme.surfaceRaised
+    idleBorderColor: RaohaneTheme.borderFaint
+    hoverBorderColor: RaohaneTheme.borderStrong
+    pressedBorderColor: RaohaneTheme.borderStrong
+    activeBorderColor: root.urgent
+        ? RaohaneTheme.critical
+        : root.activeWorkspace ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
+    showStateRail: root.activeWorkspace || root.urgent || root.selected
+    stateRailColor: root.urgent ? RaohaneTheme.critical : RaohaneTheme.accent
+    stateRailOpacity: root.urgent || root.activeWorkspace ? 1 : 0.46
+    stateRailWidth: 3
+    stateRailLength: Math.max(30, height - 2 * RaohaneTheme.panelPadding)
 
     ColumnLayout {
         z: 1
         anchors.fill: parent
-        anchors.margins: 13
-        spacing: 8
+        anchors.margins: RaohaneTheme.panelPadding + 1
+        spacing: RaohaneTheme.spacingSmall + 2
 
         RowLayout {
             Layout.fillWidth: true
             Layout.preferredHeight: 46
-            spacing: 8
+            spacing: RaohaneTheme.spacingSmall + 2
 
             Text {
                 text: String(root.workspaceId).padStart(2, "0")
@@ -92,7 +85,7 @@ RaohaneSurface {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
+                spacing: Math.max(1, RaohaneTheme.spacingTiny - 2)
 
                 Text {
                     Layout.fillWidth: true
@@ -125,11 +118,13 @@ RaohaneSurface {
                 visible: root.shortcutLabel.length > 0
                 implicitWidth: 24
                 implicitHeight: 24
-                surfaceRadius: 7
+                surfaceRadius: RaohaneTheme.radiusTiny
                 transparentIdle: !root.selected
                 active: root.selected
                 showSheen: false
-                border.color: root.selected ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                showInnerRim: false
+                idleBorderColor: RaohaneTheme.borderFaint
+                activeBorderColor: RaohaneTheme.accentBorder
 
                 Text {
                     anchors.centerIn: parent
@@ -156,7 +151,7 @@ RaohaneSurface {
 
             ColumnLayout {
                 anchors.fill: parent
-                spacing: 5
+                spacing: RaohaneTheme.spacingSmall - 1
 
                 Repeater {
                     model: root.windows.slice(0, 4)
@@ -179,7 +174,7 @@ RaohaneSurface {
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 6
+                        spacing: RaohaneTheme.spacingSmall
 
                         RaohaneIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -205,7 +200,7 @@ RaohaneSurface {
         RowLayout {
             Layout.fillWidth: true
             Layout.preferredHeight: 18
-            spacing: 6
+            spacing: RaohaneTheme.spacingSmall
 
             Rectangle {
                 width: root.activeWorkspace ? 16 : 6
