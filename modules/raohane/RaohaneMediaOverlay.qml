@@ -255,77 +255,13 @@ Scope {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
 
-                            Column {
-                                anchors.centerIn: parent
-                                visible: RaohaneLyrics.loading
-                                spacing: 8
-
-                                RaohaneIcon {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "lyrics"
-                                    iconSize: 28
-                                    color: root.playerAccent
-                                }
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: qsTr("Looking for lyrics…")
-                                    color: RaohaneTheme.textMuted
-                                    font.pixelSize: 10
-                                }
-                            }
-
-                            Column {
-                                anchors.centerIn: parent
-                                width: Math.min(parent.width - 44, 440)
-                                visible: !RaohaneLyrics.loading && RaohaneLyrics.instrumental
-                                spacing: 7
-
-                                RaohaneIcon {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "graphic_eq"
-                                    iconSize: 30
-                                    color: root.playerAccent
-                                }
-                                Text {
-                                    width: parent.width
-                                    text: qsTr("Instrumental track")
-                                    color: RaohaneTheme.text
-                                    font.pixelSize: 12
-                                    font.weight: Font.DemiBold
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-                                Text {
-                                    width: parent.width
-                                    text: qsTr("No vocal lyrics are expected for this recording.")
-                                    color: RaohaneTheme.textMuted
-                                    font.pixelSize: 9
-                                    horizontalAlignment: Text.AlignHCenter
-                                    wrapMode: Text.WordWrap
-                                }
-                            }
-
-                            Column {
-                                anchors.centerIn: parent
-                                width: Math.min(parent.width - 44, 440)
-                                visible: !RaohaneLyrics.loading && !RaohaneLyrics.available && !RaohaneLyrics.instrumental
-                                spacing: 7
-
-                                RaohaneIcon {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "lyrics"
-                                    iconSize: 28
-                                    color: RaohaneTheme.textFaint
-                                }
-                                Text {
-                                    width: parent.width
-                                    text: RaohaneLyrics.errorText.length > 0
-                                        ? RaohaneLyrics.errorText
-                                        : qsTr("Lyrics are not available yet")
-                                    color: RaohaneTheme.textMuted
-                                    font.pixelSize: 9
-                                    horizontalAlignment: Text.AlignHCenter
-                                    wrapMode: Text.WordWrap
-                                }
+                            RaohaneMediaLyricsStatus {
+                                anchors.fill: parent
+                                loading: RaohaneLyrics.loading
+                                instrumental: RaohaneLyrics.instrumental
+                                available: RaohaneLyrics.available
+                                errorText: RaohaneLyrics.errorText
+                                accent: root.playerAccent
                             }
 
                             ListView {

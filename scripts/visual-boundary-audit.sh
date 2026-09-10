@@ -16,6 +16,8 @@ defaults='defaults/native.json'
 launcher='modules/raohane/RaohaneLauncher.qml'
 media='modules/raohane/RaohaneMediaOverlay.qml'
 media_hud='modules/raohane/RaohaneMediaPlayerHud.qml'
+media_header='modules/raohane/RaohaneMediaLyricsHeader.qml'
+media_status='modules/raohane/RaohaneMediaLyricsStatus.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
@@ -50,7 +52,7 @@ osk='modules/raohane/RaohaneOnScreenKeyboard.qml'
 osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
-  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$media_hud" "$control" "$settings" "$settings_content" \
+  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$media_hud" "$media_header" "$media_status" "$control" "$settings" "$settings_content" \
   "$settings_navigation" "$settings_header" "$settings_section" "$settings_control" "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" \
   "$context" "$notification" "$surface" "$icon_button" "$motion" "$slider" "$switch" "$clock" "$quick" "$quick_tile" "$sidebar" \
   "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
@@ -210,12 +212,15 @@ if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$medi
   fail 'a primary surface regressed to legacy one-off chrome'
 fi
 
-for file in "$launcher" "$media" "$control" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
+for file in "$launcher" "$control" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
+done
+for file in "$media_hud" "$media_header" "$media_status"; do
+  rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained media text hierarchy"
 done
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_navigation" || fail 'Settings navigation lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings page header lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted media HUD, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted media HUD/header/status surfaces, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
