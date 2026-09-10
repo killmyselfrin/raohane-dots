@@ -19,55 +19,53 @@ RaohaneSurface {
 
     width: 126
     height: 136
-    surfaceRadius: 11
+    surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
+    active: root.Drag.active
     interactive: true
     hovered: dragMouse.containsMouse || actionRow.hovered
     pressed: dragMouse.pressed
     showSheen: false
     hoverScale: 1
     pressedScale: 1
-    color: hovered ? RaohaneTheme.surfaceRaised : RaohaneTheme.surfaceDeep
-    border.color: Drag.active ? RaohaneTheme.accentBorder
-        : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+    idleColor: RaohaneTheme.surfaceDeep
+    hoverColor: RaohaneTheme.surfaceRaised
+    pressedColor: RaohaneTheme.surfacePressed
+    activeColor: RaohaneTheme.surfaceRaised
+    idleBorderColor: RaohaneTheme.borderFaint
+    hoverBorderColor: RaohaneTheme.borderStrong
+    pressedBorderColor: RaohaneTheme.borderStrong
+    activeBorderColor: RaohaneTheme.accentBorder
+    showStateRail: true
+    stateRailColor: RaohaneTheme.accent
+    stateRailOpacity: root.Drag.active ? 1 : root.hovered ? 0.42 : 0.16
+    stateRailWidth: 2
+    stateRailLength: Math.max(34, height - 2 * RaohaneTheme.spacing)
 
     Drag.active: dragMouse.drag.active
     Drag.dragType: Drag.Automatic
     Drag.mimeData: ({ "text/uri-list": "file://" + root.entryPath })
     Drag.supportedActions: Qt.CopyAction
 
-    Rectangle {
-        anchors {
-            left: parent.left
-            top: parent.top
-            bottom: parent.bottom
-            leftMargin: 2
-            topMargin: 9
-            bottomMargin: 9
-        }
-        width: 2
-        radius: 1
-        color: RaohaneTheme.accent
-        opacity: root.Drag.active ? 1 : root.hovered ? 0.42 : 0.16
-
-        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
-    }
-
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 8
-        spacing: 5
+        anchors.margins: RaohaneTheme.spacingSmall + 2
+        spacing: RaohaneTheme.spacingSmall - 1
 
         RaohaneSurface {
             id: preview
 
             Layout.fillWidth: true
             Layout.preferredHeight: 82
-            surfaceRadius: 9
+            surfaceRadius: RaohaneTheme.radiusSmall
             active: dragMouse.drag.active
+            raised: false
             showSheen: false
-            color: RaohaneTheme.surfaceSubtle
-            border.color: dragMouse.drag.active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceSubtle
+            activeColor: RaohaneTheme.surfaceSubtle
+            idleBorderColor: RaohaneTheme.borderFaint
+            activeBorderColor: RaohaneTheme.accentBorder
             clip: true
 
             Image {
