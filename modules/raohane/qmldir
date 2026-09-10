@@ -52,6 +52,11 @@ RaohaneClock 1.0 RaohaneClock.qml
 RaohaneSysTray 1.0 RaohaneSysTray.qml
 RaohaneContextIsland 1.0 RaohaneContextIsland.qml
 RaohaneControlCenter 1.0 RaohaneControlCenter.qml
+RaohaneControlCenterHeader 1.0 RaohaneControlCenterHeader.qml
+RaohaneControlCenterFooter 1.0 RaohaneControlCenterFooter.qml
+RaohaneControlCenterStatusStrip 1.0 RaohaneControlCenterStatusStrip.qml
+RaohaneControlCenterActionDock 1.0 RaohaneControlCenterActionDock.qml
+RaohaneControlCenterMediaCard 1.0 RaohaneControlCenterMediaCard.qml
 RaohaneQuickControls 1.0 RaohaneQuickControls.qml
 RaohaneQuickControlsStudio 1.0 RaohaneQuickControlsStudio.qml
 RaohaneDevicePicker 1.0 RaohaneDevicePicker.qml
@@ -88,6 +93,12 @@ RaohaneBackupSettings 1.0 RaohaneBackupSettings.qml
 RaohaneHyprlandPreferences 1.0 RaohaneHyprlandPreferences.qml
 RaohanePreferencesHub 1.0 RaohanePreferencesHub.qml
 RaohaneMediaOverlay 1.0 RaohaneMediaOverlay.qml
+RaohaneMediaPlayerHud 1.0 RaohaneMediaPlayerHud.qml
+RaohaneMediaLyricLine 1.0 RaohaneMediaLyricLine.qml
+RaohaneMediaLyricsHeader 1.0 RaohaneMediaLyricsHeader.qml
+RaohaneMediaLyricsStatus 1.0 RaohaneMediaLyricsStatus.qml
+RaohaneMediaLyricsViewport 1.0 RaohaneMediaLyricsViewport.qml
+RaohaneMediaLyricsStage 1.0 RaohaneMediaLyricsStage.qml
 RaohaneOverlay 1.0 RaohaneOverlay.qml
 RaohaneSidebarLeft 1.0 RaohaneSidebarLeft.qml
 RaohaneRegionSelector 1.0 RaohaneRegionSelector.qml
