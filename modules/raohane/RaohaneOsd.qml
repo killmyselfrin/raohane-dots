@@ -122,8 +122,8 @@ Scope {
             }
 
             margins {
-                top: 68
-                bottom: 68
+                top: RaohaneTheme.barHeight + 2 * RaohaneTheme.panelPadding
+                bottom: RaohaneTheme.barHeight + 2 * RaohaneTheme.panelPadding
             }
 
             mask: Region { item: card }
@@ -137,10 +137,15 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: !RaohaneConfig.barBottom ? parent.top : undefined
                 anchors.bottom: RaohaneConfig.barBottom ? parent.bottom : undefined
-                surfaceRadius: 12
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: true
                 showSheen: false
-                border.color: RaohaneTheme.borderStrong
+                idleBorderColor: RaohaneTheme.borderStrong
+                showStateRail: true
+                stateRailColor: RaohaneTheme.accent
+                stateRailOpacity: 0.90
+                stateRailWidth: 3
+                stateRailLength: 36
                 opacity: entered ? 1 : 0
 
                 transform: Translate {
@@ -164,21 +169,6 @@ Scope {
                     }
                 }
 
-                Rectangle {
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        bottom: parent.bottom
-                        leftMargin: 2
-                        topMargin: 9
-                        bottomMargin: 9
-                    }
-                    width: 3
-                    radius: 2
-                    color: RaohaneTheme.accent
-                    opacity: 0.90
-                }
-
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true
@@ -188,17 +178,18 @@ Scope {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 13
-                    anchors.rightMargin: 13
-                    spacing: 10
+                    anchors.leftMargin: RaohaneTheme.panelPadding + 1
+                    anchors.rightMargin: RaohaneTheme.panelPadding + 1
+                    spacing: RaohaneTheme.spacing + 1
 
                     RaohaneSurface {
                         Layout.preferredWidth: 32
                         Layout.preferredHeight: 32
-                        surfaceRadius: 10
+                        surfaceRadius: RaohaneTheme.radius
                         raised: false
                         active: true
                         showSheen: false
+                        showInnerRim: false
 
                         RaohaneIcon {
                             anchors.centerIn: parent
@@ -214,7 +205,7 @@ Scope {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 4
+                        spacing: RaohaneTheme.spacingTiny + 1
 
                         RowLayout {
                             Layout.fillWidth: true
