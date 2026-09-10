@@ -13,7 +13,7 @@ module_dir='modules/raohane'
 qmldir_file="$module_dir/qmldir"
 
 [[ -f "$qmldir_file" ]] || fail 'missing modules/raohane/qmldir'
-rg -q '^module qs\.modules\.raohane$' "$qmldir_file" \
+grep -Eq '^module qs\.modules\.raohane$' "$qmldir_file" \
   || fail 'qmldir lost the Raohane module declaration'
 
 # qmlformat validates file syntax but does not guarantee that Quickshell can
