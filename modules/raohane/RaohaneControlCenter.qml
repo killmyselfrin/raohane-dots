@@ -354,19 +354,44 @@ Scope {
                     visible: !quickControls.pickerOpen
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.minimumHeight: 138
+                    Layout.minimumHeight: 142
                     spacing: RaohaneTheme.spacing
 
-                    MediaCard {
+                    RaohaneControlCenterMediaCard {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.preferredWidth: 0.96
+                        Layout.preferredWidth: 1
+
+                        mediaAvailable: RaohaneMedia.available
+                        playing: RaohaneMedia.isPlaying
+                        canGoPrevious: RaohaneMedia.canGoPrevious
+                        canTogglePlaying: RaohaneMedia.canTogglePlaying
+                        canGoNext: RaohaneMedia.canGoNext
+                        progress: RaohaneMedia.progress
+                        artUrl: RaohaneMedia.artUrl
+                        playerName: RaohaneMedia.available ? RaohaneMedia.playerName : ""
+                        title: RaohaneMedia.available && RaohaneMedia.title.length > 0
+                            ? RaohaneMedia.title : qsTr("Nothing playing")
+                        subtitle: RaohaneMedia.available
+                            ? (RaohaneMedia.artist.length > 0 ? RaohaneMedia.artist : RaohaneMedia.playerName)
+                            : qsTr("Media controls")
+                        elapsedText: RaohaneMedia.length > 0
+                            ? RaohaneMedia.formatTime(RaohaneMedia.position)
+                            : "--:--"
+                        totalText: RaohaneMedia.length > 0
+                            ? RaohaneMedia.formatTime(RaohaneMedia.length)
+                            : "—"
+
+                        onOpenRequested: RaohaneState.toggleSurface("mediaOverlay")
+                        onPreviousRequested: RaohaneMedia.previous()
+                        onTogglePlayingRequested: RaohaneMedia.togglePlaying()
+                        onNextRequested: RaohaneMedia.next()
                     }
 
                     RaohaneNotificationCenter {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.preferredWidth: 1.04
+                        Layout.preferredWidth: 1
                     }
                 }
 
@@ -476,148 +501,6 @@ Scope {
             }
             Item { Layout.fillWidth: true }
             Rectangle { Layout.preferredWidth: 44; Layout.preferredHeight: 1; color: RaohaneTheme.borderFaint }
-        }
-    }
-
-    component MediaCard: RaohaneSurface {
-        id: mediaCard
-
-        surfaceRadius: RaohaneTheme.radiusLarge
-        showSheen: false
-        raised: false
-        hovered: mediaSummaryMouse.containsMouse
-        pressed: mediaSummaryMouse.pressed
-        interactive: true
-        hoverScale: 1
-        pressedScale: 1
-        idleBorderColor: RaohaneTheme.borderFaint
-        hoverBorderColor: RaohaneTheme.borderStrong
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: RaohaneTheme.spacing
-            spacing: RaohaneTheme.spacingSmall
-
-            RowLayout {
-                id: mediaSummary
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                spacing: RaohaneTheme.spacing
-
-                Rectangle {
-                    Layout.preferredWidth: 70
-                    Layout.preferredHeight: 70
-                    radius: RaohaneTheme.radiusLarge
-                    color: RaohaneTheme.accentSoft
-                    clip: true
-
-                    Image {
-                        id: mediaArt
-                        anchors.fill: parent
-                        source: RaohaneMedia.artUrl
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        visible: status === Image.Ready
-                    }
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        visible: !mediaArt.visible
-                        text: "music_note"
-                        iconSize: 26
-                        fill: RaohaneMedia.isPlaying ? 1 : 0
-                        color: RaohaneTheme.accent
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: RaohaneTheme.spacingTiny
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: RaohaneMedia.available && RaohaneMedia.title.length > 0
-                            ? RaohaneMedia.title : qsTr("Nothing playing")
-                        color: RaohaneTheme.text
-                        font.pixelSize: 10
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: RaohaneMedia.available
-                            ? (RaohaneMedia.artist.length > 0 ? RaohaneMedia.artist : RaohaneMedia.playerName)
-                            : qsTr("Media controls")
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
-                        elide: Text.ElideRight
-                    }
-                    Item { Layout.fillHeight: true }
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 4
-                        radius: 2
-                        color: RaohaneTheme.surfaceSubtle
-                        Rectangle {
-                            width: parent.width * RaohaneMedia.progress
-                            height: parent.height
-                            radius: parent.radius
-                            color: RaohaneTheme.accent
-                        }
-                    }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: RaohaneMedia.formatTime(RaohaneMedia.position); color: RaohaneTheme.textFaint; font.pixelSize: 7 }
-                        Item { Layout.fillWidth: true }
-                        Text {
-                            text: RaohaneMedia.length > 0 ? RaohaneMedia.formatTime(RaohaneMedia.length) : "—"
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
-                        }
-                    }
-                }
-
-                MouseArea {
-                    id: mediaSummaryMouse
-                    anchors.fill: parent
-                    z: 20
-                    hoverEnabled: true
-                    acceptedButtons: Qt.LeftButton
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: RaohaneState.toggleSurface("mediaOverlay")
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 31
-                Item { Layout.fillWidth: true }
-                RaohaneIconButton {
-                    buttonSize: 29; iconSize: 14; icon: "skip_previous"; transparentIdle: true; showSheen: false
-                    enabled: RaohaneMedia.canGoPrevious
-                    hoverScale: 1
-                    pressedScale: 1
-                    onClicked: RaohaneMedia.previous()
-                }
-                RaohaneIconButton {
-                    buttonSize: 32; iconSize: 16
-                    icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
-                    emphasized: RaohaneMedia.isPlaying
-                    transparentIdle: !RaohaneMedia.isPlaying
-                    showSheen: false
-                    hoverScale: 1
-                    pressedScale: 1
-                    enabled: RaohaneMedia.canTogglePlaying
-                    onClicked: RaohaneMedia.togglePlaying()
-                }
-                RaohaneIconButton {
-                    buttonSize: 29; iconSize: 14; icon: "skip_next"; transparentIdle: true; showSheen: false
-                    enabled: RaohaneMedia.canGoNext
-                    hoverScale: 1
-                    pressedScale: 1
-                    onClicked: RaohaneMedia.next()
-                }
-                Item { Layout.fillWidth: true }
-            }
         }
     }
 }
