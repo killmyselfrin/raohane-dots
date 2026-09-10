@@ -31,7 +31,7 @@ RaohaneSurface {
     stateRailColor: RaohaneTheme.accent
     stateRailOpacity: activeFocus ? 0.54 : 0.34
     stateRailWidth: 2
-    stateRailLength: Math.max(16, root.height - 24)
+    stateRailLength: Math.max(16, root.height - 2 * (RaohaneTheme.panelPadding))
 
     function changeNumber(delta: real): void {
         if (!root.entry)
@@ -69,13 +69,13 @@ RaohaneSurface {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 16
-        anchors.rightMargin: 14
-        spacing: 16
+        anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
+        anchors.rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
+        spacing: RaohaneTheme.spacingLarge
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
             Text {
                 Layout.fillWidth: true
@@ -109,7 +109,7 @@ RaohaneSurface {
             visible: root.numberRow
             Layout.preferredWidth: 122
             Layout.preferredHeight: 34
-            surfaceRadius: 9
+            surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             showSheen: false
             idleColor: RaohaneTheme.surfaceDeep
@@ -117,9 +117,9 @@ RaohaneSurface {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 2
-                anchors.rightMargin: 2
-                spacing: 1
+                anchors.leftMargin: Math.max(1, RaohaneTheme.spacingTiny - 1)
+                anchors.rightMargin: Math.max(1, RaohaneTheme.spacingTiny - 1)
+                spacing: Math.max(1, RaohaneTheme.spacingTiny - 2)
 
                 RaohaneIconButton {
                     buttonSize: 28
@@ -158,7 +158,7 @@ RaohaneSurface {
             visible: root.choiceRow
             Layout.preferredWidth: 192
             Layout.preferredHeight: 34
-            surfaceRadius: 9
+            surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             showSheen: false
             active: root.activeFocus
@@ -169,9 +169,9 @@ RaohaneSurface {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 2
-                anchors.rightMargin: 2
-                spacing: 2
+                anchors.leftMargin: Math.max(1, RaohaneTheme.spacingTiny - 1)
+                anchors.rightMargin: Math.max(1, RaohaneTheme.spacingTiny - 1)
+                spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
                 RaohaneIconButton {
                     buttonSize: 28
@@ -186,7 +186,7 @@ RaohaneSurface {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: RaohaneTheme.spacingSmall
 
                     RaohaneIcon {
                         text: root.currentChoice()?.icon ?? "tune"
@@ -222,7 +222,7 @@ RaohaneSurface {
             visible: root.textRow
             Layout.preferredWidth: Math.min(320, root.width * 0.42)
             Layout.preferredHeight: 34
-            surfaceRadius: 9
+            surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             active: field.activeFocus
             showSheen: false
@@ -234,8 +234,8 @@ RaohaneSurface {
             TextInput {
                 id: field
                 anchors.fill: parent
-                anchors.leftMargin: 10
-                anchors.rightMargin: 10
+                anchors.leftMargin: RaohaneTheme.spacing
+                anchors.rightMargin: RaohaneTheme.spacing
                 verticalAlignment: TextInput.AlignVCenter
                 text: root.entry ? String(RaohaneConfig[root.entry.key] ?? "") : ""
                 color: RaohaneTheme.text
@@ -257,8 +257,8 @@ RaohaneSurface {
             left: parent.left
             right: parent.right
             bottom: parent.bottom
-            leftMargin: 16
-            rightMargin: 16
+            leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
+            rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
         }
         height: 1
         color: RaohaneTheme.borderFaint
