@@ -10,18 +10,25 @@ fail() {
 }
 
 MEDIA='modules/raohane/RaohaneMediaOverlay.qml'
+STAGE='modules/raohane/RaohaneMediaLyricsStage.qml'
 VIEWPORT='modules/raohane/RaohaneMediaLyricsViewport.qml'
 LINE='modules/raohane/RaohaneMediaLyricLine.qml'
 
-for path in "$MEDIA" "$VIEWPORT" "$LINE"; do
+for path in "$MEDIA" "$STAGE" "$VIEWPORT" "$LINE"; do
   [[ -f "$path" ]] || fail "missing lyric boundary path: $path"
 done
 
 for contract in \
-  'RaohaneMediaLyricsViewport[[:space:]]*\{' \
+  'RaohaneMediaLyricsStage[[:space:]]*\{' \
   'onSeekRequested: time =>' \
   'RaohaneMedia\.seekRatio\(time / RaohaneMedia\.length\)'; do
-  rg -q "$contract" "$MEDIA" || fail "media overlay lost extracted viewport/seek contract: $contract"
+  rg -q "$contract" "$MEDIA" || fail "media overlay lost Stage/seek contract: $contract"
+done
+
+for contract in \
+  'RaohaneMediaLyricsViewport[[:space:]]*\{' \
+  'onSeekRequested: time => root\.seekRequested\(time\)'; do
+  rg -q "$contract" "$STAGE" || fail "lyrics stage lost viewport seek-routing contract: $contract"
 done
 
 for contract in \
@@ -44,15 +51,16 @@ for contract in \
   rg -q "$contract" "$LINE" || fail "lyric line lost presentation contract: $contract"
 done
 
-# The extracted line is deliberately presentation-only. Service ownership and
-# final seek-ratio calculation stay in RaohaneMediaOverlay; list composition is
-# owned by the extracted viewport.
-if rg -n '^import qs\.modules\.raohane\.(services|config)' "$LINE"; then
-  fail 'lyric line imported service/config modules'
-fi
-if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)|seekRatio|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$LINE"; then
-  fail 'lyric line bypasses the presentation boundary'
-fi
+# Stage, viewport and line remain presentation-only. The final seek-ratio
+# calculation stays in RaohaneMediaOverlay.
+for file in "$STAGE" "$VIEWPORT" "$LINE"; do
+  if rg -n '^import qs\.modules\.raohane\.(services|config)' "$file"; then
+    fail "$file imported service/config modules"
+  fi
+  if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)\.|seekRatio|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$file"; then
+    fail "$file bypasses the presentation/service boundary"
+  fi
+done
 
 # Glyphs must remain stable. The viewport may animate scrolling, but the line
 # component must not animate typography or transform individual lyric rows.
@@ -63,4 +71,8 @@ if rg -n '^[[:space:]]*scale:[[:space:]]' "$LINE"; then
   fail 'lyric line regained transform state'
 fi
 
-printf 'media-lyric-boundary-audit: lyric lines remain presentation-only with stable typography, viewport-owned composition and overlay-owned seek ratio\n'
+if rg -n 'RaohaneMediaLyrics(Viewport|Header|Status)[[:space:]]*\{' "$MEDIA"; then
+  fail 'Overlay regained direct lyrics leaf composition'
+fi
+
+printf 'media-lyric-boundary-audit: lyric lines remain stable presentation leaves behind Stage/Viewport with overlay-owned seek ratio\n'
