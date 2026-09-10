@@ -19,6 +19,7 @@ settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 control_status='modules/raohane/RaohaneControlCenterStatusStrip.qml'
 control_actions='modules/raohane/RaohaneControlCenterActionDock.qml'
+control_media='modules/raohane/RaohaneControlCenterMediaCard.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 quick_tile='modules/raohane/RaohaneQuickControlTile.qml'
 context='modules/raohane/RaohaneContext.qml'
@@ -35,7 +36,7 @@ sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 for file in \
   "$settings" "$settings_v3" "$settings_navigation" "$settings_header" \
   "$settings_section" "$settings_control" "$settings_search" \
-  "$control" "$control_status" "$control_actions" "$quick" "$quick_tile" "$context" "$context_island" \
+  "$control" "$control_status" "$control_actions" "$control_media" "$quick" "$quick_tile" "$context" "$context_island" \
   "$performance" "$notifications" "$osd" "$systray" "$adaptive_icon" \
   "$icon_resolver" "$workspaces" "$sidebar"; do
   [[ -f "$file" ]] || fail "missing polished UI/runtime surface: $file"
@@ -70,8 +71,8 @@ if rg -n 'source:[[:space:]]*root\.currentPageInfo\?\.source|property bool activ
 fi
 
 # Control Center remains one compact system hub: a read-only System Glance,
-# registry-backed Quick Controls with one device-picker path, and an action-only
-# dock. The extracted presentation surfaces must not own system services.
+# registry-backed Quick Controls with one device-picker path, a balanced
+# media/notifications content pair, and an action-only dock.
 rg -q 'readonly property int panelHeight:' "$control" \
   || fail 'Control Center lost bounded floating height'
 rg -q 'property bool heldVisible:[[:space:]]*false' "$control" \
@@ -90,6 +91,12 @@ rg -q 'RaohaneControlCenterStatusStrip[[:space:]]*\{' "$control" \
   || fail 'Control Center lost read-only System Glance composition'
 rg -q 'RaohaneControlCenterActionDock[[:space:]]*\{' "$control" \
   || fail 'Control Center lost action dock composition'
+rg -q 'RaohaneControlCenterMediaCard[[:space:]]*\{' "$control" \
+  || fail 'Control Center lost extracted media-card composition'
+if rg -n 'component MediaCard:[[:space:]]*RaohaneSurface' "$control"; then
+  fail 'Control Center regained inline media-card presentation'
+fi
+
 for signal in screenshotRequested translatorRequested oskRequested wallpaperRequested powerRequested; do
   rg -q "signal ${signal}\\(\\)" "$control_actions" \
     || fail "Control Center action dock lost signal: ${signal}"
@@ -101,11 +108,14 @@ done
 if rg -q 'label:[[:space:]]*qsTr\("Performance"\)|label:[[:space:]]*qsTr\("DND"\)' "$control_actions"; then
   fail 'Control Center reintroduced duplicate system toggles in the action dock'
 fi
-for presentation in "$control_status" "$control_actions"; do
+
+# Status, action dock and media card are presentation-only. Network/audio/media
+# service ownership and transitions remain in the Control Center coordinator.
+for presentation in "$control_status" "$control_actions" "$control_media"; do
   if rg -n '^import qs\.modules\.raohane\.(services|config)' "$presentation"; then
     fail "$presentation imported services/config instead of staying presentation-only"
   fi
-  if rg -n 'Raohane(Network|Bluetooth|Audio|Privacy|Performance|State|Session)\.' "$presentation"; then
+  if rg -n 'Raohane(Network|Bluetooth|Audio|Privacy|Performance|State|Session|Media)\.' "$presentation"; then
     fail "$presentation bypasses Control Center coordinator ownership"
   fi
 done
@@ -120,6 +130,46 @@ for contract in \
   'showStateRail: root\.privacyActive'; do
   rg -q "$contract" "$control_status" \
     || fail "Control Center status strip lost presentation contract: ${contract}"
+done
+
+for contract in \
+  'property bool mediaAvailable: false' \
+  'property bool playing: false' \
+  'property real progress: 0' \
+  'signal openRequested\(\)' \
+  'signal previousRequested\(\)' \
+  'signal togglePlayingRequested\(\)' \
+  'signal nextRequested\(\)' \
+  'idleColor: RaohaneTheme\.surfaceSubtle' \
+  'showStateRail: root\.playing'; do
+  rg -q "$contract" "$control_media" \
+    || fail "Control Center media card lost presentation contract: ${contract}"
+done
+for contract in \
+  'mediaAvailable: RaohaneMedia\.available' \
+  'playing: RaohaneMedia\.isPlaying' \
+  'progress: RaohaneMedia\.progress' \
+  'onOpenRequested: RaohaneState\.toggleSurface\("mediaOverlay"\)' \
+  'onPreviousRequested: RaohaneMedia\.previous\(\)' \
+  'onTogglePlayingRequested: RaohaneMedia\.togglePlaying\(\)' \
+  'onNextRequested: RaohaneMedia\.next\(\)'; do
+  rg -q "$contract" "$control" \
+    || fail "Control Center lost coordinator-owned media binding/action: ${contract}"
+done
+
+# The paired Notification Center keeps notification-service ownership but shares
+# the same matte Nocturne content material and compact list presentation.
+for contract in \
+  'idleColor: RaohaneTheme\.surfaceSubtle' \
+  'showInnerRim: false' \
+  'stateRailWidth: 2' \
+  'delegate: Item[[:space:]]*\{' \
+  'RaohaneNotificationCard[[:space:]]*\{' \
+  'compact: true' \
+  'RaohaneNotifications\.discardAllNotifications\(\)' \
+  'RaohaneNotifications\.markAllRead\(\)'; do
+  rg -q "$contract" "$notifications" \
+    || fail "Notification Center lost content-pair contract: ${contract}"
 done
 
 # Quick Controls: system toggles are confirmed async transactions, brightness
@@ -205,12 +255,12 @@ rg -q 'RaohaneMotion\.' "$osd" || fail 'OSD lost shared motion'
 # Reusable system surfaces must stay on shared theme/motion tokens and avoid
 # stale active-property collisions or one-off legacy colors.
 if rg -n '#24ffffff|shortDuration|mediumDuration' \
-  "$control" "$control_status" "$control_actions" "$quick" "$quick_tile" "$notifications"; then
+  "$control" "$control_status" "$control_actions" "$control_media" "$quick" "$quick_tile" "$notifications"; then
   fail 'current system surfaces reintroduced stale colors or motion aliases'
 fi
 if rg -n 'property bool active:[[:space:]]*false' \
-  "$control_status" "$control_actions" "$quick" "$quick_tile" "$notifications"; then
+  "$control_status" "$control_actions" "$control_media" "$quick" "$quick_tile" "$notifications"; then
   fail 'reusable system surfaces reintroduced an active-property collision'
 fi
 
-printf 'ui-polish-audit: animated Settings, staged Nocturne Control Center, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
+printf 'ui-polish-audit: animated Settings, balanced Nocturne Control Center content, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'

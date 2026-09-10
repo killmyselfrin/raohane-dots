@@ -14,40 +14,42 @@ RaohaneSurface {
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
+    showInnerRim: false
+    idleColor: RaohaneTheme.surfaceSubtle
     idleBorderColor: RaohaneTheme.borderFaint
     clip: true
     showStateRail: RaohaneNotifications.unread > 0 || RaohaneNotifications.silent
     stateRailColor: RaohaneNotifications.silent ? RaohaneTheme.textFaint : RaohaneTheme.accent
-    stateRailOpacity: RaohaneNotifications.silent ? 0.42 : 0.72
-    stateRailWidth: 3
+    stateRailOpacity: RaohaneNotifications.silent ? 0.38 : 0.72
+    stateRailWidth: 2
     stateRailLength: 30
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: RaohaneTheme.spacing
-        spacing: RaohaneTheme.spacingSmall + 2
+        spacing: RaohaneTheme.spacingSmall
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 44
-            spacing: RaohaneTheme.spacing
+            Layout.preferredHeight: 40
+            spacing: RaohaneTheme.spacingSmall
 
             RaohaneSurface {
-                Layout.preferredWidth: 34
-                Layout.preferredHeight: 34
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
                 Layout.alignment: Qt.AlignVCenter
-                surfaceRadius: RaohaneTheme.radiusLarge
+                surfaceRadius: RaohaneTheme.radiusSmall
                 active: RaohaneNotifications.unread > 0 && !RaohaneNotifications.silent
                 raised: false
                 showSheen: false
                 showInnerRim: false
-                idleColor: RaohaneTheme.surfaceSubtle
+                idleColor: RaohaneTheme.surfaceDeep
                 idleBorderColor: RaohaneTheme.borderFaint
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: RaohaneNotifications.silent ? "notifications_off" : "notifications"
-                    iconSize: 17
+                    iconSize: 16
                     fill: RaohaneNotifications.unread > 0 && !RaohaneNotifications.silent ? 1 : 0
                     symbolWeight: RaohaneNotifications.unread > 0 ? 540 : 420
                     color: RaohaneNotifications.silent ? RaohaneTheme.textFaint
@@ -62,7 +64,7 @@ RaohaneSurface {
                 Text {
                     text: qsTr("Notifications")
                     color: RaohaneTheme.text
-                    font.pixelSize: 13
+                    font.pixelSize: 11
                     font.weight: Font.DemiBold
                     font.letterSpacing: -0.1
                 }
@@ -72,14 +74,14 @@ RaohaneSurface {
                         ? qsTr("%1 unread").arg(RaohaneNotifications.unread)
                         : qsTr("You're all caught up")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
+                    font.pixelSize: 7
                 }
             }
 
             RaohaneSurface {
                 visible: RaohaneNotifications.unread > 0
-                implicitWidth: unreadText.implicitWidth + RaohaneTheme.spacingLarge
-                implicitHeight: 26
+                implicitWidth: unreadText.implicitWidth + RaohaneTheme.spacing
+                implicitHeight: 24
                 surfaceRadius: RaohaneTheme.radiusSmall
                 active: true
                 showSheen: false
@@ -90,7 +92,7 @@ RaohaneSurface {
                     anchors.centerIn: parent
                     text: String(RaohaneNotifications.unread)
                     color: RaohaneTheme.accent
-                    font.pixelSize: 8
+                    font.pixelSize: 7
                     font.weight: Font.DemiBold
                 }
             }
@@ -122,7 +124,7 @@ RaohaneSurface {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
-            color: RaohaneTheme.borderFaint
+            color: RaohaneTheme.divider
         }
 
         Item {
@@ -133,7 +135,7 @@ RaohaneSurface {
                 id: listView
                 anchors.fill: parent
                 clip: true
-                spacing: RaohaneTheme.spacingSmall + 1
+                spacing: RaohaneTheme.spacingSmall
                 model: root.notifications
                 boundsBehavior: Flickable.StopAtBounds
                 flickDeceleration: 2400
@@ -164,24 +166,24 @@ RaohaneSurface {
 
             Column {
                 anchors.centerIn: parent
-                spacing: RaohaneTheme.spacingSmall + 2
+                spacing: RaohaneTheme.spacingSmall
                 visible: RaohaneNotifications.list.length === 0
 
                 RaohaneSurface {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: 42
-                    height: 42
+                    width: 40
+                    height: 40
                     surfaceRadius: RaohaneTheme.radiusLarge
                     raised: false
                     showSheen: false
                     showInnerRim: false
-                    idleColor: RaohaneTheme.surfaceSubtle
+                    idleColor: RaohaneTheme.surfaceDeep
                     idleBorderColor: RaohaneTheme.borderFaint
 
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: "notifications_none"
-                        iconSize: 22
+                        iconSize: 21
                         symbolWeight: 350
                         color: RaohaneTheme.textFaint
                     }
@@ -191,7 +193,7 @@ RaohaneSurface {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("No notifications")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 10
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                 }
 
@@ -199,7 +201,7 @@ RaohaneSurface {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("New activity will appear here")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
+                    font.pixelSize: 7
                 }
             }
         }
@@ -211,8 +213,8 @@ RaohaneSurface {
         property string tooltip: ""
         signal triggered()
 
-        buttonSize: 30
-        iconSize: 15
+        buttonSize: 28
+        iconSize: 14
         emphasized: active
         transparentIdle: !active
         showSheen: false
