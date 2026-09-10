@@ -221,86 +221,18 @@ Scope {
                 anchors.bottomMargin: RaohaneTheme.spacing
                 spacing: RaohaneTheme.spacingSmall + 1
 
-                RowLayout {
+                RaohaneControlCenterHeader {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 60
-                    spacing: RaohaneTheme.spacing
+                    Layout.preferredHeight: implicitHeight
 
-                    RaohaneSurface {
-                        Layout.preferredWidth: 44
-                        Layout.preferredHeight: 44
-                        surfaceRadius: RaohaneTheme.radiusLarge
-                        active: true
-                        showSheen: false
-                        showInnerRim: false
+                    identityText: root.profileDisplayName.length > 0
+                        ? root.profileDisplayName
+                        : (root.systemIdentity.length > 0 ? root.systemIdentity : qsTr("Control Center"))
+                    timeText: Qt.formatTime(root.now, "HH:mm")
+                    dateText: Qt.formatDate(root.now, "ddd, d MMM")
 
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: "spa"
-                            iconSize: 23
-                            fill: 1
-                            symbolWeight: 560
-                            grade: 40
-                            color: RaohaneTheme.accent
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 0
-
-                        Text {
-                            text: "Raohane"
-                            color: RaohaneTheme.text
-                            font.pixelSize: 14
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: 0.2
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: root.profileDisplayName.length > 0
-                                ? root.profileDisplayName
-                                : (root.systemIdentity.length > 0 ? root.systemIdentity : qsTr("Control Center"))
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
-                            elide: Text.ElideRight
-                        }
-                    }
-
-                    ColumnLayout {
-                        spacing: 0
-
-                        Text {
-                            Layout.alignment: Qt.AlignRight
-                            text: Qt.formatTime(root.now, "HH:mm")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
-                        }
-
-                        Text {
-                            Layout.alignment: Qt.AlignRight
-                            text: Qt.formatDate(root.now, "ddd, d MMM")
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
-                        }
-                    }
-
-                    HeaderButton {
-                        icon: RaohaneNotifications.silent ? "notifications_off" : "notifications"
-                        emphasized: RaohaneNotifications.silent || RaohaneNotifications.unread > 0
-                        onClicked: RaohaneNotifications.silent = !RaohaneNotifications.silent
-                    }
-                    HeaderButton {
-                        icon: "settings"
-                        onClicked: panelWindow.openSurface("settings")
-                    }
-                    HeaderButton {
-                        icon: "power_settings_new"
-                        emphasized: true
-                        onClicked: panelWindow.openSurface("session")
-                    }
+                    onSettingsRequested: panelWindow.openSurface("settings")
+                    onPowerRequested: panelWindow.openSurface("session")
                 }
 
                 Rectangle {
@@ -407,37 +339,14 @@ Scope {
                     onPowerRequested: panelWindow.openSurface("session")
                 }
 
-                RowLayout {
+                RaohaneControlCenterFooter {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 32
-                    spacing: RaohaneTheme.spacingSmall
+                    Layout.preferredHeight: implicitHeight
+                    privacyActive: root.privacyActive
+                    systemIdentity: root.systemIdentity
 
-                    Rectangle {
-                        width: 6
-                        height: 6
-                        radius: 3
-                        color: root.privacyActive ? RaohaneTheme.critical : RaohaneTheme.success
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: root.privacyActive ? qsTr("Privacy activity") : qsTr("System ready")
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 8
-                        font.weight: Font.Medium
-                        elide: Text.ElideRight
-                    }
-
-                    Text {
-                        visible: root.systemIdentity.length > 0
-                        text: root.systemIdentity
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
-                        elide: Text.ElideRight
-                    }
-
-                    HeaderButton { icon: "restart_alt"; onClicked: RaohaneSession.reloadDesktop() }
-                    HeaderButton { icon: "close"; onClicked: panelWindow.hide() }
+                    onReloadRequested: RaohaneSession.reloadDesktop()
+                    onCloseRequested: panelWindow.hide()
                 }
             }
 
@@ -466,17 +375,6 @@ Scope {
             description: "Toggles Raohane control center"
             onPressed: RaohaneState.togglePrimary("controlCenter")
         }
-    }
-
-    component HeaderButton: RaohaneIconButton {
-        Layout.preferredWidth: 32
-        Layout.preferredHeight: 32
-        buttonSize: 32
-        iconSize: 15
-        transparentIdle: !emphasized
-        showSheen: false
-        hoverScale: 1
-        pressedScale: 1
     }
 
     component SectionLabel: Item {
