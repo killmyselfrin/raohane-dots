@@ -13,40 +13,37 @@ RaohaneSurface {
     implicitHeight: RaohaneMedia.available
         ? (root.compact ? 92 : 104)
         : (root.compact ? 64 : 72)
-    surfaceRadius: 11
+    surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
-    border.color: RaohaneTheme.borderFaint
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        width: 2
-        height: RaohaneMedia.available ? 36 : 24
-        radius: 1
-        color: RaohaneTheme.accent
-        opacity: RaohaneMedia.available ? 0.92 : 0.58
-    }
+    idleBorderColor: RaohaneTheme.borderFaint
+    showStateRail: true
+    stateRailColor: RaohaneTheme.accent
+    stateRailOpacity: RaohaneMedia.available ? 0.92 : 0.58
+    stateRailWidth: 2
+    stateRailLength: RaohaneMedia.available ? 36 : 24
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 11
-        anchors.topMargin: 10
-        anchors.bottomMargin: 10
-        spacing: 10
+        anchors.leftMargin: RaohaneTheme.panelPadding
+        anchors.rightMargin: RaohaneTheme.panelPadding - 1
+        anchors.topMargin: RaohaneTheme.spacing + 1
+        anchors.bottomMargin: RaohaneTheme.spacing + 1
+        spacing: RaohaneTheme.spacing + 1
 
-        Rectangle {
+        RaohaneSurface {
             id: contextArtwork
 
             Layout.preferredWidth: RaohaneMedia.available
                 ? (root.compact ? 54 : 62)
                 : 38
             Layout.preferredHeight: width
-            radius: RaohaneMedia.available ? 9 : 8
-            color: RaohaneTheme.accentSoft
-            border.width: 1
-            border.color: RaohaneTheme.borderFaint
+            surfaceRadius: RaohaneMedia.available ? RaohaneTheme.radius : RaohaneTheme.radiusSmall
+            raised: false
+            showSheen: false
+            showInnerRim: false
+            idleColor: RaohaneTheme.accentSoft
+            idleBorderColor: RaohaneTheme.borderFaint
             clip: true
 
             Image {
@@ -71,7 +68,7 @@ RaohaneSurface {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
             Text {
                 text: RaohaneMedia.available ? qsTr("NOW PLAYING") : qsTr("LIVE CONTEXT")
@@ -101,7 +98,7 @@ RaohaneSurface {
             Rectangle {
                 visible: RaohaneMedia.available
                 Layout.fillWidth: true
-                Layout.topMargin: 4
+                Layout.topMargin: RaohaneTheme.spacingTiny + 1
                 Layout.preferredHeight: 2
                 radius: 1
                 color: RaohaneTheme.border
