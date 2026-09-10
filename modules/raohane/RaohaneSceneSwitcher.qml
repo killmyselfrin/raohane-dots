@@ -19,21 +19,26 @@ Item {
 
     RaohaneSurface {
         anchors.fill: parent
-        surfaceRadius: 15
+        surfaceRadius: RaohaneTheme.radiusHero
         raised: false
         showSheen: false
-        border.color: RaohaneScenes.autoSceneActive
-            ? RaohaneTheme.accentBorder
-            : RaohaneTheme.borderFaint
+        active: RaohaneScenes.autoSceneActive
+        activeColor: RaohaneTheme.surface
+        idleBorderColor: RaohaneTheme.borderFaint
+        activeBorderColor: RaohaneTheme.accentBorder
+        showStateRail: RaohaneScenes.autoSceneActive
+        stateRailWidth: 3
+        stateRailLength: 24
+        stateRailOpacity: 0.72
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 6
-            spacing: 5
+            anchors.margins: RaohaneTheme.spacingSmall
+            spacing: Math.max(2, RaohaneTheme.spacingSmall - 1)
 
             ColumnLayout {
                 Layout.preferredWidth: 72
-                Layout.leftMargin: 4
+                Layout.leftMargin: RaohaneTheme.spacingTiny + 1
                 spacing: 0
 
                 Text {
@@ -63,10 +68,11 @@ Item {
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    surfaceRadius: 10
+                    surfaceRadius: RaohaneTheme.radius
                     active: selected
                     raised: false
                     showSheen: false
+                    showInnerRim: selected
                     transparentIdle: !selected && !hovered
                     interactive: true
                     hovered: sceneMouse.containsMouse || activeFocus
@@ -74,10 +80,13 @@ Item {
                     hoverScale: 1
                     pressedScale: 1
                     activeFocusOnTab: true
+                    idleBorderColor: RaohaneTheme.borderFaint
+                    hoverBorderColor: RaohaneTheme.borderStrong
+                    activeBorderColor: RaohaneTheme.accentBorder
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 2
+                        spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
                         RaohaneIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
