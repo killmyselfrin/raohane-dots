@@ -55,7 +55,7 @@ Item {
         id: horizontalWorkspaces
 
         RowLayout {
-            spacing: 2
+            spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
             Repeater {
                 model: root.workspaceIds
@@ -72,7 +72,7 @@ Item {
         id: verticalWorkspaces
 
         ColumnLayout {
-            spacing: 2
+            spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
             Repeater {
                 model: root.workspaceIds
@@ -101,7 +101,7 @@ Item {
         Layout.alignment: Qt.AlignCenter
         Layout.preferredWidth: implicitWidth
         Layout.preferredHeight: implicitHeight
-        surfaceRadius: 8
+        surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         active: selected
         hovered: workspaceMouse.containsMouse
@@ -111,14 +111,11 @@ Item {
         hoverScale: 1
         pressedScale: 1
         showSheen: false
-        border.color: urgent ? RaohaneTheme.critical
-            : selected ? RaohaneTheme.accentBorder
-            : hovered ? RaohaneTheme.borderStrong
-            : "transparent"
-
-        Behavior on border.color {
-            ColorAnimation { duration: RaohaneMotion.micro }
-        }
+        showInnerRim: selected
+        idleBorderColor: urgent ? RaohaneTheme.critical : "transparent"
+        hoverBorderColor: urgent ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+        pressedBorderColor: urgent ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+        activeBorderColor: urgent ? RaohaneTheme.critical : RaohaneTheme.accentBorder
 
         Rectangle {
             visible: workspaceButton.selected || workspaceButton.urgent
