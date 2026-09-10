@@ -11,8 +11,9 @@ fail() {
 
 MEDIA='modules/raohane/RaohaneMediaOverlay.qml'
 STATUS='modules/raohane/RaohaneMediaLyricsStatus.qml'
+VIEWPORT='modules/raohane/RaohaneMediaLyricsViewport.qml'
 
-for path in "$MEDIA" "$STATUS"; do
+for path in "$MEDIA" "$STATUS" "$VIEWPORT"; do
   [[ -f "$path" ]] || fail "missing media status boundary path: $path"
 done
 
@@ -23,10 +24,10 @@ for contract in \
   'available: RaohaneLyrics\.available' \
   'errorText: RaohaneLyrics\.errorText' \
   'accent: root\.playerAccent' \
-  'id: lyricsList' \
-  'visible: !RaohaneLyrics\.loading && RaohaneLyrics\.available && !RaohaneLyrics\.instrumental' \
-  'id: lyricsScrollAnimation'; do
-  rg -q "$contract" "$MEDIA" || fail "overlay lost lyrics-status/list ownership contract: $contract"
+  'RaohaneMediaLyricsViewport[[:space:]]*\{' \
+  'id: lyricsViewport' \
+  'visible: !RaohaneLyrics\.loading && RaohaneLyrics\.available && !RaohaneLyrics\.instrumental'; do
+  rg -q "$contract" "$MEDIA" || fail "overlay lost lyrics-status/viewport ownership contract: $contract"
 done
 
 for contract in \
@@ -50,9 +51,12 @@ if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)|playerctl|Quickshell\.execDe
   fail 'lyrics status bypasses the overlay/service boundary'
 fi
 
-# Scrolling and seeking are deliberately not part of this extraction yet.
+# Status rendering stays isolated from synced-line mechanics. The extracted
+# viewport owns ListView/scrolling/seek signaling and is validated separately.
 if rg -n 'ListView[[:space:]]*\{|RaohaneMediaLyricLine|seekRequested|contentY' "$STATUS"; then
   fail 'lyrics status absorbed synced-list/seek responsibilities'
 fi
+rg -q 'ListView[[:space:]]*\{' "$VIEWPORT" \
+  || fail 'synced viewport lost ListView ownership after status extraction'
 
-printf 'media-status-boundary-audit: loading/instrumental/unavailable states remain presentation-only while synced scrolling stays in the coordinator\n'
+printf 'media-status-boundary-audit: loading/instrumental/unavailable states remain presentation-only while synced scrolling belongs to the extracted viewport\n'
