@@ -61,7 +61,7 @@ Scope {
         const body = root.stripMode(RaohaneSearch.query)
         RaohaneSearch.query = prefix + body
         selection.reset()
-        searchInput.forceActiveFocus()
+        searchBar.focusSearch()
     }
 
     function executeSelected(): void {
@@ -110,7 +110,7 @@ Scope {
                 launcherSurface.entered = false
                 Qt.callLater(() => launcherSurface.entered = true)
                 RaohaneFocusGrab.addDismissable(panelWindow)
-                searchInput.forceActiveFocus()
+                searchBar.focusSearch()
             } else {
                 launcherSurface.entered = false
                 RaohaneFocusGrab.removeDismissable(panelWindow)
@@ -151,148 +151,32 @@ Scope {
                 }
                 spacing: RaohaneTheme.spacing + 1
 
-                RowLayout {
+                RaohaneLauncherSearchBar {
+                    id: searchBar
+
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 52
-                    spacing: RaohaneTheme.spacing
+                    Layout.preferredHeight: implicitHeight
+                    queryText: RaohaneSearch.query
 
-                    RaohaneSurface {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 50
-                        surfaceRadius: RaohaneTheme.radiusHero
-                        raised: false
-                        active: searchInput.activeFocus
-                        showSheen: false
-                        showInnerRim: false
-                        idleColor: RaohaneTheme.surface
-                        activeColor: RaohaneTheme.surface
-                        idleBorderColor: RaohaneTheme.borderStrong
-                        activeBorderColor: RaohaneTheme.accentBorder
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: RaohaneTheme.panelPadding + 1
-                            anchors.rightMargin: RaohaneTheme.spacing + 1
-                            spacing: RaohaneTheme.spacing
-
-                            RaohaneIcon {
-                                text: "search"
-                                iconSize: 19
-                                fill: searchInput.activeFocus ? 1 : 0
-                                symbolWeight: searchInput.activeFocus ? 540 : 430
-                                color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                            }
-
-                            TextInput {
-                                id: searchInput
-
-                                Layout.fillWidth: true
-                                color: RaohaneTheme.text
-                                selectionColor: RaohaneTheme.accentSoft
-                                selectedTextColor: RaohaneTheme.text
-                                font.pixelSize: 12
-                                clip: true
-                                text: RaohaneSearch.query
-
-                                Text {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    visible: searchInput.text.length === 0
-                                    text: qsTr("Search Raohane")
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 10
-                                }
-
-                                onTextChanged: {
-                                    if (RaohaneSearch.query !== text)
-                                        RaohaneSearch.query = text
-                                    selection.reset()
-                                }
-
-                                Keys.onPressed: event => {
-                                    if (event.key === Qt.Key_Escape) {
-                                        root.close()
-                                        event.accepted = true
-                                    } else if (event.key === Qt.Key_Down) {
-                                        selection.move(1)
-                                        event.accepted = true
-                                    } else if (event.key === Qt.Key_Up) {
-                                        selection.move(-1)
-                                        event.accepted = true
-                                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                        root.executeSelected()
-                                        event.accepted = true
-                                    }
-                                }
-                            }
-
-                            RaohaneIconButton {
-                                visible: searchInput.text.length > 0
-                                buttonSize: 30
-                                iconSize: 14
-                                icon: "backspace"
-                                transparentIdle: true
-                                showSheen: false
-                                hoverScale: 1
-                                pressedScale: 1
-                                onClicked: root.reset()
-                            }
-                        }
+                    onQueryEdited: text => {
+                        if (RaohaneSearch.query !== text)
+                            RaohaneSearch.query = text
+                        selection.reset()
                     }
-
-                    RaohaneIconButton {
-                        buttonSize: 48
-                        iconSize: 19
-                        icon: "settings"
-                        transparentIdle: false
-                        showSheen: false
-                        hoverScale: 1
-                        pressedScale: 1
-                        onClicked: {
-                            root.close()
-                            RaohaneState.setPrimaryOpen("settings", true)
-                        }
+                    onClearRequested: root.reset()
+                    onSettingsRequested: {
+                        root.close()
+                        RaohaneState.setPrimaryOpen("settings", true)
                     }
+                    onEscapeRequested: root.close()
+                    onSelectionMoveRequested: delta => selection.move(delta)
+                    onSubmitRequested: root.executeSelected()
                 }
 
-                RowLayout {
+                RaohaneLauncherModeBar {
                     Layout.fillWidth: true
-                    spacing: RaohaneTheme.spacingSmall
-
-                    ModeChip {
-                        Layout.fillWidth: true
-                        label: qsTr("Apps")
-                        icon: "apps"
-                        prefix: ""
-                        selected: root.currentMode === "app"
-                    }
-                    ModeChip {
-                        Layout.fillWidth: true
-                        label: qsTr("Actions")
-                        icon: "bolt"
-                        prefix: "/"
-                        selected: root.currentMode === "action"
-                    }
-                    ModeChip {
-                        Layout.fillWidth: true
-                        label: qsTr("Commands")
-                        icon: "terminal"
-                        prefix: ">"
-                        selected: root.currentMode === "command"
-                    }
-                    ModeChip {
-                        Layout.fillWidth: true
-                        label: qsTr("Math")
-                        icon: "calculate"
-                        prefix: "="
-                        selected: root.currentMode === "calculator"
-                    }
-                    ModeChip {
-                        Layout.fillWidth: true
-                        label: qsTr("Clipboard")
-                        icon: "content_paste"
-                        prefix: ":"
-                        selected: root.currentMode === "clipboard"
-                    }
+                    currentMode: root.currentMode
+                    onModeRequested: prefix => root.setMode(prefix)
                 }
 
                 ColumnLayout {
@@ -709,68 +593,6 @@ Scope {
                         font.pixelSize: 7
                     }
                 }
-            }
-        }
-    }
-
-    component ModeChip: RaohaneSurface {
-        id: chip
-
-        required property string label
-        required property string icon
-        required property string prefix
-        property bool selected: false
-
-        Layout.preferredHeight: 34
-        surfaceRadius: RaohaneTheme.radius
-        active: selected
-        hovered: chipMouse.containsMouse || activeFocus
-        pressed: chipMouse.pressed
-        interactive: true
-        transparentIdle: !selected && !hovered
-        showSheen: false
-        showInnerRim: selected
-        hoverScale: 1
-        pressedScale: 1
-        activeFocusOnTab: true
-        idleBorderColor: "transparent"
-        hoverBorderColor: RaohaneTheme.borderStrong
-        pressedBorderColor: RaohaneTheme.borderStrong
-        activeBorderColor: RaohaneTheme.accentBorder
-
-        Row {
-            anchors.centerIn: parent
-            spacing: RaohaneTheme.spacingSmall - 1
-
-            RaohaneIcon {
-                text: chip.icon
-                iconSize: 12
-                fill: chip.selected ? 1 : 0
-                symbolWeight: chip.selected ? 540 : 430
-                color: chip.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            }
-
-            Text {
-                text: chip.label
-                color: chip.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
-                font.pixelSize: 7
-                font.weight: chip.selected ? Font.DemiBold : Font.Medium
-            }
-        }
-
-        MouseArea {
-            id: chipMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onPressed: chip.forceActiveFocus()
-            onClicked: root.setMode(chip.prefix)
-        }
-
-        Keys.onPressed: event => {
-            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                root.setMode(chip.prefix)
-                event.accepted = true
             }
         }
     }
