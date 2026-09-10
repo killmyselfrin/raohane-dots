@@ -42,14 +42,14 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 22
-            anchors.rightMargin: 20
-            spacing: 11
+            anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacing
+            anchors.rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
+            spacing: RaohaneTheme.spacing
 
             RaohaneSurface {
                 Layout.preferredWidth: 38
                 Layout.preferredHeight: 38
-                surfaceRadius: 11
+                surfaceRadius: RaohaneTheme.radiusLarge
                 active: true
                 raised: false
                 showSheen: false
@@ -67,7 +67,7 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
+                spacing: RaohaneTheme.spacingTiny / 3
 
                 Text {
                     Layout.fillWidth: true
@@ -89,11 +89,12 @@ Item {
 
             RaohaneSurface {
                 visible: !root.compact
-                Layout.preferredWidth: groupText.implicitWidth + 18
+                Layout.preferredWidth: groupText.implicitWidth + RaohaneTheme.spacingLarge
                 Layout.preferredHeight: 24
-                surfaceRadius: 9
+                surfaceRadius: RaohaneTheme.radiusSmall
                 transparentIdle: true
                 showSheen: false
+                showInnerRim: false
 
                 Text {
                     id: groupText
@@ -163,8 +164,8 @@ Item {
             left: parent.left
             right: parent.right
             bottom: parent.bottom
-            leftMargin: 22
-            rightMargin: 20
+            leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacing
+            rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
         }
         height: 1
         color: RaohaneTheme.borderFaint
