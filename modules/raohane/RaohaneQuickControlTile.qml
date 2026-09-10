@@ -74,7 +74,7 @@ RaohaneSurface {
     visible: root.available
     enabled: root.available && !root.tileBusy
     Layout.preferredHeight: visible ? 62 : 0
-    surfaceRadius: 15
+    surfaceRadius: RaohaneTheme.radiusHero
     active: root.tileActive
     showSheen: false
     transparentIdle: false
@@ -149,17 +149,17 @@ RaohaneSurface {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
-        anchors.topMargin: 8
-        anchors.bottomMargin: 8
-        spacing: 10
+        anchors.leftMargin: RaohaneTheme.spacing + 1
+        anchors.rightMargin: RaohaneTheme.spacing + 1
+        anchors.topMargin: RaohaneTheme.spacingSmall + 2
+        anchors.bottomMargin: RaohaneTheme.spacingSmall + 2
+        spacing: RaohaneTheme.spacing + 1
 
         RaohaneSurface {
             Layout.preferredWidth: 36
             Layout.preferredHeight: 36
             Layout.alignment: Qt.AlignVCenter
-            surfaceRadius: 11
+            surfaceRadius: RaohaneTheme.radiusLarge
             showSheen: false
             showInnerRim: false
             active: root.tileActive || root.menuOpen || root.tileError
@@ -195,7 +195,7 @@ RaohaneSurface {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            spacing: 1
+            spacing: Math.max(1, RaohaneTheme.spacingTiny - 2)
 
             Text {
                 Layout.fillWidth: true
