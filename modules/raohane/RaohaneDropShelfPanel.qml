@@ -69,52 +69,43 @@ Scope {
             property bool entered: false
 
             anchors.fill: parent
-            surfaceRadius: 16
+            surfaceRadius: RaohaneTheme.radiusHero
             raised: true
             showSheen: false
-            border.color: RaohaneTheme.borderStrong
+            idleBorderColor: RaohaneTheme.borderStrong
             opacity: entered ? 1 : 0
 
             Behavior on opacity {
                 NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
             }
 
-            Rectangle {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                    leftMargin: 16
-                    rightMargin: 16
-                }
-                height: 1
-                color: RaohaneTheme.accent
-                opacity: 0.38
-            }
-
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 13
-                spacing: 8
+                anchors.margins: RaohaneTheme.panelPadding + 1
+                spacing: RaohaneTheme.spacingSmall + 2
 
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 34
-                    spacing: 9
+                    spacing: RaohaneTheme.spacing
 
-                    Rectangle {
-                        Layout.preferredWidth: 2
-                        Layout.preferredHeight: 26
-                        radius: 1
-                        color: RaohaneTheme.accent
-                    }
+                    RaohaneSurface {
+                        Layout.preferredWidth: 32
+                        Layout.preferredHeight: 32
+                        surfaceRadius: RaohaneTheme.radius
+                        active: true
+                        raised: false
+                        showSheen: false
+                        showInnerRim: false
 
-                    RaohaneIcon {
-                        text: "shelves"
-                        iconSize: 17
-                        fill: 1
-                        symbolWeight: 540
-                        color: RaohaneTheme.accent
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "shelves"
+                            iconSize: 17
+                            fill: 1
+                            symbolWeight: 540
+                            color: RaohaneTheme.accent
+                        }
                     }
 
                     Text {
@@ -126,11 +117,12 @@ Scope {
                     }
 
                     RaohaneSurface {
-                        implicitWidth: itemCount.implicitWidth + 16
+                        implicitWidth: itemCount.implicitWidth + RaohaneTheme.spacingLarge
                         implicitHeight: 24
-                        surfaceRadius: 8
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         transparentIdle: true
                         showSheen: false
+                        showInnerRim: false
 
                         Text {
                             id: itemCount
@@ -155,7 +147,7 @@ Scope {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 148
                     orientation: ListView.Horizontal
-                    spacing: 8
+                    spacing: RaohaneTheme.spacingSmall + 2
                     clip: true
                     model: RaohaneDropShelf.items
                     boundsBehavior: Flickable.StopAtBounds
@@ -176,14 +168,27 @@ Scope {
                     Column {
                         anchors.centerIn: parent
                         visible: RaohaneDropShelf.items.length === 0
-                        spacing: 6
+                        spacing: RaohaneTheme.spacingSmall
 
-                        RaohaneIcon {
+                        RaohaneSurface {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: "move_to_inbox"
-                            iconSize: 25
-                            color: RaohaneTheme.textFaint
+                            width: 40
+                            height: 40
+                            surfaceRadius: RaohaneTheme.radiusLarge
+                            raised: false
+                            showSheen: false
+                            showInnerRim: false
+                            idleColor: RaohaneTheme.surfaceSubtle
+                            idleBorderColor: RaohaneTheme.borderFaint
+
+                            RaohaneIcon {
+                                anchors.centerIn: parent
+                                text: "move_to_inbox"
+                                iconSize: 23
+                                color: RaohaneTheme.textFaint
+                            }
                         }
+
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: qsTr("Drop files here")
@@ -196,7 +201,7 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: RaohaneTheme.spacingSmall
 
                     ShelfButton {
                         title: qsTr("Copy")
@@ -238,10 +243,11 @@ Scope {
 
         Layout.fillWidth: true
         Layout.preferredHeight: 36
-        surfaceRadius: 9
+        surfaceRadius: RaohaneTheme.radiusSmall
         active: primary
         transparentIdle: !primary && !hovered
         showSheen: false
+        showInnerRim: primary
         interactive: true
         hovered: buttonMouse.containsMouse || activeFocus
         pressed: buttonMouse.pressed
@@ -249,12 +255,14 @@ Scope {
         pressedScale: 1
         activeFocusOnTab: enabled
         opacity: button.enabled ? 1 : RaohaneMotion.disabledOpacity
-        border.color: primary ? RaohaneTheme.accentBorder
-            : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+        idleBorderColor: RaohaneTheme.borderFaint
+        hoverBorderColor: RaohaneTheme.borderStrong
+        pressedBorderColor: RaohaneTheme.borderStrong
+        activeBorderColor: RaohaneTheme.accentBorder
 
         Row {
             anchors.centerIn: parent
-            spacing: 6
+            spacing: RaohaneTheme.spacingSmall
 
             RaohaneIcon {
                 text: button.icon
