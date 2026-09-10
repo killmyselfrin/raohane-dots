@@ -66,16 +66,15 @@ Item {
         RaohaneSurface {
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 2 * RaohaneTheme.spacing : 0
-            surfaceRadius: RaohaneTheme.radiusHero
+            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 2 * RaohaneTheme.spacingSmall : 0
+            surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceSubtle
             idleBorderColor: RaohaneTheme.borderFaint
             clip: true
-            showStateRail: true
-            stateRailWidth: 3
-            stateRailLength: Math.max(22, height - 2 * RaohaneTheme.spacingLarge)
-            stateRailOpacity: 0.34
+            showStateRail: false
 
             ColumnLayout {
                 id: sliderStack
@@ -83,10 +82,10 @@ Item {
                     left: parent.left
                     right: parent.right
                     verticalCenter: parent.verticalCenter
-                    leftMargin: RaohaneTheme.spacing
-                    rightMargin: RaohaneTheme.spacing
+                    leftMargin: RaohaneTheme.spacingSmall
+                    rightMargin: RaohaneTheme.spacingSmall
                 }
-                spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
+                spacing: RaohaneTheme.spacingTiny
 
                 ControlSlider {
                     Layout.fillWidth: true
@@ -163,15 +162,15 @@ Item {
             || (control.iconEnabled && (iconButton.hovered || iconButton.activeFocus))
             || (control.pickerEnabled && pickerButton.hovered)
 
-        implicitHeight: 49
-        surfaceRadius: RaohaneTheme.radiusLarge
+        implicitHeight: 46
+        surfaceRadius: RaohaneTheme.radiusSmall
         transparentIdle: true
         showSheen: false
         showInnerRim: false
         hovered: control.rowHovered && !control.pickerActive
         active: control.pickerActive
         hoverColor: RaohaneTheme.surfaceHover
-        activeColor: RaohaneTheme.surfaceHover
+        activeColor: RaohaneTheme.accentSoft
         hoverBorderColor: RaohaneTheme.borderStrong
         activeBorderColor: RaohaneTheme.accentBorder
         showStateRail: control.pickerActive
@@ -183,7 +182,7 @@ Item {
             anchors.fill: parent
             anchors.leftMargin: RaohaneTheme.spacingSmall
             anchors.rightMargin: RaohaneTheme.spacingSmall
-            spacing: RaohaneTheme.spacingSmall + 2
+            spacing: RaohaneTheme.spacingSmall + 1
 
             Item {
                 Layout.preferredWidth: 32
@@ -215,7 +214,7 @@ Item {
             }
 
             ColumnLayout {
-                Layout.preferredWidth: 146
+                Layout.preferredWidth: 142
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 0
 
@@ -258,9 +257,9 @@ Item {
                 from: 0
                 to: 1
                 stepSize: 0.01
-                trackHeight: 6
+                trackHeight: 5
                 value: control.clampedLiveValue
-                showHandle: control.rowHovered || activeFocus
+                showHandle: control.rowHovered || activeFocus || control.pickerActive
                 onMoved: value => control.valueChangedByUser(value)
             }
 
