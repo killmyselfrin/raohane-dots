@@ -19,6 +19,31 @@ Rectangle {
     property real pressedScale: 1
     property string feedback: "tap"
 
+    // Shared material-state contract. Consumers can tune a surface without
+    // replacing its state machine with one-off Rectangle bindings.
+    property color idleColor: root.raised
+        ? RaohaneTheme.surfaceRaised
+        : root.transparentIdle
+            ? "transparent"
+            : RaohaneTheme.surface
+    property color hoverColor: RaohaneTheme.surfaceHover
+    property color pressedColor: RaohaneTheme.surfacePressed
+    property color activeColor: RaohaneTheme.accentSoft
+    property color idleBorderColor: root.raised ? RaohaneTheme.borderStrong : RaohaneTheme.border
+    property color hoverBorderColor: RaohaneTheme.borderStrong
+    property color pressedBorderColor: RaohaneTheme.borderStrong
+    property color activeBorderColor: RaohaneTheme.accentBorder
+
+    // A restrained state rail is the canonical compact emphasis marker used
+    // by Settings rows, command tiles and other dense Nocturne surfaces.
+    property bool showStateRail: false
+    property color stateRailColor: RaohaneTheme.accent
+    property real stateRailOpacity: 0.76
+    property int stateRailWidth: 3
+    property int stateRailLength: Math.min(26, Math.max(0, Math.round(root.height - 16)))
+    property int stateRailInset: 2
+    property int stateRailRadius: 2
+
     readonly property bool transformMotionAllowed: root.transformMotion
         && RaohaneMotion.transformMotionEnabled
         && !RaohanePerformance.gameModeActive
@@ -28,24 +53,20 @@ Rectangle {
         ? (pressed ? pressedScale : hovered ? hoverScale : 1)
         : 1
     color: pressed
-        ? RaohaneTheme.surfacePressed
+        ? root.pressedColor
         : active
-            ? RaohaneTheme.accentSoft
+            ? root.activeColor
             : hovered
-                ? RaohaneTheme.surfaceHover
-                : raised
-                    ? RaohaneTheme.surfaceRaised
-                    : transparentIdle
-                        ? "transparent"
-                        : RaohaneTheme.surface
+                ? root.hoverColor
+                : root.idleColor
     border.width: transparentIdle && !active && !hovered && !pressed ? 0 : 1
     border.color: active
-        ? RaohaneTheme.accentBorder
-        : hovered || pressed
-            ? RaohaneTheme.borderStrong
-            : raised
-                ? RaohaneTheme.borderStrong
-                : RaohaneTheme.border
+        ? root.activeBorderColor
+        : pressed
+            ? root.pressedBorderColor
+            : hovered
+                ? root.hoverBorderColor
+                : root.idleBorderColor
 
     onPressedChanged: {
         if (root.interactive && root.pressed && root.feedback.length > 0)
@@ -64,12 +85,34 @@ Rectangle {
         color: "transparent"
         border.width: 1
         border.color: root.active
-            ? Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g, RaohaneTheme.accent.b, 0.10)
+            ? Qt.rgba(root.activeBorderColor.r, root.activeBorderColor.g, root.activeBorderColor.b, 0.10)
             : Qt.rgba(RaohaneTheme.highlight.r, RaohaneTheme.highlight.g, RaohaneTheme.highlight.b,
                 root.hovered ? 0.080 : root.raised ? 0.052 : 0.032)
         opacity: root.pressed ? 0.55 : 1
 
         Behavior on border.color {
+            ColorAnimation { duration: RaohaneMotion.micro }
+        }
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+        }
+    }
+
+    Rectangle {
+        visible: root.showStateRail && root.stateRailLength > 0
+        z: 99
+        anchors {
+            left: parent.left
+            leftMargin: root.stateRailInset
+            verticalCenter: parent.verticalCenter
+        }
+        width: root.stateRailWidth
+        height: root.stateRailLength
+        radius: Math.min(root.stateRailRadius, width / 2)
+        color: root.stateRailColor
+        opacity: root.stateRailOpacity
+
+        Behavior on color {
             ColorAnimation { duration: RaohaneMotion.micro }
         }
         Behavior on opacity {
@@ -90,7 +133,7 @@ Rectangle {
             rightMargin: Math.max(8, root.surfaceRadius - 2)
         }
         height: 1
-        color: root.active ? RaohaneTheme.accentGlow : RaohaneTheme.highlight
+        color: root.active ? root.activeBorderColor : RaohaneTheme.highlight
         opacity: root.pressed ? 0.03 : root.active ? 0.20 : root.hovered ? 0.13 : root.raised ? 0.08 : 0.045
 
         Behavior on opacity {
