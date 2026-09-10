@@ -85,12 +85,19 @@ RaohaneSurface {
     pressedScale: 1
     activeFocusOnTab: visible && enabled
     feedback: root.showMenu ? "navigate" : "tap"
-    border.color: root.tileError ? RaohaneTheme.critical
-        : root.menuOpen || root.active ? RaohaneTheme.accentBorder
-        : root.hovered ? RaohaneTheme.borderStrong
-        : RaohaneTheme.borderFaint
+    idleBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.borderFaint
+    hoverBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+    pressedBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+    activeBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.accentBorder
+    activeColor: root.tileError
+        ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.10)
+        : RaohaneTheme.accentSoft
+    showStateRail: root.tileActive || root.menuOpen || root.tileError
+    stateRailColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.accent
+    stateRailOpacity: root.tileError ? 0.92 : root.menuOpen ? 1 : 0.76
+    stateRailWidth: 3
+    stateRailLength: 26
 
-    Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
     Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
 
     function triggerPrimary(): void {
@@ -140,26 +147,6 @@ RaohaneSurface {
         }
     }
 
-    Rectangle {
-        visible: root.active || root.menuOpen || root.tileError
-        z: 3
-        anchors {
-            left: parent.left
-            verticalCenter: parent.verticalCenter
-            leftMargin: 2
-        }
-        width: 3
-        height: 26
-        radius: 2
-        color: root.tileError ? RaohaneTheme.critical : RaohaneTheme.accent
-        opacity: root.tileError ? 0.92 : root.menuOpen ? 1 : 0.76
-
-        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-        Behavior on opacity {
-            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
-        }
-    }
-
     RowLayout {
         anchors.fill: parent
         anchors.leftMargin: 10
@@ -168,32 +155,30 @@ RaohaneSurface {
         anchors.bottomMargin: 8
         spacing: 10
 
-        Rectangle {
+        RaohaneSurface {
             Layout.preferredWidth: 36
             Layout.preferredHeight: 36
             Layout.alignment: Qt.AlignVCenter
-            radius: 11
-            color: root.tileError
+            surfaceRadius: 11
+            showSheen: false
+            showInnerRim: false
+            active: root.tileActive || root.menuOpen || root.tileError
+            idleColor: root.hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
+            activeColor: root.tileError
                 ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.10)
-                : root.active || root.menuOpen ? RaohaneTheme.accentSoft
-                : root.hovered ? RaohaneTheme.surfaceHover
-                : RaohaneTheme.surfaceSubtle
-            border.width: 1
-            border.color: root.tileError ? RaohaneTheme.critical
-                : root.active || root.menuOpen ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
-
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-            Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
+                : RaohaneTheme.accentSoft
+            idleBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.borderFaint
+            activeBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.accentBorder
 
             RaohaneIcon {
                 anchors.centerIn: parent
                 text: root.currentIcon
                 iconSize: 18
-                fill: root.active || root.tileError ? 1 : root.hovered ? 0.4 : 0
-                symbolWeight: root.active || root.tileError ? 560 : root.hovered ? 500 : 430
-                grade: root.active ? 40 : 0
+                fill: root.tileActive || root.tileError ? 1 : root.hovered ? 0.4 : 0
+                symbolWeight: root.tileActive || root.tileError ? 560 : root.hovered ? 500 : 430
+                grade: root.tileActive ? 40 : 0
                 color: root.tileError ? RaohaneTheme.critical
-                    : root.active || root.hovered || root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    : root.tileActive || root.hovered || root.menuOpen ? RaohaneTheme.accent : RaohaneTheme.textMuted
 
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
 
@@ -225,7 +210,7 @@ RaohaneSurface {
                 Layout.fillWidth: true
                 text: root.subtitle
                 color: root.tileError ? RaohaneTheme.critical
-                    : root.active ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
+                    : root.tileActive ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
                 font.pixelSize: 8
                 elide: Text.ElideRight
             }
@@ -237,8 +222,8 @@ RaohaneSurface {
             Layout.alignment: Qt.AlignVCenter
             radius: 4
             color: root.tileError ? RaohaneTheme.critical
-                : root.active ? RaohaneTheme.accent : RaohaneTheme.borderStrong
-            opacity: root.active || root.tileError ? 1 : 0.55
+                : root.tileActive ? RaohaneTheme.accent : RaohaneTheme.borderStrong
+            opacity: root.tileActive || root.tileError ? 1 : 0.55
 
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
         }
