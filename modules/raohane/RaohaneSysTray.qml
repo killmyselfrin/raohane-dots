@@ -16,7 +16,7 @@ Item {
     RowLayout {
         id: trayRow
         anchors.centerIn: parent
-        spacing: 3
+        spacing: RaohaneTheme.spacingTiny
 
         Repeater {
             model: SystemTray.items
@@ -29,7 +29,7 @@ Item {
 
                 Layout.preferredWidth: 27
                 Layout.preferredHeight: 27
-                surfaceRadius: 8
+                surfaceRadius: RaohaneTheme.radiusSmall
                 raised: false
                 transparentIdle: true
                 hovered: trayMouse.containsMouse
@@ -38,7 +38,10 @@ Item {
                 hoverScale: 1
                 pressedScale: 1
                 showSheen: false
-                border.color: trayButton.hovered ? RaohaneTheme.borderStrong : "transparent"
+                showInnerRim: false
+                idleBorderColor: "transparent"
+                hoverBorderColor: RaohaneTheme.borderStrong
+                pressedBorderColor: RaohaneTheme.borderStrong
 
                 RaohaneAdaptiveIcon {
                     anchors.centerIn: parent
