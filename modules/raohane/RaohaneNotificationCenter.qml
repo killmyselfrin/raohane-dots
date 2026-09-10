@@ -5,32 +5,59 @@ import QtQuick.Layouts
 
 import qs.modules.raohane.services
 
-Item {
+RaohaneSurface {
     id: root
 
     readonly property var notifications: RaohaneNotifications.list.slice().reverse()
 
     implicitHeight: 320
+    surfaceRadius: RaohaneTheme.radiusLarge
+    raised: false
+    showSheen: false
+    idleBorderColor: RaohaneTheme.borderFaint
+    clip: true
+    showStateRail: RaohaneNotifications.unread > 0 || RaohaneNotifications.silent
+    stateRailColor: RaohaneNotifications.silent ? RaohaneTheme.textFaint : RaohaneTheme.accent
+    stateRailOpacity: RaohaneNotifications.silent ? 0.42 : 0.72
+    stateRailWidth: 3
+    stateRailLength: 30
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 8
+        anchors.margins: RaohaneTheme.spacing
+        spacing: RaohaneTheme.spacingSmall + 2
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 48
-            spacing: 9
+            Layout.preferredHeight: 44
+            spacing: RaohaneTheme.spacing
 
-            Rectangle {
-                Layout.preferredWidth: 3
-                Layout.preferredHeight: 32
-                radius: 2
-                color: RaohaneNotifications.silent ? RaohaneTheme.textFaint : RaohaneTheme.accent
+            RaohaneSurface {
+                Layout.preferredWidth: 34
+                Layout.preferredHeight: 34
+                Layout.alignment: Qt.AlignVCenter
+                surfaceRadius: RaohaneTheme.radiusLarge
+                active: RaohaneNotifications.unread > 0 && !RaohaneNotifications.silent
+                raised: false
+                showSheen: false
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceSubtle
+                idleBorderColor: RaohaneTheme.borderFaint
+
+                RaohaneIcon {
+                    anchors.centerIn: parent
+                    text: RaohaneNotifications.silent ? "notifications_off" : "notifications"
+                    iconSize: 17
+                    fill: RaohaneNotifications.unread > 0 && !RaohaneNotifications.silent ? 1 : 0
+                    symbolWeight: RaohaneNotifications.unread > 0 ? 540 : 420
+                    color: RaohaneNotifications.silent ? RaohaneTheme.textFaint
+                        : RaohaneNotifications.unread > 0 ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
+                spacing: Math.max(1, RaohaneTheme.spacingTiny - 2)
 
                 Text {
                     text: qsTr("Notifications")
@@ -51,11 +78,12 @@ Item {
 
             RaohaneSurface {
                 visible: RaohaneNotifications.unread > 0
-                implicitWidth: unreadText.implicitWidth + 16
+                implicitWidth: unreadText.implicitWidth + RaohaneTheme.spacingLarge
                 implicitHeight: 26
-                surfaceRadius: 8
+                surfaceRadius: RaohaneTheme.radiusSmall
                 active: true
                 showSheen: false
+                showInnerRim: false
 
                 Text {
                     id: unreadText
@@ -105,7 +133,7 @@ Item {
                 id: listView
                 anchors.fill: parent
                 clip: true
-                spacing: 7
+                spacing: RaohaneTheme.spacingSmall + 1
                 model: root.notifications
                 boundsBehavior: Flickable.StopAtBounds
                 flickDeceleration: 2400
@@ -136,17 +164,19 @@ Item {
 
             Column {
                 anchors.centerIn: parent
-                spacing: 8
+                spacing: RaohaneTheme.spacingSmall + 2
                 visible: RaohaneNotifications.list.length === 0
 
                 RaohaneSurface {
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: 42
                     height: 42
-                    surfaceRadius: 13
+                    surfaceRadius: RaohaneTheme.radiusLarge
                     raised: false
                     showSheen: false
-                    active: true
+                    showInnerRim: false
+                    idleColor: RaohaneTheme.surfaceSubtle
+                    idleBorderColor: RaohaneTheme.borderFaint
 
                     RaohaneIcon {
                         anchors.centerIn: parent

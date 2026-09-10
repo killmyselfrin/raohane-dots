@@ -38,8 +38,10 @@ Scope {
             }
 
             margins {
-                top: RaohaneConfig.barBottom ? 12 : 66
-                right: 12
+                top: RaohaneConfig.barBottom
+                    ? RaohaneTheme.panelPadding
+                    : RaohaneTheme.barHeight + 2 * RaohaneTheme.panelPadding
+                right: RaohaneTheme.panelPadding
             }
 
             mask: Region { item: notificationStack }
@@ -47,7 +49,7 @@ Scope {
             Column {
                 id: notificationStack
                 width: 356
-                spacing: 6
+                spacing: RaohaneTheme.spacingSmall
 
                 Repeater {
                     model: root.popupNotifications
@@ -66,7 +68,7 @@ Scope {
 
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: RaohaneMotion.shortDuration
+                                duration: RaohaneMotion.micro
                                 easing.type: RaohaneMotion.easeStandard
                             }
                         }
