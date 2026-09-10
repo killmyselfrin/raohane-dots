@@ -12,6 +12,8 @@ fail() {
 MEDIA=modules/raohane/RaohaneMediaOverlay.qml
 HUD=modules/raohane/RaohaneMediaPlayerHud.qml
 HEADER=modules/raohane/RaohaneMediaLyricsHeader.qml
+STATUS=modules/raohane/RaohaneMediaLyricsStatus.qml
+VIEWPORT=modules/raohane/RaohaneMediaLyricsViewport.qml
 CONTEXT=modules/raohane/RaohaneContext.qml
 ISLAND=modules/raohane/RaohaneContextIsland.qml
 CONFIG=modules/raohane/config/RaohaneConfig.qml
@@ -20,7 +22,7 @@ SECTIONS=modules/raohane/RaohaneSettingsSectionRegistry.qml
 STUDIO=modules/raohane/RaohaneMediaStudio.qml
 DEFAULTS=defaults/native.json
 
-for file in "$MEDIA" "$HUD" "$HEADER" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
+for file in "$MEDIA" "$HUD" "$HEADER" "$STATUS" "$VIEWPORT" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
   [[ -f "$file" ]] || fail "missing media placement contract file: $file"
 done
 
@@ -51,14 +53,16 @@ for contract in \
   'id: lyricsStage' \
   'visible: root\.lyricsOpen' \
   'RaohaneMediaLyricsHeader[[:space:]]*\{' \
+  'RaohaneMediaLyricsStatus[[:space:]]*\{' \
+  'RaohaneMediaLyricsViewport[[:space:]]*\{' \
+  'id: lyricsViewport' \
+  'lyricsViewport\.centerCurrentLine\(animated\)' \
   'RaohaneMedia\.cyclePlayer\(step\)' \
   'RaohaneMedia\.raisePlayer\(\)' \
   'RaohaneMedia\.setVolume\(value\)' \
   'RaohaneMedia\.previous\(\)' \
   'RaohaneMedia\.togglePlaying\(\)' \
   'RaohaneMedia\.next\(\)' \
-  'id: lyricsScrollAnimation' \
-  'duration: RaohaneMotion\.standard' \
   'RaohaneMedia\.seekRatio' \
   'RaohaneMedia\.formatTime\(RaohaneMedia\.position\)' \
   'RaohaneMedia\.formatTime\(Math\.max\(0, RaohaneMedia\.length - RaohaneMedia\.position\)\)' \
@@ -190,14 +194,13 @@ rg -q 'if \(hovered\)' "$MEDIA" \
 rg -q 'gamingAutoHideTimer\.stop\(\)' "$MEDIA" \
   || fail 'Gaming auto-hide lost explicit timer cancellation'
 
-# The outer surface may fade and the ListView may move to keep the current
-# synced line centered. Glyphs themselves must stay stable: no zooming and no
-# animated color/style/opacity transitions on lyric lines.
-if rg -n 'Behavior on (scale|color|styleColor)' "$MEDIA"; then
+# The outer surface may fade while the extracted viewport animates contentY to
+# center the current synced line. Lyric glyphs themselves must stay stable.
+if rg -n 'Behavior on (scale|color|styleColor)' "$MEDIA" "$VIEWPORT"; then
   fail 'lyric/player text regained transform or color Behaviors'
 fi
-if rg -n '^[[:space:]]*scale:[[:space:]]' "$MEDIA"; then
-  fail 'media overlay contains text/item scale state again'
+if rg -n '^[[:space:]]*scale:[[:space:]]' "$MEDIA" "$VIEWPORT"; then
+  fail 'media presentation contains text/item scale state again'
 fi
 
 opacity_behaviors="$(rg -c 'Behavior on opacity' "$MEDIA" || true)"
@@ -207,8 +210,8 @@ fi
 
 # Media actions remain native MPRIS/service calls. Neither coordinator nor
 # extracted presentation components may grow shell-process control paths.
-if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$HUD" "$HEADER" "$STUDIO" "$CONTEXT" "$ISLAND"; then
+if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$HUD" "$HEADER" "$STATUS" "$VIEWPORT" "$STUDIO" "$CONTEXT" "$ISLAND"; then
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: corner placement, Gaming auto-hide, lyrics, context handoff, media island entrypoint, scene coalescing and native coordinator-owned MPRIS controls are valid\n'
+printf 'media-overlay-boundary-audit: corner placement, Gaming auto-hide, extracted lyrics presentation, context handoff, media island entrypoint, scene coalescing and native coordinator-owned MPRIS controls are valid\n'

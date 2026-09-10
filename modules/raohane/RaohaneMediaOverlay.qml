@@ -99,28 +99,9 @@ Scope {
         Qt.callLater(() => root.centerCurrentLyric(false))
     }
     function centerCurrentLyric(animated: bool): void {
-        if (!root.lyricsOpen || !RaohaneLyrics.syncedAvailable || RaohaneLyrics.currentLineIndex < 0 || lyricsList.count <= 0)
+        if (!root.lyricsOpen)
             return
-
-        const item = lyricsList.itemAtIndex(RaohaneLyrics.currentLineIndex)
-        if (!item) {
-            lyricsList.positionViewAtIndex(RaohaneLyrics.currentLineIndex, ListView.Center)
-            return
-        }
-
-        const maxContentY = Math.max(0, lyricsList.contentHeight - lyricsList.height)
-        const targetContentY = Math.max(0, Math.min(maxContentY,
-            item.y + item.height / 2 - lyricsList.height / 2))
-
-        // Motion belongs to the viewport, never to the lyric glyphs.
-        if (animated && RaohaneMotion.enabled) {
-            lyricsScrollAnimation.stop()
-            lyricsScrollAnimation.from = lyricsList.contentY
-            lyricsScrollAnimation.to = targetContentY
-            lyricsScrollAnimation.start()
-        } else {
-            lyricsList.contentY = targetContentY
-        }
+        lyricsViewport.centerCurrentLine(animated)
     }
 
     onGamingSceneChanged: Qt.callLater(root.armGamingAutoHide)
@@ -264,48 +245,25 @@ Scope {
                                 accent: root.playerAccent
                             }
 
-                            ListView {
-                                id: lyricsList
+                            RaohaneMediaLyricsViewport {
+                                id: lyricsViewport
                                 anchors.fill: parent
                                 anchors.topMargin: root.lyricsFocus ? 0 : 7
                                 anchors.bottomMargin: root.lyricsFocus ? 0 : 7
                                 visible: !RaohaneLyrics.loading && RaohaneLyrics.available && !RaohaneLyrics.instrumental
-                                clip: true
-                                spacing: root.lyricsFocus ? 9 : 4
-                                model: RaohaneLyrics.displayLines
-                                currentIndex: RaohaneLyrics.syncedAvailable ? RaohaneLyrics.currentLineIndex : -1
-                                boundsBehavior: Flickable.StopAtBounds
-                                flickDeceleration: 2200
-                                cacheBuffer: root.lyricsFocus ? height * 1.5 : 0
 
-                                NumberAnimation {
-                                    id: lyricsScrollAnimation
-                                    target: lyricsList
-                                    property: "contentY"
-                                    duration: RaohaneMotion.standard
-                                    easing.type: RaohaneMotion.easeStandard
-                                }
-
-                                delegate: RaohaneMediaLyricLine {
-                                    required property var modelData
-                                    required property int index
-
-                                    width: ListView.view.width
-                                    lineData: modelData
-                                    current: RaohaneLyrics.syncedAvailable
-                                        && index === RaohaneLyrics.currentLineIndex
-                                    focusMode: root.lyricsFocus
-                                    seekEnabled: RaohaneLyrics.syncedAvailable
-                                        && Number(modelData.time) >= 0
-                                        && RaohaneMedia.canSeek
-                                    accent: root.playerAccent
-                                    focusActive: root.lyricsFocusActive
-                                    focusSecondary: root.lyricsFocusSecondary
-                                    focusHalo: root.lyricsFocusHalo
-                                    onSeekRequested: time => {
-                                        if (RaohaneMedia.length > 0)
-                                            RaohaneMedia.seekRatio(time / RaohaneMedia.length)
-                                    }
+                                lines: RaohaneLyrics.displayLines
+                                focusMode: root.lyricsFocus
+                                syncedAvailable: RaohaneLyrics.syncedAvailable
+                                syncedIndex: RaohaneLyrics.currentLineIndex
+                                canSeek: RaohaneMedia.canSeek
+                                accent: root.playerAccent
+                                focusActive: root.lyricsFocusActive
+                                focusSecondary: root.lyricsFocusSecondary
+                                focusHalo: root.lyricsFocusHalo
+                                onSeekRequested: time => {
+                                    if (RaohaneMedia.length > 0)
+                                        RaohaneMedia.seekRatio(time / RaohaneMedia.length)
                                 }
                             }
                         }
