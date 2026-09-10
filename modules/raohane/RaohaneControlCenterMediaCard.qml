@@ -52,117 +52,121 @@ RaohaneSurface {
         anchors.margins: RaohaneTheme.spacing
         spacing: RaohaneTheme.spacingSmall
 
-        RowLayout {
+        Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: RaohaneTheme.spacing
 
-            RaohaneSurface {
-                Layout.preferredWidth: 68
-                Layout.preferredHeight: 68
-                Layout.alignment: Qt.AlignVCenter
-                surfaceRadius: RaohaneTheme.radiusLarge
-                raised: false
-                showSheen: false
-                showInnerRim: false
-                idleColor: RaohaneTheme.surfaceDeep
-                idleBorderColor: root.playing ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
-                clip: true
+            RowLayout {
+                anchors.fill: parent
+                spacing: RaohaneTheme.spacing
 
-                Image {
-                    id: mediaArt
-                    anchors.fill: parent
-                    source: root.artUrl
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    visible: status === Image.Ready
+                RaohaneSurface {
+                    Layout.preferredWidth: 68
+                    Layout.preferredHeight: 68
+                    Layout.alignment: Qt.AlignVCenter
+                    surfaceRadius: RaohaneTheme.radiusLarge
+                    raised: false
+                    showSheen: false
+                    showInnerRim: false
+                    idleColor: RaohaneTheme.surfaceDeep
+                    idleBorderColor: root.playing ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                    clip: true
+
+                    Image {
+                        id: mediaArt
+                        anchors.fill: parent
+                        source: root.artUrl
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        visible: status === Image.Ready
+                    }
+
+                    RaohaneIcon {
+                        anchors.centerIn: parent
+                        visible: !mediaArt.visible
+                        text: "music_note"
+                        iconSize: 25
+                        fill: root.playing ? 1 : 0
+                        symbolWeight: root.playing ? 540 : 400
+                        color: root.playing ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    }
                 }
 
-                RaohaneIcon {
-                    anchors.centerIn: parent
-                    visible: !mediaArt.visible
-                    text: "music_note"
-                    iconSize: 25
-                    fill: root.playing ? 1 : 0
-                    symbolWeight: root.playing ? 540 : 400
-                    color: root.playing ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                }
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
-
-                RowLayout {
+                ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: RaohaneTheme.spacingSmall
+                    spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: RaohaneTheme.spacingSmall
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: root.mediaAvailable ? qsTr("Now playing") : qsTr("Media")
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                            font.weight: Font.DemiBold
+                            font.letterSpacing: 0.7
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            visible: root.playerName.length > 0
+                            text: root.playerName
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                            elide: Text.ElideRight
+                        }
+                    }
 
                     Text {
                         Layout.fillWidth: true
-                        text: root.mediaAvailable ? qsTr("Now playing") : qsTr("Media")
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
+                        text: root.title
+                        color: RaohaneTheme.text
+                        font.pixelSize: 10
                         font.weight: Font.DemiBold
-                        font.letterSpacing: 0.7
                         elide: Text.ElideRight
                     }
 
                     Text {
-                        visible: root.playerName.length > 0
-                        text: root.playerName
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
+                        Layout.fillWidth: true
+                        text: root.subtitle
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
                         elide: Text.ElideRight
                     }
-                }
 
-                Text {
-                    Layout.fillWidth: true
-                    text: root.title
-                    color: RaohaneTheme.text
-                    font.pixelSize: 10
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: root.subtitle
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
-                    elide: Text.ElideRight
-                }
-
-                Item { Layout.fillHeight: true }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 4
-                    radius: 2
-                    color: RaohaneTheme.surfaceDeep
+                    Item { Layout.fillHeight: true }
 
                     Rectangle {
-                        width: parent.width * root.clampedProgress
-                        height: parent.height
-                        radius: parent.radius
-                        color: RaohaneTheme.accent
-                    }
-                }
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 4
+                        radius: 2
+                        color: RaohaneTheme.surfaceDeep
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: RaohaneTheme.spacingSmall
-
-                    Text {
-                        text: root.elapsedText
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
+                        Rectangle {
+                            width: parent.width * root.clampedProgress
+                            height: parent.height
+                            radius: parent.radius
+                            color: RaohaneTheme.accent
+                        }
                     }
-                    Item { Layout.fillWidth: true }
-                    Text {
-                        text: root.totalText
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: RaohaneTheme.spacingSmall
+
+                        Text {
+                            text: root.elapsedText
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                        }
+                        Item { Layout.fillWidth: true }
+                        Text {
+                            text: root.totalText
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                        }
                     }
                 }
             }

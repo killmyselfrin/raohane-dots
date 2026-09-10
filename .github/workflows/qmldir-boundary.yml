@@ -1,0 +1,33 @@
+name: QML module boundary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/raohane/*.qml'
+      - 'modules/raohane/qmldir'
+      - 'scripts/qmldir-boundary-audit.sh'
+      - '.github/workflows/qmldir-boundary.yml'
+  pull_request:
+    paths:
+      - 'modules/raohane/*.qml'
+      - 'modules/raohane/qmldir'
+      - 'scripts/qmldir-boundary-audit.sh'
+      - '.github/workflows/qmldir-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qmldir-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Validate QML module registration
+        shell: bash
+        run: |
+          bash -n scripts/qmldir-boundary-audit.sh
+          bash scripts/qmldir-boundary-audit.sh
