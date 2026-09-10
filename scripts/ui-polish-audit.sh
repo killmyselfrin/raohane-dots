@@ -17,6 +17,8 @@ settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
+control_header='modules/raohane/RaohaneControlCenterHeader.qml'
+control_footer='modules/raohane/RaohaneControlCenterFooter.qml'
 control_status='modules/raohane/RaohaneControlCenterStatusStrip.qml'
 control_actions='modules/raohane/RaohaneControlCenterActionDock.qml'
 control_media='modules/raohane/RaohaneControlCenterMediaCard.qml'
@@ -36,9 +38,9 @@ sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 for file in \
   "$settings" "$settings_v3" "$settings_navigation" "$settings_header" \
   "$settings_section" "$settings_control" "$settings_search" \
-  "$control" "$control_status" "$control_actions" "$control_media" "$quick" "$quick_tile" "$context" "$context_island" \
-  "$performance" "$notifications" "$osd" "$systray" "$adaptive_icon" \
-  "$icon_resolver" "$workspaces" "$sidebar"; do
+  "$control" "$control_header" "$control_footer" "$control_status" "$control_actions" "$control_media" \
+  "$quick" "$quick_tile" "$context" "$context_island" "$performance" "$notifications" \
+  "$osd" "$systray" "$adaptive_icon" "$icon_resolver" "$workspaces" "$sidebar"; do
   [[ -f "$file" ]] || fail "missing polished UI/runtime surface: $file"
 done
 
@@ -70,9 +72,9 @@ if rg -n 'source:[[:space:]]*root\.currentPageInfo\?\.source|property bool activ
   fail 'Settings reintroduced a stale static-page or active-property contract'
 fi
 
-# Control Center remains one compact system hub: a read-only System Glance,
-# registry-backed Quick Controls with one device-picker path, a balanced
-# media/notifications content pair, and an action-only dock.
+# Control Center remains one compact system hub with an extracted frame,
+# read-only System Glance, registry-backed Quick Controls, balanced content pair
+# and one action dock/device-picker ownership path.
 rg -q 'readonly property int panelHeight:' "$control" \
   || fail 'Control Center lost bounded floating height'
 rg -q 'property bool heldVisible:[[:space:]]*false' "$control" \
@@ -87,14 +89,47 @@ rg -q 'tileColumns:[[:space:]]*3' "$control" \
   || fail 'Control Center lost compact three-column Quick Controls'
 rg -q 'RaohaneNotificationCenter[[:space:]]*\{' "$control" \
   || fail 'Control Center lost notification composition'
-rg -q 'RaohaneControlCenterStatusStrip[[:space:]]*\{' "$control" \
-  || fail 'Control Center lost read-only System Glance composition'
-rg -q 'RaohaneControlCenterActionDock[[:space:]]*\{' "$control" \
-  || fail 'Control Center lost action dock composition'
-rg -q 'RaohaneControlCenterMediaCard[[:space:]]*\{' "$control" \
-  || fail 'Control Center lost extracted media-card composition'
-if rg -n 'component MediaCard:[[:space:]]*RaohaneSurface' "$control"; then
-  fail 'Control Center regained inline media-card presentation'
+for component in \
+  RaohaneControlCenterHeader \
+  RaohaneControlCenterFooter \
+  RaohaneControlCenterStatusStrip \
+  RaohaneControlCenterActionDock \
+  RaohaneControlCenterMediaCard; do
+  rg -q "${component}[[:space:]]*\\{" "$control" \
+    || fail "Control Center lost frame/content component: ${component}"
+done
+if rg -n 'component (HeaderButton|MediaCard):' "$control"; then
+  fail 'Control Center regained inline header/media presentation'
+fi
+
+# Header/footer are presentation-only and emit intents back to the coordinator.
+for contract in \
+  'required property string identityText' \
+  'required property string timeText' \
+  'required property string dateText' \
+  'signal settingsRequested\(\)' \
+  'signal powerRequested\(\)'; do
+  rg -q "$contract" "$control_header" \
+    || fail "Control Center header lost presentation contract: ${contract}"
+done
+for contract in \
+  'property bool privacyActive: false' \
+  'property string systemIdentity: ""' \
+  'signal reloadRequested\(\)' \
+  'signal closeRequested\(\)'; do
+  rg -q "$contract" "$control_footer" \
+    || fail "Control Center footer lost presentation contract: ${contract}"
+done
+for contract in \
+  'onSettingsRequested: panelWindow\.openSurface\("settings"\)' \
+  'onPowerRequested: panelWindow\.openSurface\("session"\)' \
+  'onReloadRequested: RaohaneSession\.reloadDesktop\(\)' \
+  'onCloseRequested: panelWindow\.hide\(\)'; do
+  rg -q "$contract" "$control" \
+    || fail "Control Center lost coordinator-owned frame action: ${contract}"
+done
+if rg -n 'RaohaneNotifications\.silent[[:space:]]*=[[:space:]]*!RaohaneNotifications\.silent' "$control"; then
+  fail 'Control Center header regained duplicate notification-silent toggle'
 fi
 
 for signal in screenshotRequested translatorRequested oskRequested wallpaperRequested powerRequested; do
@@ -109,13 +144,13 @@ if rg -q 'label:[[:space:]]*qsTr\("Performance"\)|label:[[:space:]]*qsTr\("DND"\
   fail 'Control Center reintroduced duplicate system toggles in the action dock'
 fi
 
-# Status, action dock and media card are presentation-only. Network/audio/media
-# service ownership and transitions remain in the Control Center coordinator.
-for presentation in "$control_status" "$control_actions" "$control_media"; do
+# Extracted frame/status/action/media surfaces are presentation-only. System
+# services and state transitions remain in the Control Center coordinator.
+for presentation in "$control_header" "$control_footer" "$control_status" "$control_actions" "$control_media"; do
   if rg -n '^import qs\.modules\.raohane\.(services|config)' "$presentation"; then
     fail "$presentation imported services/config instead of staying presentation-only"
   fi
-  if rg -n 'Raohane(Network|Bluetooth|Audio|Privacy|Performance|State|Session|Media)\.' "$presentation"; then
+  if rg -n 'Raohane(Network|Bluetooth|Audio|Privacy|Performance|State|Session|Media|Notifications)\.' "$presentation"; then
     fail "$presentation bypasses Control Center coordinator ownership"
   fi
 done
@@ -255,12 +290,14 @@ rg -q 'RaohaneMotion\.' "$osd" || fail 'OSD lost shared motion'
 # Reusable system surfaces must stay on shared theme/motion tokens and avoid
 # stale active-property collisions or one-off legacy colors.
 if rg -n '#24ffffff|shortDuration|mediumDuration' \
-  "$control" "$control_status" "$control_actions" "$control_media" "$quick" "$quick_tile" "$notifications"; then
+  "$control" "$control_header" "$control_footer" "$control_status" "$control_actions" "$control_media" \
+  "$quick" "$quick_tile" "$notifications"; then
   fail 'current system surfaces reintroduced stale colors or motion aliases'
 fi
 if rg -n 'property bool active:[[:space:]]*false' \
-  "$control_status" "$control_actions" "$control_media" "$quick" "$quick_tile" "$notifications"; then
+  "$control_header" "$control_footer" "$control_status" "$control_actions" "$control_media" \
+  "$quick" "$quick_tile" "$notifications"; then
   fail 'reusable system surfaces reintroduced an active-property collision'
 fi
 
-printf 'ui-polish-audit: animated Settings, balanced Nocturne Control Center content, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
+printf 'ui-polish-audit: animated Settings, extracted Nocturne Control Center frame/content, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
