@@ -17,6 +17,8 @@ settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
+control_status='modules/raohane/RaohaneControlCenterStatusStrip.qml'
+control_actions='modules/raohane/RaohaneControlCenterActionDock.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 quick_tile='modules/raohane/RaohaneQuickControlTile.qml'
 context='modules/raohane/RaohaneContext.qml'
@@ -33,7 +35,7 @@ sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 for file in \
   "$settings" "$settings_v3" "$settings_navigation" "$settings_header" \
   "$settings_section" "$settings_control" "$settings_search" \
-  "$control" "$quick" "$quick_tile" "$context" "$context_island" \
+  "$control" "$control_status" "$control_actions" "$quick" "$quick_tile" "$context" "$context_island" \
   "$performance" "$notifications" "$osd" "$systray" "$adaptive_icon" \
   "$icon_resolver" "$workspaces" "$sidebar"; do
   [[ -f "$file" ]] || fail "missing polished UI/runtime surface: $file"
@@ -67,8 +69,9 @@ if rg -n 'source:[[:space:]]*root\.currentPageInfo\?\.source|property bool activ
   fail 'Settings reintroduced a stale static-page or active-property contract'
 fi
 
-# Control Center must remain one compact system hub: read-only status rail,
-# registry-backed Quick Controls, one device picker path and action-only footer.
+# Control Center remains one compact system hub: a read-only System Glance,
+# registry-backed Quick Controls with one device-picker path, and an action-only
+# dock. The extracted presentation surfaces must not own system services.
 rg -q 'readonly property int panelHeight:' "$control" \
   || fail 'Control Center lost bounded floating height'
 rg -q 'property bool heldVisible:[[:space:]]*false' "$control" \
@@ -83,15 +86,41 @@ rg -q 'tileColumns:[[:space:]]*3' "$control" \
   || fail 'Control Center lost compact three-column Quick Controls'
 rg -q 'RaohaneNotificationCenter[[:space:]]*\{' "$control" \
   || fail 'Control Center lost notification composition'
-rg -q 'StatusCell[[:space:]]*\{' "$control" \
-  || fail 'Control Center lost read-only live status rail'
-for action in Screenshot Translator OSK Wallpaper Power; do
-  rg -q "label:[[:space:]]*qsTr\(\"${action}\"\)" "$control" \
-    || fail "Control Center action footer lost ${action}"
+rg -q 'RaohaneControlCenterStatusStrip[[:space:]]*\{' "$control" \
+  || fail 'Control Center lost read-only System Glance composition'
+rg -q 'RaohaneControlCenterActionDock[[:space:]]*\{' "$control" \
+  || fail 'Control Center lost action dock composition'
+for signal in screenshotRequested translatorRequested oskRequested wallpaperRequested powerRequested; do
+  rg -q "signal ${signal}\\(\\)" "$control_actions" \
+    || fail "Control Center action dock lost signal: ${signal}"
 done
-if rg -q 'label:[[:space:]]*qsTr\("Performance"\)|label:[[:space:]]*qsTr\("DND"\)' "$control"; then
-  fail 'Control Center reintroduced duplicate system toggles in the action footer'
+for action in Screenshot Translator OSK Wallpaper Power; do
+  rg -q "label:[[:space:]]*qsTr\\(\\\"${action}\\\"\\)" "$control_actions" \
+    || fail "Control Center action dock lost ${action}"
+done
+if rg -q 'label:[[:space:]]*qsTr\("Performance"\)|label:[[:space:]]*qsTr\("DND"\)' "$control_actions"; then
+  fail 'Control Center reintroduced duplicate system toggles in the action dock'
 fi
+for presentation in "$control_status" "$control_actions"; do
+  if rg -n '^import qs\.modules\.raohane\.(services|config)' "$presentation"; then
+    fail "$presentation imported services/config instead of staying presentation-only"
+  fi
+  if rg -n 'Raohane(Network|Bluetooth|Audio|Privacy|Performance|State|Session)\.' "$presentation"; then
+    fail "$presentation bypasses Control Center coordinator ownership"
+  fi
+done
+for contract in \
+  'required property string networkIcon' \
+  'required property string networkValue' \
+  'required property string bluetoothIcon' \
+  'required property string bluetoothValue' \
+  'required property string audioIcon' \
+  'required property string audioValue' \
+  'required property string privacyValue' \
+  'showStateRail: root\.privacyActive'; do
+  rg -q "$contract" "$control_status" \
+    || fail "Control Center status strip lost presentation contract: ${contract}"
+done
 
 # Quick Controls: system toggles are confirmed async transactions, brightness
 # has a non-clickable icon, while speaker/microphone icons keep real mute actions.
@@ -173,16 +202,15 @@ rg -q 'RaohaneMotion\.standard' "$notifications" || fail 'Notification Center lo
 rg -q 'id:[[:space:]]*cardTranslate' "$osd" || fail 'OSD lost runtime-safe translate target'
 rg -q 'RaohaneMotion\.' "$osd" || fail 'OSD lost shared motion'
 
-# The Control Center's local StatusCell intentionally owns a plain `active`
-# flag because it derives from Item rather than RaohaneSurface. Keep stale
-# active-property collision checks focused on reusable interactive surfaces.
+# Reusable system surfaces must stay on shared theme/motion tokens and avoid
+# stale active-property collisions or one-off legacy colors.
 if rg -n '#24ffffff|shortDuration|mediumDuration' \
-  "$control" "$quick" "$quick_tile" "$notifications"; then
+  "$control" "$control_status" "$control_actions" "$quick" "$quick_tile" "$notifications"; then
   fail 'current system surfaces reintroduced stale colors or motion aliases'
 fi
 if rg -n 'property bool active:[[:space:]]*false' \
-  "$quick" "$quick_tile" "$notifications"; then
+  "$control_status" "$control_actions" "$quick" "$quick_tile" "$notifications"; then
   fail 'reusable system surfaces reintroduced an active-property collision'
 fi
 
-printf 'ui-polish-audit: animated Settings, hardened Control Center, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
+printf 'ui-polish-audit: animated Settings, staged Nocturne Control Center, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
