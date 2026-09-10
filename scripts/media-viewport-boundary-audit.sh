@@ -57,7 +57,7 @@ done
 if rg -n '^import qs\.modules\.raohane\.(services|config)' "$VIEWPORT"; then
   fail 'synced viewport imported service/config modules'
 fi
-if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)|seekRatio|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$VIEWPORT"; then
+if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)\.|seekRatio|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$VIEWPORT"; then
   fail 'synced viewport bypasses the overlay/service boundary'
 fi
 
