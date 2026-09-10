@@ -10,6 +10,7 @@ fail() {
 }
 
 MEDIA=modules/raohane/RaohaneMediaOverlay.qml
+HUD=modules/raohane/RaohaneMediaPlayerHud.qml
 CONTEXT=modules/raohane/RaohaneContext.qml
 ISLAND=modules/raohane/RaohaneContextIsland.qml
 CONFIG=modules/raohane/config/RaohaneConfig.qml
@@ -18,7 +19,7 @@ SECTIONS=modules/raohane/RaohaneSettingsSectionRegistry.qml
 STUDIO=modules/raohane/RaohaneMediaStudio.qml
 DEFAULTS=defaults/native.json
 
-for file in "$MEDIA" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
+for file in "$MEDIA" "$HUD" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
   [[ -f "$file" ]] || fail "missing media placement contract file: $file"
 done
 
@@ -44,16 +45,17 @@ for contract in \
   'implicitWidth: root\.lyricsFocus \? 720' \
   ': root\.gamingEdgeMode \? 430' \
   ': root\.gamingEdgeMode \? 108' \
+  'RaohaneMediaPlayerHud[[:space:]]*\{' \
   'id: playerHud' \
-  ': root\.gamingEdgeMode \? 90' \
-  'id: hudCover' \
   'id: lyricsStage' \
   'visible: root\.lyricsOpen' \
   'id: lyricsMiniCover' \
-  'RaohaneMedia\.cyclePlayer\(-1\)' \
-  'RaohaneMedia\.cyclePlayer\(1\)' \
+  'RaohaneMedia\.cyclePlayer\(step\)' \
   'RaohaneMedia\.raisePlayer\(\)' \
   'RaohaneMedia\.setVolume\(value\)' \
+  'RaohaneMedia\.previous\(\)' \
+  'RaohaneMedia\.togglePlaying\(\)' \
+  'RaohaneMedia\.next\(\)' \
   'id: lyricsScrollAnimation' \
   'duration: RaohaneMotion\.standard' \
   'RaohaneMedia\.seekRatio' \
@@ -177,13 +179,6 @@ if rg -n 'focusedScreen.*width.*implicitWidth|id:[[:space:]]*(artworkPane|transp
   fail 'media overlay regressed to centered or detached-card geometry'
 fi
 
-# Gaming is a compact presentation of the same native player. It should hide
-# secondary metadata/volume/raise controls instead of spawning a second player.
-rg -q 'visible: !root\.gamingEdgeMode.*RaohaneMedia\.canRaise' "$MEDIA" \
-  || fail 'gaming edge mode no longer suppresses the secondary Raise Player action'
-rg -q 'visible: !root\.gamingEdgeMode && !root\.lyricsOpen && RaohaneMedia\.volumeSupported' "$MEDIA" \
-  || fail 'gaming edge mode no longer suppresses the volume rail'
-
 # Gaming auto-hide is opt-out, hover-aware and must never dismiss lyrics.
 rg -q '!root\.lyricsOpen' "$MEDIA" \
   || fail 'Gaming auto-hide no longer protects expanded lyrics'
@@ -193,13 +188,6 @@ rg -q 'if \(hovered\)' "$MEDIA" \
   || fail 'Gaming auto-hide no longer pauses on pointer hover'
 rg -q 'gamingAutoHideTimer\.stop\(\)' "$MEDIA" \
   || fail 'Gaming auto-hide lost explicit timer cancellation'
-
-# Timeline feedback must reuse the existing compact geometry rather than
-# growing the Gaming surface or adding a detached status strip.
-rg -q 'Layout\.preferredWidth: root\.gamingEdgeMode \? 31 : 35' "$MEDIA" \
-  || fail 'elapsed timeline label lost compact Gaming sizing'
-rg -q 'Layout\.preferredWidth: root\.gamingEdgeMode \? 35 : 40' "$MEDIA" \
-  || fail 'remaining timeline label lost compact Gaming sizing'
 
 # The outer surface may fade and the ListView may move to keep the current
 # synced line centered. Glyphs themselves must stay stable: no zooming and no
@@ -216,10 +204,10 @@ if (( opacity_behaviors > 1 )); then
   fail 'more than the outer surface opacity animation is present'
 fi
 
-# Media actions remain native MPRIS/service calls. Do not grow shell-process
-# control paths inside presentation QML.
-if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$STUDIO" "$CONTEXT" "$ISLAND"; then
+# Media actions remain native MPRIS/service calls. Neither coordinator nor
+# extracted presentation components may grow shell-process control paths.
+if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$HUD" "$STUDIO" "$CONTEXT" "$ISLAND"; then
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 
-printf 'media-overlay-boundary-audit: visual corner studio, compact timeline, Gaming auto-hide, context handoff, media island entrypoint, scene coalescing, live scene preview, native MPRIS controls and stable lyric typography are valid\n'
+printf 'media-overlay-boundary-audit: corner placement, Gaming auto-hide, lyrics, context handoff, media island entrypoint, scene coalescing and native coordinator-owned MPRIS controls are valid\n'

@@ -15,6 +15,7 @@ config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 launcher='modules/raohane/RaohaneLauncher.qml'
 media='modules/raohane/RaohaneMediaOverlay.qml'
+media_hud='modules/raohane/RaohaneMediaPlayerHud.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
@@ -49,7 +50,7 @@ osk='modules/raohane/RaohaneOnScreenKeyboard.qml'
 osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
-  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$control" "$settings" "$settings_content" \
+  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$media_hud" "$control" "$settings" "$settings_content" \
   "$settings_navigation" "$settings_header" "$settings_section" "$settings_control" "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" \
   "$context" "$notification" "$surface" "$icon_button" "$motion" "$slider" "$switch" "$clock" "$quick" "$quick_tile" "$sidebar" \
   "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
@@ -111,12 +112,13 @@ rg -q 'RaohaneMotion\.' "$icon_button" || fail 'shared icon button lost tactile 
 rg -q 'RaohaneMotion\.' "$slider" || fail 'shared slider lost tactile motion'
 rg -q 'RaohaneMotion\.' "$switch" || fail 'shared switch lost tactile motion'
 rg -q 'RaohaneSlider[[:space:]]*\{' "$quick" || fail 'Quick Controls regressed from the shared slider'
-rg -q 'RaohaneSlider[[:space:]]*\{' "$media" || fail 'Media Player regressed from the shared slider'
+rg -q 'RaohaneMediaPlayerHud[[:space:]]*\{' "$media" || fail 'Media Overlay lost the extracted player HUD'
+rg -q 'RaohaneSlider[[:space:]]*\{' "$media_hud" || fail 'Media Player HUD regressed from the shared slider'
 rg -q 'RaohaneSlider[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed from the shared slider'
 rg -q 'RaohaneSwitch[[:space:]]*\{' "$catalog" || fail 'Style Studio regressed from the shared switch'
 rg -q 'RaohaneSwitch[[:space:]]*\{' "$settings_control" || fail 'Settings control rows regressed from the shared switch'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$settings_control" || fail 'Settings numeric controls regressed from shared icon buttons'
-rg -q 'RaohaneIconButton[[:space:]]*\{' "$media" || fail 'Media Player regressed from shared tactile icon buttons'
+rg -q 'RaohaneIconButton[[:space:]]*\{' "$media_hud" || fail 'Media Player HUD regressed from shared tactile icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$control" || fail 'Control Center regressed from shared tactile icon buttons'
 rg -q 'RaohaneIconButton[[:space:]]*\{' "$osk" || fail 'OSK shell regressed from shared tactile icon buttons'
 rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$settings_section" || fail 'Settings section no longer composes reusable control rows'
@@ -216,4 +218,4 @@ rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted media HUD, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'

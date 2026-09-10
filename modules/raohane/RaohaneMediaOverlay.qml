@@ -464,260 +464,47 @@ Scope {
                     color: RaohaneTheme.borderFaint
                 }
 
-                Item {
+                RaohaneMediaPlayerHud {
                     id: playerHud
                     Layout.fillWidth: true
-                    Layout.preferredHeight: root.lyricsFocus ? 0
-                        : root.lyricsOpen ? 74
-                        : root.gamingEdgeMode ? 90
-                        : 108
+                    Layout.preferredHeight: visible ? implicitHeight : 0
                     visible: !root.lyricsFocus
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 2
-                        spacing: root.gamingEdgeMode ? 9 : 12
+                    lyricsOpen: root.lyricsOpen
+                    gamingEdgeMode: root.gamingEdgeMode
+                    mediaAvailable: RaohaneMedia.available
+                    playing: RaohaneMedia.isPlaying
+                    canSeek: RaohaneMedia.canSeek
+                    canRaise: RaohaneMedia.canRaise
+                    canGoPrevious: RaohaneMedia.canGoPrevious
+                    canTogglePlaying: RaohaneMedia.canTogglePlaying
+                    canGoNext: RaohaneMedia.canGoNext
+                    volumeSupported: RaohaneMedia.volumeSupported
+                    playerCount: RaohaneMedia.playerCount
+                    progress: RaohaneMedia.progress
+                    volume: RaohaneMedia.volume
+                    accent: root.playerAccent
+                    artUrl: RaohaneMedia.artUrl
+                    playerName: RaohaneMedia.playerName
+                    title: RaohaneMedia.title
+                    artist: RaohaneMedia.artist
+                    album: RaohaneMedia.album
+                    elapsedText: RaohaneMedia.length > 0
+                        ? RaohaneMedia.formatTime(RaohaneMedia.position)
+                        : "--:--"
+                    remainingText: RaohaneMedia.length > 0
+                        ? "−" + RaohaneMedia.formatTime(Math.max(0, RaohaneMedia.length - RaohaneMedia.position))
+                        : "--:--"
 
-                        Item {
-                            Layout.preferredWidth: root.lyricsOpen ? 60 : root.gamingEdgeMode ? 76 : 90
-                            Layout.preferredHeight: root.lyricsOpen ? 60 : root.gamingEdgeMode ? 76 : 90
-                            Layout.alignment: Qt.AlignVCenter
-                            clip: true
-
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: root.lyricsOpen ? 13 : 16
-                                color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.13)
-                                border.width: 1
-                                border.color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.28)
-                            }
-
-                            Image {
-                                id: hudCover
-                                anchors.fill: parent
-                                source: RaohaneMedia.artUrl
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                cache: false
-                                visible: status === Image.Ready
-                            }
-
-                            Text {
-                                anchors.centerIn: parent
-                                visible: !RaohaneMedia.available || hudCover.status !== Image.Ready
-                                text: "音"
-                                color: root.playerAccent
-                                font.pixelSize: root.gamingEdgeMode ? 26 : 30
-                                font.weight: Font.DemiBold
-                            }
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            spacing: 1
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: root.gamingEdgeMode ? 14 : 18
-                                spacing: 5
-
-                                Rectangle {
-                                    width: 5
-                                    height: 5
-                                    radius: 3
-                                    color: RaohaneMedia.isPlaying ? root.playerAccent : RaohaneTheme.textFaint
-                                }
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: RaohaneMedia.available
-                                        ? (RaohaneMedia.playerName || qsTr("Media player"))
-                                        : qsTr("No player")
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 7
-                                    font.weight: Font.DemiBold
-                                    elide: Text.ElideRight
-                                }
-
-                                MiniButton {
-                                    visible: !root.gamingEdgeMode && RaohaneMedia.playerCount > 1
-                                    icon: "chevron_left"
-                                    tooltip: qsTr("Previous player")
-                                    onClicked: RaohaneMedia.cyclePlayer(-1)
-                                }
-
-                                MiniButton {
-                                    visible: !root.gamingEdgeMode && RaohaneMedia.playerCount > 1
-                                    icon: "chevron_right"
-                                    tooltip: qsTr("Next player")
-                                    onClicked: RaohaneMedia.cyclePlayer(1)
-                                }
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: RaohaneMedia.available && RaohaneMedia.title.length > 0
-                                    ? RaohaneMedia.title
-                                    : qsTr("Nothing is playing")
-                                color: RaohaneTheme.text
-                                font.pixelSize: root.gamingEdgeMode ? 13 : 15
-                                font.weight: Font.DemiBold
-                                elide: Text.ElideRight
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: RaohaneMedia.available && RaohaneMedia.artist.length > 0
-                                    ? RaohaneMedia.artist
-                                    : qsTr("Start a MPRIS-compatible player")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: root.gamingEdgeMode ? 8 : 9
-                                font.weight: Font.Medium
-                                elide: Text.ElideRight
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                visible: !root.gamingEdgeMode && !root.lyricsOpen
-                                    && RaohaneMedia.available && RaohaneMedia.album.length > 0
-                                text: RaohaneMedia.album
-                                color: RaohaneTheme.textFaint
-                                font.pixelSize: 7
-                                elide: Text.ElideRight
-                            }
-
-                            Item { Layout.fillHeight: true }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 16
-                                spacing: root.gamingEdgeMode ? 4 : 6
-
-                                Text {
-                                    Layout.preferredWidth: root.gamingEdgeMode ? 31 : 35
-                                    text: RaohaneMedia.length > 0
-                                        ? RaohaneMedia.formatTime(RaohaneMedia.position)
-                                        : "--:--"
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: root.gamingEdgeMode ? 7 : 8
-                                    horizontalAlignment: Text.AlignLeft
-                                }
-
-                                RaohaneSlider {
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: 15
-                                    from: 0
-                                    to: 1
-                                    stepSize: 0.001
-                                    value: RaohaneMedia.progress
-                                    enabled: RaohaneMedia.canSeek
-                                    showHandle: hovered || activeFocus
-                                    trackHeight: root.gamingEdgeMode ? 3 : 4
-                                    onMoved: ratio => RaohaneMedia.seekRatio(ratio)
-                                }
-
-                                Text {
-                                    Layout.preferredWidth: root.gamingEdgeMode ? 35 : 40
-                                    text: RaohaneMedia.length > 0
-                                        ? "−" + RaohaneMedia.formatTime(Math.max(0, RaohaneMedia.length - RaohaneMedia.position))
-                                        : "--:--"
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: root.gamingEdgeMode ? 7 : 8
-                                    horizontalAlignment: Text.AlignRight
-                                }
-                            }
-                        }
-
-                        ColumnLayout {
-                            Layout.preferredWidth: root.gamingEdgeMode ? 118 : 142
-                            Layout.fillHeight: true
-                            spacing: 2
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 28
-                                spacing: 3
-
-                                MiniButton {
-                                    icon: "lyrics"
-                                    tooltip: qsTr("Lyrics")
-                                    enabled: RaohaneMedia.available
-                                    onClicked: root.toggleLyrics()
-                                }
-
-                                MiniButton {
-                                    visible: !root.gamingEdgeMode && RaohaneMedia.canRaise
-                                    icon: "open_in_new"
-                                    tooltip: qsTr("Open player")
-                                    onClicked: RaohaneMedia.raisePlayer()
-                                }
-
-                                Item { Layout.fillWidth: true }
-
-                                MiniButton {
-                                    icon: "close"
-                                    tooltip: qsTr("Close")
-                                    onClicked: root.close()
-                                }
-                            }
-
-                            Item { Layout.fillHeight: true }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 42
-                                spacing: root.gamingEdgeMode ? 3 : 5
-
-                                MainButton {
-                                    icon: "skip_previous"
-                                    enabled: RaohaneMedia.canGoPrevious
-                                    compact: root.gamingEdgeMode
-                                    onClicked: RaohaneMedia.previous()
-                                }
-
-                                MainButton {
-                                    icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
-                                    enabled: RaohaneMedia.canTogglePlaying
-                                    emphasized: true
-                                    compact: root.gamingEdgeMode
-                                    onClicked: RaohaneMedia.togglePlaying()
-                                }
-
-                                MainButton {
-                                    icon: "skip_next"
-                                    enabled: RaohaneMedia.canGoNext
-                                    compact: root.gamingEdgeMode
-                                    onClicked: RaohaneMedia.next()
-                                }
-                            }
-
-                            RowLayout {
-                                visible: !root.gamingEdgeMode && !root.lyricsOpen && RaohaneMedia.volumeSupported
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: visible ? 20 : 0
-                                spacing: 5
-
-                                RaohaneIcon {
-                                    text: RaohaneMedia.volume <= 0.01 ? "volume_off" : "volume_up"
-                                    iconSize: 12
-                                    color: RaohaneTheme.textMuted
-                                }
-
-                                RaohaneSlider {
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: 18
-                                    from: 0
-                                    to: 1
-                                    stepSize: 0.01
-                                    value: RaohaneMedia.volume
-                                    showHandle: hovered || activeFocus
-                                    trackHeight: 3
-                                    onMoved: value => RaohaneMedia.setVolume(value)
-                                }
-                            }
-                        }
-                    }
+                    onCyclePlayerRequested: step => RaohaneMedia.cyclePlayer(step)
+                    onSeekRequested: ratio => RaohaneMedia.seekRatio(ratio)
+                    onLyricsRequested: root.toggleLyrics()
+                    onRaiseRequested: RaohaneMedia.raisePlayer()
+                    onCloseRequested: root.close()
+                    onPreviousRequested: RaohaneMedia.previous()
+                    onTogglePlayingRequested: RaohaneMedia.togglePlaying()
+                    onNextRequested: RaohaneMedia.next()
+                    onVolumeRequested: value => RaohaneMedia.setVolume(value)
                 }
             }
         }
@@ -758,21 +545,6 @@ Scope {
         buttonSize: 28
         iconSize: 14
         transparentIdle: true
-        showSheen: false
-        hoverScale: 1
-        pressedScale: 1
-    }
-
-    component MainButton: RaohaneIconButton {
-        id: control
-        property bool compact: false
-        buttonSize: control.compact
-            ? (control.emphasized ? 36 : 32)
-            : (control.emphasized ? 40 : 36)
-        iconSize: control.compact
-            ? (control.emphasized ? 18 : 16)
-            : (control.emphasized ? 20 : 17)
-        surfaceRadius: control.emphasized ? 13 : 11
         showSheen: false
         hoverScale: 1
         pressedScale: 1
