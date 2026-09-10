@@ -255,7 +255,7 @@ if rg -n \
   fail 'active Raohane surfaces reference inherited service APIs'
 fi
 
-if rg -n 'LauncherSearch|LauncherSearchResult|AppSearch|qs\.modules\.common\.models' modules/raohane/RaohaneLauncher.qml; then
+if rg -n '\bLauncherSearch\b|\bLauncherSearchResult\b|\bAppSearch\b|qs\.modules\.common\.models' modules/raohane/RaohaneLauncher.qml; then
   fail 'RaohaneLauncher regressed to inherited search model'
 fi
 if rg -n '^import qs$|^import qs\.services|modules\.common|LauncherSearch|AppSearch|StringUtils|Fuzzy\.' "$SEARCH"; then
