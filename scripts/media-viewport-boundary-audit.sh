@@ -10,19 +10,21 @@ fail() {
 }
 
 MEDIA='modules/raohane/RaohaneMediaOverlay.qml'
+STAGE='modules/raohane/RaohaneMediaLyricsStage.qml'
 VIEWPORT='modules/raohane/RaohaneMediaLyricsViewport.qml'
 LINE='modules/raohane/RaohaneMediaLyricLine.qml'
 
-for path in "$MEDIA" "$VIEWPORT" "$LINE"; do
+for path in "$MEDIA" "$STAGE" "$VIEWPORT" "$LINE"; do
   [[ -f "$path" ]] || fail "missing synced-lyrics viewport path: $path"
 done
 
-# Overlay stays the service/state coordinator and delegates all viewport math.
+# Overlay remains the service/state coordinator and delegates viewport access
+# through the presentation-only Stage.
 for contract in \
   'function centerCurrentLyric\(animated: bool\): void' \
-  'lyricsViewport\.centerCurrentLine\(animated\)' \
-  'RaohaneMediaLyricsViewport[[:space:]]*\{' \
-  'id: lyricsViewport' \
+  'lyricsStage\.centerCurrentLine\(animated\)' \
+  'RaohaneMediaLyricsStage[[:space:]]*\{' \
+  'id: lyricsStage' \
   'lines: RaohaneLyrics\.displayLines' \
   'focusMode: root\.lyricsFocus' \
   'syncedAvailable: RaohaneLyrics\.syncedAvailable' \
@@ -30,10 +32,25 @@ for contract in \
   'canSeek: RaohaneMedia\.canSeek' \
   'onSeekRequested: time =>' \
   'RaohaneMedia\.seekRatio\(time / RaohaneMedia\.length\)'; do
-  rg -q "$contract" "$MEDIA" || fail "overlay lost synced-viewport coordinator contract: $contract"
+  rg -q "$contract" "$MEDIA" || fail "overlay lost synced-stage coordinator contract: $contract"
 done
 
-# Scrolling mechanics and line composition belong to the presentation viewport.
+# Stage forwards display-ready state into the viewport and raw seek intents out.
+for contract in \
+  'function centerCurrentLine\(animated: bool\): void' \
+  'lyricsViewport\.centerCurrentLine\(animated\)' \
+  'RaohaneMediaLyricsViewport[[:space:]]*\{' \
+  'id: lyricsViewport' \
+  'lines: root\.lines' \
+  'focusMode: root\.focusMode' \
+  'syncedAvailable: root\.syncedAvailable' \
+  'syncedIndex: root\.syncedIndex' \
+  'canSeek: root\.canSeek' \
+  'onSeekRequested: time => root\.seekRequested\(time\)'; do
+  rg -q "$contract" "$STAGE" || fail "lyrics stage lost viewport wiring contract: $contract"
+done
+
+# Scrolling mechanics and line composition belong only to the viewport.
 for contract in \
   'ListView[[:space:]]*\{' \
   'property var lines: \[\]' \
@@ -53,17 +70,21 @@ for contract in \
   rg -q "$contract" "$VIEWPORT" || fail "synced viewport lost presentation contract: $contract"
 done
 
-# The viewport may own scroll mechanics but never service state or ratio math.
-if rg -n '^import qs\.modules\.raohane\.(services|config)' "$VIEWPORT"; then
-  fail 'synced viewport imported service/config modules'
+for file in "$STAGE" "$VIEWPORT"; do
+  if rg -n '^import qs\.modules\.raohane\.(services|config)' "$file"; then
+    fail "$file imported service/config modules"
+  fi
+  if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)\.|seekRatio|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$file"; then
+    fail "$file bypasses the overlay/service boundary"
+  fi
+done
+
+# Coordinator and Stage should not regain direct ListView/contentY mechanics.
+if rg -n 'id:[[:space:]]*lyricsScrollAnimation|lyricsList\.(itemAtIndex|positionViewAtIndex|contentY|contentHeight)|ListView[[:space:]]*\{' "$MEDIA" "$STAGE"; then
+  fail 'Overlay or Stage regained synced viewport implementation details'
 fi
-if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)\.|seekRatio|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$VIEWPORT"; then
-  fail 'synced viewport bypasses the overlay/service boundary'
+if rg -n 'RaohaneMediaLyricsViewport[[:space:]]*\{' "$MEDIA"; then
+  fail 'Overlay regained direct viewport composition'
 fi
 
-# Coordinator should not regain direct ListView/contentY implementation.
-if rg -n 'id:[[:space:]]*lyricsScrollAnimation|lyricsList\.(itemAtIndex|positionViewAtIndex|contentY|contentHeight)' "$MEDIA"; then
-  fail 'Overlay regained synced viewport implementation details'
-fi
-
-printf 'media-viewport-boundary-audit: synced scrolling and lyric-line composition are presentation-owned while service seek math stays in the overlay\n'
+printf 'media-viewport-boundary-audit: Stage routes synced lyrics while viewport owns scrolling/line composition and Overlay owns final seek math\n'

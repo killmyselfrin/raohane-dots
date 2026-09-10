@@ -11,6 +11,7 @@ on:
       - 'modules/raohane/RaohaneMediaLyricsHeader.qml'
       - 'modules/raohane/RaohaneMediaLyricsStatus.qml'
       - 'modules/raohane/RaohaneMediaLyricsViewport.qml'
+      - 'modules/raohane/RaohaneMediaLyricsStage.qml'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
       - 'modules/raohane/RaohaneMediaPlayerHud.qml'
       - 'modules/raohane/RaohaneMediaStudio.qml'
@@ -24,6 +25,7 @@ on:
       - 'scripts/media-lyric-boundary-audit.sh'
       - 'scripts/media-status-boundary-audit.sh'
       - 'scripts/media-viewport-boundary-audit.sh'
+      - 'scripts/media-stage-boundary-audit.sh'
       - 'scripts/media-overlay-boundary-audit.sh'
       - '.github/workflows/media-overlay-boundary.yml'
   pull_request:
@@ -35,6 +37,7 @@ on:
       - 'modules/raohane/RaohaneMediaLyricsHeader.qml'
       - 'modules/raohane/RaohaneMediaLyricsStatus.qml'
       - 'modules/raohane/RaohaneMediaLyricsViewport.qml'
+      - 'modules/raohane/RaohaneMediaLyricsStage.qml'
       - 'modules/raohane/RaohaneMediaOverlay.qml'
       - 'modules/raohane/RaohaneMediaPlayerHud.qml'
       - 'modules/raohane/RaohaneMediaStudio.qml'
@@ -48,6 +51,7 @@ on:
       - 'scripts/media-lyric-boundary-audit.sh'
       - 'scripts/media-status-boundary-audit.sh'
       - 'scripts/media-viewport-boundary-audit.sh'
+      - 'scripts/media-stage-boundary-audit.sh'
       - 'scripts/media-overlay-boundary-audit.sh'
       - '.github/workflows/media-overlay-boundary.yml'
   workflow_dispatch:
@@ -85,6 +89,7 @@ jobs:
           bash -n scripts/media-header-boundary-audit.sh
           bash -n scripts/media-status-boundary-audit.sh
           bash -n scripts/media-viewport-boundary-audit.sh
+          bash -n scripts/media-stage-boundary-audit.sh
 
       - name: Parse media placement QML
         shell: bash
@@ -95,6 +100,7 @@ jobs:
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaLyricsHeader.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaLyricsStatus.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaLyricsViewport.qml >/dev/null
+          /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaLyricsStage.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaOverlay.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaPlayerHud.qml >/dev/null
           /usr/lib/qt6/bin/qmlformat modules/raohane/RaohaneMediaStudio.qml >/dev/null
@@ -110,3 +116,4 @@ jobs:
           bash scripts/media-header-boundary-audit.sh
           bash scripts/media-status-boundary-audit.sh
           bash scripts/media-viewport-boundary-audit.sh
+          bash scripts/media-stage-boundary-audit.sh

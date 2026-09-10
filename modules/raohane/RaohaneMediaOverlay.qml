@@ -101,7 +101,7 @@ Scope {
     function centerCurrentLyric(animated: bool): void {
         if (!root.lyricsOpen)
             return
-        lyricsViewport.centerCurrentLine(animated)
+        lyricsStage.centerCurrentLine(animated)
     }
 
     onGamingSceneChanged: Qt.callLater(root.armGamingAutoHide)
@@ -191,90 +191,42 @@ Scope {
                 anchors.margins: root.lyricsFocus ? 6 : 9
                 spacing: root.lyricsOpen && !root.lyricsFocus ? 7 : 0
 
-                Item {
+                RaohaneMediaLyricsStage {
                     id: lyricsStage
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     visible: root.lyricsOpen
 
-                    ColumnLayout {
-                        anchors.fill: parent
-                        spacing: 0
+                    focusMode: root.lyricsFocus
+                    artUrl: RaohaneMedia.artUrl
+                    accent: root.playerAccent
+                    title: RaohaneMedia.title.length > 0 ? RaohaneMedia.title : qsTr("Lyrics")
+                    subtitle: RaohaneLyrics.syncedAvailable
+                        ? qsTr("%1 · synced by %2").arg(RaohaneMedia.artist).arg(RaohaneLyrics.providerName)
+                        : RaohaneMedia.artist
+                    mediaAvailable: RaohaneMedia.available
+                    lyricsLoading: RaohaneLyrics.loading
+                    lyricsAvailable: RaohaneLyrics.available
+                    instrumental: RaohaneLyrics.instrumental
+                    errorText: RaohaneLyrics.errorText
+                    lines: RaohaneLyrics.displayLines
+                    syncedAvailable: RaohaneLyrics.syncedAvailable
+                    syncedIndex: RaohaneLyrics.currentLineIndex
+                    canSeek: RaohaneMedia.canSeek
+                    focusActive: root.lyricsFocusActive
+                    focusSecondary: root.lyricsFocusSecondary
+                    focusHalo: root.lyricsFocusHalo
 
-                        RaohaneMediaLyricsHeader {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: root.lyricsFocus ? 0 : implicitHeight
-                            visible: !root.lyricsFocus
-
-                            artUrl: RaohaneMedia.artUrl
-                            accent: root.playerAccent
-                            title: RaohaneMedia.title.length > 0 ? RaohaneMedia.title : qsTr("Lyrics")
-                            subtitle: RaohaneLyrics.syncedAvailable
-                                ? qsTr("%1 · synced by %2").arg(RaohaneMedia.artist).arg(RaohaneLyrics.providerName)
-                                : RaohaneMedia.artist
-                            mediaAvailable: RaohaneMedia.available
-                            lyricsLoading: RaohaneLyrics.loading
-                            lyricsAvailable: RaohaneLyrics.available
-
-                            onBackRequested: {
-                                root.lyricsOpen = false
-                                Qt.callLater(root.armGamingAutoHide)
-                            }
-                            onRefreshRequested: RaohaneLyrics.forceRefresh()
-                            onFocusRequested: root.toggleLyricsFocus()
-                            onCloseRequested: root.close()
-                        }
-
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: root.lyricsFocus ? 0 : 1
-                            visible: !root.lyricsFocus
-                            color: RaohaneTheme.borderFaint
-                        }
-
-                        Item {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-
-                            RaohaneMediaLyricsStatus {
-                                anchors.fill: parent
-                                loading: RaohaneLyrics.loading
-                                instrumental: RaohaneLyrics.instrumental
-                                available: RaohaneLyrics.available
-                                errorText: RaohaneLyrics.errorText
-                                accent: root.playerAccent
-                            }
-
-                            RaohaneMediaLyricsViewport {
-                                id: lyricsViewport
-                                anchors.fill: parent
-                                anchors.topMargin: root.lyricsFocus ? 0 : 7
-                                anchors.bottomMargin: root.lyricsFocus ? 0 : 7
-                                visible: !RaohaneLyrics.loading && RaohaneLyrics.available && !RaohaneLyrics.instrumental
-
-                                lines: RaohaneLyrics.displayLines
-                                focusMode: root.lyricsFocus
-                                syncedAvailable: RaohaneLyrics.syncedAvailable
-                                syncedIndex: RaohaneLyrics.currentLineIndex
-                                canSeek: RaohaneMedia.canSeek
-                                accent: root.playerAccent
-                                focusActive: root.lyricsFocusActive
-                                focusSecondary: root.lyricsFocusSecondary
-                                focusHalo: root.lyricsFocusHalo
-                                onSeekRequested: time => {
-                                    if (RaohaneMedia.length > 0)
-                                        RaohaneMedia.seekRatio(time / RaohaneMedia.length)
-                                }
-                            }
-                        }
+                    onBackRequested: {
+                        root.lyricsOpen = false
+                        Qt.callLater(root.armGamingAutoHide)
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        z: 200
-                        visible: root.lyricsFocus
-                        acceptedButtons: Qt.RightButton
-                        onClicked: root.toggleLyricsFocus()
+                    onRefreshRequested: RaohaneLyrics.forceRefresh()
+                    onFocusRequested: root.toggleLyricsFocus()
+                    onCloseRequested: root.close()
+                    onSeekRequested: time => {
+                        if (RaohaneMedia.length > 0)
+                            RaohaneMedia.seekRatio(time / RaohaneMedia.length)
                     }
                 }
 
