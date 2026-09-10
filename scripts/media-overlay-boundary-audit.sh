@@ -11,6 +11,7 @@ fail() {
 
 MEDIA=modules/raohane/RaohaneMediaOverlay.qml
 HUD=modules/raohane/RaohaneMediaPlayerHud.qml
+HEADER=modules/raohane/RaohaneMediaLyricsHeader.qml
 CONTEXT=modules/raohane/RaohaneContext.qml
 ISLAND=modules/raohane/RaohaneContextIsland.qml
 CONFIG=modules/raohane/config/RaohaneConfig.qml
@@ -19,7 +20,7 @@ SECTIONS=modules/raohane/RaohaneSettingsSectionRegistry.qml
 STUDIO=modules/raohane/RaohaneMediaStudio.qml
 DEFAULTS=defaults/native.json
 
-for file in "$MEDIA" "$HUD" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
+for file in "$MEDIA" "$HUD" "$HEADER" "$CONTEXT" "$ISLAND" "$CONFIG" "$SETTINGS" "$SECTIONS" "$STUDIO" "$DEFAULTS"; do
   [[ -f "$file" ]] || fail "missing media placement contract file: $file"
 done
 
@@ -49,7 +50,7 @@ for contract in \
   'id: playerHud' \
   'id: lyricsStage' \
   'visible: root\.lyricsOpen' \
-  'id: lyricsMiniCover' \
+  'RaohaneMediaLyricsHeader[[:space:]]*\{' \
   'RaohaneMedia\.cyclePlayer\(step\)' \
   'RaohaneMedia\.raisePlayer\(\)' \
   'RaohaneMedia\.setVolume\(value\)' \
@@ -206,7 +207,7 @@ fi
 
 # Media actions remain native MPRIS/service calls. Neither coordinator nor
 # extracted presentation components may grow shell-process control paths.
-if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$HUD" "$STUDIO" "$CONTEXT" "$ISLAND"; then
+if rg -n '\bProcess[[:space:]]*\{|Quickshell\.execDetached|playerctl' "$MEDIA" "$HUD" "$HEADER" "$STUDIO" "$CONTEXT" "$ISLAND"; then
   fail 'media presentation bypasses native RaohaneMedia/config services'
 fi
 

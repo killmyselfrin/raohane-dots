@@ -220,101 +220,28 @@ Scope {
                         anchors.fill: parent
                         spacing: 0
 
-                        Item {
+                        RaohaneMediaLyricsHeader {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: root.lyricsFocus ? 0 : 46
+                            Layout.preferredHeight: root.lyricsFocus ? 0 : implicitHeight
                             visible: !root.lyricsFocus
 
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: 3
-                                anchors.rightMargin: 3
-                                spacing: 8
+                            artUrl: RaohaneMedia.artUrl
+                            accent: root.playerAccent
+                            title: RaohaneMedia.title.length > 0 ? RaohaneMedia.title : qsTr("Lyrics")
+                            subtitle: RaohaneLyrics.syncedAvailable
+                                ? qsTr("%1 · synced by %2").arg(RaohaneMedia.artist).arg(RaohaneLyrics.providerName)
+                                : RaohaneMedia.artist
+                            mediaAvailable: RaohaneMedia.available
+                            lyricsLoading: RaohaneLyrics.loading
+                            lyricsAvailable: RaohaneLyrics.available
 
-                                MiniButton {
-                                    icon: "arrow_back"
-                                    tooltip: qsTr("Back to player")
-                                    onClicked: {
-                                        root.lyricsOpen = false
-                                        Qt.callLater(root.armGamingAutoHide)
-                                    }
-                                }
-
-                                Item {
-                                    Layout.preferredWidth: 32
-                                    Layout.preferredHeight: 32
-                                    clip: true
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        radius: 8
-                                        color: Qt.rgba(root.playerAccent.r, root.playerAccent.g, root.playerAccent.b, 0.12)
-                                    }
-
-                                    Image {
-                                        id: lyricsMiniCover
-                                        anchors.fill: parent
-                                        source: RaohaneMedia.artUrl
-                                        fillMode: Image.PreserveAspectCrop
-                                        asynchronous: true
-                                        cache: false
-                                        visible: status === Image.Ready
-                                    }
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        visible: lyricsMiniCover.status !== Image.Ready
-                                        text: "音"
-                                        color: root.playerAccent
-                                        font.pixelSize: 16
-                                        font.weight: Font.DemiBold
-                                    }
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 0
-
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: RaohaneMedia.title.length > 0 ? RaohaneMedia.title : qsTr("Lyrics")
-                                        color: RaohaneTheme.text
-                                        font.pixelSize: 11
-                                        font.weight: Font.DemiBold
-                                        elide: Text.ElideRight
-                                    }
-
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: RaohaneLyrics.syncedAvailable
-                                            ? qsTr("%1 · synced by %2").arg(RaohaneMedia.artist).arg(RaohaneLyrics.providerName)
-                                            : RaohaneMedia.artist
-                                        color: RaohaneTheme.textFaint
-                                        font.pixelSize: 8
-                                        elide: Text.ElideRight
-                                    }
-                                }
-
-                                MiniButton {
-                                    icon: "refresh"
-                                    tooltip: qsTr("Refresh lyrics")
-                                    enabled: !RaohaneLyrics.loading && RaohaneMedia.available
-                                    onClicked: RaohaneLyrics.forceRefresh()
-                                }
-
-                                MiniButton {
-                                    icon: "fullscreen"
-                                    tooltip: qsTr("Lyrics only")
-                                    enabled: RaohaneLyrics.available
-                                    onClicked: root.toggleLyricsFocus()
-                                }
-
-                                MiniButton {
-                                    icon: "close"
-                                    tooltip: qsTr("Close")
-                                    onClicked: root.close()
-                                }
+                            onBackRequested: {
+                                root.lyricsOpen = false
+                                Qt.callLater(root.armGamingAutoHide)
                             }
+                            onRefreshRequested: RaohaneLyrics.forceRefresh()
+                            onFocusRequested: root.toggleLyricsFocus()
+                            onCloseRequested: root.close()
                         }
 
                         Rectangle {
@@ -538,15 +465,5 @@ Scope {
         name: "raohaneMediaOverlayToggle"
         description: "Toggle the Raohane media overlay"
         onPressed: root.toggle()
-    }
-
-    component MiniButton: RaohaneIconButton {
-        property string tooltip: ""
-        buttonSize: 28
-        iconSize: 14
-        transparentIdle: true
-        showSheen: false
-        hoverScale: 1
-        pressedScale: 1
     }
 }
