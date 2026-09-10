@@ -10,16 +10,17 @@ fail() {
 }
 
 MEDIA='modules/raohane/RaohaneMediaOverlay.qml'
+STAGE='modules/raohane/RaohaneMediaLyricsStage.qml'
 HEADER='modules/raohane/RaohaneMediaLyricsHeader.qml'
 
-for path in "$MEDIA" "$HEADER"; do
+for path in "$MEDIA" "$STAGE" "$HEADER"; do
   [[ -f "$path" ]] || fail "missing media header boundary path: $path"
 done
 
-# The Overlay owns service/state transitions and hands display-ready values to
-# the extracted header.
+# Overlay owns service/state transitions and sends display-ready header values
+# through the presentation-only Stage.
 for contract in \
-  'RaohaneMediaLyricsHeader[[:space:]]*\{' \
+  'RaohaneMediaLyricsStage[[:space:]]*\{' \
   'artUrl: RaohaneMedia\.artUrl' \
   'accent: root\.playerAccent' \
   'title: RaohaneMedia\.title\.length > 0' \
@@ -34,6 +35,23 @@ for contract in \
   'onFocusRequested: root\.toggleLyricsFocus\(\)' \
   'onCloseRequested: root\.close\(\)'; do
   rg -q "$contract" "$MEDIA" || fail "overlay lost lyrics-header coordinator contract: $contract"
+done
+
+# Stage forwards only presentation values and raw user intents to/from Header.
+for contract in \
+  'RaohaneMediaLyricsHeader[[:space:]]*\{' \
+  'artUrl: root\.artUrl' \
+  'accent: root\.accent' \
+  'title: root\.title' \
+  'subtitle: root\.subtitle' \
+  'mediaAvailable: root\.mediaAvailable' \
+  'lyricsLoading: root\.lyricsLoading' \
+  'lyricsAvailable: root\.lyricsAvailable' \
+  'onBackRequested: root\.backRequested\(\)' \
+  'onRefreshRequested: root\.refreshRequested\(\)' \
+  'onFocusRequested: root\.focusRequested\(\)' \
+  'onCloseRequested: root\.closeRequested\(\)'; do
+  rg -q "$contract" "$STAGE" || fail "lyrics stage lost header wiring contract: $contract"
 done
 
 for contract in \
@@ -60,18 +78,20 @@ for contract in \
   rg -q "$contract" "$HEADER" || fail "lyrics header lost presentation contract: $contract"
 done
 
-# Header stays presentation-only: no config/services, state mutation, MPRIS or
-# lyrics fetching is allowed inside the extracted UI component.
-if rg -n '^import qs\.modules\.raohane\.(services|config)' "$HEADER"; then
-  fail 'lyrics header imported service/config modules'
-fi
-if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)|forceRefresh|toggleLyricsFocus|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$HEADER"; then
-  fail 'lyrics header bypasses the overlay/service boundary'
-fi
+# Header and Stage stay presentation-only: no config/services, state mutation,
+# MPRIS or lyrics fetching may be owned below the Overlay coordinator.
+for file in "$STAGE" "$HEADER"; do
+  if rg -n '^import qs\.modules\.raohane\.(services|config)' "$file"; then
+    fail "$file imported service/config modules"
+  fi
+  if rg -n 'Raohane(Media|Lyrics|Scenes|State|Config)\.|forceRefresh|toggleLyricsFocus|playerctl|Quickshell\.execDetached|\bProcess[[:space:]]*\{' "$file"; then
+    fail "$file bypasses the overlay/service boundary"
+  fi
+done
 
-# The coordinator should not silently grow the old local header/buttons again.
-if rg -n 'id:[[:space:]]*lyricsMiniCover|component MiniButton:[[:space:]]*RaohaneIconButton' "$MEDIA"; then
+# Overlay should never rebuild the old inline header/buttons hierarchy.
+if rg -n 'RaohaneMediaLyricsHeader[[:space:]]*\{|id:[[:space:]]*lyricsMiniCover|component MiniButton:[[:space:]]*RaohaneIconButton' "$MEDIA"; then
   fail 'Overlay regained inline lyrics-header presentation'
 fi
 
-printf 'media-header-boundary-audit: lyrics header remains presentation-only with parent-owned lyrics actions and state transitions\n'
+printf 'media-header-boundary-audit: lyrics header remains presentation-only behind Stage with coordinator-owned lyrics actions and state transitions\n'
