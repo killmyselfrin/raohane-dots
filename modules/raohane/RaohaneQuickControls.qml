@@ -33,7 +33,7 @@ Item {
             left: parent.left
             right: parent.right
         }
-        spacing: 10
+        spacing: RaohaneTheme.spacing
 
         RaohaneSceneSwitcher {
             visible: !root.pickerOpen
@@ -46,8 +46,8 @@ Item {
             visible: !root.pickerOpen
             Layout.fillWidth: true
             columns: Math.max(1, root.tileColumns)
-            columnSpacing: 8
-            rowSpacing: 8
+            columnSpacing: RaohaneTheme.spacingSmall + 2
+            rowSpacing: RaohaneTheme.spacingSmall + 2
 
             Repeater {
                 model: root.tileLayout
@@ -66,27 +66,16 @@ Item {
         RaohaneSurface {
             visible: !root.pickerOpen
             Layout.fillWidth: true
-            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 18 : 0
-            surfaceRadius: 16
+            Layout.preferredHeight: visible ? sliderStack.implicitHeight + 2 * RaohaneTheme.spacing : 0
+            surfaceRadius: RaohaneTheme.radiusHero
             raised: false
             showSheen: false
-            border.color: RaohaneTheme.borderFaint
+            idleBorderColor: RaohaneTheme.borderFaint
             clip: true
-
-            Rectangle {
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    bottom: parent.bottom
-                    leftMargin: 2
-                    topMargin: 16
-                    bottomMargin: 16
-                }
-                width: 3
-                radius: 2
-                color: RaohaneTheme.accent
-                opacity: 0.38
-            }
+            showStateRail: true
+            stateRailWidth: 3
+            stateRailLength: Math.max(22, height - 2 * RaohaneTheme.spacingLarge)
+            stateRailOpacity: 0.34
 
             ColumnLayout {
                 id: sliderStack
@@ -94,10 +83,10 @@ Item {
                     left: parent.left
                     right: parent.right
                     verticalCenter: parent.verticalCenter
-                    leftMargin: 9
-                    rightMargin: 9
+                    leftMargin: RaohaneTheme.spacing
+                    rightMargin: RaohaneTheme.spacing
                 }
-                spacing: 2
+                spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
                 ControlSlider {
                     Layout.fillWidth: true
@@ -154,7 +143,7 @@ Item {
         }
     }
 
-    component ControlSlider: Item {
+    component ControlSlider: RaohaneSurface {
         id: control
 
         required property string icon
@@ -175,23 +164,26 @@ Item {
             || (control.pickerEnabled && pickerButton.hovered)
 
         implicitHeight: 49
-
-        Rectangle {
-            anchors.fill: parent
-            radius: 12
-            color: control.rowHovered || control.pickerActive ? RaohaneTheme.surfaceHover : "transparent"
-            border.width: 1
-            border.color: control.pickerActive ? RaohaneTheme.accentBorder : "transparent"
-
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-            Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
-        }
+        surfaceRadius: RaohaneTheme.radiusLarge
+        transparentIdle: true
+        showSheen: false
+        showInnerRim: false
+        hovered: control.rowHovered && !control.pickerActive
+        active: control.pickerActive
+        hoverColor: RaohaneTheme.surfaceHover
+        activeColor: RaohaneTheme.surfaceHover
+        hoverBorderColor: RaohaneTheme.borderStrong
+        activeBorderColor: RaohaneTheme.accentBorder
+        showStateRail: control.pickerActive
+        stateRailWidth: 2
+        stateRailLength: 22
+        stateRailOpacity: 0.82
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 6
-            anchors.rightMargin: 6
-            spacing: 8
+            anchors.leftMargin: RaohaneTheme.spacingSmall
+            anchors.rightMargin: RaohaneTheme.spacingSmall
+            spacing: RaohaneTheme.spacingSmall + 2
 
             Item {
                 Layout.preferredWidth: 32
@@ -229,7 +221,7 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: RaohaneTheme.spacingSmall
 
                     Text {
                         Layout.fillWidth: true
