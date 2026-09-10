@@ -505,7 +505,9 @@ Scope {
                                             Image {
                                                 anchors.fill: parent
                                                 visible: !cell.isDirectory && !cell.video
-                                                source: cell.filePath.length > 0 ? "file://" + cell.filePath : ""
+                                                source: !cell.isDirectory && !cell.video && cell.filePath.length > 0
+                                                    ? "file://" + cell.filePath
+                                                    : ""
                                                 fillMode: Image.PreserveAspectCrop
                                                 asynchronous: true
                                                 cache: false

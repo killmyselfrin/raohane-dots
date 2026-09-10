@@ -51,6 +51,12 @@ for symbol in \
   rg -q "$symbol" "$selector" || fail "wallpaper gallery lost interaction contract: $symbol"
 done
 
+# Hidden QQuickImage items still evaluate and decode their source. Gallery image
+# sources therefore must be empty for directories and video files instead of
+# relying on visible:false, which produces noisy decode/open warnings at runtime.
+rg -U -q 'source:[[:space:]]*!cell\.isDirectory[[:space:]]*&&[[:space:]]*!cell\.video[[:space:]]*&&[[:space:]]*cell\.filePath\.length[[:space:]]*>[[:space:]]*0[[:space:]]*\n[[:space:]]*\?[[:space:]]*"file://"[[:space:]]*\+[[:space:]]*cell\.filePath[[:space:]]*\n[[:space:]]*:[[:space:]]*""' "$selector" \
+  || fail 'wallpaper gallery image source is not guarded against directories/video files'
+
 if rg -n \
   '^import QtCore$|^import qs\.services$|^import qs\.modules\.common|GlobalFocusGrab|MaterialSymbol|StandardPaths|\bDirectories\.|\bConfig\.|\bAppearance\.|GlobalStates\.wallpaperSelector' \
   "$selector"; then
@@ -112,4 +118,4 @@ path = pathlib.Path(sys.argv[1])
 ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 PY
 
-printf 'wallpaper-boundary-audit: responsive selector gallery, fullscreen-aware video background and standalone thumbnails are Raohane-owned\n'
+printf 'wallpaper-boundary-audit: responsive selector gallery, guarded image sources, fullscreen-aware video background and standalone thumbnails are Raohane-owned\n'
