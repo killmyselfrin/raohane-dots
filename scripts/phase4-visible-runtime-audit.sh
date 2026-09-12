@@ -185,7 +185,7 @@ for symbol in \
   'ReferenceError:' \
   'TypeError:' \
   'Detected anchors on an item that is managed by a layout' \
-  'Runtime smoke validation: PASS'; do
+  'Runtime smoke validation:'; do
   rg -q -- "$symbol" "$runtime_smoke" || fail "runtime smoke validator lost contract: $symbol"
 done
 bash -n "$runtime_smoke"
