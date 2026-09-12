@@ -81,6 +81,13 @@ Scope {
         RaohaneSearch.executeApplication(entry)
     }
 
+    function executeAction(action): void {
+        if (!action || !action.execute)
+            return
+        root.close()
+        action.execute()
+    }
+
     PanelWindow {
         id: panelWindow
 
@@ -131,7 +138,7 @@ Scope {
             implicitHeight: content.implicitHeight + 30
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
-            showSheen: true
+            showSheen: false
             idleBorderColor: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
@@ -179,490 +186,33 @@ Scope {
                     onModeRequested: prefix => root.setMode(prefix)
                 }
 
-                ColumnLayout {
+                RaohaneLauncherIdleContent {
                     Layout.fillWidth: true
-                    spacing: RaohaneTheme.spacing + 1
+                    Layout.preferredHeight: visible ? implicitHeight : 0
                     visible: RaohaneSearch.query.trim().length === 0
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: RaohaneTheme.spacingTiny
-                        Layout.rightMargin: RaohaneTheme.spacingTiny
-
-                        Text {
-                            text: qsTr("Pinned")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: 0.6
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Text {
-                            text: qsTr("Dock apps")
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: RaohaneTheme.spacingSmall + 2
-
-                        Repeater {
-                            model: root.pinnedApps
-
-                            delegate: PinnedApp {
-                                required property var modelData
-                                Layout.fillWidth: true
-                                entry: modelData
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                        Layout.topMargin: RaohaneTheme.spacingTiny
-                        color: RaohaneTheme.borderFaint
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: RaohaneTheme.spacingTiny
-                        Layout.rightMargin: RaohaneTheme.spacingTiny
-
-                        Text {
-                            text: qsTr("Quick access")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: 0.6
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Text {
-                            text: "/  >  =  :"
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
-                        }
-                    }
-
-                    GridLayout {
-                        Layout.fillWidth: true
-                        columns: 2
-                        columnSpacing: RaohaneTheme.spacingSmall + 2
-                        rowSpacing: RaohaneTheme.spacingSmall + 2
-
-                        Repeater {
-                            model: root.idleActions
-
-                            delegate: RaohaneSurface {
-                                id: idleAction
-                                required property var modelData
-
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 58
-                                surfaceRadius: RaohaneTheme.radiusLarge
-                                showSheen: false
-                                showInnerRim: false
-                                raised: false
-                                hovered: idleActionMouse.containsMouse || activeFocus
-                                pressed: idleActionMouse.pressed
-                                interactive: true
-                                hoverScale: 1
-                                pressedScale: 1
-                                activeFocusOnTab: true
-                                idleBorderColor: RaohaneTheme.borderFaint
-                                hoverBorderColor: RaohaneTheme.borderStrong
-                                pressedBorderColor: RaohaneTheme.borderStrong
-                                showStateRail: idleAction.hovered
-                                stateRailWidth: 3
-                                stateRailLength: 24
-                                stateRailOpacity: 0.72
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: RaohaneTheme.spacing + 2
-                                    anchors.rightMargin: RaohaneTheme.spacing + 2
-                                    spacing: RaohaneTheme.spacing + 1
-
-                                    RaohaneSurface {
-                                        Layout.preferredWidth: 34
-                                        Layout.preferredHeight: 34
-                                        surfaceRadius: RaohaneTheme.radius
-                                        active: idleAction.hovered
-                                        showSheen: false
-                                        showInnerRim: false
-
-                                        RaohaneIcon {
-                                            anchors.centerIn: parent
-                                            text: idleAction.modelData.iconName
-                                            iconSize: 17
-                                            fill: idleAction.hovered ? 1 : 0
-                                            symbolWeight: idleAction.hovered ? 540 : 430
-                                            color: idleAction.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                                        }
-                                    }
-
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        spacing: Math.max(1, RaohaneTheme.spacingTiny - 2)
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: idleAction.modelData.name
-                                            color: RaohaneTheme.text
-                                            font.pixelSize: 9
-                                            font.weight: Font.DemiBold
-                                            elide: Text.ElideRight
-                                        }
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: idleAction.modelData.type
-                                            color: RaohaneTheme.textFaint
-                                            font.pixelSize: 7
-                                            elide: Text.ElideRight
-                                        }
-                                    }
-
-                                    RaohaneIcon {
-                                        text: "arrow_outward"
-                                        iconSize: 12
-                                        color: idleAction.hovered ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: idleActionMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onPressed: idleAction.forceActiveFocus()
-                                    onClicked: {
-                                        root.close()
-                                        idleAction.modelData.execute()
-                                    }
-                                }
-
-                                Keys.onPressed: event => {
-                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                                        root.close()
-                                        idleAction.modelData.execute()
-                                        event.accepted = true
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    pinnedApps: root.pinnedApps
+                    idleActions: root.idleActions
+                    onPinnedRequested: entry => root.executePinned(entry)
+                    onActionRequested: action => root.executeAction(action)
                 }
 
-                ColumnLayout {
+                RaohaneLauncherResultsView {
                     Layout.fillWidth: true
-                    spacing: RaohaneTheme.spacingSmall - 1
-                    visible: RaohaneSearch.query.trim().length > 0 && root.results.length > 0
-
-                    Repeater {
-                        model: root.results
-
-                        delegate: RaohaneSurface {
-                            id: resultRow
-                            required property var modelData
-                            required property int index
-
-                            readonly property bool selected: index === selection.currentIndex
-
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 55
-                            surfaceRadius: RaohaneTheme.radiusLarge
-                            active: selected
-                            hovered: resultMouse.containsMouse || activeFocus
-                            pressed: resultMouse.pressed
-                            interactive: true
-                            transparentIdle: !selected && !hovered
-                            showSheen: false
-                            showInnerRim: selected
-                            hoverScale: 1
-                            pressedScale: 1
-                            activeFocusOnTab: true
-                            showStateRail: selected
-                            stateRailWidth: 3
-                            stateRailLength: 24
-                            stateRailOpacity: 1
-
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: RaohaneTheme.spacing + 2
-                                anchors.rightMargin: RaohaneTheme.panelPadding
-                                spacing: RaohaneTheme.spacing + 1
-
-                                RaohaneSurface {
-                                    Layout.preferredWidth: 36
-                                    Layout.preferredHeight: 36
-                                    surfaceRadius: RaohaneTheme.radius
-                                    active: resultRow.selected
-                                    showSheen: false
-                                    showInnerRim: false
-
-                                    Loader {
-                                        anchors.centerIn: parent
-                                        width: 28
-                                        height: 28
-                                        sourceComponent: {
-                                            if (resultRow.modelData.iconType === "system")
-                                                return systemIcon
-                                            if (resultRow.modelData.iconType === "material")
-                                                return materialIcon
-                                            if (resultRow.modelData.iconType === "text")
-                                                return textIcon
-                                            return fallbackIcon
-                                        }
-                                    }
-
-                                    Component {
-                                        id: systemIcon
-                                        RaohaneAdaptiveIcon {
-                                            anchors.centerIn: parent
-                                            iconSource: String(resultRow.modelData.iconName ?? "")
-                                            iconSize: 25
-                                            fallbackColor: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                                        }
-                                    }
-
-                                    Component {
-                                        id: materialIcon
-                                        RaohaneIcon {
-                                            anchors.centerIn: parent
-                                            text: resultRow.modelData.iconName
-                                            iconSize: 18
-                                            fill: resultRow.selected ? 1 : 0
-                                            symbolWeight: resultRow.selected ? 540 : 430
-                                            color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                                        }
-                                    }
-
-                                    Component {
-                                        id: textIcon
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: resultRow.modelData.iconName
-                                            color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.text
-                                            font.pixelSize: 15
-                                        }
-                                    }
-
-                                    Component {
-                                        id: fallbackIcon
-                                        RaohaneIcon {
-                                            anchors.centerIn: parent
-                                            text: "apps"
-                                            iconSize: 17
-                                            color: RaohaneTheme.textMuted
-                                        }
-                                    }
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: Math.max(1, RaohaneTheme.spacingTiny - 2)
-
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: resultRow.modelData.name
-                                        color: RaohaneTheme.text
-                                        font.pixelSize: 9
-                                        font.weight: resultRow.selected ? Font.DemiBold : Font.Medium
-                                        elide: Text.ElideRight
-                                    }
-
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: resultRow.modelData.comment || resultRow.modelData.type
-                                        color: RaohaneTheme.textMuted
-                                        font.pixelSize: 7
-                                        elide: Text.ElideRight
-                                    }
-                                }
-
-                                Text {
-                                    text: resultRow.modelData.verb
-                                    color: resultRow.selected ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                                    font.pixelSize: 7
-                                    font.weight: Font.DemiBold
-                                    font.letterSpacing: 0.4
-                                }
-                            }
-
-                            MouseArea {
-                                id: resultMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onPressed: resultRow.forceActiveFocus()
-                                onEntered: selection.select(resultRow.index)
-                                onClicked: {
-                                    selection.select(resultRow.index)
-                                    root.executeSelected()
-                                }
-                            }
-
-                            Keys.onPressed: event => {
-                                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                                    selection.select(resultRow.index)
-                                    root.executeSelected()
-                                    event.accepted = true
-                                }
-                            }
-                        }
+                    Layout.preferredHeight: visible ? implicitHeight : 0
+                    visible: RaohaneSearch.query.trim().length > 0
+                    results: root.results
+                    selectedIndex: selection.currentIndex
+                    onSelectionHovered: index => selection.select(index)
+                    onActivateRequested: index => {
+                        selection.select(index)
+                        root.executeSelected()
                     }
                 }
 
-                Item {
+                RaohaneLauncherFooter {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 100
-                    visible: RaohaneSearch.query.trim().length > 0 && root.results.length === 0
-
-                    Column {
-                        anchors.centerIn: parent
-                        spacing: RaohaneTheme.spacingSmall
-
-                        RaohaneSurface {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: 40
-                            height: 40
-                            surfaceRadius: RaohaneTheme.radiusLarge
-                            raised: false
-                            showSheen: false
-                            showInnerRim: false
-                            idleColor: RaohaneTheme.surfaceSubtle
-                            idleBorderColor: RaohaneTheme.borderFaint
-
-                            RaohaneIcon {
-                                anchors.centerIn: parent
-                                text: "search_off"
-                                iconSize: 20
-                                color: RaohaneTheme.textFaint
-                            }
-                        }
-
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: qsTr("No results")
-                            color: RaohaneTheme.text
-                            font.pixelSize: 11
-                            font.weight: Font.DemiBold
-                        }
-
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: qsTr("/ actions    > commands    = math    : clipboard")
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
-                        }
-                    }
+                    Layout.preferredHeight: implicitHeight
                 }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 1
-                    color: RaohaneTheme.borderFaint
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 22
-                    Layout.leftMargin: RaohaneTheme.spacingTiny
-                    Layout.rightMargin: RaohaneTheme.spacingTiny
-
-                    Text {
-                        text: "RAOHANE"
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 7
-                        font.letterSpacing: 1.2
-                        font.weight: Font.DemiBold
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    Text {
-                        text: "↑↓ navigate   ↵ open   esc close"
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
-                    }
-                }
-            }
-        }
-    }
-
-    component PinnedApp: RaohaneSurface {
-        id: app
-
-        required property var entry
-
-        Layout.preferredHeight: 76
-        surfaceRadius: RaohaneTheme.radiusLarge
-        transparentIdle: !app.hovered
-        showSheen: false
-        showInnerRim: false
-        interactive: true
-        hovered: appMouse.containsMouse || activeFocus
-        pressed: appMouse.pressed
-        hoverScale: 1
-        pressedScale: 1
-        activeFocusOnTab: true
-        idleBorderColor: "transparent"
-        hoverBorderColor: RaohaneTheme.borderStrong
-        pressedBorderColor: RaohaneTheme.borderStrong
-
-        Column {
-            anchors.centerIn: parent
-            width: Math.max(50, app.width - 2 * RaohaneTheme.spacingSmall)
-            spacing: RaohaneTheme.spacingSmall - 1
-
-            RaohaneSurface {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: 40
-                height: 40
-                surfaceRadius: RaohaneTheme.radiusLarge
-                active: app.hovered
-                showSheen: false
-                showInnerRim: false
-
-                RaohaneAdaptiveIcon {
-                    anchors.centerIn: parent
-                    iconSource: String(app.entry?.icon ?? "")
-                    iconSize: 29
-                    fallbackColor: app.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                }
-            }
-
-            Text {
-                width: parent.width
-                text: String(app.entry?.name ?? "App")
-                color: app.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
-                font.pixelSize: 7
-                font.weight: Font.Medium
-                horizontalAlignment: Text.AlignHCenter
-                elide: Text.ElideRight
-            }
-        }
-
-        MouseArea {
-            id: appMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onPressed: app.forceActiveFocus()
-            onClicked: root.executePinned(app.entry)
-        }
-
-        Keys.onPressed: event => {
-            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                root.executePinned(app.entry)
-                event.accepted = true
             }
         }
     }
