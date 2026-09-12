@@ -219,10 +219,18 @@ rg -q 'RaohaneTheme\.islandHeight' "$context" || fail 'Context Island no longer 
 
 rg -q 'visible:[[:space:]]*!RaohaneWallpapers\.isVideo\(RaohaneConfig\.wallpaperPath\)' "$settings_home" || fail 'Settings home no longer guards its hero from video wallpaper decoding'
 rg -q 'source:[[:space:]]*visible[[:space:]]*\?[[:space:]]*RaohaneConfig\.wallpaperPath[[:space:]]*:[[:space:]]*""' "$settings_home" || fail 'Settings home lost its video-safe live wallpaper hero source'
-rg -q 'component StatusChip:[[:space:]]*Rectangle' "$settings_home" || fail 'Settings home lost its compact live status-chip contract'
+rg -q 'component StatusChip:[[:space:]]*RaohaneSurface' "$settings_home" || fail 'Settings home status chips regressed from shared surface material'
+rg -q 'component MoodChip:[[:space:]]*RaohaneSurface' "$settings_home" || fail 'Settings home mood chips regressed from shared surface material'
 rg -q 'RaohaneNetwork\.materialSymbol' "$settings_home" || fail 'Settings home lost live network status'
 rg -q 'RaohaneAudio\.(muted|volume|ready)' "$settings_home" || fail 'Settings home lost live audio status'
 rg -q 'RaohanePrivacy\.(recordingActive|cameraActive|microphoneActive)' "$settings_home" || fail 'Settings home lost live privacy status'
+rg -q 'RaohaneScenes\.activeSceneId' "$settings_home" || fail 'Settings home lost live Scene summary'
+rg -q 'RaohaneUpdater\.(updateAvailable|checking|applying|errorText)' "$settings_home" || fail 'Settings home lost cached updater summary'
+rg -q 'page:[[:space:]]*"Scenes"' "$settings_home" || fail 'Settings home Scene summary no longer routes to Scenes'
+rg -q 'page:[[:space:]]*"About"' "$settings_home" || fail 'Settings home updater summary no longer routes to About'
+if rg -q 'RaohaneScenes\.(activate|reset|setAutoSwitch)|RaohaneUpdater\.(checkNow|applyUpdate)' "$settings_home"; then
+  fail 'Settings home became a duplicate Scene/update control surface instead of a read-only dashboard'
+fi
 if rg -q 'RaohaneContextIsland[[:space:]]*\{' "$settings_home"; then
   fail 'Settings home reintroduced the nested Context Island preview'
 fi
@@ -245,4 +253,4 @@ rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted Launcher/Media/Control Center presentation, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, live Settings dashboard, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted Launcher/Media/Control Center presentation, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
