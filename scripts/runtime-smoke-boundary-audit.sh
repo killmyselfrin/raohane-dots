@@ -13,12 +13,14 @@ smoke='scripts/runtime-smoke-check.sh'
 payload='scripts/validate-runtime-payload.sh'
 pruner='scripts/prune-runtime.sh'
 phase4_audit='scripts/phase4-visible-runtime-audit.sh'
+cli='scripts/raohane'
 
-for file in "$smoke" "$payload" "$pruner" "$phase4_audit"; do
+for file in "$smoke" "$payload" "$pruner" "$phase4_audit" "$cli"; do
   [[ -f "$file" ]] || fail "missing runtime-smoke boundary file: $file"
 done
 
 bash -n "$smoke"
+bash -n "$cli"
 
 for contract in \
   'qs -c "\$QS_CONFIG" ipc call runtime phase4' \
@@ -51,4 +53,16 @@ rg -q 'runtime-smoke-check\.sh' "$pruner" \
 rg -q 'runtime_smoke=' "$phase4_audit" \
   || fail 'Phase 4 boundary does not track runtime smoke validator'
 
-printf 'runtime-smoke-boundary-audit: live IPC, current-service log isolation, high-signal QML signatures and runtime payload retention are valid\n'
+for contract in \
+  'validate smoke \[--since WHEN\] \[--log-file FILE\] \[--strict-logs\]' \
+  'find_runtime_smoke_validator' \
+  'run_runtime_smoke_validator' \
+  '^[[:space:]]*smoke\)' \
+  'run_runtime_smoke_validator "\$@"' \
+  '^[[:space:]]*phase4\)' \
+  'run_phase4_validator "\$@"' \
+  'run_runtime_smoke_validator'; do
+  rg -q "$contract" "$cli" || fail "Raohane CLI lost runtime-smoke route: $contract"
+done
+
+printf 'runtime-smoke-boundary-audit: live IPC, current-service log isolation, high-signal QML signatures, CLI routing and runtime payload retention are valid\n'
