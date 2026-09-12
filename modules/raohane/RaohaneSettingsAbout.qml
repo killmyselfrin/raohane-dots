@@ -14,6 +14,7 @@ Item {
     property string version: "development"
     property bool copied: false
 
+    readonly property bool compactLayout: width < 760
     readonly property string updateTitle: RaohaneUpdater.applying
         ? qsTr("Installing update…")
         : RaohaneUpdater.checking
@@ -45,6 +46,34 @@ Item {
             .arg(checked)
     }
 
+    readonly property color diagnosticColor: RaohaneDiagnostics.running
+        ? RaohaneTheme.info
+        : !RaohaneDiagnostics.hasResult
+            ? RaohaneTheme.accent
+            : RaohaneDiagnostics.lastOk ? RaohaneTheme.success : RaohaneTheme.critical
+
+    readonly property string diagnosticTitle: RaohaneDiagnostics.running
+        ? qsTr("Checking runtime health…")
+        : !RaohaneDiagnostics.hasResult
+            ? qsTr("Runtime health not checked")
+            : RaohaneDiagnostics.lastOk
+                ? qsTr("Runtime smoke passed")
+                : qsTr("Runtime smoke needs attention")
+
+    readonly property string diagnosticDetail: RaohaneDiagnostics.running
+        ? qsTr("Checking live IPC and recent Quickshell/QML errors from the current Raohane session.")
+        : !RaohaneDiagnostics.hasResult
+            ? qsTr("Run the non-destructive smoke check to verify live IPC and recent runtime errors.")
+            : RaohaneDiagnostics.lastOk
+                ? qsTr("No high-signal QML or runtime failures were found in the current session.")
+                : (RaohaneDiagnostics.errorText.length > 0
+                    ? RaohaneDiagnostics.errorText
+                    : qsTr("The current session reported a runtime problem. Copy the output for details."))
+
+    readonly property string diagnosticSecondary: RaohaneDiagnostics.hasResult
+        ? qsTr("Checked %1 · raohane validate smoke").arg(RaohaneDiagnostics.lastCheckedText || "—")
+        : qsTr("This check does not lock the session, capture the screen or run destructive Phase 4 exercises.")
+
     function refresh(): void {
         RaohaneSystemInfo.refresh()
         versionFile.reload()
@@ -52,7 +81,12 @@ Item {
     }
 
     function diagnosticsText(): string {
-        return [
+        const runtimeState = RaohaneDiagnostics.running
+            ? "running"
+            : !RaohaneDiagnostics.hasResult
+                ? "not checked"
+                : RaohaneDiagnostics.lastOk ? "pass" : "attention"
+        const lines = [
             "Raohane " + root.version,
             RaohaneSystemInfo.distroName,
             "Kernel: " + RaohaneSystemInfo.kernelVersion,
@@ -63,15 +97,24 @@ Item {
             "Update channel: " + RaohaneUpdater.channel,
             "Revision: " + (RaohaneUpdater.currentRevision || "unknown"),
             "Session: Hyprland / Wayland",
+            "Runtime smoke: " + runtimeState,
             "",
-            "Diagnostic command:",
-            "raohane doctor all"
-        ].join("\n")
+            "Diagnostic commands:",
+            "raohane doctor all",
+            "raohane validate smoke"
+        ]
+        if (RaohaneDiagnostics.lastOutput.length > 0)
+            lines.push("", "Runtime smoke output:", RaohaneDiagnostics.lastOutput)
+        return lines.join("\n")
     }
 
-    Component.onCompleted: {
-        root.refresh()
+    function copyText(value: string): void {
+        Quickshell.clipboardText = value
+        root.copied = true
+        copiedTimer.restart()
     }
+
+    Component.onCompleted: root.refresh()
 
     FileView {
         id: versionFile
@@ -95,13 +138,15 @@ Item {
         anchors.fill: parent
         clip: true
         contentWidth: width
-        contentHeight: contentColumn.implicitHeight + 40
+        contentHeight: contentColumn.implicitHeight + RaohaneTheme.panelPadding * 3
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 2600
 
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
             width: 4
+            anchors.right: parent.right
+            anchors.rightMargin: RaohaneTheme.spacingTiny
             contentItem: Rectangle {
                 implicitWidth: 4
                 radius: 2
@@ -113,41 +158,38 @@ Item {
         ColumnLayout {
             id: contentColumn
 
-            width: Math.min(parent.width - 40, 920)
+            width: Math.min(
+                Math.max(0, parent.width - (root.compactLayout ? RaohaneTheme.panelPadding * 2 : 40)),
+                920
+            )
             anchors.top: parent.top
-            anchors.topMargin: 16
+            anchors.topMargin: RaohaneTheme.spacingLarge
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 12
+            spacing: RaohaneTheme.spacingLarge
 
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 122
-                surfaceRadius: 14
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    anchors.topMargin: 16
-                    anchors.bottomMargin: 16
-                    width: 3
-                    radius: 2
-                    color: RaohaneTheme.accent
-                }
+                showStateRail: true
+                stateRailColor: RaohaneTheme.accent
+                stateRailOpacity: 0.64
+                stateRailWidth: 3
+                stateRailLength: Math.max(40, height - RaohaneTheme.panelPadding * 3)
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 18
-                    anchors.rightMargin: 14
-                    spacing: 14
+                    anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
+                    anchors.rightMargin: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacingLarge
 
                     RaohaneSurface {
                         Layout.preferredWidth: 48
                         Layout.preferredHeight: 48
-                        surfaceRadius: 15
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: true
                         showSheen: false
@@ -165,7 +207,7 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: RaohaneTheme.spacingTiny
 
                         Text {
                             text: "RAOHANE"
@@ -182,13 +224,13 @@ Item {
                         }
 
                         RowLayout {
-                            Layout.topMargin: 5
-                            spacing: 7
+                            Layout.topMargin: RaohaneTheme.spacingTiny
+                            spacing: RaohaneTheme.spacingSmall
 
                             RaohaneSurface {
                                 implicitWidth: versionText.implicitWidth + 18
                                 implicitHeight: 27
-                                surfaceRadius: 8
+                                surfaceRadius: RaohaneTheme.radiusSmall
                                 raised: false
                                 active: true
                                 showSheen: false
@@ -222,13 +264,9 @@ Item {
 
                     ActionButton {
                         icon: root.copied ? "check" : "content_copy"
-                        label: root.copied ? qsTr("Copied") : qsTr("Diagnostics")
+                        label: root.copied ? qsTr("Copied") : qsTr("Copy info")
                         emphasized: root.copied
-                        onClicked: {
-                            Quickshell.clipboardText = root.diagnosticsText()
-                            root.copied = true
-                            copiedTimer.restart()
-                        }
+                        onClicked: root.copyText(root.diagnosticsText())
                     }
                 }
             }
@@ -240,6 +278,9 @@ Item {
                 title: root.updateTitle
                 detail: root.updateDetail
                 secondary: root.revisionSummary
+                railColor: RaohaneUpdater.errorText.length > 0
+                    ? RaohaneTheme.critical
+                    : RaohaneUpdater.updateAvailable ? RaohaneTheme.warning : RaohaneTheme.accent
 
                 ActionButton {
                     icon: "refresh"
@@ -264,10 +305,38 @@ Item {
                 detail: qsTr("Check on startup and install a new main build automatically. Background checks during an active session never force a surprise restart.")
                 secondary: qsTr("If a future build adds packages, Polkit may ask once for permission to install the missing official dependencies.")
 
-                ToggleControl {
+                RaohaneSwitch {
                     checked: RaohaneUpdater.automaticUpdates
                     enabled: RaohaneUpdater.preferenceReady
-                    onToggled: RaohaneUpdater.setAutomaticUpdates(checked)
+                    onToggled: checked => RaohaneUpdater.setAutomaticUpdates(checked)
+                }
+            }
+
+            SectionLabel { text: qsTr("Diagnostics") }
+
+            InfoRail {
+                icon: RaohaneDiagnostics.running ? "progress_activity"
+                    : !RaohaneDiagnostics.hasResult ? "monitor_heart"
+                    : RaohaneDiagnostics.lastOk ? "check_circle" : "error"
+                title: root.diagnosticTitle
+                detail: root.diagnosticDetail
+                secondary: root.diagnosticSecondary
+                railColor: root.diagnosticColor
+
+                ActionButton {
+                    icon: RaohaneDiagnostics.running ? "progress_activity" : "monitor_heart"
+                    label: RaohaneDiagnostics.running ? qsTr("Checking…")
+                        : RaohaneDiagnostics.hasResult ? qsTr("Check again") : qsTr("Run smoke check")
+                    emphasized: !RaohaneDiagnostics.hasResult
+                    enabled: !RaohaneDiagnostics.running
+                    onClicked: RaohaneDiagnostics.runSmoke()
+                }
+
+                ActionButton {
+                    visible: RaohaneDiagnostics.hasResult && RaohaneDiagnostics.lastOutput.length > 0
+                    icon: root.copied ? "check" : "content_copy"
+                    label: root.copied ? qsTr("Copied") : qsTr("Copy output")
+                    onClicked: root.copyText(RaohaneDiagnostics.lastOutput)
                 }
             }
 
@@ -276,8 +345,8 @@ Item {
             GridLayout {
                 Layout.fillWidth: true
                 columns: width >= 760 ? 2 : 1
-                columnSpacing: 10
-                rowSpacing: 10
+                columnSpacing: RaohaneTheme.spacing
+                rowSpacing: RaohaneTheme.spacing
 
                 InfoCard { icon: "computer"; label: qsTr("Distribution"); value: RaohaneSystemInfo.distroName }
                 InfoCard { icon: "terminal"; label: qsTr("Kernel"); value: RaohaneSystemInfo.kernelVersion }
@@ -313,7 +382,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: RaohaneTheme.spacing
 
                 LinkButton {
                     Layout.fillWidth: true
@@ -326,19 +395,15 @@ Item {
                     Layout.fillWidth: true
                     icon: "monitor_heart"
                     label: qsTr("Copy doctor command")
-                    onClicked: {
-                        Quickshell.clipboardText = "raohane doctor all"
-                        root.copied = true
-                        copiedTimer.restart()
-                    }
+                    onClicked: root.copyText("raohane doctor all")
                 }
             }
         }
     }
 
     component SectionLabel: Text {
-        Layout.topMargin: 4
-        Layout.leftMargin: 3
+        Layout.topMargin: RaohaneTheme.spacingTiny
+        Layout.leftMargin: RaohaneTheme.spacingTiny
         color: RaohaneTheme.textFaint
         font.pixelSize: 9
         font.weight: Font.DemiBold
@@ -354,21 +419,21 @@ Item {
 
         Layout.fillWidth: true
         Layout.preferredHeight: 68
-        surfaceRadius: 11
+        surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         showSheen: false
         border.color: RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 13
-            anchors.rightMargin: 12
-            spacing: 11
+            anchors.leftMargin: RaohaneTheme.panelPadding
+            anchors.rightMargin: RaohaneTheme.panelPadding
+            spacing: RaohaneTheme.spacing
 
             RaohaneSurface {
                 Layout.preferredWidth: 34
                 Layout.preferredHeight: 34
-                surfaceRadius: 10
+                surfaceRadius: RaohaneTheme.radiusSmall
                 raised: false
                 active: true
                 showSheen: false
@@ -411,51 +476,48 @@ Item {
         required property string title
         required property string detail
         property string secondary: ""
+        property color railColor: RaohaneTheme.accent
         default property alias actions: actionSlot.data
 
         Layout.fillWidth: true
         Layout.preferredHeight: secondary.length > 0 ? 98 : 80
-        surfaceRadius: 12
+        surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         showSheen: false
         border.color: RaohaneTheme.borderFaint
-
-        Rectangle {
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            width: 3
-            height: 38
-            radius: 2
-            color: RaohaneTheme.accent
-            opacity: 0.72
-        }
+        showStateRail: true
+        stateRailColor: rail.railColor
+        stateRailOpacity: 0.68
+        stateRailWidth: 3
+        stateRailLength: 38
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 14
-            anchors.rightMargin: 12
-            spacing: 12
+            anchors.leftMargin: RaohaneTheme.panelPadding
+            anchors.rightMargin: RaohaneTheme.panelPadding
+            spacing: RaohaneTheme.spacingLarge
 
             RaohaneSurface {
                 Layout.preferredWidth: 38
                 Layout.preferredHeight: 38
-                surfaceRadius: 11
+                surfaceRadius: RaohaneTheme.radiusSmall
                 raised: false
                 active: true
                 showSheen: false
+                border.color: Qt.rgba(rail.railColor.r, rail.railColor.g, rail.railColor.b, 0.38)
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: rail.icon
                     iconSize: 19
                     fill: 0.72
-                    color: RaohaneTheme.accent
+                    color: rail.railColor
                 }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: RaohaneTheme.spacingTiny
 
                 Text {
                     text: rail.title
@@ -470,6 +532,8 @@ Item {
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 8
                     lineHeight: 1.15
+                    maximumLineCount: 3
+                    elide: Text.ElideRight
                     wrapMode: Text.WordWrap
                 }
 
@@ -477,16 +541,18 @@ Item {
                     visible: rail.secondary.length > 0
                     Layout.fillWidth: true
                     text: rail.secondary
-                    color: RaohaneTheme.accent
+                    color: rail.railColor
                     font.pixelSize: 8
                     lineHeight: 1.15
+                    maximumLineCount: 2
+                    elide: Text.ElideRight
                     wrapMode: Text.Wrap
                 }
             }
 
             RowLayout {
                 id: actionSlot
-                spacing: 8
+                spacing: RaohaneTheme.spacingSmall
             }
         }
     }
@@ -501,8 +567,8 @@ Item {
 
         implicitWidth: actionRow.implicitWidth + 24
         implicitHeight: 36
-        activeFocusOnTab: true
-        opacity: enabled ? 1 : 0.42
+        activeFocusOnTab: enabled
+        opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
         Behavior on opacity {
             NumberAnimation { duration: RaohaneMotion.micro }
@@ -510,7 +576,7 @@ Item {
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 10
+            surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             active: action.emphasized
             transparentIdle: !action.emphasized && !hovered
@@ -526,7 +592,7 @@ Item {
             RowLayout {
                 id: actionRow
                 anchors.centerIn: parent
-                spacing: 7
+                spacing: RaohaneTheme.spacingSmall
 
                 RaohaneIcon {
                     text: action.icon
@@ -569,67 +635,6 @@ Item {
         }
     }
 
-    component ToggleControl: FocusScope {
-        id: toggle
-
-        property bool checked: false
-        signal toggled(bool checked)
-
-        implicitWidth: 52
-        implicitHeight: 30
-        activeFocusOnTab: true
-        opacity: enabled ? 1 : 0.45
-
-        Rectangle {
-            anchors.fill: parent
-            radius: height / 2
-            color: toggle.checked ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
-            border.width: 1
-            border.color: toggle.checked ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
-
-            Behavior on color {
-                ColorAnimation { duration: RaohaneMotion.standard }
-            }
-
-            Rectangle {
-                width: 22
-                height: 22
-                radius: 11
-                anchors.verticalCenter: parent.verticalCenter
-                x: toggle.checked ? parent.width - width - 4 : 4
-                color: toggle.checked ? RaohaneTheme.accent : RaohaneTheme.textFaint
-
-                Behavior on x {
-                    enabled: RaohaneMotion.transformMotionEnabled
-                    NumberAnimation {
-                        duration: RaohaneMotion.standard
-                        easing.type: RaohaneMotion.easeEmphasized
-                    }
-                }
-
-                Behavior on color {
-                    ColorAnimation { duration: RaohaneMotion.standard }
-                }
-            }
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            enabled: toggle.enabled
-            cursorShape: toggle.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: toggle.toggled(!toggle.checked)
-        }
-
-        Keys.onPressed: event => {
-            if (!toggle.enabled)
-                return
-            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                toggle.toggled(!toggle.checked)
-                event.accepted = true
-            }
-        }
-    }
-
     component LinkButton: FocusScope {
         id: link
 
@@ -642,7 +647,7 @@ Item {
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 11
+            surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             transparentIdle: true
             hovered: linkMouse.containsMouse || link.activeFocus
@@ -656,7 +661,7 @@ Item {
 
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 8
+                spacing: RaohaneTheme.spacingSmall
 
                 RaohaneIcon {
                     text: link.icon
