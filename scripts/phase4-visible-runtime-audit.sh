@@ -20,6 +20,7 @@ settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_router='modules/raohane/RaohaneSettingsRouter.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 runtime_probe='modules/raohane/RaohaneRuntimeProbe.qml'
+runtime_smoke='scripts/runtime-smoke-check.sh'
 live_check='scripts/phase4-live-check.sh'
 cli='scripts/raohane'
 
@@ -52,7 +53,7 @@ phase4_surfaces=(
   "$runtime_probe"
 )
 
-for path in "$family" "$qmldir" "$config" "$live_check" "$cli" "${phase4_surfaces[@]}"; do
+for path in "$family" "$qmldir" "$config" "$runtime_smoke" "$live_check" "$cli" "${phase4_surfaces[@]}"; do
   [[ -f "$path" ]] || fail "missing Phase 4 path: $path"
 done
 
@@ -175,6 +176,21 @@ for symbol in \
 done
 
 for symbol in \
+  'qs -c "\$QS_CONFIG" ipc call runtime phase4' \
+  'ActiveEnterTimestamp' \
+  '--log-file' \
+  '--strict-logs' \
+  'QQmlApplicationEngine failed to load' \
+  'is not a type' \
+  'ReferenceError:' \
+  'TypeError:' \
+  'Detected anchors on an item that is managed by a layout' \
+  'Runtime smoke validation: PASS'; do
+  rg -q -- "$symbol" "$runtime_smoke" || fail "runtime smoke validator lost contract: $symbol"
+done
+bash -n "$runtime_smoke"
+
+for symbol in \
   'phase4_json' \
   'ipc runtime phase4' \
   '--exercise' \
@@ -210,4 +226,4 @@ for symbol in \
   rg -q "$symbol" "$cli" || fail "Raohane CLI lost Phase 4 route: $symbol"
 done
 
-printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, extracted Settings navigation/header, router-backed search and full live validation workflow are valid\n'
+printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, runtime smoke diagnostics, extracted Settings navigation/header, router-backed search and full live validation workflow are valid\n'
