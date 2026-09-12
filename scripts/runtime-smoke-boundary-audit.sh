@@ -14,8 +14,11 @@ payload='scripts/validate-runtime-payload.sh'
 pruner='scripts/prune-runtime.sh'
 phase4_audit='scripts/phase4-visible-runtime-audit.sh'
 cli='scripts/raohane'
+diagnostics='modules/raohane/services/RaohaneDiagnostics.qml'
+services_qmldir='modules/raohane/services/qmldir'
+about='modules/raohane/RaohaneSettingsAbout.qml'
 
-for file in "$smoke" "$payload" "$pruner" "$phase4_audit" "$cli"; do
+for file in "$smoke" "$payload" "$pruner" "$phase4_audit" "$cli" "$diagnostics" "$services_qmldir" "$about"; do
   [[ -f "$file" ]] || fail "missing runtime-smoke boundary file: $file"
 done
 
@@ -66,4 +69,38 @@ for contract in \
   grep -Eq "$contract" "$cli" || fail "Raohane CLI lost runtime-smoke route: $contract"
 done
 
-printf 'runtime-smoke-boundary-audit: live IPC, current-service log isolation, high-signal QML signatures, CLI routing and runtime payload retention are valid\n'
+grep -Eq '^singleton RaohaneDiagnostics 1\.0 RaohaneDiagnostics\.qml$' "$services_qmldir" \
+  || fail 'RaohaneDiagnostics is not registered in the native services module'
+for contract in \
+  'readonly property string smokeScript: Quickshell\.shellPath\("scripts/runtime-smoke-check\.sh"\)' \
+  'property bool running: false' \
+  'property bool hasResult: false' \
+  'property bool lastOk: false' \
+  'property string lastOutput: ""' \
+  'function runSmoke\(\): void' \
+  'command: \["bash", root\.smokeScript\]' \
+  'root\.lastOk = exitCode === 0' \
+  'Qt\.formatDateTime\(new Date\(\), "HH:mm"\)'; do
+  grep -Eq "$contract" "$diagnostics" || fail "runtime diagnostics service lost contract: $contract"
+done
+
+if grep -Eq 'Component\.onCompleted.*runSmoke|Timer[[:space:]]*\{|validate[[:space:]]+phase4[[:space:]]+--full|ipc[[:space:]]+(lock|region|screenTranslator)|pkexec|sudo|pacman|systemctl[[:space:]]+(reboot|poweroff|suspend)' "$diagnostics"; then
+  fail 'runtime diagnostics service gained automatic, destructive or privileged behavior'
+fi
+
+for contract in \
+  'RaohaneDiagnostics\.running' \
+  'RaohaneDiagnostics\.hasResult' \
+  'RaohaneDiagnostics\.lastOk' \
+  'RaohaneDiagnostics\.lastOutput' \
+  'RaohaneDiagnostics\.runSmoke\(\)' \
+  'raohane validate smoke' \
+  'RaohaneSwitch[[:space:]]*\{'; do
+  grep -Eq "$contract" "$about" || fail "Settings About lost runtime diagnostics UX contract: $contract"
+done
+
+if grep -Eq 'Component\.onCompleted.*RaohaneDiagnostics\.runSmoke|validate[[:space:]]+phase4[[:space:]]+--full|ipc[[:space:]]+(lock|region|screenTranslator)' "$about"; then
+  fail 'Settings About runs runtime diagnostics automatically or exposes destructive validation'
+fi
+
+printf 'runtime-smoke-boundary-audit: live IPC, current-service log isolation, high-signal QML signatures, manual non-destructive Settings diagnostics, CLI routing and runtime payload retention are valid\n'
