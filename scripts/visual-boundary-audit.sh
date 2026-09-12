@@ -14,6 +14,11 @@ catalog='modules/raohane/RaohaneThemeCatalog.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 launcher='modules/raohane/RaohaneLauncher.qml'
+launcher_search='modules/raohane/RaohaneLauncherSearchBar.qml'
+launcher_mode='modules/raohane/RaohaneLauncherModeBar.qml'
+launcher_idle='modules/raohane/RaohaneLauncherIdleContent.qml'
+launcher_results='modules/raohane/RaohaneLauncherResultsView.qml'
+launcher_footer='modules/raohane/RaohaneLauncherFooter.qml'
 media='modules/raohane/RaohaneMediaOverlay.qml'
 media_hud='modules/raohane/RaohaneMediaPlayerHud.qml'
 media_header='modules/raohane/RaohaneMediaLyricsHeader.qml'
@@ -54,7 +59,8 @@ osk='modules/raohane/RaohaneOnScreenKeyboard.qml'
 osk_key='modules/raohane/RaohaneOskKey.qml'
 
 for file in \
-  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$media" "$media_hud" "$media_header" "$media_status" "$control" "$control_header" "$control_footer" "$settings" "$settings_content" \
+  "$theme" "$catalog" "$config" "$defaults" "$launcher" "$launcher_search" "$launcher_mode" "$launcher_idle" "$launcher_results" "$launcher_footer" \
+  "$media" "$media_hud" "$media_header" "$media_status" "$control" "$control_header" "$control_footer" "$settings" "$settings_content" \
   "$settings_navigation" "$settings_header" "$settings_section" "$settings_control" "$settings_home" "$bar" "$bar_module" "$vertical" "$dock" \
   "$context" "$notification" "$surface" "$icon_button" "$motion" "$slider" "$switch" "$clock" "$quick" "$quick_tile" "$sidebar" \
   "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk" "$osk_key"; do
@@ -163,8 +169,15 @@ for file in "${matte_surfaces[@]}"; do
   rg -q 'showSheen:[[:space:]]*false' "$file" || fail "$file no longer suppresses decorative sheen on minimal shell chrome"
 done
 
-for file in "$context" "$dock" "$control" "$settings" "$launcher" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
+for file in "$context" "$dock" "$control" "$settings" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
+done
+
+# Launcher visual ownership is intentionally split across extracted presentation
+# surfaces. The coordinator owns search/execution state; accent hierarchy lives
+# in the controls that actually render it.
+for file in "$launcher_search" "$launcher_mode" "$launcher_idle" "$launcher_results"; do
+  rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost Launcher accent ownership"
 done
 
 if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$quick_tile" "$control" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_section" "$settings_control"; then
@@ -218,8 +231,11 @@ if rg -n 'RAOHANE / LAUNCHER|LIVE CONFIG|id:[[:space:]]*hero' "$launcher" "$medi
   fail 'a primary surface regressed to legacy one-off chrome'
 fi
 
-for file in "$launcher" "$control" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
+for file in "$control" "$dock" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained secondary text hierarchy"
+done
+for file in "$launcher_search" "$launcher_mode" "$launcher_idle" "$launcher_results" "$launcher_footer"; do
+  rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained Launcher text hierarchy"
 done
 for file in "$media_hud" "$media_header" "$media_status"; do
   rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$file" || fail "$file lost restrained media text hierarchy"
@@ -229,4 +245,4 @@ rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
-printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted media HUD/header/status surfaces, extracted Control Center frame buttons, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
+printf 'visual-boundary-audit: minimalist themes, compact live Settings home, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted Launcher/Media/Control Center presentation, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'
