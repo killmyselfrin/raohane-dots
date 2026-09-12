@@ -138,7 +138,7 @@ Scope {
             implicitHeight: content.implicitHeight + 30
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
-            showSheen: true
+            showSheen: false
             idleBorderColor: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
