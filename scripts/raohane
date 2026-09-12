@@ -21,7 +21,8 @@ Shell:
 
 Diagnostics:
   doctor [all|graphics|deps|services|runtime|phase4]
-  validate phase4 [--exercise] [--lock] [--capture] [--translate]
+  validate smoke [--since WHEN] [--log-file FILE] [--strict-logs]
+  validate phase4 [--exercise] [--lock] [--capture] [--translate] [--full]
   validate release [--phase4|--full] [--report PATH]
   wifi [status|menu]
   audio [status|recover [percent]]
@@ -185,6 +186,29 @@ find_runtime_payload_validator() {
     fi
   done
   return 1
+}
+
+find_runtime_smoke_validator() {
+  local candidate
+  for candidate in \
+    "$RUNTIME/scripts/runtime-smoke-check.sh" \
+    "$SCRIPT_DIR/runtime-smoke-check.sh" \
+    "$SCRIPT_DIR/../scripts/runtime-smoke-check.sh"; do
+    if [[ -f "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+run_runtime_smoke_validator() {
+  local validator=""
+  if ! validator="$(find_runtime_smoke_validator)"; then
+    echo '[Raohane] Runtime smoke validator is missing. Reinstall from an up-to-date checkout.' >&2
+    return 1
+  fi
+  bash "$validator" "$@"
 }
 
 find_phase4_validator() {
@@ -537,9 +561,15 @@ case "${1:-help}" in
     ;;
   validate)
     case "${2:-}" in
+      smoke)
+        shift 2
+        run_runtime_smoke_validator "$@"
+        ;;
       phase4)
         shift 2
         run_phase4_validator "$@"
+        echo
+        run_runtime_smoke_validator
         ;;
       release)
         shift 2

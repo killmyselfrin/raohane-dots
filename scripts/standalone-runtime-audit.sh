@@ -31,6 +31,7 @@ required=(
   scripts/lyrics-resolve.py
   scripts/graphics-driver-check.py
   scripts/product-live-check.sh
+  scripts/runtime-smoke-check.sh
   scripts/phase4-live-check.sh
   scripts/release-live-check.sh
   scripts/validate-runtime-payload.sh
@@ -164,6 +165,7 @@ cp \
   scripts/lyrics-resolve.py \
   scripts/graphics-driver-check.py \
   scripts/product-live-check.sh \
+  scripts/runtime-smoke-check.sh \
   scripts/phase4-live-check.sh \
   scripts/release-live-check.sh \
   "$tmp_runtime/scripts/"
@@ -267,6 +269,7 @@ for preserved in \
   "$tmp_runtime/scripts/lyrics-resolve.py" \
   "$tmp_runtime/scripts/graphics-driver-check.py" \
   "$tmp_runtime/scripts/product-live-check.sh" \
+  "$tmp_runtime/scripts/runtime-smoke-check.sh" \
   "$tmp_runtime/scripts/phase4-live-check.sh" \
   "$tmp_runtime/scripts/release-live-check.sh"; do
   [[ -e "$preserved" ]] || fail "pruner removed required native path: $preserved"
@@ -278,4 +281,4 @@ root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.q
 
 bash scripts/runtime-payload-audit.sh
 
-printf 'standalone-runtime-audit: source/runtime are native-only, current Task/Lyrics/graphics/product validators survive clean staging, doctor reuses strict payload validation and older settings upgrade safely to schema v13\n'
+printf 'standalone-runtime-audit: source/runtime are native-only, current Task/Lyrics/graphics/product/smoke validators survive clean staging, doctor reuses strict payload validation and older settings upgrade safely to schema v13\n'
