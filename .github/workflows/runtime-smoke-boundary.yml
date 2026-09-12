@@ -9,6 +9,7 @@ on:
       - 'scripts/validate-runtime-payload.sh'
       - 'scripts/prune-runtime.sh'
       - 'scripts/phase4-visible-runtime-audit.sh'
+      - 'scripts/raohane'
       - '.github/workflows/runtime-smoke-boundary.yml'
   pull_request:
     paths:
@@ -17,6 +18,7 @@ on:
       - 'scripts/validate-runtime-payload.sh'
       - 'scripts/prune-runtime.sh'
       - 'scripts/phase4-visible-runtime-audit.sh'
+      - 'scripts/raohane'
       - '.github/workflows/runtime-smoke-boundary.yml'
   workflow_dispatch:
 
@@ -35,4 +37,5 @@ jobs:
         run: |
           bash -n scripts/runtime-smoke-check.sh
           bash -n scripts/runtime-smoke-boundary-audit.sh
+          bash -n scripts/raohane
           bash scripts/runtime-smoke-boundary-audit.sh
