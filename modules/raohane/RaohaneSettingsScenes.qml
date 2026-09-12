@@ -14,6 +14,7 @@ Item {
     property string ruleMatch: "exact"
     property string behaviorScene: "gaming"
 
+    readonly property bool compactLayout: width < 760
     readonly property var scenes: [
         { id: "balanced", label: qsTr("Balanced"), icon: "tune", detail: qsTr("Restore the normal desktop policy") },
         { id: "gaming", label: qsTr("Gaming"), icon: "sports_esports", detail: qsTr("DND, Keep Awake and Game Mode") },
@@ -76,7 +77,7 @@ Item {
         id: sceneFlick
         anchors.fill: parent
         contentWidth: width
-        contentHeight: contentColumn.implicitHeight + 40
+        contentHeight: contentColumn.implicitHeight + RaohaneTheme.panelPadding * 3
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 2600
@@ -84,6 +85,8 @@ Item {
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
             width: 4
+            anchors.right: parent.right
+            anchors.rightMargin: RaohaneTheme.spacingTiny
             contentItem: Rectangle {
                 implicitWidth: 4
                 radius: 2
@@ -95,41 +98,38 @@ Item {
         ColumnLayout {
             id: contentColumn
 
-            width: Math.min(parent.width - 40, 880)
+            width: Math.min(
+                Math.max(0, parent.width - (root.compactLayout ? RaohaneTheme.panelPadding * 2 : 40)),
+                880
+            )
             anchors.top: parent.top
-            anchors.topMargin: 16
+            anchors.topMargin: RaohaneTheme.spacingLarge
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 12
+            spacing: RaohaneTheme.spacingLarge
 
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 108
-                surfaceRadius: 14
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
                 border.color: RaohaneScenes.autoSceneActive ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    anchors.topMargin: 16
-                    anchors.bottomMargin: 16
-                    width: 3
-                    radius: 2
-                    color: RaohaneTheme.accent
-                }
+                showStateRail: true
+                stateRailColor: RaohaneTheme.accent
+                stateRailOpacity: RaohaneScenes.autoSceneActive ? 0.76 : 0.42
+                stateRailWidth: 3
+                stateRailLength: Math.max(38, height - RaohaneTheme.panelPadding * 3)
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 18
-                    anchors.rightMargin: 16
-                    spacing: 14
+                    anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
+                    anchors.rightMargin: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacingLarge
 
                     RaohaneSurface {
                         Layout.preferredWidth: 46
                         Layout.preferredHeight: 46
-                        surfaceRadius: 14
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: true
                         showSheen: false
@@ -145,7 +145,7 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: RaohaneTheme.spacingTiny
 
                         Text {
                             text: qsTr("Contextual Scenes")
@@ -160,6 +160,8 @@ Item {
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 9
                             wrapMode: Text.WordWrap
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
                         }
 
                         Text {
@@ -176,7 +178,7 @@ Item {
                     RaohaneSurface {
                         implicitWidth: statusLabel.implicitWidth + 20
                         implicitHeight: 28
-                        surfaceRadius: 9
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: RaohaneScenes.autoSceneActive
                         showSheen: false
@@ -195,7 +197,7 @@ Item {
             }
 
             Text {
-                Layout.leftMargin: 3
+                Layout.leftMargin: RaohaneTheme.spacingTiny
                 text: qsTr("SCENE")
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 9
@@ -206,8 +208,8 @@ Item {
             GridLayout {
                 Layout.fillWidth: true
                 columns: width >= 760 ? 4 : 2
-                columnSpacing: 9
-                rowSpacing: 9
+                columnSpacing: RaohaneTheme.spacing
+                rowSpacing: RaohaneTheme.spacing
 
                 Repeater {
                     model: root.scenes
@@ -221,7 +223,7 @@ Item {
 
                         Layout.fillWidth: true
                         Layout.preferredHeight: 88
-                        surfaceRadius: 12
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: activeScene
                         hovered: sceneMouse.containsMouse || activeFocus
@@ -233,11 +235,16 @@ Item {
                         activeFocusOnTab: true
                         border.color: activeScene ? RaohaneTheme.accentBorder
                             : selectedScene ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+                        showStateRail: activeScene || selectedScene
+                        stateRailColor: RaohaneTheme.accent
+                        stateRailOpacity: activeScene ? 0.78 : 0.38
+                        stateRailWidth: 2
+                        stateRailLength: Math.max(22, height - RaohaneTheme.panelPadding * 2)
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 11
-                            spacing: 3
+                            anchors.margins: RaohaneTheme.spacing
+                            spacing: RaohaneTheme.spacingTiny
 
                             RowLayout {
                                 Layout.fillWidth: true
@@ -274,6 +281,8 @@ Item {
                                 color: RaohaneTheme.textMuted
                                 font.pixelSize: 8
                                 wrapMode: Text.WordWrap
+                                maximumLineCount: 2
+                                elide: Text.ElideRight
                             }
                         }
 
@@ -297,8 +306,8 @@ Item {
             }
 
             Text {
-                Layout.leftMargin: 3
-                Layout.topMargin: 3
+                Layout.leftMargin: RaohaneTheme.spacingTiny
+                Layout.topMargin: RaohaneTheme.spacingTiny
                 text: qsTr("SCENE BEHAVIOR")
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 9
@@ -309,22 +318,27 @@ Item {
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 292
-                surfaceRadius: 12
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
                 border.color: RaohaneScenes.hasPolicyOverride(root.behaviorScene) ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                showStateRail: RaohaneScenes.hasPolicyOverride(root.behaviorScene)
+                stateRailColor: RaohaneTheme.accent
+                stateRailOpacity: 0.5
+                stateRailWidth: 2
+                stateRailLength: Math.max(30, height - RaohaneTheme.panelPadding * 3)
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 13
-                    spacing: 9
+                    anchors.margins: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacing
 
                     RowLayout {
                         Layout.fillWidth: true
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 2
+                            spacing: RaohaneTheme.spacingTiny
 
                             Text {
                                 text: qsTr("Runtime policy")
@@ -350,7 +364,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: RaohaneTheme.spacingSmall
 
                         Repeater {
                             model: root.behaviorScenes
@@ -370,8 +384,8 @@ Item {
                     GridLayout {
                         Layout.fillWidth: true
                         columns: 2
-                        columnSpacing: 8
-                        rowSpacing: 8
+                        columnSpacing: RaohaneTheme.spacingSmall
+                        rowSpacing: RaohaneTheme.spacingSmall
 
                         BehaviorToggle {
                             Layout.fillWidth: true
@@ -422,7 +436,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: RaohaneTheme.spacingSmall
 
                         Repeater {
                             model: root.motionChoices
@@ -444,16 +458,16 @@ Item {
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 72
-                surfaceRadius: 12
+                surfaceRadius: RaohaneTheme.radiusSmall
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 14
-                    anchors.rightMargin: 14
-                    spacing: 12
+                    anchors.leftMargin: RaohaneTheme.panelPadding
+                    anchors.rightMargin: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacingLarge
 
                     RaohaneIcon {
                         text: "auto_awesome"
@@ -463,7 +477,7 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: RaohaneTheme.spacingTiny
 
                         Text {
                             text: qsTr("Automatic scene switching")
@@ -478,6 +492,8 @@ Item {
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 8
                             wrapMode: Text.WordWrap
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
                         }
                     }
 
@@ -489,8 +505,8 @@ Item {
             }
 
             Text {
-                Layout.leftMargin: 3
-                Layout.topMargin: 3
+                Layout.leftMargin: RaohaneTheme.spacingTiny
+                Layout.topMargin: RaohaneTheme.spacingTiny
                 text: qsTr("ACTIVE APPLICATION")
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 9
@@ -501,21 +517,26 @@ Item {
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 82
-                surfaceRadius: 12
+                surfaceRadius: RaohaneTheme.radiusSmall
                 raised: false
                 showSheen: false
                 border.color: root.activeMatchRule ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                showStateRail: Boolean(root.activeMatchRule)
+                stateRailColor: RaohaneTheme.accent
+                stateRailOpacity: 0.56
+                stateRailWidth: 2
+                stateRailLength: Math.max(22, height - RaohaneTheme.panelPadding * 2)
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 14
-                    anchors.rightMargin: 12
-                    spacing: 12
+                    anchors.leftMargin: RaohaneTheme.panelPadding
+                    anchors.rightMargin: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacingLarge
 
                     RaohaneSurface {
                         Layout.preferredWidth: 38
                         Layout.preferredHeight: 38
-                        surfaceRadius: 11
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: RaohaneScenes.activeAppId.length > 0
                         showSheen: false
@@ -530,7 +551,7 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: RaohaneTheme.spacingTiny
 
                         Text {
                             text: RaohaneScenes.activeAppId.length > 0 ? RaohaneScenes.activeAppId : qsTr("No active appId")
@@ -563,8 +584,8 @@ Item {
             }
 
             Text {
-                Layout.leftMargin: 3
-                Layout.topMargin: 3
+                Layout.leftMargin: RaohaneTheme.spacingTiny
+                Layout.topMargin: RaohaneTheme.spacingTiny
                 text: qsTr("APPLICATION RULES")
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 9
@@ -575,24 +596,24 @@ Item {
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 205
-                surfaceRadius: 12
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 13
-                    spacing: 8
+                    anchors.margins: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacingSmall
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 9
+                        spacing: RaohaneTheme.spacing
 
                         RaohaneSurface {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 36
-                            surfaceRadius: 9
+                            surfaceRadius: RaohaneTheme.radiusSmall
                             raised: false
                             showSheen: false
                             border.color: ruleField.activeFocus ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
@@ -600,8 +621,8 @@ Item {
                             TextField {
                                 id: ruleField
                                 anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
+                                anchors.leftMargin: RaohaneTheme.spacing
+                                anchors.rightMargin: RaohaneTheme.spacing
                                 text: root.rulePattern
                                 placeholderText: qsTr("appId or match pattern")
                                 color: RaohaneTheme.text
@@ -632,7 +653,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: RaohaneTheme.spacingSmall
 
                         Repeater {
                             model: root.matchChoices
@@ -657,7 +678,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: RaohaneTheme.spacingSmall
 
                         Repeater {
                             model: root.scenes
@@ -678,7 +699,7 @@ Item {
 
             Text {
                 visible: RaohaneScenes.appRules.length > 0
-                Layout.leftMargin: 3
+                Layout.leftMargin: RaohaneTheme.spacingTiny
                 text: qsTr("CUSTOM RULES")
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 9
@@ -695,7 +716,7 @@ Item {
 
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
-                    surfaceRadius: 11
+                    surfaceRadius: RaohaneTheme.radiusSmall
                     raised: false
                     showSheen: false
                     border.color: root.activeMatchRule
@@ -703,12 +724,19 @@ Item {
                             && root.activeMatchRule.match === ruleCard.modelData.match
                         ? RaohaneTheme.accentBorder
                         : RaohaneTheme.borderFaint
+                    showStateRail: Boolean(root.activeMatchRule
+                        && root.activeMatchRule.pattern === ruleCard.modelData.pattern
+                        && root.activeMatchRule.match === ruleCard.modelData.match)
+                    stateRailColor: RaohaneTheme.accent
+                    stateRailOpacity: 0.56
+                    stateRailWidth: 2
+                    stateRailLength: Math.max(18, height - RaohaneTheme.spacingLarge * 2)
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 13
-                        anchors.rightMargin: 10
-                        spacing: 11
+                        anchors.leftMargin: RaohaneTheme.panelPadding
+                        anchors.rightMargin: RaohaneTheme.spacing
+                        spacing: RaohaneTheme.spacing
 
                         RaohaneIcon {
                             text: root.sceneIcon(ruleCard.modelData.scene)
@@ -746,8 +774,8 @@ Item {
             }
 
             Text {
-                Layout.leftMargin: 3
-                Layout.topMargin: 3
+                Layout.leftMargin: RaohaneTheme.spacingTiny
+                Layout.topMargin: RaohaneTheme.spacingTiny
                 text: qsTr("BUILT-IN RULES")
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 9
@@ -764,7 +792,7 @@ Item {
 
                     Layout.fillWidth: true
                     Layout.preferredHeight: 56
-                    surfaceRadius: 11
+                    surfaceRadius: RaohaneTheme.radiusSmall
                     raised: false
                     showSheen: false
                     border.color: root.activeMatchRule
@@ -773,12 +801,20 @@ Item {
                             && root.activeMatchRule.match === builtinCard.modelData.match
                         ? RaohaneTheme.accentBorder
                         : RaohaneTheme.borderFaint
+                    showStateRail: Boolean(root.activeMatchRule
+                        && root.activeMatchRule.builtin
+                        && root.activeMatchRule.pattern === builtinCard.modelData.pattern
+                        && root.activeMatchRule.match === builtinCard.modelData.match)
+                    stateRailColor: RaohaneTheme.accent
+                    stateRailOpacity: 0.44
+                    stateRailWidth: 2
+                    stateRailLength: Math.max(18, height - RaohaneTheme.spacingLarge * 2)
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 13
-                        anchors.rightMargin: 13
-                        spacing: 11
+                        anchors.leftMargin: RaohaneTheme.panelPadding
+                        anchors.rightMargin: RaohaneTheme.panelPadding
+                        spacing: RaohaneTheme.spacing
 
                         RaohaneIcon {
                             text: "verified"
@@ -825,7 +861,7 @@ Item {
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 9
+            surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             active: choice.selected
             hovered: choiceMouse.containsMouse || choice.activeFocus
@@ -839,7 +875,7 @@ Item {
 
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 5
+                spacing: RaohaneTheme.spacingTiny
 
                 RaohaneIcon {
                     text: choice.icon
@@ -887,7 +923,7 @@ Item {
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 9
+            surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             active: choice.selected
             hovered: choiceMouse.containsMouse || choice.activeFocus
@@ -901,7 +937,7 @@ Item {
 
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 5
+                spacing: RaohaneTheme.spacingTiny
 
                 RaohaneIcon {
                     text: choice.icon
@@ -946,16 +982,16 @@ Item {
         signal changed(bool checked)
 
         Layout.preferredHeight: 56
-        surfaceRadius: 10
+        surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         showSheen: false
         border.color: RaohaneTheme.borderFaint
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            spacing: 8
+            anchors.leftMargin: RaohaneTheme.spacing
+            anchors.rightMargin: RaohaneTheme.spacing
+            spacing: RaohaneTheme.spacingSmall
 
             RaohaneIcon {
                 text: behavior.icon
@@ -1005,7 +1041,7 @@ Item {
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 9
+            surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             active: action.emphasized
             hovered: actionMouse.containsMouse || action.activeFocus
@@ -1020,7 +1056,7 @@ Item {
             RowLayout {
                 id: actionRow
                 anchors.centerIn: parent
-                spacing: 6
+                spacing: RaohaneTheme.spacingSmall
 
                 RaohaneIcon {
                     text: action.icon
