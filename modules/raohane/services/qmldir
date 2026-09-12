@@ -28,4 +28,5 @@ singleton RaohaneBackup 1.0 RaohaneBackup.qml
 singleton RaohaneThemePresets 1.0 RaohaneThemePresets.qml
 singleton RaohaneScenes 1.0 RaohaneScenes.qml
 singleton RaohaneRecorder 1.0 RaohaneRecorder.qml
+singleton RaohaneDiagnostics 1.0 RaohaneDiagnostics.qml
 RaohaneLoginWallpaperSync 1.0 RaohaneLoginWallpaperSync.qml
