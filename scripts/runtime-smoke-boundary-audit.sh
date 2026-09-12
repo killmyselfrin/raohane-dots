@@ -36,7 +36,8 @@ for contract in \
   'Cannot assign' \
   'Detected anchors on an item that is managed by a layout' \
   'Binding loop detected' \
-  'Runtime smoke validation: PASS'; do
+  'Runtime smoke validation:' \
+  "printf 'PASS\\\\n'"; do
   grep -Eq -- "$contract" "$smoke" || fail "runtime smoke validator lost contract: $contract"
 done
 
