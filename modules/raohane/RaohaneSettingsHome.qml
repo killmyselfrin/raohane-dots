@@ -10,22 +10,53 @@ import qs.modules.raohane.services
 Item {
     id: root
 
+    readonly property string sceneName: {
+        switch (RaohaneScenes.activeSceneId) {
+        case "gaming": return qsTr("Gaming")
+        case "focus": return qsTr("Focus")
+        case "work": return qsTr("Work")
+        default: return qsTr("Balanced")
+        }
+    }
+    readonly property string sceneStatus: RaohaneScenes.autoSceneActive
+        ? qsTr("Scene · %1 · auto").arg(root.sceneName)
+        : qsTr("Scene · %1").arg(root.sceneName)
+    readonly property string updateStatus: RaohaneUpdater.applying
+        ? qsTr("Installing update")
+        : RaohaneUpdater.checking
+            ? qsTr("Checking updates")
+            : RaohaneUpdater.errorText.length > 0
+                ? qsTr("Update needs attention")
+                : RaohaneUpdater.updateAvailable
+                    ? qsTr("Update available")
+                    : RaohaneUpdater.lastCheckedText.length > 0
+                        ? qsTr("Up to date · %1").arg(RaohaneUpdater.lastCheckedText)
+                        : qsTr("Updates ready")
+    readonly property string updateIcon: RaohaneUpdater.applying
+        ? "system_update_alt"
+        : RaohaneUpdater.checking
+            ? "sync"
+            : RaohaneUpdater.errorText.length > 0
+                ? "error"
+                : RaohaneUpdater.updateAvailable ? "new_releases" : "verified"
+
     function openPage(page: string): void {
         RaohaneSettingsRouter.request(page, "")
     }
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 12
+        spacing: RaohaneTheme.spacing
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 144
+            Layout.preferredHeight: 166
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             clip: true
             showSheen: false
-            border.color: RaohaneTheme.borderStrong
+            showInnerRim: false
+            idleBorderColor: RaohaneTheme.borderStrong
 
             Loader {
                 anchors.fill: parent
@@ -46,32 +77,45 @@ Item {
                 anchors.fill: parent
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: RaohaneTheme.dark ? "#f2171920" : "#f6f4f1eb" }
-                    GradientStop { position: 0.64; color: RaohaneTheme.dark ? "#dc171920" : "#e7f4f1eb" }
-                    GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#a9171920" : "#baf4f1eb" }
+                    GradientStop {
+                        position: 0.0
+                        color: Qt.rgba(RaohaneTheme.background.r, RaohaneTheme.background.g, RaohaneTheme.background.b,
+                            RaohaneTheme.dark ? 0.95 : 0.97)
+                    }
+                    GradientStop {
+                        position: 0.64
+                        color: Qt.rgba(RaohaneTheme.background.r, RaohaneTheme.background.g, RaohaneTheme.background.b,
+                            RaohaneTheme.dark ? 0.86 : 0.91)
+                    }
+                    GradientStop {
+                        position: 1.0
+                        color: Qt.rgba(RaohaneTheme.background.r, RaohaneTheme.background.g, RaohaneTheme.background.b,
+                            RaohaneTheme.dark ? 0.66 : 0.74)
+                    }
                 }
             }
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 20
+                anchors.margins: RaohaneTheme.panelPadding
+                spacing: RaohaneTheme.panelPadding
 
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
-                    spacing: 5
+                    spacing: RaohaneTheme.spacingSmall
 
                     RowLayout {
-                        spacing: 11
+                        spacing: RaohaneTheme.spacing
 
-                        Rectangle {
-                            Layout.preferredWidth: 38
-                            Layout.preferredHeight: 38
-                            radius: 12
-                            color: RaohaneTheme.accentSoft
-                            border.width: 1
-                            border.color: RaohaneTheme.accentBorder
+                        RaohaneSurface {
+                            Layout.preferredWidth: 40
+                            Layout.preferredHeight: 40
+                            surfaceRadius: RaohaneTheme.radiusLarge
+                            active: true
+                            raised: false
+                            showSheen: false
+                            showInnerRim: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
@@ -102,8 +146,8 @@ Item {
                     }
 
                     RowLayout {
-                        Layout.topMargin: 10
-                        spacing: 8
+                        Layout.topMargin: RaohaneTheme.spacingSmall
+                        spacing: RaohaneTheme.spacingSmall
 
                         StatusChip {
                             icon: RaohaneNetwork.materialSymbol
@@ -133,21 +177,42 @@ Item {
 
                 Rectangle {
                     Layout.preferredWidth: 1
-                    Layout.preferredHeight: 82
+                    Layout.preferredHeight: 118
                     color: RaohaneTheme.borderFaint
                 }
 
                 ColumnLayout {
-                    Layout.preferredWidth: 202
+                    Layout.preferredWidth: 218
                     Layout.alignment: Qt.AlignVCenter
-                    spacing: 9
+                    spacing: RaohaneTheme.spacingSmall
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 7
+                        spacing: RaohaneTheme.spacingSmall
 
                         MoodChip { label: RaohaneTheme.presetName; active: true }
                         MoodChip { label: RaohaneTheme.dark ? qsTr("Dark") : qsTr("Light") }
+                    }
+
+                    StatusChip {
+                        Layout.fillWidth: true
+                        maxChipWidth: 218
+                        icon: RaohaneScenes.activeSceneId === "gaming" ? "sports_esports"
+                            : RaohaneScenes.activeSceneId === "focus" ? "center_focus_strong"
+                            : RaohaneScenes.activeSceneId === "work" ? "work" : "tune"
+                        text: root.sceneStatus
+                        active: RaohaneScenes.activeSceneId !== "balanced" || RaohaneScenes.autoSceneActive
+                        page: "Scenes"
+                    }
+
+                    StatusChip {
+                        Layout.fillWidth: true
+                        maxChipWidth: 218
+                        icon: root.updateIcon
+                        text: root.updateStatus
+                        active: RaohaneUpdater.updateAvailable || RaohaneUpdater.checking || RaohaneUpdater.applying
+                        critical: RaohaneUpdater.errorText.length > 0
+                        page: "About"
                     }
 
                     PathChip {
@@ -162,18 +227,19 @@ Item {
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 72
-            surfaceRadius: 16
+            Layout.preferredHeight: 68
+            surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
-            color: RaohaneTheme.surfaceSubtle
-            border.color: RaohaneTheme.border
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceSubtle
+            idleBorderColor: RaohaneTheme.border
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 14
-                anchors.rightMargin: 12
-                spacing: 13
+                anchors.leftMargin: RaohaneTheme.spacing + 2
+                anchors.rightMargin: RaohaneTheme.spacing
+                spacing: RaohaneTheme.spacing + 1
 
                 ColumnLayout {
                     Layout.preferredWidth: root.width < 760 ? 126 : 158
@@ -222,7 +288,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
+            spacing: RaohaneTheme.spacing
 
             ColumnLayout {
                 spacing: 2
@@ -248,8 +314,8 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             columns: root.width >= 760 ? 3 : 2
-            columnSpacing: 9
-            rowSpacing: 9
+            columnSpacing: RaohaneTheme.spacingSmall + 1
+            rowSpacing: RaohaneTheme.spacingSmall + 1
 
             DeckCard {
                 Layout.fillWidth: true
@@ -341,32 +407,36 @@ Item {
         required property string path
         required property string icon
 
-        implicitHeight: 33
-        surfaceRadius: 10
+        implicitHeight: 31
+        surfaceRadius: RaohaneTheme.radius
         transparentIdle: true
         showSheen: false
+        showInnerRim: false
         hovered: pathMouse.containsMouse
+        pressed: pathMouse.pressed
         interactive: true
         hoverScale: 1
         pressedScale: 1
-        border.color: pathMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+        idleBorderColor: RaohaneTheme.borderFaint
+        hoverBorderColor: RaohaneTheme.borderStrong
+        pressedBorderColor: RaohaneTheme.borderStrong
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            spacing: 7
+            anchors.leftMargin: RaohaneTheme.spacingSmall + 2
+            anchors.rightMargin: RaohaneTheme.spacingSmall + 2
+            spacing: RaohaneTheme.spacingSmall
 
             RaohaneIcon {
                 text: pathChip.icon
                 iconSize: 14
-                color: pathMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                color: pathChip.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
                 Layout.fillWidth: true
                 text: pathChip.label
-                color: pathMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
+                color: pathChip.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
                 font.pixelSize: 9
                 elide: Text.ElideRight
             }
@@ -384,6 +454,7 @@ Item {
             hoverEnabled: true
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             cursorShape: Qt.PointingHandCursor
+            onPressed: pathChip.forceActiveFocus()
             onClicked: mouse => {
                 if (mouse.button === Qt.RightButton)
                     Quickshell.clipboardText = pathChip.path
@@ -402,37 +473,46 @@ Item {
         required property string page
 
         Layout.minimumHeight: 70
-        surfaceRadius: 15
-        hovered: cardMouse.containsMouse
+        surfaceRadius: RaohaneTheme.radiusLarge
+        hovered: cardMouse.containsMouse || activeFocus
         pressed: cardMouse.pressed
         interactive: true
         raised: false
         showSheen: false
+        showInnerRim: false
         hoverScale: 1
         pressedScale: 1
-        border.color: cardMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+        activeFocusOnTab: true
+        idleBorderColor: RaohaneTheme.borderFaint
+        hoverBorderColor: RaohaneTheme.borderStrong
+        pressedBorderColor: RaohaneTheme.borderStrong
+        showStateRail: card.hovered
+        stateRailWidth: 2
+        stateRailLength: 24
+        stateRailOpacity: 0.72
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 11
-            spacing: 10
+            anchors.leftMargin: RaohaneTheme.spacing + 2
+            anchors.rightMargin: RaohaneTheme.spacing + 1
+            spacing: RaohaneTheme.spacing
 
-            Rectangle {
+            RaohaneSurface {
                 Layout.preferredWidth: 36
                 Layout.preferredHeight: 36
-                radius: 11
-                color: cardMouse.containsMouse ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
-                border.width: 1
-                border.color: cardMouse.containsMouse ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                surfaceRadius: RaohaneTheme.radius
+                active: card.hovered
+                raised: false
+                showSheen: false
+                showInnerRim: false
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: card.icon
                     iconSize: 17
-                    fill: cardMouse.containsMouse ? 0.45 : 0
-                    symbolWeight: cardMouse.containsMouse ? 520 : 430
-                    color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                    fill: card.hovered ? 0.45 : 0
+                    symbolWeight: card.hovered ? 520 : 430
+                    color: card.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 }
             }
 
@@ -462,7 +542,7 @@ Item {
             RaohaneIcon {
                 text: "chevron_right"
                 iconSize: 15
-                color: cardMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                color: card.hovered ? RaohaneTheme.accent : RaohaneTheme.textFaint
             }
         }
 
@@ -471,30 +551,53 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onPressed: card.forceActiveFocus()
             onClicked: root.openPage(card.page)
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                root.openPage(card.page)
+                event.accepted = true
+            }
         }
     }
 
-    component StatusChip: Rectangle {
+    component StatusChip: RaohaneSurface {
         id: chip
 
         required property string icon
         required property string text
-        property bool active: false
         property bool critical: false
+        property string page: ""
+        property int maxChipWidth: 170
 
-        Layout.preferredWidth: Math.min(170, chipRow.implicitWidth + 20)
+        Layout.preferredWidth: Math.min(maxChipWidth, chipRow.implicitWidth + 20)
         Layout.preferredHeight: 29
-        radius: 10
-        color: RaohaneTheme.surfaceSubtle
-        border.width: 1
-        border.color: critical ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.55)
-            : active ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+        surfaceRadius: RaohaneTheme.radius
+        raised: false
+        showSheen: false
+        showInnerRim: false
+        hovered: chip.page.length > 0 && chipMouse.containsMouse
+        pressed: chip.page.length > 0 && chipMouse.pressed
+        interactive: chip.page.length > 0
+        hoverScale: 1
+        pressedScale: 1
+        idleColor: RaohaneTheme.surfaceSubtle
+        activeColor: chip.critical
+            ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.12)
+            : RaohaneTheme.accentSoft
+        idleBorderColor: RaohaneTheme.borderFaint
+        hoverBorderColor: chip.critical ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+        pressedBorderColor: chip.critical ? RaohaneTheme.critical : RaohaneTheme.borderStrong
+        activeBorderColor: chip.critical
+            ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.62)
+            : RaohaneTheme.borderStrong
 
         Row {
             id: chipRow
             anchors.centerIn: parent
-            spacing: 7
+            spacing: RaohaneTheme.spacingSmall
 
             RaohaneIcon {
                 text: chip.icon
@@ -503,32 +606,53 @@ Item {
             }
 
             Text {
-                width: Math.min(126, implicitWidth)
+                width: Math.min(chip.maxChipWidth - 42, implicitWidth)
                 text: chip.text
                 color: RaohaneTheme.text
                 font.pixelSize: 8
                 font.weight: Font.Medium
                 elide: Text.ElideRight
             }
+
+            RaohaneIcon {
+                visible: chip.page.length > 0
+                text: "chevron_right"
+                iconSize: 11
+                color: chip.hovered ? RaohaneTheme.accent : RaohaneTheme.textFaint
+            }
+        }
+
+        MouseArea {
+            id: chipMouse
+            anchors.fill: parent
+            enabled: chip.page.length > 0
+            hoverEnabled: enabled
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: root.openPage(chip.page)
         }
     }
 
-    component MoodChip: Rectangle {
+    component MoodChip: RaohaneSurface {
+        id: mood
+
         required property string label
-        property bool active: false
 
         Layout.preferredWidth: labelText.implicitWidth + 20
         Layout.preferredHeight: 27
-        radius: 9
-        color: active ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceSubtle
-        border.width: 1
-        border.color: active ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+        surfaceRadius: RaohaneTheme.radius
+        raised: false
+        showSheen: false
+        showInnerRim: false
+        idleColor: RaohaneTheme.surfaceSubtle
+        activeColor: RaohaneTheme.accentSoft
+        idleBorderColor: RaohaneTheme.borderFaint
+        activeBorderColor: RaohaneTheme.accentBorder
 
         Text {
             id: labelText
             anchors.centerIn: parent
-            text: label
-            color: active ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            text: mood.label
+            color: mood.active ? RaohaneTheme.accent : RaohaneTheme.textMuted
             font.pixelSize: 8
             font.weight: Font.Medium
         }
