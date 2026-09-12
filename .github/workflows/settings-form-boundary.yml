@@ -1,0 +1,30 @@
+name: Settings form boundary
+
+on:
+  push:
+    paths:
+      - 'modules/raohane/RaohaneSettingsSectionPage.qml'
+      - 'modules/raohane/RaohaneSettingsControlRow.qml'
+      - 'scripts/settings-form-boundary-audit.sh'
+      - '.github/workflows/settings-form-boundary.yml'
+  pull_request:
+    paths:
+      - 'modules/raohane/RaohaneSettingsSectionPage.qml'
+      - 'modules/raohane/RaohaneSettingsControlRow.qml'
+      - 'scripts/settings-form-boundary-audit.sh'
+      - '.github/workflows/settings-form-boundary.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  settings-form-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+      - name: Validate Settings form contract
+        shell: bash
+        run: |
+          bash -n scripts/settings-form-boundary-audit.sh
+          bash scripts/settings-form-boundary-audit.sh

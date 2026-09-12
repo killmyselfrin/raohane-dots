@@ -17,9 +17,10 @@ RaohaneSurface {
     readonly property bool choiceRow: root.entry?.type === "choice"
     readonly property var choiceOptions: Array.isArray(root.entry?.options) ? root.entry.options : []
     readonly property bool rowHovered: rowHover.hovered || activeFocus
+    readonly property bool compactRow: width < 620
 
-    height: root.textRow ? 76 : 64
-    activeFocusOnTab: root.toggleRow || root.choiceRow
+    height: root.textRow ? 80 : 68
+    activeFocusOnTab: root.toggleRow || root.numberRow || root.choiceRow
     surfaceRadius: RaohaneTheme.radiusSmall
     transparentIdle: true
     showSheen: false
@@ -31,7 +32,7 @@ RaohaneSurface {
     stateRailColor: RaohaneTheme.accent
     stateRailOpacity: activeFocus ? 0.54 : 0.34
     stateRailWidth: 2
-    stateRailLength: Math.max(16, root.height - 2 * (RaohaneTheme.panelPadding))
+    stateRailLength: Math.max(16, root.height - 2 * RaohaneTheme.panelPadding)
 
     function changeNumber(delta: real): void {
         if (!root.entry)
@@ -71,7 +72,7 @@ RaohaneSurface {
         anchors.fill: parent
         anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
         anchors.rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
-        spacing: RaohaneTheme.spacingLarge
+        spacing: root.compactRow ? RaohaneTheme.spacing : RaohaneTheme.spacingLarge
 
         ColumnLayout {
             Layout.fillWidth: true
@@ -93,6 +94,8 @@ RaohaneSurface {
                 font.pixelSize: 8
                 lineHeight: 1.18
                 wrapMode: Text.WordWrap
+                maximumLineCount: 2
+                elide: Text.ElideRight
             }
         }
 
@@ -107,13 +110,16 @@ RaohaneSurface {
 
         RaohaneSurface {
             visible: root.numberRow
-            Layout.preferredWidth: 122
+            Layout.preferredWidth: root.compactRow ? 108 : 122
             Layout.preferredHeight: 34
             surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             showSheen: false
+            active: root.activeFocus && root.numberRow
             idleColor: RaohaneTheme.surfaceDeep
+            activeColor: RaohaneTheme.surfaceDeep
             idleBorderColor: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            activeBorderColor: RaohaneTheme.accentBorder
 
             RowLayout {
                 anchors.fill: parent
@@ -139,6 +145,7 @@ RaohaneSurface {
                     color: RaohaneTheme.text
                     font.pixelSize: 9
                     font.weight: Font.DemiBold
+                    elide: Text.ElideRight
                 }
 
                 RaohaneIconButton {
@@ -156,12 +163,12 @@ RaohaneSurface {
 
         RaohaneSurface {
             visible: root.choiceRow
-            Layout.preferredWidth: 192
+            Layout.preferredWidth: root.compactRow ? Math.max(152, root.width * 0.34) : 192
             Layout.preferredHeight: 34
             surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             showSheen: false
-            active: root.activeFocus
+            active: root.activeFocus && root.choiceRow
             idleColor: RaohaneTheme.surfaceDeep
             activeColor: RaohaneTheme.surfaceDeep
             idleBorderColor: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
@@ -220,7 +227,7 @@ RaohaneSurface {
 
         RaohaneSurface {
             visible: root.textRow
-            Layout.preferredWidth: Math.min(320, root.width * 0.42)
+            Layout.preferredWidth: root.compactRow ? Math.max(180, root.width * 0.38) : Math.min(300, root.width * 0.42)
             Layout.preferredHeight: 34
             surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
@@ -251,7 +258,7 @@ RaohaneSurface {
         }
     }
 
-    Rectangle {
+    RaohaneDivider {
         visible: !root.lastRow
         anchors {
             left: parent.left
@@ -288,6 +295,12 @@ RaohaneSurface {
             return
         if (root.toggleRow && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
             RaohaneConfig[root.entry.key] = !Boolean(RaohaneConfig[root.entry.key])
+            event.accepted = true
+        } else if (root.numberRow && event.key === Qt.Key_Left) {
+            root.changeNumber(-Number(root.entry?.step ?? 0))
+            event.accepted = true
+        } else if (root.numberRow && event.key === Qt.Key_Right) {
+            root.changeNumber(Number(root.entry?.step ?? 0))
             event.accepted = true
         } else if (root.choiceRow && event.key === Qt.Key_Left) {
             root.changeChoice(-1)
