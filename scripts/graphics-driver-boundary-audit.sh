@@ -81,6 +81,25 @@ rg -q 'RaohaneGraphics\.updateNow\(\)' "$page" \
 rg -q 'RaohaneGraphics\.canUpdate' "$page" \
   || fail 'Graphics update button is not gated by service state'
 
+for contract in \
+  'readonly property bool compactLayout:' \
+  'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' \
+  'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusSmall' \
+  'stateRailColor:[[:space:]]*root\.statusColor' \
+  'showStateRail:[[:space:]]*RaohaneGraphics\.updateAvailable \|\| RaohaneGraphics\.updating' \
+  'component ActionButton:[[:space:]]*FocusScope' \
+  'activeFocusOnTab:[[:space:]]*enabled' \
+  'hovered:[[:space:]]*actionMouse\.containsMouse \|\| button\.activeFocus' \
+  'Keys\.onPressed:'; do
+  rg -q "$contract" "$page" || fail "Graphics Settings lost Nocturne interaction contract: $contract"
+done
+if rg -q 'component ActionButton:[[:space:]]*Rectangle' "$page"; then
+  fail 'Graphics Settings reintroduced a raw Rectangle action button'
+fi
+if rg -n 'surfaceRadius:[[:space:]]*[0-9]' "$page"; then
+  fail 'Graphics Settings reintroduced hard-coded surface radii'
+fi
+
 if rg -n '(pkexec|sudo|pacman[[:space:]]+-S)' "$page"; then
   fail 'presentation QML gained a direct privileged package command'
 fi
@@ -98,4 +117,4 @@ rg -q 'Quickshell\.clipboardText[[:space:]]*=[[:space:]]*RaohaneGraphics\.update
 rg -q 'scripts/graphics-driver-check\.py' "$runtime_validator" \
   || fail 'installed runtime validator does not require the graphics probe'
 
-printf 'graphics-driver-boundary-audit: hardware-aware detection, lazy freshness checks, Polkit-gated full upgrades, root-owned executables and no driver-family switching are enforced\n'
+printf 'graphics-driver-boundary-audit: hardware-aware detection, lazy freshness checks, Nocturne Settings interaction, Polkit-gated full upgrades, root-owned executables and no driver-family switching are enforced\n'

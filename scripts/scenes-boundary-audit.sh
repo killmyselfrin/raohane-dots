@@ -114,7 +114,7 @@ for contract in \
   'RaohaneScenes\.removeRule\(activeRule\.pattern, activeRule\.match\)' \
   'const contextualManagement = root\.sceneManagementResults\(needle\)' \
   'return contextualManagement\.concat\(builtIns\)'; do
-  rg -q "$contract" "$SEARCH" || fail "Launcher 2.0 scene management lost native contract: $contract"
+  rg -q "$contract" "$SEARCH" || fail "Launcher 2.0 scene management lost native service contract: $contract"
 done
 
 if rg -n 'Quickshell\.execDetached\([^\n]*(hyprctl|wpctl|nmcli|wf-recorder|pkill)|command:[^\n]*(hyprctl|wpctl|nmcli|wf-recorder|pkill)|record\.sh' "$SEARCH"; then
@@ -168,6 +168,19 @@ for contract in \
   'RaohaneScenes\.defaultRules\(\)'; do
   rg -q "$contract" "$SETTINGS" || fail "Scenes Settings lost explicit rule-mode contract: $contract"
 done
+for contract in \
+  'readonly property bool compactLayout:' \
+  'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusLarge' \
+  'surfaceRadius:[[:space:]]*RaohaneTheme\.radiusSmall' \
+  'showStateRail:[[:space:]]*true' \
+  'showStateRail:[[:space:]]*activeScene \|\| selectedScene' \
+  'stateRailColor:[[:space:]]*RaohaneTheme\.accent' \
+  'maximumLineCount:[[:space:]]*2'; do
+  rg -q "$contract" "$SETTINGS" || fail "Scenes Settings lost Nocturne visual contract: $contract"
+done
+if rg -n 'surfaceRadius:[[:space:]]*[0-9]' "$SETTINGS"; then
+  fail 'Scenes Settings reintroduced hard-coded surface radii'
+fi
 if rg -n 'FileView|scenes\.json|RaohanePaths\.sceneStateFile' "$SETTINGS"; then
   fail 'Scenes Settings must use RaohaneScenes instead of reading or writing scene persistence directly'
 fi
@@ -238,4 +251,4 @@ for contract in \
   rg -q "$contract" "$RUNTIME" || fail "Runtime recorder diagnostics lost contract: $contract"
 done
 
-printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Settings management, temporary dock/motion overlays, native gaming actions, Launcher 2.0 scene management, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
+printf 'scenes-boundary-audit: native scene state, reversible policies, explicit exact/prefix/contains rules, Nocturne Settings states, temporary dock/motion overlays, native gaming actions, Launcher 2.0 scene management, persistent scene-aware Context Island activity and runtime diagnostics are valid\n'
