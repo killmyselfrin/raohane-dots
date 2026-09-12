@@ -1,0 +1,38 @@
+name: Runtime smoke boundary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/runtime-smoke-check.sh'
+      - 'scripts/runtime-smoke-boundary-audit.sh'
+      - 'scripts/validate-runtime-payload.sh'
+      - 'scripts/prune-runtime.sh'
+      - 'scripts/phase4-visible-runtime-audit.sh'
+      - '.github/workflows/runtime-smoke-boundary.yml'
+  pull_request:
+    paths:
+      - 'scripts/runtime-smoke-check.sh'
+      - 'scripts/runtime-smoke-boundary-audit.sh'
+      - 'scripts/validate-runtime-payload.sh'
+      - 'scripts/prune-runtime.sh'
+      - 'scripts/phase4-visible-runtime-audit.sh'
+      - '.github/workflows/runtime-smoke-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-smoke-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+
+      - name: Validate runtime smoke contract
+        shell: bash
+        run: |
+          bash -n scripts/runtime-smoke-check.sh
+          bash -n scripts/runtime-smoke-boundary-audit.sh
+          bash scripts/runtime-smoke-boundary-audit.sh
