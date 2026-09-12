@@ -37,20 +37,20 @@ for contract in \
   'Detected anchors on an item that is managed by a layout' \
   'Binding loop detected' \
   'Runtime smoke validation: PASS'; do
-  rg -q -- "$contract" "$smoke" || fail "runtime smoke validator lost contract: $contract"
+  grep -Eq -- "$contract" "$smoke" || fail "runtime smoke validator lost contract: $contract"
 done
 
-if rg -q '_COMM=qs|journalctl.*qs[^a-zA-Z]' "$smoke"; then
+if grep -Eq '_COMM=qs|journalctl.*qs[^a-zA-Z]' "$smoke"; then
   fail 'runtime smoke validator scans generic qs journals and may mix unrelated Quickshell configs'
 fi
 
-rg -q 'scripts/runtime-smoke-check\.sh' "$payload" \
+grep -Eq 'scripts/runtime-smoke-check\.sh' "$payload" \
   || fail 'runtime payload does not require runtime-smoke-check.sh'
-rg -q 'runtime-smoke-check\.sh has invalid shell syntax' "$payload" \
+grep -Eq 'runtime-smoke-check\.sh has invalid shell syntax' "$payload" \
   || fail 'runtime payload does not syntax-check runtime-smoke-check.sh'
-rg -q 'runtime-smoke-check\.sh' "$pruner" \
+grep -Eq 'runtime-smoke-check\.sh' "$pruner" \
   || fail 'runtime pruner does not protect runtime-smoke-check.sh'
-rg -q 'runtime_smoke=' "$phase4_audit" \
+grep -Eq 'runtime_smoke=' "$phase4_audit" \
   || fail 'Phase 4 boundary does not track runtime smoke validator'
 
 for contract in \
@@ -62,7 +62,7 @@ for contract in \
   '^[[:space:]]*phase4\)' \
   'run_phase4_validator "\$@"' \
   'run_runtime_smoke_validator'; do
-  rg -q "$contract" "$cli" || fail "Raohane CLI lost runtime-smoke route: $contract"
+  grep -Eq "$contract" "$cli" || fail "Raohane CLI lost runtime-smoke route: $contract"
 done
 
 printf 'runtime-smoke-boundary-audit: live IPC, current-service log isolation, high-signal QML signatures, CLI routing and runtime payload retention are valid\n'
