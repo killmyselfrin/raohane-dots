@@ -7,6 +7,10 @@ on:
       - 'modules/raohane/RaohaneLauncher.qml'
       - 'modules/raohane/RaohaneLauncherSearchBar.qml'
       - 'modules/raohane/RaohaneLauncherModeBar.qml'
+      - 'modules/raohane/RaohaneLauncherIdleContent.qml'
+      - 'modules/raohane/RaohaneLauncherResultsView.qml'
+      - 'modules/raohane/RaohaneLauncherFooter.qml'
+      - 'modules/raohane/qmldir'
       - 'scripts/launcher-boundary-audit.sh'
       - '.github/workflows/launcher-boundary.yml'
   pull_request:
@@ -14,6 +18,10 @@ on:
       - 'modules/raohane/RaohaneLauncher.qml'
       - 'modules/raohane/RaohaneLauncherSearchBar.qml'
       - 'modules/raohane/RaohaneLauncherModeBar.qml'
+      - 'modules/raohane/RaohaneLauncherIdleContent.qml'
+      - 'modules/raohane/RaohaneLauncherResultsView.qml'
+      - 'modules/raohane/RaohaneLauncherFooter.qml'
+      - 'modules/raohane/qmldir'
       - 'scripts/launcher-boundary-audit.sh'
       - '.github/workflows/launcher-boundary.yml'
   workflow_dispatch:
