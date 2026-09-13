@@ -10,42 +10,32 @@ fail() {
 }
 
 privacy='modules/raohane/RaohanePrivacy.qml'
-pipewire='modules/raohane/services/RaohanePipeWire.qml'
+legacy='modules/raohane/services/RaohanePipeWire.qml'
 manifest='install/arch/required.txt'
 
 [[ -f "$privacy" ]] || fail "missing $privacy"
-[[ -f "$pipewire" ]] || fail "missing $pipewire"
 [[ -f "$manifest" ]] || fail "missing $manifest"
+[[ ! -e "$legacy" ]] || fail 'retired shared pw-mon service returned'
 
-if rg -n '"pw-mon"' "$privacy"; then
-  fail 'privacy service owns its own pw-mon process instead of the shared PipeWire watcher'
-fi
-rg -q 'target:[[:space:]]*RaohanePipeWire' "$privacy" \
-  || fail 'privacy service is not driven by the shared PipeWire graph watcher'
-rg -q 'RaohanePipeWire\.suppressEventsFor' "$privacy" \
-  || fail 'privacy service lost suppression for its own pw-dump graph churn'
-rg -q 'graphProbe\.exec\(\["pw-dump"\]\)' "$privacy" \
-  || fail 'privacy state refresh no longer invokes pw-dump directly'
-rg -q 'minimumRefreshInterval:[[:space:]]*1600' "$privacy" \
-  || fail 'privacy refresh throttling was removed or changed unexpectedly'
-rg -q 'interval:[[:space:]]*30000' "$privacy" \
-  || fail 'privacy health fallback is missing or no longer slow'
+rg -q '^import Quickshell\.Services\.Pipewire$' "$privacy" \
+  || fail 'privacy does not use the native Quickshell PipeWire API'
+rg -q 'Pipewire\.nodes\.values' "$privacy" \
+  || fail 'privacy does not observe native PipeWire nodes'
+rg -q 'Pipewire\.linkGroups\.values' "$privacy" \
+  || fail 'privacy does not observe native PipeWire link groups'
+rg -q 'PwObjectTracker[[:space:]]*\{' "$privacy" \
+  || fail 'privacy does not bind node properties and link states'
+rg -q 'PwLinkState\.Active' "$privacy" \
+  || fail 'privacy no longer limits capture indicators to active graph links'
+for property in 'media\.class' 'media\.category' 'media\.role' 'application\.name'; do
+  rg -q "$property" "$privacy" || fail "privacy lost capture metadata contract: $property"
+done
 
-rg -q 'command:[[:space:]]*\["pw-mon",[[:space:]]*"--color=never"\]' "$pipewire" \
-  || fail 'shared PipeWire watcher no longer owns pw-mon'
-rg -q 'id:[[:space:]]*graphDebounce' "$pipewire" \
-  || fail 'shared PipeWire graph changes are not debounced'
-rg -q 'id:[[:space:]]*monitorRestart' "$pipewire" \
-  || fail 'shared pw-mon watcher does not have a restart path'
-
-if rg -n '"bash",[[:space:]]*"-lc"|command -v pw-dump' "$privacy"; then
-  fail 'privacy probe regressed to a login shell; invoke pw-dump directly'
-fi
-if rg -n 'interval:[[:space:]]*(1000|1200|1500)[[:space:]]*$' "$privacy"; then
-  fail 'fast permanent privacy polling returned; use shared PipeWire events instead'
+if rg -n '\b(pw-mon|pw-dump|wpctl)\b|RaohanePipeWire\.|Quickshell\.Io|Process[[:space:]]*\{|Timer[[:space:]]*\{' "$privacy"; then
+  fail 'privacy regressed to helper-process or polling based graph inspection'
 fi
 
 rg -q '^pipewire$' "$manifest" \
-  || fail 'required Arch manifest no longer provides pw-mon/pw-dump through pipewire'
+  || fail 'native PipeWire integration still requires the PipeWire runtime'
 
-printf 'privacy-performance-audit: privacy uses the shared PipeWire watcher, throttled pw-dump snapshots and a slow health fallback\n'
+printf 'privacy-performance-audit: privacy derives active capture state directly from Quickshell PipeWire nodes and links\n'
