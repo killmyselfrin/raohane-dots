@@ -28,6 +28,15 @@ Scope {
         }
     }
 
+    IpcHandler {
+        target: "taskManager"
+
+        function toggle(): void { RaohaneState.togglePrimary("taskManager") }
+        function open(): void { RaohaneState.setPrimaryOpen("taskManager", true) }
+        function close(): void { RaohaneState.setPrimaryOpen("taskManager", false) }
+        function refresh(): void { RaohaneProcesses.refresh() }
+    }
+
     CompositorGlobalShortcut {
         name: "raohaneLauncherToggle"
         description: "Toggles the Raohane launcher"
@@ -53,5 +62,11 @@ Scope {
             RaohaneSearch.query = ":"
             RaohaneState.setPrimaryOpen("launcher", true)
         }
+    }
+
+    CompositorGlobalShortcut {
+        name: "taskManagerToggle"
+        description: "Toggle the Raohane Task Manager"
+        onPressed: RaohaneState.togglePrimary("taskManager")
     }
 }

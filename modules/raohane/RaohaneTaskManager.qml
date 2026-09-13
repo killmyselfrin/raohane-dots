@@ -4,7 +4,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
-import Quickshell.Io
 import Quickshell.Wayland
 
 import qs.modules.raohane.services
@@ -83,6 +82,14 @@ Scope {
         RaohaneState.setPrimaryOpen("taskManager", false)
     }
 
+    function prepareOpen(): void {
+        root.query = ""
+        root.pendingAction = ""
+        root.pendingCommand = ""
+        RaohaneProcesses.refresh()
+        Qt.callLater(searchInput.forceActiveFocus)
+    }
+
     function formatMemory(value: real): string {
         const mib = Math.max(0, Number(value ?? 0))
         if (mib >= 1024)
@@ -121,17 +128,17 @@ Scope {
         confirmTimer.restart()
     }
 
+    Component.onCompleted: {
+        if (RaohaneState.taskManagerOpen)
+            root.prepareOpen()
+    }
+
     Connections {
         target: RaohaneState
 
         function onTaskManagerOpenChanged(): void {
-            if (!RaohaneState.taskManagerOpen)
-                return
-            root.query = ""
-            root.pendingAction = ""
-            root.pendingCommand = ""
-            RaohaneProcesses.refresh()
-            Qt.callLater(searchInput.forceActiveFocus)
+            if (RaohaneState.taskManagerOpen)
+                root.prepareOpen()
         }
     }
 
@@ -687,20 +694,6 @@ Scope {
                 }
             }
         }
-    }
-
-    IpcHandler {
-        target: "taskManager"
-        function toggle(): void { RaohaneState.togglePrimary("taskManager") }
-        function open(): void { RaohaneState.setPrimaryOpen("taskManager", true) }
-        function close(): void { root.close() }
-        function refresh(): void { RaohaneProcesses.refresh() }
-    }
-
-    CompositorGlobalShortcut {
-        name: "taskManagerToggle"
-        description: "Toggle the Raohane Task Manager"
-        onPressed: RaohaneState.togglePrimary("taskManager")
     }
 
     component SortButton: RaohaneSurface {
