@@ -59,7 +59,7 @@ QtObject {
             role: "sidebar",
             layer: "overlay",
             placement: "left",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "overlay": {
             stateProperty: "overlayOpen",
@@ -68,7 +68,7 @@ QtObject {
             role: "overlay",
             layer: "overlay",
             placement: "fill",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "screenTranslator": {
             stateProperty: "screenTranslatorOpen",
