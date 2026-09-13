@@ -68,7 +68,7 @@ QtObject {
             role: "overlay",
             layer: "overlay",
             placement: "fill",
-            loadPolicy: "on-demand"
+            loadPolicy: "resident"
         },
         "screenTranslator": {
             stateProperty: "screenTranslatorOpen",
