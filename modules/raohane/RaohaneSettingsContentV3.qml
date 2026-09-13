@@ -30,6 +30,23 @@ Item {
         root.currentPage = index
     }
 
+    function restoreRememberedRoute(): bool {
+        const pageKey = String(RaohaneSettingsRouter.requestedPageKey ?? "")
+        if (pageKey === "")
+            return false
+
+        const index = RaohaneSettingsPageRegistry.resolvePageIndex(pageKey)
+        if (index < 0 || index >= root.pages.length)
+            return false
+
+        const revision = RaohaneSettingsRouter.routeRevision
+        root.pendingControl = String(RaohaneSettingsRouter.requestedControlKey ?? "")
+        root.currentPage = index
+        pageLoader.source = root.currentPageInfo?.source ?? ""
+        RaohaneSettingsRouter.acknowledgeRoute(revision)
+        return true
+    }
+
     function configureLoadedPage(): void {
         const page = root.currentPageInfo
         if (!pageLoader.item || !page)
@@ -79,7 +96,8 @@ Item {
     }
 
     Component.onCompleted: {
-        pageLoader.source = root.currentPageInfo?.source ?? ""
+        if (!root.restoreRememberedRoute())
+            pageLoader.source = root.currentPageInfo?.source ?? ""
         root.initialPageLoaded = true
     }
 
@@ -87,7 +105,9 @@ Item {
         target: RaohaneSettingsRouter
 
         function onPageRequested(pageKey: string, controlKey: string): void {
+            const revision = RaohaneSettingsRouter.routeRevision
             root.showPage(pageKey, controlKey)
+            RaohaneSettingsRouter.acknowledgeRoute(revision)
         }
     }
 
