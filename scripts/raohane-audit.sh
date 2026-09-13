@@ -201,7 +201,7 @@ while IFS= read -r qml; do
     rg -q '^import (QtQuick|QtQml)([[:space:]]|;|$)' "$qml" \
       || fail "$qml uses Connections without QtQuick/QtQml"
   fi
-  if rg -q '\b(IpcHandler|Process|StdioCollector|SplitParser)\b' "$qml"; then
+  if rg -q '\b(IpcHandler|Process|StdioCollector|SplitParser)[[:space:]]*\{' "$qml"; then
     rg -q '^import Quickshell\.Io([[:space:]]|;|$)' "$qml" \
       || fail "$qml uses Quickshell.Io types without importing Quickshell.Io"
   fi
