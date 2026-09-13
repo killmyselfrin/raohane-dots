@@ -2,6 +2,7 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import Quickshell.Services.Pipewire
 
 Singleton {
@@ -48,9 +49,6 @@ Singleton {
     }
 
     function buildCaptureState(revision: int, nodes, linkGroups): var {
-        // Keep the explicit revision dependency so compatibility refresh() calls
-        // can force one recomputation without launching any external process.
-        const dependency = revision
         const state = root.emptyState()
         if (!Pipewire.ready)
             return state
