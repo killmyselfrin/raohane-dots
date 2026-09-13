@@ -1,0 +1,30 @@
+name: Specialized Settings boundary
+
+on:
+  push:
+    paths:
+      - 'modules/raohane/RaohaneBackupSettings.qml'
+      - 'modules/raohane/RaohaneSettingsLanguage.qml'
+      - 'scripts/settings-specialized-boundary-audit.sh'
+      - '.github/workflows/settings-specialized-boundary.yml'
+  pull_request:
+    paths:
+      - 'modules/raohane/RaohaneBackupSettings.qml'
+      - 'modules/raohane/RaohaneSettingsLanguage.qml'
+      - 'scripts/settings-specialized-boundary-audit.sh'
+      - '.github/workflows/settings-specialized-boundary.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  specialized-settings-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Raohane
+        uses: actions/checkout@v4
+      - name: Validate specialized Settings contract
+        shell: bash
+        run: |
+          bash -n scripts/settings-specialized-boundary-audit.sh
+          bash scripts/settings-specialized-boundary-audit.sh
