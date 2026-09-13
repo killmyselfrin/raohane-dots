@@ -2,78 +2,74 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell
-import Quickshell.Io
-
-import qs.modules.raohane.services
+import Quickshell.Services.Pipewire
 
 Singleton {
     id: root
 
-    property bool microphoneActive: false
-    property bool cameraActive: false
-    property bool recordingActive: false
-    property bool unclassifiedVideoCaptureActive: false
+    property int refreshRevision: 0
 
-    property string microphoneApp: ""
-    property string cameraApp: ""
-    property string recordingApp: ""
-    property double lastRefreshMs: 0
+    readonly property var graphNodes: Pipewire.nodes.values
+    readonly property var graphLinks: Pipewire.linkGroups.values
+    readonly property var trackedObjects: [...root.graphNodes, ...root.graphLinks]
+    readonly property var captureState: root.buildCaptureState(root.refreshRevision, root.graphNodes, root.graphLinks)
 
-    readonly property int minimumRefreshInterval: 1600
-    readonly property int selfEventGuardInterval: 1800
+    readonly property bool microphoneActive: Boolean(root.captureState.microphoneActive)
+    readonly property bool cameraActive: Boolean(root.captureState.cameraActive)
+    readonly property bool recordingActive: Boolean(root.captureState.recordingActive)
+    readonly property bool unclassifiedVideoCaptureActive: Boolean(root.captureState.unclassifiedVideoCaptureActive)
+
+    readonly property string microphoneApp: String(root.captureState.microphoneApp ?? "")
+    readonly property string cameraApp: String(root.captureState.cameraApp ?? "")
+    readonly property string recordingApp: String(root.captureState.recordingApp ?? "")
 
     function stringProp(props, key): string {
         return String(props?.[key] ?? "")
     }
 
-    function applicationName(props): string {
+    function applicationName(node): string {
+        const props = node?.properties ?? ({})
         return root.stringProp(props, "application.name")
             || root.stringProp(props, "node.description")
-            || root.stringProp(props, "node.name")
+            || String(node?.description ?? "")
+            || String(node?.name ?? "")
     }
 
-    function reset(): void {
-        root.microphoneActive = false
-        root.cameraActive = false
-        root.recordingActive = false
-        root.unclassifiedVideoCaptureActive = false
-        root.microphoneApp = ""
-        root.cameraApp = ""
-        root.recordingApp = ""
+    function emptyState(): var {
+        return {
+            microphoneActive: false,
+            cameraActive: false,
+            recordingActive: false,
+            unclassifiedVideoCaptureActive: false,
+            microphoneApp: "",
+            cameraApp: "",
+            recordingApp: ""
+        }
     }
 
-    function applyDump(text): void {
-        let document
-        try {
-            document = JSON.parse(String(text ?? "[]"))
-        } catch (error) {
-            root.reset()
-            return
+    function buildCaptureState(revision: int, nodes, linkGroups): var {
+        // Keep the explicit revision dependency so compatibility refresh() calls
+        // can force one recomputation without launching any external process.
+        const dependency = revision
+        const state = root.emptyState()
+        if (!Pipewire.ready)
+            return state
+
+        const activeNodeIds = new Set()
+        for (const group of linkGroups ?? []) {
+            if (!group || group.state !== PwLinkState.Active)
+                continue
+            if (group.source)
+                activeNodeIds.add(Number(group.source.id))
+            if (group.target)
+                activeNodeIds.add(Number(group.target.id))
         }
 
-        if (!Array.isArray(document)) {
-            root.reset()
-            return
-        }
-
-        let microphoneActive = false
-        let cameraActive = false
-        let recordingActive = false
-        let unclassifiedVideo = false
-        let microphoneApp = ""
-        let cameraApp = ""
-        let recordingApp = ""
-
-        for (const object of document) {
-            if (String(object?.type ?? "") !== "PipeWire:Interface:Node")
+        for (const node of nodes ?? []) {
+            if (!node || !node.isStream || !activeNodeIds.has(Number(node.id)))
                 continue
 
-            const info = object?.info ?? {}
-            if (String(info?.state ?? "").toLowerCase() !== "running")
-                continue
-
-            const props = info?.props ?? {}
+            const props = node.properties ?? ({})
             const mediaClass = root.stringProp(props, "media.class")
             const mediaCategory = root.stringProp(props, "media.category")
             const mediaRole = root.stringProp(props, "media.role")
@@ -81,11 +77,11 @@ Singleton {
             if (!capture)
                 continue
 
-            const app = root.applicationName(props)
+            const app = root.applicationName(node)
             if (mediaClass.includes("Audio")) {
-                microphoneActive = true
-                if (!microphoneApp.length)
-                    microphoneApp = app
+                state.microphoneActive = true
+                if (!state.microphoneApp.length)
+                    state.microphoneApp = app
                 continue
             }
 
@@ -93,72 +89,30 @@ Singleton {
                 continue
 
             if (mediaRole === "Camera") {
-                cameraActive = true
-                if (!cameraApp.length)
-                    cameraApp = app
+                state.cameraActive = true
+                if (!state.cameraApp.length)
+                    state.cameraApp = app
             } else if (mediaRole === "Screen" || mediaRole === "Screencast") {
-                recordingActive = true
-                if (!recordingApp.length)
-                    recordingApp = app
+                state.recordingActive = true
+                if (!state.recordingApp.length)
+                    state.recordingApp = app
             } else {
-                unclassifiedVideo = true
+                state.unclassifiedVideoCaptureActive = true
             }
         }
 
-        root.microphoneActive = microphoneActive
-        root.cameraActive = cameraActive
-        root.recordingActive = recordingActive
-        root.unclassifiedVideoCaptureActive = unclassifiedVideo
-        root.microphoneApp = microphoneApp
-        root.cameraApp = cameraApp
-        root.recordingApp = recordingApp
+        return state
     }
 
-    // Keep the optional force flag untyped for older deployed Quickshell builds.
+    // Older presentation code can still request a refresh. Native PipeWire is
+    // already event-driven, so this only invalidates the derived snapshot.
     function refresh(force) {
-        if (graphProbe.running)
-            return
-
-        const forced = force === true
-        const now = Date.now()
-        if (!forced && root.lastRefreshMs > 0
-                && now - root.lastRefreshMs < root.minimumRefreshInterval)
-            return
-
-        root.lastRefreshMs = now
-        // pw-dump is itself a PipeWire client. Suppress its short-lived graph
-        // churn at the shared monitor so it cannot wake Audio or itself again.
-        RaohanePipeWire.suppressEventsFor(root.selfEventGuardInterval)
-        graphProbe.exec(["pw-dump"])
+        root.refreshRevision += 1
     }
 
-    Connections {
-        target: RaohanePipeWire
-
-        function onGraphChanged(): void {
-            root.refresh()
-        }
+    // Node properties and link states are the only privacy fields that require
+    // binding. Quickshell keeps the graph itself synchronized with PipeWire.
+    PwObjectTracker {
+        objects: root.trackedObjects
     }
-
-    // Slow fallback covers missed monitor events without continuous polling.
-    Timer {
-        interval: 30000
-        repeat: true
-        running: true
-        onTriggered: root.refresh(true)
-    }
-
-    Process {
-        id: graphProbe
-        environment: ({ LANG: "C", LC_ALL: "C" })
-        stdout: StdioCollector {
-            onStreamFinished: root.applyDump(text)
-        }
-        onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0)
-                root.reset()
-        }
-    }
-
-    Component.onCompleted: root.refresh(true)
 }
