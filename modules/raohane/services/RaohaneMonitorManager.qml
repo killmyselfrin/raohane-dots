@@ -17,6 +17,11 @@ Singleton {
     property bool bootProfilesApplied: false
     property bool refreshing: false
     property string errorMessage: ""
+    property var refreshCorrectionTimes: ({})
+
+    readonly property real refreshTolerance: 0.75
+    readonly property int refreshGuardInterval: 2500
+    readonly property int refreshCorrectionCooldown: 5000
 
     property bool pending: false
     property string pendingMonitorName: ""
@@ -34,6 +39,71 @@ Singleton {
 
     function normalizeMode(value: string): string {
         return String(value ?? "").replace(/Hz$/i, "")
+    }
+
+    function parseMode(value: string): var {
+        const clean = root.normalizeMode(value).trim()
+        const match = clean.match(/^(\d+)x(\d+)@([0-9]+(?:\.[0-9]+)?)$/)
+        if (!match)
+            return null
+        const width = Number(match[1])
+        const height = Number(match[2])
+        const refreshRate = Number(match[3])
+        if (width <= 0 || height <= 0 || refreshRate <= 0 || isNaN(refreshRate))
+            return null
+        return {
+            width: width,
+            height: height,
+            refreshRate: refreshRate,
+            mode: clean
+        }
+    }
+
+    function highestRefreshMode(monitor, width: int, height: int): string {
+        if (!monitor || width <= 0 || height <= 0)
+            return ""
+        let best = null
+        for (const value of monitor.availableModes ?? []) {
+            const parsed = root.parseMode(value)
+            if (!parsed || parsed.width !== width || parsed.height !== height)
+                continue
+            if (!best || parsed.refreshRate > best.refreshRate)
+                best = parsed
+        }
+        return best ? best.mode : ""
+    }
+
+    function bestModesByResolution(monitor): var {
+        const best = ({})
+        const order = []
+        for (const value of monitor?.availableModes ?? []) {
+            const parsed = root.parseMode(value)
+            if (!parsed)
+                continue
+            const key = `${parsed.width}x${parsed.height}`
+            if (!best[key]) {
+                best[key] = parsed
+                order.push(key)
+            } else if (parsed.refreshRate > best[key].refreshRate) {
+                best[key] = parsed
+            }
+        }
+        return order.map(key => best[key].mode)
+    }
+
+    function maxRefreshModeFor(name: string, mode: string): string {
+        const clean = root.normalizeMode(mode) || "preferred"
+        const parsed = root.parseMode(clean)
+        const monitor = root.monitorByName(name)
+        if (!parsed || !monitor)
+            return clean
+        return root.highestRefreshMode(monitor, parsed.width, parsed.height) || clean
+    }
+
+    function maximizeConfigMode(value): var {
+        const config = root.sanitizeConfig(value)
+        config.mode = root.maxRefreshModeFor(config.name, config.mode)
+        return config
     }
 
     function currentMode(monitor): string {
@@ -117,7 +187,7 @@ Singleton {
     }
 
     function applyTemporary(value): void {
-        const config = root.sanitizeConfig(value)
+        const config = root.maximizeConfigMode(value)
         if (config.name.length === 0)
             return
 
@@ -184,7 +254,7 @@ Singleton {
     }
 
     function saveProfile(value): void {
-        const config = root.sanitizeConfig(value)
+        const config = root.maximizeConfigMode(value)
         if (config.name.length === 0)
             return
         const next = ({})
@@ -211,13 +281,60 @@ Singleton {
         if (!root.profilesReady || root.bootProfilesApplied || root.monitors.length === 0)
             return
         root.bootProfilesApplied = true
+        const next = ({})
+        let profilesChanged = false
         for (const name of Object.keys(root.profiles ?? {})) {
-            const config = root.sanitizeConfig(root.profiles[name])
+            const original = root.sanitizeConfig(root.profiles[name])
+            const config = root.maximizeConfigMode(original)
+            next[name] = config
+            if (config.mode !== original.mode)
+                profilesChanged = true
             const code = root.buildLuaRule(config)
             if (code.length > 0)
                 Quickshell.execDetached(["hyprctl", "eval", code])
         }
+        if (profilesChanged) {
+            root.profiles = next
+            profileFile.setText(JSON.stringify({ schemaVersion: 1, monitors: next }, null, 2) + "\n")
+        }
         refreshDelay.restart()
+    }
+
+    function markRefreshCorrection(name: string): void {
+        const next = ({})
+        for (const key of Object.keys(root.refreshCorrectionTimes ?? {}))
+            next[key] = root.refreshCorrectionTimes[key]
+        next[name] = Date.now()
+        root.refreshCorrectionTimes = next
+    }
+
+    function enforceMaxRefresh(): void {
+        if (!root.ready || !root.bootProfilesApplied || root.pending)
+            return
+
+        const now = Date.now()
+        for (const monitor of root.monitors) {
+            if (monitor.disabled || !monitor.dpmsStatus)
+                continue
+            const width = Number(monitor.width ?? 0)
+            const height = Number(monitor.height ?? 0)
+            const currentRate = Number(monitor.refreshRate ?? 0)
+            const bestMode = root.highestRefreshMode(monitor, width, height)
+            const best = root.parseMode(bestMode)
+            if (!best || currentRate <= 0 || best.refreshRate - currentRate <= root.refreshTolerance)
+                continue
+
+            const lastCorrection = Number(root.refreshCorrectionTimes?.[monitor.name] ?? 0)
+            if (now - lastCorrection < root.refreshCorrectionCooldown)
+                continue
+
+            const config = root.currentConfiguration(monitor.name)
+            if (!config)
+                continue
+            config.mode = bestMode
+            root.markRefreshCorrection(monitor.name)
+            root.applyRule(config)
+        }
     }
 
     function refresh(): void {
@@ -308,10 +425,13 @@ Singleton {
                             ? item.availableModes.map(mode => root.normalizeMode(mode))
                             : []
                     })).filter(item => item.name.length > 0) : []
+                    const profilesWereApplied = root.bootProfilesApplied
                     root.monitors = next
                     root.errorMessage = ""
                     root.ready = true
                     root.applySavedProfiles()
+                    if (profilesWereApplied)
+                        root.enforceMaxRefresh()
                 } catch (error) {
                     root.errorMessage = qsTr("Could not parse Hyprland monitor information.")
                     console.warn("[RaohaneMonitorManager] hyprctl monitor parse failed:", error)
@@ -332,6 +452,14 @@ Singleton {
         id: refreshDelay
         interval: 550
         repeat: false
+        onTriggered: root.refresh()
+    }
+
+    Timer {
+        id: refreshGuard
+        interval: root.refreshGuardInterval
+        repeat: true
+        running: true
         onTriggered: root.refresh()
     }
 
