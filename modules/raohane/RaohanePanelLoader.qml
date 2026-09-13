@@ -4,8 +4,8 @@ import Quickshell
 // Product-local lazy loader. Surface lifetime is declared in
 // RaohaneSurfaceRegistry: resident surfaces keep global entrypoints alive,
 // while on-demand surfaces are instantiated only while their runtime state is
-// open. Surfaces with deferredUnload stay alive for one motion cycle after
-// state closes so their own exit animation can finish before destruction.
+// open. Surfaces with deferredUnload stay alive for one relaxed motion cycle
+// after state closes so their own exit animation can finish before destruction.
 LazyLoader {
     id: root
 
@@ -24,10 +24,11 @@ LazyLoader {
         || RaohaneState.surfaceOpen(surfaceId)
     readonly property bool deferredUnload: surfaceMetadata?.deferredUnload === true
     readonly property int unloadDelay: deferredUnload
-        ? Math.max(80, RaohaneMotion.standard + 40)
+        ? Math.max(100, RaohaneMotion.relaxed + 40)
         : 0
 
-    property Timer unloadTimer: Timer {
+    Timer {
+        id: unloadTimer
         interval: root.unloadDelay
         repeat: false
         onTriggered: root.unloadHeld = false
