@@ -11,54 +11,51 @@ fail() {
 
 audio='modules/raohane/services/RaohaneAudio.qml'
 privacy='modules/raohane/RaohanePrivacy.qml'
-pipewire='modules/raohane/services/RaohanePipeWire.qml'
+legacy='modules/raohane/services/RaohanePipeWire.qml'
+qmldir='modules/raohane/services/qmldir'
 
-for path in "$audio" "$privacy" "$pipewire"; do
-  [[ -f "$path" ]] || fail "missing PipeWire surface/service: $path"
+for path in "$audio" "$privacy" "$qmldir"; do
+  [[ -f "$path" ]] || fail "missing native PipeWire contract: $path"
+done
+[[ ! -e "$legacy" ]] || fail 'retired RaohanePipeWire subprocess watcher returned'
+if rg -n '^singleton RaohanePipeWire ' "$qmldir"; then
+  fail 'retired RaohanePipeWire singleton is still registered'
+fi
+
+for path in "$audio" "$privacy"; do
+  rg -q '^import Quickshell\.Services\.Pipewire$' "$path" \
+    || fail "$path does not use Quickshell native PipeWire API"
+  rg -q 'PwObjectTracker[[:space:]]*\{' "$path" \
+    || fail "$path does not bind the native PipeWire objects it reads"
+  if rg -n '\b(pw-mon|pw-dump|wpctl)\b|RaohanePipeWire\.|Quickshell\.Io|Process[[:space:]]*\{|Timer[[:space:]]*\{' "$path"; then
+    fail "$path regressed to subprocess or polling based PipeWire state"
+  fi
   if rg -n 'function[[:space:]]+[A-Za-z0-9_]+\([^)]*:[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=' "$path"; then
     fail "$path uses a typed function parameter with a default value; deployed Quickshell rejects this syntax"
   fi
 done
 
-for path in "$audio" "$privacy"; do
-  if rg -n '"pw-mon"' "$path"; then
-    fail "$path owns a duplicate pw-mon process instead of using RaohanePipeWire"
-  fi
-  rg -q 'function[[:space:]]+refresh\(force\)' "$path" \
-    || fail "$path lost the runtime-compatible optional force signature"
-  rg -q 'const forced = force === true' "$path" \
-    || fail "$path lost explicit optional-force normalization"
-  rg -q 'RaohanePipeWire\.suppressEventsFor' "$path" \
-    || fail "$path no longer suppresses its own PipeWire client churn"
-  rg -q 'target:[[:space:]]*RaohanePipeWire' "$path" \
-    || fail "$path no longer consumes the shared PipeWire graph signal"
-  rg -q 'minimumRefreshInterval' "$path" \
-    || fail "$path lost probe throttling"
+for contract in \
+  'Pipewire\.defaultAudioSink' \
+  'Pipewire\.defaultAudioSource' \
+  'Pipewire\.nodes\.values' \
+  'Pipewire\.preferredDefaultAudioSink[[:space:]]*=' \
+  'Pipewire\.preferredDefaultAudioSource[[:space:]]*=' \
+  'root\.sinkNode\.audio\.volume[[:space:]]*=' \
+  'root\.sourceNode\.audio\.volume[[:space:]]*=' \
+  'root\.sinkNode\.audio\.muted[[:space:]]*=' \
+  'root\.sourceNode\.audio\.muted[[:space:]]*='; do
+  rg -q "$contract" "$audio" || fail "audio lost native PipeWire contract: $contract"
 done
 
-rg -q 'command:[[:space:]]*\["pw-mon",[[:space:]]*"--color=never"\]' "$pipewire" \
-  || fail 'shared PipeWire service no longer owns the single registry monitor'
-rg -q 'signal[[:space:]]+graphChanged' "$pipewire" \
-  || fail 'shared PipeWire service lost its graphChanged signal'
-rg -q 'id:[[:space:]]*graphDebounce' "$pipewire" \
-  || fail 'shared PipeWire monitor lost event debouncing'
+for contract in \
+  'Pipewire\.nodes\.values' \
+  'Pipewire\.linkGroups\.values' \
+  'PwLinkState\.Active' \
+  'media\.class' \
+  'media\.category' \
+  'media\.role'; do
+  rg -q "$contract" "$privacy" || fail "privacy lost native PipeWire graph contract: $contract"
+done
 
-rg -q 'volumeProbe\.exec\(' "$audio" \
-  || fail 'audio snapshot no longer uses the dedicated probe process'
-rg -q '"bash",[[:space:]]*"-c"' "$audio" \
-  || fail 'audio snapshot/action shell is no longer explicitly non-login'
-rg -q 'minimumRefreshInterval:[[:space:]]*15000' "$audio" \
-  || fail 'audio UI cache interval changed unexpectedly'
-rg -q 'function onGraphChanged\(\): void' "$audio" \
-  || fail 'audio no longer reacts to shared PipeWire graph events'
-rg -q 'root\.refresh\(true\)' "$audio" \
-  || fail 'authoritative PipeWire events no longer bypass the UI cache'
-rg -q 'interval:[[:space:]]*120000' "$audio" \
-  || fail 'audio lost its slow missed-event repair snapshot'
-
-rg -q 'graphProbe\.exec\(\["pw-dump"\]\)' "$privacy" \
-  || fail 'privacy snapshot no longer runs pw-dump directly'
-rg -q 'minimumRefreshInterval:[[:space:]]*1600' "$privacy" \
-  || fail 'privacy refresh throttling changed unexpectedly'
-
-printf 'pipewire-probe-performance-audit: one shared graph monitor, cached event-driven audio, throttled privacy probes and self-event suppression are active\n'
+printf 'pipewire-probe-performance-audit: audio and privacy use the native Quickshell PipeWire graph with no helper processes or polling\n'

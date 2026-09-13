@@ -3,216 +3,112 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
+import Quickshell.Services.Pipewire
 
 Singleton {
     id: root
 
-    property bool ready: false
-    property bool microphoneReady: false
-    property real volume: 0
-    property bool muted: false
-    property real microphoneVolume: 0
-    property bool microphoneMuted: false
-    property string sinkName: ""
-    property string sourceName: ""
-    property string lastError: ""
-    property double lastRefreshMs: 0
+    readonly property var sinkNode: Pipewire.defaultAudioSink
+    readonly property var sourceNode: Pipewire.defaultAudioSource
 
-    property var outputDevices: []
-    property var inputDevices: []
-    property bool devicesRefreshing: false
+    readonly property bool ready: Pipewire.ready
+        && root.sinkNode !== null
+        && root.sinkNode.ready
+        && root.sinkNode.audio !== null
+    readonly property bool microphoneReady: Pipewire.ready
+        && root.sourceNode !== null
+        && root.sourceNode.ready
+        && root.sourceNode.audio !== null
 
-    // UI surfaces may request a snapshot when opened, but PipeWire events are
-    // authoritative. Keep recent state cached so repeated panel opens do not
-    // launch wpctl again while real graph changes still refresh immediately.
-    readonly property int minimumRefreshInterval: 15000
-    readonly property int selfEventGuardInterval: 1300
-    readonly property var outputStreams: []
-    readonly property var inputStreams: []
+    readonly property real volume: root.ready
+        ? root.clampVolume(root.sinkNode.audio.volume)
+        : 0
+    readonly property bool muted: root.ready
+        ? Boolean(root.sinkNode.audio.muted)
+        : false
+    readonly property real microphoneVolume: root.microphoneReady
+        ? root.clampVolume(root.sourceNode.audio.volume)
+        : 0
+    readonly property bool microphoneMuted: root.microphoneReady
+        ? Boolean(root.sourceNode.audio.muted)
+        : false
+
+    readonly property string sinkName: root.nodeLabel(root.sinkNode)
+    readonly property string sourceName: root.nodeLabel(root.sourceNode)
+    readonly property string lastError: Pipewire.ready && root.sinkNode === null
+        ? "No default audio sink"
+        : ""
+
+    readonly property var outputDevices: root.deviceEntries(true)
+    readonly property var inputDevices: root.deviceEntries(false)
+    readonly property bool devicesRefreshing: false
 
     function clampVolume(value: real): real {
         return Math.max(0, Math.min(1, Number(value) || 0))
     }
 
-    function parseVolume(text): var {
-        const value = String(text ?? "")
-        const match = value.match(/Volume:\s*([0-9]+(?:\.[0-9]+)?)/)
-        if (!match)
-            return null
-        return {
-            volume: root.clampVolume(Number(match[1])),
-            muted: /\[MUTED\]/i.test(value)
-        }
+    function nodeLabel(node): string {
+        if (!node)
+            return ""
+
+        const description = String(node.description ?? "").trim()
+        if (description.length > 0)
+            return description
+
+        const nickname = String(node.nickname ?? "").trim()
+        if (nickname.length > 0)
+            return nickname
+
+        return String(node.name ?? "").trim()
     }
 
-    function applySink(text): void {
-        const value = String(text ?? "").trim()
-        if (value === "UNAVAILABLE") {
-            root.ready = false
-            root.lastError = "No default audio sink"
-            return
-        }
+    function deviceEntries(sinks: bool): var {
+        const activeNode = sinks ? root.sinkNode : root.sourceNode
+        const entries = []
 
-        const parsed = root.parseVolume(value)
-        if (!parsed)
-            return
-
-        const wasReady = root.ready
-        root.volume = parsed.volume
-        root.muted = parsed.muted
-        root.ready = true
-        root.lastError = ""
-        if (!wasReady)
-            console.debug("[RaohaneAudio] wpctl sink ready")
-    }
-
-    function applySource(text): void {
-        const value = String(text ?? "").trim()
-        if (value === "UNAVAILABLE") {
-            root.microphoneReady = false
-            return
-        }
-
-        const parsed = root.parseVolume(value)
-        if (!parsed)
-            return
-
-        root.microphoneVolume = parsed.volume
-        root.microphoneMuted = parsed.muted
-        root.microphoneReady = true
-    }
-
-    function applyProbe(text): void {
-        for (const rawLine of String(text ?? "").split("\n")) {
-            const line = rawLine.trim()
-            if (line.startsWith("SINK "))
-                root.applySink(line.slice(5))
-            else if (line.startsWith("SOURCE "))
-                root.applySource(line.slice(7))
-            else if (line.startsWith("SINK_NAME "))
-                root.sinkName = line.slice(10).trim()
-            else if (line.startsWith("SOURCE_NAME "))
-                root.sourceName = line.slice(12).trim()
-        }
-    }
-
-    function cleanStatusLine(rawLine: string): string {
-        return String(rawLine ?? "")
-            .replace(/[│├└─]/g, " ")
-            .trim()
-    }
-
-    function parseDeviceLine(rawLine: string): var {
-        const line = root.cleanStatusLine(rawLine)
-        const match = line.match(/^(\*)?\s*([0-9]+)\.\s+(.+)$/)
-        if (!match)
-            return null
-
-        const rawName = String(match[3] ?? "")
-        const name = rawName.replace(/\s+\[vol:.*$/i, "").trim()
-        if (!name.length)
-            return null
-
-        return {
-            id: Number(match[2]),
-            name: name,
-            active: Boolean(match[1])
-        }
-    }
-
-    function parseStatus(text): void {
-        let section = ""
-        const outputs = []
-        const inputs = []
-
-        for (const rawLine of String(text ?? "").split("\n")) {
-            const line = root.cleanStatusLine(rawLine)
-            if (line.endsWith("Sinks:")) {
-                section = "sinks"
-                continue
-            }
-            if (line.endsWith("Sources:")) {
-                section = "sources"
-                continue
-            }
-            if (line.endsWith("Filters:") || line.endsWith("Streams:") || line === "Video" || line.endsWith("Devices:")) {
-                if (section === "sinks" || section === "sources")
-                    section = ""
-                continue
-            }
-            if (section !== "sinks" && section !== "sources")
+        for (const node of Pipewire.nodes.values) {
+            if (!node || node.audio === null || node.isStream || Boolean(node.isSink) !== sinks)
                 continue
 
-            const item = root.parseDeviceLine(rawLine)
-            if (!item)
+            const name = root.nodeLabel(node)
+            if (name.length === 0)
                 continue
-            if (section === "sinks")
-                outputs.push(item)
-            else
-                inputs.push(item)
+
+            entries.push({
+                id: Number(node.id),
+                name: name,
+                active: node === activeNode,
+                node: node
+            })
         }
 
-        root.outputDevices = outputs
-        root.inputDevices = inputs
+        entries.sort((left, right) => {
+            if (left.active !== right.active)
+                return left.active ? -1 : 1
+            return left.name.localeCompare(right.name)
+        })
+        return entries
     }
 
-    // Keep the optional force flag untyped for older deployed Quickshell builds.
-    function refresh(force) {
-        if (volumeProbe.running)
-            return
-
-        const forced = force === true
-        const now = Date.now()
-        if (!forced && root.lastRefreshMs > 0
-                && now - root.lastRefreshMs < root.minimumRefreshInterval)
-            return
-
-        root.lastRefreshMs = now
-        // wpctl creates short-lived PipeWire graph events. Suppress them at the
-        // shared registry monitor so Audio and Privacy cannot wake each other.
-        RaohanePipeWire.suppressEventsFor(root.selfEventGuardInterval)
-        volumeProbe.exec([
-            "bash", "-c",
-            "printf 'SINK '; wpctl get-volume @DEFAULT_SINK@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
-                + "printf 'SOURCE '; wpctl get-volume @DEFAULT_SOURCE@ 2>/dev/null || printf 'UNAVAILABLE\\n'; "
-                + "printf 'SINK_NAME '; wpctl inspect @DEFAULT_SINK@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1; "
-                + "printf 'SOURCE_NAME '; wpctl inspect @DEFAULT_SOURCE@ 2>/dev/null | sed -n 's/^[[:space:]]*node.description = \"\\(.*\\)\"/\\1/p' | head -1"
-        ])
-    }
-
-    function refreshDevices(force): void {
-        if (deviceProbe.running)
-            return
-        root.devicesRefreshing = true
-        RaohanePipeWire.suppressEventsFor(root.selfEventGuardInterval)
-        deviceProbe.exec(["wpctl", "status"])
-    }
-
-    function refreshSoon(): void {
-        refreshTimer.restart()
-    }
+    // Retained as compatibility entrypoints for surfaces that previously asked
+    // the subprocess backend for a snapshot. The native PipeWire model is live,
+    // so no probe needs to be launched here.
+    function refresh(force) {}
+    function refreshDevices(force): void {}
 
     function setVolume(value: real): void {
-        const next = root.clampVolume(value)
-        root.volume = next
+        if (!root.ready)
+            return
 
-        const numeric = next.toFixed(4)
-        Quickshell.execDetached([
-            "bash", "-c",
-            `wpctl set-volume @DEFAULT_SINK@ ${numeric} && `
-                + (next > 0 ? "wpctl set-mute @DEFAULT_SINK@ 0" : "true")
-        ])
+        const next = root.clampVolume(value)
+        root.sinkNode.audio.volume = next
         if (next > 0)
-            root.muted = false
-        root.refreshSoon()
+            root.sinkNode.audio.muted = false
     }
 
     function setMuted(value: bool): void {
-        const next = Boolean(value)
-        root.muted = next
-        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_SINK@", next ? "1" : "0"])
-        root.refreshSoon()
+        if (root.ready)
+            root.sinkNode.audio.muted = Boolean(value)
     }
 
     function toggleMute(): void {
@@ -220,24 +116,18 @@ Singleton {
     }
 
     function setMicrophoneVolume(value: real): void {
+        if (!root.microphoneReady)
+            return
+
         const next = root.clampVolume(value)
-        root.microphoneVolume = next
-        const numeric = next.toFixed(4)
-        Quickshell.execDetached([
-            "bash", "-c",
-            `wpctl set-volume @DEFAULT_SOURCE@ ${numeric} && `
-                + (next > 0 ? "wpctl set-mute @DEFAULT_SOURCE@ 0" : "true")
-        ])
+        root.sourceNode.audio.volume = next
         if (next > 0)
-            root.microphoneMuted = false
-        root.refreshSoon()
+            root.sourceNode.audio.muted = false
     }
 
     function setMicrophoneMuted(value: bool): void {
-        const next = Boolean(value)
-        root.microphoneMuted = next
-        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_SOURCE@", next ? "1" : "0"])
-        root.refreshSoon()
+        if (root.microphoneReady)
+            root.sourceNode.audio.muted = Boolean(value)
     }
 
     function toggleMicrophoneMute(): void {
@@ -248,9 +138,8 @@ Singleton {
         const devices = Array.isArray(root.outputDevices) ? root.outputDevices : []
         if (devices.length === 0)
             return null
-        let activeIndex = devices.findIndex(device => Boolean(device?.active))
-        if (activeIndex < 0 && root.sinkName.length > 0)
-            activeIndex = devices.findIndex(device => String(device?.name ?? "") === root.sinkName)
+
+        const activeIndex = devices.findIndex(device => Boolean(device?.active))
         const nextIndex = activeIndex >= 0 ? (activeIndex + 1) % devices.length : 0
         return devices[nextIndex]
     }
@@ -261,83 +150,33 @@ Singleton {
 
     function cycleDefaultSink(): bool {
         const devices = Array.isArray(root.outputDevices) ? root.outputDevices : []
-        if (devices.length < 2) {
-            root.refreshDevices(true)
+        if (devices.length < 2)
             return false
-        }
+
         const next = root.nextOutputDevice()
         if (!next)
             return false
+
         root.setDefaultSink(next)
         return true
     }
 
-    function setDefaultSink(node): void {
-        if (node?.id !== undefined && Number(node.id) >= 0) {
-            Quickshell.execDetached(["wpctl", "set-default", String(node.id)])
-            root.refreshSoon()
-            deviceRefreshTimer.restart()
-        }
+    function setDefaultSink(entry): void {
+        const node = entry?.node ?? null
+        if (node)
+            Pipewire.preferredDefaultAudioSink = node
     }
 
-    function setDefaultSource(node): void {
-        if (node?.id !== undefined && Number(node.id) >= 0) {
-            Quickshell.execDetached(["wpctl", "set-default", String(node.id)])
-            root.refreshSoon()
-            deviceRefreshTimer.restart()
-        }
+    function setDefaultSource(entry): void {
+        const node = entry?.node ?? null
+        if (node)
+            Pipewire.preferredDefaultAudioSource = node
     }
 
-    Connections {
-        target: RaohanePipeWire
-
-        function onGraphChanged(): void {
-            root.refresh(true)
-        }
-    }
-
-    Process {
-        id: volumeProbe
-        environment: ({ LANG: "C", LC_ALL: "C" })
-        stdout: StdioCollector {
-            onStreamFinished: root.applyProbe(text)
-        }
-    }
-
-    Process {
-        id: deviceProbe
-        environment: ({ LANG: "C", LC_ALL: "C" })
-        stdout: StdioCollector {
-            onStreamFinished: root.parseStatus(text)
-        }
-        onExited: root.devicesRefreshing = false
-    }
-
-    Timer {
-        id: refreshTimer
-        interval: 180
-        repeat: false
-        onTriggered: root.refresh(true)
-    }
-
-    Timer {
-        id: deviceRefreshTimer
-        interval: 320
-        repeat: false
-        onTriggered: root.refreshDevices(true)
-    }
-
-    // PipeWire events are the normal update path. Keep a slow repair snapshot
-    // for missed events instead of recurring wpctl bursts while the shell idles.
-    Timer {
-        interval: 120000
-        repeat: true
-        running: true
-        onTriggered: root.refresh(true)
-    }
-
-    Component.onCompleted: {
-        root.refresh(true)
-        root.refreshDevices(true)
+    // Volume and mute are bound properties. Device names and graph membership
+    // do not require binding, so tracking only the defaults keeps the native
+    // PipeWire subscription as small as possible.
+    PwObjectTracker {
+        objects: [root.sinkNode, root.sourceNode]
     }
 }
