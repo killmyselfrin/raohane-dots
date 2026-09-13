@@ -86,8 +86,7 @@ QtObject {
             role: "settings",
             layer: "overlay",
             placement: "center",
-            loadPolicy: "on-demand",
-            deferredUnload: true
+            loadPolicy: "resident"
         },
         "displaySettings": {
             stateProperty: "displaySettingsOpen",
