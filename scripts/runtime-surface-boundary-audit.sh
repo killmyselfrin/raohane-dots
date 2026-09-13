@@ -16,6 +16,8 @@ services_qmldir='modules/raohane/services/qmldir'
 required='install/arch/required.txt'
 features='install/arch/features.txt'
 translator_backend='scripts/screen-translate.sh'
+translation_service='modules/raohane/services/RaohaneScreenTranslation.qml'
+surface_router='modules/raohane/RaohaneSurfaceRouter.qml'
 region_ocr_backend='scripts/region-ocr.sh'
 region_search_backend='scripts/region-search.sh'
 
@@ -32,6 +34,7 @@ native_surfaces=(
   modules/raohane/RaohaneBackground.qml
   modules/raohane/RaohaneDesktopCanvas.qml
   modules/raohane/services/RaohaneDropShelf.qml
+  "$translation_service"
 )
 
 active_roots=(
@@ -62,7 +65,7 @@ active_roots=(
   modules/raohane/RaohaneScreenFrame.qml
 )
 
-for path in "$shell" "$family" "$qmldir" "$services_qmldir" "$required" "$features" "$translator_backend" "$region_ocr_backend" "$region_search_backend" "${native_surfaces[@]}" "${active_roots[@]}"; do
+for path in "$shell" "$family" "$qmldir" "$services_qmldir" "$required" "$features" "$translator_backend" "$surface_router" "$region_ocr_backend" "$region_search_backend" "${native_surfaces[@]}" "${active_roots[@]}"; do
   [[ -f "$path" ]] || fail "missing native runtime surface path: $path"
 done
 
@@ -106,6 +109,8 @@ done
 
 rg -q '^singleton RaohaneDropShelf .*RaohaneDropShelf.qml$' "$services_qmldir" \
   || fail 'RaohaneDropShelf is not registered in native services'
+rg -q '^singleton RaohaneScreenTranslation .*RaohaneScreenTranslation.qml$' "$services_qmldir" \
+  || fail 'RaohaneScreenTranslation is not registered in native services'
 
 for file in "${native_surfaces[@]}"; do
   if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bConfig\.|\bGlobalStates\.|\bAppearance\.' "$file"; then
@@ -184,16 +189,40 @@ rg -q 'for command in slurp grim tesseract trans python3; do' "$translator_backe
   || fail 'screen translation backend lost required command list'
 rg -q 'command -v "\$command"' "$translator_backend" \
   || fail 'screen translation backend lost generic command probe'
+
+# Translation is a cross-lifetime transaction: backend process/state belongs to
+# a resident service, public invocation belongs to the resident surface router,
+# and the full-screen presentation only consumes state and emits user intents.
 for contract in \
   'scripts/screen-translate\.sh' \
-  'function startTranslation\(\)' \
-  'target:[[:space:]]*"screenTranslator"' \
-  'function translate\(\)' \
-  'name:[[:space:]]*"screenTranslate"' \
-  'Quickshell\.clipboardText'; do
-  rg -q "$contract" modules/raohane/RaohaneScreenTranslator.qml \
-    || fail "native screen translator lost contract: $contract"
+  'function start\(\): bool' \
+  'property bool awaitingResult:' \
+  'signal translationFinished\(\)' \
+  'Process[[:space:]]*\{' \
+  'StdioCollector[[:space:]]*\{'; do
+  rg -q "$contract" "$translation_service" \
+    || fail "screen translation service lost transaction contract: $contract"
 done
+for contract in \
+  'target:[[:space:]]*"screenTranslator"' \
+  'function translate\(\): void' \
+  'name:[[:space:]]*"screenTranslate"' \
+  'RaohaneScreenTranslation\.start\(\)' \
+  'function onTranslationFinished\(\): void'; do
+  rg -q "$contract" "$surface_router" \
+    || fail "resident screen translation router lost contract: $contract"
+done
+for contract in \
+  'function startTranslation\(\): void' \
+  'RaohaneScreenTranslation\.' \
+  'Quickshell\.clipboardText' \
+  'ScreencopyView[[:space:]]*\{'; do
+  rg -q "$contract" modules/raohane/RaohaneScreenTranslator.qml \
+    || fail "screen translator presentation lost contract: $contract"
+done
+if rg -n 'Quickshell\.Io|Process[[:space:]]*\{|StdioCollector[[:space:]]*\{|target:[[:space:]]*"screenTranslator"|name:[[:space:]]*"screenTranslate"' modules/raohane/RaohaneScreenTranslator.qml; then
+  fail 'on-demand screen translator presentation regained resident backend/entrypoint ownership'
+fi
 
 bash -n "$region_ocr_backend"
 bash -n "$region_search_backend"
@@ -220,4 +249,4 @@ for contract in \
     || fail "native desktop menu lost contract: $contract"
 done
 
-printf 'runtime-surface-boundary-audit: native bootstrap, idle-safe overlay, capture/OCR/search and active family boundaries are valid\n'
+printf 'runtime-surface-boundary-audit: native bootstrap, idle-safe overlay, service-backed translation, capture/OCR/search and active family boundaries are valid\n'
