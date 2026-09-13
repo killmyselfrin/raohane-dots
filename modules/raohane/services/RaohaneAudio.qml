@@ -2,6 +2,7 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import Quickshell.Services.Pipewire
 
 Singleton {
@@ -35,7 +36,7 @@ Singleton {
     readonly property string sinkName: root.nodeLabel(root.sinkNode)
     readonly property string sourceName: root.nodeLabel(root.sourceNode)
     readonly property string lastError: Pipewire.ready && root.sinkNode === null
-        ? qsTr("No default audio sink")
+        ? "No default audio sink"
         : ""
 
     readonly property var outputDevices: root.deviceEntries(true)
