@@ -13,6 +13,11 @@ Item {
 
     property string selectedRestorePath: ""
 
+    readonly property bool compactLayout: width < 760
+    readonly property color statusColor: RaohaneBackup.busy
+        ? RaohaneTheme.info
+        : RaohaneBackup.lastSucceeded ? RaohaneTheme.success : RaohaneTheme.critical
+
     function shortPath(path: string): string {
         const clean = RaohanePaths.cleanPath(path)
         if (clean.length <= 62)
@@ -43,7 +48,7 @@ Item {
         id: backupFlick
         anchors.fill: parent
         contentWidth: width
-        contentHeight: pageColumn.implicitHeight + 42
+        contentHeight: pageColumn.implicitHeight + RaohaneTheme.panelPadding * 3
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 2600
@@ -51,6 +56,8 @@ Item {
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
             width: 4
+            anchors.right: parent.right
+            anchors.rightMargin: RaohaneTheme.spacingTiny
             contentItem: Rectangle {
                 implicitWidth: 4
                 radius: 2
@@ -62,10 +69,13 @@ Item {
         ColumnLayout {
             id: pageColumn
 
-            y: 16
-            width: Math.min(parent.width - 40, 900)
+            y: RaohaneTheme.spacingLarge
+            width: Math.min(
+                Math.max(0, parent.width - (root.compactLayout ? RaohaneTheme.panelPadding * 2 : 40)),
+                900
+            )
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 12
+            spacing: RaohaneTheme.spacingLarge
 
             Text {
                 Layout.fillWidth: true
@@ -79,30 +89,26 @@ Item {
             RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 90
-                surfaceRadius: 13
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 3
-                    height: 46
-                    radius: 2
-                    color: RaohaneTheme.accent
-                }
+                showStateRail: true
+                stateRailColor: RaohaneTheme.accent
+                stateRailOpacity: 0.62
+                stateRailWidth: 3
+                stateRailLength: 46
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 16
-                    spacing: 13
+                    anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
+                    anchors.rightMargin: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacingLarge
 
                     RaohaneSurface {
                         Layout.preferredWidth: 42
                         Layout.preferredHeight: 42
-                        surfaceRadius: 13
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: true
                         showSheen: false
@@ -118,7 +124,7 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: RaohaneTheme.spacingTiny
 
                         Text {
                             Layout.fillWidth: true
@@ -134,15 +140,19 @@ Item {
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 8
                             lineHeight: 1.16
+                            maximumLineCount: 3
+                            elide: Text.ElideRight
                             wrapMode: Text.WordWrap
                         }
                     }
                 }
             }
 
-            RowLayout {
+            GridLayout {
                 Layout.fillWidth: true
-                spacing: 11
+                columns: root.compactLayout ? 1 : 2
+                columnSpacing: RaohaneTheme.spacing
+                rowSpacing: RaohaneTheme.spacing
 
                 ToolPanel {
                     id: exportPanel
@@ -172,7 +182,7 @@ Item {
 
                     RowLayout {
                         Layout.alignment: Qt.AlignLeft
-                        spacing: 8
+                        spacing: RaohaneTheme.spacingSmall
 
                         ActionButton {
                             icon: "folder_open"
@@ -200,24 +210,21 @@ Item {
                 visible: root.selectedRestorePath.length > 0
                 Layout.fillWidth: true
                 Layout.preferredHeight: 62
-                surfaceRadius: 11
+                surfaceRadius: RaohaneTheme.radiusSmall
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
+                showStateRail: true
+                stateRailColor: RaohaneTheme.accent
+                stateRailOpacity: 0.54
+                stateRailWidth: 2
+                stateRailLength: 28
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 14
-                    anchors.rightMargin: 10
-                    spacing: 10
-
-                    Rectangle {
-                        Layout.preferredWidth: 3
-                        Layout.preferredHeight: 28
-                        radius: 2
-                        color: RaohaneTheme.accent
-                        opacity: 0.72
-                    }
+                    anchors.leftMargin: RaohaneTheme.panelPadding
+                    anchors.rightMargin: RaohaneTheme.spacing
+                    spacing: RaohaneTheme.spacing
 
                     RaohaneIcon {
                         text: "description"
@@ -262,32 +269,30 @@ Item {
                 visible: RaohaneBackup.statusMessage.length > 0
                 Layout.fillWidth: true
                 Layout.preferredHeight: 78
-                surfaceRadius: 12
+                surfaceRadius: RaohaneTheme.radiusSmall
                 raised: false
                 showSheen: false
-                border.color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accentBorder : RaohaneTheme.borderStrong
+                border.color: Qt.rgba(root.statusColor.r, root.statusColor.g, root.statusColor.b, 0.48)
+                showStateRail: true
+                stateRailColor: root.statusColor
+                stateRailOpacity: 0.72
+                stateRailWidth: 3
+                stateRailLength: 34
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 14
-                    anchors.rightMargin: 12
-                    spacing: 11
-
-                    Rectangle {
-                        Layout.preferredWidth: 3
-                        Layout.preferredHeight: 34
-                        radius: 2
-                        color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                        opacity: RaohaneBackup.busy || RaohaneBackup.lastSucceeded ? 1 : 0.5
-                    }
+                    anchors.leftMargin: RaohaneTheme.panelPadding
+                    anchors.rightMargin: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacing
 
                     RaohaneSurface {
                         Layout.preferredWidth: 38
                         Layout.preferredHeight: 38
-                        surfaceRadius: 11
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: RaohaneBackup.busy || RaohaneBackup.lastSucceeded
                         showSheen: false
+                        border.color: Qt.rgba(root.statusColor.r, root.statusColor.g, root.statusColor.b, 0.38)
 
                         RaohaneIcon {
                             anchors.centerIn: parent
@@ -296,7 +301,7 @@ Item {
                                 : RaohaneBackup.lastSucceeded ? "check_circle" : "error"
                             iconSize: 19
                             fill: RaohaneBackup.lastSucceeded ? 1 : 0
-                            color: RaohaneBackup.lastSucceeded ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                            color: root.statusColor
 
                             RotationAnimation on rotation {
                                 running: RaohaneBackup.busy
@@ -310,7 +315,7 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: RaohaneTheme.spacingTiny
 
                         Text {
                             Layout.fillWidth: true
@@ -326,6 +331,7 @@ Item {
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 8
                             lineHeight: 1.15
+                            maximumLineCount: 2
                             wrapMode: Text.WordWrap
                             elide: Text.ElideRight
                         }
@@ -341,9 +347,8 @@ Item {
                 }
             }
 
-            Rectangle {
+            RaohaneDivider {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 1
                 color: RaohaneTheme.borderFaint
             }
 
@@ -367,40 +372,33 @@ Item {
         default property alias body: bodyColumn.data
 
         Layout.preferredHeight: 174
-        surfaceRadius: 13
+        surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
         showSheen: false
         border.color: RaohaneTheme.borderFaint
-
-        Rectangle {
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.topMargin: 15
-            anchors.bottomMargin: 15
-            width: 3
-            radius: 2
-            color: RaohaneTheme.accent
-            opacity: 0.76
-        }
+        showStateRail: true
+        stateRailColor: RaohaneTheme.accent
+        stateRailOpacity: 0.56
+        stateRailWidth: 3
+        stateRailLength: Math.max(34, height - RaohaneTheme.panelPadding * 3)
 
         ColumnLayout {
             id: bodyColumn
             anchors.fill: parent
-            anchors.leftMargin: 17
-            anchors.rightMargin: 15
-            anchors.topMargin: 15
-            anchors.bottomMargin: 14
-            spacing: 8
+            anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
+            anchors.rightMargin: RaohaneTheme.panelPadding
+            anchors.topMargin: RaohaneTheme.panelPadding
+            anchors.bottomMargin: RaohaneTheme.panelPadding
+            spacing: RaohaneTheme.spacingSmall
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: RaohaneTheme.spacing
 
                 RaohaneSurface {
                     Layout.preferredWidth: 36
                     Layout.preferredHeight: 36
-                    surfaceRadius: 11
+                    surfaceRadius: RaohaneTheme.radiusSmall
                     raised: false
                     active: true
                     showSheen: false
@@ -446,12 +444,12 @@ Item {
 
         implicitWidth: actionRow.implicitWidth + 24
         implicitHeight: 36
-        activeFocusOnTab: true
-        opacity: enabled ? 1 : 0.48
+        activeFocusOnTab: enabled
+        opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
         RaohaneSurface {
             anchors.fill: parent
-            surfaceRadius: 10
+            surfaceRadius: RaohaneTheme.radiusSmall
             active: actionButton.emphasized
             transparentIdle: !actionButton.emphasized && !hovered
             raised: false
@@ -467,7 +465,7 @@ Item {
             RowLayout {
                 id: actionRow
                 anchors.centerIn: parent
-                spacing: 7
+                spacing: RaohaneTheme.spacingSmall
 
                 RaohaneIcon {
                     text: actionButton.icon
