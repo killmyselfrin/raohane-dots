@@ -10,7 +10,6 @@
   "Checked %1 · raohane validate smoke": "Проверено %1 · raohane validate smoke",
   "This check does not lock the session, capture the screen or run destructive Phase 4 exercises.": "Эта проверка не блокирует сеанс, не делает снимки экрана и не запускает потенциально опасные проверки Phase 4.",
   "Runtime smoke check failed": "Smoke-проверка среды завершилась ошибкой",
-  "Diagnostics": "Диагностика",
   "Copy info": "Копировать сведения",
   "Run smoke check": "Запустить smoke-проверку",
   "Copy output": "Копировать вывод"
