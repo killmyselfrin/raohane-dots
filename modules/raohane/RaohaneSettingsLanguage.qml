@@ -7,11 +7,13 @@ import QtQuick.Layouts
 Item {
     id: root
 
+    readonly property bool compactLayout: width < 700
+
     Flickable {
         id: languageFlick
         anchors.fill: parent
         contentWidth: width
-        contentHeight: languageColumn.implicitHeight + 40
+        contentHeight: languageColumn.implicitHeight + RaohaneTheme.panelPadding * 3
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         flickDeceleration: 2600
@@ -19,6 +21,8 @@ Item {
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
             width: 4
+            anchors.right: parent.right
+            anchors.rightMargin: RaohaneTheme.spacingTiny
             contentItem: Rectangle {
                 implicitWidth: 4
                 radius: 2
@@ -30,38 +34,37 @@ Item {
         Column {
             id: languageColumn
 
-            y: 16
-            width: Math.min(parent.width - 44, 760)
+            y: RaohaneTheme.spacingLarge
+            width: Math.min(
+                Math.max(0, parent.width - (root.compactLayout ? RaohaneTheme.panelPadding * 2 : 44)),
+                760
+            )
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 11
+            spacing: RaohaneTheme.spacing
 
             RaohaneSurface {
                 width: parent.width
                 height: 86
-                surfaceRadius: 13
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
                 border.color: RaohaneTheme.borderFaint
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 3
-                    height: 42
-                    radius: 2
-                    color: RaohaneTheme.accent
-                }
+                showStateRail: true
+                stateRailColor: RaohaneTheme.accent
+                stateRailOpacity: 0.62
+                stateRailWidth: 3
+                stateRailLength: 42
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 16
-                    spacing: 13
+                    anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
+                    anchors.rightMargin: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacingLarge
 
                     RaohaneSurface {
                         Layout.preferredWidth: 42
                         Layout.preferredHeight: 42
-                        surfaceRadius: 13
+                        surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: true
                         showSheen: false
@@ -77,7 +80,7 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 3
+                        spacing: RaohaneTheme.spacingTiny
 
                         Text {
                             text: qsTr("Interface language")
@@ -92,6 +95,8 @@ Item {
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 9
                             lineHeight: 1.16
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
                             wrapMode: Text.WordWrap
                         }
                     }
@@ -109,7 +114,7 @@ Item {
 
                     width: languageColumn.width
                     height: 62
-                    surfaceRadius: 11
+                    surfaceRadius: RaohaneTheme.radiusSmall
                     raised: false
                     active: selected
                     hovered: languageMouse.containsMouse || activeFocus
@@ -124,27 +129,22 @@ Item {
                     border.color: selected
                         ? RaohaneTheme.accentBorder
                         : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
-
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 3
-                        height: languageCard.selected ? 30 : languageCard.hovered ? 18 : 8
-                        radius: 2
-                        color: RaohaneTheme.accent
-                        opacity: languageCard.selected ? 1 : languageCard.hovered ? 0.48 : 0
-                    }
+                    showStateRail: selected || hovered
+                    stateRailColor: RaohaneTheme.accent
+                    stateRailOpacity: selected ? 0.84 : 0.38
+                    stateRailWidth: 3
+                    stateRailLength: selected ? 30 : 18
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 15
-                        anchors.rightMargin: 13
-                        spacing: 11
+                        anchors.leftMargin: RaohaneTheme.panelPadding
+                        anchors.rightMargin: RaohaneTheme.panelPadding
+                        spacing: RaohaneTheme.spacing
 
                         RaohaneSurface {
                             Layout.preferredWidth: 34
                             Layout.preferredHeight: 34
-                            surfaceRadius: 10
+                            surfaceRadius: RaohaneTheme.radiusSmall
                             raised: false
                             active: languageCard.selected
                             showSheen: false
@@ -180,7 +180,7 @@ Item {
                             visible: languageCard.selected
                             implicitWidth: currentLabel.implicitWidth + 18
                             implicitHeight: 26
-                            surfaceRadius: 8
+                            surfaceRadius: RaohaneTheme.radiusSmall
                             raised: false
                             active: true
                             showSheen: false
