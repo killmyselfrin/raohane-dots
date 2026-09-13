@@ -19,7 +19,7 @@ PROCESSES="$MODULE/RaohaneProcesses.qml"
 PROCESS_SNAPSHOT=scripts/process-snapshot.py
 TASK_MANAGER=modules/raohane/RaohaneTaskManager.qml
 AUDIO="$MODULE/RaohaneAudio.qml"
-PIPEWIRE="$MODULE/RaohanePipeWire.qml"
+PRIVACY=modules/raohane/RaohanePrivacy.qml
 EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
 PERFORMANCE="$MODULE/RaohanePerformance.qml"
 CONTROL_CENTER=modules/raohane/RaohaneControlCenter.qml
@@ -33,7 +33,7 @@ REQUIRED=install/arch/required.txt
 
 for path in \
   "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" \
-  "$SEARCH" "$SESSION" "$PROCESSES" "$PROCESS_SNAPSHOT" "$TASK_MANAGER" "$AUDIO" "$PIPEWIRE" "$EASY_EFFECTS" "$PERFORMANCE" \
+  "$SEARCH" "$SESSION" "$PROCESSES" "$PROCESS_SNAPSHOT" "$TASK_MANAGER" "$AUDIO" "$PRIVACY" "$EASY_EFFECTS" "$PERFORMANCE" \
   "$CONTROL_CENTER" "$QUICK_CONTROLS" "$QUICK_TILE" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" \
   "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
@@ -58,9 +58,8 @@ require_service() {
 
 require_service RaohaneMedia 'Quickshell\.Services\.Mpris'
 require_service RaohaneBluetooth '\bbluetoothctl\b'
-require_service RaohaneAudio '\bwpctl\b'
+require_service RaohaneAudio 'Quickshell\.Services\.Pipewire'
 require_service RaohaneNetwork '\bnmcli\b'
-require_service RaohanePipeWire '\bpw-mon\b'
 require_service RaohaneDisplay 'brightnessctl|ddcutil|hyprsunset'
 require_service RaohaneNotifications 'Quickshell\.Services\.Notifications'
 require_service RaohaneWallpapers 'Qt\.labs\.folderlistmodel'
@@ -86,8 +85,9 @@ fi
 
 # Native Task Manager: the QML service launches a low-overhead Python helper
 # which samples procfs directly. It intentionally keeps qs/quickshell visible so
-# the Task Manager can diagnose Raohane itself, and never spawns ps/procps for a
-# snapshot. Collection remains on-demand and destructive actions stay explicit.
+# the Task Manager can diagnose Raohane itself and distinguish browser/helper
+# process roles without spawning procps tools. Collection remains on-demand and
+# destructive actions stay explicit.
 rg -q '^singleton RaohaneProcesses .*RaohaneProcesses.qml$' "$QMLDIR" \
   || fail 'RaohaneProcesses is not registered in native services'
 for contract in \
@@ -144,27 +144,39 @@ if rg -n 'command -v (btop|htop)|exec (btop|htop|top)' "$SESSION"; then
   fail 'Session still contains the retired terminal Task Manager fallback'
 fi
 
-# Audio and privacy share one PipeWire registry watcher. This prevents two
-# permanent pw-mon clients and prevents their snapshot probes from waking one
-# another during graph churn. The recurring wpctl snapshot is only a slow repair
-# path in case an event was missed.
-rg -Fq 'command: ["pw-mon", "--color=never"]' "$PIPEWIRE" \
-  || fail 'shared PipeWire service lost its registry event monitor'
-rg -q 'id:[[:space:]]*graphDebounce' "$PIPEWIRE" \
-  || fail 'shared PipeWire service lost graph-change debounce'
-rg -q 'id:[[:space:]]*monitorRestart' "$PIPEWIRE" \
-  || fail 'shared PipeWire service lost monitor restart handling'
-rg -q 'target:[[:space:]]*RaohanePipeWire' "$AUDIO" \
-  || fail 'audio service no longer consumes shared PipeWire events'
-rg -q 'RaohanePipeWire\.suppressEventsFor' "$AUDIO" \
-  || fail 'audio service no longer suppresses self-generated graph churn'
-rg -q 'interval:[[:space:]]*120000' "$AUDIO" \
-  || fail 'audio service lost its slow two-minute health fallback'
-if rg -n '"pw-mon"|interval:[[:space:]]*(750|30000)' "$AUDIO"; then
-  fail 'audio service regressed to a duplicate watcher or aggressive wpctl polling'
+# Audio and privacy consume Quickshell's in-process PipeWire graph directly.
+# No Raohane-owned pw-mon, wpctl or pw-dump watcher is allowed back into the
+# runtime: default devices, volume, mute, capture nodes and active links all
+# come from the native graph and are bound only where extended data is needed.
+[[ ! -e "$MODULE/RaohanePipeWire.qml" ]] \
+  || fail 'retired RaohanePipeWire subprocess watcher returned'
+if rg -n '^singleton RaohanePipeWire ' "$QMLDIR"; then
+  fail 'retired RaohanePipeWire singleton is still registered'
 fi
+for path in "$AUDIO" "$PRIVACY"; do
+  rg -q '^import Quickshell\.Services\.Pipewire$' "$path" \
+    || fail "$path does not use native Quickshell PipeWire'
+  rg -q 'PwObjectTracker[[:space:]]*\{' "$path" \
+    || fail "$path does not bind the native PipeWire objects it reads'
+  if rg -n '\b(pw-mon|pw-dump|wpctl)\b|RaohanePipeWire\.|Quickshell\.Io|Process[[:space:]]*\{|Timer[[:space:]]*\{' "$path"; then
+    fail "$path regressed to subprocess or polling based PipeWire state"
+  fi
+done
+for contract in \
+  'Pipewire\.defaultAudioSink' \
+  'Pipewire\.defaultAudioSource' \
+  'Pipewire\.preferredDefaultAudioSink[[:space:]]*=' \
+  'Pipewire\.preferredDefaultAudioSource[[:space:]]*='; do
+  rg -q "$contract" "$AUDIO" || fail "audio lost native PipeWire contract: $contract"
+done
+for contract in \
+  'Pipewire\.nodes\.values' \
+  'Pipewire\.linkGroups\.values' \
+  'PwLinkState\.Active'; do
+  rg -q "$contract" "$PRIVACY" || fail "privacy lost native PipeWire contract: $contract"
+done
 rg -q '^pipewire$' "$REQUIRED" \
-  || fail 'audio event monitor requires pipewire in the required manifest'
+  || fail 'native PipeWire integration requires pipewire in the required manifest'
 
 # EasyEffects state is only needed when its controls are surfaced. Actions are
 # asynchronous and are accepted only after a one-shot real process-state probe.
@@ -356,4 +368,4 @@ if rg -n '\bRaohaneLegacyBridge\b' "$FAMILY" modules/raohane/qmldir; then
   fail 'active runtime references the retired compatibility bridge'
 fi
 
-printf 'raohane-service-audit: native services, procfs Task Manager, shared event-driven PipeWire monitoring, throttled Game Mode state, registry-backed Quick Controls, verified EasyEffects actions, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
+printf 'raohane-service-audit: native services, procfs Task Manager, native PipeWire graph ownership, throttled Game Mode state, registry-backed Quick Controls, verified EasyEffects actions, launcher modes, doctor probes, recorder and autostart contracts are valid\n'
