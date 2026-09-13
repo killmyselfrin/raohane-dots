@@ -39,7 +39,7 @@ QtObject {
             role: "overview",
             layer: "overlay",
             placement: "fill",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "controlCenter": {
             stateProperty: "controlCenterOpen",

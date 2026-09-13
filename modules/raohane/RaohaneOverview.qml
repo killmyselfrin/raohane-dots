@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
@@ -100,6 +99,11 @@ Scope {
         const nextRow = Math.max(0, Math.min(rows - 1, row + dy))
         const nextColumn = Math.max(0, Math.min(root.columns - 1, column + dx))
         root.selectedIndex = Math.min(root.workspaceCount - 1, nextRow * root.columns + nextColumn)
+    }
+
+    Component.onCompleted: {
+        if (RaohaneState.overviewOpen)
+            root.syncSelection()
     }
 
     Connections {
@@ -394,40 +398,6 @@ Scope {
                     }
                 }
             }
-        }
-    }
-
-    IpcHandler {
-        target: "search"
-
-        function toggle(): void { root.toggle() }
-        function workspacesToggle(): void { root.toggle() }
-        function close(): void { root.close() }
-        function open(): void { root.open() }
-        function clipboardToggle(): void {
-            RaohaneSearch.query = ":"
-            RaohaneState.setPrimaryOpen("launcher", true)
-        }
-    }
-
-    CompositorGlobalShortcut {
-        name: "overviewWorkspacesClose"
-        description: "Close Raohane workspace overview"
-        onPressed: root.close()
-    }
-
-    CompositorGlobalShortcut {
-        name: "overviewWorkspacesToggle"
-        description: "Toggle Raohane workspace overview"
-        onPressed: root.toggle()
-    }
-
-    CompositorGlobalShortcut {
-        name: "overviewClipboardToggle"
-        description: "Open clipboard search in Raohane launcher"
-        onPressed: {
-            RaohaneSearch.query = ":"
-            RaohaneState.setPrimaryOpen("launcher", true)
         }
     }
 }
