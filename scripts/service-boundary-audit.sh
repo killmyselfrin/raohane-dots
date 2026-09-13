@@ -155,9 +155,9 @@ if rg -n '^singleton RaohanePipeWire ' "$QMLDIR"; then
 fi
 for path in "$AUDIO" "$PRIVACY"; do
   rg -q '^import Quickshell\.Services\.Pipewire$' "$path" \
-    || fail "$path does not use native Quickshell PipeWire'
+    || fail "$path does not use native Quickshell PipeWire"
   rg -q 'PwObjectTracker[[:space:]]*\{' "$path" \
-    || fail "$path does not bind the native PipeWire objects it reads'
+    || fail "$path does not bind the native PipeWire objects it reads"
   if rg -n '\b(pw-mon|pw-dump|wpctl)\b|RaohanePipeWire\.|Quickshell\.Io|Process[[:space:]]*\{|Timer[[:space:]]*\{' "$path"; then
     fail "$path regressed to subprocess or polling based PipeWire state"
   fi
