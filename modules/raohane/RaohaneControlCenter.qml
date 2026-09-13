@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
@@ -65,6 +64,8 @@ Scope {
             }
         }
     }
+
+    Component.onDestruction: RaohaneFocusGrab.removeDismissable(panelWindow)
 
     PanelWindow {
         id: panelWindow
@@ -361,19 +362,6 @@ Scope {
                 panelWindow.hide()
                 event.accepted = true
             }
-        }
-
-        IpcHandler {
-            target: "sidebarRight"
-            function toggle(): void { RaohaneState.togglePrimary("controlCenter") }
-            function open(): void { RaohaneState.setPrimaryOpen("controlCenter", true) }
-            function close(): void { RaohaneState.setPrimaryOpen("controlCenter", false) }
-        }
-
-        CompositorGlobalShortcut {
-            name: "sidebarRightToggle"
-            description: "Toggles Raohane control center"
-            onPressed: RaohaneState.togglePrimary("controlCenter")
         }
     }
 
