@@ -18,6 +18,7 @@ SESSION="$MODULE/RaohaneSession.qml"
 PROCESSES="$MODULE/RaohaneProcesses.qml"
 PROCESS_SNAPSHOT=scripts/process-snapshot.py
 TASK_MANAGER=modules/raohane/RaohaneTaskManager.qml
+SURFACE_ROUTER=modules/raohane/RaohaneSurfaceRouter.qml
 AUDIO="$MODULE/RaohaneAudio.qml"
 PRIVACY=modules/raohane/RaohanePrivacy.qml
 EASY_EFFECTS="$MODULE/RaohaneEasyEffects.qml"
@@ -33,7 +34,7 @@ REQUIRED=install/arch/required.txt
 
 for path in \
   "$QMLDIR" "$CONFIG_MODULE/qmldir" "$CONFIG_MODULE/RaohaneConfig.qml" \
-  "$SEARCH" "$SESSION" "$PROCESSES" "$PROCESS_SNAPSHOT" "$TASK_MANAGER" "$AUDIO" "$PRIVACY" "$EASY_EFFECTS" "$PERFORMANCE" \
+  "$SEARCH" "$SESSION" "$PROCESSES" "$PROCESS_SNAPSHOT" "$TASK_MANAGER" "$SURFACE_ROUTER" "$AUDIO" "$PRIVACY" "$EASY_EFFECTS" "$PERFORMANCE" \
   "$CONTROL_CENTER" "$QUICK_CONTROLS" "$QUICK_TILE" "$AUTOSTART_SCRIPT" "$RECORDER" "$CLI" \
   "$FEATURES" "$REQUIRED"; do
   [[ -f "$path" ]] || fail "missing native service/runtime path: $path"
@@ -122,16 +123,32 @@ path = pathlib.Path(sys.argv[1])
 compile(path.read_text(encoding="utf-8"), str(path), "exec")
 PY
 
+# The Task Manager presentation owns grouping, refresh cadence and destructive
+# confirmation. Its IPC/global shortcut entrypoints live in the resident surface
+# router so the heavyweight UI graph can be destroyed while closed.
 for contract in \
   'RaohaneProcesses\.' \
   'running:[[:space:]]*RaohaneState\.taskManagerOpen' \
   'interval:[[:space:]]*1500' \
-  'target:[[:space:]]*"taskManager"' \
+  'function prepareOpen\(\): void' \
+  'Component\.onCompleted:' \
   'pendingAction' \
   'requestSignal\(' \
-  'RaohaneState\.(setPrimaryOpen|togglePrimary)\("taskManager"'; do
+  'RaohaneState\.setPrimaryOpen\("taskManager", false\)'; do
   rg -q "$contract" "$TASK_MANAGER" || fail "native Task Manager lost UI/safety contract: $contract"
 done
+for contract in \
+  'target:[[:space:]]*"taskManager"' \
+  'function toggle\(\): void.*RaohaneState\.togglePrimary\("taskManager"\)' \
+  'function open\(\): void.*RaohaneState\.setPrimaryOpen\("taskManager", true\)' \
+  'function close\(\): void.*RaohaneState\.setPrimaryOpen\("taskManager", false\)' \
+  'function refresh\(\): void.*RaohaneProcesses\.refresh\(\)' \
+  'name:[[:space:]]*"taskManagerToggle"'; do
+  rg -q "$contract" "$SURFACE_ROUTER" || fail "resident surface router lost Task Manager entrypoint: $contract"
+done
+if rg -n 'target:[[:space:]]*"taskManager"|name:[[:space:]]*"taskManagerToggle"' "$TASK_MANAGER"; then
+  fail 'on-demand Task Manager still owns resident IPC or shortcut entrypoints'
+fi
 rg -q '^RaohaneTaskManager .*RaohaneTaskManager.qml$' modules/raohane/qmldir \
   || fail 'RaohaneTaskManager is not registered in native UI module'
 rg -q 'component:[[:space:]]*RaohaneTaskManager[[:space:]]*\{' "$FAMILY" \
