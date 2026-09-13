@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
@@ -11,6 +10,8 @@ Scope {
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
+
+    Component.onDestruction: RaohaneFocusGrab.removeDismissable(panelWindow)
 
     PanelWindow {
         id: panelWindow
@@ -54,13 +55,6 @@ Scope {
                 panelWindow.dismissVisual()
         }
 
-        function toggle(): void {
-            if (RaohaneState.settingsOpen)
-                panelWindow.hide()
-            else
-                RaohaneState.setPrimaryOpen("settings", true)
-        }
-
         Component.onCompleted: {
             if (RaohaneState.settingsOpen)
                 panelWindow.present()
@@ -70,10 +64,12 @@ Scope {
             target: RaohaneState
 
             function onSettingsOpenChanged(): void {
-                if (RaohaneState.settingsOpen)
+                if (RaohaneState.settingsOpen) {
                     panelWindow.present()
-                else if (panelWindow.presented)
+                } else if (panelWindow.presented) {
+                    settingsSearch.clear()
                     panelWindow.dismissVisual()
+                }
             }
         }
 
@@ -321,21 +317,6 @@ Scope {
                     event.accepted = true
                 }
             }
-        }
-
-        IpcHandler {
-            target: "settings"
-            function toggle(): void { panelWindow.toggle() }
-            function open(): void { RaohaneState.setPrimaryOpen("settings", true) }
-            function close(): void { panelWindow.hide() }
-            function status(): string { return RaohaneState.settingsOpen ? "open" : "closed" }
-            function page(page: string): void { RaohaneSettingsRouter.request(page, "") }
-        }
-
-        CompositorGlobalShortcut {
-            name: "settingsToggle"
-            description: "Toggles Raohane settings"
-            onPressed: panelWindow.toggle()
         }
     }
 }
