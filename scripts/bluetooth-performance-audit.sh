@@ -15,29 +15,35 @@ manifest='install/arch/features.txt'
 [[ -f "$service" ]] || fail "missing $service"
 [[ -f "$manifest" ]] || fail "missing $manifest"
 
-# BlueZ events are the primary state source. Opening Control Center may request
-# a refresh, but the service must reuse a recent snapshot instead of spawning
-# bluetoothctl repeatedly during rapid surface toggles.
-rg -q 'bluetoothctl --monitor' "$service" \
-  || fail 'Bluetooth service is not using BlueZ monitor output'
-rg -q 'readonly property int minimumRefreshInterval:[[:space:]]*15000' "$service" \
-  || fail 'Bluetooth open-refresh cache is missing or unexpectedly aggressive'
-rg -q 'lastRefreshMs' "$service" \
-  || fail 'Bluetooth snapshots are not cached between surface opens'
-rg -q 'id:[[:space:]]*monitorDebounce' "$service" \
-  || fail 'BlueZ monitor events are not debounced'
-rg -A4 'id:[[:space:]]*monitorDebounce' "$service" | rg -q 'root\.refresh\(true\)' \
-  || fail 'BlueZ events do not bypass the UI refresh cache'
-rg -q 'id:[[:space:]]*monitorRestart' "$service" \
-  || fail 'BlueZ monitor has no restart path'
-rg -q 'interval:[[:space:]]*90000' "$service" \
-  || fail 'Bluetooth repair fallback is missing or too aggressive'
+rg -q '^import Quickshell\.Bluetooth$' "$service" \
+  || fail 'Bluetooth service does not use Quickshell native BlueZ integration'
 
-if rg -n 'interval:[[:space:]]*(3000|15000)[[:space:]]*$' "$service"; then
-  fail 'legacy aggressive Bluetooth health polling returned'
+for contract in \
+  'Bluetooth\.defaultAdapter' \
+  'Bluetooth\.devices\.values' \
+  'BluetoothAdapterState\.Enabling' \
+  'BluetoothAdapterState\.Disabling' \
+  'BluetoothAdapterState\.Blocked' \
+  'root\.adapter\.enabled[[:space:]]*=' \
+  'device\.batteryAvailable' \
+  'device\.battery'; do
+  rg -q "$contract" "$service" || fail "Bluetooth lost native contract: $contract"
+done
+
+for compatibility in \
+  'function refresh\(force\): void' \
+  'function setEnabled\(value: bool\): void' \
+  'function toggle\(\): void' \
+  'function openManager\(\): void' \
+  'signal powerApplied\(bool enabled\)'; do
+  rg -q "$compatibility" "$service" || fail "Bluetooth lost UI compatibility contract: $compatibility"
+done
+
+if rg -n '\bbluetoothctl\b|Quickshell\.Io|Process[[:space:]]*\{|Timer[[:space:]]*\{|minimumRefreshInterval|lastRefreshMs|monitorDebounce|monitorRestart' "$service"; then
+  fail 'Bluetooth regressed to helper-process or polling based BlueZ state'
 fi
 
-rg -q '^bluez-utils$' "$manifest" \
-  || fail 'feature manifest no longer provides bluetoothctl'
+rg -q '^bluez$' "$manifest" \
+  || fail 'feature manifest no longer provides the BlueZ daemon/runtime'
 
-printf 'bluetooth-performance-audit: cached snapshots follow BlueZ monitor events with a slow repair fallback\n'
+printf 'bluetooth-performance-audit: adapter power and connected-device state come directly from Quickshell BlueZ with no monitor/probe subprocesses\n'

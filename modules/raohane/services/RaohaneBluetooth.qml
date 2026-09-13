@@ -3,98 +3,109 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
+import Quickshell.Bluetooth
 
 import qs.modules.raohane.config
 
 Singleton {
     id: root
 
-    property bool available: false
-    property bool enabled: false
-    property bool busy: false
+    readonly property var adapter: Bluetooth.defaultAdapter
+    readonly property bool available: root.adapter !== null
+    readonly property bool enabled: root.adapter?.enabled ?? false
+    readonly property bool busy: root.adapter !== null
+        && (root.adapter.state === BluetoothAdapterState.Enabling
+            || root.adapter.state === BluetoothAdapterState.Disabling)
+    readonly property bool blocked: root.adapter !== null
+        && root.adapter.state === BluetoothAdapterState.Blocked
+
     property bool requestedEnabled: false
     property bool applyPending: false
     property string lastError: ""
-    property string commandError: ""
-    property var connectedDevices: []
-    property double lastRefreshMs: 0
+    readonly property string commandError: ""
 
+    readonly property var connectedDevices: root.buildConnectedDevices()
     readonly property int connectedCount: connectedDevices.length
     readonly property bool connected: connectedCount > 0
-    readonly property var firstConnectedDevice: connectedDevices.length > 0 ? connectedDevices[0] : null
+    readonly property var firstConnectedDevice: connectedCount > 0 ? connectedDevices[0] : null
     readonly property string firstConnectedName: firstConnectedDevice?.name ?? ""
-    readonly property int minimumRefreshInterval: 15000
 
     signal powerApplied(bool enabled)
 
-    function refresh(force): void {
-        const forced = force === true
-        const now = Date.now()
-        if (!forced && root.lastRefreshMs > 0
-                && now - root.lastRefreshMs < root.minimumRefreshInterval)
-            return
+    function deviceLabel(device): string {
+        if (!device)
+            return ""
 
-        root.lastRefreshMs = now
-        if (!adapterProbe.running)
-            adapterProbe.exec(["bash", "-lc", "command -v bluetoothctl >/dev/null 2>&1 && bluetoothctl show || true"])
-        if (!devicesProbe.running)
-            devicesProbe.exec(["bash", "-lc", "command -v bluetoothctl >/dev/null 2>&1 && bluetoothctl devices Connected || true"])
+        const alias = String(device.name ?? "").trim()
+        if (alias.length > 0)
+            return alias
+
+        const providedName = String(device.deviceName ?? "").trim()
+        if (providedName.length > 0)
+            return providedName
+
+        return String(device.address ?? "").trim()
     }
 
-    function finishPowerVerification(): void {
-        if (!root.applyPending)
-            return
-
-        if (root.enabled === root.requestedEnabled) {
-            root.applyPending = false
-            root.busy = false
-            root.lastError = ""
-            root.powerApplied(root.enabled)
-            return
-        }
-
-        root.applyPending = false
-        root.busy = false
-        root.lastError = qsTr("Bluetooth adapter did not apply the requested power state")
-    }
-
-    function parseAdapter(text): void {
-        const value = String(text ?? "")
-        root.available = /(^|\n)Controller\s+/m.test(value)
-        root.enabled = /Powered:\s*yes/i.test(value)
-        if (!root.available)
-            root.connectedDevices = []
-        root.finishPowerVerification()
-    }
-
-    function parseConnectedDevices(text): void {
-        const devices = []
-        for (const rawLine of String(text ?? "").split("\n")) {
-            const line = rawLine.trim()
-            const match = line.match(/^Device\s+([0-9A-Fa-f:]{17})\s+(.+)$/)
-            if (!match)
+    function buildConnectedDevices(): var {
+        const entries = []
+        for (const device of Bluetooth.devices.values) {
+            if (!device || !device.connected)
                 continue
-            devices.push({
-                address: match[1],
-                name: match[2],
-                connected: true
+
+            entries.push({
+                address: String(device.address ?? ""),
+                name: root.deviceLabel(device),
+                connected: true,
+                batteryAvailable: Boolean(device.batteryAvailable),
+                battery: device.batteryAvailable ? Number(device.battery) : 0,
+                device: device
             })
         }
-        root.connectedDevices = devices
+
+        entries.sort((left, right) => left.name.localeCompare(right.name))
+        return entries
+    }
+
+    // Compatibility entrypoint for panels that used to request an explicit
+    // snapshot on open. The Quickshell BlueZ model is live and event-driven.
+    function refresh(force): void {}
+
+    function finishPowerVerification(): void {
+        if (!root.applyPending || !root.adapter || root.busy)
+            return
+
+        const state = root.adapter.state
+        if (state !== BluetoothAdapterState.Enabled
+                && state !== BluetoothAdapterState.Disabled
+                && state !== BluetoothAdapterState.Blocked)
+            return
+
+        root.applyPending = false
+        if (state !== BluetoothAdapterState.Blocked
+                && root.adapter.enabled === root.requestedEnabled) {
+            root.lastError = ""
+            root.powerApplied(root.adapter.enabled)
+            return
+        }
+
+        root.lastError = qsTr("Bluetooth adapter did not apply the requested power state")
     }
 
     function setEnabled(value: bool): void {
         const requested = Boolean(value)
-        if (!root.available || root.busy || root.enabled === requested)
+        if (!root.adapter || root.busy || root.adapter.enabled === requested)
             return
 
-        root.busy = true
+        if (root.blocked) {
+            root.lastError = qsTr("Bluetooth adapter did not apply the requested power state")
+            return
+        }
+
         root.requestedEnabled = requested
         root.applyPending = true
         root.lastError = ""
-        root.commandError = ""
-        powerCommand.exec(["bluetoothctl", "power", requested ? "on" : "off"])
+        root.adapter.enabled = requested
     }
 
     function toggle(): void {
@@ -103,107 +114,23 @@ Singleton {
 
     function openManager(): void {
         const command = String(RaohaneConfig.bluetoothCommand ?? "").trim()
-        if (command !== "")
+        if (command.length > 0)
             Quickshell.execDetached(["bash", "-c", command])
     }
 
-    Process {
-        id: adapterProbe
-        environment: ({ LANG: "C", LC_ALL: "C" })
-        stdout: StdioCollector {
-            onStreamFinished: root.parseAdapter(text)
-        }
-        onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0 && root.applyPending) {
-                root.applyPending = false
-                root.busy = false
-                root.lastError = qsTr("Could not verify Bluetooth adapter state")
-            }
+    Connections {
+        target: root.adapter
+        ignoreUnknownSignals: true
+
+        function onStateChanged(): void {
+            root.finishPowerVerification()
         }
     }
 
-    Process {
-        id: devicesProbe
-        environment: ({ LANG: "C", LC_ALL: "C" })
-        stdout: StdioCollector {
-            onStreamFinished: root.parseConnectedDevices(text)
-        }
-    }
-
-    Process {
-        id: powerCommand
-        environment: ({ LANG: "C", LC_ALL: "C" })
-
-        stderr: StdioCollector {
-            onStreamFinished: {
-                const value = String(text ?? "").trim()
-                root.commandError = value.length > 0 ? value.split("\n").pop() : ""
-            }
-        }
-
-        onExited: (exitCode, exitStatus) => {
-            if (exitCode === 0) {
-                verifyPowerTimer.restart()
-                return
-            }
+    onAdapterChanged: {
+        if (!root.adapter) {
             root.applyPending = false
-            root.busy = false
-            root.lastError = root.commandError.length > 0
-                ? root.commandError
-                : qsTr("Bluetooth power command failed")
-            root.refresh(true)
+            root.lastError = ""
         }
     }
-
-    Process {
-        id: bluezMonitor
-        command: [
-            "bash", "-lc",
-            "if command -v bluetoothctl >/dev/null 2>&1; then exec bluetoothctl --monitor; else sleep 3600; fi"
-        ]
-        running: true
-        environment: ({ LANG: "C", LC_ALL: "C" })
-
-        stdout: SplitParser {
-            onRead: data => {
-                if (data.length > 0)
-                    monitorDebounce.restart()
-            }
-        }
-
-        onExited: monitorRestart.restart()
-    }
-
-    Timer {
-        id: verifyPowerTimer
-        interval: 260
-        repeat: false
-        onTriggered: root.refresh(true)
-    }
-
-    Timer {
-        id: monitorDebounce
-        interval: 180
-        repeat: false
-        onTriggered: root.refresh(true)
-    }
-
-    Timer {
-        id: monitorRestart
-        interval: 2500
-        repeat: false
-        onTriggered: bluezMonitor.running = true
-    }
-
-    // BlueZ monitor events are the primary update path. Keep only a slow repair
-    // snapshot in case a monitor event is lost instead of spawning bluetoothctl
-    // probes while the shell is otherwise idle.
-    Timer {
-        interval: 90000
-        repeat: true
-        running: true
-        onTriggered: root.refresh(true)
-    }
-
-    Component.onCompleted: root.refresh(true)
 }

@@ -57,7 +57,7 @@ require_service() {
 }
 
 require_service RaohaneMedia 'Quickshell\.Services\.Mpris'
-require_service RaohaneBluetooth '\bbluetoothctl\b'
+require_service RaohaneBluetooth 'Quickshell\.Bluetooth'
 require_service RaohaneAudio 'Quickshell\.Services\.Pipewire'
 require_service RaohaneNetwork '\bnmcli\b'
 require_service RaohaneDisplay 'brightnessctl|ddcutil|hyprsunset'
