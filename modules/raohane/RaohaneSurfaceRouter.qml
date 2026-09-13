@@ -45,6 +45,16 @@ Scope {
         function close(): void { RaohaneState.setPrimaryOpen("controlCenter", false) }
     }
 
+    IpcHandler {
+        target: "settings"
+
+        function toggle(): void { RaohaneState.togglePrimary("settings") }
+        function open(): void { RaohaneState.setPrimaryOpen("settings", true) }
+        function close(): void { RaohaneState.setPrimaryOpen("settings", false) }
+        function status(): string { return RaohaneState.settingsOpen ? "open" : "closed" }
+        function page(page: string): void { RaohaneSettingsRouter.request(page, "") }
+    }
+
     CompositorGlobalShortcut {
         name: "raohaneLauncherToggle"
         description: "Toggles the Raohane launcher"
@@ -82,5 +92,11 @@ Scope {
         name: "sidebarRightToggle"
         description: "Toggles Raohane control center"
         onPressed: RaohaneState.togglePrimary("controlCenter")
+    }
+
+    CompositorGlobalShortcut {
+        name: "settingsToggle"
+        description: "Toggles Raohane settings"
+        onPressed: RaohaneState.togglePrimary("settings")
     }
 }
