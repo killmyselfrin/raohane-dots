@@ -67,17 +67,23 @@ Singleton {
         return entries
     }
 
-    // Retained for presentation code that used to request a bluetoothctl
-    // snapshot when opening a panel. The Quickshell BlueZ model is live and
-    // needs no subprocess refresh.
+    // Compatibility entrypoint for panels that used to request an explicit
+    // snapshot on open. The Quickshell BlueZ model is live and event-driven.
     function refresh(force): void {}
 
     function finishPowerVerification(): void {
         if (!root.applyPending || !root.adapter || root.busy)
             return
 
+        const state = root.adapter.state
+        if (state !== BluetoothAdapterState.Enabled
+                && state !== BluetoothAdapterState.Disabled
+                && state !== BluetoothAdapterState.Blocked)
+            return
+
         root.applyPending = false
-        if (root.adapter.enabled === root.requestedEnabled) {
+        if (state !== BluetoothAdapterState.Blocked
+                && root.adapter.enabled === root.requestedEnabled) {
             root.lastError = ""
             root.powerApplied(root.adapter.enabled)
             return
@@ -100,7 +106,6 @@ Singleton {
         root.applyPending = true
         root.lastError = ""
         root.adapter.enabled = requested
-        root.finishPowerVerification()
     }
 
     function toggle(): void {
@@ -118,10 +123,6 @@ Singleton {
         ignoreUnknownSignals: true
 
         function onStateChanged(): void {
-            root.finishPowerVerification()
-        }
-
-        function onEnabledChanged(): void {
             root.finishPowerVerification()
         }
     }
