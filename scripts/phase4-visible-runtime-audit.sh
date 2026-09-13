@@ -19,6 +19,7 @@ settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_router='modules/raohane/RaohaneSettingsRouter.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
+surface_router='modules/raohane/RaohaneSurfaceRouter.qml'
 runtime_probe='modules/raohane/RaohaneRuntimeProbe.qml'
 runtime_smoke='scripts/runtime-smoke-check.sh'
 live_check='scripts/phase4-live-check.sh'
@@ -50,6 +51,7 @@ phase4_surfaces=(
   "$settings_registry"
   "$settings_router"
   "$settings_search"
+  "$surface_router"
   "$runtime_probe"
 )
 
@@ -142,10 +144,43 @@ rg -q 'RaohaneSettingsSearch[[:space:]]*\{' "$settings" \
   || fail 'Settings window does not consume native global search'
 rg -q 'Qt\.ControlModifier' "$settings" \
   || fail 'Settings lost Ctrl+F search focus shortcut'
-rg -q 'function page\(page: string\)' "$settings" \
-  || fail 'Settings lost direct page IPC routing'
-rg -q 'function status\(\): string' "$settings" \
-  || fail 'Settings lost runtime status IPC'
+
+# Settings presentation is on-demand. Public IPC and compositor entrypoints must
+# remain resident in RaohaneSurfaceRouter, while page resolution and cold-open
+# route state stay in RaohaneSettingsRouter. Never duplicate those entrypoints
+# inside the heavy Settings presentation merely to satisfy an audit.
+for contract in \
+  'target:[[:space:]]*"settings"' \
+  'function page\(page: string\): void' \
+  'function status\(\): string' \
+  'RaohaneSettingsRouter\.request\(page, ""\)' \
+  'name:[[:space:]]*"settingsToggle"'; do
+  rg -q "$contract" "$surface_router" \
+    || fail "resident Settings surface router lost contract: $contract"
+done
+if rg -n 'target:[[:space:]]*"settings"|name:[[:space:]]*"settingsToggle"' "$settings"; then
+  fail 'lazy Settings presentation regained duplicate resident IPC/shortcut ownership'
+fi
+for contract in \
+  'property string requestedPageKey:' \
+  'property string requestedControlKey:' \
+  'property int routeRevision:' \
+  'function rememberRoute\(' \
+  'function acknowledgeRoute\(' \
+  'root\.pageRequested\(page\.key, controlKey\)' \
+  'RaohaneState\.setPrimaryOpen\("settings", true\)'; do
+  rg -q "$contract" "$settings_router" \
+    || fail "Settings router lost cold-route state contract: $contract"
+done
+for contract in \
+  'function restoreRememberedRoute\(\): bool' \
+  'RaohaneSettingsRouter\.requestedPageKey' \
+  'RaohaneSettingsRouter\.requestedControlKey' \
+  'RaohaneSettingsRouter\.acknowledgeRoute\(revision\)'; do
+  rg -q "$contract" "$settings_content" \
+    || fail "Settings coordinator lost cold-route restore contract: $contract"
+done
+
 rg -q 'RaohaneSettingsRouter\.requestSearch\(entry\.section, entry\.key\)' "$settings_search" \
   || fail 'Settings search does not route exact native controls through the router'
 rg -q 'function requestSearch\(section: string, key: string\): bool' "$settings_router" \
@@ -226,4 +261,4 @@ for symbol in \
   rg -q "$symbol" "$cli" || fail "Raohane CLI lost Phase 4 route: $symbol"
 done
 
-printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, runtime smoke diagnostics, extracted Settings navigation/header, router-backed search and full live validation workflow are valid\n'
+printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, runtime smoke diagnostics, extracted Settings navigation/header, resident Settings IPC, cold-route restore and full live validation workflow are valid\n'
