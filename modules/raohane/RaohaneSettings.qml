@@ -193,41 +193,8 @@ Scope {
                     top: parent.top
                     right: parent.right
                     topMargin: 21
-                    rightMargin: 170
-                }
-                opacity: workspace.entered ? 1 : 0
-
-                transform: Translate {
-                    y: workspace.entered || !RaohaneMotion.transformMotionEnabled ? 0 : -5
-                    Behavior on y {
-                        NumberAnimation {
-                            duration: RaohaneMotion.standard
-                            easing.type: RaohaneMotion.easeEmphasized
-                        }
-                    }
-                }
-
-                Behavior on opacity {
-                    NumberAnimation { duration: RaohaneMotion.standard }
-                }
-            }
-
-            RaohaneSurface {
-                id: commandStrip
-                visible: !settingsContent.pageOwnsHeader
-                z: 50
-                width: 112
-                height: 34
-                anchors {
-                    top: parent.top
-                    right: parent.right
-                    topMargin: 21
                     rightMargin: 51
                 }
-                surfaceRadius: 10
-                raised: false
-                showSheen: false
-                border.color: RaohaneTheme.borderFaint
                 opacity: workspace.entered ? 1 : 0
 
                 transform: Translate {
@@ -242,47 +209,6 @@ Scope {
 
                 Behavior on opacity {
                     NumberAnimation { duration: RaohaneMotion.standard }
-                }
-
-                Row {
-                    anchors.centerIn: parent
-                    spacing: 2
-
-                    RaohaneIconButton {
-                        buttonSize: 27
-                        iconSize: 13
-                        icon: "inventory_2"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: RaohaneSettingsRouter.request("backup", "")
-                    }
-
-                    RaohaneIconButton {
-                        buttonSize: 27
-                        iconSize: 13
-                        icon: "keyboard"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: RaohaneSettingsRouter.request("keybinds", "")
-                    }
-
-                    RaohaneIconButton {
-                        buttonSize: 27
-                        iconSize: 13
-                        icon: "animation"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: RaohaneSettingsRouter.request("motion", "")
-                    }
-
-                    RaohaneIconButton {
-                        buttonSize: 27
-                        iconSize: 13
-                        icon: "language"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: RaohaneSettingsRouter.request("language", "")
-                    }
                 }
             }
 
