@@ -59,7 +59,7 @@ QtObject {
             role: "sidebar",
             layer: "overlay",
             placement: "left",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "overlay": {
             stateProperty: "overlayOpen",

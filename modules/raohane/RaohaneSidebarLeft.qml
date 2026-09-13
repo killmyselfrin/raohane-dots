@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
@@ -16,9 +15,7 @@ Scope {
         ?? Quickshell.screens[0]
     property date now: new Date()
 
-    function open(): void { RaohaneState.setPrimaryOpen("leftSidebar", true) }
     function close(): void { RaohaneState.setPrimaryOpen("leftSidebar", false) }
-    function toggle(): void { RaohaneState.togglePrimary("leftSidebar") }
 
     function openPrimary(surfaceId: string): void {
         RaohaneState.setPrimaryOpen(surfaceId, true)
@@ -204,19 +201,6 @@ Scope {
                 }
             }
         }
-    }
-
-    IpcHandler {
-        target: "sidebarLeft"
-        function toggle(): void { root.toggle() }
-        function open(): void { root.open() }
-        function close(): void { root.close() }
-    }
-
-    CompositorGlobalShortcut {
-        name: "sidebarLeftToggle"
-        description: "Toggle the Raohane left sidebar"
-        onPressed: root.toggle()
     }
 
     component RailAction: RaohaneSurface {
