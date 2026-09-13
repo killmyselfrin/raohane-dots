@@ -120,7 +120,7 @@ QtObject {
             role: "system-tool",
             layer: "overlay",
             placement: "center",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "desktopMenu": {
             stateProperty: "desktopMenuOpen",
