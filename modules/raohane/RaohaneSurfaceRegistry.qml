@@ -9,7 +9,8 @@ import QtQuick
 // components remain responsible for their presentation and compositor-facing
 // window geometry. Surface lifetime is declarative: `resident` surfaces stay
 // instantiated for global entrypoints, while `on-demand` surfaces exist only
-// while their state is open.
+// while their state is open. `deferredUnload` preserves one exit-motion cycle
+// after state closes without making the surface resident again.
 QtObject {
     id: root
 
@@ -48,7 +49,8 @@ QtObject {
             role: "system-panel",
             layer: "overlay",
             placement: "bar-adjacent",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand",
+            deferredUnload: true
         },
         "leftSidebar": {
             stateProperty: "leftSidebarOpen",
