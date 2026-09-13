@@ -21,7 +21,7 @@ QtObject {
             role: "launcher",
             layer: "overlay",
             placement: "center",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "wallpaper": {
             stateProperty: "wallpaperSelectorOpen",

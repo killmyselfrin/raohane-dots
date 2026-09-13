@@ -17,6 +17,7 @@ Scope {
     Component.onCompleted: RaohaneAutostart.runOnce()
 
     RaohanePanelLoader { component: RaohaneRuntimeProbe {} }
+    RaohanePanelLoader { component: RaohaneSurfaceRouter {} }
     RaohanePanelLoader { component: RaohaneBackground {} }
     RaohanePanelLoader { component: RaohaneDesktopCanvas {} }
     RaohanePanelLoader { extraCondition: !RaohaneConfig.barVertical; component: RaohaneBar {} }

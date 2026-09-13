@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
@@ -124,6 +123,8 @@ Scope {
             }
         }
 
+        Component.onDestruction: RaohaneFocusGrab.removeDismissable(panelWindow)
+
         Connections {
             target: RaohaneFocusGrab
             function onDismissed(): void { root.close() }
@@ -215,18 +216,5 @@ Scope {
                 }
             }
         }
-    }
-
-    IpcHandler {
-        target: "raohaneLauncher"
-        function toggle(): void { RaohaneState.togglePrimary("launcher") }
-        function open(): void { RaohaneState.setPrimaryOpen("launcher", true) }
-        function close(): void { RaohaneState.setPrimaryOpen("launcher", false) }
-    }
-
-    CompositorGlobalShortcut {
-        name: "raohaneLauncherToggle"
-        description: "Toggles the Raohane launcher"
-        onPressed: RaohaneState.togglePrimary("launcher")
     }
 }
