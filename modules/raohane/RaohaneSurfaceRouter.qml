@@ -1,6 +1,8 @@
 import Quickshell
 import Quickshell.Io
 
+import qs.modules.raohane.services
+
 // Resident control plane for shell surfaces whose presentation is loaded on
 // demand. IPC and compositor shortcuts live here so a closed surface never
 // needs to remain instantiated merely to open itself again.
@@ -13,9 +15,43 @@ Scope {
         function close(): void { RaohaneState.setPrimaryOpen("launcher", false) }
     }
 
+    IpcHandler {
+        target: "search"
+
+        function toggle(): void { RaohaneState.togglePrimary("overview") }
+        function workspacesToggle(): void { RaohaneState.togglePrimary("overview") }
+        function close(): void { RaohaneState.setPrimaryOpen("overview", false) }
+        function open(): void { RaohaneState.setPrimaryOpen("overview", true) }
+        function clipboardToggle(): void {
+            RaohaneSearch.query = ":"
+            RaohaneState.setPrimaryOpen("launcher", true)
+        }
+    }
+
     CompositorGlobalShortcut {
         name: "raohaneLauncherToggle"
         description: "Toggles the Raohane launcher"
         onPressed: RaohaneState.togglePrimary("launcher")
+    }
+
+    CompositorGlobalShortcut {
+        name: "overviewWorkspacesClose"
+        description: "Close Raohane workspace overview"
+        onPressed: RaohaneState.setPrimaryOpen("overview", false)
+    }
+
+    CompositorGlobalShortcut {
+        name: "overviewWorkspacesToggle"
+        description: "Toggle Raohane workspace overview"
+        onPressed: RaohaneState.togglePrimary("overview")
+    }
+
+    CompositorGlobalShortcut {
+        name: "overviewClipboardToggle"
+        description: "Open clipboard search in Raohane launcher"
+        onPressed: {
+            RaohaneSearch.query = ":"
+            RaohaneState.setPrimaryOpen("launcher", true)
+        }
     }
 }
