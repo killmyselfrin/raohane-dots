@@ -14,10 +14,14 @@ fail() {
 # must contain only Raohane identity.
 legacy_token="$(printf '%s%s' 'i' 'nir')"
 
-if rg -n -i --hidden \
+mapfile -t content_hits < <(rg -l -i --hidden \
   --glob '!.git/**' \
   --glob '!NOTICE-UPSTREAM.md' \
-  -- "$legacy_token" .; then
+  -- "$legacy_token" . || true)
+
+if (("${#content_hits[@]}" > 0)); then
+  printf 'product-branding-audit: retired upstream identity found in:\n' >&2
+  printf '  %s\n' "${content_hits[@]}" >&2
   fail 'retired upstream identity is present outside the legal provenance notice'
 fi
 
