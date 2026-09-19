@@ -1,9 +1,12 @@
 {
-  "Keyboard & Motion": "Клавиатура и анимации",
-  "Shortcuts, application bindings and animation behavior": "Горячие клавиши, привязки приложений и поведение анимаций",
-  "Keybinds, input behavior and animation preferences": "Горячие клавиши, поведение ввода и настройки анимаций",
   "Choose the language used by Raohane": "Выберите язык интерфейса Raohane",
-  "Interface language": "Язык интерфейса",
   "Choose the language used by Raohane. The shell restarts automatically when a new runtime catalog needs to be applied.": "Выберите язык Raohane. Оболочка автоматически перезапустится, если потребуется применить новый каталог локализации.",
-  "Current": "Текущий"
+  "Configure the dock here; the Bar Studio below is the single source of truth for every bar option.": "Настройки дока находятся здесь, а все параметры панели настраиваются только в Bar Studio.",
+  "Current": "Текущий",
+  "Desktop Widget Studio owns widget visibility, composition, sizing and opacity.": "Widget Studio управляет видимостью, композицией, размером и прозрачностью виджетов рабочего стола.",
+  "Interface language": "Язык интерфейса",
+  "Keybinds, input behavior and animation preferences": "Горячие клавиши, поведение ввода и настройки анимаций",
+  "Keyboard & Motion": "Клавиатура и анимации",
+  "Overall dock surface height in pixels": "Общая высота поверхности дока в пикселях",
+  "Shortcuts, application bindings and animation behavior": "Горячие клавиши, привязки приложений и поведение анимаций"
 }
