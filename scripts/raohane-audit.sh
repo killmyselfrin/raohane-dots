@@ -15,6 +15,7 @@ required_root=(
   VERSION
   LICENSE
   NOTICE-UPSTREAM.md
+  assets/applications/raohane-settings.desktop
   panelFamilies/RaohaneFamily.qml
   modules/raohane/qmldir
   modules/raohane/config/qmldir
@@ -189,7 +190,389 @@ rg -q '^singleton RaohaneLyrics .*RaohaneLyrics.qml$' modules/raohane/services/q
 if rg -n -i 'inir|\bniri\b|waffle|ricelin' modules/raohane shell.qml "$family"; then
   fail 'Raohane product runtime contains a non-target/legacy identity'
 fi
-rg -q '^import Quickshell\.Hyprland$' modules/raohane/RaohaneBar.qml \
+
+settings_desktop='assets/applications/raohane-settings.desktop'
+installer='install-raohane.sh'
+for contract in \
+  '^Name=Raohane Settings
+  || fail 'native bar lost Hyprland integration'
+
+while IFS= read -r qml; do
+  if rg -q '^[[:space:]]*Singleton[[:space:]]*\{' "$qml"; then
+    rg -q '^import[[:space:]]+Quickshell([[:space:]]|$)' "$qml" \
+      || fail "$qml uses Singleton without importing Quickshell"
+  fi
+  if rg -q '\bConnections[[:space:]]*\{' "$qml"; then
+    rg -q '^import (QtQuick|QtQml)([[:space:]]|;|$)' "$qml" \
+      || fail "$qml uses Connections without QtQuick/QtQml"
+  fi
+  if rg -q '\b(IpcHandler|Process|StdioCollector|SplitParser)[[:space:]]*\{' "$qml"; then
+    rg -q '^import Quickshell\.Io([[:space:]]|;|$)' "$qml" \
+      || fail "$qml uses Quickshell.Io types without importing Quickshell.Io"
+  fi
+done < <(find modules/raohane -type f -name '*.qml' -print)
+
+# Lyrics network resolution belongs in an owned backend helper. Keep networking
+# out of QML so UI state, request lifecycle and LRCLIB HTTP behavior stay separate.
+rg -q 'Quickshell\.shellPath\("scripts/lyrics-resolve\.py"\)' modules/raohane/services/RaohaneLyrics.qml \
+  || fail 'RaohaneLyrics does not invoke the owned resolver backend'
+if rg -n 'XMLHttpRequest|https://lrclib\.net/api' modules/raohane/services/RaohaneLyrics.qml; then
+  fail 'RaohaneLyrics regressed to direct QML HTTP requests'
+fi
+python3 - scripts/lyrics-resolve.py <<'PY'
+import pathlib
+import sys
+path = pathlib.Path(sys.argv[1])
+compile(path.read_text(encoding="utf-8"), str(path), "exec")
+PY
+
+for route in \
+  'ipc raohaneLauncher toggle' \
+  'ipc raohaneMedia toggle' \
+  'ipc raohaneDesktop toggle' \
+  'ipc wallpaperSelector toggle' \
+  'ipc session toggle' \
+  'ipc screenTranslator translate'; do
+  rg -q "$route" scripts/raohane || fail "CLI route missing: $route"
+done
+
+rg -q 'validate release' scripts/raohane \
+  || fail 'CLI usage does not expose live release validation'
+rg -q '^find_release_validator\(\)' scripts/raohane \
+  || fail 'CLI does not resolve the installed live release validator'
+rg -q '\$RUNTIME/scripts/release-live-check\.sh' scripts/raohane \
+  || fail 'CLI does not prefer the installed live release validator'
+rg -q 'run_release_validator "\$@"' scripts/raohane \
+  || fail 'validate release route does not execute the release validator'
+
+rg -q 'RAOHANE_CONFIG_FILE="\$RAOHANE_CONFIG/native\.json"' install-raohane.sh \
+  || fail 'installer does not use native.json as the authoritative config'
+rg -q 'RAOHANE_AUTOSTART_FILE="\$RAOHANE_CONFIG/autostart\.conf"' install-raohane.sh \
+  || fail 'installer does not use native Raohane autostart'
+rg -q 'defaults/native\.json' install-raohane.sh \
+  || fail 'installer does not seed native schema defaults'
+rg -q 'migrate-legacy-config\.py' install-raohane.sh \
+  || fail 'installer lost safe legacy conversion'
+rg -q 'scripts/install-deps\.sh' install-raohane.sh \
+  || fail 'main installer is not using the Raohane dependency installer'
+
+if rg -n '^[[:space:]]+"(modules/common|modules/ii|services|panelFamilies/IllogicalImpulseFamily\.qml)"' install-raohane.sh; then
+  fail 'installer still requires inherited runtime trees'
+fi
+if rg -n '\bAUTOSTART_SOURCE_LINE\b' install-raohane.sh; then
+  fail 'installer can still source the retired Hyprland autostart path'
+fi
+if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' install-raohane.sh scripts/install-deps.sh scripts/raohane; then
+  fail 'normal install/doctor path executes upstream shell infrastructure'
+fi
+
+rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*13' defaults/native.json \
+  || fail 'native defaults are not schema v13'
+python3 scripts/migrate-legacy-config.py --help >/dev/null
+
+bash -n scripts/raohane
+bash -n scripts/raohane-audit.sh
+bash -n scripts/source-lineage-audit.sh
+bash -n scripts/theme-library-audit.sh
+bash -n scripts/nix-boundary-audit.sh
+bash -n scripts/runtime-payload-audit.sh
+bash -n scripts/package-release.sh
+bash -n scripts/release-live-check.sh
+bash -n scripts/runtime-surface-boundary-audit.sh
+bash -n scripts/phase4-visible-runtime-audit.sh
+bash -n scripts/phase4-live-check.sh
+bash -n scripts/multimonitor-boundary-audit.sh
+bash -n scripts/fullscreen-boundary-audit.sh
+bash -n scripts/primary-surface-boundary-audit.sh
+bash -n scripts/overview-pointer-boundary-audit.sh
+bash -n scripts/privacy-performance-audit.sh
+bash -n scripts/sidebar-performance-audit.sh
+bash -n scripts/bluetooth-performance-audit.sh
+bash -n scripts/easyeffects-performance-audit.sh
+bash -n scripts/keyboard-layout-boundary-audit.sh
+bash -n scripts/desktop-widget-boundary-audit.sh
+bash -n scripts/install-deps.sh
+bash -n scripts/screen-translate.sh
+bash -n scripts/region-ocr.sh
+bash -n scripts/region-search.sh
+bash -n scripts/videos/record.sh
+bash -n install-raohane.sh
+
+bash scripts/source-lineage-audit.sh
+bash scripts/theme-library-audit.sh
+bash scripts/nix-boundary-audit.sh
+bash scripts/phase4-visible-runtime-audit.sh
+bash scripts/multimonitor-boundary-audit.sh
+bash scripts/fullscreen-boundary-audit.sh
+bash scripts/primary-surface-boundary-audit.sh
+bash scripts/overview-pointer-boundary-audit.sh
+bash scripts/privacy-performance-audit.sh
+bash scripts/sidebar-performance-audit.sh
+bash scripts/bluetooth-performance-audit.sh
+bash scripts/easyeffects-performance-audit.sh
+bash scripts/keyboard-layout-boundary-audit.sh
+bash scripts/desktop-widget-boundary-audit.sh
+
+printf 'raohane-audit: native bootstrap, source lineage, release CLI, coordinated Task Manager, owned lyrics resolver, Phase 4 runtime contract, overview routing, multi-monitor/fullscreen behavior and native release boundaries are valid\n' \
+  '^Exec=raohane settings
+  || fail 'native bar lost Hyprland integration'
+
+while IFS= read -r qml; do
+  if rg -q '^[[:space:]]*Singleton[[:space:]]*\{' "$qml"; then
+    rg -q '^import[[:space:]]+Quickshell([[:space:]]|$)' "$qml" \
+      || fail "$qml uses Singleton without importing Quickshell"
+  fi
+  if rg -q '\bConnections[[:space:]]*\{' "$qml"; then
+    rg -q '^import (QtQuick|QtQml)([[:space:]]|;|$)' "$qml" \
+      || fail "$qml uses Connections without QtQuick/QtQml"
+  fi
+  if rg -q '\b(IpcHandler|Process|StdioCollector|SplitParser)[[:space:]]*\{' "$qml"; then
+    rg -q '^import Quickshell\.Io([[:space:]]|;|$)' "$qml" \
+      || fail "$qml uses Quickshell.Io types without importing Quickshell.Io"
+  fi
+done < <(find modules/raohane -type f -name '*.qml' -print)
+
+# Lyrics network resolution belongs in an owned backend helper. Keep networking
+# out of QML so UI state, request lifecycle and LRCLIB HTTP behavior stay separate.
+rg -q 'Quickshell\.shellPath\("scripts/lyrics-resolve\.py"\)' modules/raohane/services/RaohaneLyrics.qml \
+  || fail 'RaohaneLyrics does not invoke the owned resolver backend'
+if rg -n 'XMLHttpRequest|https://lrclib\.net/api' modules/raohane/services/RaohaneLyrics.qml; then
+  fail 'RaohaneLyrics regressed to direct QML HTTP requests'
+fi
+python3 - scripts/lyrics-resolve.py <<'PY'
+import pathlib
+import sys
+path = pathlib.Path(sys.argv[1])
+compile(path.read_text(encoding="utf-8"), str(path), "exec")
+PY
+
+for route in \
+  'ipc raohaneLauncher toggle' \
+  'ipc raohaneMedia toggle' \
+  'ipc raohaneDesktop toggle' \
+  'ipc wallpaperSelector toggle' \
+  'ipc session toggle' \
+  'ipc screenTranslator translate'; do
+  rg -q "$route" scripts/raohane || fail "CLI route missing: $route"
+done
+
+rg -q 'validate release' scripts/raohane \
+  || fail 'CLI usage does not expose live release validation'
+rg -q '^find_release_validator\(\)' scripts/raohane \
+  || fail 'CLI does not resolve the installed live release validator'
+rg -q '\$RUNTIME/scripts/release-live-check\.sh' scripts/raohane \
+  || fail 'CLI does not prefer the installed live release validator'
+rg -q 'run_release_validator "\$@"' scripts/raohane \
+  || fail 'validate release route does not execute the release validator'
+
+rg -q 'RAOHANE_CONFIG_FILE="\$RAOHANE_CONFIG/native\.json"' install-raohane.sh \
+  || fail 'installer does not use native.json as the authoritative config'
+rg -q 'RAOHANE_AUTOSTART_FILE="\$RAOHANE_CONFIG/autostart\.conf"' install-raohane.sh \
+  || fail 'installer does not use native Raohane autostart'
+rg -q 'defaults/native\.json' install-raohane.sh \
+  || fail 'installer does not seed native schema defaults'
+rg -q 'migrate-legacy-config\.py' install-raohane.sh \
+  || fail 'installer lost safe legacy conversion'
+rg -q 'scripts/install-deps\.sh' install-raohane.sh \
+  || fail 'main installer is not using the Raohane dependency installer'
+
+if rg -n '^[[:space:]]+"(modules/common|modules/ii|services|panelFamilies/IllogicalImpulseFamily\.qml)"' install-raohane.sh; then
+  fail 'installer still requires inherited runtime trees'
+fi
+if rg -n '\bAUTOSTART_SOURCE_LINE\b' install-raohane.sh; then
+  fail 'installer can still source the retired Hyprland autostart path'
+fi
+if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' install-raohane.sh scripts/install-deps.sh scripts/raohane; then
+  fail 'normal install/doctor path executes upstream shell infrastructure'
+fi
+
+rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*13' defaults/native.json \
+  || fail 'native defaults are not schema v13'
+python3 scripts/migrate-legacy-config.py --help >/dev/null
+
+bash -n scripts/raohane
+bash -n scripts/raohane-audit.sh
+bash -n scripts/source-lineage-audit.sh
+bash -n scripts/theme-library-audit.sh
+bash -n scripts/nix-boundary-audit.sh
+bash -n scripts/runtime-payload-audit.sh
+bash -n scripts/package-release.sh
+bash -n scripts/release-live-check.sh
+bash -n scripts/runtime-surface-boundary-audit.sh
+bash -n scripts/phase4-visible-runtime-audit.sh
+bash -n scripts/phase4-live-check.sh
+bash -n scripts/multimonitor-boundary-audit.sh
+bash -n scripts/fullscreen-boundary-audit.sh
+bash -n scripts/primary-surface-boundary-audit.sh
+bash -n scripts/overview-pointer-boundary-audit.sh
+bash -n scripts/privacy-performance-audit.sh
+bash -n scripts/sidebar-performance-audit.sh
+bash -n scripts/bluetooth-performance-audit.sh
+bash -n scripts/easyeffects-performance-audit.sh
+bash -n scripts/keyboard-layout-boundary-audit.sh
+bash -n scripts/desktop-widget-boundary-audit.sh
+bash -n scripts/install-deps.sh
+bash -n scripts/screen-translate.sh
+bash -n scripts/region-ocr.sh
+bash -n scripts/region-search.sh
+bash -n scripts/videos/record.sh
+bash -n install-raohane.sh
+
+bash scripts/source-lineage-audit.sh
+bash scripts/theme-library-audit.sh
+bash scripts/nix-boundary-audit.sh
+bash scripts/phase4-visible-runtime-audit.sh
+bash scripts/multimonitor-boundary-audit.sh
+bash scripts/fullscreen-boundary-audit.sh
+bash scripts/primary-surface-boundary-audit.sh
+bash scripts/overview-pointer-boundary-audit.sh
+bash scripts/privacy-performance-audit.sh
+bash scripts/sidebar-performance-audit.sh
+bash scripts/bluetooth-performance-audit.sh
+bash scripts/easyeffects-performance-audit.sh
+bash scripts/keyboard-layout-boundary-audit.sh
+bash scripts/desktop-widget-boundary-audit.sh
+
+printf 'raohane-audit: native bootstrap, source lineage, release CLI, coordinated Task Manager, owned lyrics resolver, Phase 4 runtime contract, overview routing, multi-monitor/fullscreen behavior and native release boundaries are valid\n' \
+  '^Icon=' \
+  '^Categories=.*Settings'; do
+  rg -q "$contract" "$settings_desktop" \
+    || fail "Raohane Settings desktop entry lost contract: $contract"
+done
+if rg -n -i 'inir|illogical|waffle|ricelin' "$settings_desktop"; then
+  fail 'Raohane Settings desktop entry contains legacy branding'
+fi
+for contract in \
+  'APPLICATIONS_DIR=' \
+  'raohane-settings\.desktop' \
+  'inir-settings\.desktop' \
+  'Hidden=true' \
+  'Name=iNiR Settings' \
+  'Exec=inir'; do
+  rg -q "$contract" "$installer" \
+    || fail "installer lost Settings launcher migration contract: $contract"
+done
+
+rg -q '^import Quickshell\.Hyprland
+  || fail 'native bar lost Hyprland integration'
+
+while IFS= read -r qml; do
+  if rg -q '^[[:space:]]*Singleton[[:space:]]*\{' "$qml"; then
+    rg -q '^import[[:space:]]+Quickshell([[:space:]]|$)' "$qml" \
+      || fail "$qml uses Singleton without importing Quickshell"
+  fi
+  if rg -q '\bConnections[[:space:]]*\{' "$qml"; then
+    rg -q '^import (QtQuick|QtQml)([[:space:]]|;|$)' "$qml" \
+      || fail "$qml uses Connections without QtQuick/QtQml"
+  fi
+  if rg -q '\b(IpcHandler|Process|StdioCollector|SplitParser)[[:space:]]*\{' "$qml"; then
+    rg -q '^import Quickshell\.Io([[:space:]]|;|$)' "$qml" \
+      || fail "$qml uses Quickshell.Io types without importing Quickshell.Io"
+  fi
+done < <(find modules/raohane -type f -name '*.qml' -print)
+
+# Lyrics network resolution belongs in an owned backend helper. Keep networking
+# out of QML so UI state, request lifecycle and LRCLIB HTTP behavior stay separate.
+rg -q 'Quickshell\.shellPath\("scripts/lyrics-resolve\.py"\)' modules/raohane/services/RaohaneLyrics.qml \
+  || fail 'RaohaneLyrics does not invoke the owned resolver backend'
+if rg -n 'XMLHttpRequest|https://lrclib\.net/api' modules/raohane/services/RaohaneLyrics.qml; then
+  fail 'RaohaneLyrics regressed to direct QML HTTP requests'
+fi
+python3 - scripts/lyrics-resolve.py <<'PY'
+import pathlib
+import sys
+path = pathlib.Path(sys.argv[1])
+compile(path.read_text(encoding="utf-8"), str(path), "exec")
+PY
+
+for route in \
+  'ipc raohaneLauncher toggle' \
+  'ipc raohaneMedia toggle' \
+  'ipc raohaneDesktop toggle' \
+  'ipc wallpaperSelector toggle' \
+  'ipc session toggle' \
+  'ipc screenTranslator translate'; do
+  rg -q "$route" scripts/raohane || fail "CLI route missing: $route"
+done
+
+rg -q 'validate release' scripts/raohane \
+  || fail 'CLI usage does not expose live release validation'
+rg -q '^find_release_validator\(\)' scripts/raohane \
+  || fail 'CLI does not resolve the installed live release validator'
+rg -q '\$RUNTIME/scripts/release-live-check\.sh' scripts/raohane \
+  || fail 'CLI does not prefer the installed live release validator'
+rg -q 'run_release_validator "\$@"' scripts/raohane \
+  || fail 'validate release route does not execute the release validator'
+
+rg -q 'RAOHANE_CONFIG_FILE="\$RAOHANE_CONFIG/native\.json"' install-raohane.sh \
+  || fail 'installer does not use native.json as the authoritative config'
+rg -q 'RAOHANE_AUTOSTART_FILE="\$RAOHANE_CONFIG/autostart\.conf"' install-raohane.sh \
+  || fail 'installer does not use native Raohane autostart'
+rg -q 'defaults/native\.json' install-raohane.sh \
+  || fail 'installer does not seed native schema defaults'
+rg -q 'migrate-legacy-config\.py' install-raohane.sh \
+  || fail 'installer lost safe legacy conversion'
+rg -q 'scripts/install-deps\.sh' install-raohane.sh \
+  || fail 'main installer is not using the Raohane dependency installer'
+
+if rg -n '^[[:space:]]+"(modules/common|modules/ii|services|panelFamilies/IllogicalImpulseFamily\.qml)"' install-raohane.sh; then
+  fail 'installer still requires inherited runtime trees'
+fi
+if rg -n '\bAUTOSTART_SOURCE_LINE\b' install-raohane.sh; then
+  fail 'installer can still source the retired Hyprland autostart path'
+fi
+if rg -n 'install-foundation-deps|sync-end4-foundation|git[[:space:]]+clone' install-raohane.sh scripts/install-deps.sh scripts/raohane; then
+  fail 'normal install/doctor path executes upstream shell infrastructure'
+fi
+
+rg -q '"schemaVersion"[[:space:]]*:[[:space:]]*13' defaults/native.json \
+  || fail 'native defaults are not schema v13'
+python3 scripts/migrate-legacy-config.py --help >/dev/null
+
+bash -n scripts/raohane
+bash -n scripts/raohane-audit.sh
+bash -n scripts/source-lineage-audit.sh
+bash -n scripts/theme-library-audit.sh
+bash -n scripts/nix-boundary-audit.sh
+bash -n scripts/runtime-payload-audit.sh
+bash -n scripts/package-release.sh
+bash -n scripts/release-live-check.sh
+bash -n scripts/runtime-surface-boundary-audit.sh
+bash -n scripts/phase4-visible-runtime-audit.sh
+bash -n scripts/phase4-live-check.sh
+bash -n scripts/multimonitor-boundary-audit.sh
+bash -n scripts/fullscreen-boundary-audit.sh
+bash -n scripts/primary-surface-boundary-audit.sh
+bash -n scripts/overview-pointer-boundary-audit.sh
+bash -n scripts/privacy-performance-audit.sh
+bash -n scripts/sidebar-performance-audit.sh
+bash -n scripts/bluetooth-performance-audit.sh
+bash -n scripts/easyeffects-performance-audit.sh
+bash -n scripts/keyboard-layout-boundary-audit.sh
+bash -n scripts/desktop-widget-boundary-audit.sh
+bash -n scripts/install-deps.sh
+bash -n scripts/screen-translate.sh
+bash -n scripts/region-ocr.sh
+bash -n scripts/region-search.sh
+bash -n scripts/videos/record.sh
+bash -n install-raohane.sh
+
+bash scripts/source-lineage-audit.sh
+bash scripts/theme-library-audit.sh
+bash scripts/nix-boundary-audit.sh
+bash scripts/phase4-visible-runtime-audit.sh
+bash scripts/multimonitor-boundary-audit.sh
+bash scripts/fullscreen-boundary-audit.sh
+bash scripts/primary-surface-boundary-audit.sh
+bash scripts/overview-pointer-boundary-audit.sh
+bash scripts/privacy-performance-audit.sh
+bash scripts/sidebar-performance-audit.sh
+bash scripts/bluetooth-performance-audit.sh
+bash scripts/easyeffects-performance-audit.sh
+bash scripts/keyboard-layout-boundary-audit.sh
+bash scripts/desktop-widget-boundary-audit.sh
+
+printf 'raohane-audit: native bootstrap, source lineage, release CLI, coordinated Task Manager, owned lyrics resolver, Phase 4 runtime contract, overview routing, multi-monitor/fullscreen behavior and native release boundaries are valid\n' modules/raohane/RaohaneBar.qml \
   || fail 'native bar lost Hyprland integration'
 
 while IFS= read -r qml; do
