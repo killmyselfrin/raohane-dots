@@ -26,20 +26,6 @@ QtObject {
             success: "#5f7464", warning: "#96794d", critical: "#9b5e5e", info: "#647984"
         },
         {
-            id: "sakura", name: qsTr("Sakura"), description: qsTr("Soft blush glass with muted rose accents"), tone: qsTr("Warm"), dark: false,
-            background: "#eee7e6", backgroundElevated: "#f6f0ef", surface: "#dcf8f1f0", surfaceRaised: "#effcf7f5", surfaceDeep: "#f1e8dfdf", surfaceSubtle: "#91fffafa", surfaceHover: "#e9eee2e2", surfacePressed: "#efdccfd0",
-            border: "#2a5c4b4d", borderStrong: "#496c5659", borderFaint: "#185c4b4d", highlight: "#c0ffffff",
-            text: "#302829", textMuted: "#796d6e", textFaint: "#a09697", accent: "#8b666b", accentSecondary: "#a98585", accentBlue: "#79838b",
-            success: "#6c7b6d", warning: "#9b7b58", critical: "#a55e68", info: "#74818b"
-        },
-        {
-            id: "matcha", name: qsTr("Matcha"), description: qsTr("Quiet sage tones inspired by tea rooms"), tone: qsTr("Natural"), dark: false,
-            background: "#e9ece6", backgroundElevated: "#f1f4ef", surface: "#dcf4f6f1", surfaceRaised: "#effafbf7", surfaceDeep: "#f1e1e6df", surfaceSubtle: "#90f8fff7", surfaceHover: "#e8e6ece4", surfacePressed: "#eed4ddd2",
-            border: "#29475046", borderStrong: "#47525e51", borderFaint: "#17475046", highlight: "#bdffffff",
-            text: "#293029", textMuted: "#687167", textFaint: "#929a91", accent: "#647263", accentSecondary: "#82907c", accentBlue: "#6e7c80",
-            success: "#5d7663", warning: "#927a50", critical: "#9b6261", info: "#667b82"
-        },
-        {
             id: "slate", name: qsTr("Slate"), description: qsTr("Cool mist with restrained blue-gray accents"), tone: qsTr("Cool"), dark: false,
             background: "#e7eaec", backgroundElevated: "#f0f3f4", surface: "#dcf5f7f8", surfaceRaised: "#effcfdfe", surfaceDeep: "#f1dfe4e7", surfaceSubtle: "#90f8fbff", surfaceHover: "#e8e3e8eb", surfacePressed: "#eed0d8dd",
             border: "#29404a50", borderStrong: "#48515d64", borderFaint: "#17404a50", highlight: "#bdffffff",
@@ -52,13 +38,6 @@ QtObject {
             border: "#2956493b", borderStrong: "#48665748", borderFaint: "#1756493b", highlight: "#c0ffffff",
             text: "#312c25", textMuted: "#776e62", textFaint: "#9d9589", accent: "#776956", accentSecondary: "#93826c", accentBlue: "#748087",
             success: "#677765", warning: "#947546", critical: "#9e625e", info: "#697a82"
-        },
-        {
-            id: "sumi", name: qsTr("Sumi"), description: qsTr("Ink-black glass with warm paper text"), tone: qsTr("Dark"), dark: true,
-            background: "#101110", backgroundElevated: "#171817", surface: "#dc1b1c1a", surfaceRaised: "#ee222320", surfaceDeep: "#f20c0d0c", surfaceSubtle: "#8f292a27", surfaceHover: "#df2d2e2b", surfacePressed: "#e8383935",
-            border: "#2efffff7", borderStrong: "#50fffdf5", borderFaint: "#18fffdf5", highlight: "#36ffffff",
-            text: "#eeeae2", textMuted: "#aaa69e", textFaint: "#77746e", accent: "#d8d3ca", accentSecondary: "#aba59b", accentBlue: "#a5b1b6",
-            success: "#86a08b", warning: "#b59a6d", critical: "#bd7777", info: "#8fa7b2"
         },
         {
             id: "midnight", name: qsTr("Midnight"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
