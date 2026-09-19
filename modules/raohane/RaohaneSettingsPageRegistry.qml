@@ -89,14 +89,8 @@ QtObject {
             ]
         },
         bar: {
-            description: qsTr("Control placement, reveal behavior, appearance and module composition for the Raohane bar."),
+            description: qsTr("Configure the dock here; the Bar Studio below is the single source of truth for every bar option."),
             entries: [
-                { type: "toggle", key: "barBottom", label: qsTr("Bottom bar"), detail: qsTr("Place the horizontal bar on the bottom edge") },
-                { type: "toggle", key: "barVertical", label: qsTr("Vertical bar"), detail: qsTr("Use the native vertical bar layout") },
-                { type: "toggle", key: "barAutoHide", label: qsTr("Auto-hide bar"), detail: qsTr("Hide the bar until interaction requires it") },
-                { type: "toggle", key: "barAutoHidePushWindows", label: qsTr("Push windows"), detail: qsTr("Reserve space while an auto-hidden bar is visible") },
-                { type: "toggle", key: "barShowOnSuper", label: qsTr("Reveal on Super"), detail: qsTr("Temporarily reveal the bar with Super, including over fullscreen apps") },
-                { type: "toggle", key: "barShowDate", label: qsTr("Show date"), detail: qsTr("Display the date alongside the clock") },
                 { type: "toggle", key: "dockEnabled", label: qsTr("Dock"), detail: qsTr("Enable the Raohane dock") },
                 { type: "toggle", key: "dockAutoHide", label: qsTr("Auto-hide dock"), detail: qsTr("Hide the dock when it is not in use") },
                 { type: "number", key: "dockIconSize", label: qsTr("Dock icon size"), detail: qsTr("Native dock icon size in pixels"), min: 26, max: 72, step: 2 }
@@ -148,8 +142,7 @@ QtObject {
                 { type: "toggle", key: "hotCornerValueScroll", label: qsTr("Hot-corner value scroll"), detail: qsTr("Allow scroll interaction in native hot corners") },
                 { type: "toggle", key: "hotCornerClickless", label: qsTr("Clickless hot corners"), detail: qsTr("Trigger corner actions without a click") },
                 { type: "number", key: "hotCornerRegionWidth", label: qsTr("Corner region width"), detail: qsTr("Hyprland edge interaction width"), min: 12, max: 600, step: 10 },
-                { type: "number", key: "hotCornerRegionHeight", label: qsTr("Corner region height"), detail: qsTr("Hyprland edge interaction height"), min: 2, max: 80, step: 1 },
-                { type: "number", key: "barShowOnSuperDelay", label: qsTr("Super reveal delay"), detail: qsTr("Delay before Super reveals the bar"), min: 0, max: 2000, step: 20 }
+                { type: "number", key: "hotCornerRegionHeight", label: qsTr("Corner region height"), detail: qsTr("Hyprland edge interaction height"), min: 2, max: 80, step: 1 }
             ]
         },
         services: {
@@ -173,6 +166,10 @@ QtObject {
 
     readonly property var searchOnlyEntries: [
         { section: "themes", key: "themePreset", label: qsTr("Theme library"), detail: qsTr("Themes") },
+        { section: "bar", key: "barPosition", label: qsTr("Bar position"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barAutoHide", label: qsTr("Auto-hide bar"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barShowDate", label: qsTr("Show date"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barHeight", label: qsTr("Bar height"), detail: qsTr("Bar Studio") },
         { section: "bar", key: "barModuleLayout", label: qsTr("Bar modules"), detail: qsTr("Bar Studio") },
         { section: "quick", key: "quickControlTiles", label: qsTr("Quick Control tiles"), detail: qsTr("Quick Controls Studio") },
         { section: "general", key: "mediaOverlayPosition", label: qsTr("Player position"), detail: qsTr("Media & OSD") },
