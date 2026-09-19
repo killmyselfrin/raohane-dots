@@ -423,8 +423,11 @@ rg -q 'Open native\.json' "$home" || fail 'Settings Home no longer exposes nativ
 rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" || fail 'Settings Home bypasses centralized router'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
+for contract in 'RaohaneBarAppearanceSettings[[:space:]]*\{' 'RaohaneBarLayoutEditor[[:space:]]*\{'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost composed editor contract: $contract"
+done
 for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
-  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
+  rg -q "$contract" "$bar_layout" || fail "Bar layout editor lost native contract: $contract"
 done
 for contract in \
   'RaohaneConfig\.quickControlTiles' \
@@ -616,8 +619,11 @@ rg -q 'Open native\.json' "$home" || fail 'Settings Home no longer exposes nativ
 rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" || fail 'Settings Home bypasses centralized router'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
+for contract in 'RaohaneBarAppearanceSettings[[:space:]]*\{' 'RaohaneBarLayoutEditor[[:space:]]*\{'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost composed editor contract: $contract"
+done
 for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
-  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
+  rg -q "$contract" "$bar_layout" || fail "Bar layout editor lost native contract: $contract"
 done
 for contract in \
   'RaohaneConfig\.quickControlTiles' \
@@ -808,8 +814,11 @@ rg -q 'Open native\.json' "$home" || fail 'Settings Home no longer exposes nativ
 rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" || fail 'Settings Home bypasses centralized router'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
+for contract in 'RaohaneBarAppearanceSettings[[:space:]]*\{' 'RaohaneBarLayoutEditor[[:space:]]*\{'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost composed editor contract: $contract"
+done
 for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
-  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
+  rg -q "$contract" "$bar_layout" || fail "Bar layout editor lost native contract: $contract"
 done
 for contract in \
   'RaohaneConfig\.quickControlTiles' \
