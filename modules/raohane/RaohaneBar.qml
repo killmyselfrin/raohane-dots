@@ -23,13 +23,6 @@ Scope {
         || root.activeLayout.center.includes("context")
         || root.activeLayout.right.includes("context")
 
-    function styleValue(key: string, fallback): var {
-        const style = RaohaneConfig.style
-        if (!style || !Object.prototype.hasOwnProperty.call(style, key))
-            return fallback
-        return style[key]
-    }
-
     function togglePrimarySurface(surfaceId: string): void {
         if (surfaceId === "controlCenter") {
             RaohaneState.togglePrimary("controlCenter")
@@ -73,8 +66,7 @@ Scope {
             readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
             readonly property bool contentShown: !fullscreenSuppressed && mustShow
-            readonly property real podScale: Number(root.styleValue("barScale", 1.0))
-            readonly property int podHeight: Math.max(34, Math.min(64, Math.round(RaohaneConfig.barHeight * podScale)))
+            readonly property int podHeight: Math.max(34, Math.min(64, Math.round(RaohaneConfig.barHeight)))
             readonly property string surfaceStyle: RaohaneConfig.barSurfaceStyle
             readonly property string groupStyle: RaohaneConfig.barGroupStyle
             readonly property int edgeMargin: Math.max(0, Math.round(RaohaneConfig.barEdgeMargin * RaohaneTheme.densityScale))
