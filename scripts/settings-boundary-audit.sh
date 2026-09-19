@@ -26,8 +26,9 @@ backup='modules/raohane/RaohaneBackupSettings.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
+bar_appearance='modules/raohane/RaohaneBarAppearanceSettings.qml'
+bar_layout_editor='modules/raohane/RaohaneBarLayoutEditor.qml'
 quick_studio='modules/raohane/RaohaneQuickControlsStudio.qml'
-sakura_settings='modules/raohane/RaohaneSakuraSettings.qml'
 quick_runtime='modules/raohane/RaohaneQuickControls.qml'
 quick_registry='modules/raohane/RaohaneQuickControlRegistry.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
@@ -39,7 +40,7 @@ qmldir='modules/raohane/qmldir'
 required=(
   "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$section_registry" "$router"
   "$section" "$control_row" "$preferences" "$preferences_hub" "$language" "$backup" "$home" "$catalog"
-  "$bar_studio" "$quick_studio" "$sakura_settings" "$quick_runtime" "$quick_registry" "$about" "$config" "$defaults" "$state" "$qmldir"
+  "$bar_studio" "$bar_appearance" "$bar_layout_editor" "$quick_studio" "$quick_runtime" "$quick_registry" "$about" "$config" "$defaults" "$state" "$qmldir"
 )
 for path in "${required[@]}"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
@@ -59,8 +60,9 @@ for registration in \
   '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml$' \
   '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$' \
   '^RaohaneBackupSettings .*RaohaneBackupSettings.qml$' \
-  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$' \
-  '^RaohaneSakuraSettings .*RaohaneSakuraSettings.qml$'; do
+  '^RaohaneBarAppearanceSettings .*RaohaneBarAppearanceSettings.qml$' \
+  '^RaohaneBarLayoutEditor .*RaohaneBarLayoutEditor.qml$' \
+  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 
@@ -146,7 +148,6 @@ for contract in \
   'readonly property var extensions:' \
   'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
   'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
-  'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' \
   'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
   'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
   'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
@@ -161,12 +162,23 @@ done
 
 for symbol in \
   'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsSectionRegistry\.source' \
-  'RaohaneSettingsSectionRegistry\.ownsControl' 'RaohaneSettingsControlRow[[:space:]]*\{' \
-  'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource'; do
+  'readonly property var rawEntries:' 'rawEntries\.filter\(entry =>' \
+  'RaohaneSettingsSectionRegistry\.ownsControl' 'typeof extensionLoader\.item\.controlOffset === "function"' \
+  'RaohaneSettingsControlRow[[:space:]]*\{' 'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource'; do
   rg -q "$symbol" "$section" || fail "native section renderer lost generic composition contract: $symbol"
 done
 if rg -n 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{|RaohaneBarStudio[[:space:]]*\{|RaohaneQuickControlsStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"(bar|quick)"' "$section"; then
   fail 'generic Settings section renderer reabsorbed control or section-specific implementation'
+fi
+
+for key in barBottom barVertical barAutoHide barAutoHidePushWindows barShowOnSuper barShowDate; do
+  if rg -q "type:[[:space:]]*\"(toggle|number|text|choice)\",[[:space:]]*key:[[:space:]]*\"${key}\"" "$registry"; then
+    fail "Bar Studio-owned control leaked back into generic Settings schema: $key"
+  fi
+  rg -q "\"${key}\"" "$section_registry" || fail "Bar Studio ownership registry lost control key: $key"
+done
+if rg -q 'type:[[:space:]]*"number",[[:space:]]*key:[[:space:]]*"barShowOnSuperDelay"' "$registry"; then
+  fail 'Super reveal delay is duplicated outside Bar Studio'
 fi
 for symbol in \
   'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneIconButton[[:space:]]*\{' \
@@ -194,14 +206,13 @@ done
 rg -q 'settingsContent\.pageOwnsHeader' "$settings" || fail 'Settings top chrome does not respect page-owned header'
 rg -q 'Qt\.ControlModifier' "$settings" || fail 'Settings lost Ctrl+F search shortcut'
 rg -q 'settingsSearch\.focusSearch\(\)' "$settings" || fail 'Settings lost keyboard search focus'
-rg -q 'RaohaneSakuraOverlay[[:space:]]*\{' "$settings" || fail 'Settings lost Sakura ambience layer'
 if rg -n 'preferencesOpen|backupOpen|openPreferences\(|openBackup\(|showMainSettings\(|onPreferencesRequested|onBackupRequested|onLanguageRequested' "$settings"; then
   fail 'Settings window reintroduced special overlay state'
 fi
 
 rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" || fail 'global Settings search is not registry-backed'
 rg -q 'RaohaneSettingsRouter\.requestSearch\(entry\.section, entry\.key\)' "$search" || fail 'global Settings search bypasses router'
-for key in themePreset barModuleLayout quickControlTiles desktopWidgetsLayout keybinds motion backup language; do
+for key in themePreset barModuleLayout barStylePreset barAutoHide barShowDate barOpacity barScreenList quickControlTiles desktopWidgetsLayout keybinds motion backup language; do
   rg -q "key:[[:space:]]*\"${key}\"" "$registry" || fail "Settings registry lost search route: $key"
 done
 
@@ -209,9 +220,18 @@ rg -q 'Open native\.json' "$home" || fail 'Settings Home no longer exposes nativ
 rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" || fail 'Settings Home bypasses centralized router'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
-for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
-  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
+for contract in 'RaohaneBarAppearanceSettings' 'RaohaneBarLayoutEditor' 'function controlOffset\(controlKey: string\): real'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost composition contract: $contract"
 done
+for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout' 'DropArea' 'Drag\.active'; do
+  rg -q "$contract" "$bar_layout_editor" || fail "Bar layout editor lost native contract: $contract"
+done
+for contract in 'RaohaneConfig\.barAutoHide' 'RaohaneConfig\.barShowDate' 'RaohaneConfig\.barShowOnSuperDelay' 'RaohaneConfig\.barScreenList' 'RaohaneConfig\.barStylePreset' 'RaohaneConfig\.barOpacity'; do
+  rg -q "$contract" "$bar_appearance" || fail "Bar appearance editor lost owned setting: $contract"
+done
+if rg -n 'RaohaneConfig\.frameEnabled|RaohaneConfig\.frameThickness' "$bar_appearance"; then
+  fail 'Bar Studio duplicated screen-frame settings owned by Appearance'
+fi
 for contract in \
   'RaohaneConfig\.quickControlTiles' \
   'RaohaneQuickControlRegistry\.sanitizeLayout' \
@@ -249,8 +269,8 @@ for key in "${registry_keys[@]}" themePreset barModuleLayout quickControlTiles d
 done
 
 if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bGlobalStates\.' \
-  "$content" "$navigation" "$header" "$registry" "$section_registry" "$router" "$section" "$control_row" "$preferences" "$language" "$settings" "$search" "$quick_studio"; then
+  "$content" "$navigation" "$header" "$registry" "$section_registry" "$router" "$section" "$control_row" "$preferences" "$language" "$settings" "$search" "$bar_studio" "$bar_appearance" "$bar_layout_editor" "$quick_studio"; then
   fail 'Settings architecture resolves inherited settings/common/root types'
 fi
 
-printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace, with Sakura ambience, generic sections, reusable control rows and persisted studios/preferences pages\n'
+printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace with single-owner controls, generic sections, reusable control rows and persisted studios/preferences pages\n'
