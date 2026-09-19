@@ -16,11 +16,28 @@ QtObject {
             controlKeys: [
                 "barBottom",
                 "barVertical",
+                "barRight",
                 "barAutoHide",
                 "barAutoHidePushWindows",
                 "barShowOnSuper",
+                "barShowOnSuperDelay",
+                "barScreenList",
                 "barShowDate",
-                "barModuleLayout"
+                "barModuleLayout",
+                "barVerticalModuleLayout",
+                "barStylePreset",
+                "barSurfaceStyle",
+                "barGroupStyle",
+                "barShowBackground",
+                "barShadow",
+                "barDividerStyle",
+                "barDividerSpacing",
+                "barHeight",
+                "barRadius",
+                "barOpacity",
+                "barEdgeMargin",
+                "barModuleSpacing",
+                "barHorizontalPadding"
             ]
         },
         quick: {
