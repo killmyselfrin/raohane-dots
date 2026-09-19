@@ -5,6 +5,8 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 RUNTIME="$CONFIG_HOME/quickshell/raohane"
 BIN_DIR="${HOME}/.local/bin"
+DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+APPLICATIONS_DIR="$DATA_HOME/applications"
 SYSTEMD_DIR="$CONFIG_HOME/systemd/user"
 HYPR_DIR="$CONFIG_HOME/hypr"
 HYPR_LEGACY_SNIPPET="$HYPR_DIR/raohane.conf"
@@ -111,6 +113,7 @@ required_runtime=(
   "qmldir"
   "VERSION"
   "assets"
+  "assets/applications/raohane-settings.desktop"
   "translations"
   "login/sddm/raohane/Main.qml"
   "login/sddm/raohane/metadata.desktop"
@@ -156,7 +159,7 @@ printf '[Raohane] Installing Hyprland shell...\n'
 systemctl --user stop raohane.service >/dev/null 2>&1 || true
 systemctl --user reset-failed raohane.service >/dev/null 2>&1 || true
 
-mkdir -p "$RUNTIME" "$BIN_DIR" "$SYSTEMD_DIR" "$HYPR_DIR" "$RAOHANE_CONFIG"
+mkdir -p "$RUNTIME" "$BIN_DIR" "$APPLICATIONS_DIR" "$SYSTEMD_DIR" "$HYPR_DIR" "$RAOHANE_CONFIG"
 
 if [[ ! -f "$RAOHANE_CONFIG_FILE" ]]; then
   migration_source=""
@@ -246,6 +249,40 @@ bash "$ROOT/scripts/prune-runtime.sh" "$RUNTIME"
 bash "$ROOT/scripts/validate-runtime-payload.sh" "$RUNTIME"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
+
+# Install a Raohane-owned launcher entry for shell settings. Older iNiR
+# installations may leave their own inir-settings.desktop behind; mask only
+# that exact upstream entry instead of deleting a package-owned system file.
+install -m 0644 "$ROOT/assets/applications/raohane-settings.desktop" \
+  "$APPLICATIONS_DIR/raohane-settings.desktop"
+
+legacy_inir_settings=0
+for legacy_entry in \
+  "$APPLICATIONS_DIR/inir-settings.desktop" \
+  "/usr/local/share/applications/inir-settings.desktop" \
+  "/usr/share/applications/inir-settings.desktop"; do
+  if [[ -f "$legacy_entry" ]] \
+      && grep -qx 'Name=iNiR Settings' "$legacy_entry" \
+      && grep -Eq '^Exec=inir[[:space:]]+settings([[:space:]]|$)' "$legacy_entry"; then
+    legacy_inir_settings=1
+    break
+  fi
+done
+
+if ((legacy_inir_settings)); then
+  cat > "$APPLICATIONS_DIR/inir-settings.desktop" <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=iNiR Settings
+Hidden=true
+NoDisplay=true
+DESKTOP
+  printf '[Raohane] Masked legacy iNiR Settings launcher entry.\n'
+fi
+
+if command -v update-desktop-database >/dev/null 2>&1; then
+  update-desktop-database "$APPLICATIONS_DIR" >/dev/null 2>&1 || true
+fi
 
 cat > "$SYSTEMD_DIR/raohane.service" <<SERVICE
 [Unit]
