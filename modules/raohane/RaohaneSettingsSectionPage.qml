@@ -13,7 +13,9 @@ Item {
     property bool extensionEntered: false
 
     readonly property var pageInfo: RaohaneSettingsPageRegistry.page(root.sectionKey)
-    readonly property var entries: RaohaneSettingsPageRegistry.sectionEntries(root.sectionKey)
+    readonly property var rawEntries: RaohaneSettingsPageRegistry.sectionEntries(root.sectionKey)
+    readonly property var entries: root.rawEntries.filter(entry =>
+        !RaohaneSettingsSectionRegistry.ownsControl(root.sectionKey, String(entry?.key ?? "")))
     readonly property string extensionSource: RaohaneSettingsSectionRegistry.source(root.sectionKey)
     readonly property bool compactLayout: width < 700
 
