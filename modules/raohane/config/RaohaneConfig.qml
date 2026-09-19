@@ -43,6 +43,7 @@ Singleton {
 
     property bool barBottom: false
     property bool barVertical: false
+    property bool barRight: false
     property bool barAutoHide: false
     property bool barAutoHidePushWindows: true
     property bool barShowOnSuper: false
@@ -52,6 +53,12 @@ Singleton {
     property var barModuleLayout: root.defaultBarModuleLayout()
     property var barVerticalModuleLayout: root.defaultVerticalBarModuleLayout()
     property string barStylePreset: "floating"
+    property string barSurfaceStyle: "float"
+    property string barGroupStyle: "pills"
+    property bool barShowBackground: true
+    property bool barShadow: true
+    property string barDividerStyle: "line"
+    property int barDividerSpacing: 20
     property int barHeight: 44
     property int barRadius: 18
     property real barOpacity: 0.94
@@ -430,6 +437,7 @@ Singleton {
             bar: {
                 bottom: root.barBottom,
                 vertical: root.barVertical,
+                right: root.barRight,
                 autoHide: root.barAutoHide,
                 autoHidePushWindows: root.barAutoHidePushWindows,
                 showOnSuper: root.barShowOnSuper,
@@ -439,6 +447,12 @@ Singleton {
                 modules: root.sanitizeBarModuleLayout(root.barModuleLayout),
                 verticalModules: root.sanitizeVerticalBarModuleLayout(root.barVerticalModuleLayout),
                 stylePreset: root.barStylePreset,
+                surfaceStyle: root.barSurfaceStyle,
+                groupStyle: root.barGroupStyle,
+                showBackground: root.barShowBackground,
+                shadow: root.barShadow,
+                dividerStyle: root.barDividerStyle,
+                dividerSpacing: root.barDividerSpacing,
                 height: root.barHeight,
                 radius: root.barRadius,
                 opacity: root.barOpacity,
@@ -580,6 +594,7 @@ Singleton {
 
         root.assignIfPresent(bar, "bottom", value => root.barBottom = Boolean(value))
         root.assignIfPresent(bar, "vertical", value => root.barVertical = Boolean(value))
+        root.assignIfPresent(bar, "right", value => root.barRight = Boolean(value))
         root.assignIfPresent(bar, "autoHide", value => root.barAutoHide = Boolean(value))
         root.assignIfPresent(bar, "autoHidePushWindows", value => root.barAutoHidePushWindows = Boolean(value))
         root.assignIfPresent(bar, "showOnSuper", value => root.barShowOnSuper = Boolean(value))
@@ -592,6 +607,21 @@ Singleton {
             const requested = String(value ?? "floating")
             root.barStylePreset = ["floating", "compact", "pill", "flat", "custom"].includes(requested) ? requested : "floating"
         })
+        root.assignIfPresent(bar, "surfaceStyle", value => {
+            const requested = String(value ?? "float")
+            root.barSurfaceStyle = ["hug", "float", "islands", "panel"].includes(requested) ? requested : "float"
+        })
+        root.assignIfPresent(bar, "groupStyle", value => {
+            const requested = String(value ?? "pills")
+            root.barGroupStyle = ["transparent", "pills", "separated", "segmented"].includes(requested) ? requested : "pills"
+        })
+        root.assignIfPresent(bar, "showBackground", value => root.barShowBackground = Boolean(value))
+        root.assignIfPresent(bar, "shadow", value => root.barShadow = Boolean(value))
+        root.assignIfPresent(bar, "dividerStyle", value => {
+            const requested = String(value ?? "line")
+            root.barDividerStyle = ["line", "dot", "space"].includes(requested) ? requested : "line"
+        })
+        root.assignIfPresent(bar, "dividerSpacing", value => root.barDividerSpacing = Math.round(root.clampNumber(value, 4, 48, 20)))
         root.assignIfPresent(bar, "height", value => root.barHeight = Math.round(root.clampNumber(value, 34, 58, 44)))
         root.assignIfPresent(bar, "radius", value => root.barRadius = Math.round(root.clampNumber(value, 0, 30, 18)))
         root.assignIfPresent(bar, "opacity", value => root.barOpacity = root.clampNumber(value, 0.35, 1.0, 0.94))
@@ -732,6 +762,7 @@ Singleton {
     onDockPinnedAppsChanged: scheduleSave()
     onBarBottomChanged: scheduleSave()
     onBarVerticalChanged: scheduleSave()
+    onBarRightChanged: scheduleSave()
     onBarAutoHideChanged: scheduleSave()
     onBarAutoHidePushWindowsChanged: scheduleSave()
     onBarShowOnSuperChanged: scheduleSave()
@@ -741,6 +772,12 @@ Singleton {
     onBarModuleLayoutChanged: scheduleSave()
     onBarVerticalModuleLayoutChanged: scheduleSave()
     onBarStylePresetChanged: scheduleSave()
+    onBarSurfaceStyleChanged: scheduleSave()
+    onBarGroupStyleChanged: scheduleSave()
+    onBarShowBackgroundChanged: scheduleSave()
+    onBarShadowChanged: scheduleSave()
+    onBarDividerStyleChanged: scheduleSave()
+    onBarDividerSpacingChanged: scheduleSave()
     onBarHeightChanged: scheduleSave()
     onBarRadiusChanged: scheduleSave()
     onBarOpacityChanged: scheduleSave()
