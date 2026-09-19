@@ -10,8 +10,7 @@ QtObject {
     // overrides on top without changing Raohane's information architecture.
     readonly property var builtInPresets: [
         {
-            // Historical id is retained for config compatibility. This is the
-            // canonical Raohane reference material: smoky navy glass with a
+            // Canonical Raohane reference material: smoky navy glass with a
             // restrained lilac signal color and cool, thin rims.
             id: "raohane-dark", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
             background: "#080a14", backgroundElevated: "#0d1020", surface: "#dc111524", surfaceRaised: "#ef171c2e", surfaceDeep: "#f3070912", surfaceSubtle: "#921c2237", surfaceHover: "#e9232a44", surfacePressed: "#ef2c3553",
@@ -55,7 +54,7 @@ QtObject {
             success: "#677765", warning: "#947546", critical: "#9e625e", info: "#697a82"
         },
         {
-            id: "sumi", name: qsTr("Sumi"), description: qsTr("Ink-black glass with warm paper text"), tone: qsTr("Dark"), dark: true,
+            id: "ink-dark", name: qsTr("Ink"), description: qsTr("Ink-black glass with warm paper text"), tone: qsTr("Dark"), dark: true,
             background: "#101110", backgroundElevated: "#171817", surface: "#dc1b1c1a", surfaceRaised: "#ee222320", surfaceDeep: "#f20c0d0c", surfaceSubtle: "#8f292a27", surfaceHover: "#df2d2e2b", surfacePressed: "#e8383935",
             border: "#2efffff7", borderStrong: "#50fffdf5", borderFaint: "#18fffdf5", highlight: "#36ffffff",
             text: "#eeeae2", textMuted: "#aaa69e", textFaint: "#77746e", accent: "#d8d3ca", accentSecondary: "#aba59b", accentBlue: "#a5b1b6",
