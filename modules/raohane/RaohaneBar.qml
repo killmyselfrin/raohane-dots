@@ -73,8 +73,7 @@ Scope {
             readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
             readonly property bool contentShown: !fullscreenSuppressed && mustShow
-            readonly property real podScale: Number(root.styleValue("barScale", 1.0))
-            readonly property int podHeight: Math.max(34, Math.min(64, Math.round(RaohaneConfig.barHeight * podScale)))
+            readonly property int podHeight: Math.max(34, Math.min(64, Math.round(RaohaneConfig.barHeight)))
             readonly property string surfaceStyle: RaohaneConfig.barSurfaceStyle
             readonly property string groupStyle: RaohaneConfig.barGroupStyle
             readonly property int edgeMargin: Math.max(0, Math.round(RaohaneConfig.barEdgeMargin * RaohaneTheme.densityScale))
