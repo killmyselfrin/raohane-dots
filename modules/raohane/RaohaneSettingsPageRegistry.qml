@@ -148,8 +148,7 @@ QtObject {
                 { type: "toggle", key: "hotCornerValueScroll", label: qsTr("Hot-corner value scroll"), detail: qsTr("Allow scroll interaction in native hot corners") },
                 { type: "toggle", key: "hotCornerClickless", label: qsTr("Clickless hot corners"), detail: qsTr("Trigger corner actions without a click") },
                 { type: "number", key: "hotCornerRegionWidth", label: qsTr("Corner region width"), detail: qsTr("Hyprland edge interaction width"), min: 12, max: 600, step: 10 },
-                { type: "number", key: "hotCornerRegionHeight", label: qsTr("Corner region height"), detail: qsTr("Hyprland edge interaction height"), min: 2, max: 80, step: 1 },
-                { type: "number", key: "barShowOnSuperDelay", label: qsTr("Super reveal delay"), detail: qsTr("Delay before Super reveals the bar"), min: 0, max: 2000, step: 20 }
+                { type: "number", key: "hotCornerRegionHeight", label: qsTr("Corner region height"), detail: qsTr("Hyprland edge interaction height"), min: 2, max: 80, step: 1 }
             ]
         },
         services: {
@@ -174,6 +173,11 @@ QtObject {
     readonly property var searchOnlyEntries: [
         { section: "themes", key: "themePreset", label: qsTr("Theme library"), detail: qsTr("Themes") },
         { section: "bar", key: "barModuleLayout", label: qsTr("Bar modules"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barStylePreset", label: qsTr("Bar style"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barGroupStyle", label: qsTr("Group style"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barOpacity", label: qsTr("Bar opacity"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barScreenList", label: qsTr("Bar displays"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barDividerStyle", label: qsTr("Bar dividers"), detail: qsTr("Bar Studio") },
         { section: "quick", key: "quickControlTiles", label: qsTr("Quick Control tiles"), detail: qsTr("Quick Controls Studio") },
         { section: "general", key: "mediaOverlayPosition", label: qsTr("Player position"), detail: qsTr("Media & OSD") },
         { section: "general", key: "mediaOverlayGamingPosition", label: qsTr("Gaming position"), detail: qsTr("Media & OSD") },
