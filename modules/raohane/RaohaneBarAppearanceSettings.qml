@@ -123,7 +123,9 @@ Item {
 
     function toggleMonitor(name: string): void {
         const screens = Quickshell.screens
-        const allNames = screens.map(screen => String(screen.name))
+        const allNames = []
+        for (let i = 0; i < screens.length; ++i)
+            allNames.push(String(screens[i].name))
         let next = (!RaohaneConfig.barScreenList || RaohaneConfig.barScreenList.length === 0)
             ? allNames.slice()
             : RaohaneConfig.barScreenList.slice()
