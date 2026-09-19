@@ -193,7 +193,7 @@ Scope {
                         Item { Layout.fillHeight: true }
 
                         Text {
-                            text: "夜に、ようこそ"
+                            text: qsTr("Welcome to Raohane")
                             color: RaohaneTheme.accent
                             font.pixelSize: 11
                             font.weight: Font.Medium
@@ -446,7 +446,7 @@ Scope {
                                     Rectangle { width: 5; height: 5; radius: 3; color: RaohaneTheme.success }
                                     Text { text: qsTr("Everything applies live"); color: RaohaneTheme.textFaint; font.pixelSize: 7 }
                                     Item { Layout.fillWidth: true }
-                                    Text { text: qsTr("NOCTURNE"); color: RaohaneTheme.accent; font.pixelSize: 7; font.weight: Font.DemiBold; font.letterSpacing: 1.1 }
+                                    Text { text: qsTr("RAOHANE"); color: RaohaneTheme.accent; font.pixelSize: 7; font.weight: Font.DemiBold; font.letterSpacing: 1.1 }
                                 }
                             }
                         }
