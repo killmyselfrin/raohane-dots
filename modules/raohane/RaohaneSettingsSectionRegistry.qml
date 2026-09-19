@@ -26,16 +26,6 @@ QtObject {
                 "mediaOverlayGamingPosition",
                 "mediaOverlayGamingAutoHideSeconds"
             ]
-        },
-        interface: {
-            source: "RaohaneSakuraSettings.qml",
-            controlKeys: [
-                "sakuraEnabled",
-                "sakuraInSettings",
-                "sakuraInControlCenter",
-                "sakuraIntensity",
-                "sakuraSpeed"
-            ]
         }
     })
 
