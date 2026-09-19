@@ -97,6 +97,19 @@ QtObject {
                 { type: "toggle", key: "barAutoHidePushWindows", label: qsTr("Push windows"), detail: qsTr("Reserve space while an auto-hidden bar is visible") },
                 { type: "toggle", key: "barShowOnSuper", label: qsTr("Reveal on Super"), detail: qsTr("Temporarily reveal the bar with Super, including over fullscreen apps") },
                 { type: "toggle", key: "barShowDate", label: qsTr("Show date"), detail: qsTr("Display the date alongside the clock") },
+                { type: "choice", key: "barStyle", label: qsTr("Bar style"), detail: qsTr("Choose the structural look before fine tuning it"), options: [
+                    { value: "floating", label: qsTr("Floating islands"), icon: "view_agenda" },
+                    { value: "unified", label: qsTr("Unified panel"), icon: "dock_to_bottom" },
+                    { value: "minimal", label: qsTr("Minimal"), icon: "horizontal_rule" }
+                ] },
+                { type: "number", key: "barThickness", label: qsTr("Bar thickness"), detail: qsTr("Height of the horizontal bar or width of the vertical bar"), min: 34, max: 64, step: 2 },
+                { type: "number", key: "barOuterMargin", label: qsTr("Outer margin"), detail: qsTr("Distance between the bar surface and the screen edge"), min: 0, max: 24, step: 1 },
+                { type: "number", key: "barEdgeMargin", label: qsTr("Side margin"), detail: qsTr("Horizontal inset for the left and right module groups"), min: 0, max: 48, step: 2 },
+                { type: "number", key: "barRadius", label: qsTr("Corner radius"), detail: qsTr("Roundness of bar surfaces"), min: 0, max: 32, step: 2 },
+                { type: "number", key: "barModuleSpacing", label: qsTr("Module spacing"), detail: qsTr("Space between modules inside each bar group"), min: 0, max: 20, step: 1 },
+                { type: "number", key: "barBackgroundOpacity", label: qsTr("Bar opacity"), detail: qsTr("Opacity of bar background surfaces"), min: 0, max: 1, step: 0.05 },
+                { type: "number", key: "barBorderOpacity", label: qsTr("Border opacity"), detail: qsTr("Opacity of bar borders"), min: 0, max: 1, step: 0.05 },
+                { type: "toggle", key: "barVerticalRight", label: qsTr("Vertical bar on right"), detail: qsTr("Attach the vertical bar to the right screen edge") },
                 { type: "toggle", key: "dockEnabled", label: qsTr("Dock"), detail: qsTr("Enable the Raohane dock") },
                 { type: "toggle", key: "dockAutoHide", label: qsTr("Auto-hide dock"), detail: qsTr("Hide the dock when it is not in use") },
                 { type: "number", key: "dockIconSize", label: qsTr("Dock icon size"), detail: qsTr("Native dock icon size in pixels"), min: 26, max: 72, step: 2 }
@@ -117,10 +130,10 @@ QtObject {
             description: qsTr("Build a calm desktop composition from native Raohane widgets."),
             entries: [
                 { type: "toggle", key: "desktopWidgetsEnabled", label: qsTr("Desktop widgets"), detail: qsTr("Show the native widget layer on the wallpaper") },
-                { type: "toggle", key: "desktopWidgetClock", label: qsTr("Clock and date"), detail: qsTr("Large time with a restrained Japanese label") },
+                { type: "toggle", key: "desktopWidgetClock", label: qsTr("Clock and date"), detail: qsTr("Large time with a compact Raohane label") },
                 { type: "toggle", key: "desktopWidgetContext", label: qsTr("Live context"), detail: qsTr("Show media, privacy or active-window context") },
                 { type: "toggle", key: "desktopWidgetSystem", label: qsTr("System status"), detail: qsTr("Show network, audio and host status") },
-                { type: "toggle", key: "desktopWidgetMotto", label: qsTr("Quiet motto"), detail: qsTr("Add a small Japanese-inspired ambient card") },
+                { type: "toggle", key: "desktopWidgetMotto", label: qsTr("Quiet motto"), detail: qsTr("Add a small ambient focus card") },
                 { type: "toggle", key: "desktopWidgetsCompact", label: qsTr("Compact layout"), detail: qsTr("Reduce spacing and card sizes on smaller screens") },
                 { type: "number", key: "desktopWidgetsScale", label: qsTr("Widget scale"), detail: qsTr("Resize the complete desktop composition"), min: 0.75, max: 1.25, step: 0.05 },
                 { type: "number", key: "desktopWidgetsOpacity", label: qsTr("Surface opacity"), detail: qsTr("Blend widgets softly into the wallpaper"), min: 0.45, max: 1.0, step: 0.05 }
