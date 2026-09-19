@@ -1,8 +1,6 @@
 {
   "%1 guided stops": "%1 шагов знакомства",
   "%1 settings": "%1 настроек",
-  "A small ambient Japanese-inspired card": "Небольшая атмосферная карточка в японском стиле",
-  "Add a small Japanese-inspired ambient card": "Добавить небольшую атмосферную карточку в японском стиле",
   "Album art, track progress, privacy and active-window state": "Обложка, прогресс трека, приватность и состояние активного окна",
   "A safety restore point is created before your current settings are replaced.": "Перед заменой текущих настроек автоматически создаётся безопасная точка восстановления.",
   "All Raohane shell actions in one configurable shortcut map": "Все действия оболочки Raohane в единой настраиваемой карте горячих клавиш",
@@ -49,7 +47,6 @@
   "Export backup": "Экспортировать копию",
   "Fingerprint sensor is ready": "Сканер отпечатка готов",
   "Lock screen": "Экран блокировки",
-  "Large time with a restrained Japanese label": "Крупное время со сдержанной японской подписью",
   "Live context": "Живой контекст",
   "Live media context": "Живой музыкальный контекст",
   "Microphone input": "Вход микрофона",
@@ -140,5 +137,9 @@
   "Resize the complete desktop composition": "Изменить размер всей композиции рабочего стола",
   "Right rail": "Справа",
   "Surface opacity": "Прозрачность виджетов",
-  "Widget scale": "Масштаб виджетов"
+  "Widget scale": "Масштаб виджетов",
+  "A small ambient focus card": "Небольшая атмосферная карточка для фокуса",
+  "Add a small ambient focus card": "Добавить небольшую атмосферную карточку для фокуса",
+  "Large time with a compact Raohane label": "Крупное время с компактной подписью Raohane",
+  "Focus. Flow. Forward.": "Фокус. Ритм. Вперёд."
 }
