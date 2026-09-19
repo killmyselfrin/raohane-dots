@@ -23,12 +23,6 @@ Scope {
         || root.activeLayout.center.includes("context")
         || root.activeLayout.right.includes("context")
 
-    function styleValue(key: string, fallback): var {
-        const style = RaohaneConfig.style
-        if (!style || !Object.prototype.hasOwnProperty.call(style, key))
-            return fallback
-        return style[key]
-    }
 
     function togglePrimarySurface(surfaceId: string): void {
         if (surfaceId === "controlCenter") {
