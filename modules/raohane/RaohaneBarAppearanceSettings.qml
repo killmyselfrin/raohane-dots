@@ -67,6 +67,18 @@ Item {
         { id: "space", label: qsTr("Space"), icon: "space_bar" }
     ]
 
+    readonly property var workspaceStyleOptions: [
+        { id: "numbers", label: qsTr("Numbers"), icon: "123" },
+        { id: "dots", label: qsTr("Dots"), icon: "more_horiz" },
+        { id: "minimal", label: qsTr("Minimal"), icon: "drag_handle" }
+    ]
+
+    readonly property var dateFormatOptions: [
+        { id: "short", label: qsTr("Weekday"), detail: qsTr("Mon 20 Sep"), icon: "calendar_view_week" },
+        { id: "compact", label: qsTr("Compact"), detail: qsTr("20 Sep"), icon: "calendar_view_day" },
+        { id: "numeric", label: qsTr("Numeric"), detail: qsTr("20.09"), icon: "calendar_month" }
+    ]
+
     function positionId(): string {
         if (RaohaneConfig.barVertical)
             return RaohaneConfig.barRight ? "right" : "left"
@@ -335,6 +347,79 @@ Item {
                     onToggled: value => RaohaneConfig.barShowOnSuper = value
                 }
 
+            }
+        }
+
+        SectionCard {
+            title: qsTr("Workspaces")
+            subtitle: qsTr("Control how workspace navigation is represented in the bar.")
+
+            BarSlider {
+                Layout.fillWidth: true
+                title: qsTr("Visible workspaces")
+                detail: qsTr("Number of workspace buttons shown around the active workspace group")
+                value: RaohaneConfig.barWorkspaceCount
+                minimum: 2
+                maximum: 10
+                step: 1
+                suffix: ""
+                onUserChanged: value => RaohaneConfig.barWorkspaceCount = Math.round(value)
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Indicator style")
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 9
+                font.weight: Font.DemiBold
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Repeater {
+                    model: root.workspaceStyleOptions
+
+                    delegate: ChoiceChip {
+                        required property var modelData
+                        width: 142
+                        option: modelData
+                        selected: RaohaneConfig.barWorkspaceStyle === String(modelData.id)
+                        onChosen: RaohaneConfig.barWorkspaceStyle = String(modelData.id)
+                    }
+                }
+            }
+        }
+
+        SectionCard {
+            title: qsTr("Clock")
+            subtitle: qsTr("Time and date formatting for the bar clock module.")
+
+            GridLayout {
+                Layout.fillWidth: true
+                columns: width >= 720 ? 2 : 1
+                columnSpacing: 8
+                rowSpacing: 8
+
+                ToggleRow {
+                    Layout.fillWidth: true
+                    icon: "schedule"
+                    title: qsTr("24-hour time")
+                    detail: qsTr("Use 24-hour time instead of AM/PM")
+                    checked: RaohaneConfig.barClock24Hour
+                    onToggled: value => RaohaneConfig.barClock24Hour = value
+                }
+
+                ToggleRow {
+                    Layout.fillWidth: true
+                    icon: "timer"
+                    title: qsTr("Show seconds")
+                    detail: qsTr("Update the clock every second")
+                    checked: RaohaneConfig.barClockShowSeconds
+                    onToggled: value => RaohaneConfig.barClockShowSeconds = value
+                }
+
                 ToggleRow {
                     Layout.fillWidth: true
                     icon: "calendar_today"
@@ -343,7 +428,34 @@ Item {
                     checked: RaohaneConfig.barShowDate
                     onToggled: value => RaohaneConfig.barShowDate = value
                 }
+            }
 
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Date format")
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 9
+                font.weight: Font.DemiBold
+                opacity: RaohaneConfig.barShowDate ? 1 : 0.45
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 8
+                opacity: RaohaneConfig.barShowDate ? 1 : 0.45
+                enabled: RaohaneConfig.barShowDate
+
+                Repeater {
+                    model: root.dateFormatOptions
+
+                    delegate: ChoiceChip {
+                        required property var modelData
+                        width: 150
+                        option: modelData
+                        selected: RaohaneConfig.barClockDateFormat === String(modelData.id)
+                        onChosen: RaohaneConfig.barClockDateFormat = String(modelData.id)
+                    }
+                }
             }
         }
 
