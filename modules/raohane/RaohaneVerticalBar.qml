@@ -19,6 +19,18 @@ Scope {
     )
     readonly property bool showDateConfigured: RaohaneConfig.barShowDate
 
+    function styleValue(key: string, fallback): var {
+        const style = RaohaneConfig.style
+        if (!style || !Object.prototype.hasOwnProperty.call(style, key))
+            return fallback
+        return style[key]
+    }
+
+    function withOpacity(base, opacity): color {
+        const factor = Math.max(0, Math.min(1, Number(opacity)))
+        return Qt.rgba(base.r, base.g, base.b, base.a * factor)
+    }
+
     function togglePrimarySurface(surfaceId: string): void {
         RaohaneState.togglePrimary(surfaceId)
     }
@@ -41,7 +53,6 @@ Scope {
             required property ShellScreen modelData
 
             screen: modelData
-            implicitWidth: 72
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
 
@@ -54,8 +65,19 @@ Scope {
             readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
             readonly property bool contentShown: !fullscreenSuppressed && mustShow
+            readonly property real podScale: Number(root.styleValue("barScale", 1.0))
+            readonly property int podWidth: Math.max(34, Math.min(72, Math.round(RaohaneConfig.barThickness * podScale)))
+            readonly property int outerMargin: Math.max(0, Math.min(24, RaohaneConfig.barOuterMargin))
+            readonly property int surfaceRadius: Math.max(0, Math.min(Math.min(RaohaneConfig.barRadius, 32), podWidth / 2))
+            readonly property int moduleSpacing: Math.max(0, Math.min(20, RaohaneConfig.barModuleSpacing))
+            readonly property bool rightSide: RaohaneConfig.barVerticalRight
+            readonly property bool minimalStyle: RaohaneConfig.sanitizeBarStyle(RaohaneConfig.barStyle) === "minimal"
+            readonly property color surfaceColor: root.withOpacity(RaohaneTheme.surfaceRaised, RaohaneConfig.barBackgroundOpacity)
+            readonly property color borderColor: root.withOpacity(RaohaneTheme.borderStrong, RaohaneConfig.barBorderOpacity)
             readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
                 && !RaohanePerformance.gameModeActive
+
+            implicitWidth: podWidth + outerMargin * 2
 
             // Keep the layer-shell surface alive across fullscreen transitions,
             // matching the horizontal bar. The zero-sized input mask makes the
@@ -74,7 +96,8 @@ Scope {
             anchors {
                 top: true
                 bottom: true
-                left: true
+                left: !barWindow.rightSide
+                right: barWindow.rightSide
             }
 
             WlrLayershell.namespace: "quickshell:raohane-vertical-bar"
@@ -114,9 +137,15 @@ Scope {
 
             Item {
                 id: barContent
-                width: 62
+                width: barWindow.podWidth
                 height: parent.height
-                x: barWindow.contentShown ? 5 : -width - 3
+                x: {
+                    if (barWindow.contentShown)
+                        return barWindow.rightSide
+                            ? barWindow.width - width - barWindow.outerMargin
+                            : barWindow.outerMargin
+                    return barWindow.rightSide ? barWindow.width + 3 : -width - 3
+                }
 
                 Behavior on x {
                     enabled: barWindow.surfaceMotionAllowed
@@ -130,22 +159,25 @@ Scope {
                     id: verticalSurface
                     anchors {
                         fill: parent
-                        topMargin: 8
-                        bottomMargin: 8
+                        topMargin: barWindow.outerMargin
+                        bottomMargin: barWindow.outerMargin
                     }
-                    surfaceRadius: RaohaneTheme.radiusLarge
+                    surfaceRadius: barWindow.surfaceRadius
                     raised: true
+                    transparentIdle: barWindow.minimalStyle
+                    showInnerRim: !transparentIdle
                     showSheen: false
-                    border.color: RaohaneTheme.borderStrong
+                    idleColor: barWindow.surfaceColor
+                    idleBorderColor: barWindow.borderColor
 
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 7
-                        spacing: 6
+                        spacing: barWindow.moduleSpacing
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 5
+                            spacing: barWindow.moduleSpacing
 
                             Repeater {
                                 model: root.activeLayout.left
@@ -170,7 +202,7 @@ Scope {
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 5
+                            spacing: barWindow.moduleSpacing
 
                             Repeater {
                                 model: root.activeLayout.center
@@ -195,7 +227,7 @@ Scope {
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 5
+                            spacing: barWindow.moduleSpacing
 
                             Repeater {
                                 model: root.activeLayout.right
