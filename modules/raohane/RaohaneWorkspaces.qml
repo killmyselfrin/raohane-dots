@@ -15,7 +15,7 @@ Item {
     readonly property bool vertical: orientation === "vertical"
     readonly property var monitor: root.screen ? Hyprland.monitorFor(root.screen) : Hyprland.focusedMonitor
     readonly property int activeWorkspaceId: Math.max(1, root.monitor?.activeWorkspace?.id ?? 1)
-    readonly property int workspaceCount: Math.max(2, Math.min(10, RaohaneConfig.overviewWorkspaceCount))
+    readonly property int workspaceCount: Math.max(2, Math.min(10, RaohaneConfig.barWorkspaceCount))
     readonly property int groupStart: Math.floor((root.activeWorkspaceId - 1) / root.workspaceCount) * root.workspaceCount + 1
     readonly property var workspaceIds: Array.from({ length: root.workspaceCount }, (_, index) => root.groupStart + index)
 
@@ -119,9 +119,14 @@ Item {
 
         Rectangle {
             visible: workspaceButton.selected || workspaceButton.urgent
-            width: workspaceButton.verticalMode ? 2 : (workspaceButton.selected ? 10 : 6)
-            height: workspaceButton.verticalMode ? (workspaceButton.selected ? 12 : 8) : 2
-            radius: 1
+            readonly property string indicatorStyle: RaohaneConfig.barWorkspaceIndicatorStyle
+            width: indicatorStyle === "dot" ? 5
+                : workspaceButton.verticalMode ? (indicatorStyle === "pill" ? 4 : 2)
+                : (indicatorStyle === "pill" ? 12 : (workspaceButton.selected ? 10 : 6))
+            height: indicatorStyle === "dot" ? 5
+                : workspaceButton.verticalMode ? (indicatorStyle === "pill" ? 14 : (workspaceButton.selected ? 12 : 8))
+                : (indicatorStyle === "pill" ? 4 : 2)
+            radius: Math.min(width, height) / 2
             color: workspaceButton.urgent ? RaohaneTheme.critical : RaohaneTheme.accent
             opacity: 1
 
@@ -136,6 +141,7 @@ Item {
         }
 
         Text {
+            visible: RaohaneConfig.barWorkspaceShowNumbers
             anchors.centerIn: parent
             anchors.verticalCenterOffset: !workspaceButton.verticalMode && workspaceButton.occupied ? -1 : 0
             text: workspaceButton.workspaceId
