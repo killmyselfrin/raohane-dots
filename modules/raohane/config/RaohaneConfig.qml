@@ -65,6 +65,11 @@ Singleton {
     property int barEdgeMargin: 16
     property int barModuleSpacing: 5
     property int barHorizontalPadding: 8
+    property int barWorkspaceCount: 6
+    property string barWorkspaceStyle: "numbers"
+    property bool barClock24Hour: true
+    property bool barClockShowSeconds: false
+    property string barClockDateFormat: "short"
 
     property bool frameEnabled: false
     property int frameThickness: 4
@@ -455,7 +460,12 @@ Singleton {
                 opacity: root.barOpacity,
                 edgeMargin: root.barEdgeMargin,
                 moduleSpacing: root.barModuleSpacing,
-                horizontalPadding: root.barHorizontalPadding
+                horizontalPadding: root.barHorizontalPadding,
+                workspaceCount: root.barWorkspaceCount,
+                workspaceStyle: root.barWorkspaceStyle,
+                clock24Hour: root.barClock24Hour,
+                clockShowSeconds: root.barClockShowSeconds,
+                clockDateFormat: root.barClockDateFormat
             },
             frame: {
                 enabled: root.frameEnabled,
@@ -625,6 +635,17 @@ Singleton {
         root.assignIfPresent(bar, "edgeMargin", value => root.barEdgeMargin = Math.round(root.clampNumber(value, 0, 48, 16)))
         root.assignIfPresent(bar, "moduleSpacing", value => root.barModuleSpacing = Math.round(root.clampNumber(value, 0, 20, 5)))
         root.assignIfPresent(bar, "horizontalPadding", value => root.barHorizontalPadding = Math.round(root.clampNumber(value, 2, 24, 8)))
+        root.assignIfPresent(bar, "workspaceCount", value => root.barWorkspaceCount = Math.round(root.clampNumber(value, 2, 10, 6)))
+        root.assignIfPresent(bar, "workspaceStyle", value => {
+            const requested = String(value ?? "numbers")
+            root.barWorkspaceStyle = ["numbers", "dots", "minimal"].includes(requested) ? requested : "numbers"
+        })
+        root.assignIfPresent(bar, "clock24Hour", value => root.barClock24Hour = Boolean(value))
+        root.assignIfPresent(bar, "clockShowSeconds", value => root.barClockShowSeconds = Boolean(value))
+        root.assignIfPresent(bar, "clockDateFormat", value => {
+            const requested = String(value ?? "short")
+            root.barClockDateFormat = ["short", "compact", "numeric"].includes(requested) ? requested : "short"
+        })
 
         root.assignIfPresent(frame, "enabled", value => root.frameEnabled = Boolean(value))
         root.assignIfPresent(frame, "thickness", value => root.frameThickness = Math.max(1, Math.min(24, Number(value) || 4)))
@@ -781,6 +802,11 @@ Singleton {
     onBarEdgeMarginChanged: scheduleSave()
     onBarModuleSpacingChanged: scheduleSave()
     onBarHorizontalPaddingChanged: scheduleSave()
+    onBarWorkspaceCountChanged: scheduleSave()
+    onBarWorkspaceStyleChanged: scheduleSave()
+    onBarClock24HourChanged: scheduleSave()
+    onBarClockShowSecondsChanged: scheduleSave()
+    onBarClockDateFormatChanged: scheduleSave()
     onFrameEnabledChanged: scheduleSave()
     onFrameThicknessChanged: scheduleSave()
     onFrameColorChanged: scheduleSave()
