@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Raohane Settings
+Comment=Configure the Raohane desktop shell
+Exec=raohane settings
+Icon=preferences-system
+Terminal=false
+StartupNotify=false
+Categories=Settings;DesktopSettings;
+Keywords=Raohane;Hyprland;Quickshell;Settings;Appearance;
