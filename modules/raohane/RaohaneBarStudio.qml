@@ -290,6 +290,10 @@ Item {
             }
         }
 
+        RaohaneBarAppearanceSettings {
+            Layout.fillWidth: true
+        }
+
         Repeater {
             model: root.zones
 
