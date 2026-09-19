@@ -15,8 +15,24 @@ RaohaneSurface {
         ? RaohaneConfig.barVerticalModuleLayout
         : RaohaneConfig.barModuleLayout
     readonly property var layout: RaohaneBarModuleRegistry.sanitizeLayout(sourceLayout, orientation)
+    readonly property string barStyle: RaohaneConfig.sanitizeBarStyle(RaohaneConfig.barStyle)
+    readonly property bool floatingStyle: barStyle === "floating"
+    readonly property bool unifiedStyle: barStyle === "unified"
+    readonly property bool minimalStyle: barStyle === "minimal"
+    readonly property int previewThickness: Math.max(34, Math.min(58, RaohaneConfig.barThickness))
+    readonly property int previewRadius: Math.max(0, Math.min(RaohaneConfig.barRadius, previewThickness / 2))
+    readonly property int previewSpacing: Math.max(0, Math.min(14, RaohaneConfig.barModuleSpacing))
+    readonly property int previewEdgeMargin: Math.max(0, Math.min(32, RaohaneConfig.barEdgeMargin))
+    readonly property int previewOuterMargin: Math.max(0, Math.min(18, RaohaneConfig.barOuterMargin))
+    readonly property color previewSurface: root.withOpacity(RaohaneTheme.surfaceRaised, RaohaneConfig.barBackgroundOpacity)
+    readonly property color previewBorder: root.withOpacity(RaohaneTheme.borderStrong, RaohaneConfig.barBorderOpacity)
 
-    implicitHeight: vertical ? 250 : 104
+    function withOpacity(base, opacity): color {
+        const factor = Math.max(0, Math.min(1, Number(opacity)))
+        return Qt.rgba(base.r, base.g, base.b, base.a * factor)
+    }
+
+    implicitHeight: vertical ? 268 : 122
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
@@ -38,71 +54,96 @@ RaohaneSurface {
     }
 
     Item {
+        id: previewArea
         anchors.fill: parent
         anchors.margins: 14
 
-        RaohaneSurface {
-            id: horizontalBar
+        Item {
+            id: horizontalHost
             visible: !root.vertical
             anchors {
                 left: parent.left
                 right: parent.right
                 verticalCenter: parent.verticalCenter
+                leftMargin: root.previewEdgeMargin
+                rightMargin: root.previewEdgeMargin
             }
-            height: 56
-            surfaceRadius: 18
-            raised: true
-            showSheen: false
-            border.color: RaohaneTheme.borderStrong
+            height: root.previewThickness
+
+            RaohaneSurface {
+                visible: root.unifiedStyle
+                anchors.fill: parent
+                surfaceRadius: root.previewRadius
+                raised: true
+                showSheen: false
+                idleColor: root.previewSurface
+                idleBorderColor: root.previewBorder
+            }
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 10
-                anchors.rightMargin: 10
-                spacing: 9
+                spacing: root.floatingStyle ? 8 : 2
 
                 PreviewZone {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    visible: items.length > 0
                     items: root.layout.left ?? []
                     alignment: Qt.AlignLeft
+                    framed: root.floatingStyle
                 }
 
                 PreviewZone {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    visible: items.length > 0
                     items: root.layout.center ?? []
                     alignment: Qt.AlignHCenter
+                    framed: root.floatingStyle
                 }
 
                 PreviewZone {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    visible: items.length > 0
                     items: root.layout.right ?? []
                     alignment: Qt.AlignRight
+                    framed: root.floatingStyle
                 }
             }
         }
 
-        RaohaneSurface {
-            id: verticalBar
+        Item {
+            id: verticalHost
             visible: root.vertical
-            width: 68
+            width: root.previewThickness
             anchors {
                 top: parent.top
                 bottom: parent.bottom
-                horizontalCenter: parent.horizontalCenter
+                left: RaohaneConfig.barVerticalRight ? undefined : parent.left
+                right: RaohaneConfig.barVerticalRight ? parent.right : undefined
+                leftMargin: root.previewOuterMargin
+                rightMargin: root.previewOuterMargin
+                topMargin: root.previewOuterMargin
+                bottomMargin: root.previewOuterMargin
             }
-            surfaceRadius: 20
-            raised: true
-            showSheen: false
-            border.color: RaohaneTheme.borderStrong
+
+            RaohaneSurface {
+                visible: !root.minimalStyle
+                anchors.fill: parent
+                surfaceRadius: root.previewRadius
+                raised: true
+                showSheen: false
+                idleColor: root.previewSurface
+                idleBorderColor: root.previewBorder
+            }
 
             ColumnLayout {
-                anchors.fill: parent
-                anchors.topMargin: 10
-                anchors.bottomMargin: 10
-                spacing: 7
+                anchors {
+                    fill: parent
+                    margins: 5
+                }
+                spacing: root.previewSpacing
 
                 VerticalPreviewZone {
                     Layout.fillWidth: true
@@ -128,18 +169,29 @@ RaohaneSurface {
         }
     }
 
-    component PreviewZone: Item {
+    component PreviewZone: RaohaneSurface {
         id: zone
 
         required property var items
         property int alignment: Qt.AlignLeft
+        property bool framed: false
+
+        surfaceRadius: root.previewRadius
+        raised: framed
+        transparentIdle: !framed
+        showInnerRim: framed
+        showSheen: false
+        idleColor: root.previewSurface
+        idleBorderColor: root.previewBorder
 
         Row {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: zone.alignment === Qt.AlignLeft ? parent.left : undefined
             anchors.right: zone.alignment === Qt.AlignRight ? parent.right : undefined
             anchors.horizontalCenter: zone.alignment === Qt.AlignHCenter ? parent.horizontalCenter : undefined
-            spacing: 5
+            anchors.leftMargin: zone.framed ? 6 : 2
+            anchors.rightMargin: zone.framed ? 6 : 2
+            spacing: root.previewSpacing
 
             Repeater {
                 model: zone.items
@@ -164,7 +216,7 @@ RaohaneSurface {
             anchors.top: zone.alignment === Qt.AlignTop ? parent.top : undefined
             anchors.bottom: zone.alignment === Qt.AlignBottom ? parent.bottom : undefined
             anchors.verticalCenter: zone.alignment === Qt.AlignVCenter ? parent.verticalCenter : undefined
-            spacing: 4
+            spacing: root.previewSpacing
 
             Repeater {
                 model: zone.items
@@ -186,14 +238,14 @@ RaohaneSurface {
         readonly property bool separator: moduleId === "separator"
         readonly property var definition: RaohaneBarModuleRegistry.definition(moduleId)
 
-        width: separator ? (verticalPreview ? 26 : 9) : 30
-        height: separator ? (verticalPreview ? 7 : 26) : 30
+        width: separator ? (verticalPreview ? 24 : 8) : 28
+        height: separator ? (verticalPreview ? 7 : 24) : 28
 
         Rectangle {
             visible: glyph.separator
             anchors.centerIn: parent
-            width: glyph.verticalPreview ? 22 : 1
-            height: glyph.verticalPreview ? 1 : 22
+            width: glyph.verticalPreview ? 20 : 1
+            height: glyph.verticalPreview ? 1 : 20
             radius: 1
             color: RaohaneTheme.borderStrong
             opacity: 0.66
@@ -202,7 +254,7 @@ RaohaneSurface {
         RaohaneSurface {
             visible: !glyph.separator
             anchors.fill: parent
-            surfaceRadius: 10
+            surfaceRadius: Math.min(9, root.previewRadius)
             raised: false
             showSheen: false
             border.color: glyph.moduleId === "context"
@@ -215,7 +267,7 @@ RaohaneSurface {
             RaohaneIcon {
                 anchors.centerIn: parent
                 text: glyph.definition?.icon ?? "widgets"
-                iconSize: 14
+                iconSize: 13
                 fill: glyph.moduleId === "context" ? 1 : 0
                 symbolWeight: glyph.moduleId === "context" ? 540 : 430
                 color: glyph.moduleId === "context"
