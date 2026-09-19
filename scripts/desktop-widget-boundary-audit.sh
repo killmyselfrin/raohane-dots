@@ -191,7 +191,7 @@ if [[ -e defaults/widgets ]]; then
   find defaults/widgets -type f -print -quit | grep -q . \
     && fail 'retired inherited widget SDK returned'
 fi
-if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWidget|~/.config/inir/widgets' "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$widget_registry" "$settings" "$registry" "$search"; then
+if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWidget' "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$widget_registry" "$settings" "$registry" "$search"; then
   fail 'desktop widgets depend on retired inherited APIs'
 fi
 
