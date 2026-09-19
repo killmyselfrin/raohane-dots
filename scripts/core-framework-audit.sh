@@ -67,7 +67,10 @@ for registration in \
   '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
   '^RaohaneSettingsSectionPage .*RaohaneSettingsSectionPage.qml$' \
   '^RaohaneSettingsControlRow .*RaohaneSettingsControlRow.qml$' \
-  '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml
+  '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml$' \
+  '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$'; do
+  rg -q "$registration" "$raohane_qmldir" || fail "missing native module registration: $registration"
+done
 
 [[ "$(tr -d '\r' < "$root_qmldir")" == 'module qs' ]] || fail 'root qs module exports legacy types'
 if rg -n 'GlobalStates|RaohaneLegacyBridge' "$root_qmldir" "$raohane_qmldir"; then
