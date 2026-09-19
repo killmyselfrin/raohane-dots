@@ -382,10 +382,23 @@ Singleton {
         return allowed.includes(requested) ? requested : 8
     }
 
+    function migrateThemePreset(value): string {
+        const requested = String(value ?? "").trim()
+        const aliases = ({
+            "zen-mist": "raohane-dark",
+            "sakura": "rose-glass",
+            "matcha": "sage-glass",
+            "sumi": "ink-dark"
+        })
+        return aliases[requested] ?? (requested.length > 0 ? requested : "raohane-dark")
+    }
+
     function sanitizeStyle(value): var {
         const input = value && typeof value === "object" ? value : {}
         const allowedModes = ["theme", "ink", "rose", "sage", "slate", "sand", "custom"]
-        const requestedMode = String(input.accentMode ?? "theme")
+        const accentAliases = ({ "sakura": "rose", "matcha": "sage" })
+        const rawMode = String(input.accentMode ?? "theme")
+        const requestedMode = accentAliases[rawMode] ?? rawMode
         const requestedAccent = String(input.customAccent ?? "#657987")
         return {
             glassOpacity: root.clampNumber(input.glassOpacity, 0.55, 1.0, 1.0),
@@ -708,7 +721,7 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlayGamingPosition", value => root.mediaOverlayGamingPosition = root.sanitizeMediaOverlayPosition(value))
         root.assignIfPresent(features, "mediaOverlayGamingAutoHideSeconds", value => root.mediaOverlayGamingAutoHideSeconds = root.sanitizeMediaOverlayGamingAutoHideSeconds(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
-        root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "raohane-dark"))
+        root.assignIfPresent(features, "themePreset", value => root.themePreset = root.migrateThemePreset(value))
 
         root.keybinds = root.sanitizeKeybinds(keybinds)
         root.animations = root.sanitizeAnimations(animations)
