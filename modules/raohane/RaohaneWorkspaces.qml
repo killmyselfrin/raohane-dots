@@ -15,7 +15,8 @@ Item {
     readonly property bool vertical: orientation === "vertical"
     readonly property var monitor: root.screen ? Hyprland.monitorFor(root.screen) : Hyprland.focusedMonitor
     readonly property int activeWorkspaceId: Math.max(1, root.monitor?.activeWorkspace?.id ?? 1)
-    readonly property int workspaceCount: Math.max(2, Math.min(10, RaohaneConfig.overviewWorkspaceCount))
+    readonly property int workspaceCount: Math.max(2, Math.min(10, RaohaneConfig.barWorkspaceCount))
+    readonly property string workspaceStyle: RaohaneConfig.barWorkspaceStyle
     readonly property int groupStart: Math.floor((root.activeWorkspaceId - 1) / root.workspaceCount) * root.workspaceCount + 1
     readonly property var workspaceIds: Array.from({ length: root.workspaceCount }, (_, index) => root.groupStart + index)
 
@@ -96,8 +97,8 @@ Item {
         readonly property bool occupied: (workspaceObject?.toplevels?.values?.length ?? 0) > 0
         readonly property bool urgent: workspaceObject?.urgent ?? false
 
-        implicitWidth: verticalMode ? 30 : 26
-        implicitHeight: verticalMode ? 26 : 26
+        implicitWidth: root.workspaceStyle === "minimal" ? 18 : (verticalMode ? 30 : 26)
+        implicitHeight: root.workspaceStyle === "minimal" ? 22 : 26
         Layout.alignment: Qt.AlignCenter
         Layout.preferredWidth: implicitWidth
         Layout.preferredHeight: implicitHeight
@@ -118,7 +119,7 @@ Item {
         activeBorderColor: urgent ? RaohaneTheme.critical : RaohaneTheme.accentBorder
 
         Rectangle {
-            visible: workspaceButton.selected || workspaceButton.urgent
+            visible: root.workspaceStyle !== "dots" && (workspaceButton.selected || workspaceButton.urgent)
             width: workspaceButton.verticalMode ? 2 : (workspaceButton.selected ? 10 : 6)
             height: workspaceButton.verticalMode ? (workspaceButton.selected ? 12 : 8) : 2
             radius: 1
@@ -136,6 +137,7 @@ Item {
         }
 
         Text {
+            visible: root.workspaceStyle === "numbers"
             anchors.centerIn: parent
             anchors.verticalCenterOffset: !workspaceButton.verticalMode && workspaceButton.occupied ? -1 : 0
             text: workspaceButton.workspaceId
@@ -153,7 +155,8 @@ Item {
         }
 
         Rectangle {
-            visible: workspaceButton.occupied && !workspaceButton.selected && !workspaceButton.urgent
+            visible: root.workspaceStyle === "numbers"
+                && workspaceButton.occupied && !workspaceButton.selected && !workspaceButton.urgent
             width: workspaceButton.verticalMode ? 3 : 4
             height: workspaceButton.verticalMode ? 3 : 2
             radius: 1
@@ -168,6 +171,24 @@ Item {
                 rightMargin: workspaceButton.verticalMode ? 4 : 0
                 verticalCenter: workspaceButton.verticalMode ? parent.verticalCenter : undefined
             }
+        }
+
+        Rectangle {
+            visible: root.workspaceStyle === "dots" || root.workspaceStyle === "minimal"
+            anchors.centerIn: parent
+            width: workspaceButton.selected ? (root.workspaceStyle === "minimal" ? 12 : 10) : 6
+            height: root.workspaceStyle === "minimal" ? 3 : 6
+            radius: height / 2
+            color: workspaceButton.urgent ? RaohaneTheme.critical
+                : workspaceButton.selected ? RaohaneTheme.accent
+                : workspaceButton.occupied ? RaohaneTheme.textMuted
+                : RaohaneTheme.textFaint
+            opacity: workspaceButton.selected || workspaceButton.urgent ? 1
+                : workspaceButton.occupied ? 0.72 : 0.34
+
+            Behavior on width { NumberAnimation { duration: RaohaneMotion.micro } }
+            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
         }
 
         MouseArea {
