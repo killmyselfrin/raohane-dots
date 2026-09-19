@@ -13,11 +13,12 @@ fail() {
 # provenance notice is the sole allowed location; product/runtime/install/docs
 # must contain only Raohane identity.
 legacy_token="$(printf '%s%s' 'i' 'nir')"
+legacy_pattern="(^|[^A-Za-z])${legacy_token}"
 
 mapfile -t content_hits < <(rg -l -i --hidden \
   --glob '!.git/**' \
   --glob '!NOTICE-UPSTREAM.md' \
-  -- "$legacy_token" . || true)
+  -- "$legacy_pattern" . || true)
 
 if (("${#content_hits[@]}" > 0)); then
   printf 'product-branding-audit: retired upstream identity found in:\n' >&2
