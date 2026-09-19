@@ -200,7 +200,7 @@ Item {
                     }
 
                     RaohaneSurface {
-                        visible: !root.compactLayout
+                        visible: !root.compactLayout && root.extensionSource === ""
                         Layout.preferredWidth: settingCount.implicitWidth + RaohaneTheme.panelPadding * 2
                         Layout.preferredHeight: 30
                         surfaceRadius: RaohaneTheme.radiusSmall
