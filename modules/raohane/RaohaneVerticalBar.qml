@@ -54,6 +54,11 @@ Scope {
             readonly property bool effectiveFullscreen: monitorHasFullscreen && !monitorHasSpecialOpen
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
             readonly property bool contentShown: !fullscreenSuppressed && mustShow
+            readonly property int barThickness: Math.max(48, Math.min(82, RaohaneConfig.barHeight + 18))
+            readonly property int edgeOffset: Math.max(0, Math.min(16, Math.round(RaohaneConfig.barEdgeMargin / 3)))
+            readonly property int surfaceRadius: Math.max(0, Math.min(Math.round(RaohaneConfig.barRadius), Math.floor(barThickness / 2)))
+            readonly property int moduleSpacing: Math.max(0, Math.round(RaohaneConfig.barModuleSpacing))
+            readonly property int contentPadding: Math.max(2, Math.round(RaohaneConfig.barHorizontalPadding))
             readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
                 && !RaohanePerformance.gameModeActive
 
@@ -114,9 +119,9 @@ Scope {
 
             Item {
                 id: barContent
-                width: 62
+                width: barWindow.barThickness
                 height: parent.height
-                x: barWindow.contentShown ? 5 : -width - 3
+                x: barWindow.contentShown ? barWindow.edgeOffset : -width - 3
 
                 Behavior on x {
                     enabled: barWindow.surfaceMotionAllowed
@@ -133,19 +138,20 @@ Scope {
                         topMargin: 8
                         bottomMargin: 8
                     }
-                    surfaceRadius: RaohaneTheme.radiusLarge
+                    surfaceRadius: barWindow.surfaceRadius
+                    opacity: RaohaneConfig.barOpacity
                     raised: true
                     showSheen: false
                     border.color: RaohaneTheme.borderStrong
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 7
-                        spacing: 6
+                        anchors.margins: barWindow.contentPadding
+                        spacing: barWindow.moduleSpacing
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 5
+                            spacing: barWindow.moduleSpacing
 
                             Repeater {
                                 model: root.activeLayout.left
@@ -170,7 +176,7 @@ Scope {
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 5
+                            spacing: barWindow.moduleSpacing
 
                             Repeater {
                                 model: root.activeLayout.center
@@ -195,7 +201,7 @@ Scope {
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 5
+                            spacing: barWindow.moduleSpacing
 
                             Repeater {
                                 model: root.activeLayout.right
