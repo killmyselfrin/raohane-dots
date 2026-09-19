@@ -89,7 +89,7 @@ QtObject {
             ]
         },
         bar: {
-            description: qsTr("Control placement, reveal behavior and module composition while preserving Raohane's spatial rhythm."),
+            description: qsTr("Control placement, reveal behavior, appearance and module composition for the Raohane bar."),
             entries: [
                 { type: "toggle", key: "barBottom", label: qsTr("Bottom bar"), detail: qsTr("Place the horizontal bar on the bottom edge") },
                 { type: "toggle", key: "barVertical", label: qsTr("Vertical bar"), detail: qsTr("Use the native vertical bar layout") },
@@ -117,10 +117,10 @@ QtObject {
             description: qsTr("Build a calm desktop composition from native Raohane widgets."),
             entries: [
                 { type: "toggle", key: "desktopWidgetsEnabled", label: qsTr("Desktop widgets"), detail: qsTr("Show the native widget layer on the wallpaper") },
-                { type: "toggle", key: "desktopWidgetClock", label: qsTr("Clock and date"), detail: qsTr("Large time with a restrained Japanese label") },
+                { type: "toggle", key: "desktopWidgetClock", label: qsTr("Clock and date"), detail: qsTr("Large time with a restrained secondary label") },
                 { type: "toggle", key: "desktopWidgetContext", label: qsTr("Live context"), detail: qsTr("Show media, privacy or active-window context") },
                 { type: "toggle", key: "desktopWidgetSystem", label: qsTr("System status"), detail: qsTr("Show network, audio and host status") },
-                { type: "toggle", key: "desktopWidgetMotto", label: qsTr("Quiet motto"), detail: qsTr("Add a small Japanese-inspired ambient card") },
+                { type: "toggle", key: "desktopWidgetMotto", label: qsTr("Quiet motto"), detail: qsTr("Add a small ambient motto card") },
                 { type: "toggle", key: "desktopWidgetsCompact", label: qsTr("Compact layout"), detail: qsTr("Reduce spacing and card sizes on smaller screens") },
                 { type: "number", key: "desktopWidgetsScale", label: qsTr("Widget scale"), detail: qsTr("Resize the complete desktop composition"), min: 0.75, max: 1.25, step: 0.05 },
                 { type: "number", key: "desktopWidgetsOpacity", label: qsTr("Surface opacity"), detail: qsTr("Blend widgets softly into the wallpaper"), min: 0.45, max: 1.0, step: 0.05 }
