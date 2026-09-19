@@ -655,7 +655,6 @@ Item {
                 columnSpacing: 10
                 rowSpacing: 10
 
-                StyleSlider { Layout.fillWidth: true; title: qsTr("Bar pod size"); detail: qsTr("Height of the left and right floating bar capsules"); value: Number(root.styleValue("barScale", 1.0)); minimum: 0.85; maximum: 1.15; step: 0.05; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("barScale", value) }
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Dock height"); detail: qsTr("Overall dock surface height"); value: RaohaneConfig.dockHeight; minimum: 48; maximum: 96; step: 2; multiplier: 1; suffix: " px"; onUserChanged: value => RaohaneConfig.dockHeight = Math.round(value) }
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Dock icon size"); detail: qsTr("Application and control icon size"); value: RaohaneConfig.dockIconSize; minimum: 26; maximum: 64; step: 2; multiplier: 1; suffix: " px"; onUserChanged: value => RaohaneConfig.dockIconSize = Math.round(value) }
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Dock hover lift"); detail: qsTr("How much dock items grow on hover"); value: Number(root.styleValue("dockHoverScale", 1.04)); minimum: 1.0; maximum: 1.12; step: 0.01; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("dockHoverScale", value) }
