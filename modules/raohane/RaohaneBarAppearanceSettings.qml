@@ -184,7 +184,7 @@ Item {
 
         SectionCard {
             title: qsTr("Position & surface")
-            subtitle: qsTr("Equivalent to the positioning and bar-style controls in iNiR/end4.")
+            subtitle: qsTr("Choose where the bar sits and how its surfaces are grouped.")
 
             Text {
                 Layout.fillWidth: true
