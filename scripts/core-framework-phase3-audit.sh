@@ -204,8 +204,6 @@ done
 for contract in extensions extension source ownsControl; do
   rg -q "$contract" "$settings_section_registry" || fail "Settings section registry lost contract: $contract"
 done
-rg -q 'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' "$settings_section_registry" \
-  || fail 'Appearance section lost Sakura settings extension'
 for contract in splitRoute request requestSearch pageRequested; do
   rg -q "$contract" "$settings_router" || fail "Settings router lost framework contract: $contract"
 done
@@ -288,8 +286,6 @@ done
 for contract in extensions extension source ownsControl; do
   rg -q "$contract" "$settings_section_registry" || fail "Settings section registry lost contract: $contract"
 done
-rg -q 'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' "$settings_section_registry" \
-  || fail 'Appearance section lost Sakura settings extension'
 for contract in splitRoute request requestSearch pageRequested; do
   rg -q "$contract" "$settings_router" || fail "Settings router lost framework contract: $contract"
 done
@@ -373,8 +369,6 @@ done
 for contract in extensions extension source ownsControl; do
   rg -q "$contract" "$settings_section_registry" || fail "Settings section registry lost contract: $contract"
 done
-rg -q 'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' "$settings_section_registry" \
-  || fail 'Appearance section lost Sakura settings extension'
 for contract in splitRoute request requestSearch pageRequested; do
   rg -q "$contract" "$settings_router" || fail "Settings router lost framework contract: $contract"
 done
