@@ -44,7 +44,10 @@ Item {
         if (needle === "")
             return
         if (RaohaneSettingsSectionRegistry.ownsControl(root.sectionKey, needle)) {
-            settingsFlick.contentY = Math.max(0, extensionLoader.y - RaohaneTheme.spacingLarge)
+            let localOffset = 0
+            if (extensionLoader.item && typeof extensionLoader.item.controlOffset === "function")
+                localOffset = Number(extensionLoader.item.controlOffset(needle)) || 0
+            settingsFlick.contentY = Math.max(0, extensionLoader.y + localOffset - RaohaneTheme.spacingLarge)
             return
         }
         const normalized = needle.toLowerCase()
