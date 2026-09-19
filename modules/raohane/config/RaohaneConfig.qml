@@ -50,6 +50,12 @@ Singleton {
     property int barShowOnSuperDelay: 140
     property var barScreenList: []
     property bool barShowDate: true
+    property int barWorkspaceCount: 6
+    property bool barWorkspaceShowNumbers: true
+    property string barWorkspaceIndicatorStyle: "line"
+    property bool barClock24Hour: true
+    property bool barClockShowSeconds: false
+    property string barClockDateFormat: "short"
     property var barModuleLayout: root.defaultBarModuleLayout()
     property var barVerticalModuleLayout: root.defaultVerticalBarModuleLayout()
     property string barStylePreset: "floating"
@@ -141,7 +147,6 @@ Singleton {
         accentMode: "theme",
         customAccent: "#657987",
         sheenEnabled: true,
-        barScale: 1.0,
         dockHoverScale: 1.04,
         contextIslandScale: 1.0,
         contextIslandDetail: true,
@@ -349,7 +354,6 @@ Singleton {
             accentMode: "theme",
             customAccent: "#657987",
             sheenEnabled: true,
-            barScale: 1.0,
             dockHoverScale: 1.04,
             contextIslandScale: 1.0,
             contextIslandDetail: true,
@@ -394,7 +398,6 @@ Singleton {
             accentMode: allowedModes.indexOf(requestedMode) >= 0 ? requestedMode : "theme",
             customAccent: /^#[0-9a-fA-F]{6}$/.test(requestedAccent) ? requestedAccent : "#657987",
             sheenEnabled: input.sheenEnabled === undefined ? true : Boolean(input.sheenEnabled),
-            barScale: root.clampNumber(input.barScale, 0.85, 1.15, 1.0),
             dockHoverScale: root.clampNumber(input.dockHoverScale, 1.0, 1.12, 1.04),
             contextIslandScale: root.clampNumber(input.contextIslandScale, 0.8, 1.25, 1.0),
             contextIslandDetail: input.contextIslandDetail === undefined ? true : Boolean(input.contextIslandDetail),
@@ -444,6 +447,12 @@ Singleton {
                 showOnSuperDelay: root.barShowOnSuperDelay,
                 screenList: root.barScreenList,
                 showDate: root.barShowDate,
+                workspaceCount: root.barWorkspaceCount,
+                workspaceShowNumbers: root.barWorkspaceShowNumbers,
+                workspaceIndicatorStyle: root.barWorkspaceIndicatorStyle,
+                clock24Hour: root.barClock24Hour,
+                clockShowSeconds: root.barClockShowSeconds,
+                clockDateFormat: root.barClockDateFormat,
                 modules: root.sanitizeBarModuleLayout(root.barModuleLayout),
                 verticalModules: root.sanitizeVerticalBarModuleLayout(root.barVerticalModuleLayout),
                 stylePreset: root.barStylePreset,
@@ -601,6 +610,18 @@ Singleton {
         root.assignIfPresent(bar, "showOnSuperDelay", value => root.barShowOnSuperDelay = Math.max(0, Math.min(2000, Number(value) || 140)))
         root.assignIfPresent(bar, "screenList", value => root.barScreenList = Array.isArray(value) ? value.map(item => String(item)) : [])
         root.assignIfPresent(bar, "showDate", value => root.barShowDate = Boolean(value))
+        root.assignIfPresent(bar, "workspaceCount", value => root.barWorkspaceCount = Math.round(root.clampNumber(value, 2, 10, 6)))
+        root.assignIfPresent(bar, "workspaceShowNumbers", value => root.barWorkspaceShowNumbers = Boolean(value))
+        root.assignIfPresent(bar, "workspaceIndicatorStyle", value => {
+            const requested = String(value ?? "line")
+            root.barWorkspaceIndicatorStyle = ["line", "dot", "pill"].includes(requested) ? requested : "line"
+        })
+        root.assignIfPresent(bar, "clock24Hour", value => root.barClock24Hour = Boolean(value))
+        root.assignIfPresent(bar, "clockShowSeconds", value => root.barClockShowSeconds = Boolean(value))
+        root.assignIfPresent(bar, "clockDateFormat", value => {
+            const requested = String(value ?? "short")
+            root.barClockDateFormat = ["short", "compact", "numeric"].includes(requested) ? requested : "short"
+        })
         root.assignIfPresent(bar, "modules", value => root.barModuleLayout = root.sanitizeBarModuleLayout(value))
         root.assignIfPresent(bar, "verticalModules", value => root.barVerticalModuleLayout = root.sanitizeVerticalBarModuleLayout(value))
         root.assignIfPresent(bar, "stylePreset", value => {
@@ -690,11 +711,24 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlayGamingPosition", value => root.mediaOverlayGamingPosition = root.sanitizeMediaOverlayPosition(value))
         root.assignIfPresent(features, "mediaOverlayGamingAutoHideSeconds", value => root.mediaOverlayGamingAutoHideSeconds = root.sanitizeMediaOverlayGamingAutoHideSeconds(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
-        root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "raohane-dark"))
+        root.assignIfPresent(features, "themePreset", value => {
+            const requested = String(value || "raohane-dark")
+            const migrations = ({
+                "zen-mist": "raohane-dark",
+                "sakura": "rose-glass",
+                "matcha": "sage-glass",
+                "sumi": "ink-dark"
+            })
+            root.themePreset = migrations[requested] ?? requested
+        })
 
         root.keybinds = root.sanitizeKeybinds(keybinds)
         root.animations = root.sanitizeAnimations(animations)
-        root.style = root.sanitizeStyle(style)
+        const migratedStyle = Object.assign({}, style)
+        const accentMigrations = ({ "sakura": "rose", "matcha": "sage" })
+        if (accentMigrations[String(migratedStyle.accentMode ?? "")] !== undefined)
+            migratedStyle.accentMode = accentMigrations[String(migratedStyle.accentMode)]
+        root.style = root.sanitizeStyle(migratedStyle)
 
         root.loading = false
         root.ready = true
@@ -769,6 +803,12 @@ Singleton {
     onBarShowOnSuperDelayChanged: scheduleSave()
     onBarScreenListChanged: scheduleSave()
     onBarShowDateChanged: scheduleSave()
+    onBarWorkspaceCountChanged: scheduleSave()
+    onBarWorkspaceShowNumbersChanged: scheduleSave()
+    onBarWorkspaceIndicatorStyleChanged: scheduleSave()
+    onBarClock24HourChanged: scheduleSave()
+    onBarClockShowSecondsChanged: scheduleSave()
+    onBarClockDateFormatChanged: scheduleSave()
     onBarModuleLayoutChanged: scheduleSave()
     onBarVerticalModuleLayoutChanged: scheduleSave()
     onBarStylePresetChanged: scheduleSave()

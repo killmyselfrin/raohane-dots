@@ -244,6 +244,9 @@ Item {
 
         RaohaneClock {
             showDate: root.showDate
+            twentyFourHour: RaohaneConfig.barClock24Hour
+            showSeconds: RaohaneConfig.barClockShowSeconds
+            dateFormat: RaohaneConfig.barClockDateFormat
             active: root.hostActive
         }
     }
@@ -362,8 +365,8 @@ Item {
             id: verticalClock
             property date now: new Date()
 
-            implicitWidth: 38
-            implicitHeight: root.showDate ? 48 : 36
+            implicitWidth: 42
+            implicitHeight: root.showDate ? (RaohaneConfig.barClockShowSeconds ? 60 : 48) : (RaohaneConfig.barClockShowSeconds ? 48 : 36)
 
             Timer {
                 interval: 1000
@@ -379,7 +382,7 @@ Item {
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: Qt.formatTime(verticalClock.now, "HH")
+                    text: Qt.formatTime(verticalClock.now, RaohaneConfig.barClock24Hour ? "HH" : "h")
                     color: RaohaneTheme.text
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
@@ -394,9 +397,20 @@ Item {
                 }
 
                 Text {
+                    visible: RaohaneConfig.barClockShowSeconds
+                    Layout.alignment: Qt.AlignHCenter
+                    text: Qt.formatTime(verticalClock.now, "ss")
+                    color: RaohaneTheme.textFaint
+                    font.pixelSize: 7
+                }
+
+                Text {
                     visible: root.showDate
                     Layout.alignment: Qt.AlignHCenter
-                    text: Qt.formatDate(verticalClock.now, "dd")
+                    text: Qt.formatDate(verticalClock.now,
+                        RaohaneConfig.barClockDateFormat === "numeric" ? "dd.MM"
+                            : RaohaneConfig.barClockDateFormat === "compact" ? "dd"
+                            : "ddd")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 7
                 }

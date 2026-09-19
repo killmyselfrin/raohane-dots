@@ -7,14 +7,23 @@ Item {
     id: root
 
     property bool showDate: true
+    property bool twentyFourHour: true
+    property bool showSeconds: false
+    property string dateFormat: "short"
     property bool active: true
     property date now: new Date()
 
     implicitWidth: clockRow.implicitWidth
     implicitHeight: Math.max(24, clockRow.implicitHeight)
 
-    readonly property string timeText: Qt.formatTime(root.now, "HH:mm")
-    readonly property string dateText: Qt.formatDate(root.now, "ddd d MMM")
+    readonly property string timeText: Qt.formatTime(root.now,
+        root.twentyFourHour
+            ? (root.showSeconds ? "HH:mm:ss" : "HH:mm")
+            : (root.showSeconds ? "h:mm:ss AP" : "h:mm AP"))
+    readonly property string dateText: Qt.formatDate(root.now,
+        root.dateFormat === "numeric" ? "dd.MM"
+            : root.dateFormat === "compact" ? "d MMM"
+            : "ddd d MMM")
 
     onActiveChanged: {
         if (active)

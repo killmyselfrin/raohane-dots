@@ -13,15 +13,7 @@ QtObject {
             // shellSource composes it with the native live preview.
             source: "RaohaneBarStudio.qml",
             shellSource: "RaohaneBarStudioShell.qml",
-            controlKeys: [
-                "barBottom",
-                "barVertical",
-                "barAutoHide",
-                "barAutoHidePushWindows",
-                "barShowOnSuper",
-                "barShowDate",
-                "barModuleLayout"
-            ]
+            controlKeys: ["barModuleLayout"]
         },
         quick: {
             source: "RaohaneQuickControlsStudio.qml",

@@ -124,6 +124,10 @@ Item {
             Layout.fillWidth: true
         }
 
+        RaohaneBarModuleSettings {
+            Layout.fillWidth: true
+        }
+
         RaohaneBarLayoutEditor {
             Layout.fillWidth: true
             orientation: root.orientation
