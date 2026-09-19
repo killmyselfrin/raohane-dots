@@ -51,6 +51,15 @@ Singleton {
     property bool barShowDate: true
     property var barModuleLayout: root.defaultBarModuleLayout()
     property var barVerticalModuleLayout: root.defaultVerticalBarModuleLayout()
+    property string barStyle: "floating"
+    property int barThickness: 42
+    property int barOuterMargin: 6
+    property int barEdgeMargin: 16
+    property int barRadius: 12
+    property int barModuleSpacing: 5
+    property real barBackgroundOpacity: 1.0
+    property real barBorderOpacity: 1.0
+    property bool barVerticalRight: false
 
     property bool frameEnabled: false
     property int frameThickness: 4
@@ -110,13 +119,8 @@ Singleton {
     property string mediaOverlayGamingPosition: "bottom-right"
     property int mediaOverlayGamingAutoHideSeconds: 8
     property bool integrationMode: true
-    property string themePreset: "zen-mist"
+    property string themePreset: "raohane-dark"
 
-    property bool sakuraEnabled: false
-    property bool sakuraInSettings: true
-    property bool sakuraInControlCenter: true
-    property string sakuraIntensity: "subtle"
-    property string sakuraSpeed: "gentle"
 
     property var keybinds: root.defaultKeybinds()
     property var animations: root.defaultAnimations()
@@ -216,6 +220,11 @@ Singleton {
             fadeMs: Math.round(root.clampNumber(input.fadeMs, 60, 1000, 170)),
             workspaceDistance: Math.round(root.clampNumber(input.workspaceDistance, 4, 40, 14))
         }
+    }
+
+    function sanitizeBarStyle(value): string {
+        const requested = String(value ?? "floating")
+        return ["floating", "unified", "minimal"].includes(requested) ? requested : "floating"
     }
 
     function defaultBarModuleLayout(): var {
@@ -373,7 +382,7 @@ Singleton {
 
     function sanitizeStyle(value): var {
         const input = value && typeof value === "object" ? value : {}
-        const allowedModes = ["theme", "ink", "sakura", "matcha", "slate", "sand", "custom"]
+        const allowedModes = ["theme", "ink", "slate", "sand", "custom"]
         const requestedMode = String(input.accentMode ?? "theme")
         const requestedAccent = String(input.customAccent ?? "#657987")
         return {
@@ -436,7 +445,16 @@ Singleton {
                 screenList: root.barScreenList,
                 showDate: root.barShowDate,
                 modules: root.sanitizeBarModuleLayout(root.barModuleLayout),
-                verticalModules: root.sanitizeVerticalBarModuleLayout(root.barVerticalModuleLayout)
+                verticalModules: root.sanitizeVerticalBarModuleLayout(root.barVerticalModuleLayout),
+                style: root.sanitizeBarStyle(root.barStyle),
+                thickness: Math.round(root.clampNumber(root.barThickness, 34, 64, 42)),
+                outerMargin: Math.round(root.clampNumber(root.barOuterMargin, 0, 24, 6)),
+                edgeMargin: Math.round(root.clampNumber(root.barEdgeMargin, 0, 48, 16)),
+                radius: Math.round(root.clampNumber(root.barRadius, 0, 32, 12)),
+                moduleSpacing: Math.round(root.clampNumber(root.barModuleSpacing, 0, 20, 5)),
+                backgroundOpacity: root.clampNumber(root.barBackgroundOpacity, 0, 1, 1),
+                borderOpacity: root.clampNumber(root.barBorderOpacity, 0, 1, 1),
+                verticalRight: root.barVerticalRight
             },
             frame: {
                 enabled: root.frameEnabled,
@@ -508,13 +526,6 @@ Singleton {
                 integrationMode: root.integrationMode,
                 themePreset: root.themePreset
             },
-            sakura: {
-                enabled: root.sakuraEnabled,
-                settings: root.sakuraInSettings,
-                controlCenter: root.sakuraInControlCenter,
-                intensity: root.sakuraIntensity,
-                speed: root.sakuraSpeed
-            },
             keybinds: root.sanitizeKeybinds(root.keybinds),
             animations: root.sanitizeAnimations(root.animations),
             style: root.sanitizeStyle(root.style)
@@ -550,7 +561,6 @@ Singleton {
         const quickControls = document?.quickControls ?? {}
         const desktopWidgets = document?.desktopWidgets ?? {}
         const features = document?.features ?? {}
-        const sakura = document?.sakura ?? {}
         const keybinds = document?.keybinds ?? root.defaultKeybinds()
         const animations = document?.animations ?? root.defaultAnimations()
         const style = document?.style ?? root.defaultStyle()
@@ -588,6 +598,15 @@ Singleton {
         root.assignIfPresent(bar, "showDate", value => root.barShowDate = Boolean(value))
         root.assignIfPresent(bar, "modules", value => root.barModuleLayout = root.sanitizeBarModuleLayout(value))
         root.assignIfPresent(bar, "verticalModules", value => root.barVerticalModuleLayout = root.sanitizeVerticalBarModuleLayout(value))
+        root.assignIfPresent(bar, "style", value => root.barStyle = root.sanitizeBarStyle(value))
+        root.assignIfPresent(bar, "thickness", value => root.barThickness = Math.round(root.clampNumber(value, 34, 64, 42)))
+        root.assignIfPresent(bar, "outerMargin", value => root.barOuterMargin = Math.round(root.clampNumber(value, 0, 24, 6)))
+        root.assignIfPresent(bar, "edgeMargin", value => root.barEdgeMargin = Math.round(root.clampNumber(value, 0, 48, 16)))
+        root.assignIfPresent(bar, "radius", value => root.barRadius = Math.round(root.clampNumber(value, 0, 32, 12)))
+        root.assignIfPresent(bar, "moduleSpacing", value => root.barModuleSpacing = Math.round(root.clampNumber(value, 0, 20, 5)))
+        root.assignIfPresent(bar, "backgroundOpacity", value => root.barBackgroundOpacity = root.clampNumber(value, 0, 1, 1))
+        root.assignIfPresent(bar, "borderOpacity", value => root.barBorderOpacity = root.clampNumber(value, 0, 1, 1))
+        root.assignIfPresent(bar, "verticalRight", value => root.barVerticalRight = Boolean(value))
 
         root.assignIfPresent(frame, "enabled", value => root.frameEnabled = Boolean(value))
         root.assignIfPresent(frame, "thickness", value => root.frameThickness = Math.max(1, Math.min(24, Number(value) || 4)))
@@ -650,19 +669,7 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlayGamingPosition", value => root.mediaOverlayGamingPosition = root.sanitizeMediaOverlayPosition(value))
         root.assignIfPresent(features, "mediaOverlayGamingAutoHideSeconds", value => root.mediaOverlayGamingAutoHideSeconds = root.sanitizeMediaOverlayGamingAutoHideSeconds(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
-        root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "zen-mist"))
-
-        root.assignIfPresent(sakura, "enabled", value => root.sakuraEnabled = Boolean(value))
-        root.assignIfPresent(sakura, "settings", value => root.sakuraInSettings = Boolean(value))
-        root.assignIfPresent(sakura, "controlCenter", value => root.sakuraInControlCenter = Boolean(value))
-        root.assignIfPresent(sakura, "intensity", value => {
-            const requested = String(value ?? "subtle")
-            root.sakuraIntensity = ["subtle", "standard", "cinematic"].includes(requested) ? requested : "subtle"
-        })
-        root.assignIfPresent(sakura, "speed", value => {
-            const requested = String(value ?? "gentle")
-            root.sakuraSpeed = ["slow", "gentle", "brisk"].includes(requested) ? requested : "gentle"
-        })
+        root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "raohane-dark"))
 
         root.keybinds = root.sanitizeKeybinds(keybinds)
         root.animations = root.sanitizeAnimations(animations)
@@ -742,6 +749,15 @@ Singleton {
     onBarShowDateChanged: scheduleSave()
     onBarModuleLayoutChanged: scheduleSave()
     onBarVerticalModuleLayoutChanged: scheduleSave()
+    onBarStyleChanged: scheduleSave()
+    onBarThicknessChanged: scheduleSave()
+    onBarOuterMarginChanged: scheduleSave()
+    onBarEdgeMarginChanged: scheduleSave()
+    onBarRadiusChanged: scheduleSave()
+    onBarModuleSpacingChanged: scheduleSave()
+    onBarBackgroundOpacityChanged: scheduleSave()
+    onBarBorderOpacityChanged: scheduleSave()
+    onBarVerticalRightChanged: scheduleSave()
     onFrameEnabledChanged: scheduleSave()
     onFrameThicknessChanged: scheduleSave()
     onFrameColorChanged: scheduleSave()
@@ -792,11 +808,6 @@ Singleton {
     onMediaOverlayGamingAutoHideSecondsChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
     onThemePresetChanged: scheduleSave()
-    onSakuraEnabledChanged: scheduleSave()
-    onSakuraInSettingsChanged: scheduleSave()
-    onSakuraInControlCenterChanged: scheduleSave()
-    onSakuraIntensityChanged: scheduleSave()
-    onSakuraSpeedChanged: scheduleSave()
     onKeybindsChanged: {
         scheduleSave()
         scheduleHyprlandApply()
