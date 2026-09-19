@@ -362,7 +362,6 @@ for contract in \
   'readonly property var extensions:' \
   'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
   'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
-  'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' \
   'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
   'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
   'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
@@ -556,7 +555,6 @@ for contract in \
   'readonly property var extensions:' \
   'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
   'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
-  'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' \
   'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
   'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
   'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
@@ -749,7 +747,6 @@ for contract in \
   'readonly property var extensions:' \
   'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
   'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
-  'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' \
   'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
   'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
   'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
