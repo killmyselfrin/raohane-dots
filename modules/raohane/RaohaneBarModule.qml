@@ -18,11 +18,19 @@ Item {
     property var parentWindow: null
     property bool hostActive: true
     property bool showDate: RaohaneConfig.barShowDate
+    property string groupStyle: RaohaneConfig.barGroupStyle
+    property bool showBackground: RaohaneConfig.barShowBackground
     property var primaryAction: null
     property var transientAction: null
 
     readonly property bool vertical: orientation === "vertical"
     readonly property bool known: RaohaneBarModuleRegistry.supports(moduleId, orientation)
+    readonly property bool individualSurface: root.showBackground
+        && root.moduleId !== "separator"
+        && (root.groupStyle === "separated" || root.groupStyle === "segmented")
+    readonly property int individualPadding: root.individualSurface
+        ? (root.groupStyle === "segmented" ? 2 : 4)
+        : 0
     // Read only implicit geometry from the loaded component. Reading item.width
     // here while the Loader is sized by this host creates a circular dependency
     // that can leave the Loader at 0x0 even though the surrounding bar island is
@@ -57,8 +65,8 @@ Item {
         }
     }
 
-    implicitWidth: Math.max(root.loadedWidth, root.fallbackWidth(root.moduleId))
-    implicitHeight: Math.max(root.loadedHeight, root.fallbackHeight(root.moduleId))
+    implicitWidth: Math.max(root.loadedWidth, root.fallbackWidth(root.moduleId)) + root.individualPadding * 2
+    implicitHeight: Math.max(root.loadedHeight, root.fallbackHeight(root.moduleId)) + root.individualPadding * 2
     width: implicitWidth
     height: implicitHeight
     Layout.preferredWidth: implicitWidth
@@ -135,9 +143,22 @@ Item {
         }
     }
 
+    RaohaneSurface {
+        anchors.fill: parent
+        visible: root.individualSurface
+        surfaceRadius: root.groupStyle === "segmented"
+            ? Math.min(7, height / 2)
+            : Math.min(Math.max(10, RaohaneConfig.barRadius), height / 2)
+        raised: RaohaneConfig.barShadow
+        showSheen: false
+        border.color: RaohaneTheme.borderFaint
+        opacity: RaohaneConfig.barOpacity
+    }
+
     Loader {
         id: contentLoader
         anchors.fill: parent
+        anchors.margins: root.individualPadding
         active: root.known
         sourceComponent: root.componentFor(root.moduleId)
     }
@@ -246,12 +267,18 @@ Item {
         id: separatorComponent
 
         Item {
-            implicitWidth: 1
+            implicitWidth: RaohaneConfig.barDividerStyle === "space"
+                ? RaohaneConfig.barDividerSpacing
+                : RaohaneConfig.barDividerStyle === "dot" ? 7 : 1
             implicitHeight: 15
 
             Rectangle {
-                anchors.fill: parent
-                color: RaohaneTheme.borderFaint
+                visible: RaohaneConfig.barDividerStyle !== "space"
+                anchors.centerIn: parent
+                width: RaohaneConfig.barDividerStyle === "dot" ? 5 : 1
+                height: RaohaneConfig.barDividerStyle === "dot" ? 5 : 15
+                radius: width / 2
+                color: RaohaneTheme.borderStrong
             }
         }
     }
@@ -413,11 +440,17 @@ Item {
 
         Item {
             implicitWidth: 36
-            implicitHeight: 1
+            implicitHeight: RaohaneConfig.barDividerStyle === "space"
+                ? RaohaneConfig.barDividerSpacing
+                : RaohaneConfig.barDividerStyle === "dot" ? 7 : 1
 
             Rectangle {
-                anchors.fill: parent
-                color: RaohaneTheme.borderFaint
+                visible: RaohaneConfig.barDividerStyle !== "space"
+                anchors.centerIn: parent
+                width: RaohaneConfig.barDividerStyle === "dot" ? 5 : 22
+                height: RaohaneConfig.barDividerStyle === "dot" ? 5 : 1
+                radius: height / 2
+                color: RaohaneTheme.borderStrong
             }
         }
     }
