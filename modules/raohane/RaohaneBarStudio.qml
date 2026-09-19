@@ -12,6 +12,13 @@ Item {
 
     implicitHeight: studioColumn.implicitHeight
 
+    function controlOffset(controlKey: string): real {
+        const key = String(controlKey ?? "")
+        if (["barModuleLayout", "barVerticalModuleLayout"].includes(key))
+            return layoutEditor.y
+        return appearanceEditor.y + appearanceEditor.controlOffset(key)
+    }
+
     ColumnLayout {
         id: studioColumn
         width: parent.width
@@ -121,10 +128,12 @@ Item {
         }
 
         RaohaneBarAppearanceSettings {
+            id: appearanceEditor
             Layout.fillWidth: true
         }
 
         RaohaneBarLayoutEditor {
+            id: layoutEditor
             Layout.fillWidth: true
             orientation: root.orientation
         }
