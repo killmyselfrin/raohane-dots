@@ -59,7 +59,10 @@ for registration in \
   '^RaohaneSettingsControlRow .*RaohaneSettingsControlRow.qml$' \
   '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml$' \
   '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$' \
-  '^RaohaneBackupSettings .*RaohaneBackupSettings.qml
+  '^RaohaneBackupSettings .*RaohaneBackupSettings.qml$' \
+  '^RaohaneBarModuleSettings .*RaohaneBarModuleSettings.qml$' \
+  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$'; do
+  rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 
 rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" || fail 'Settings window is not routed through Settings V3'
