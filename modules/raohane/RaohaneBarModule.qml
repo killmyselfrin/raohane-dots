@@ -43,7 +43,7 @@ Item {
             return 36
         switch (id) {
         case "launcher": return 30
-        case "workspaces": return Math.max(28, Math.min(260, RaohaneConfig.overviewWorkspaceCount * 23 + 4))
+        case "workspaces": return Math.max(28, Math.min(260, RaohaneConfig.barWorkspaceCount * 23 + 4))
         case "context": return 188
         case "tray": return 0
         case "system": return 54

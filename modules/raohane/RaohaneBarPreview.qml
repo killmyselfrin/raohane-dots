@@ -200,6 +200,12 @@ RaohaneSurface {
 
         width: separator
             ? (verticalPreview ? 26 : (RaohaneConfig.barDividerStyle === "space" ? Math.max(9, RaohaneConfig.barDividerSpacing) : 9))
+            : verticalPreview ? 30
+            : moduleId === "workspaces"
+                ? Math.min(124, Math.max(34, RaohaneConfig.barWorkspaceCount * (RaohaneConfig.barWorkspaceStyle === "minimal" ? 12 : 16) + 8))
+            : moduleId === "clock"
+                ? (RaohaneConfig.barShowDate ? 88 : (RaohaneConfig.barClockShowSeconds ? 62 : 48))
+            : moduleId === "context" ? 58
             : 30
         height: separator
             ? (verticalPreview ? (RaohaneConfig.barDividerStyle === "space" ? Math.max(7, RaohaneConfig.barDividerSpacing) : 7) : 26)
@@ -234,6 +240,7 @@ RaohaneSurface {
                 : RaohaneTheme.surfaceSubtle
 
             RaohaneIcon {
+                visible: glyph.verticalPreview || (glyph.moduleId !== "workspaces" && glyph.moduleId !== "clock")
                 anchors.centerIn: parent
                 text: glyph.definition?.icon ?? "widgets"
                 iconSize: 14
@@ -242,6 +249,53 @@ RaohaneSurface {
                 color: glyph.moduleId === "context"
                     ? RaohaneTheme.accent
                     : RaohaneTheme.textMuted
+            }
+
+            Row {
+                visible: !glyph.verticalPreview && glyph.moduleId === "workspaces"
+                anchors.centerIn: parent
+                spacing: RaohaneConfig.barWorkspaceStyle === "minimal" ? 4 : 5
+
+                Repeater {
+                    model: Math.min(10, RaohaneConfig.barWorkspaceCount)
+
+                    delegate: Item {
+                        required property int index
+                        width: RaohaneConfig.barWorkspaceStyle === "numbers" ? 11 : 8
+                        height: 14
+
+                        Text {
+                            visible: RaohaneConfig.barWorkspaceStyle === "numbers"
+                            anchors.centerIn: parent
+                            text: String(parent.index + 1)
+                            color: parent.index === 0 ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                            font.pixelSize: 7
+                            font.weight: parent.index === 0 ? Font.DemiBold : Font.Medium
+                        }
+
+                        Rectangle {
+                            visible: RaohaneConfig.barWorkspaceStyle !== "numbers"
+                            anchors.centerIn: parent
+                            width: parent.index === 0
+                                ? (RaohaneConfig.barWorkspaceStyle === "minimal" ? 9 : 7)
+                                : 4
+                            height: RaohaneConfig.barWorkspaceStyle === "minimal" ? 2 : 4
+                            radius: height / 2
+                            color: parent.index === 0 ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                        }
+                    }
+                }
+            }
+
+            Text {
+                visible: !glyph.verticalPreview && glyph.moduleId === "clock"
+                anchors.centerIn: parent
+                text: RaohaneConfig.barClock24Hour
+                    ? (RaohaneConfig.barClockShowSeconds ? "18:42:15" : "18:42")
+                    : (RaohaneConfig.barClockShowSeconds ? "6:42:15 PM" : "6:42 PM")
+                color: RaohaneTheme.text
+                font.pixelSize: 7
+                font.weight: Font.DemiBold
             }
         }
     }

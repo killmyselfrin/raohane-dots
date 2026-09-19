@@ -3,18 +3,29 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 
+import qs.modules.raohane.config
+
 Item {
     id: root
 
     property bool showDate: true
     property bool active: true
+    property bool use24Hour: RaohaneConfig.barClock24Hour
+    property bool showSeconds: RaohaneConfig.barClockShowSeconds
+    property string dateFormat: RaohaneConfig.barClockDateFormat
     property date now: new Date()
 
     implicitWidth: clockRow.implicitWidth
     implicitHeight: Math.max(24, clockRow.implicitHeight)
 
-    readonly property string timeText: Qt.formatTime(root.now, "HH:mm")
-    readonly property string dateText: Qt.formatDate(root.now, "ddd d MMM")
+    readonly property string timeText: Qt.formatTime(root.now,
+        root.use24Hour
+            ? (root.showSeconds ? "HH:mm:ss" : "HH:mm")
+            : (root.showSeconds ? "h:mm:ss AP" : "h:mm AP"))
+    readonly property string dateText: Qt.formatDate(root.now,
+        root.dateFormat === "numeric" ? "dd.MM"
+            : root.dateFormat === "compact" ? "d MMM"
+            : "ddd d MMM")
 
     onActiveChanged: {
         if (active)
@@ -22,7 +33,7 @@ Item {
     }
 
     Timer {
-        interval: 1000
+        interval: root.showSeconds ? 1000 : 30000
         repeat: true
         running: root.active
         triggeredOnStart: true

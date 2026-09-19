@@ -78,11 +78,11 @@ done
 
 rg -q 'RaohaneConfig\.themePreset' "$theme" || fail 'theme engine is not driven by persisted RaohaneConfig selection'
 rg -q 'readonly property var presets:' "$theme" || fail 'theme engine lost its preset catalog'
-for preset in zen-mist paper sakura matcha slate sand sumi midnight; do
+for preset in raohane-dark paper rose-glass sage-glass slate sand ink-dark midnight; do
   rg -q "id:[[:space:]]*\"${preset}\"" "$theme" || fail "theme preset missing: $preset"
 done
-rg -q 'property string themePreset:[[:space:]]*"zen-mist"' "$config" || fail 'native config does not default to Zen Mist'
-rg -q '"themePreset"[[:space:]]*:[[:space:]]*"zen-mist"' "$defaults" || fail 'native defaults do not select Zen Mist'
+rg -q 'property string themePreset:[[:space:]]*"raohane-dark"' "$config" || fail 'native config does not default to Raohane Dark'
+rg -q '"themePreset"[[:space:]]*:[[:space:]]*"raohane-dark"' "$defaults" || fail 'native defaults do not select Raohane Dark'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library does not consume the shared preset source'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply a preset live'
 
@@ -92,12 +92,12 @@ fi
 
 for key in \
   glassOpacity borderStrength radiusScale densityScale motionScale accentStrength accentMode customAccent sheenEnabled \
-  barScale dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators \
+  dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators \
   notificationScale notificationCompact notificationBodyLines; do
   rg -q "${key}" "$config" || fail "native style schema missing: $key"
   rg -q "\"${key}\"" "$defaults" || fail "native style defaults missing: $key"
 done
-for key in barScale dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators notificationScale notificationCompact notificationBodyLines; do
+for key in dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators notificationScale notificationCompact notificationBodyLines; do
   rg -q "${key}" "$catalog" || fail "Advanced Surfaces UI missing: $key"
 done
 rg -q 'dockHoverScale' "$dock" || fail 'Dock does not consume advanced hover scale'
@@ -203,9 +203,9 @@ if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|RAOHA
   fail 'an active surface regressed to decorative legacy labels or arbitrary glyph controls'
 fi
 
-rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the floating-pod compositor height contract'
-rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" || fail 'horizontal bar lost safe advanced pod-height bounds'
-rg -q 'barScale' "$bar" || fail 'horizontal bar does not consume persisted advanced scale'
+rg -q 'implicitHeight:[[:space:]]*Math\.max\(40,[[:space:]]*barWindow\.podHeight[[:space:]]*\+[[:space:]]*barWindow\.outerGap[[:space:]]*\*[[:space:]]*2\)' "$bar" || fail 'horizontal bar lost adaptive compositor height contract'
+rg -q 'podHeight:[[:space:]]*Math\.max\(34,[[:space:]]*Math\.min\(64,[[:space:]]*Math\.round\(RaohaneConfig\.barHeight\)\)\)' "$bar" || fail 'horizontal bar lost Bar Studio height bounds'
+rg -q 'RaohaneConfig\.barHeight' "$bar" || fail 'horizontal bar does not consume persisted Bar Studio height'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" || fail 'horizontal bar no longer composes through the native module host'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$vertical" || fail 'vertical bar no longer composes through the native module host'
 rg -q 'orientation:[[:space:]]*"vertical"' "$vertical" || fail 'vertical bar does not request vertical module presentation'

@@ -65,6 +65,11 @@ Singleton {
     property int barEdgeMargin: 16
     property int barModuleSpacing: 5
     property int barHorizontalPadding: 8
+    property int barWorkspaceCount: 6
+    property string barWorkspaceStyle: "numbers"
+    property bool barClock24Hour: true
+    property bool barClockShowSeconds: false
+    property string barClockDateFormat: "short"
 
     property bool frameEnabled: false
     property int frameThickness: 4
@@ -141,7 +146,6 @@ Singleton {
         accentMode: "theme",
         customAccent: "#657987",
         sheenEnabled: true,
-        barScale: 1.0,
         dockHoverScale: 1.04,
         contextIslandScale: 1.0,
         contextIslandDetail: true,
@@ -349,7 +353,6 @@ Singleton {
             accentMode: "theme",
             customAccent: "#657987",
             sheenEnabled: true,
-            barScale: 1.0,
             dockHoverScale: 1.04,
             contextIslandScale: 1.0,
             contextIslandDetail: true,
@@ -379,10 +382,23 @@ Singleton {
         return allowed.includes(requested) ? requested : 8
     }
 
+    function migrateThemePreset(value): string {
+        const requested = String(value ?? "").trim()
+        const aliases = ({
+            "zen-mist": "raohane-dark",
+            "sakura": "rose-glass",
+            "matcha": "sage-glass",
+            "sumi": "ink-dark"
+        })
+        return aliases[requested] ?? (requested.length > 0 ? requested : "raohane-dark")
+    }
+
     function sanitizeStyle(value): var {
         const input = value && typeof value === "object" ? value : {}
         const allowedModes = ["theme", "ink", "rose", "sage", "slate", "sand", "custom"]
-        const requestedMode = String(input.accentMode ?? "theme")
+        const accentAliases = ({ "sakura": "rose", "matcha": "sage" })
+        const rawMode = String(input.accentMode ?? "theme")
+        const requestedMode = accentAliases[rawMode] ?? rawMode
         const requestedAccent = String(input.customAccent ?? "#657987")
         return {
             glassOpacity: root.clampNumber(input.glassOpacity, 0.55, 1.0, 1.0),
@@ -394,7 +410,6 @@ Singleton {
             accentMode: allowedModes.indexOf(requestedMode) >= 0 ? requestedMode : "theme",
             customAccent: /^#[0-9a-fA-F]{6}$/.test(requestedAccent) ? requestedAccent : "#657987",
             sheenEnabled: input.sheenEnabled === undefined ? true : Boolean(input.sheenEnabled),
-            barScale: root.clampNumber(input.barScale, 0.85, 1.15, 1.0),
             dockHoverScale: root.clampNumber(input.dockHoverScale, 1.0, 1.12, 1.04),
             contextIslandScale: root.clampNumber(input.contextIslandScale, 0.8, 1.25, 1.0),
             contextIslandDetail: input.contextIslandDetail === undefined ? true : Boolean(input.contextIslandDetail),
@@ -458,7 +473,12 @@ Singleton {
                 opacity: root.barOpacity,
                 edgeMargin: root.barEdgeMargin,
                 moduleSpacing: root.barModuleSpacing,
-                horizontalPadding: root.barHorizontalPadding
+                horizontalPadding: root.barHorizontalPadding,
+                workspaceCount: root.barWorkspaceCount,
+                workspaceStyle: root.barWorkspaceStyle,
+                clock24Hour: root.barClock24Hour,
+                clockShowSeconds: root.barClockShowSeconds,
+                clockDateFormat: root.barClockDateFormat
             },
             frame: {
                 enabled: root.frameEnabled,
@@ -628,6 +648,17 @@ Singleton {
         root.assignIfPresent(bar, "edgeMargin", value => root.barEdgeMargin = Math.round(root.clampNumber(value, 0, 48, 16)))
         root.assignIfPresent(bar, "moduleSpacing", value => root.barModuleSpacing = Math.round(root.clampNumber(value, 0, 20, 5)))
         root.assignIfPresent(bar, "horizontalPadding", value => root.barHorizontalPadding = Math.round(root.clampNumber(value, 2, 24, 8)))
+        root.assignIfPresent(bar, "workspaceCount", value => root.barWorkspaceCount = Math.round(root.clampNumber(value, 2, 10, 6)))
+        root.assignIfPresent(bar, "workspaceStyle", value => {
+            const requested = String(value ?? "numbers")
+            root.barWorkspaceStyle = ["numbers", "dots", "minimal"].includes(requested) ? requested : "numbers"
+        })
+        root.assignIfPresent(bar, "clock24Hour", value => root.barClock24Hour = Boolean(value))
+        root.assignIfPresent(bar, "clockShowSeconds", value => root.barClockShowSeconds = Boolean(value))
+        root.assignIfPresent(bar, "clockDateFormat", value => {
+            const requested = String(value ?? "short")
+            root.barClockDateFormat = ["short", "compact", "numeric"].includes(requested) ? requested : "short"
+        })
 
         root.assignIfPresent(frame, "enabled", value => root.frameEnabled = Boolean(value))
         root.assignIfPresent(frame, "thickness", value => root.frameThickness = Math.max(1, Math.min(24, Number(value) || 4)))
@@ -690,7 +721,7 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlayGamingPosition", value => root.mediaOverlayGamingPosition = root.sanitizeMediaOverlayPosition(value))
         root.assignIfPresent(features, "mediaOverlayGamingAutoHideSeconds", value => root.mediaOverlayGamingAutoHideSeconds = root.sanitizeMediaOverlayGamingAutoHideSeconds(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
-        root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "raohane-dark"))
+        root.assignIfPresent(features, "themePreset", value => root.themePreset = root.migrateThemePreset(value))
 
         root.keybinds = root.sanitizeKeybinds(keybinds)
         root.animations = root.sanitizeAnimations(animations)
@@ -784,6 +815,11 @@ Singleton {
     onBarEdgeMarginChanged: scheduleSave()
     onBarModuleSpacingChanged: scheduleSave()
     onBarHorizontalPaddingChanged: scheduleSave()
+    onBarWorkspaceCountChanged: scheduleSave()
+    onBarWorkspaceStyleChanged: scheduleSave()
+    onBarClock24HourChanged: scheduleSave()
+    onBarClockShowSecondsChanged: scheduleSave()
+    onBarClockDateFormatChanged: scheduleSave()
     onFrameEnabledChanged: scheduleSave()
     onFrameThicknessChanged: scheduleSave()
     onFrameColorChanged: scheduleSave()
