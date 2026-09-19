@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit and prepare iNiR runtime translations.
+"""Audit and prepare Raohane runtime translations.
 
 English is canonical. This tool never translates text by itself. It prepares
 contextual review batches and rejects structural, placeholder, markup, and
