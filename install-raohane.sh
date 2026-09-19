@@ -7,6 +7,8 @@ RUNTIME="$CONFIG_HOME/quickshell/raohane"
 BIN_DIR="${HOME}/.local/bin"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 APPLICATIONS_DIR="$DATA_HOME/applications"
+ICON_THEME_DIR="$DATA_HOME/icons/hicolor"
+APP_ICON_DIR="$ICON_THEME_DIR/scalable/apps"
 SYSTEMD_DIR="$CONFIG_HOME/systemd/user"
 HYPR_DIR="$CONFIG_HOME/hypr"
 HYPR_LEGACY_SNIPPET="$HYPR_DIR/raohane.conf"
@@ -114,6 +116,7 @@ required_runtime=(
   "VERSION"
   "assets"
   "assets/applications/raohane-settings.desktop"
+  "assets/icons/raohane-settings.svg"
   "translations"
   "login/sddm/raohane/Main.qml"
   "login/sddm/raohane/metadata.desktop"
@@ -159,7 +162,7 @@ printf '[Raohane] Installing Hyprland shell...\n'
 systemctl --user stop raohane.service >/dev/null 2>&1 || true
 systemctl --user reset-failed raohane.service >/dev/null 2>&1 || true
 
-mkdir -p "$RUNTIME" "$BIN_DIR" "$APPLICATIONS_DIR" "$SYSTEMD_DIR" "$HYPR_DIR" "$RAOHANE_CONFIG"
+mkdir -p "$RUNTIME" "$BIN_DIR" "$APPLICATIONS_DIR" "$APP_ICON_DIR" "$SYSTEMD_DIR" "$HYPR_DIR" "$RAOHANE_CONFIG"
 
 if [[ ! -f "$RAOHANE_CONFIG_FILE" ]]; then
   migration_source=""
@@ -250,10 +253,15 @@ bash "$ROOT/scripts/validate-runtime-payload.sh" "$RUNTIME"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
 
-# Install the Raohane-owned launcher entry for shell settings.
+# Install the Raohane-owned launcher entry and icon for shell settings.
 install -m 0644 "$ROOT/assets/applications/raohane-settings.desktop" \
   "$APPLICATIONS_DIR/raohane-settings.desktop"
+install -m 0644 "$ROOT/assets/icons/raohane-settings.svg" \
+  "$APP_ICON_DIR/raohane-settings.svg"
 
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+  gtk-update-icon-cache -f "$ICON_THEME_DIR" >/dev/null 2>&1 || true
+fi
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "$APPLICATIONS_DIR" >/dev/null 2>&1 || true
 fi
