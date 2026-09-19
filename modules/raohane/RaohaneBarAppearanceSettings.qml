@@ -335,14 +335,6 @@ Item {
                     onToggled: value => RaohaneConfig.barShowOnSuper = value
                 }
 
-                ToggleRow {
-                    Layout.fillWidth: true
-                    icon: "calendar_today"
-                    title: qsTr("Show date")
-                    detail: qsTr("Display the date alongside the clock")
-                    checked: RaohaneConfig.barShowDate
-                    onToggled: value => RaohaneConfig.barShowDate = value
-                }
 
             }
         }
