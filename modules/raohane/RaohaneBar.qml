@@ -58,7 +58,7 @@ Scope {
             screen: modelData
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
-            implicitHeight: 64
+            implicitHeight: Math.max(48, barWindow.podHeight + 12)
 
             property bool superShow: false
             readonly property bool autoHide: RaohaneConfig.barAutoHide
@@ -74,8 +74,11 @@ Scope {
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
             readonly property bool contentShown: !fullscreenSuppressed && mustShow
             readonly property real podScale: Number(root.styleValue("barScale", 1.0))
-            readonly property int podHeight: Math.max(38, Math.min(48, Math.round(RaohaneTheme.barHeight * podScale)))
-            readonly property int edgeMargin: Math.max(12, Math.round(16 * RaohaneTheme.densityScale))
+            readonly property int podHeight: Math.max(34, Math.min(64, Math.round(RaohaneConfig.barHeight * podScale)))
+            readonly property int edgeMargin: Math.max(0, Math.round(RaohaneConfig.barEdgeMargin * RaohaneTheme.densityScale))
+            readonly property int podRadius: Math.max(0, Math.min(Math.round(RaohaneConfig.barRadius), Math.floor(podHeight / 2)))
+            readonly property int moduleSpacing: Math.max(0, Math.round(RaohaneConfig.barModuleSpacing))
+            readonly property int horizontalPadding: Math.max(2, Math.round(RaohaneConfig.barHorizontalPadding))
             readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
                 && !RaohanePerformance.gameModeActive
 
@@ -137,7 +140,7 @@ Scope {
             Item {
                 id: barContent
                 width: parent.width
-                height: 52
+                height: barWindow.implicitHeight
                 y: {
                     if (barWindow.contentShown)
                         return RaohaneConfig.barBottom ? barWindow.height - height - 6 : 6
@@ -164,7 +167,8 @@ Scope {
                         ? Math.min(parent.width * 0.38, Math.max(48, leftRow.implicitWidth + 18))
                         : 0
                     height: visible ? barWindow.podHeight : 0
-                    surfaceRadius: Math.min(RaohaneTheme.radiusLarge, height / 2)
+                    surfaceRadius: barWindow.podRadius
+                    opacity: RaohaneConfig.barOpacity
                     raised: true
                     showSheen: false
                     border.color: RaohaneTheme.border
@@ -173,10 +177,10 @@ Scope {
                         id: leftRow
                         anchors {
                             fill: parent
-                            leftMargin: 6
-                            rightMargin: 8
+                            leftMargin: barWindow.horizontalPadding
+                            rightMargin: barWindow.horizontalPadding
                         }
-                        spacing: 5
+                        spacing: barWindow.moduleSpacing
 
                         Repeater {
                             model: root.activeLayout.left
@@ -201,7 +205,7 @@ Scope {
                     id: centerRow
                     visible: root.activeLayout.center.length > 0
                     anchors.centerIn: parent
-                    spacing: 6
+                    spacing: barWindow.moduleSpacing
 
                     Repeater {
                         model: root.activeLayout.center
@@ -233,7 +237,8 @@ Scope {
                         ? Math.min(parent.width * 0.40, Math.max(48, rightRow.implicitWidth + 18))
                         : 0
                     height: visible ? barWindow.podHeight : 0
-                    surfaceRadius: Math.min(RaohaneTheme.radiusLarge, height / 2)
+                    surfaceRadius: barWindow.podRadius
+                    opacity: RaohaneConfig.barOpacity
                     raised: true
                     showSheen: false
                     border.color: RaohaneTheme.border
@@ -242,10 +247,10 @@ Scope {
                         id: rightRow
                         anchors {
                             fill: parent
-                            leftMargin: 8
-                            rightMargin: 6
+                            leftMargin: barWindow.horizontalPadding
+                            rightMargin: barWindow.horizontalPadding
                         }
-                        spacing: 5
+                        spacing: barWindow.moduleSpacing
 
                         Repeater {
                             model: root.activeLayout.right
