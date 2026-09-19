@@ -19,7 +19,7 @@ RaohaneSurface {
     readonly property bool floatingStyle: barStyle === "floating"
     readonly property bool unifiedStyle: barStyle === "unified"
     readonly property bool minimalStyle: barStyle === "minimal"
-    readonly property int previewThickness: Math.max(34, Math.min(58, RaohaneConfig.barThickness))
+    readonly property int previewThickness: Math.max(root.vertical ? 38 : 34, Math.min(58, RaohaneConfig.barThickness))
     readonly property int previewRadius: Math.max(0, Math.min(RaohaneConfig.barRadius, previewThickness / 2))
     readonly property int previewSpacing: Math.max(0, Math.min(14, RaohaneConfig.barModuleSpacing))
     readonly property int previewEdgeMargin: Math.max(0, Math.min(32, RaohaneConfig.barEdgeMargin))
