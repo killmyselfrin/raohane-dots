@@ -104,6 +104,23 @@ Item {
         RaohaneConfig.barStylePreset = "custom"
     }
 
+    function controlOffset(controlKey: string): real {
+        const key = String(controlKey ?? "")
+        if (["barStylePreset"].includes(key))
+            return presetsCard.y
+        if (["barBottom", "barVertical", "barRight", "barSurfaceStyle", "barGroupStyle"].includes(key))
+            return positionCard.y
+        if (["barShowBackground", "barShadow", "barAutoHide", "barAutoHidePushWindows", "barShowOnSuper", "barShowDate"].includes(key))
+            return behaviorCard.y
+        if (["barHeight", "barRadius", "barOpacity", "barEdgeMargin", "barModuleSpacing", "barHorizontalPadding", "barShowOnSuperDelay"].includes(key))
+            return geometryCard.y
+        if (["barDividerStyle", "barDividerSpacing"].includes(key))
+            return dividerCard.y
+        if (["barScreenList"].includes(key))
+            return displaysCard.y
+        return 0
+    }
+
     function monitorEnabled(name: string): bool {
         const configured = RaohaneConfig.barScreenList
         return !configured || configured.length === 0 || configured.includes(name)
@@ -161,6 +178,7 @@ Item {
         }
 
         SectionCard {
+            id: presetsCard
             title: qsTr("Presets")
             subtitle: qsTr("Start from a complete panel layout, then customize any option.")
 
@@ -183,6 +201,7 @@ Item {
         }
 
         SectionCard {
+            id: positionCard
             title: qsTr("Position & surface")
             subtitle: qsTr("Choose where the bar sits and how its surfaces are grouped.")
 
@@ -274,6 +293,7 @@ Item {
         }
 
         SectionCard {
+            id: behaviorCard
             title: qsTr("Behavior")
             subtitle: qsTr("Control visibility, fullscreen interaction and the panel background.")
 
@@ -348,6 +368,7 @@ Item {
         }
 
         SectionCard {
+            id: geometryCard
             title: qsTr("Geometry")
             subtitle: qsTr("Tune panel dimensions independently from the global interface scale.")
 
@@ -465,6 +486,7 @@ Item {
         }
 
         SectionCard {
+            id: dividerCard
             title: qsTr("Divider")
             subtitle: qsTr("Choose how separator modules look inside the panel.")
 
@@ -500,6 +522,7 @@ Item {
         }
 
         SectionCard {
+            id: displaysCard
             title: qsTr("Displays")
             subtitle: qsTr("Choose which monitors show the bar. No selection means all displays.")
 
