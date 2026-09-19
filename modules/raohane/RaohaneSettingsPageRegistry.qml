@@ -72,6 +72,7 @@ QtObject {
     readonly property var sectionSchemas: ({
         quick: {
             description: qsTr("Choose the controls that belong in the compact Control Center surface."),
+            settingsLabel: qsTr("Quick sliders"),
             entries: [
                 { type: "toggle", key: "quickSliderBrightness", label: qsTr("Brightness slider"), detail: qsTr("Show display brightness in Quick Controls") },
                 { type: "toggle", key: "quickSliderVolume", label: qsTr("Volume slider"), detail: qsTr("Show speaker volume in Quick Controls") },
@@ -80,6 +81,7 @@ QtObject {
         },
         general: {
             description: qsTr("Tune Context Island, media presentation, OSD timing and night-light behavior."),
+            settingsLabel: qsTr("General behavior"),
             entries: [
                 { type: "toggle", key: "contextIslandEnabled", label: qsTr("Context Island"), detail: qsTr("Show live media, privacy and active-window context") },
                 { type: "toggle", key: "mediaOverlayEnabled", label: qsTr("Media overlay"), detail: qsTr("Enable Raohane media overlay surfaces") },
@@ -89,7 +91,8 @@ QtObject {
             ]
         },
         bar: {
-            description: qsTr("Control placement, reveal behavior, appearance and module composition for the Raohane bar."),
+            description: qsTr("Customize the Raohane bar in Bar Studio and tune dock visibility and sizing."),
+            settingsLabel: qsTr("Dock"),
             entries: [
                 { type: "toggle", key: "dockEnabled", label: qsTr("Dock"), detail: qsTr("Enable the Raohane dock") },
                 { type: "toggle", key: "dockAutoHide", label: qsTr("Auto-hide dock"), detail: qsTr("Hide the dock when it is not in use") },
@@ -227,6 +230,10 @@ QtObject {
 
     function sectionDescription(key: string): string {
         return root.sectionSchema(key)?.description ?? ""
+    }
+
+    function sectionSettingsLabel(key: string): string {
+        return root.sectionSchema(key)?.settingsLabel ?? ""
     }
 
     function sectionEntries(key: string): var {
