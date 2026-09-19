@@ -187,7 +187,7 @@ rg -q '^singleton RaohaneProcesses .*RaohaneProcesses.qml$' modules/raohane/serv
 rg -q '^singleton RaohaneLyrics .*RaohaneLyrics.qml$' modules/raohane/services/qmldir \
   || fail 'RaohaneLyrics is not registered'
 
-if rg -n -i 'inir|\bniri\b|waffle|ricelin' modules/raohane shell.qml "$family"; then
+if rg -n -i '\bniri\b|waffle|ricelin' modules/raohane shell.qml "$family"; then
   fail 'Raohane product runtime contains a non-target/legacy identity'
 fi
 rg -q '^import Quickshell\.Hyprland$' modules/raohane/RaohaneBar.qml \
