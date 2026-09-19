@@ -655,8 +655,6 @@ Item {
                 columnSpacing: 10
                 rowSpacing: 10
 
-                StyleSlider { Layout.fillWidth: true; title: qsTr("Dock height"); detail: qsTr("Overall dock surface height"); value: RaohaneConfig.dockHeight; minimum: 48; maximum: 96; step: 2; multiplier: 1; suffix: " px"; onUserChanged: value => RaohaneConfig.dockHeight = Math.round(value) }
-                StyleSlider { Layout.fillWidth: true; title: qsTr("Dock icon size"); detail: qsTr("Application and control icon size"); value: RaohaneConfig.dockIconSize; minimum: 26; maximum: 64; step: 2; multiplier: 1; suffix: " px"; onUserChanged: value => RaohaneConfig.dockIconSize = Math.round(value) }
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Dock hover lift"); detail: qsTr("How much dock items grow on hover"); value: Number(root.styleValue("dockHoverScale", 1.04)); minimum: 1.0; maximum: 1.12; step: 0.01; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("dockHoverScale", value) }
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Context Island size"); detail: qsTr("Independent scale for the center island"); value: Number(root.styleValue("contextIslandScale", 1.0)); minimum: 0.8; maximum: 1.25; step: 0.05; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("contextIslandScale", value) }
                 StyleSlider { Layout.fillWidth: true; title: qsTr("Notification scale"); detail: qsTr("Overall notification card density"); value: Number(root.styleValue("notificationScale", 1.0)); minimum: 0.85; maximum: 1.15; step: 0.05; multiplier: 100; suffix: "%"; onUserChanged: value => root.setStyle("notificationScale", value) }
