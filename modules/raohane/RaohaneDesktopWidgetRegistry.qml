@@ -16,7 +16,7 @@ QtObject {
             source: "RaohaneDesktopClockWidget.qml",
             icon: "schedule",
             title: qsTr("Clock and date"),
-            detail: qsTr("Large time with a restrained Japanese label"),
+            detail: qsTr("Large time with a compact Raohane label"),
             preferredZone: "primary"
         },
         context: {
@@ -43,7 +43,7 @@ QtObject {
             source: "RaohaneDesktopMottoWidget.qml",
             icon: "spa",
             title: qsTr("Quiet motto"),
-            detail: qsTr("A small ambient Japanese-inspired card"),
+            detail: qsTr("A small ambient focus card"),
             preferredZone: "secondary"
         }
     })
