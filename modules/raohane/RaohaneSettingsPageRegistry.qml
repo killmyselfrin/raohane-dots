@@ -91,12 +91,6 @@ QtObject {
         bar: {
             description: qsTr("Control placement, reveal behavior, appearance and module composition for the Raohane bar."),
             entries: [
-                { type: "toggle", key: "barBottom", label: qsTr("Bottom bar"), detail: qsTr("Place the horizontal bar on the bottom edge") },
-                { type: "toggle", key: "barVertical", label: qsTr("Vertical bar"), detail: qsTr("Use the native vertical bar layout") },
-                { type: "toggle", key: "barAutoHide", label: qsTr("Auto-hide bar"), detail: qsTr("Hide the bar until interaction requires it") },
-                { type: "toggle", key: "barAutoHidePushWindows", label: qsTr("Push windows"), detail: qsTr("Reserve space while an auto-hidden bar is visible") },
-                { type: "toggle", key: "barShowOnSuper", label: qsTr("Reveal on Super"), detail: qsTr("Temporarily reveal the bar with Super, including over fullscreen apps") },
-                { type: "toggle", key: "barShowDate", label: qsTr("Show date"), detail: qsTr("Display the date alongside the clock") },
                 { type: "toggle", key: "dockEnabled", label: qsTr("Dock"), detail: qsTr("Enable the Raohane dock") },
                 { type: "toggle", key: "dockAutoHide", label: qsTr("Auto-hide dock"), detail: qsTr("Hide the dock when it is not in use") },
                 { type: "number", key: "dockIconSize", label: qsTr("Dock icon size"), detail: qsTr("Native dock icon size in pixels"), min: 26, max: 72, step: 2 }
@@ -173,6 +167,12 @@ QtObject {
     readonly property var searchOnlyEntries: [
         { section: "themes", key: "themePreset", label: qsTr("Theme library"), detail: qsTr("Themes") },
         { section: "bar", key: "barModuleLayout", label: qsTr("Bar modules"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barBottom", label: qsTr("Bar position"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barAutoHide", label: qsTr("Auto-hide bar"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barAutoHidePushWindows", label: qsTr("Push windows"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barShowOnSuper", label: qsTr("Reveal on Super"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barShowOnSuperDelay", label: qsTr("Super reveal delay"), detail: qsTr("Bar Studio") },
+        { section: "bar", key: "barShowDate", label: qsTr("Show date"), detail: qsTr("Bar Studio") },
         { section: "bar", key: "barStylePreset", label: qsTr("Bar style"), detail: qsTr("Bar Studio") },
         { section: "bar", key: "barGroupStyle", label: qsTr("Group style"), detail: qsTr("Bar Studio") },
         { section: "bar", key: "barOpacity", label: qsTr("Bar opacity"), detail: qsTr("Bar Studio") },
