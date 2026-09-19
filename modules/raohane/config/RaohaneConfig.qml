@@ -348,7 +348,6 @@ Singleton {
             accentMode: "theme",
             customAccent: "#657987",
             sheenEnabled: true,
-            barScale: 1.0,
             dockHoverScale: 1.04,
             contextIslandScale: 1.0,
             contextIslandDetail: true,
