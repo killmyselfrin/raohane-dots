@@ -10,10 +10,9 @@ QtObject {
     // overrides on top without changing Raohane's information architecture.
     readonly property var builtInPresets: [
         {
-            // Historical id is retained for config compatibility. This is the
-            // canonical Raohane reference material: smoky navy glass with a
+            // Canonical Raohane reference material: smoky navy glass with a
             // restrained lilac signal color and cool, thin rims.
-            id: "zen-mist", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
+            id: "raohane-dark", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
             background: "#080a14", backgroundElevated: "#0d1020", surface: "#dc111524", surfaceRaised: "#ef171c2e", surfaceDeep: "#f3070912", surfaceSubtle: "#921c2237", surfaceHover: "#e9232a44", surfacePressed: "#ef2c3553",
             border: "#3a59627f", borderStrong: "#6a7b86aa", borderFaint: "#2059627f", highlight: "#40ffffff",
             text: "#f2f1fa", textMuted: "#aaa9bd", textFaint: "#73758c", accent: "#aa91ff", accentSecondary: "#8b7bd8", accentBlue: "#899dff",
@@ -142,8 +141,6 @@ QtObject {
 
     readonly property color presetAccent: activePreset.accent
     readonly property color accent: accentMode === "ink" ? (dark ? "#eeeae2" : "#2b2a27")
-        : accentMode === "sakura" ? "#9a7077"
-        : accentMode === "matcha" ? "#667866"
         : accentMode === "slate" ? "#657987"
         : accentMode === "sand" ? "#806f59"
         : accentMode === "custom" ? customAccent
@@ -162,7 +159,7 @@ QtObject {
     readonly property color critical: activePreset.critical
     readonly property color info: activePreset.info
 
-    // Canonical Nocturne geometry. Defaults stay compact and structural;
+    // Canonical Raohane geometry. Defaults stay compact and structural;
     // Style Studio's radiusScale/densityScale can still make them quieter or
     // more expressive without returning large surfaces to pill-like geometry.
     readonly property int barHeight: Math.round(42 * densityScale)
