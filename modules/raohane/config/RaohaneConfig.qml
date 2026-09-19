@@ -141,7 +141,6 @@ Singleton {
         accentMode: "theme",
         customAccent: "#657987",
         sheenEnabled: true,
-        barScale: 1.0,
         dockHoverScale: 1.04,
         contextIslandScale: 1.0,
         contextIslandDetail: true,
@@ -394,7 +393,6 @@ Singleton {
             accentMode: allowedModes.indexOf(requestedMode) >= 0 ? requestedMode : "theme",
             customAccent: /^#[0-9a-fA-F]{6}$/.test(requestedAccent) ? requestedAccent : "#657987",
             sheenEnabled: input.sheenEnabled === undefined ? true : Boolean(input.sheenEnabled),
-            barScale: root.clampNumber(input.barScale, 0.85, 1.15, 1.0),
             dockHoverScale: root.clampNumber(input.dockHoverScale, 1.0, 1.12, 1.04),
             contextIslandScale: root.clampNumber(input.contextIslandScale, 0.8, 1.25, 1.0),
             contextIslandDetail: input.contextIslandDetail === undefined ? true : Boolean(input.contextIslandDetail),
@@ -690,11 +688,24 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlayGamingPosition", value => root.mediaOverlayGamingPosition = root.sanitizeMediaOverlayPosition(value))
         root.assignIfPresent(features, "mediaOverlayGamingAutoHideSeconds", value => root.mediaOverlayGamingAutoHideSeconds = root.sanitizeMediaOverlayGamingAutoHideSeconds(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
-        root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "raohane-dark"))
+        root.assignIfPresent(features, "themePreset", value => {
+            const requested = String(value || "raohane-dark")
+            const migrations = ({
+                "zen-mist": "raohane-dark",
+                "sakura": "rose-glass",
+                "matcha": "sage-glass",
+                "sumi": "ink-dark"
+            })
+            root.themePreset = migrations[requested] ?? requested
+        })
 
         root.keybinds = root.sanitizeKeybinds(keybinds)
         root.animations = root.sanitizeAnimations(animations)
-        root.style = root.sanitizeStyle(style)
+        const migratedStyle = Object.assign({}, style)
+        const accentMigrations = ({ "sakura": "rose", "matcha": "sage" })
+        if (accentMigrations[String(migratedStyle.accentMode ?? "")] !== undefined)
+            migratedStyle.accentMode = accentMigrations[String(migratedStyle.accentMode)]
+        root.style = root.sanitizeStyle(migratedStyle)
 
         root.loading = false
         root.ready = true
