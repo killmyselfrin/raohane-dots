@@ -509,10 +509,10 @@ Item {
                     rowSpacing: 8
 
                     MotionPreset {
-                        title: qsTr("Zen")
+                        title: qsTr("Balanced")
                         detail: qsTr("Quiet and balanced")
                         icon: "spa"
-                        onClicked: root.applyMotionPreset("zen")
+                        onClicked: root.applyMotionPreset("balanced")
                     }
                     MotionPreset {
                         title: qsTr("Snappy")
