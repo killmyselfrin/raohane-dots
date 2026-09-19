@@ -17,6 +17,7 @@ Item {
     readonly property var entries: root.rawEntries.filter(entry =>
         !RaohaneSettingsSectionRegistry.ownsControl(root.sectionKey, String(entry?.key ?? "")))
     readonly property string extensionSource: RaohaneSettingsSectionRegistry.source(root.sectionKey)
+    readonly property string settingsLabel: RaohaneSettingsPageRegistry.sectionSettingsLabel(root.sectionKey)
     readonly property bool compactLayout: width < 700
 
     function entryHeight(entry): int {
@@ -222,10 +223,20 @@ Item {
                 }
             }
 
+            Text {
+                visible: root.entries.length > 0 && root.settingsLabel !== ""
+                width: parent.width
+                text: root.settingsLabel
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 10
+                font.weight: Font.DemiBold
+            }
+
             RaohaneSurface {
                 id: settingsSurface
+                visible: root.entries.length > 0
                 width: parent.width
-                height: settingsList.implicitHeight
+                height: visible ? settingsList.implicitHeight : 0
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
