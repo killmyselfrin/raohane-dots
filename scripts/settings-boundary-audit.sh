@@ -60,6 +60,413 @@ for registration in \
   '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$' \
   '^RaohaneBackupSettings .*RaohaneBackupSettings.qml$' \
   '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml
+done
+
+rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" || fail 'Settings window is not routed through Settings V3'
+if rg -n 'RaohaneState\.settingsPage|^[[:space:]]*property string settingsPage:' modules/raohane; then
+  fail 'legacy Settings page state returned to runtime'
+fi
+
+for contract in \
+  'readonly property var pages:' 'readonly property var aliases:' 'readonly property var routeAliases:' \
+  'readonly property var sectionOrder:' 'readonly property var sectionSchemas:' \
+  'function resolvePageIndex\(requestedValue: string\): int' \
+  'function resolveRoute\(requestedValue: string, control: string\): var' \
+  'function sectionSchema\(key: string\): var' 'function sectionEntries\(key: string\): var' \
+  'function searchEntries\(\): var'; do
+  rg -q "$contract" "$registry" || fail "Settings page registry lost contract: $contract"
+done
+for page_key in home themes widgets interface bar quick general desktop displays hyprland preferences services profile backup language about; do
+  rg -q "key:[[:space:]]*\"${page_key}\"" "$registry" || fail "native Settings route is missing: $page_key"
+done
+for group in PERSONALIZE SHELL SYSTEM; do
+  rg -q "$group" "$registry" || fail "Settings page registry lost navigation group: $group"
+done
+for source in \
+  RaohaneSettingsPreferences.qml RaohaneBackupSettings.qml RaohaneSettingsLanguage.qml; do
+  rg -q "source:[[:space:]]*\"${source//./\\.}\"" "$registry" || fail "Settings registry lost unified page source: $source"
+done
+rg -q 'hideHeader:[[:space:]]*true' "$registry" || fail 'Preferences page no longer owns its local header'
+rg -q 'externalSurface:[[:space:]]*"displaySettings"' "$registry" || fail 'Display Settings route lost external surface ownership'
+for alias in keybinds shortcuts keyboard motion animations animation; do
+  rg -q "\"${alias}\"[[:space:]]*:" "$registry" || fail "Settings deep alias is missing: $alias"
+done
+for alias in restore 'backup & restore' locale; do
+  rg -q "\"${alias}\"[[:space:]]*:" "$registry" || fail "Settings page alias is missing: $alias"
+done
+
+for contract in \
+  'signal pageRequested\(string pageKey, string controlKey\)' \
+  'function splitRoute\(route: string, control: string\): var' \
+  'function request\(route: string, control: string\): bool' \
+  'function requestSearch\(section: string, key: string\): bool' \
+  'RaohaneSettingsPageRegistry\.resolveRoute' \
+  'RaohaneSettingsPageRegistry\.resolvePageIndex' \
+  'RaohaneState\.setPrimaryOpen\("settings", true\)' \
+  'RaohaneState\.setPrimaryOpen\(page\.externalSurface, true\)'; do
+  rg -q "$contract" "$router" || fail "Settings router lost unified route contract: $contract"
+done
+if rg -n 'specialAliases|preferencesRequested|backupRequested|languageRequested|legacyStateBridge|onSettingsPageChanged' "$router"; then
+  fail 'Settings router reintroduced special or legacy route transport'
+fi
+
+for symbol in \
+  'RaohaneSettingsPageRegistry\.pages' 'RaohaneSettingsPageRegistry\.resolvePageIndex' \
+  'RaohaneSettingsNavigation[[:space:]]*\{' 'RaohaneSettingsPageHeader[[:space:]]*\{' \
+  'target:[[:space:]]*RaohaneSettingsRouter' 'function onPageRequested\(pageKey: string, controlKey: string\): void' \
+  'pageOwnsHeader' 'root\.currentPageInfo\?\.source' \
+  'pageLoader\.source[[:space:]]*=[[:space:]]*nextSource' \
+  'pageLoader\.source[[:space:]]*=[[:space:]]*root\.currentPageInfo\?\.source' \
+  'pageLoader\.item\.hasOwnProperty\("sectionKey"\)' 'typeof pageLoader\.item\.goTo'; do
+  rg -q "$symbol" "$content" || fail "Settings coordinator lost animated page-loader contract: $symbol"
+done
+if rg -q 'externalSurface|function componentForKind\(|sourceComponent:|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl' "$content"; then
+  fail 'Settings coordinator reabsorbed imperative routing or profile ownership'
+fi
+
+for symbol in \
+  'RaohanePaths\.defaultAvatarUrl' 'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath' \
+  'RaohaneSystemInfo\.' 'RaohaneSettingsPageRegistry\.isFirstInGroup' 'signal pageRequested\(int index\)'; do
+  rg -q "$symbol" "$navigation" || fail "Settings navigation lost contract: $symbol"
+done
+for symbol in \
+  'property var pageInfo:' \
+  'property var displayedPageInfo:' \
+  'root\.displayedPageInfo\?\.icon' \
+  'root\.displayedPageInfo\?\.name' \
+  'root\.displayedPageInfo\?\.subtitle' \
+  'root\.displayedPageInfo[[:space:]]*=[[:space:]]*root\.pageInfo' \
+  'id:[[:space:]]*headerSwap'; do
+  rg -q "$symbol" "$header" || fail "Settings page header lost animated contract: $symbol"
+done
+
+for contract in \
+  'readonly property var extensions:' \
+  'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
+  'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
+  'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
+  'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
+  'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
+  rg -q "$contract" "$section_registry" || fail "Settings section registry lost contract: $contract"
+done
+
+mapfile -t page_sources < <(rg -o 'source:[[:space:]]*"[A-Za-z0-9_/-]+\.qml"' "$registry" | sed -E 's/.*"([^"]+)"/\1/' | sort -u)
+[[ "${#page_sources[@]}" -ge 8 ]] || fail 'Settings registry exposes too few declarative page sources'
+for source in "${page_sources[@]}"; do
+  [[ -f "modules/raohane/$source" ]] || fail "Settings registry points to missing page source: $source"
+done
+
+for symbol in \
+  'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsSectionRegistry\.source' \
+  'RaohaneSettingsSectionRegistry\.ownsControl' 'RaohaneSettingsControlRow[[:space:]]*\{' \
+  'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource'; do
+  rg -q "$symbol" "$section" || fail "native section renderer lost generic composition contract: $symbol"
+done
+if rg -n 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{|RaohaneBarStudio[[:space:]]*\{|RaohaneQuickControlsStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"(bar|quick)"' "$section"; then
+  fail 'generic Settings section renderer reabsorbed control or section-specific implementation'
+fi
+for symbol in \
+  'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneIconButton[[:space:]]*\{' \
+  'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void' 'Keys\.onPressed'; do
+  rg -q "$symbol" "$control_row" || fail "Settings control row lost config-bound contract: $symbol"
+done
+
+rg -q 'RaohanePreferencesHub[[:space:]]*\{' "$preferences" || fail 'Preferences route lost reusable PreferencesHub'
+rg -q 'function goTo\(control: string\): void' "$preferences" || fail 'Preferences route lost deep-link selection'
+rg -q 'preferences\.section[[:space:]]*=' "$preferences" || fail 'Preferences route cannot select requested tab'
+rg -q 'RaohaneSettingsRouter\.request\("home", ""\)' "$preferences" || fail 'Preferences back button bypasses Settings router'
+for tab in keybinds motion; do
+  rg -q "root\.section[[:space:]]*===?[[:space:]]*\"${tab}\"" "$preferences_hub" || fail "PreferencesHub lost tab: $tab"
+done
+
+rg -q 'RaohaneI18n\.supportedLanguages' "$language" || fail 'Language page lost supported language model'
+rg -q 'RaohaneI18n\.language' "$language" || fail 'Language page lost selected-state binding'
+rg -q 'RaohaneI18n\.setLanguage' "$language" || fail 'Language page cannot apply language'
+rg -q 'FileDialog[[:space:]]*\{' "$backup" || fail 'Backup page lost native file workflow'
+rg -q 'RaohaneBackup\.(exportBackup|restoreBackup)' "$backup" || fail 'Backup page bypasses native backup service'
+
+for route in backup keybinds motion language; do
+  rg -q "RaohaneSettingsRouter\.request\(\"${route}\", \"\"\)" "$settings" || fail "Settings quick action bypasses router: $route"
+done
+rg -q 'settingsContent\.pageOwnsHeader' "$settings" || fail 'Settings top chrome does not respect page-owned header'
+rg -q 'Qt\.ControlModifier' "$settings" || fail 'Settings lost Ctrl+F search shortcut'
+rg -q 'settingsSearch\.focusSearch\(\)' "$settings" || fail 'Settings lost keyboard search focus'
+if rg -n 'preferencesOpen|backupOpen|openPreferences\(|openBackup\(|showMainSettings\(|onPreferencesRequested|onBackupRequested|onLanguageRequested' "$settings"; then
+  fail 'Settings window reintroduced special overlay state'
+fi
+
+rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" || fail 'global Settings search is not registry-backed'
+rg -q 'RaohaneSettingsRouter\.requestSearch\(entry\.section, entry\.key\)' "$search" || fail 'global Settings search bypasses router'
+for key in themePreset barModuleLayout quickControlTiles desktopWidgetsLayout keybinds motion backup language; do
+  rg -q "key:[[:space:]]*\"${key}\"" "$registry" || fail "Settings registry lost search route: $key"
+done
+
+rg -q 'Open native\.json' "$home" || fail 'Settings Home no longer exposes native config entry point'
+rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" || fail 'Settings Home bypasses centralized router'
+rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
+rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
+for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
+done
+
+# Bar controls must have exactly one visible owner. Bar Studio owns bar behavior
+# and geometry; the generic Bar & Dock schema owns Dock controls; Appearance owns
+# screen framing; Theme Studio must not override functional Bar/Dock sizing.
+if rg -n 'key:[[:space:]]*"(barBottom|barVertical|barAutoHide|barAutoHidePushWindows|barShowOnSuper|barShowOnSuperDelay|barShowDate)"' "$registry"; then
+  fail 'generic Settings registry duplicates controls owned by Bar Studio'
+fi
+for symbol in 'RaohaneConfig\.barAutoHide' 'RaohaneConfig\.barShowDate' 'RaohaneConfig\.barShowOnSuperDelay'; do
+  rg -q "$symbol" "$bar_appearance" || fail "Bar appearance lost single-owner control: $symbol"
+done
+if rg -n 'RaohaneConfig\.(frameEnabled|frameThickness)' "$bar_appearance"; then
+  fail 'Bar Studio duplicates screen-frame controls owned by Appearance'
+fi
+if rg -n 'title:[[:space:]]*qsTr\("(Bar pod size|Dock height|Dock icon size)"\)' "$catalog"; then
+  fail 'Theme Studio duplicates functional Bar/Dock sizing controls'
+fi
+if rg -n '\bbarScale\b' "$config" modules/raohane/RaohaneBar.qml "$bar_studio" "$bar_appearance"; then
+  fail 'legacy barScale returned alongside authoritative barHeight'
+fi
+for key in dockEnabled dockAutoHide dockPinned dockExclusiveZone dockHeight dockIconSize dockBottomMargin; do
+  rg -q "key:[[:space:]]*\"${key}\"" "$registry" || fail "Bar & Dock lost Dock control ownership: $key"
+done
+for contract in \
+  'RaohaneConfig\.quickControlTiles' \
+  'RaohaneQuickControlRegistry\.sanitizeLayout' \
+  'RaohaneQuickControlRegistry\.tileIds' \
+  'function addTile\(id: string\): void' \
+  'function removeAt\(index: int\): void' \
+  'function move\(index: int, delta: int\): void' \
+  'function resetLayout\(\): void'; do
+  rg -q "$contract" "$quick_studio" || fail "Quick Controls Studio lost native contract: $contract"
+done
+for symbol in 'RaohaneSystemInfo\.' 'Quickshell\.shellPath\("VERSION"\)' 'raohane doctor all'; do
+  rg -q "$symbol" "$about" || fail "About page lost native contract: $symbol"
+done
+
+# Quick Control composition is a persisted product contract: defaults feed the
+# additive schema-v13 config, runtime consumes the sanitized array, Studio
+# mutates it live and Settings search routes directly to the Studio extension.
+for contract in \
+  'property var quickControlTiles:[[:space:]]*root\.defaultQuickControlTiles\(\)' \
+  'function defaultQuickControlTiles\(\): var' \
+  'function sanitizeQuickControlTiles\(value\): var' \
+  'tiles:[[:space:]]*root\.sanitizeQuickControlTiles\(root\.quickControlTiles\)' \
+  'root\.quickControlTiles[[:space:]]*=[[:space:]]*root\.sanitizeQuickControlTiles\(value\)' \
+  'onQuickControlTilesChanged:[[:space:]]*scheduleSave\(\)'; do
+  rg -q "$contract" "$config" || fail "native config lost persisted Quick Control layout contract: $contract"
+done
+rg -q '"tiles"[[:space:]]*:[[:space:]]*\[' "$defaults" || fail 'native defaults lost Quick Control tile composition'
+rg -q 'RaohaneConfig\.quickControlTiles' "$quick_runtime" || fail 'Quick Controls runtime does not consume persisted tile composition'
+rg -q 'RaohaneQuickControlRegistry\.sanitizeLayout' "$quick_runtime" || fail 'Quick Controls runtime does not validate persisted tile composition'
+
+mapfile -t registry_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$registry" | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
+[[ "${#registry_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys'
+for key in "${registry_keys[@]}" themePreset barModuleLayout quickControlTiles desktopWidgetsLayout; do
+  rg -q "property [^:]+ ${key}:" "$config" || fail "Settings registry points to non-native config key: $key"
+done
+
+if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bGlobalStates\.' \
+  "$content" "$navigation" "$header" "$registry" "$section_registry" "$router" "$section" "$control_row" "$preferences" "$language" "$settings" "$search" "$quick_studio"; then
+  fail 'Settings architecture resolves inherited settings/common/root types'
+fi
+
+printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace, with single-owner Bar/Dock controls, generic sections, reusable control rows and persisted studios/preferences pages\n'
+; do
+  rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
+done
+
+rg -q 'RaohaneSettingsContentV3[[:space:]]*\{' "$settings" || fail 'Settings window is not routed through Settings V3'
+if rg -n 'RaohaneState\.settingsPage|^[[:space:]]*property string settingsPage:' modules/raohane; then
+  fail 'legacy Settings page state returned to runtime'
+fi
+
+for contract in \
+  'readonly property var pages:' 'readonly property var aliases:' 'readonly property var routeAliases:' \
+  'readonly property var sectionOrder:' 'readonly property var sectionSchemas:' \
+  'function resolvePageIndex\(requestedValue: string\): int' \
+  'function resolveRoute\(requestedValue: string, control: string\): var' \
+  'function sectionSchema\(key: string\): var' 'function sectionEntries\(key: string\): var' \
+  'function searchEntries\(\): var'; do
+  rg -q "$contract" "$registry" || fail "Settings page registry lost contract: $contract"
+done
+for page_key in home themes widgets interface bar quick general desktop displays hyprland preferences services profile backup language about; do
+  rg -q "key:[[:space:]]*\"${page_key}\"" "$registry" || fail "native Settings route is missing: $page_key"
+done
+for group in PERSONALIZE SHELL SYSTEM; do
+  rg -q "$group" "$registry" || fail "Settings page registry lost navigation group: $group"
+done
+for source in \
+  RaohaneSettingsPreferences.qml RaohaneBackupSettings.qml RaohaneSettingsLanguage.qml; do
+  rg -q "source:[[:space:]]*\"${source//./\\.}\"" "$registry" || fail "Settings registry lost unified page source: $source"
+done
+rg -q 'hideHeader:[[:space:]]*true' "$registry" || fail 'Preferences page no longer owns its local header'
+rg -q 'externalSurface:[[:space:]]*"displaySettings"' "$registry" || fail 'Display Settings route lost external surface ownership'
+for alias in keybinds shortcuts keyboard motion animations animation; do
+  rg -q "\"${alias}\"[[:space:]]*:" "$registry" || fail "Settings deep alias is missing: $alias"
+done
+for alias in restore 'backup & restore' locale; do
+  rg -q "\"${alias}\"[[:space:]]*:" "$registry" || fail "Settings page alias is missing: $alias"
+done
+
+for contract in \
+  'signal pageRequested\(string pageKey, string controlKey\)' \
+  'function splitRoute\(route: string, control: string\): var' \
+  'function request\(route: string, control: string\): bool' \
+  'function requestSearch\(section: string, key: string\): bool' \
+  'RaohaneSettingsPageRegistry\.resolveRoute' \
+  'RaohaneSettingsPageRegistry\.resolvePageIndex' \
+  'RaohaneState\.setPrimaryOpen\("settings", true\)' \
+  'RaohaneState\.setPrimaryOpen\(page\.externalSurface, true\)'; do
+  rg -q "$contract" "$router" || fail "Settings router lost unified route contract: $contract"
+done
+if rg -n 'specialAliases|preferencesRequested|backupRequested|languageRequested|legacyStateBridge|onSettingsPageChanged' "$router"; then
+  fail 'Settings router reintroduced special or legacy route transport'
+fi
+
+for symbol in \
+  'RaohaneSettingsPageRegistry\.pages' 'RaohaneSettingsPageRegistry\.resolvePageIndex' \
+  'RaohaneSettingsNavigation[[:space:]]*\{' 'RaohaneSettingsPageHeader[[:space:]]*\{' \
+  'target:[[:space:]]*RaohaneSettingsRouter' 'function onPageRequested\(pageKey: string, controlKey: string\): void' \
+  'pageOwnsHeader' 'root\.currentPageInfo\?\.source' \
+  'pageLoader\.source[[:space:]]*=[[:space:]]*nextSource' \
+  'pageLoader\.source[[:space:]]*=[[:space:]]*root\.currentPageInfo\?\.source' \
+  'pageLoader\.item\.hasOwnProperty\("sectionKey"\)' 'typeof pageLoader\.item\.goTo'; do
+  rg -q "$symbol" "$content" || fail "Settings coordinator lost animated page-loader contract: $symbol"
+done
+if rg -q 'externalSurface|function componentForKind\(|sourceComponent:|RaohaneConfig\.profile|RaohanePaths\.defaultAvatarUrl' "$content"; then
+  fail 'Settings coordinator reabsorbed imperative routing or profile ownership'
+fi
+
+for symbol in \
+  'RaohanePaths\.defaultAvatarUrl' 'RaohaneConfig\.profileDisplayName' 'RaohaneConfig\.profileAvatarPath' \
+  'RaohaneSystemInfo\.' 'RaohaneSettingsPageRegistry\.isFirstInGroup' 'signal pageRequested\(int index\)'; do
+  rg -q "$symbol" "$navigation" || fail "Settings navigation lost contract: $symbol"
+done
+for symbol in \
+  'property var pageInfo:' \
+  'property var displayedPageInfo:' \
+  'root\.displayedPageInfo\?\.icon' \
+  'root\.displayedPageInfo\?\.name' \
+  'root\.displayedPageInfo\?\.subtitle' \
+  'root\.displayedPageInfo[[:space:]]*=[[:space:]]*root\.pageInfo' \
+  'id:[[:space:]]*headerSwap'; do
+  rg -q "$symbol" "$header" || fail "Settings page header lost animated contract: $symbol"
+done
+
+for contract in \
+  'readonly property var extensions:' \
+  'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
+  'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
+  'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' \
+  'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
+  'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
+  'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
+  rg -q "$contract" "$section_registry" || fail "Settings section registry lost contract: $contract"
+done
+
+mapfile -t page_sources < <(rg -o 'source:[[:space:]]*"[A-Za-z0-9_/-]+\.qml"' "$registry" | sed -E 's/.*"([^"]+)"/\1/' | sort -u)
+[[ "${#page_sources[@]}" -ge 8 ]] || fail 'Settings registry exposes too few declarative page sources'
+for source in "${page_sources[@]}"; do
+  [[ -f "modules/raohane/$source" ]] || fail "Settings registry points to missing page source: $source"
+done
+
+for symbol in \
+  'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsSectionRegistry\.source' \
+  'RaohaneSettingsSectionRegistry\.ownsControl' 'RaohaneSettingsControlRow[[:space:]]*\{' \
+  'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource'; do
+  rg -q "$symbol" "$section" || fail "native section renderer lost generic composition contract: $symbol"
+done
+if rg -n 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{|RaohaneBarStudio[[:space:]]*\{|RaohaneQuickControlsStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"(bar|quick)"' "$section"; then
+  fail 'generic Settings section renderer reabsorbed control or section-specific implementation'
+fi
+for symbol in \
+  'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneIconButton[[:space:]]*\{' \
+  'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void' 'Keys\.onPressed'; do
+  rg -q "$symbol" "$control_row" || fail "Settings control row lost config-bound contract: $symbol"
+done
+
+rg -q 'RaohanePreferencesHub[[:space:]]*\{' "$preferences" || fail 'Preferences route lost reusable PreferencesHub'
+rg -q 'function goTo\(control: string\): void' "$preferences" || fail 'Preferences route lost deep-link selection'
+rg -q 'preferences\.section[[:space:]]*=' "$preferences" || fail 'Preferences route cannot select requested tab'
+rg -q 'RaohaneSettingsRouter\.request\("home", ""\)' "$preferences" || fail 'Preferences back button bypasses Settings router'
+for tab in keybinds motion; do
+  rg -q "root\.section[[:space:]]*===?[[:space:]]*\"${tab}\"" "$preferences_hub" || fail "PreferencesHub lost tab: $tab"
+done
+
+rg -q 'RaohaneI18n\.supportedLanguages' "$language" || fail 'Language page lost supported language model'
+rg -q 'RaohaneI18n\.language' "$language" || fail 'Language page lost selected-state binding'
+rg -q 'RaohaneI18n\.setLanguage' "$language" || fail 'Language page cannot apply language'
+rg -q 'FileDialog[[:space:]]*\{' "$backup" || fail 'Backup page lost native file workflow'
+rg -q 'RaohaneBackup\.(exportBackup|restoreBackup)' "$backup" || fail 'Backup page bypasses native backup service'
+
+for route in backup keybinds motion language; do
+  rg -q "RaohaneSettingsRouter\.request\(\"${route}\", \"\"\)" "$settings" || fail "Settings quick action bypasses router: $route"
+done
+rg -q 'settingsContent\.pageOwnsHeader' "$settings" || fail 'Settings top chrome does not respect page-owned header'
+rg -q 'Qt\.ControlModifier' "$settings" || fail 'Settings lost Ctrl+F search shortcut'
+rg -q 'settingsSearch\.focusSearch\(\)' "$settings" || fail 'Settings lost keyboard search focus'
+rg -q 'RaohaneSakuraOverlay[[:space:]]*\{' "$settings" || fail 'Settings lost Sakura ambience layer'
+if rg -n 'preferencesOpen|backupOpen|openPreferences\(|openBackup\(|showMainSettings\(|onPreferencesRequested|onBackupRequested|onLanguageRequested' "$settings"; then
+  fail 'Settings window reintroduced special overlay state'
+fi
+
+rg -q 'RaohaneSettingsPageRegistry\.searchEntries\(\)' "$search" || fail 'global Settings search is not registry-backed'
+rg -q 'RaohaneSettingsRouter\.requestSearch\(entry\.section, entry\.key\)' "$search" || fail 'global Settings search bypasses router'
+for key in themePreset barModuleLayout quickControlTiles desktopWidgetsLayout keybinds motion backup language; do
+  rg -q "key:[[:space:]]*\"${key}\"" "$registry" || fail "Settings registry lost search route: $key"
+done
+
+rg -q 'Open native\.json' "$home" || fail 'Settings Home no longer exposes native config entry point'
+rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" || fail 'Settings Home bypasses centralized router'
+rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
+rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
+for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
+done
+for contract in \
+  'RaohaneConfig\.quickControlTiles' \
+  'RaohaneQuickControlRegistry\.sanitizeLayout' \
+  'RaohaneQuickControlRegistry\.tileIds' \
+  'function addTile\(id: string\): void' \
+  'function removeAt\(index: int\): void' \
+  'function move\(index: int, delta: int\): void' \
+  'function resetLayout\(\): void'; do
+  rg -q "$contract" "$quick_studio" || fail "Quick Controls Studio lost native contract: $contract"
+done
+for symbol in 'RaohaneSystemInfo\.' 'Quickshell\.shellPath\("VERSION"\)' 'raohane doctor all'; do
+  rg -q "$symbol" "$about" || fail "About page lost native contract: $symbol"
+done
+
+# Quick Control composition is a persisted product contract: defaults feed the
+# additive schema-v13 config, runtime consumes the sanitized array, Studio
+# mutates it live and Settings search routes directly to the Studio extension.
+for contract in \
+  'property var quickControlTiles:[[:space:]]*root\.defaultQuickControlTiles\(\)' \
+  'function defaultQuickControlTiles\(\): var' \
+  'function sanitizeQuickControlTiles\(value\): var' \
+  'tiles:[[:space:]]*root\.sanitizeQuickControlTiles\(root\.quickControlTiles\)' \
+  'root\.quickControlTiles[[:space:]]*=[[:space:]]*root\.sanitizeQuickControlTiles\(value\)' \
+  'onQuickControlTilesChanged:[[:space:]]*scheduleSave\(\)'; do
+  rg -q "$contract" "$config" || fail "native config lost persisted Quick Control layout contract: $contract"
+done
+rg -q '"tiles"[[:space:]]*:[[:space:]]*\[' "$defaults" || fail 'native defaults lost Quick Control tile composition'
+rg -q 'RaohaneConfig\.quickControlTiles' "$quick_runtime" || fail 'Quick Controls runtime does not consume persisted tile composition'
+rg -q 'RaohaneQuickControlRegistry\.sanitizeLayout' "$quick_runtime" || fail 'Quick Controls runtime does not validate persisted tile composition'
+
+mapfile -t registry_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$registry" | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
+[[ "${#registry_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys'
+for key in "${registry_keys[@]}" themePreset barModuleLayout quickControlTiles desktopWidgetsLayout; do
+  rg -q "property [^:]+ ${key}:" "$config" || fail "Settings registry points to non-native config key: $key"
+done
+
+if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import qs\.services$|^import qs\.modules\.common|^import qs\.modules\.ii|\bGlobalStates\.' \
+  "$content" "$navigation" "$header" "$registry" "$section_registry" "$router" "$section" "$control_row" "$preferences" "$language" "$settings" "$search" "$quick_studio"; then
+  fail 'Settings architecture resolves inherited settings/common/root types'
+fi
+
+printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace, with Sakura ambience, generic sections, reusable control rows and persisted studios/preferences pages\n'
+; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 
