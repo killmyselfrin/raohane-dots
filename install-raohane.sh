@@ -115,7 +115,6 @@ required_runtime=(
   "qmldir"
   "VERSION"
   "assets"
-  "assets/applications/raohane-settings.desktop"
   "assets/icons/raohane-settings.svg"
   "translations"
   "login/sddm/raohane/Main.qml"
@@ -254,8 +253,23 @@ bash "$ROOT/scripts/validate-runtime-payload.sh" "$RUNTIME"
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
 
 # Install the Raohane-owned launcher entry and icon for shell settings.
-install -m 0644 "$ROOT/assets/applications/raohane-settings.desktop" \
-  "$APPLICATIONS_DIR/raohane-settings.desktop"
+# Generate the desktop entry at install time so graphical launchers do not
+# depend on the session PATH containing ~/.local/bin.
+cat > "$APPLICATIONS_DIR/raohane-settings.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=Raohane Settings
+Comment=Configure the Raohane desktop shell
+Exec=${BIN_DIR}/raohane settings
+TryExec=${BIN_DIR}/raohane
+Icon=raohane-settings
+Terminal=false
+StartupNotify=false
+Categories=Settings;DesktopSettings;
+Keywords=Raohane;Hyprland;Quickshell;Settings;Appearance;
+DESKTOP
+chmod 0644 "$APPLICATIONS_DIR/raohane-settings.desktop"
+
 install -m 0644 "$ROOT/assets/icons/raohane-settings.svg" \
   "$APP_ICON_DIR/raohane-settings.svg"
 
