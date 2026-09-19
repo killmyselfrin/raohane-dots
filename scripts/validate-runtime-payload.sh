@@ -34,8 +34,6 @@ required=(
   modules/raohane/qmldir
   modules/raohane/RaohaneTaskManager.qml
   modules/raohane/RaohaneOverlay.qml
-  modules/raohane/RaohaneSakuraOverlay.qml
-  modules/raohane/RaohaneSakuraSettings.qml
   modules/raohane/RaohaneSettingsGraphics.qml
   modules/raohane/RaohaneSettingsScenes.qml
   modules/raohane/services/RaohaneProcesses.qml

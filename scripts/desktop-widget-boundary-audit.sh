@@ -109,7 +109,7 @@ rg -q 'RaohaneNetwork\.' "$system" || fail 'system widget lost native network se
 rg -q 'RaohaneAudio\.' "$system" || fail 'system widget lost native audio service ownership'
 rg -q 'RaohaneSystemInfo\.' "$system" || fail 'system widget lost native host-status ownership'
 rg -q 'Timer[[:space:]]*\{' "$clock" || fail 'clock widget lost its local idle-safe time source'
-rg -q 'Move gently\. Stay present\.' "$motto" || fail 'motto widget lost native ambient copy'
+rg -q 'Move quietly\. Keep going\.' "$motto" || fail 'motto widget lost native ambient copy'
 
 rg -q 'RaohaneDesktopWidgetRegistry\.definitions\(\)' "$studio" \
   || fail 'Widget Studio no longer consumes registry widget metadata'

@@ -16,7 +16,7 @@ RaohaneSurface {
         : RaohaneConfig.barModuleLayout
     readonly property var layout: RaohaneBarModuleRegistry.sanitizeLayout(sourceLayout, orientation)
 
-    implicitHeight: vertical ? 250 : 104
+    implicitHeight: vertical ? 250 : 124
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
@@ -47,19 +47,25 @@ RaohaneSurface {
             anchors {
                 left: parent.left
                 right: parent.right
-                verticalCenter: parent.verticalCenter
+                top: !RaohaneConfig.barBottom ? parent.top : undefined
+                bottom: RaohaneConfig.barBottom ? parent.bottom : undefined
+                topMargin: RaohaneConfig.barBottom ? 0 : 10
+                bottomMargin: RaohaneConfig.barBottom ? 10 : 0
             }
-            height: 56
-            surfaceRadius: 18
-            raised: true
+            height: Math.max(42, Math.min(64, RaohaneConfig.barHeight + 10))
+            surfaceRadius: Math.max(0, Math.min(RaohaneConfig.barRadius, height / 2))
+            opacity: RaohaneConfig.barOpacity
+            raised: RaohaneConfig.barShadow
+            transparentIdle: !RaohaneConfig.barShowBackground
+                || RaohaneConfig.barGroupStyle !== "pills"
             showSheen: false
-            border.color: RaohaneTheme.borderStrong
+            border.color: transparentIdle ? "transparent" : RaohaneTheme.borderStrong
 
             RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 10
                 anchors.rightMargin: 10
-                spacing: 9
+                spacing: Math.max(2, RaohaneConfig.barModuleSpacing + 4)
 
                 PreviewZone {
                     Layout.fillWidth: true
@@ -91,18 +97,24 @@ RaohaneSurface {
             anchors {
                 top: parent.top
                 bottom: parent.bottom
-                horizontalCenter: parent.horizontalCenter
+                left: !RaohaneConfig.barRight ? parent.left : undefined
+                right: RaohaneConfig.barRight ? parent.right : undefined
+                leftMargin: RaohaneConfig.barRight ? 0 : 12
+                rightMargin: RaohaneConfig.barRight ? 12 : 0
             }
-            surfaceRadius: 20
-            raised: true
+            surfaceRadius: Math.max(0, Math.min(RaohaneConfig.barRadius, width / 2))
+            opacity: RaohaneConfig.barOpacity
+            raised: RaohaneConfig.barShadow
+            transparentIdle: !RaohaneConfig.barShowBackground
+                || RaohaneConfig.barGroupStyle !== "pills"
             showSheen: false
-            border.color: RaohaneTheme.borderStrong
+            border.color: transparentIdle ? "transparent" : RaohaneTheme.borderStrong
 
             ColumnLayout {
                 anchors.fill: parent
                 anchors.topMargin: 10
                 anchors.bottomMargin: 10
-                spacing: 7
+                spacing: Math.max(2, RaohaneConfig.barModuleSpacing + 2)
 
                 VerticalPreviewZone {
                     Layout.fillWidth: true
@@ -186,15 +198,23 @@ RaohaneSurface {
         readonly property bool separator: moduleId === "separator"
         readonly property var definition: RaohaneBarModuleRegistry.definition(moduleId)
 
-        width: separator ? (verticalPreview ? 26 : 9) : 30
-        height: separator ? (verticalPreview ? 7 : 26) : 30
+        width: separator
+            ? (verticalPreview ? 26 : (RaohaneConfig.barDividerStyle === "space" ? Math.max(9, RaohaneConfig.barDividerSpacing) : 9))
+            : 30
+        height: separator
+            ? (verticalPreview ? (RaohaneConfig.barDividerStyle === "space" ? Math.max(7, RaohaneConfig.barDividerSpacing) : 7) : 26)
+            : 30
 
         Rectangle {
-            visible: glyph.separator
+            visible: glyph.separator && RaohaneConfig.barDividerStyle !== "space"
             anchors.centerIn: parent
-            width: glyph.verticalPreview ? 22 : 1
-            height: glyph.verticalPreview ? 1 : 22
-            radius: 1
+            width: RaohaneConfig.barDividerStyle === "dot"
+                ? 5
+                : glyph.verticalPreview ? 22 : 1
+            height: RaohaneConfig.barDividerStyle === "dot"
+                ? 5
+                : glyph.verticalPreview ? 1 : 22
+            radius: Math.max(1, Math.min(width, height) / 2)
             color: RaohaneTheme.borderStrong
             opacity: 0.66
         }
@@ -202,8 +222,9 @@ RaohaneSurface {
         RaohaneSurface {
             visible: !glyph.separator
             anchors.fill: parent
-            surfaceRadius: 10
-            raised: false
+            surfaceRadius: RaohaneConfig.barGroupStyle === "segmented" ? 6 : 10
+            raised: RaohaneConfig.barGroupStyle === "separated" && RaohaneConfig.barShadow
+            transparentIdle: RaohaneConfig.barGroupStyle === "transparent"
             showSheen: false
             border.color: glyph.moduleId === "context"
                 ? RaohaneTheme.accentBorder

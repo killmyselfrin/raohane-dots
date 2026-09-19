@@ -26,8 +26,6 @@ required_root=(
   modules/raohane/RaohaneRuntimeProbe.qml
   modules/raohane/RaohaneSettingsSearch.qml
   modules/raohane/RaohaneTaskManager.qml
-  modules/raohane/RaohaneSakuraOverlay.qml
-  modules/raohane/RaohaneSakuraSettings.qml
   modules/raohane/config/RaohaneConfig.qml
   modules/raohane/config/RaohanePaths.qml
   modules/raohane/services/RaohaneProcesses.qml
@@ -174,10 +172,6 @@ rg -q '^singleton RaohaneConfig .*RaohaneConfig.qml$' modules/raohane/config/qml
   || fail 'RaohaneConfig is not registered'
 rg -q '^RaohaneIcon .*RaohaneIcon.qml$' modules/raohane/qmldir \
   || fail 'RaohaneIcon is not registered'
-rg -q '^RaohaneSakuraOverlay .*RaohaneSakuraOverlay.qml$' modules/raohane/qmldir \
-  || fail 'RaohaneSakuraOverlay is not registered'
-rg -q '^RaohaneSakuraSettings .*RaohaneSakuraSettings.qml$' modules/raohane/qmldir \
-  || fail 'RaohaneSakuraSettings is not registered'
 rg -q '^singleton RaohaneDropShelf .*RaohaneDropShelf.qml$' modules/raohane/services/qmldir \
   || fail 'RaohaneDropShelf is not registered'
 rg -q '^singleton RaohaneAutostart .*RaohaneAutostart.qml$' modules/raohane/services/qmldir \

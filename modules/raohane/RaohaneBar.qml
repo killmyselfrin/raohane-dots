@@ -58,7 +58,7 @@ Scope {
             screen: modelData
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
-            implicitHeight: 64
+            implicitHeight: Math.max(40, barWindow.podHeight + barWindow.outerGap * 2)
 
             property bool superShow: false
             readonly property bool autoHide: RaohaneConfig.barAutoHide
@@ -74,8 +74,20 @@ Scope {
             readonly property bool fullscreenSuppressed: effectiveFullscreen && !superShow
             readonly property bool contentShown: !fullscreenSuppressed && mustShow
             readonly property real podScale: Number(root.styleValue("barScale", 1.0))
-            readonly property int podHeight: Math.max(38, Math.min(48, Math.round(RaohaneTheme.barHeight * podScale)))
-            readonly property int edgeMargin: Math.max(12, Math.round(16 * RaohaneTheme.densityScale))
+            readonly property int podHeight: Math.max(34, Math.min(64, Math.round(RaohaneConfig.barHeight * podScale)))
+            readonly property string surfaceStyle: RaohaneConfig.barSurfaceStyle
+            readonly property string groupStyle: RaohaneConfig.barGroupStyle
+            readonly property int edgeMargin: Math.max(0, Math.round(RaohaneConfig.barEdgeMargin * RaohaneTheme.densityScale))
+            readonly property int effectiveEdgeMargin: surfaceStyle === "hug" || surfaceStyle === "panel" ? 0 : edgeMargin
+            readonly property int outerGap: surfaceStyle === "hug" || surfaceStyle === "panel" ? 0 : 6
+            readonly property int podRadius: Math.max(0, Math.min(Math.round(RaohaneConfig.barRadius), Math.floor(podHeight / 2)))
+            readonly property int effectiveRadius: surfaceStyle === "hug" ? Math.min(10, podRadius) : podRadius
+            readonly property int moduleSpacing: Math.max(0, Math.round(RaohaneConfig.barModuleSpacing))
+            readonly property int effectiveModuleSpacing: groupStyle === "segmented" ? 1 : moduleSpacing
+            readonly property int horizontalPadding: Math.max(2, Math.round(RaohaneConfig.barHorizontalPadding))
+            readonly property bool zoneBackgroundVisible: RaohaneConfig.barShowBackground
+                && surfaceStyle !== "panel"
+                && groupStyle === "pills"
             readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
                 && !RaohanePerformance.gameModeActive
 
@@ -137,10 +149,12 @@ Scope {
             Item {
                 id: barContent
                 width: parent.width
-                height: 52
+                height: barWindow.implicitHeight
                 y: {
                     if (barWindow.contentShown)
-                        return RaohaneConfig.barBottom ? barWindow.height - height - 6 : 6
+                        return RaohaneConfig.barBottom
+                            ? barWindow.height - height - barWindow.outerGap
+                            : barWindow.outerGap
                     return RaohaneConfig.barBottom ? barWindow.height + 2 : -height - 4
                 }
 
@@ -153,30 +167,48 @@ Scope {
                 }
 
                 RaohaneSurface {
+                    id: panelSurface
+                    visible: RaohaneConfig.barShowBackground && barWindow.surfaceStyle === "panel"
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        verticalCenter: parent.verticalCenter
+                    }
+                    height: barWindow.podHeight
+                    surfaceRadius: barWindow.effectiveRadius
+                    opacity: RaohaneConfig.barOpacity
+                    raised: RaohaneConfig.barShadow
+                    showSheen: false
+                    border.color: RaohaneTheme.border
+                }
+
+                RaohaneSurface {
                     id: leftIsland
                     visible: root.activeLayout.left.length > 0
                     anchors {
                         left: parent.left
-                        leftMargin: barWindow.edgeMargin
+                        leftMargin: barWindow.effectiveEdgeMargin
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
                         ? Math.min(parent.width * 0.38, Math.max(48, leftRow.implicitWidth + 18))
                         : 0
                     height: visible ? barWindow.podHeight : 0
-                    surfaceRadius: Math.min(RaohaneTheme.radiusLarge, height / 2)
-                    raised: true
+                    surfaceRadius: barWindow.effectiveRadius
+                    opacity: RaohaneConfig.barOpacity
+                    raised: RaohaneConfig.barShadow
+                    transparentIdle: !barWindow.zoneBackgroundVisible
                     showSheen: false
-                    border.color: RaohaneTheme.border
+                    border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     RowLayout {
                         id: leftRow
                         anchors {
                             fill: parent
-                            leftMargin: 6
-                            rightMargin: 8
+                            leftMargin: barWindow.horizontalPadding
+                            rightMargin: barWindow.horizontalPadding
                         }
-                        spacing: 5
+                        spacing: barWindow.effectiveModuleSpacing
 
                         Repeater {
                             model: root.activeLayout.left
@@ -189,6 +221,8 @@ Scope {
                                 parentWindow: barWindow
                                 hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                 showDate: root.showDateConfigured
+                                groupStyle: barWindow.groupStyle
+                                showBackground: RaohaneConfig.barShowBackground
                                 primaryAction: root.togglePrimarySurface
                                 transientAction: root.toggleTransientSurface
                                 Layout.alignment: Qt.AlignVCenter
@@ -197,26 +231,47 @@ Scope {
                     }
                 }
 
-                RowLayout {
-                    id: centerRow
+                RaohaneSurface {
+                    id: centerIsland
                     visible: root.activeLayout.center.length > 0
                     anchors.centerIn: parent
-                    spacing: 6
+                    width: visible
+                        ? Math.min(parent.width * 0.42, Math.max(48, centerRow.implicitWidth + barWindow.horizontalPadding * 2))
+                        : 0
+                    height: visible ? barWindow.podHeight : 0
+                    surfaceRadius: barWindow.effectiveRadius
+                    opacity: RaohaneConfig.barOpacity
+                    raised: RaohaneConfig.barShadow
+                    transparentIdle: !barWindow.zoneBackgroundVisible
+                    showSheen: false
+                    border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
-                    Repeater {
-                        model: root.activeLayout.center
+                    RowLayout {
+                        id: centerRow
+                        anchors {
+                            fill: parent
+                            leftMargin: barWindow.horizontalPadding
+                            rightMargin: barWindow.horizontalPadding
+                        }
+                        spacing: barWindow.effectiveModuleSpacing
 
-                        delegate: RaohaneBarModule {
-                            required property var modelData
+                        Repeater {
+                            model: root.activeLayout.center
 
-                            moduleId: String(modelData)
-                            screen: barWindow.screen
-                            parentWindow: barWindow
-                            hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
-                            showDate: root.showDateConfigured
-                            primaryAction: root.togglePrimarySurface
-                            transientAction: root.toggleTransientSurface
-                            Layout.alignment: Qt.AlignVCenter
+                            delegate: RaohaneBarModule {
+                                required property var modelData
+
+                                moduleId: String(modelData)
+                                screen: barWindow.screen
+                                parentWindow: barWindow
+                                hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
+                                showDate: root.showDateConfigured
+                                groupStyle: barWindow.groupStyle
+                                showBackground: RaohaneConfig.barShowBackground
+                                primaryAction: root.togglePrimarySurface
+                                transientAction: root.toggleTransientSurface
+                                Layout.alignment: Qt.AlignVCenter
+                            }
                         }
                     }
                 }
@@ -226,26 +281,28 @@ Scope {
                     visible: root.activeLayout.right.length > 0
                     anchors {
                         right: parent.right
-                        rightMargin: barWindow.edgeMargin
+                        rightMargin: barWindow.effectiveEdgeMargin
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
                         ? Math.min(parent.width * 0.40, Math.max(48, rightRow.implicitWidth + 18))
                         : 0
                     height: visible ? barWindow.podHeight : 0
-                    surfaceRadius: Math.min(RaohaneTheme.radiusLarge, height / 2)
-                    raised: true
+                    surfaceRadius: barWindow.effectiveRadius
+                    opacity: RaohaneConfig.barOpacity
+                    raised: RaohaneConfig.barShadow
+                    transparentIdle: !barWindow.zoneBackgroundVisible
                     showSheen: false
-                    border.color: RaohaneTheme.border
+                    border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     RowLayout {
                         id: rightRow
                         anchors {
                             fill: parent
-                            leftMargin: 8
-                            rightMargin: 6
+                            leftMargin: barWindow.horizontalPadding
+                            rightMargin: barWindow.horizontalPadding
                         }
-                        spacing: 5
+                        spacing: barWindow.effectiveModuleSpacing
 
                         Repeater {
                             model: root.activeLayout.right
@@ -258,6 +315,8 @@ Scope {
                                 parentWindow: barWindow
                                 hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                 showDate: root.showDateConfigured
+                                groupStyle: barWindow.groupStyle
+                                showBackground: RaohaneConfig.barShowBackground
                                 primaryAction: root.togglePrimarySurface
                                 transientAction: root.toggleTransientSurface
                                 Layout.alignment: Qt.AlignVCenter

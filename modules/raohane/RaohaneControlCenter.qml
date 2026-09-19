@@ -191,11 +191,6 @@ Scope {
                 opacity: 0.30
             }
 
-            RaohaneSakuraOverlay {
-                anchors.fill: parent
-                active: RaohaneState.controlCenterOpen && RaohaneConfig.sakuraInControlCenter
-            }
-
             Rectangle {
                 anchors {
                     left: parent.left

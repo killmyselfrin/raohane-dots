@@ -31,7 +31,7 @@ RowLayout {
             id: "balanced",
             name: qsTr("Balanced"),
             icon: "tune",
-            detail: qsTr("The default Nocturne rhythm"),
+            detail: qsTr("The default Raohane rhythm"),
             glassOpacity: 1.0,
             borderStrength: 1.0,
             radiusScale: 1.0,

@@ -13,7 +13,15 @@ QtObject {
             // shellSource composes it with the native live preview.
             source: "RaohaneBarStudio.qml",
             shellSource: "RaohaneBarStudioShell.qml",
-            controlKeys: ["barModuleLayout"]
+            controlKeys: [
+                "barBottom",
+                "barVertical",
+                "barAutoHide",
+                "barAutoHidePushWindows",
+                "barShowOnSuper",
+                "barShowDate",
+                "barModuleLayout"
+            ]
         },
         quick: {
             source: "RaohaneQuickControlsStudio.qml",
@@ -25,16 +33,6 @@ QtObject {
                 "mediaOverlayPosition",
                 "mediaOverlayGamingPosition",
                 "mediaOverlayGamingAutoHideSeconds"
-            ]
-        },
-        interface: {
-            source: "RaohaneSakuraSettings.qml",
-            controlKeys: [
-                "sakuraEnabled",
-                "sakuraInSettings",
-                "sakuraInControlCenter",
-                "sakuraIntensity",
-                "sakuraSpeed"
             ]
         }
     })

@@ -169,11 +169,6 @@ Scope {
                 }
             }
 
-            RaohaneSakuraOverlay {
-                anchors.fill: parent
-                active: RaohaneState.settingsOpen && RaohaneConfig.sakuraInSettings
-            }
-
             RaohaneSettingsContentV3 {
                 id: settingsContent
                 anchors.fill: parent

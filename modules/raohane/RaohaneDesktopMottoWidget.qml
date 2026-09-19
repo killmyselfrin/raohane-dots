@@ -32,7 +32,7 @@ RaohaneSurface {
             spacing: 0
 
             Text {
-                text: qsTr("Move gently. Stay present.")
+                text: qsTr("Move quietly. Keep going.")
                 color: RaohaneTheme.text
                 font.pixelSize: 9
                 font.weight: Font.Medium
@@ -41,7 +41,7 @@ RaohaneSurface {
 
             Text {
                 visible: !root.compact
-                text: "静かに、前へ"
+                text: qsTr("Move quietly. Keep going.")
                 color: RaohaneTheme.textMuted
                 font.pixelSize: 7
                 font.letterSpacing: 0.8

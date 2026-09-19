@@ -22,8 +22,8 @@ Item {
     readonly property var accents: [
         { id: "theme", name: qsTr("Theme") },
         { id: "ink", name: qsTr("Ink") },
-        { id: "sakura", name: qsTr("Sakura") },
-        { id: "matcha", name: qsTr("Matcha") },
+        { id: "rose", name: qsTr("Rose") },
+        { id: "sage", name: qsTr("Sage") },
         { id: "slate", name: qsTr("Slate") },
         { id: "sand", name: qsTr("Sand") },
         { id: "custom", name: qsTr("Custom") }
@@ -68,8 +68,8 @@ Item {
     function accentColor(mode: string): color {
         switch (mode) {
         case "ink": return RaohaneTheme.dark ? "#eeeae2" : "#2b2a27"
-        case "sakura": return "#9a7077"
-        case "matcha": return "#667866"
+        case "rose": return "#9a7077"
+        case "sage": return "#667866"
         case "slate": return "#657987"
         case "sand": return "#806f59"
         case "custom": return String(root.styleValue("customAccent", "#657987"))

@@ -265,7 +265,7 @@ RaohaneSurface {
                 destructive: true
                 onTriggered: {
                     const removedId = String(root.activePreset?.id ?? "")
-                    RaohaneConfig.themePreset = "zen-mist"
+                    RaohaneConfig.themePreset = "raohane-dark"
                     RaohaneThemePresets.removePreset(removedId)
                 }
             }

@@ -35,7 +35,7 @@ Rectangle {
     property color activeBorderColor: RaohaneTheme.accentBorder
 
     // A restrained state rail is the canonical compact emphasis marker used
-    // by Settings rows, command tiles and other dense Nocturne surfaces.
+    // by Settings rows, command tiles and other dense Raohane surfaces.
     property bool showStateRail: false
     property color stateRailColor: RaohaneTheme.accent
     property real stateRailOpacity: 0.76

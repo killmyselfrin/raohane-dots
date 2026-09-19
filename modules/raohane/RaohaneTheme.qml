@@ -10,10 +10,9 @@ QtObject {
     // overrides on top without changing Raohane's information architecture.
     readonly property var builtInPresets: [
         {
-            // Historical id is retained for config compatibility. This is the
-            // canonical Raohane reference material: smoky navy glass with a
+            // Canonical Raohane reference material: smoky navy glass with a
             // restrained lilac signal color and cool, thin rims.
-            id: "zen-mist", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
+            id: "raohane-dark", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
             background: "#080a14", backgroundElevated: "#0d1020", surface: "#dc111524", surfaceRaised: "#ef171c2e", surfaceDeep: "#f3070912", surfaceSubtle: "#921c2237", surfaceHover: "#e9232a44", surfacePressed: "#ef2c3553",
             border: "#3a59627f", borderStrong: "#6a7b86aa", borderFaint: "#2059627f", highlight: "#40ffffff",
             text: "#f2f1fa", textMuted: "#aaa9bd", textFaint: "#73758c", accent: "#aa91ff", accentSecondary: "#8b7bd8", accentBlue: "#899dff",
@@ -27,14 +26,14 @@ QtObject {
             success: "#5f7464", warning: "#96794d", critical: "#9b5e5e", info: "#647984"
         },
         {
-            id: "sakura", name: qsTr("Sakura"), description: qsTr("Soft blush glass with muted rose accents"), tone: qsTr("Warm"), dark: false,
+            id: "rose-glass", name: qsTr("Rose Glass"), description: qsTr("Soft blush glass with muted rose accents"), tone: qsTr("Warm"), dark: false,
             background: "#eee7e6", backgroundElevated: "#f6f0ef", surface: "#dcf8f1f0", surfaceRaised: "#effcf7f5", surfaceDeep: "#f1e8dfdf", surfaceSubtle: "#91fffafa", surfaceHover: "#e9eee2e2", surfacePressed: "#efdccfd0",
             border: "#2a5c4b4d", borderStrong: "#496c5659", borderFaint: "#185c4b4d", highlight: "#c0ffffff",
             text: "#302829", textMuted: "#796d6e", textFaint: "#a09697", accent: "#8b666b", accentSecondary: "#a98585", accentBlue: "#79838b",
             success: "#6c7b6d", warning: "#9b7b58", critical: "#a55e68", info: "#74818b"
         },
         {
-            id: "matcha", name: qsTr("Matcha"), description: qsTr("Quiet sage tones inspired by tea rooms"), tone: qsTr("Natural"), dark: false,
+            id: "sage-glass", name: qsTr("Sage Glass"), description: qsTr("Quiet sage tones with restrained natural accents"), tone: qsTr("Natural"), dark: false,
             background: "#e9ece6", backgroundElevated: "#f1f4ef", surface: "#dcf4f6f1", surfaceRaised: "#effafbf7", surfaceDeep: "#f1e1e6df", surfaceSubtle: "#90f8fff7", surfaceHover: "#e8e6ece4", surfacePressed: "#eed4ddd2",
             border: "#29475046", borderStrong: "#47525e51", borderFaint: "#17475046", highlight: "#bdffffff",
             text: "#293029", textMuted: "#687167", textFaint: "#929a91", accent: "#647263", accentSecondary: "#82907c", accentBlue: "#6e7c80",
@@ -55,7 +54,7 @@ QtObject {
             success: "#677765", warning: "#947546", critical: "#9e625e", info: "#697a82"
         },
         {
-            id: "sumi", name: qsTr("Sumi"), description: qsTr("Ink-black glass with warm paper text"), tone: qsTr("Dark"), dark: true,
+            id: "ink-dark", name: qsTr("Ink"), description: qsTr("Ink-black glass with warm paper text"), tone: qsTr("Dark"), dark: true,
             background: "#101110", backgroundElevated: "#171817", surface: "#dc1b1c1a", surfaceRaised: "#ee222320", surfaceDeep: "#f20c0d0c", surfaceSubtle: "#8f292a27", surfaceHover: "#df2d2e2b", surfacePressed: "#e8383935",
             border: "#2efffff7", borderStrong: "#50fffdf5", borderFaint: "#18fffdf5", highlight: "#36ffffff",
             text: "#eeeae2", textMuted: "#aaa69e", textFaint: "#77746e", accent: "#d8d3ca", accentSecondary: "#aba59b", accentBlue: "#a5b1b6",
@@ -142,8 +141,8 @@ QtObject {
 
     readonly property color presetAccent: activePreset.accent
     readonly property color accent: accentMode === "ink" ? (dark ? "#eeeae2" : "#2b2a27")
-        : accentMode === "sakura" ? "#9a7077"
-        : accentMode === "matcha" ? "#667866"
+        : accentMode === "rose" ? "#9a7077"
+        : accentMode === "sage" ? "#667866"
         : accentMode === "slate" ? "#657987"
         : accentMode === "sand" ? "#806f59"
         : accentMode === "custom" ? customAccent
@@ -162,7 +161,7 @@ QtObject {
     readonly property color critical: activePreset.critical
     readonly property color info: activePreset.info
 
-    // Canonical Nocturne geometry. Defaults stay compact and structural;
+    // Canonical Raohane geometry. Defaults stay compact and structural;
     // Style Studio's radiusScale/densityScale can still make them quieter or
     // more expressive without returning large surfaces to pill-like geometry.
     readonly property int barHeight: Math.round(42 * densityScale)

@@ -14,6 +14,7 @@ vertical='modules/raohane/RaohaneVerticalBar.qml'
 module_host='modules/raohane/RaohaneBarModule.qml'
 module_registry='modules/raohane/RaohaneBarModuleRegistry.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
+bar_layout_editor='modules/raohane/RaohaneBarLayoutEditor.qml'
 context='modules/raohane/RaohaneContext.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
@@ -23,7 +24,7 @@ status='modules/raohane/RaohaneSystemIcons.qml'
 clock='modules/raohane/RaohaneClock.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$context" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
+for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$bar_layout_editor" "$context" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing native bar path: $path"
 done
 
@@ -32,6 +33,7 @@ for registration in \
   'singleton RaohaneBarModuleRegistry .*RaohaneBarModuleRegistry.qml' \
   'RaohaneBarModule .*RaohaneBarModule.qml' \
   'RaohaneBarStudio .*RaohaneBarStudio.qml' \
+  'RaohaneBarLayoutEditor .*RaohaneBarLayoutEditor.qml' \
   'RaohaneWorkspaces .*RaohaneWorkspaces.qml' \
   'RaohaneSysTray .*RaohaneSysTray.qml' \
   'RaohaneSystemIcons .*RaohaneSystemIcons.qml' \
@@ -128,23 +130,33 @@ done
 
 for contract in \
   'property string orientation:' \
+  'RaohaneBarAppearanceSettings' \
+  'RaohaneBarLayoutEditor'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost composition shell contract: $contract"
+done
+
+for contract in \
+  'property string orientation:' \
   'RaohaneConfig\.barModuleLayout' \
   'RaohaneConfig\.barVerticalModuleLayout' \
   'RaohaneBarModuleRegistry\.supports\(id, root\.orientation\)' \
   'RaohaneBarModuleRegistry\.defaultLayoutFor\(root\.orientation\)' \
-  'function commit\(layout\): void' \
-  'function addModule\(id: string\): void' \
+  'function commit\(next\): void' \
+  'function addModule\(id: string, zone: string, index: int\): void' \
   'function removeAt\(zone: string, index: int\): void' \
-  'function moveWithin\(zone: string, index: int, delta: int\): void' \
-  'function moveAcross\(zone: string, index: int, delta: int\): void' \
-  'function resetLayout\(\): void' \
+  'function moveModule\(sourceZone: string, sourceIndex: int, id: string, targetZone: string, targetIndex: int\): void' \
+  'function commitDrop\(targetZone: string\): void' \
+  'DropArea' \
+  'Drag\.active' \
   'RaohaneBarModuleRegistry\.preferredZone'; do
-  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost dual-orientation composition contract: $contract"
+  rg -q "$contract" "$bar_layout_editor" || fail "Bar layout editor lost dual-orientation drag/drop contract: $contract"
 done
-for label in Horizontal Vertical Top Middle Bottom; do
+for label in Horizontal Vertical; do
   rg -q "qsTr\(\"${label}\"\)" "$bar_studio" || fail "Bar Studio lost orientation UX label: $label"
 done
-
+for label in Top Middle Bottom Left Center Right; do
+  rg -q "qsTr\(\"${label}\"\)" "$bar_layout_editor" || fail "Bar layout editor lost zone UX label: $label"
+done
 for symbol in 'RaohaneConfig\.' 'RaohaneState\.'; do
   rg -q "$symbol" "$bar" || fail "RaohaneBar lost native framework dependency: $symbol"
   rg -q "$symbol" "$vertical" || fail "RaohaneVerticalBar lost native framework dependency: $symbol"
