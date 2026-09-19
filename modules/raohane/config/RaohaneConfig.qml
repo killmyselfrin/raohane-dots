@@ -50,6 +50,12 @@ Singleton {
     property int barShowOnSuperDelay: 140
     property var barScreenList: []
     property bool barShowDate: true
+    property int barWorkspaceCount: 6
+    property bool barWorkspaceShowNumbers: true
+    property string barWorkspaceIndicatorStyle: "line"
+    property bool barClock24Hour: true
+    property bool barClockShowSeconds: false
+    property string barClockDateFormat: "short"
     property var barModuleLayout: root.defaultBarModuleLayout()
     property var barVerticalModuleLayout: root.defaultVerticalBarModuleLayout()
     property string barStylePreset: "floating"
@@ -441,6 +447,12 @@ Singleton {
                 showOnSuperDelay: root.barShowOnSuperDelay,
                 screenList: root.barScreenList,
                 showDate: root.barShowDate,
+                workspaceCount: root.barWorkspaceCount,
+                workspaceShowNumbers: root.barWorkspaceShowNumbers,
+                workspaceIndicatorStyle: root.barWorkspaceIndicatorStyle,
+                clock24Hour: root.barClock24Hour,
+                clockShowSeconds: root.barClockShowSeconds,
+                clockDateFormat: root.barClockDateFormat,
                 modules: root.sanitizeBarModuleLayout(root.barModuleLayout),
                 verticalModules: root.sanitizeVerticalBarModuleLayout(root.barVerticalModuleLayout),
                 stylePreset: root.barStylePreset,
@@ -598,6 +610,18 @@ Singleton {
         root.assignIfPresent(bar, "showOnSuperDelay", value => root.barShowOnSuperDelay = Math.max(0, Math.min(2000, Number(value) || 140)))
         root.assignIfPresent(bar, "screenList", value => root.barScreenList = Array.isArray(value) ? value.map(item => String(item)) : [])
         root.assignIfPresent(bar, "showDate", value => root.barShowDate = Boolean(value))
+        root.assignIfPresent(bar, "workspaceCount", value => root.barWorkspaceCount = Math.round(root.clampNumber(value, 2, 10, 6)))
+        root.assignIfPresent(bar, "workspaceShowNumbers", value => root.barWorkspaceShowNumbers = Boolean(value))
+        root.assignIfPresent(bar, "workspaceIndicatorStyle", value => {
+            const requested = String(value ?? "line")
+            root.barWorkspaceIndicatorStyle = ["line", "dot", "pill"].includes(requested) ? requested : "line"
+        })
+        root.assignIfPresent(bar, "clock24Hour", value => root.barClock24Hour = Boolean(value))
+        root.assignIfPresent(bar, "clockShowSeconds", value => root.barClockShowSeconds = Boolean(value))
+        root.assignIfPresent(bar, "clockDateFormat", value => {
+            const requested = String(value ?? "short")
+            root.barClockDateFormat = ["short", "compact", "numeric"].includes(requested) ? requested : "short"
+        })
         root.assignIfPresent(bar, "modules", value => root.barModuleLayout = root.sanitizeBarModuleLayout(value))
         root.assignIfPresent(bar, "verticalModules", value => root.barVerticalModuleLayout = root.sanitizeVerticalBarModuleLayout(value))
         root.assignIfPresent(bar, "stylePreset", value => {
@@ -779,6 +803,12 @@ Singleton {
     onBarShowOnSuperDelayChanged: scheduleSave()
     onBarScreenListChanged: scheduleSave()
     onBarShowDateChanged: scheduleSave()
+    onBarWorkspaceCountChanged: scheduleSave()
+    onBarWorkspaceShowNumbersChanged: scheduleSave()
+    onBarWorkspaceIndicatorStyleChanged: scheduleSave()
+    onBarClock24HourChanged: scheduleSave()
+    onBarClockShowSecondsChanged: scheduleSave()
+    onBarClockDateFormatChanged: scheduleSave()
     onBarModuleLayoutChanged: scheduleSave()
     onBarVerticalModuleLayoutChanged: scheduleSave()
     onBarStylePresetChanged: scheduleSave()
