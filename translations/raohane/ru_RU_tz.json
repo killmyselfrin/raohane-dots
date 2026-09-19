@@ -6,7 +6,6 @@
   "Temporary files and drops": "Временные файлы и перетаскивания",
   "Test changes": "Проверить изменения",
   "The Dock stays out of the way": "Док не мешает работе",
-  "The Zen curve is intentionally non-bouncy: quick acceleration, soft landing and restrained movement. Hyprland settings are written to Raohane's managed compositor snippet and applied with a compositor reload.": "Кривая Zen специально сделана без пружинящего эффекта: быстрое ускорение, мягкая остановка и сдержанное движение. Настройки Hyprland записываются в управляемый Raohane фрагмент конфигурации и применяются перезагрузкой композитора.",
   "The center of the Bar reacts to media, privacy activity and current context without opening another window.": "Центр панели реагирует на медиа, активность приватности и текущий контекст без открытия отдельного окна.",
   "The floating Bar keeps launcher, workspaces, live context, time and system status close without taking over the desktop.": "Плавающая панель держит лаунчер, рабочие пространства, текущий контекст, время и состояние системы под рукой, не занимая весь рабочий стол.",
   "The left side holds glanceable information and secondary tools while keeping the center of the desktop focused.": "Слева находятся краткая информация и дополнительные инструменты, а центр рабочего стола остаётся свободным для работы.",
@@ -83,13 +82,10 @@
   "You can change it later in Settings.": "Позже язык можно изменить в настройках.",
   "You now know the main surfaces. Explore at your own pace and let the shell stay quiet when you are working.": "Теперь вы знакомы с основными элементами. Исследуйте Raohane в своём темпе и позволяйте оболочке оставаться незаметной во время работы.",
   "You're all caught up": "Всё просмотрено",
-  "Zen": "Zen",
-  "Zen Mist": "Zen Mist",
   "apps · actions · commands · clipboard": "приложения · действия · команды · буфер обмена",
   "hyprctl could not read the monitor state.": "hyprctl не смог получить состояние мониторов.",
   "music is part of the room": "музыка — часть пространства",
   "native.json": "native.json",
   "one accent across the whole shell": "единый акцент для всей оболочки",
-  "privacy state is visible": "состояние приватности всегда видно",
-  "静けさの中で動く": "静けさの中で動く"
+  "privacy state is visible": "состояние приватности всегда видно"
 }
