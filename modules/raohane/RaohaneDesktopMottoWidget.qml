@@ -41,7 +41,7 @@ RaohaneSurface {
 
             Text {
                 visible: !root.compact
-                text: "静かに、前へ"
+                text: qsTr("Move quietly. Keep going.")
                 color: RaohaneTheme.textMuted
                 font.pixelSize: 7
                 font.letterSpacing: 0.8
