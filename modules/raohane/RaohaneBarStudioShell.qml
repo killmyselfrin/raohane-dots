@@ -8,6 +8,10 @@ Item {
 
     implicitHeight: shellColumn.implicitHeight
 
+    function controlOffset(controlKey: string): real {
+        return editor.y + editor.controlOffset(controlKey)
+    }
+
     ColumnLayout {
         id: shellColumn
         width: parent.width
