@@ -72,7 +72,13 @@
         "control",
         "session"
       ]
-    }
+    },
+    "workspaceCount": 6,
+    "workspaceShowNumbers": true,
+    "workspaceIndicatorStyle": "line",
+    "clock24Hour": true,
+    "clockShowSeconds": false,
+    "clockDateFormat": "short"
   },
   "frame": {
     "enabled": false,
