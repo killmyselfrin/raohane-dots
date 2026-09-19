@@ -38,7 +38,7 @@ Item {
                 spacing: 7
 
                 Text {
-                    text: "生きる"
+                    text: "RAOHANE"
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 8
                     font.weight: Font.Medium
