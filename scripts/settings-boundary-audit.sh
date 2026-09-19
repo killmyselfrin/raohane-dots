@@ -209,6 +209,28 @@ rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Librar
 for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
   rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
 done
+
+# Bar controls must have exactly one visible owner. Bar Studio owns bar behavior
+# and geometry; the generic Bar & Dock schema owns Dock controls; Appearance owns
+# screen framing; Theme Studio must not override functional Bar/Dock sizing.
+if rg -n 'key:[[:space:]]*"(barBottom|barVertical|barAutoHide|barAutoHidePushWindows|barShowOnSuper|barShowOnSuperDelay|barShowDate)"' "$registry"; then
+  fail 'generic Settings registry duplicates controls owned by Bar Studio'
+fi
+for symbol in 'RaohaneConfig\.barAutoHide' 'RaohaneConfig\.barShowDate' 'RaohaneConfig\.barShowOnSuperDelay'; do
+  rg -q "$symbol" "$bar_appearance" || fail "Bar appearance lost single-owner control: $symbol"
+done
+if rg -n 'RaohaneConfig\.(frameEnabled|frameThickness)' "$bar_appearance"; then
+  fail 'Bar Studio duplicates screen-frame controls owned by Appearance'
+fi
+if rg -n 'title:[[:space:]]*qsTr\("(Bar pod size|Dock height|Dock icon size)"\)' "$catalog"; then
+  fail 'Theme Studio duplicates functional Bar/Dock sizing controls'
+fi
+if rg -n '\bbarScale\b' "$config" modules/raohane/RaohaneBar.qml "$bar_studio" "$bar_appearance"; then
+  fail 'legacy barScale returned alongside authoritative barHeight'
+fi
+for key in dockEnabled dockAutoHide dockPinned dockExclusiveZone dockHeight dockIconSize dockBottomMargin; do
+  rg -q "key:[[:space:]]*\"${key}\"" "$registry" || fail "Bar & Dock lost Dock control ownership: $key"
+done
 for contract in \
   'RaohaneConfig\.quickControlTiles' \
   'RaohaneQuickControlRegistry\.sanitizeLayout' \
