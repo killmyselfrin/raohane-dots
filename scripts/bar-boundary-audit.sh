@@ -15,6 +15,7 @@ module_host='modules/raohane/RaohaneBarModule.qml'
 module_registry='modules/raohane/RaohaneBarModuleRegistry.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
 bar_layout_editor='modules/raohane/RaohaneBarLayoutEditor.qml'
+bar_appearance='modules/raohane/RaohaneBarAppearanceSettings.qml'
 context='modules/raohane/RaohaneContext.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
@@ -24,7 +25,7 @@ status='modules/raohane/RaohaneSystemIcons.qml'
 clock='modules/raohane/RaohaneClock.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$bar_layout_editor" "$context" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
+for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$bar_layout_editor" "$bar_appearance" "$context" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing native bar path: $path"
 done
 
@@ -34,6 +35,7 @@ for registration in \
   'RaohaneBarModule .*RaohaneBarModule.qml' \
   'RaohaneBarStudio .*RaohaneBarStudio.qml' \
   'RaohaneBarLayoutEditor .*RaohaneBarLayoutEditor.qml' \
+  'RaohaneBarAppearanceSettings .*RaohaneBarAppearanceSettings.qml' \
   'RaohaneWorkspaces .*RaohaneWorkspaces.qml' \
   'RaohaneSysTray .*RaohaneSysTray.qml' \
   'RaohaneSystemIcons .*RaohaneSystemIcons.qml' \
@@ -71,6 +73,31 @@ for contract in \
   'onBarVerticalModuleLayoutChanged:[[:space:]]*scheduleSave\(\)'; do
   rg -q "$contract" "$config" || fail "native config lost persisted vertical bar-module contract: $contract"
 done
+for contract in \
+  'property int barWorkspaceCount:[[:space:]]*6' \
+  'property string barWorkspaceStyle:[[:space:]]*"numbers"' \
+  'property bool barClock24Hour:[[:space:]]*true' \
+  'property bool barClockShowSeconds:[[:space:]]*false' \
+  'property string barClockDateFormat:[[:space:]]*"short"' \
+  'workspaceCount:[[:space:]]*root\.barWorkspaceCount' \
+  'clock24Hour:[[:space:]]*root\.barClock24Hour' \
+  'onBarWorkspaceCountChanged:[[:space:]]*scheduleSave\(\)' \
+  'onBarClock24HourChanged:[[:space:]]*scheduleSave\(\)'; do
+  rg -q "$contract" "$config" || fail "native config lost Bar module setting contract: $contract"
+done
+for json_key in workspaceCount workspaceStyle clock24Hour clockShowSeconds clockDateFormat; do
+  rg -q "\"$json_key\"[[:space:]]*:" "$defaults" || fail "native defaults lost Bar module setting: $json_key"
+done
+for contract in 'RaohaneConfig\.barWorkspaceCount' 'RaohaneConfig\.barWorkspaceStyle'; do
+  rg -q "$contract" "$workspaces" || fail "Workspaces module lost Bar-owned setting: $contract"
+done
+for contract in 'RaohaneConfig\.barClock24Hour' 'RaohaneConfig\.barClockShowSeconds' 'RaohaneConfig\.barClockDateFormat'; do
+  rg -q "$contract" "$clock" || fail "Clock module lost Bar-owned setting: $contract"
+done
+for contract in 'RaohaneConfig\.barWorkspaceCount' 'RaohaneConfig\.barWorkspaceStyle' 'RaohaneConfig\.barClock24Hour' 'RaohaneConfig\.barClockShowSeconds' 'RaohaneConfig\.barClockDateFormat'; do
+  rg -q "$contract" "$bar_appearance" || fail "Bar appearance editor lost module setting: $contract"
+done
+
 for module_id in launcher workspaces context tray system clock control separator; do
   rg -q "\"${module_id}\"" "$defaults" || fail "native defaults lost horizontal bar module id: $module_id"
 done
