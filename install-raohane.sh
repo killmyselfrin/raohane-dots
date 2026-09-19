@@ -250,35 +250,9 @@ bash "$ROOT/scripts/validate-runtime-payload.sh" "$RUNTIME"
 
 install -m 0755 "$ROOT/scripts/raohane" "$BIN_DIR/raohane"
 
-# Install a Raohane-owned launcher entry for shell settings. Older iNiR
-# installations may leave their own inir-settings.desktop behind; mask only
-# that exact upstream entry instead of deleting a package-owned system file.
+# Install the Raohane-owned launcher entry for shell settings.
 install -m 0644 "$ROOT/assets/applications/raohane-settings.desktop" \
   "$APPLICATIONS_DIR/raohane-settings.desktop"
-
-legacy_inir_settings=0
-for legacy_entry in \
-  "$APPLICATIONS_DIR/inir-settings.desktop" \
-  "/usr/local/share/applications/inir-settings.desktop" \
-  "/usr/share/applications/inir-settings.desktop"; do
-  if [[ -f "$legacy_entry" ]] \
-      && grep -qx 'Name=iNiR Settings' "$legacy_entry" \
-      && grep -Eq '^Exec=inir[[:space:]]+settings([[:space:]]|$)' "$legacy_entry"; then
-    legacy_inir_settings=1
-    break
-  fi
-done
-
-if ((legacy_inir_settings)); then
-  cat > "$APPLICATIONS_DIR/inir-settings.desktop" <<'DESKTOP'
-[Desktop Entry]
-Type=Application
-Name=iNiR Settings
-Hidden=true
-NoDisplay=true
-DESKTOP
-  printf '[Raohane] Masked legacy iNiR Settings launcher entry.\n'
-fi
 
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "$APPLICATIONS_DIR" >/dev/null 2>&1 || true

@@ -19,7 +19,6 @@ rg -q 'Version 3' LICENSE || fail 'root LICENSE does not identify GPL version 3'
 for marker in \
   'pctrade/end4-pC' \
   'end-4/dots-hyprland' \
-  'snowarch/iNiR' \
   'ilyamiro/serpantinum' \
   'retained data' \
   'assets' \
@@ -49,7 +48,7 @@ fi
 # Installation/update paths must stay self-contained. Historical provenance text is allowed
 # in documentation, but executable install/runtime paths may not fetch another shell.
 if rg -n \
-  'git[[:space:]]+clone.*(end4|illogical|iNiR)|sync-end4-foundation|install-foundation-deps' \
+  'git[[:space:]]+clone.*(end4|illogical)|sync-end4-foundation|install-foundation-deps' \
   install-raohane.sh scripts/raohane scripts/install-deps.sh; then
   fail 'normal install/runtime path can fetch or execute an upstream shell'
 fi

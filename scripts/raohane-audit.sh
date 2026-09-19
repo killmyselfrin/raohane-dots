@@ -38,6 +38,7 @@ required_root=(
   scripts/theme-catalog.py
   scripts/raohane-audit.sh
   scripts/source-lineage-audit.sh
+  scripts/product-branding-audit.sh
   scripts/theme-library-audit.sh
   scripts/nix-boundary-audit.sh
   scripts/runtime-payload-audit.sh
@@ -186,7 +187,7 @@ rg -q '^singleton RaohaneProcesses .*RaohaneProcesses.qml$' modules/raohane/serv
 rg -q '^singleton RaohaneLyrics .*RaohaneLyrics.qml$' modules/raohane/services/qmldir \
   || fail 'RaohaneLyrics is not registered'
 
-if rg -n -i 'inir|\bniri\b|waffle|ricelin' modules/raohane shell.qml "$family"; then
+if rg -n -i '\bniri\b|waffle|ricelin' modules/raohane shell.qml "$family"; then
   fail 'Raohane product runtime contains a non-target/legacy identity'
 fi
 rg -q '^import Quickshell\.Hyprland$' modules/raohane/RaohaneBar.qml \
@@ -268,6 +269,7 @@ python3 scripts/migrate-legacy-config.py --help >/dev/null
 bash -n scripts/raohane
 bash -n scripts/raohane-audit.sh
 bash -n scripts/source-lineage-audit.sh
+bash -n scripts/product-branding-audit.sh
 bash -n scripts/theme-library-audit.sh
 bash -n scripts/nix-boundary-audit.sh
 bash -n scripts/runtime-payload-audit.sh
@@ -294,6 +296,7 @@ bash -n scripts/videos/record.sh
 bash -n install-raohane.sh
 
 bash scripts/source-lineage-audit.sh
+bash scripts/product-branding-audit.sh
 bash scripts/theme-library-audit.sh
 bash scripts/nix-boundary-audit.sh
 bash scripts/phase4-visible-runtime-audit.sh

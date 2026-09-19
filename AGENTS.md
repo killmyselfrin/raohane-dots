@@ -4,7 +4,7 @@ Raohane is a standalone Hyprland + Quickshell desktop shell.
 
 ## Current architecture
 
-The active product runtime is Raohane-owned. Historical end4/illogical/iNiR code was used during migration, but another shell repository is no longer an installation, runtime, update or normal-development dependency.
+The active product runtime is Raohane-owned. Historical upstream code was used during migration, but another shell repository is no longer an installation, runtime, update or normal-development dependency.
 
 Current source/runtime boundary:
 
@@ -23,7 +23,6 @@ Historical migration/provenance sources include:
 
 - `pctrade/end4-pC`
 - `end-4/dots-hyprland` / illogical-impulse
-- `snowarch/iNiR`
 - `ilyamiro/serpantinum`
 
 Preserve GNU GPLv3 obligations for covered derivative work. Runtime independence does not mean every retained asset, translation, default or historical implementation became independently authored.

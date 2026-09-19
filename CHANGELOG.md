@@ -83,7 +83,7 @@
 - Add native configurable desktop widgets for clock/date, live context, system status and ambient copy, with a dedicated searchable Settings page and compact layout.
 - Rework Control Center quick tiles into a roomier two-column composition with softer entrance and ambient motion.
 - Make the Welcome reveal follow the shared motion scale and derive its tour count from the onboarding model.
-- Remove the obsolete iNiR custom-widget SDK and example that referenced retired runtime namespaces.
+- Remove the obsolete custom-widget SDK and example that referenced retired runtime namespaces.
 - Correct active project links to `killmyselfrin/raohane-dots`.
 - Remove obsolete Settings V1/V2 implementations and point architecture/CI validation at the sole active Settings V3 surface.
 - Advance config and audit contracts to schema v11 for the native desktop-widget settings.

@@ -13,7 +13,7 @@ for path in flake.nix nix/package.nix nix/home-module.nix nix/nixos-module.nix; 
   [[ -f "$path" ]] || fail "missing Nix path: $path"
 done
 
-if rg -n -i '\binir\b|\bniri\b|programs\.serpantinum|share/serpantinum' flake.nix nix; then
+if rg -n -i '\bniri\b|programs\.serpantinum|share/serpantinum' flake.nix nix; then
   fail 'Nix deployment still contains a non-Raohane shell identity'
 fi
 
