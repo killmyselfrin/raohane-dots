@@ -344,14 +344,6 @@ Item {
                     onToggled: value => RaohaneConfig.barShowDate = value
                 }
 
-                ToggleRow {
-                    Layout.fillWidth: true
-                    icon: "panorama_wide_angle"
-                    title: qsTr("Screen frame")
-                    detail: qsTr("Draw the Raohane frame around the screen")
-                    checked: RaohaneConfig.frameEnabled
-                    onToggled: value => RaohaneConfig.frameEnabled = value
-                }
             }
         }
 
@@ -469,18 +461,6 @@ Item {
                     onUserChanged: value => RaohaneConfig.barShowOnSuperDelay = Math.round(value)
                 }
 
-                BarSlider {
-                    Layout.fillWidth: true
-                    title: qsTr("Frame thickness")
-                    detail: qsTr("Width of the screen frame")
-                    value: RaohaneConfig.frameThickness
-                    minimum: 1
-                    maximum: 16
-                    step: 1
-                    suffix: " px"
-                    enabled: RaohaneConfig.frameEnabled
-                    onUserChanged: value => RaohaneConfig.frameThickness = Math.round(value)
-                }
             }
         }
 
