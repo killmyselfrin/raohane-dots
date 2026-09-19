@@ -1,4 +1,4 @@
-// Discord Session Persistence for iNiR WebApps
+// Discord Session Persistence for Raohane WebApps
 // ─────────────────────────────────────────────────
 // Injected at DocumentReady/MainWorld via WebEngineScript.
 //
@@ -18,7 +18,7 @@
 
     if (!location.hostname.includes('discord')) return;
 
-    var COOKIE_PREFIX = '__inir_';
+    var COOKIE_PREFIX = '__raohane_';
     var MAX_AGE = 365 * 24 * 60 * 60;
     var KEYS = ['token', 'tokens', 'user_id_cache', 'MultiAccountStore'];
 
