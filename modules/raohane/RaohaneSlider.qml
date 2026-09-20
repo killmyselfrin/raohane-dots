@@ -9,12 +9,12 @@ FocusScope {
     property real stepSize: 0.01
     property bool wheelEnabled: true
     property bool showHandle: true
-    property int trackHeight: 7
+    property int trackHeight: 8
     // Retained for compatibility with older call sites. The refreshed control
     // uses a slim Material-style thumb rather than a large circular knob.
     property int handleSize: 12
-    property int handleWidth: 4
-    property int handleHeight: 20
+    property int handleWidth: 3
+    property int handleHeight: 18
     signal moved(real value)
 
     readonly property real span: Math.max(0.000001, to - from)
@@ -70,13 +70,12 @@ FocusScope {
         }
         height: root.trackHeight
         radius: Math.max(2, height / 2)
-        color: root.activeFocus || root.hovered
-            ? RaohaneTheme.surfaceHover
-            : RaohaneTheme.surfaceSubtle
+        color: RaohaneTheme.borderStrong
+        opacity: root.activeFocus || root.hovered ? 0.78 : 0.58
         border.width: 0
 
-        Behavior on color {
-            ColorAnimation { duration: RaohaneMotion.micro }
+        Behavior on opacity {
+            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
 
         Rectangle {
@@ -84,7 +83,7 @@ FocusScope {
             height: parent.height
             radius: parent.radius
             color: RaohaneTheme.accent
-            opacity: root.enabled ? 0.90 : 0.42
+            opacity: root.enabled ? 1 : 0.42
 
             Behavior on width {
                 enabled: !pointer.pressed && RaohaneMotion.transformMotionEnabled
@@ -104,7 +103,7 @@ FocusScope {
         radius: width / 2
         anchors.verticalCenter: parent.verticalCenter
         x: Math.max(0, Math.min(root.width - width, root.shownRatio * root.width - width / 2))
-        color: RaohaneTheme.text
+        color: RaohaneTheme.accent
         border.width: 0
 
         Behavior on width {

@@ -177,8 +177,8 @@ if rg -n 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:
   fail 'generic Settings section renderer reabsorbed control or section-specific implementation'
 fi
 for symbol in \
-  'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneIconButton[[:space:]]*\{' \
-  'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void' 'Keys\.onPressed'; do
+  'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneSlider[[:space:]]*\{' \
+  'Controls\.ComboBox[[:space:]]*\{' 'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void' 'Keys\.onPressed'; do
   rg -q "$symbol" "$control_row" || fail "Settings control row lost config-bound contract: $symbol"
 done
 

@@ -147,7 +147,7 @@ Item {
             raised: false
             showSheen: false
             showInnerRim: false
-            idleColor: RaohaneTheme.surfaceSubtle
+            idleColor: RaohaneTheme.surfaceDeep
             idleBorderColor: "transparent"
             clip: true
 

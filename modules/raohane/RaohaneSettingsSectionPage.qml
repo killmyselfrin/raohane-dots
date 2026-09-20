@@ -17,7 +17,11 @@ Item {
     readonly property bool compactLayout: width < 700
 
     function entryHeight(entry): int {
-        return entry?.type === "text" ? 74 : 62
+        if (entry?.type === "number")
+            return 80
+        if (entry?.type === "text")
+            return 70
+        return 62
     }
 
     function entryOffset(index: int): real {
@@ -106,7 +110,7 @@ Item {
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
-                idleColor: RaohaneTheme.surfaceDeep
+                idleColor: RaohaneTheme.surfaceSubtle
                 border.color: "transparent"
                 clip: true
                 opacity: root.settingsEntered ? 1 : 0

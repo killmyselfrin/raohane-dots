@@ -129,6 +129,7 @@ Item {
         spacing: 12
 
         SectionCard {
+            icon: "palette"
             title: qsTr("Presets")
             subtitle: qsTr("Start from a complete panel layout, then customize any option.")
 
@@ -151,6 +152,7 @@ Item {
         }
 
         SectionCard {
+            icon: "dashboard_customize"
             title: qsTr("Position & surface")
             subtitle: qsTr("Choose where the bar sits and how its surfaces are grouped.")
 
@@ -242,6 +244,7 @@ Item {
         }
 
         SectionCard {
+            icon: "tune"
             title: qsTr("Behavior")
             subtitle: qsTr("Control visibility, fullscreen interaction and the panel background.")
 
@@ -314,6 +317,7 @@ Item {
         }
 
         SectionCard {
+            icon: "straighten"
             title: qsTr("Geometry")
             subtitle: qsTr("Tune panel dimensions independently from the global interface scale.")
 
@@ -430,6 +434,7 @@ Item {
         }
 
         SectionCard {
+            icon: "horizontal_rule"
             title: qsTr("Divider")
             subtitle: qsTr("Choose how separator modules look inside the panel.")
 
@@ -465,6 +470,7 @@ Item {
         }
 
         SectionCard {
+            icon: "monitor"
             title: qsTr("Displays")
             subtitle: qsTr("Choose which monitors show the bar. No selection means all displays.")
 
@@ -501,6 +507,7 @@ Item {
     component SectionCard: RaohaneSurface {
         id: section
 
+        property string icon: "tune"
         property string title: ""
         property string subtitle: ""
         default property alias content: body.data
@@ -524,23 +531,37 @@ Item {
             }
             spacing: 10
 
-            ColumnLayout {
+            RowLayout {
                 Layout.fillWidth: true
-                spacing: 1
+                spacing: 9
 
-                Text {
-                    text: section.title
-                    color: RaohaneTheme.text
-                    font.pixelSize: 10
-                    font.weight: Font.DemiBold
+                RaohaneIcon {
+                    Layout.alignment: Qt.AlignTop
+                    Layout.topMargin: 1
+                    text: section.icon
+                    iconSize: 17
+                    fill: 0.8
+                    color: RaohaneTheme.accent
                 }
 
-                Text {
+                ColumnLayout {
                     Layout.fillWidth: true
-                    text: section.subtitle
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 8
-                    wrapMode: Text.WordWrap
+                    spacing: 1
+
+                    Text {
+                        text: section.title
+                        color: RaohaneTheme.text
+                        font.pixelSize: 11
+                        font.weight: Font.DemiBold
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: section.subtitle
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                        wrapMode: Text.WordWrap
+                    }
                 }
             }
 
@@ -671,13 +692,13 @@ Item {
                     text: toggle.title
                     color: RaohaneTheme.text
                     font.pixelSize: 9
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Medium
                 }
 
                 Text {
                     Layout.fillWidth: true
                     text: toggle.detail
-                    color: RaohaneTheme.textFaint
+                    color: RaohaneTheme.textMuted
                     font.pixelSize: 8
                     elide: Text.ElideRight
                 }
@@ -779,8 +800,8 @@ Item {
                 to: sliderRow.maximum
                 stepSize: sliderRow.step
                 value: sliderRow.value
-                trackHeight: 7
-                handleWidth: 4
+                trackHeight: 8
+                handleWidth: 3
                 handleHeight: 18
                 showHandle: true
                 onMoved: value => sliderRow.userChanged(value)
