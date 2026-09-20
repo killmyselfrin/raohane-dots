@@ -204,5 +204,7 @@
   "Frame on bar edge": "Рамка со стороны панели",
   "Frame thickness": "Толщина рамки",
   "Fullscreen": "Полноэкранный режим",
-  "No adapter": "Нет адаптера"
+  "No adapter": "Нет адаптера",
+  "Live preview": "Предпросмотр",
+  "Bar and dock changes appear here instantly.": "Изменения панели и дока отображаются здесь сразу."
 }
