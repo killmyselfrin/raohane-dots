@@ -185,8 +185,8 @@ if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|RAOHA
   fail 'an active surface regressed to decorative legacy labels or arbitrary glyph controls'
 fi
 
-rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the floating-pod compositor height contract'
-rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" || fail 'horizontal bar lost safe advanced pod-height bounds'
+rg -q 'implicitHeight:[[:space:]]*Math\.max\(40,[[:space:]]*barWindow\.podHeight[[:space:]]*\+[[:space:]]*barWindow\.outerGap[[:space:]]*\*[[:space:]]*2\)' "$bar" || fail 'horizontal bar lost the adaptive compositor height contract'
+rg -q 'podHeight:[[:space:]]*Math\.max\(34,[[:space:]]*Math\.min\(64,' "$bar" || fail 'horizontal bar lost safe adaptive pod-height bounds'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" || fail 'horizontal bar no longer composes through the native module host'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$vertical" || fail 'vertical bar no longer composes through the native module host'
 rg -q 'orientation:[[:space:]]*"vertical"' "$vertical" || fail 'vertical bar does not request vertical module presentation'
