@@ -297,8 +297,13 @@ Item {
                             raised: false
                             showSheen: false
                             showInnerRim: false
-                            idleColor: RaohaneTheme.surfaceDeep
+                            transparentIdle: true
+                            interactive: true
+                            hovered: activeRowMouse.containsMouse
+                            pressed: activeRowMouse.pressed
+                            hoverColor: RaohaneTheme.surfaceHover
                             idleBorderColor: "transparent"
+                            hoverBorderColor: "transparent"
 
                             RowLayout {
                                 anchors.fill: parent
@@ -359,6 +364,14 @@ Item {
                                     pressedScale: 1
                                     onClicked: root.removeAt(activeRow.index)
                                 }
+                            }
+
+                            MouseArea {
+                                id: activeRowMouse
+                                anchors.fill: parent
+                                z: -1
+                                hoverEnabled: true
+                                acceptedButtons: Qt.NoButton
                             }
                         }
                     }
@@ -429,8 +442,13 @@ Item {
                             raised: false
                             showSheen: false
                             showInnerRim: false
-                            idleColor: RaohaneTheme.surfaceDeep
+                            transparentIdle: true
+                            interactive: true
+                            hovered: availableRowMouse.containsMouse
+                            pressed: availableRowMouse.pressed
+                            hoverColor: RaohaneTheme.surfaceHover
                             idleBorderColor: "transparent"
+                            hoverBorderColor: "transparent"
 
                             RowLayout {
                                 anchors.fill: parent
@@ -463,6 +481,14 @@ Item {
                                     pressedScale: 1
                                     onClicked: root.addTile(availableRow.tileId)
                                 }
+                            }
+
+                            MouseArea {
+                                id: availableRowMouse
+                                anchors.fill: parent
+                                z: -1
+                                hoverEnabled: true
+                                acceptedButtons: Qt.NoButton
                             }
                         }
                     }
