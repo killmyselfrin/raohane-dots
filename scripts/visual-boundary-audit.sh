@@ -231,7 +231,7 @@ for file in "$media_hud" "$media_header" "$media_status"; do
 done
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_navigation" || fail 'Settings navigation lost restrained secondary text hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_header" || fail 'Settings page header lost restrained secondary text hierarchy'
-rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_section" || fail 'Settings section renderer lost restrained secondary text hierarchy'
+rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$settings_section" || fail 'Settings section renderer lost delegated control-row hierarchy'
 rg -q 'RaohaneTheme\.(textMuted|textFaint)' "$settings_control" || fail 'Settings control row lost restrained secondary text hierarchy'
 
 printf 'visual-boundary-audit: minimalist themes, live Settings dashboard, coordinator-based Settings V3 with extracted navigation/header and reusable control rows, shared motion/slider/switch/icon controls, composable horizontal/vertical bars, registry-backed Quick Controls, extracted Launcher/Media/Control Center presentation, Task Manager/Command Deck, persisted Style Studio/Advanced Surfaces, matte media overlay, matte shell/system chrome and stable geometry are valid\n'

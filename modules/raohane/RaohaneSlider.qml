@@ -9,8 +9,12 @@ FocusScope {
     property real stepSize: 0.01
     property bool wheelEnabled: true
     property bool showHandle: true
-    property int trackHeight: 5
+    property int trackHeight: 7
+    // Retained for compatibility with older call sites. The refreshed control
+    // uses a slim Material-style thumb rather than a large circular knob.
     property int handleSize: 12
+    property int handleWidth: 4
+    property int handleHeight: 20
     signal moved(real value)
 
     readonly property real span: Math.max(0.000001, to - from)
@@ -20,7 +24,7 @@ FocusScope {
     property real dragRatio: normalizedValue
 
     implicitWidth: 148
-    implicitHeight: 24
+    implicitHeight: Math.max(24, handleHeight + 4)
     activeFocusOnTab: enabled
     opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
@@ -65,19 +69,13 @@ FocusScope {
             verticalCenter: parent.verticalCenter
         }
         height: root.trackHeight
-        radius: Math.max(1, height / 2)
+        radius: Math.max(2, height / 2)
         color: root.activeFocus || root.hovered
             ? RaohaneTheme.surfaceHover
             : RaohaneTheme.surfaceSubtle
-        border.width: 1
-        border.color: root.activeFocus || root.hovered
-            ? RaohaneTheme.borderStrong
-            : RaohaneTheme.border
+        border.width: 0
 
         Behavior on color {
-            ColorAnimation { duration: RaohaneMotion.micro }
-        }
-        Behavior on border.color {
             ColorAnimation { duration: RaohaneMotion.micro }
         }
 
@@ -86,23 +84,34 @@ FocusScope {
             height: parent.height
             radius: parent.radius
             color: RaohaneTheme.accent
+            opacity: root.enabled ? 0.90 : 0.42
+
+            Behavior on width {
+                enabled: !pointer.pressed && RaohaneMotion.transformMotionEnabled
+                NumberAnimation {
+                    duration: RaohaneMotion.micro
+                    easing.type: RaohaneMotion.easeStandard
+                }
+            }
         }
     }
 
     Rectangle {
         id: handle
         visible: root.showHandle
-        width: root.handleSize
-        height: width
+        width: pointer.pressed ? Math.max(2, root.handleWidth - 1) : root.handleWidth
+        height: pointer.pressed ? root.handleHeight + 2 : root.handleHeight
         radius: width / 2
         anchors.verticalCenter: parent.verticalCenter
         x: Math.max(0, Math.min(root.width - width, root.shownRatio * root.width - width / 2))
         color: RaohaneTheme.text
-        border.width: 1
-        border.color: RaohaneTheme.accentBorder
+        border.width: 0
 
-        Behavior on color {
-            ColorAnimation { duration: RaohaneMotion.micro }
+        Behavior on width {
+            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+        }
+        Behavior on height {
+            NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
     }
 

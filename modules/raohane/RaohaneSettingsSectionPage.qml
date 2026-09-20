@@ -8,7 +8,6 @@ Item {
     id: root
 
     property string sectionKey: "general"
-    property bool headerEntered: false
     property bool settingsEntered: false
     property bool extensionEntered: false
 
@@ -29,10 +28,8 @@ Item {
     }
 
     function replayEntrance(): void {
-        headerEntered = false
         settingsEntered = false
         extensionEntered = false
-        headerTimer.restart()
         settingsTimer.restart()
         extensionTimer.restart()
     }
@@ -54,12 +51,6 @@ Item {
     onSectionKeyChanged: Qt.callLater(root.replayEntrance)
     Component.onCompleted: root.replayEntrance()
 
-    Timer {
-        id: headerTimer
-        interval: 1
-        repeat: false
-        onTriggered: root.headerEntered = true
-    }
 
     Timer {
         id: settingsTimer
@@ -99,7 +90,7 @@ Item {
 
         Column {
             id: sectionColumn
-            y: RaohaneTheme.spacingLarge
+            y: RaohaneTheme.spacing
             width: Math.min(
                 Math.max(0, settingsFlick.width - (root.compactLayout ? RaohaneTheme.panelPadding * 2 : 52)),
                 root.compactLayout ? 680 : 820
@@ -107,103 +98,6 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: RaohaneTheme.spacing
 
-            RaohaneSurface {
-                id: sectionHero
-                width: parent.width
-                height: root.compactLayout ? 82 : 90
-                surfaceRadius: RaohaneTheme.radiusLarge
-                raised: false
-                showSheen: false
-                showInnerRim: false
-                transparentIdle: true
-                idleBorderColor: "transparent"
-                clip: true
-                opacity: root.headerEntered ? 1 : 0
-
-                transform: Translate {
-                    y: root.headerEntered || !RaohaneMotion.transformMotionEnabled ? 0 : 8
-                    Behavior on y {
-                        NumberAnimation {
-                            duration: RaohaneMotion.relaxed
-                            easing.type: RaohaneMotion.easeEmphasized
-                        }
-                    }
-                }
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: RaohaneMotion.standard
-                        easing.type: RaohaneMotion.easeStandard
-                    }
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
-                    anchors.rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
-                    spacing: RaohaneTheme.spacingLarge
-
-                    RaohaneSurface {
-                        Layout.preferredWidth: root.compactLayout ? 40 : 44
-                        Layout.preferredHeight: root.compactLayout ? 40 : 44
-                        surfaceRadius: RaohaneTheme.radiusLarge
-                        raised: false
-                        active: true
-                        showSheen: false
-                        showInnerRim: false
-                        activeBorderColor: "transparent"
-
-                        RaohaneIcon {
-                            anchors.centerIn: parent
-                            text: root.pageInfo?.icon ?? "tune"
-                            iconSize: root.compactLayout ? 19 : 21
-                            fill: 1
-                            color: RaohaneTheme.accent
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: RaohaneTheme.spacingTiny
-
-                        Text {
-                            text: root.pageInfo?.name ?? qsTr("Settings")
-                            color: RaohaneTheme.text
-                            font.pixelSize: root.compactLayout ? 15 : 17
-                            font.weight: Font.DemiBold
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: RaohaneSettingsPageRegistry.sectionDescription(root.sectionKey)
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 9
-                            lineHeight: 1.22
-                            maximumLineCount: root.compactLayout ? 2 : 3
-                            elide: Text.ElideRight
-                            wrapMode: Text.WordWrap
-                        }
-                    }
-
-                    RaohaneSurface {
-                        visible: !root.compactLayout
-                        Layout.preferredWidth: settingCount.implicitWidth + RaohaneTheme.panelPadding * 2
-                        Layout.preferredHeight: 26
-                        surfaceRadius: RaohaneTheme.radiusSmall
-                        transparentIdle: true
-                        showSheen: false
-
-                        Text {
-                            id: settingCount
-                            anchors.centerIn: parent
-                            text: qsTr("%1 settings").arg(root.entries.length)
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 8
-                            font.weight: Font.Medium
-                        }
-                    }
-                }
-            }
 
             RaohaneSurface {
                 id: settingsSurface
