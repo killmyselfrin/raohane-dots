@@ -19,23 +19,11 @@ RaohaneSurface {
     implicitHeight: vertical ? 250 : 124
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
+    transparentIdle: true
     showSheen: false
-    border.color: RaohaneTheme.borderStrong
+    showInnerRim: false
+    border.color: "transparent"
     clip: true
-
-    Rectangle {
-        anchors {
-            top: parent.top
-            right: parent.right
-            topMargin: -72
-            rightMargin: -44
-        }
-        width: 176
-        height: 176
-        radius: 88
-        color: RaohaneTheme.accentSoft
-        opacity: 0.28
-    }
 
     Item {
         anchors.fill: parent
@@ -59,7 +47,7 @@ RaohaneSurface {
             transparentIdle: !RaohaneConfig.barShowBackground
                 || RaohaneConfig.barGroupStyle !== "pills"
             showSheen: false
-            border.color: transparentIdle ? "transparent" : RaohaneTheme.borderStrong
+            border.color: "transparent"
 
             RowLayout {
                 anchors.fill: parent
@@ -108,7 +96,7 @@ RaohaneSurface {
             transparentIdle: !RaohaneConfig.barShowBackground
                 || RaohaneConfig.barGroupStyle !== "pills"
             showSheen: false
-            border.color: transparentIdle ? "transparent" : RaohaneTheme.borderStrong
+            border.color: "transparent"
 
             ColumnLayout {
                 anchors.fill: parent
@@ -226,9 +214,7 @@ RaohaneSurface {
             raised: RaohaneConfig.barGroupStyle === "separated" && RaohaneConfig.barShadow
             transparentIdle: RaohaneConfig.barGroupStyle === "transparent"
             showSheen: false
-            border.color: glyph.moduleId === "context"
-                ? RaohaneTheme.accentBorder
-                : RaohaneTheme.borderFaint
+            border.color: "transparent"
             color: glyph.moduleId === "context"
                 ? RaohaneTheme.accentSoft
                 : RaohaneTheme.surfaceSubtle

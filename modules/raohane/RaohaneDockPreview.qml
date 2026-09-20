@@ -14,23 +14,11 @@ RaohaneSurface {
     implicitHeight: 104
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
+    transparentIdle: true
     showSheen: false
-    border.color: RaohaneTheme.borderStrong
+    showInnerRim: false
+    border.color: "transparent"
     clip: true
-
-    Rectangle {
-        anchors {
-            left: parent.left
-            top: parent.top
-            leftMargin: -48
-            topMargin: -58
-        }
-        width: 150
-        height: 150
-        radius: 75
-        color: RaohaneTheme.accentSoft
-        opacity: 0.24
-    }
 
     RowLayout {
         anchors.fill: parent
@@ -98,9 +86,9 @@ RaohaneSurface {
                 width: implicitWidth
                 height: Math.max(46, root.previewIconSize + 18)
                 surfaceRadius: height / 2
-                raised: true
+                raised: false
                 showSheen: false
-                border.color: RaohaneTheme.borderStrong
+                border.color: "transparent"
                 opacity: RaohaneConfig.dockEnabled ? 1 : 0.38
 
                 RowLayout {
