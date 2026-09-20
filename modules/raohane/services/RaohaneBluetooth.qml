@@ -10,7 +10,9 @@ import qs.modules.raohane.config
 Singleton {
     id: root
 
+    readonly property var adapterList: Bluetooth.adapters?.values ?? []
     readonly property var adapter: Bluetooth.defaultAdapter
+        ?? (root.adapterList.length > 0 ? root.adapterList[0] : null)
     readonly property bool available: root.adapter !== null
     readonly property bool enabled: root.adapter?.enabled ?? false
     readonly property bool busy: root.adapter !== null
