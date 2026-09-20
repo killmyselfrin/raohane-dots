@@ -14,9 +14,10 @@ RaohaneSurface {
     signal pickerRequested(string mode)
 
     readonly property var definition: RaohaneQuickControlRegistry.definition(root.tileId)
-    readonly property bool available: root.tileId === "bluetooth" ? RaohaneBluetooth.available
+    readonly property bool backendAvailable: root.tileId === "bluetooth" ? RaohaneBluetooth.available
         : root.tileId === "easyEffects" ? RaohaneEasyEffects.available
         : root.definition !== null
+    readonly property bool available: root.definition !== null
     readonly property bool tileActive: root.tileId === "network" ? RaohaneNetwork.wifiStatus !== "disabled"
         : root.tileId === "bluetooth" ? RaohaneBluetooth.enabled
         : root.tileId === "nightLight" ? RaohaneDisplay.temperatureActive
@@ -50,13 +51,15 @@ RaohaneSurface {
                         : RaohaneNetwork.ethernet
                             ? qsTr("Ethernet")
                             : qsTr("Not connected"))
-        : root.tileId === "bluetooth" ? (root.tileBusy
-            ? qsTr("Applying…")
-            : root.tileError
-                ? qsTr("Bluetooth action failed")
-                : RaohaneBluetooth.firstConnectedName.length > 0
-                    ? RaohaneBluetooth.firstConnectedName
-                    : (RaohaneBluetooth.enabled ? qsTr("On") : qsTr("Off")))
+        : root.tileId === "bluetooth" ? (!RaohaneBluetooth.available
+            ? qsTr("No adapter")
+            : root.tileBusy
+                ? qsTr("Applying…")
+                : root.tileError
+                    ? qsTr("Bluetooth action failed")
+                    : RaohaneBluetooth.firstConnectedName.length > 0
+                        ? RaohaneBluetooth.firstConnectedName
+                        : (RaohaneBluetooth.enabled ? qsTr("On") : qsTr("Off")))
         : root.tileId === "nightLight" ? (RaohaneConfig.nightLightAutomatic ? qsTr("Automatic") : qsTr("Manual"))
         : root.tileId === "gameMode" ? (root.tileBusy
             ? qsTr("Applying…")
@@ -72,7 +75,7 @@ RaohaneSurface {
         : ""
 
     visible: root.available
-    enabled: root.available && !root.tileBusy
+    enabled: root.backendAvailable && !root.tileBusy
     Layout.preferredHeight: visible ? 58 : 0
     surfaceRadius: RaohaneTheme.radiusLarge
     active: root.tileActive
