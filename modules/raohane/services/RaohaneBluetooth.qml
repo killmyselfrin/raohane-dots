@@ -20,6 +20,8 @@ Singleton {
             || root.adapter.state === BluetoothAdapterState.Disabling)
     readonly property bool blocked: root.adapter !== null
         && root.adapter.state === BluetoothAdapterState.Blocked
+    readonly property bool discovering: root.adapter?.discovering ?? false
+    readonly property var devices: root.buildDevices()
 
     property bool requestedEnabled: false
     property bool applyPending: false
@@ -49,9 +51,26 @@ Singleton {
         return String(device.address ?? "").trim()
     }
 
+    function buildDevices(): var {
+        if (!root.adapter || !root.adapter.devices)
+            return []
+
+        const entries = [...root.adapter.devices.values].filter(device => Boolean(device))
+        entries.sort((left, right) => {
+            const connectedOrder = Number(Boolean(right.connected)) - Number(Boolean(left.connected))
+            if (connectedOrder !== 0)
+                return connectedOrder
+            const pairedOrder = Number(Boolean(right.paired || right.bonded)) - Number(Boolean(left.paired || left.bonded))
+            if (pairedOrder !== 0)
+                return pairedOrder
+            return root.deviceLabel(left).localeCompare(root.deviceLabel(right))
+        })
+        return entries
+    }
+
     function buildConnectedDevices(): var {
         const entries = []
-        for (const device of Bluetooth.devices.values) {
+        for (const device of root.devices) {
             if (!device || !device.connected)
                 continue
 
@@ -65,7 +84,6 @@ Singleton {
             })
         }
 
-        entries.sort((left, right) => left.name.localeCompare(right.name))
         return entries
     }
 
@@ -112,6 +130,37 @@ Singleton {
 
     function toggle(): void {
         root.setEnabled(!root.enabled)
+    }
+
+    function setDiscovering(value: bool): void {
+        if (!root.adapter || !root.enabled)
+            return
+        root.adapter.discovering = Boolean(value)
+    }
+
+    function startDiscovery(): void {
+        root.setDiscovering(true)
+    }
+
+    function stopDiscovery(): void {
+        if (root.adapter)
+            root.adapter.discovering = false
+    }
+
+    function toggleDevice(device): void {
+        if (!device || root.busy)
+            return
+
+        if (device.connected) {
+            device.disconnect()
+            return
+        }
+
+        device.trusted = true
+        if (device.paired || device.bonded)
+            device.connect()
+        else
+            device.pair()
     }
 
     function openManager(): void {
