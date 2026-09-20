@@ -299,8 +299,8 @@ Item {
                             showInnerRim: false
                             transparentIdle: true
                             interactive: true
-                            hovered: activeRowMouse.containsMouse
-                            pressed: activeRowMouse.pressed
+                            hovered: activeRowHover.hovered
+                            pressed: false
                             hoverColor: RaohaneTheme.surfaceHover
                             idleBorderColor: "transparent"
                             hoverBorderColor: "transparent"
@@ -366,12 +366,8 @@ Item {
                                 }
                             }
 
-                            MouseArea {
-                                id: activeRowMouse
-                                anchors.fill: parent
-                                z: -1
-                                hoverEnabled: true
-                                acceptedButtons: Qt.NoButton
+                            HoverHandler {
+                                id: activeRowHover
                             }
                         }
                     }
@@ -444,8 +440,8 @@ Item {
                             showInnerRim: false
                             transparentIdle: true
                             interactive: true
-                            hovered: availableRowMouse.containsMouse
-                            pressed: availableRowMouse.pressed
+                            hovered: availableRowHover.hovered
+                            pressed: false
                             hoverColor: RaohaneTheme.surfaceHover
                             idleBorderColor: "transparent"
                             hoverBorderColor: "transparent"
@@ -483,12 +479,8 @@ Item {
                                 }
                             }
 
-                            MouseArea {
-                                id: availableRowMouse
-                                anchors.fill: parent
-                                z: -1
-                                hoverEnabled: true
-                                acceptedButtons: Qt.NoButton
+                            HoverHandler {
+                                id: availableRowHover
                             }
                         }
                     }
