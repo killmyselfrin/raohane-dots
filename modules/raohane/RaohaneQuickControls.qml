@@ -33,7 +33,7 @@ Item {
             left: parent.left
             right: parent.right
         }
-        spacing: RaohaneTheme.spacing
+        spacing: RaohaneTheme.spacingSmall
 
         RaohaneSceneSwitcher {
             visible: !root.pickerOpen
@@ -46,8 +46,8 @@ Item {
             visible: !root.pickerOpen
             Layout.fillWidth: true
             columns: Math.max(1, root.tileColumns)
-            columnSpacing: RaohaneTheme.spacingSmall + 2
-            rowSpacing: RaohaneTheme.spacingSmall + 2
+            columnSpacing: RaohaneTheme.spacingSmall
+            rowSpacing: RaohaneTheme.spacingSmall
 
             Repeater {
                 model: root.tileLayout
@@ -71,7 +71,7 @@ Item {
             raised: false
             showSheen: false
             showInnerRim: false
-            idleColor: RaohaneTheme.surfaceSubtle
+            idleColor: "transparent"
             idleBorderColor: "transparent"
             clip: true
             showStateRail: false
@@ -85,7 +85,7 @@ Item {
                     leftMargin: RaohaneTheme.spacingSmall
                     rightMargin: RaohaneTheme.spacingSmall
                 }
-                spacing: RaohaneTheme.spacingTiny
+                spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
                 ControlSlider {
                     Layout.fillWidth: true
@@ -163,7 +163,7 @@ Item {
             || (control.pickerEnabled && pickerButton.hovered)
 
         implicitHeight: 42
-        surfaceRadius: RaohaneTheme.radiusSmall
+        surfaceRadius: RaohaneTheme.radius
         transparentIdle: true
         showSheen: false
         showInnerRim: false
@@ -171,9 +171,9 @@ Item {
         active: control.pickerActive
         hoverColor: RaohaneTheme.surfaceHover
         activeColor: RaohaneTheme.accentSoft
-        hoverBorderColor: RaohaneTheme.borderStrong
-        activeBorderColor: RaohaneTheme.accentBorder
-        showStateRail: control.pickerActive
+        hoverBorderColor: "transparent"
+        activeBorderColor: "transparent"
+        showStateRail: false
         stateRailWidth: 2
         stateRailLength: 22
         stateRailOpacity: 0.82
