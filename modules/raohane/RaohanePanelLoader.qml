@@ -27,8 +27,7 @@ LazyLoader {
         ? Math.max(100, RaohaneMotion.relaxed + 40)
         : 0
 
-    Timer {
-        id: unloadTimer
+    property Timer unloadTimer: Timer {
         interval: root.unloadDelay
         repeat: false
         onTriggered: root.unloadHeld = false
@@ -46,13 +45,13 @@ LazyLoader {
             return
 
         if (surfaceRequested) {
-            unloadTimer.stop()
+            root.unloadTimer.stop()
             unloadHeld = true
             return
         }
 
         if (deferredUnload && unloadHeld) {
-            unloadTimer.restart()
+            root.unloadTimer.restart()
             return
         }
 
