@@ -215,6 +215,7 @@ Scope {
 
                     RaohaneSurface {
                         Layout.preferredWidth: 400
+                        Layout.fillWidth: true
                         Layout.fillHeight: true
                         surfaceRadius: RaohaneTheme.radiusHero
                         raised: false
@@ -262,14 +263,14 @@ Scope {
                     }
 
                     ColumnLayout {
-                        Layout.preferredWidth: 248
+                        visible: !quickControls.pickerOpen
+                        Layout.preferredWidth: visible ? 248 : 0
                         Layout.fillHeight: true
                         spacing: RaohaneTheme.spacing
 
                         RaohaneControlCenterMediaCard {
                             Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.minimumHeight: 248
+                            Layout.preferredHeight: implicitHeight
 
                             mediaAvailable: RaohaneMedia.available
                             playing: RaohaneMedia.isPlaying
@@ -298,9 +299,8 @@ Scope {
                         }
 
                         RaohaneControlCenterActionDock {
-                            visible: !quickControls.pickerOpen
                             Layout.fillWidth: true
-                            Layout.preferredHeight: visible ? implicitHeight : 0
+                            Layout.preferredHeight: implicitHeight
 
                             onScreenshotRequested: panelWindow.openTransient("regionSelector")
                             onTranslatorRequested: panelWindow.openSurface("screenTranslator")
@@ -308,6 +308,8 @@ Scope {
                             onWallpaperRequested: panelWindow.openSurface("wallpaper")
                             onPowerRequested: panelWindow.openSurface("session")
                         }
+
+                        Item { Layout.fillHeight: true }
                     }
 
                     RaohaneNotificationCenter {
