@@ -227,7 +227,7 @@ for symbol in \
   'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource'; do
   rg -q "$symbol" "$settings_section" || fail "RaohaneSettingsSectionPage lost generic section composition contract: $symbol"
 done
-for symbol in 'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneIconButton[[:space:]]*\{' 'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void'; do
+for symbol in 'RaohaneConfig\[' 'RaohaneSwitch[[:space:]]*\{' 'RaohaneSlider[[:space:]]*\{' 'Controls\.ComboBox[[:space:]]*\{' 'TextInput[[:space:]]*\{' 'function changeNumber\(delta: real\): void'; do
   rg -q "$symbol" "$settings_control" || fail "RaohaneSettingsControlRow lost config-bound control contract: $symbol"
 done
 if rg -q 'RaohaneConfig\[|RaohaneBarStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"bar"' "$settings_section"; then
