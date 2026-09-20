@@ -203,6 +203,7 @@ Scope {
                     timeText: Qt.formatTime(root.now, "HH:mm")
                     dateText: Qt.formatDate(root.now, "ddd, d MMM")
 
+                    onLauncherRequested: panelWindow.openSurface("launcher")
                     onSettingsRequested: panelWindow.openSurface("settings")
                     onPowerRequested: panelWindow.openSurface("session")
                 }
