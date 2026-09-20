@@ -12,17 +12,17 @@ RaohaneSurface {
     signal wallpaperRequested()
     signal powerRequested()
 
-    implicitHeight: 64
+    implicitHeight: 56
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
     showInnerRim: false
-    idleColor: RaohaneTheme.surfaceSubtle
-    idleBorderColor: RaohaneTheme.borderFaint
+    transparentIdle: true
+    idleBorderColor: "transparent"
 
     RowLayout {
         anchors.fill: parent
-        anchors.margins: RaohaneTheme.spacingSmall
+        anchors.margins: 0
         spacing: RaohaneTheme.spacingTiny
 
         ActionButton {
@@ -70,7 +70,7 @@ RaohaneSurface {
         property bool accent: false
         signal triggered()
 
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: 46
         surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         showSheen: false

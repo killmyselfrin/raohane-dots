@@ -36,14 +36,42 @@
     "screenList": [],
     "showDate": true,
     "modules": {
-      "left": ["launcher", "separator", "workspaces"],
-      "center": ["context"],
-      "right": ["tray", "system", "separator", "clock", "control"]
+      "left": [
+        "launcher",
+        "separator",
+        "workspaces"
+      ],
+      "center": [
+        "context"
+      ],
+      "right": [
+        "tray",
+        "system",
+        "separator",
+        "clock",
+        "control"
+      ]
     },
     "verticalModules": {
-      "left": ["launcher", "separator", "workspaces"],
-      "center": ["context"],
-      "right": ["network", "bluetooth", "notifications", "separator", "clock", "separator", "audio", "control", "session"]
+      "left": [
+        "launcher",
+        "separator",
+        "workspaces"
+      ],
+      "center": [
+        "context"
+      ],
+      "right": [
+        "network",
+        "bluetooth",
+        "notifications",
+        "separator",
+        "clock",
+        "separator",
+        "audio",
+        "control",
+        "session"
+      ]
     }
   },
   "frame": {
@@ -93,7 +121,14 @@
     "showBrightness": true,
     "showVolume": true,
     "showMic": false,
-    "tiles": ["network", "bluetooth", "nightLight", "gameMode", "keepAwake", "easyEffects"]
+    "tiles": [
+      "network",
+      "bluetooth",
+      "nightLight",
+      "gameMode",
+      "keepAwake",
+      "easyEffects"
+    ]
   },
   "desktopWidgets": {
     "enabled": true,
@@ -102,12 +137,18 @@
     "showSystem": true,
     "showMotto": true,
     "composition": {
-      "primary": ["clock", "context"],
-      "secondary": ["system", "motto"]
+      "primary": [
+        "clock",
+        "context"
+      ],
+      "secondary": [
+        "system",
+        "motto"
+      ]
     },
     "compact": false,
     "layout": "balanced",
-    "scale": 1.0,
+    "scale": 1,
     "opacity": 0.94
   },
   "features": {
@@ -117,14 +158,7 @@
     "mediaOverlayGamingPosition": "bottom-right",
     "mediaOverlayGamingAutoHideSeconds": 8,
     "integrationMode": true,
-    "themePreset": "zen-mist"
-  },
-  "sakura": {
-    "enabled": false,
-    "settings": true,
-    "controlCenter": true,
-    "intensity": "subtle",
-    "speed": "gentle"
+    "themePreset": "raohane-dark"
   },
   "keybinds": {
     "closeWindow": "ALT + Q",
@@ -169,20 +203,20 @@
     "workspaceDistance": 14
   },
   "style": {
-    "glassOpacity": 1.0,
-    "borderStrength": 1.0,
-    "radiusScale": 1.0,
-    "densityScale": 1.0,
+    "glassOpacity": 1,
+    "borderStrength": 1,
+    "radiusScale": 1,
+    "densityScale": 1,
     "motionScale": 0.92,
-    "accentStrength": 1.0,
+    "accentStrength": 1,
     "accentMode": "theme",
     "customAccent": "#657987",
     "sheenEnabled": true,
     "dockHoverScale": 1.04,
-    "contextIslandScale": 1.0,
+    "contextIslandScale": 1,
     "contextIslandDetail": true,
     "contextIslandIndicators": true,
-    "notificationScale": 1.0,
+    "notificationScale": 1,
     "notificationCompact": false,
     "notificationBodyLines": 4
   }

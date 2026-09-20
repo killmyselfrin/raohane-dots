@@ -196,9 +196,9 @@ rg -q 'RaohaneI18n\.setLanguage' "$language" || fail 'Language page cannot apply
 rg -q 'FileDialog[[:space:]]*\{' "$backup" || fail 'Backup page lost native file workflow'
 rg -q 'RaohaneBackup\.(exportBackup|restoreBackup)' "$backup" || fail 'Backup page bypasses native backup service'
 
-for route in backup keybinds motion language; do
-  rg -q "RaohaneSettingsRouter\.request\(\"${route}\", \"\"\)" "$settings" || fail "Settings quick action bypasses router: $route"
-done
+if rg -n 'id:[[:space:]]*commandStrip|RaohaneSettingsRouter\.request\("(backup|keybinds|motion|language)", ""\)' "$settings"; then
+  fail 'Settings reintroduced duplicated top-chrome quick actions'
+fi
 rg -q 'settingsContent\.pageOwnsHeader' "$settings" || fail 'Settings top chrome does not respect page-owned header'
 rg -q 'Qt\.ControlModifier' "$settings" || fail 'Settings lost Ctrl+F search shortcut'
 rg -q 'settingsSearch\.focusSearch\(\)' "$settings" || fail 'Settings lost keyboard search focus'
@@ -263,4 +263,4 @@ if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import q
   fail 'Settings architecture resolves inherited settings/common/root types'
 fi
 
-printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace, with Sakura ambience, generic sections, reusable control rows and persisted studios/preferences pages\n'
+printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace, with neutral theming, generic sections, reusable control rows and persisted studios/preferences pages\n'

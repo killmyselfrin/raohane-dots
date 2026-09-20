@@ -78,11 +78,11 @@ done
 
 rg -q 'RaohaneConfig\.themePreset' "$theme" || fail 'theme engine is not driven by persisted RaohaneConfig selection'
 rg -q 'readonly property var presets:' "$theme" || fail 'theme engine lost its preset catalog'
-for preset in zen-mist paper sakura matcha slate sand sumi midnight; do
+for preset in raohane-dark paper rose-glass sage-glass slate sand ink-dark midnight; do
   rg -q "id:[[:space:]]*\"${preset}\"" "$theme" || fail "theme preset missing: $preset"
 done
-rg -q 'property string themePreset:[[:space:]]*"zen-mist"' "$config" || fail 'native config does not default to Zen Mist'
-rg -q '"themePreset"[[:space:]]*:[[:space:]]*"zen-mist"' "$defaults" || fail 'native defaults do not select Zen Mist'
+rg -q 'property string themePreset:[[:space:]]*"raohane-dark"' "$config" || fail 'native config does not default to Raohane'
+rg -q '"themePreset"[[:space:]]*:[[:space:]]*"raohane-dark"' "$defaults" || fail 'native defaults do not select Raohane'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library does not consume the shared preset source'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply a preset live'
 
@@ -92,12 +92,12 @@ fi
 
 for key in \
   glassOpacity borderStrength radiusScale densityScale motionScale accentStrength accentMode customAccent sheenEnabled \
-  barScale dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators \
+  dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators \
   notificationScale notificationCompact notificationBodyLines; do
   rg -q "${key}" "$config" || fail "native style schema missing: $key"
   rg -q "\"${key}\"" "$defaults" || fail "native style defaults missing: $key"
 done
-for key in barScale dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators notificationScale notificationCompact notificationBodyLines; do
+for key in dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators notificationScale notificationCompact notificationBodyLines; do
   rg -q "${key}" "$catalog" || fail "Advanced Surfaces UI missing: $key"
 done
 rg -q 'dockHoverScale' "$dock" || fail 'Dock does not consume advanced hover scale'
@@ -147,27 +147,9 @@ for file in "${shared_surfaces[@]}"; do
   rg -q 'RaohaneSurface[[:space:]]*\{' "$file" || fail "$file no longer uses the shared RaohaneSurface primitive"
 done
 
-# Primary shell chrome uses the raised glass plane. Media Overlay deliberately
-# stays on the flatter fullscreen-friendly plane so it does not become a second
-# heavy glass window over games/video.
-raised_surfaces=(
-  "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
-  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
-)
-for file in "${raised_surfaces[@]}"; do
-  rg -q 'raised:[[:space:]]*true' "$file" || fail "$file no longer requests a raised primary glass surface"
-done
-if rg -q 'raised:[[:space:]]*true' "$media"; then
-  fail 'Media Overlay reintroduced the raised primary glass plane'
-fi
-
-matte_surfaces=(
-  "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
-  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
-)
-for file in "${matte_surfaces[@]}"; do
-  rg -q 'showSheen:[[:space:]]*false' "$file" || fail "$file no longer suppresses decorative sheen on minimal shell chrome"
-done
+# Surface elevation and sheen are presentation choices owned by each component.
+# The boundary audit intentionally checks shared RaohaneSurface/theme ownership
+# instead of freezing every shell surface to one raised/matte treatment.
 
 for file in "$context" "$dock" "$control" "$settings" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
@@ -185,7 +167,7 @@ if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$quick_tile" "$cont
 fi
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles do not consume minimalist surface tokens'
 rg -q 'RaohaneTheme\.borderStrong' "$quick_tile" || fail 'Quick Control tiles do not consume shared minimal borders'
-rg -q 'RaohaneTheme\.surfaceSubtle' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
+rg -q 'RaohaneTheme\.surfaceDeep' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
 rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted navigation'
 rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted page header'
 
@@ -203,9 +185,8 @@ if rg -n 'RAOHANE / SIDE|RAOHANE / SESSION|RAOHANE / LOCK|RAOHANE / POLKIT|RAOHA
   fail 'an active surface regressed to decorative legacy labels or arbitrary glyph controls'
 fi
 
-rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the floating-pod compositor height contract'
-rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" || fail 'horizontal bar lost safe advanced pod-height bounds'
-rg -q 'barScale' "$bar" || fail 'horizontal bar does not consume persisted advanced scale'
+rg -q 'implicitHeight:[[:space:]]*Math\.max\(40,[[:space:]]*barWindow\.podHeight[[:space:]]*\+[[:space:]]*barWindow\.outerGap[[:space:]]*\*[[:space:]]*2\)' "$bar" || fail 'horizontal bar lost the adaptive compositor height contract'
+rg -q 'podHeight:[[:space:]]*Math\.max\(34,[[:space:]]*Math\.min\(64,' "$bar" || fail 'horizontal bar lost safe adaptive pod-height bounds'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" || fail 'horizontal bar no longer composes through the native module host'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$vertical" || fail 'vertical bar no longer composes through the native module host'
 rg -q 'orientation:[[:space:]]*"vertical"' "$vertical" || fail 'vertical bar does not request vertical module presentation'

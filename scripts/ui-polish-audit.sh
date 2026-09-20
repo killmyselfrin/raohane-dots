@@ -162,7 +162,11 @@ for contract in \
   'required property string audioIcon' \
   'required property string audioValue' \
   'required property string privacyValue' \
-  'showStateRail: root\.privacyActive'; do
+  'signal networkRequested\(\)' \
+  'signal bluetoothRequested\(\)' \
+  'signal audioRequested\(\)' \
+  'property bool clickable: false' \
+  'onClicked: status\.triggered\(\)'; do
   rg -q "$contract" "$control_status" \
     || fail "Control Center status strip lost presentation contract: ${contract}"
 done
@@ -300,4 +304,4 @@ if rg -n 'property bool active:[[:space:]]*false' \
   fail 'reusable system surfaces reintroduced an active-property collision'
 fi
 
-printf 'ui-polish-audit: animated Settings, extracted Nocturne Control Center frame/content, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
+printf 'ui-polish-audit: animated Settings, compact interactive Control Center frame/content, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'

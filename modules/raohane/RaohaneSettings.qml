@@ -95,8 +95,8 @@ Scope {
         Rectangle {
             anchors.fill: parent
             color: RaohaneTheme.dark
-                ? Qt.rgba(0.01, 0.015, 0.035, 0.54)
-                : Qt.rgba(0.18, 0.17, 0.15, 0.20)
+                ? Qt.rgba(0.01, 0.015, 0.035, 0.72)
+                : Qt.rgba(0.18, 0.17, 0.15, 0.32)
             opacity: workspace.entered ? 1 : 0
 
             Behavior on opacity {
@@ -116,13 +116,14 @@ Scope {
             id: workspace
             property bool entered: false
 
-            width: Math.min(parent.width - 48, 1140)
-            height: Math.min(parent.height - 56, 760)
+            width: Math.min(parent.width - 56, 1260)
+            height: Math.min(parent.height - 64, 820)
             anchors.centerIn: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
-            showSheen: true
-            border.color: RaohaneTheme.borderStrong
+            showSheen: false
+            idleColor: RaohaneTheme.surfaceRaised
+            border.color: RaohaneTheme.borderFaint
             clip: true
             opacity: entered ? 1 : 0
             focus: RaohaneState.settingsOpen
@@ -178,13 +179,13 @@ Scope {
                 id: settingsSearch
                 visible: !settingsContent.pageOwnsHeader
                 z: 50
-                width: Math.min(300, Math.max(232, workspace.width * 0.275))
-                height: 34
+                width: Math.min(340, Math.max(260, workspace.width * 0.29))
+                height: 36
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 21
-                    rightMargin: 170
+                    topMargin: 22
+                    rightMargin: 58
                 }
                 opacity: workspace.entered ? 1 : 0
 
@@ -200,80 +201,6 @@ Scope {
 
                 Behavior on opacity {
                     NumberAnimation { duration: RaohaneMotion.standard }
-                }
-            }
-
-            RaohaneSurface {
-                id: commandStrip
-                visible: !settingsContent.pageOwnsHeader
-                z: 50
-                width: 112
-                height: 34
-                anchors {
-                    top: parent.top
-                    right: parent.right
-                    topMargin: 21
-                    rightMargin: 51
-                }
-                surfaceRadius: 10
-                raised: false
-                showSheen: false
-                border.color: RaohaneTheme.borderFaint
-                opacity: workspace.entered ? 1 : 0
-
-                transform: Translate {
-                    y: workspace.entered || !RaohaneMotion.transformMotionEnabled ? 0 : -5
-                    Behavior on y {
-                        NumberAnimation {
-                            duration: RaohaneMotion.standard
-                            easing.type: RaohaneMotion.easeEmphasized
-                        }
-                    }
-                }
-
-                Behavior on opacity {
-                    NumberAnimation { duration: RaohaneMotion.standard }
-                }
-
-                Row {
-                    anchors.centerIn: parent
-                    spacing: 2
-
-                    RaohaneIconButton {
-                        buttonSize: 27
-                        iconSize: 13
-                        icon: "inventory_2"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: RaohaneSettingsRouter.request("backup", "")
-                    }
-
-                    RaohaneIconButton {
-                        buttonSize: 27
-                        iconSize: 13
-                        icon: "keyboard"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: RaohaneSettingsRouter.request("keybinds", "")
-                    }
-
-                    RaohaneIconButton {
-                        buttonSize: 27
-                        iconSize: 13
-                        icon: "animation"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: RaohaneSettingsRouter.request("motion", "")
-                    }
-
-                    RaohaneIconButton {
-                        buttonSize: 27
-                        iconSize: 13
-                        icon: "language"
-                        transparentIdle: true
-                        showSheen: false
-                        onClicked: RaohaneSettingsRouter.request("language", "")
-                    }
                 }
             }
 
@@ -282,8 +209,8 @@ Scope {
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 22
-                    rightMargin: 14
+                    topMargin: 25
+                    rightMargin: 16
                 }
                 buttonSize: 29
                 iconSize: 14

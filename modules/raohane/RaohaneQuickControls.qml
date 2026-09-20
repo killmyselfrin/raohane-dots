@@ -72,7 +72,7 @@ Item {
             showSheen: false
             showInnerRim: false
             idleColor: RaohaneTheme.surfaceSubtle
-            idleBorderColor: RaohaneTheme.borderFaint
+            idleBorderColor: "transparent"
             clip: true
             showStateRail: false
 
@@ -162,7 +162,7 @@ Item {
             || (control.iconEnabled && (iconButton.hovered || iconButton.activeFocus))
             || (control.pickerEnabled && pickerButton.hovered)
 
-        implicitHeight: 46
+        implicitHeight: 42
         surfaceRadius: RaohaneTheme.radiusSmall
         transparentIdle: true
         showSheen: false
@@ -185,8 +185,8 @@ Item {
             spacing: RaohaneTheme.spacingSmall + 1
 
             Item {
-                Layout.preferredWidth: 32
-                Layout.preferredHeight: 32
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
                 Layout.alignment: Qt.AlignVCenter
 
                 RaohaneIcon {
@@ -201,8 +201,8 @@ Item {
                     id: iconButton
                     visible: control.iconEnabled
                     anchors.centerIn: parent
-                    buttonSize: 32
-                    iconSize: 16
+                    buttonSize: 30
+                    iconSize: 15
                     icon: control.icon
                     emphasized: control.rowHovered && !control.pickerActive
                     transparentIdle: true
@@ -214,7 +214,7 @@ Item {
             }
 
             ColumnLayout {
-                Layout.preferredWidth: 142
+                Layout.preferredWidth: 128
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 0
 
@@ -257,7 +257,7 @@ Item {
                 from: 0
                 to: 1
                 stepSize: 0.01
-                trackHeight: 5
+                trackHeight: 4
                 value: control.clampedLiveValue
                 showHandle: control.rowHovered || activeFocus || control.pickerActive
                 onMoved: value => control.valueChangedByUser(value)

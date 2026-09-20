@@ -160,25 +160,22 @@ Item {
 
             width: Math.min(
                 Math.max(0, parent.width - (root.compactLayout ? RaohaneTheme.panelPadding * 2 : 40)),
-                920
+                960
             )
             anchors.top: parent.top
             anchors.topMargin: RaohaneTheme.spacingLarge
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: RaohaneTheme.spacingLarge
+            spacing: RaohaneTheme.spacingLarge + 2
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 122
+                Layout.preferredHeight: 108
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
-                border.color: RaohaneTheme.borderFaint
-                showStateRail: true
-                stateRailColor: RaohaneTheme.accent
-                stateRailOpacity: 0.64
-                stateRailWidth: 3
-                stateRailLength: Math.max(40, height - RaohaneTheme.panelPadding * 3)
+                idleColor: RaohaneTheme.surfaceSubtle
+                border.color: "transparent"
+                showStateRail: false
 
                 RowLayout {
                     anchors.fill: parent
@@ -212,7 +209,7 @@ Item {
                         Text {
                             text: "RAOHANE"
                             color: RaohaneTheme.text
-                            font.pixelSize: 20
+                            font.pixelSize: 22
                             font.weight: Font.DemiBold
                             font.letterSpacing: 2.4
                         }
@@ -405,7 +402,7 @@ Item {
         Layout.topMargin: RaohaneTheme.spacingTiny
         Layout.leftMargin: RaohaneTheme.spacingTiny
         color: RaohaneTheme.textFaint
-        font.pixelSize: 9
+        font.pixelSize: 10
         font.weight: Font.DemiBold
         font.letterSpacing: 1.1
     }
@@ -418,11 +415,12 @@ Item {
         required property string value
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 68
+        Layout.preferredHeight: 62
         surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         showSheen: false
-        border.color: RaohaneTheme.borderFaint
+        idleColor: RaohaneTheme.surfaceSubtle
+        border.color: "transparent"
 
         RowLayout {
             anchors.fill: parent
@@ -480,16 +478,13 @@ Item {
         default property alias actions: actionSlot.data
 
         Layout.fillWidth: true
-        Layout.preferredHeight: secondary.length > 0 ? 98 : 80
+        Layout.preferredHeight: secondary.length > 0 ? 90 : 76
         surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         showSheen: false
-        border.color: RaohaneTheme.borderFaint
-        showStateRail: true
-        stateRailColor: rail.railColor
-        stateRailOpacity: 0.68
-        stateRailWidth: 3
-        stateRailLength: 38
+        idleColor: RaohaneTheme.surfaceSubtle
+        border.color: "transparent"
+        showStateRail: false
 
         RowLayout {
             anchors.fill: parent
@@ -566,7 +561,7 @@ Item {
         signal clicked()
 
         implicitWidth: actionRow.implicitWidth + 24
-        implicitHeight: 36
+        implicitHeight: 34
         activeFocusOnTab: enabled
         opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
@@ -642,7 +637,7 @@ Item {
         required property string label
         signal clicked()
 
-        Layout.preferredHeight: 46
+        Layout.preferredHeight: 44
         activeFocusOnTab: true
 
         RaohaneSurface {
