@@ -17,7 +17,8 @@ Item {
     implicitHeight: studioColumn.implicitHeight
 
     function commit(items): void {
-        RaohaneConfig.quickControlTiles = RaohaneQuickControlRegistry.sanitizeLayout(items)
+        const sanitized = RaohaneQuickControlRegistry.sanitizeLayout(items)
+        RaohaneConfig.quickControlTiles = sanitized.slice()
     }
 
     function addTile(id: string): void {
