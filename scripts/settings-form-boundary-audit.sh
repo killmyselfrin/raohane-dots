@@ -32,8 +32,8 @@ fi
 
 for contract in \
   'height:[[:space:]]*root\.numberRow \? 80 : root\.textRow \? 70 : 62' \
-  'RaohaneSlider[[:space:]]*\\{' \
-  'Controls\.ComboBox[[:space:]]*\\{' \
+  'RaohaneSlider[[:space:]]*\{' \
+  'Controls\.ComboBox[[:space:]]*\{' \
   'activeFocusOnTab:[[:space:]]*root\.toggleRow \|\| root\.numberRow \|\| root\.choiceRow' \
   'readonly property bool compactRow:' \
   'maximumLineCount:[[:space:]]*2' \
