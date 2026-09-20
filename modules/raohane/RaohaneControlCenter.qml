@@ -232,7 +232,7 @@ Scope {
                                 Layout.preferredHeight: 30
 
                                 Text {
-                                    text: qsTr("Controls")
+                                    text: qsTr("Quick Controls")
                                     color: RaohaneTheme.text
                                     font.pixelSize: 12
                                     font.weight: Font.DemiBold
@@ -241,7 +241,7 @@ Scope {
                                 Item { Layout.fillWidth: true }
 
                                 Text {
-                                    text: RaohaneScenes.autoSceneActive ? qsTr("Automatic scene") : qsTr("Manual scene")
+                                    text: RaohaneScenes.autoSceneActive ? qsTr("Automatic") : qsTr("Manual")
                                     color: RaohaneScenes.autoSceneActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
                                     font.pixelSize: 8
                                     font.weight: Font.Medium
