@@ -12,7 +12,7 @@ Item {
     property int transitionDirection: 1
     property string pendingControl: ""
     property bool initialPageLoaded: false
-    readonly property bool compactNav: width < 860
+    readonly property bool compactNav: width < 900
     readonly property var pages: RaohaneSettingsPageRegistry.pages
     readonly property var currentPageInfo: root.pages[root.currentPage] ?? null
     readonly property bool pageOwnsHeader: Boolean(root.currentPageInfo?.hideHeader)
@@ -113,29 +113,43 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        spacing: 0
+        anchors.margins: RaohaneTheme.spacing
+        spacing: RaohaneTheme.spacing
 
-        RaohaneSettingsNavigation {
+        RaohaneSurface {
             Layout.fillHeight: true
-            Layout.preferredWidth: implicitWidth
-            pages: root.pages
-            currentPage: root.currentPage
-            compact: root.compactNav
-            onPageRequested: index => {
-                if (index >= 0 && index < root.pages.length)
-                    RaohaneSettingsRouter.request(root.pages[index].key, "")
+            Layout.preferredWidth: navigation.implicitWidth
+            surfaceRadius: RaohaneTheme.radiusHero
+            raised: false
+            showSheen: false
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceDeep
+            idleBorderColor: "transparent"
+            clip: true
+
+            RaohaneSettingsNavigation {
+                id: navigation
+                anchors.fill: parent
+                pages: root.pages
+                currentPage: root.currentPage
+                compact: root.compactNav
+                onPageRequested: index => {
+                    if (index >= 0 && index < root.pages.length)
+                        RaohaneSettingsRouter.request(root.pages[index].key, "")
+                }
             }
         }
 
-        Rectangle {
-            Layout.fillHeight: true
-            Layout.preferredWidth: 1
-            color: RaohaneTheme.borderFaint
-        }
-
-        Item {
+        RaohaneSurface {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            surfaceRadius: RaohaneTheme.radiusHero
+            raised: false
+            showSheen: false
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceSubtle
+            idleBorderColor: "transparent"
+            clip: true
 
             ColumnLayout {
                 anchors.fill: parent
@@ -163,8 +177,8 @@ Item {
                         Loader {
                             id: pageLoader
                             anchors.fill: parent
-                            anchors.leftMargin: 12
-                            anchors.rightMargin: 12
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
                             anchors.bottomMargin: 10
 
                             onLoaded: {
@@ -243,4 +257,5 @@ Item {
             }
         }
     }
+
 }
