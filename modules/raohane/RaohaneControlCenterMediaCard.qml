@@ -26,7 +26,7 @@ RaohaneSurface {
 
     readonly property real clampedProgress: Math.max(0, Math.min(1, Number(root.progress) || 0))
 
-    implicitHeight: 142
+    implicitHeight: 220
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
@@ -38,13 +38,13 @@ RaohaneSurface {
     pressedScale: 1
     idleColor: RaohaneTheme.surfaceSubtle
     hoverColor: RaohaneTheme.surfaceHover
-    idleBorderColor: RaohaneTheme.borderFaint
-    hoverBorderColor: RaohaneTheme.borderStrong
-    showStateRail: root.playing
+    idleBorderColor: "transparent"
+    hoverBorderColor: "transparent"
+    showStateRail: false
     stateRailColor: RaohaneTheme.accent
     stateRailWidth: 2
     stateRailLength: 30
-    stateRailOpacity: 0.72
+    stateRailOpacity: 0
     clip: true
 
     ColumnLayout {
@@ -61,15 +61,15 @@ RaohaneSurface {
                 spacing: RaohaneTheme.spacing
 
                 RaohaneSurface {
-                    Layout.preferredWidth: 68
-                    Layout.preferredHeight: 68
+                    Layout.preferredWidth: 76
+                    Layout.preferredHeight: 76
                     Layout.alignment: Qt.AlignVCenter
                     surfaceRadius: RaohaneTheme.radiusLarge
                     raised: false
                     showSheen: false
                     showInnerRim: false
                     idleColor: RaohaneTheme.surfaceDeep
-                    idleBorderColor: root.playing ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                    idleBorderColor: "transparent"
                     clip: true
 
                     Image {
@@ -85,7 +85,7 @@ RaohaneSurface {
                         anchors.centerIn: parent
                         visible: !mediaArt.visible
                         text: "music_note"
-                        iconSize: 25
+                        iconSize: 28
                         fill: root.playing ? 1 : 0
                         symbolWeight: root.playing ? 540 : 400
                         color: root.playing ? RaohaneTheme.accent : RaohaneTheme.textFaint
@@ -123,7 +123,7 @@ RaohaneSurface {
                         Layout.fillWidth: true
                         text: root.title
                         color: RaohaneTheme.text
-                        font.pixelSize: 10
+                        font.pixelSize: 11
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
