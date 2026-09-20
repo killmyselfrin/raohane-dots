@@ -156,7 +156,9 @@ RaohaneSurface {
                     }
 
                     RowLayout {
+                        visible: root.mediaAvailable
                         Layout.fillWidth: true
+                        Layout.preferredHeight: visible ? implicitHeight : 0
                         spacing: RaohaneTheme.spacingSmall
 
                         Text {
@@ -180,8 +182,11 @@ RaohaneSurface {
                 z: 20
                 hoverEnabled: true
                 acceptedButtons: Qt.LeftButton
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.openRequested()
+                cursorShape: root.mediaAvailable ? Qt.PointingHandCursor : Qt.ArrowCursor
+                onClicked: {
+                    if (root.mediaAvailable)
+                        root.openRequested()
+                }
             }
         }
 
