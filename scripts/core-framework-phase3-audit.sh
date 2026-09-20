@@ -89,7 +89,9 @@ fi
 rg -q 'RaohanePaths\.notificationsFile' "$notifications" || fail 'notification persistence bypasses RaohanePaths'
 
 for registration in \
-  '^RaohaneSurface .*RaohaneSurface.qml \
+  '^RaohaneSurface .*RaohaneSurface.qml$' '^RaohaneDivider .*RaohaneDivider.qml$' '^RaohaneIconButton .*RaohaneIconButton.qml$' \
+  '^singleton RaohaneSurfaceRegistry .*RaohaneSurfaceRegistry.qml$' \
+  '^singleton RaohaneSettingsPageRegistry .*RaohaneSettingsPageRegistry.qml$' \
   '^singleton RaohaneSettingsSectionRegistry .*RaohaneSettingsSectionRegistry.qml$' \
   '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' \
   '^RaohaneSettingsNavigation .*RaohaneSettingsNavigation.qml$' '^RaohaneSettingsPageHeader .*RaohaneSettingsPageHeader.qml$' \
