@@ -24,6 +24,8 @@ control_actions='modules/raohane/RaohaneControlCenterActionDock.qml'
 control_media='modules/raohane/RaohaneControlCenterMediaCard.qml'
 quick='modules/raohane/RaohaneQuickControls.qml'
 quick_tile='modules/raohane/RaohaneQuickControlTile.qml'
+device_picker='modules/raohane/RaohaneDevicePicker.qml'
+bluetooth='modules/raohane/services/RaohaneBluetooth.qml'
 context='modules/raohane/RaohaneContext.qml'
 context_island='modules/raohane/RaohaneContextIsland.qml'
 performance='modules/raohane/services/RaohanePerformance.qml'
@@ -39,7 +41,7 @@ for file in \
   "$settings" "$settings_v3" "$settings_navigation" "$settings_header" \
   "$settings_section" "$settings_control" "$settings_search" \
   "$control" "$control_header" "$control_footer" "$control_status" "$control_actions" "$control_media" \
-  "$quick" "$quick_tile" "$context" "$context_island" "$performance" "$notifications" \
+  "$quick" "$quick_tile" "$device_picker" "$bluetooth" "$context" "$context_island" "$performance" "$notifications" \
   "$osd" "$systray" "$adaptive_icon" "$icon_resolver" "$workspaces" "$sidebar"; do
   [[ -f "$file" ]] || fail "missing polished UI/runtime surface: $file"
 done
@@ -245,6 +247,14 @@ rg -q 'RaohanePerformance\.toggleGameMode\(\)' "$quick_tile" \
   || fail 'Game Mode tile no longer invokes the performance service'
 rg -q 'RaohaneNetwork\.toggleWifi\(\)' "$quick_tile" \
   || fail 'Wi-Fi tile no longer invokes the transactional radio toggle'
+rg -q 'root\.pickerRequested\("bluetooth"\)' "$quick_tile" \
+  || fail 'Bluetooth tile no longer opens the inline device picker'
+rg -q 'readonly property bool bluetoothMode:[[:space:]]*mode === "bluetooth"' "$device_picker" \
+  || fail 'Device picker lost Bluetooth mode'
+rg -q 'RaohaneBluetooth\.devices\.slice' "$device_picker" \
+  || fail 'Bluetooth picker no longer renders native device state'
+rg -q 'function toggleDevice\(device\): void' "$bluetooth" \
+  || fail 'Bluetooth service lost device connect/disconnect action'
 
 # Hyprland 0.55+ performance IPC is the primary path. The legacy keyword path is
 # retained only as a compatibility fallback and must not be used for probing.
