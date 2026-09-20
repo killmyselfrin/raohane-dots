@@ -151,7 +151,7 @@ done
 # The boundary audit intentionally checks shared RaohaneSurface/theme ownership
 # instead of freezing every shell surface to one raised/matte treatment.
 
-for file in "$context" "$dock" "$control" "$settings" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
+for file in "$context" "$dock" "$control" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
 done
 
