@@ -21,25 +21,24 @@ RaohaneSurface {
     required property string privacyValue
     property bool privacyActive: false
 
-    implicitHeight: 68
+    signal networkRequested()
+    signal bluetoothRequested()
+    signal audioRequested()
+
+    implicitHeight: 60
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
     showInnerRim: false
-    idleColor: RaohaneTheme.surfaceSubtle
-    idleBorderColor: RaohaneTheme.borderFaint
-    showStateRail: root.privacyActive
-    stateRailColor: RaohaneTheme.critical
-    stateRailWidth: 2
-    stateRailLength: 28
-    stateRailOpacity: 0.82
+    transparentIdle: true
+    idleBorderColor: "transparent"
+    showStateRail: false
     clip: true
 
     GridLayout {
         anchors.fill: parent
-        anchors.margins: RaohaneTheme.spacingSmall
         columns: 4
-        columnSpacing: RaohaneTheme.spacingTiny
+        columnSpacing: RaohaneTheme.spacingSmall
         rowSpacing: 0
 
         StatusCell {
@@ -49,6 +48,8 @@ RaohaneSurface {
             label: qsTr("Network")
             value: root.networkValue
             statusActive: root.networkActive
+            clickable: true
+            onTriggered: root.networkRequested()
         }
 
         StatusCell {
@@ -58,6 +59,8 @@ RaohaneSurface {
             label: qsTr("Bluetooth")
             value: root.bluetoothValue
             statusActive: root.bluetoothActive
+            clickable: true
+            onTriggered: root.bluetoothRequested()
         }
 
         StatusCell {
@@ -67,6 +70,8 @@ RaohaneSurface {
             label: qsTr("Audio")
             value: root.audioValue
             statusActive: root.audioActive
+            clickable: true
+            onTriggered: root.audioRequested()
         }
 
         StatusCell {
@@ -88,55 +93,87 @@ RaohaneSurface {
         required property string value
         property bool statusActive: false
         property bool critical: false
+        property bool clickable: false
+        signal triggered()
 
-        surfaceRadius: RaohaneTheme.radiusSmall
+        surfaceRadius: RaohaneTheme.radius
         raised: false
         showSheen: false
         showInnerRim: false
-        transparentIdle: true
+        interactive: status.clickable
+        hovered: status.clickable && (statusMouse.containsMouse || activeFocus)
+        pressed: status.clickable && statusMouse.pressed
+        activeFocusOnTab: status.clickable
+        hoverScale: 1
+        pressedScale: 1
+        idleColor: RaohaneTheme.surfaceSubtle
+        idleBorderColor: RaohaneTheme.borderFaint
+        hoverColor: RaohaneTheme.surfaceHover
+        hoverBorderColor: RaohaneTheme.borderStrong
         active: status.statusActive
         activeColor: status.critical
-            ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.09)
+            ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.10)
             : RaohaneTheme.accentSoft
         activeBorderColor: status.critical
-            ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.22)
+            ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.28)
             : RaohaneTheme.accentBorder
 
-        RowLayout {
+        ColumnLayout {
             anchors.fill: parent
-            anchors.leftMargin: RaohaneTheme.spacingSmall
-            anchors.rightMargin: RaohaneTheme.spacingSmall
-            spacing: RaohaneTheme.spacingSmall
+            anchors.leftMargin: RaohaneTheme.spacing
+            anchors.rightMargin: RaohaneTheme.spacing
+            anchors.topMargin: RaohaneTheme.spacingSmall
+            anchors.bottomMargin: RaohaneTheme.spacingSmall
+            spacing: 1
 
-            RaohaneIcon {
-                text: status.icon
-                iconSize: 16
-                fill: status.statusActive ? 1 : 0
-                color: status.critical ? RaohaneTheme.critical
-                    : status.statusActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
-            }
-
-            ColumnLayout {
+            RowLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: RaohaneTheme.spacingSmall
+
+                RaohaneIcon {
+                    text: status.icon
+                    iconSize: 15
+                    fill: status.statusActive ? 1 : status.hovered ? 0.35 : 0
+                    color: status.critical ? RaohaneTheme.critical
+                        : status.statusActive || status.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
 
                 Text {
                     Layout.fillWidth: true
                     text: status.label
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    color: status.statusActive || status.hovered ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
+                    font.pixelSize: 8
                     font.weight: Font.Medium
                     elide: Text.ElideRight
                 }
+            }
 
-                Text {
-                    Layout.fillWidth: true
-                    text: status.value
-                    color: status.critical ? RaohaneTheme.critical : RaohaneTheme.text
-                    font.pixelSize: 8
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
+            Text {
+                Layout.fillWidth: true
+                text: status.value
+                color: status.critical ? RaohaneTheme.critical : RaohaneTheme.text
+                font.pixelSize: 9
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+            }
+        }
+
+        MouseArea {
+            id: statusMouse
+            anchors.fill: parent
+            enabled: status.clickable
+            hoverEnabled: status.clickable
+            cursorShape: status.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onPressed: status.forceActiveFocus()
+            onClicked: status.triggered()
+        }
+
+        Keys.onPressed: event => {
+            if (!status.clickable)
+                return
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                status.triggered()
+                event.accepted = true
             }
         }
     }
