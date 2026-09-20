@@ -78,11 +78,11 @@ done
 
 rg -q 'RaohaneConfig\.themePreset' "$theme" || fail 'theme engine is not driven by persisted RaohaneConfig selection'
 rg -q 'readonly property var presets:' "$theme" || fail 'theme engine lost its preset catalog'
-for preset in zen-mist paper sakura matcha slate sand sumi midnight; do
+for preset in raohane-dark paper rose-glass sage-glass slate sand ink-dark midnight; do
   rg -q "id:[[:space:]]*\"${preset}\"" "$theme" || fail "theme preset missing: $preset"
 done
-rg -q 'property string themePreset:[[:space:]]*"zen-mist"' "$config" || fail 'native config does not default to Zen Mist'
-rg -q '"themePreset"[[:space:]]*:[[:space:]]*"zen-mist"' "$defaults" || fail 'native defaults do not select Zen Mist'
+rg -q 'property string themePreset:[[:space:]]*"raohane-dark"' "$config" || fail 'native config does not default to Raohane'
+rg -q '"themePreset"[[:space:]]*:[[:space:]]*"raohane-dark"' "$defaults" || fail 'native defaults do not select Raohane'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library does not consume the shared preset source'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply a preset live'
 
