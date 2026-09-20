@@ -8,14 +8,14 @@ FocusScope {
     property bool checked: false
     signal toggled(bool checked)
 
-    implicitWidth: 36
-    implicitHeight: 20
+    implicitWidth: 44
+    implicitHeight: 26
     activeFocusOnTab: enabled
     opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
 
     Rectangle {
         anchors.fill: parent
-        radius: 8
+        radius: height / 2
         color: root.checked ? RaohaneTheme.accentSoft : RaohaneTheme.surfaceDeep
         border.width: 1
         border.color: root.checked
@@ -30,14 +30,23 @@ FocusScope {
 
     Rectangle {
         id: thumb
-        width: 14
-        height: 14
-        radius: 6
+        width: 20
+        height: 20
+        radius: width / 2
         anchors.verticalCenter: parent.verticalCenter
         x: root.checked ? root.width - width - 3 : 3
         color: root.checked ? RaohaneTheme.accent : RaohaneTheme.textMuted
-        border.width: root.checked ? 0 : 1
-        border.color: RaohaneTheme.borderStrong
+        border.width: 0
+
+        RaohaneIcon {
+            anchors.centerIn: parent
+            visible: root.checked
+            text: "check"
+            iconSize: 11
+            fill: 1
+            symbolWeight: 650
+            color: RaohaneTheme.surfaceDeep
+        }
 
         Behavior on x {
             enabled: RaohaneMotion.transformMotionEnabled && !RaohanePerformance.gameModeActive
