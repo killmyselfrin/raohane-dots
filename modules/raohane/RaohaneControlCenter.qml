@@ -25,8 +25,8 @@ Scope {
     readonly property bool privacyActive: RaohanePrivacy.recordingActive
         || RaohanePrivacy.cameraActive
         || RaohanePrivacy.microphoneActive
-    readonly property int panelWidth: Math.min(740, Math.max(600, Math.round((root.focusedScreen?.width ?? 1280) * 0.49)))
-    readonly property int panelHeight: Math.min(760, Math.max(620, Math.round((root.focusedScreen?.height ?? 800) - 48)))
+    readonly property int panelWidth: Math.min(640, Math.max(560, Math.round((root.focusedScreen?.width ?? 1280) * 0.42)))
+    readonly property int panelHeight: Math.min(740, Math.max(620, Math.round((root.focusedScreen?.height ?? 800) - 56)))
     property date now: new Date()
 
     Timer {
@@ -161,6 +161,7 @@ Scope {
             raised: true
             showSheen: false
             showInnerRim: false
+            idleColor: RaohaneTheme.surfaceRaised
             border.color: RaohaneTheme.borderStrong
             clip: true
             opacity: entered ? 1 : 0
@@ -214,8 +215,8 @@ Scope {
                 anchors.leftMargin: RaohaneTheme.panelPadding
                 anchors.rightMargin: RaohaneTheme.panelPadding
                 anchors.topMargin: RaohaneTheme.spacingLarge
-                anchors.bottomMargin: RaohaneTheme.spacing
-                spacing: RaohaneTheme.spacingSmall + 1
+                anchors.bottomMargin: RaohaneTheme.spacingSmall
+                spacing: RaohaneTheme.spacingSmall
 
                 RaohaneControlCenterHeader {
                     Layout.fillWidth: true
@@ -262,6 +263,10 @@ Scope {
 
                     privacyValue: root.privacyActive ? qsTr("Device in use") : qsTr("Quiet")
                     privacyActive: root.privacyActive
+
+                    onNetworkRequested: quickControls.pickerMode = "wifi"
+                    onBluetoothRequested: RaohaneBluetooth.toggle()
+                    onAudioRequested: quickControls.pickerMode = "output"
                 }
 
                 SectionLabel {
@@ -282,7 +287,7 @@ Scope {
                     visible: !quickControls.pickerOpen
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.minimumHeight: 142
+                    Layout.minimumHeight: 128
                     spacing: RaohaneTheme.spacing
 
                     RaohaneControlCenterMediaCard {
@@ -366,7 +371,7 @@ Scope {
         required property string icon
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 21
+        Layout.preferredHeight: 18
 
         RowLayout {
             anchors.fill: parent
@@ -378,7 +383,7 @@ Scope {
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 8
                 font.weight: Font.DemiBold
-                font.letterSpacing: 0.9
+                font.letterSpacing: 0.7
             }
             Item { Layout.fillWidth: true }
             Rectangle { Layout.preferredWidth: 44; Layout.preferredHeight: 1; color: RaohaneTheme.borderFaint }
