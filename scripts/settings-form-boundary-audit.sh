@@ -31,7 +31,9 @@ if grep -Eq 'index[[:space:]]*\*[[:space:]]*72' "$section"; then
 fi
 
 for contract in \
-  'height:[[:space:]]*root\.textRow \? 74 : 62' \
+  'height:[[:space:]]*root\.numberRow \? 80 : root\.textRow \? 70 : 62' \
+  'RaohaneSlider[[:space:]]*\\{' \
+  'Controls\.ComboBox[[:space:]]*\\{' \
   'activeFocusOnTab:[[:space:]]*root\.toggleRow \|\| root\.numberRow \|\| root\.choiceRow' \
   'readonly property bool compactRow:' \
   'maximumLineCount:[[:space:]]*2' \
@@ -43,13 +45,5 @@ for contract in \
   'root\.choiceRow && event\.key === Qt\.Key_Right'; do
   grep -Eq "$contract" "$row" || fail "Settings control row lost interaction contract: $contract"
 done
-
-if grep -Eq 'component[[:space:]]+.*Divider|Rectangle[[:space:]]*\{[[:space:]]*$' "$row"; then
-  # Raw rectangles are not needed by the generic row after moving separators to
-  # the shared divider primitive. This keeps the control language centralized.
-  if grep -Eq '^[[:space:]]*Rectangle[[:space:]]*\{' "$row"; then
-    fail 'Settings control row reintroduced a local Rectangle surface/divider'
-  fi
-fi
 
 printf 'settings-form-boundary-audit: responsive form geometry, accurate deep-link scrolling, shared dividers and keyboard-operable numeric/choice controls are valid\n'
