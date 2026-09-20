@@ -35,8 +35,9 @@ RaohaneSurface {
         || (root.tileId === "gameMode" && RaohanePerformance.lastError.length > 0)
         || (root.tileId === "bluetooth" && RaohaneBluetooth.lastError.length > 0)
         || (root.tileId === "easyEffects" && RaohaneEasyEffects.lastError.length > 0)
-    readonly property bool showMenu: root.tileId === "network"
-    readonly property bool menuOpen: root.tileId === "network" && root.pickerMode === "wifi"
+    readonly property bool showMenu: root.tileId === "network" || root.tileId === "bluetooth"
+    readonly property bool menuOpen: (root.tileId === "network" && root.pickerMode === "wifi")
+        || (root.tileId === "bluetooth" && root.pickerMode === "bluetooth")
     readonly property string currentIcon: root.tileBusy ? "progress_activity"
         : root.tileId === "network" ? RaohaneNetwork.materialSymbol
         : root.tileId === "bluetooth" ? (RaohaneBluetooth.connected ? "bluetooth_connected" : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
@@ -77,7 +78,7 @@ RaohaneSurface {
         : ""
 
     visible: root.available
-    enabled: root.backendAvailable && !root.tileBusy
+    enabled: root.available && !root.tileBusy
     Layout.preferredHeight: visible ? 58 : 0
     surfaceRadius: RaohaneTheme.radiusLarge
     active: root.tileActive
@@ -113,7 +114,7 @@ RaohaneSurface {
             root.pickerRequested("wifi")
             break
         case "bluetooth":
-            RaohaneBluetooth.toggle()
+            root.pickerRequested("bluetooth")
             break
         case "nightLight":
             RaohaneDisplay.toggleTemperature()
