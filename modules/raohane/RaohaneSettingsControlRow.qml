@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls as Controls
 import QtQuick.Layouts
 
 import qs.modules.raohane.config
@@ -19,7 +20,7 @@ RaohaneSurface {
     readonly property bool rowHovered: rowHover.hovered || activeFocus
     readonly property bool compactRow: width < 620
 
-    height: root.textRow ? 74 : 62
+    height: root.numberRow ? 80 : root.textRow ? 70 : 62
     activeFocusOnTab: root.toggleRow || root.numberRow || root.choiceRow
     surfaceRadius: RaohaneTheme.radiusSmall
     transparentIdle: true
@@ -39,6 +40,18 @@ RaohaneSurface {
         RaohaneConfig[root.entry.key] = Math.max(minimum, Math.min(maximum, current + delta))
     }
 
+    function numberText(): string {
+        if (!root.entry)
+            return ""
+        const value = Number(RaohaneConfig[root.entry.key] ?? 0)
+        const step = Number(root.entry.step ?? 1)
+        if (step > 0 && step < 0.1)
+            return value.toFixed(2)
+        if (step > 0 && step < 1)
+            return value.toFixed(1)
+        return String(Math.round(value))
+    }
+
     function currentChoiceIndex(): int {
         if (!root.entry || root.choiceOptions.length === 0)
             return -1
@@ -56,39 +69,46 @@ RaohaneSurface {
         return index >= 0 && index < root.choiceOptions.length ? root.choiceOptions[index] : null
     }
 
+    function setChoice(index: int): void {
+        if (!root.entry || index < 0 || index >= root.choiceOptions.length)
+            return
+        RaohaneConfig[root.entry.key] = String(root.choiceOptions[index].value)
+    }
+
     function changeChoice(delta: int): void {
         if (!root.entry || root.choiceOptions.length === 0)
             return
         const current = Math.max(0, root.currentChoiceIndex())
-        const nextIndex = (current + delta + root.choiceOptions.length) % root.choiceOptions.length
-        RaohaneConfig[root.entry.key] = String(root.choiceOptions[nextIndex].value)
+        root.setChoice((current + delta + root.choiceOptions.length) % root.choiceOptions.length)
     }
 
     RowLayout {
+        id: standardRow
+        visible: !root.numberRow
         anchors.fill: parent
-        anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
-        anchors.rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
+        anchors.leftMargin: RaohaneTheme.panelPadding
+        anchors.rightMargin: RaohaneTheme.panelPadding
         spacing: root.compactRow ? RaohaneTheme.spacing : RaohaneTheme.spacing + RaohaneTheme.spacingSmall
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
+            spacing: 2
 
             Text {
                 Layout.fillWidth: true
                 text: root.entry?.label ?? ""
                 color: RaohaneTheme.text
                 font.pixelSize: 10
-                font.weight: Font.DemiBold
+                font.weight: Font.Medium
                 elide: Text.ElideRight
             }
 
             Text {
                 Layout.fillWidth: true
                 text: root.entry?.detail ?? ""
-                color: RaohaneTheme.textFaint
+                color: RaohaneTheme.textMuted
                 font.pixelSize: 8
-                lineHeight: 1.18
+                lineHeight: 1.16
                 wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
@@ -97,148 +117,188 @@ RaohaneSurface {
 
         RaohaneSwitch {
             visible: root.toggleRow
-            Layout.preferredWidth: 42
-            Layout.preferredHeight: 24
+            Layout.preferredWidth: 44
+            Layout.preferredHeight: 26
             checked: root.entry ? Boolean(RaohaneConfig[root.entry.key]) : false
             enabled: false
             opacity: 1
         }
 
-        RaohaneSurface {
-            visible: root.numberRow
-            Layout.preferredWidth: root.compactRow ? 108 : 122
-            Layout.preferredHeight: 34
-            surfaceRadius: RaohaneTheme.radiusSmall
-            raised: false
-            showSheen: false
-            active: root.activeFocus && root.numberRow
-            idleColor: RaohaneTheme.surfaceDeep
-            activeColor: RaohaneTheme.surfaceDeep
-            idleBorderColor: "transparent"
-            activeBorderColor: RaohaneTheme.accentBorder
+        Controls.ComboBox {
+            id: choiceCombo
+            visible: root.choiceRow
+            Layout.preferredWidth: root.compactRow ? Math.max(168, root.width * 0.36) : 210
+            Layout.preferredHeight: 36
+            model: root.choiceOptions
+            currentIndex: root.currentChoiceIndex()
+            textRole: "label"
+            hoverEnabled: true
+            wheelEnabled: false
+            leftPadding: 12
+            rightPadding: 34
+            topPadding: 0
+            bottomPadding: 0
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: Math.max(1, RaohaneTheme.spacingTiny - 1)
-                anchors.rightMargin: Math.max(1, RaohaneTheme.spacingTiny - 1)
-                spacing: Math.max(1, RaohaneTheme.spacingTiny - 2)
+            onActivated: index => root.setChoice(index)
 
-                RaohaneIconButton {
-                    buttonSize: 28
-                    iconSize: 13
-                    icon: "remove"
-                    transparentIdle: true
-                    showSheen: false
-                    hoverScale: 1
-                    pressedScale: 1
-                    onClicked: root.changeNumber(-Number(root.entry?.step ?? 0))
+            background: Rectangle {
+                radius: RaohaneTheme.radiusSmall
+                color: choiceCombo.popup.visible || choiceCombo.activeFocus
+                    ? RaohaneTheme.surfaceHover
+                    : RaohaneTheme.surfaceDeep
+                border.width: 1
+                border.color: choiceCombo.popup.visible || choiceCombo.activeFocus
+                    ? RaohaneTheme.accentBorder
+                    : choiceCombo.hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
+            }
+
+            contentItem: RowLayout {
+                spacing: RaohaneTheme.spacingSmall
+
+                Rectangle {
+                    visible: String(root.currentChoice()?.color ?? "").length > 0
+                    Layout.preferredWidth: 14
+                    Layout.preferredHeight: 14
+                    radius: 7
+                    color: root.currentChoice()?.color ?? "transparent"
+                    border.width: 1
+                    border.color: RaohaneTheme.borderStrong
+                }
+
+                RaohaneIcon {
+                    visible: String(root.currentChoice()?.icon ?? "").length > 0
+                    text: root.currentChoice()?.icon ?? "tune"
+                    iconSize: 14
+                    color: RaohaneTheme.accent
                 }
 
                 Text {
                     Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    text: root.entry ? String(RaohaneConfig[root.entry.key]) : ""
+                    text: root.currentChoice()?.label ?? ""
                     color: RaohaneTheme.text
                     font.pixelSize: 9
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Medium
+                    verticalAlignment: Text.AlignVCenter
                     elide: Text.ElideRight
                 }
-
-                RaohaneIconButton {
-                    buttonSize: 28
-                    iconSize: 13
-                    icon: "add"
-                    transparentIdle: true
-                    showSheen: false
-                    hoverScale: 1
-                    pressedScale: 1
-                    onClicked: root.changeNumber(Number(root.entry?.step ?? 0))
-                }
             }
-        }
 
-        RaohaneSurface {
-            visible: root.choiceRow
-            Layout.preferredWidth: root.compactRow ? Math.max(152, root.width * 0.34) : 192
-            Layout.preferredHeight: 34
-            surfaceRadius: RaohaneTheme.radiusSmall
-            raised: false
-            showSheen: false
-            active: root.activeFocus && root.choiceRow
-            idleColor: RaohaneTheme.surfaceDeep
-            activeColor: RaohaneTheme.surfaceDeep
-            idleBorderColor: "transparent"
-            activeBorderColor: RaohaneTheme.accentBorder
+            indicator: RaohaneIcon {
+                x: choiceCombo.width - width - 11
+                y: (choiceCombo.height - height) / 2
+                text: choiceCombo.popup.visible ? "expand_less" : "expand_more"
+                iconSize: 14
+                color: choiceCombo.popup.visible ? RaohaneTheme.accent : RaohaneTheme.textMuted
+            }
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: Math.max(1, RaohaneTheme.spacingTiny - 1)
-                anchors.rightMargin: Math.max(1, RaohaneTheme.spacingTiny - 1)
-                spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
+            delegate: Controls.ItemDelegate {
+                id: optionDelegate
+                required property var modelData
+                required property int index
 
-                RaohaneIconButton {
-                    buttonSize: 28
-                    iconSize: 13
-                    icon: "chevron_left"
-                    transparentIdle: true
-                    showSheen: false
-                    hoverScale: 1
-                    pressedScale: 1
-                    onClicked: root.changeChoice(-1)
+                width: choiceCombo.width - 8
+                height: 38
+                leftPadding: 10
+                rightPadding: 10
+                highlighted: choiceCombo.highlightedIndex === index
+
+                background: Rectangle {
+                    radius: RaohaneTheme.radiusSmall
+                    color: optionDelegate.highlighted
+                        ? RaohaneTheme.surfaceHover
+                        : optionDelegate.index === root.currentChoiceIndex()
+                            ? RaohaneTheme.accentSoft
+                            : "transparent"
                 }
 
-                RowLayout {
-                    Layout.fillWidth: true
+                contentItem: RowLayout {
                     spacing: RaohaneTheme.spacingSmall
 
+                    Rectangle {
+                        visible: String(optionDelegate.modelData?.color ?? "").length > 0
+                        Layout.preferredWidth: 14
+                        Layout.preferredHeight: 14
+                        radius: 7
+                        color: optionDelegate.modelData?.color ?? "transparent"
+                        border.width: 1
+                        border.color: RaohaneTheme.borderStrong
+                    }
+
                     RaohaneIcon {
-                        text: root.currentChoice()?.icon ?? "tune"
+                        visible: String(optionDelegate.modelData?.icon ?? "").length > 0
+                        text: optionDelegate.modelData?.icon ?? "tune"
                         iconSize: 14
-                        color: RaohaneTheme.accent
+                        color: optionDelegate.index === root.currentChoiceIndex()
+                            ? RaohaneTheme.accent : RaohaneTheme.textMuted
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        text: root.currentChoice()?.label ?? ""
+                        text: String(optionDelegate.modelData?.label ?? "")
                         color: RaohaneTheme.text
-                        font.pixelSize: 8
-                        font.weight: Font.DemiBold
-                        horizontalAlignment: Text.AlignHCenter
+                        font.pixelSize: 9
+                        font.weight: optionDelegate.index === root.currentChoiceIndex()
+                            ? Font.DemiBold : Font.Normal
                         elide: Text.ElideRight
                     }
+
+                    RaohaneIcon {
+                        visible: optionDelegate.index === root.currentChoiceIndex()
+                        text: "check"
+                        iconSize: 13
+                        fill: 1
+                        color: RaohaneTheme.accent
+                    }
+                }
+            }
+
+            popup: Controls.Popup {
+                y: choiceCombo.height + 4
+                width: choiceCombo.width
+                padding: 4
+                implicitHeight: Math.min(contentItem.implicitHeight + 8, 260)
+
+                background: Rectangle {
+                    radius: RaohaneTheme.radius
+                    color: RaohaneTheme.surfaceRaised
+                    border.width: 1
+                    border.color: RaohaneTheme.accentBorder
                 }
 
-                RaohaneIconButton {
-                    buttonSize: 28
-                    iconSize: 13
-                    icon: "chevron_right"
-                    transparentIdle: true
-                    showSheen: false
-                    hoverScale: 1
-                    pressedScale: 1
-                    onClicked: root.changeChoice(1)
+                contentItem: ListView {
+                    clip: true
+                    implicitHeight: contentHeight
+                    model: choiceCombo.popup.visible ? choiceCombo.delegateModel : null
+                    currentIndex: choiceCombo.highlightedIndex
+                    spacing: 2
+                    boundsBehavior: Flickable.StopAtBounds
+                    ScrollIndicator.vertical: Controls.ScrollIndicator {}
                 }
             }
         }
 
         RaohaneSurface {
             visible: root.textRow
-            Layout.preferredWidth: root.compactRow ? Math.max(180, root.width * 0.38) : Math.min(300, root.width * 0.42)
-            Layout.preferredHeight: 34
+            Layout.preferredWidth: root.compactRow ? Math.max(180, root.width * 0.40) : Math.min(320, root.width * 0.44)
+            Layout.preferredHeight: 36
             surfaceRadius: RaohaneTheme.radiusSmall
             raised: false
             active: field.activeFocus
             showSheen: false
+            showInnerRim: false
             idleColor: RaohaneTheme.surfaceDeep
-            activeColor: RaohaneTheme.surfaceDeep
-            idleBorderColor: "transparent"
+            activeColor: RaohaneTheme.surfaceHover
+            idleBorderColor: RaohaneTheme.borderFaint
             activeBorderColor: RaohaneTheme.accentBorder
 
             TextInput {
                 id: field
                 anchors.fill: parent
-                anchors.leftMargin: RaohaneTheme.spacing
-                anchors.rightMargin: RaohaneTheme.spacing
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
                 verticalAlignment: TextInput.AlignVCenter
                 text: root.entry ? String(RaohaneConfig[root.entry.key] ?? "") : ""
                 color: RaohaneTheme.text
@@ -254,6 +314,80 @@ RaohaneSurface {
         }
     }
 
+    ColumnLayout {
+        id: numberRowLayout
+        visible: root.numberRow
+        anchors.fill: parent
+        anchors.leftMargin: RaohaneTheme.panelPadding
+        anchors.rightMargin: RaohaneTheme.panelPadding
+        anchors.topMargin: 7
+        anchors.bottomMargin: 7
+        spacing: 3
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+
+                Text {
+                    Layout.fillWidth: true
+                    text: root.entry?.label ?? ""
+                    color: RaohaneTheme.text
+                    font.pixelSize: 10
+                    font.weight: Font.Medium
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: root.entry?.detail ?? ""
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 8
+                    elide: Text.ElideRight
+                }
+            }
+
+            RaohaneSurface {
+                Layout.preferredWidth: Math.max(50, numberValue.implicitWidth + 18)
+                Layout.preferredHeight: 24
+                surfaceRadius: RaohaneTheme.radiusSmall
+                raised: false
+                showSheen: false
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceDeep
+                idleBorderColor: "transparent"
+
+                Text {
+                    id: numberValue
+                    anchors.centerIn: parent
+                    text: root.numberText()
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 8
+                    font.weight: Font.DemiBold
+                }
+            }
+        }
+
+        RaohaneSlider {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 24
+            from: Number(root.entry?.min ?? 0)
+            to: Number(root.entry?.max ?? 1)
+            stepSize: Number(root.entry?.step ?? 1)
+            value: root.entry ? Number(RaohaneConfig[root.entry.key] ?? 0) : 0
+            trackHeight: 8
+            handleWidth: 3
+            handleHeight: 18
+            onMoved: value => {
+                if (root.entry)
+                    RaohaneConfig[root.entry.key] = value
+            }
+        }
+    }
+
     RaohaneDivider {
         visible: !root.lastRow
         anchors {
@@ -265,10 +399,9 @@ RaohaneSurface {
         }
         height: 1
         color: RaohaneTheme.borderFaint
+        opacity: 0.62
     }
 
-    // Hover feedback must remain passive. A row-wide MouseArea above the
-    // control surfaces would steal pointer input from choice/number/text rows.
     HoverHandler {
         id: rowHover
     }
