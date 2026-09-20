@@ -34,7 +34,7 @@ Item {
         ? (RaohaneNetwork.wifiEnabled ? qsTr("Choose a network") : qsTr("Wi-Fi is turned off"))
         : bluetoothMode
             ? (RaohaneBluetooth.available
-                ? (RaohaneBluetooth.enabled ? qsTr("Choose a device") : qsTr("Off"))
+                ? (RaohaneBluetooth.enabled ? qsTr("Available device") : qsTr("Off"))
                 : qsTr("No adapter"))
             : outputMode
                 ? (RaohaneAudio.sinkName || qsTr("Choose an output device"))
