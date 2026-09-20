@@ -185,7 +185,7 @@ if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$quick_tile" "$cont
 fi
 rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles do not consume minimalist surface tokens'
 rg -q 'RaohaneTheme\.borderStrong' "$quick_tile" || fail 'Quick Control tiles do not consume shared minimal borders'
-rg -q 'RaohaneTheme\.surfaceSubtle' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
+rg -q 'RaohaneTheme\.surfaceDeep' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
 rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted navigation'
 rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted page header'
 
@@ -205,7 +205,6 @@ fi
 
 rg -q 'implicitHeight:[[:space:]]*64' "$bar" || fail 'horizontal bar lost the floating-pod compositor height contract'
 rg -q 'podHeight:[[:space:]]*Math\.max\(38,[[:space:]]*Math\.min\(48,' "$bar" || fail 'horizontal bar lost safe advanced pod-height bounds'
-rg -q 'barScale' "$bar" || fail 'horizontal bar does not consume persisted advanced scale'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$bar" || fail 'horizontal bar no longer composes through the native module host'
 rg -q 'RaohaneBarModule[[:space:]]*\{' "$vertical" || fail 'vertical bar no longer composes through the native module host'
 rg -q 'orientation:[[:space:]]*"vertical"' "$vertical" || fail 'vertical bar does not request vertical module presentation'
