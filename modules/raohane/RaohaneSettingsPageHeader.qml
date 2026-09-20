@@ -11,7 +11,7 @@ Item {
     property bool compact: false
     property int direction: 1
 
-    implicitHeight: 76
+    implicitHeight: 66
 
     function syncImmediately(): void {
         headerSwap.stop()
@@ -47,19 +47,20 @@ Item {
             spacing: RaohaneTheme.spacing
 
             RaohaneSurface {
-                Layout.preferredWidth: 34
-                Layout.preferredHeight: 34
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
                 surfaceRadius: RaohaneTheme.radiusLarge
-                active: true
+                active: false
                 raised: false
+                transparentIdle: true
                 showSheen: false
                 showInnerRim: false
-                activeBorderColor: "transparent"
+                idleBorderColor: "transparent"
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: root.displayedPageInfo?.icon ?? "settings"
-                    iconSize: 17
+                    iconSize: 18
                     fill: 1
                     symbolWeight: 550
                     grade: 30
@@ -75,7 +76,7 @@ Item {
                     Layout.fillWidth: true
                     text: root.displayedPageInfo?.name ?? qsTr("Settings")
                     color: RaohaneTheme.text
-                    font.pixelSize: 17
+                    font.pixelSize: 16
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -84,23 +85,13 @@ Item {
                     Layout.fillWidth: true
                     text: root.displayedPageInfo?.subtitle ?? ""
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     elide: Text.ElideRight
                 }
             }
 
-            Text {
-                id: groupText
-                visible: !root.compact
-                text: root.displayedPageInfo?.group ?? qsTr("SYSTEM")
-                color: RaohaneTheme.textFaint
-                font.pixelSize: 8
-                font.weight: Font.DemiBold
-                font.letterSpacing: 0.75
-            }
-
             Item {
-                Layout.preferredWidth: root.compact ? 36 : 340
+                Layout.preferredWidth: root.compact ? 36 : 360
                 Layout.fillHeight: true
             }
         }
