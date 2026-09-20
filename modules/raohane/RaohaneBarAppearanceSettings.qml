@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls as Controls
 import Quickshell
 
 import qs.modules.raohane.config
@@ -277,11 +276,9 @@ Item {
             title: qsTr("Behavior")
             subtitle: qsTr("Control visibility, fullscreen interaction and the panel background.")
 
-            GridLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                columns: width >= 720 ? 2 : 1
-                columnSpacing: 8
-                rowSpacing: 8
+                spacing: 0
 
                 ToggleRow {
                     Layout.fillWidth: true
@@ -351,11 +348,9 @@ Item {
             title: qsTr("Geometry")
             subtitle: qsTr("Tune panel dimensions independently from the global interface scale.")
 
-            GridLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                columns: width >= 760 ? 2 : 1
-                columnSpacing: 10
-                rowSpacing: 10
+                spacing: 0
 
                 BarSlider {
                     Layout.fillWidth: true
@@ -457,6 +452,7 @@ Item {
                     maximum: 1000
                     step: 20
                     suffix: " ms"
+                    showDivider: false
                     enabled: RaohaneConfig.barShowOnSuper
                     onUserChanged: value => RaohaneConfig.barShowOnSuperDelay = Math.round(value)
                 }
@@ -545,7 +541,9 @@ Item {
         surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
         showSheen: false
-        border.color: RaohaneTheme.borderFaint
+        showInnerRim: false
+        idleColor: RaohaneTheme.surfaceSubtle
+        border.color: "transparent"
 
         ColumnLayout {
             id: sectionColumn
@@ -555,7 +553,7 @@ Item {
                 top: parent.top
                 margins: 12
             }
-            spacing: 9
+            spacing: 10
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -580,7 +578,7 @@ Item {
             ColumnLayout {
                 id: body
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: 0
             }
         }
     }
@@ -592,14 +590,21 @@ Item {
         property bool selected: false
         signal chosen()
 
-        implicitHeight: 50
-        surfaceRadius: 12
+        implicitHeight: 42
+        surfaceRadius: RaohaneTheme.radius
         raised: false
         active: selected
         interactive: true
         hovered: chipMouse.containsMouse
         pressed: chipMouse.pressed
         showSheen: false
+        showInnerRim: false
+        transparentIdle: !selected
+        idleBorderColor: "transparent"
+        hoverBorderColor: "transparent"
+        activeBorderColor: "transparent"
+        activeColor: RaohaneTheme.accentSoft
+        hoverColor: RaohaneTheme.surfaceHover
 
         RowLayout {
             anchors.fill: parent
@@ -663,19 +668,25 @@ Item {
         property bool checked: false
         signal toggled(bool value)
 
-        implicitHeight: 58
-        surfaceRadius: 12
+        implicitHeight: 54
+        surfaceRadius: RaohaneTheme.radius
         raised: false
         interactive: enabled
         hovered: enabled && toggleMouse.containsMouse
         pressed: enabled && toggleMouse.pressed
         showSheen: false
+        showInnerRim: false
+        transparentIdle: true
+        idleBorderColor: "transparent"
+        hoverBorderColor: "transparent"
+        hoverColor: RaohaneTheme.surfaceHover
         opacity: enabled ? 1 : 0.45
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 10
-            spacing: 8
+            anchors.leftMargin: 4
+            anchors.rightMargin: 4
+            spacing: 10
 
             RaohaneIcon {
                 text: toggle.icon
@@ -720,8 +731,8 @@ Item {
         }
     }
 
-    component BarSlider: RaohaneSurface {
-        id: sliderCard
+    component BarSlider: Item {
+        id: sliderRow
 
         property string title: ""
         property string detail: ""
@@ -731,61 +742,95 @@ Item {
         property real step: 0.1
         property real multiplier: 1
         property string suffix: ""
+        property bool showDivider: true
         signal userChanged(real value)
 
-        Layout.preferredHeight: 82
-        surfaceRadius: 13
-        raised: false
-        showSheen: false
-        border.color: RaohaneTheme.borderFaint
-        opacity: enabled ? 1 : 0.45
+        Layout.fillWidth: true
+        Layout.preferredHeight: 64
+        opacity: enabled ? 1 : 0.42
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 11
-            spacing: 5
+            anchors.leftMargin: 4
+            anchors.rightMargin: 4
+            anchors.topMargin: 7
+            anchors.bottomMargin: 7
+            spacing: 4
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: 10
 
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 0
 
                     Text {
-                        text: sliderCard.title
+                        text: sliderRow.title
                         color: RaohaneTheme.text
-                        font.pixelSize: 9
-                        font.weight: Font.DemiBold
+                        font.pixelSize: 10
+                        font.weight: Font.Medium
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        text: sliderCard.detail
+                        text: sliderRow.detail
                         color: RaohaneTheme.textFaint
                         font.pixelSize: 8
                         elide: Text.ElideRight
                     }
                 }
 
-                Text {
-                    text: Math.round(sliderCard.value * sliderCard.multiplier) + sliderCard.suffix
-                    color: RaohaneTheme.accent
-                    font.pixelSize: 9
-                    font.weight: Font.DemiBold
+                RaohaneSurface {
+                    Layout.preferredWidth: Math.max(48, valueText.implicitWidth + 16)
+                    Layout.preferredHeight: 24
+                    surfaceRadius: RaohaneTheme.radiusSmall
+                    raised: false
+                    showSheen: false
+                    showInnerRim: false
+                    idleColor: RaohaneTheme.surfaceDeep
+                    idleBorderColor: "transparent"
+
+                    Text {
+                        id: valueText
+                        anchors.centerIn: parent
+                        text: Math.round(sliderRow.value * sliderRow.multiplier) + sliderRow.suffix
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                        font.weight: Font.DemiBold
+                    }
                 }
             }
 
-            Controls.Slider {
+            RaohaneSlider {
                 Layout.fillWidth: true
-                enabled: sliderCard.enabled
-                from: sliderCard.minimum
-                to: sliderCard.maximum
-                stepSize: sliderCard.step
-                value: sliderCard.value
-                onMoved: sliderCard.userChanged(value)
+                Layout.preferredHeight: 24
+                enabled: sliderRow.enabled
+                from: sliderRow.minimum
+                to: sliderRow.maximum
+                stepSize: sliderRow.step
+                value: sliderRow.value
+                trackHeight: 7
+                handleWidth: 4
+                handleHeight: 18
+                showHandle: true
+                onMoved: value => sliderRow.userChanged(value)
             }
         }
+
+        RaohaneDivider {
+            visible: sliderRow.showDivider
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+                leftMargin: 4
+                rightMargin: 4
+            }
+            height: 1
+            color: RaohaneTheme.borderFaint
+            opacity: 0.55
+        }
     }
+
 }
