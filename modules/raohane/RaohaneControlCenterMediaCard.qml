@@ -26,7 +26,7 @@ RaohaneSurface {
 
     readonly property real clampedProgress: Math.max(0, Math.min(1, Number(root.progress) || 0))
 
-    implicitHeight: 220
+    implicitHeight: root.mediaAvailable ? 220 : 118
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
@@ -61,8 +61,8 @@ RaohaneSurface {
                 spacing: RaohaneTheme.spacing
 
                 RaohaneSurface {
-                    Layout.preferredWidth: 76
-                    Layout.preferredHeight: 76
+                    Layout.preferredWidth: root.mediaAvailable ? 76 : 54
+                    Layout.preferredHeight: root.mediaAvailable ? 76 : 54
                     Layout.alignment: Qt.AlignVCenter
                     surfaceRadius: RaohaneTheme.radiusLarge
                     raised: false
@@ -85,7 +85,7 @@ RaohaneSurface {
                         anchors.centerIn: parent
                         visible: !mediaArt.visible
                         text: "music_note"
-                        iconSize: 28
+                        iconSize: root.mediaAvailable ? 28 : 22
                         fill: root.playing ? 1 : 0
                         symbolWeight: root.playing ? 540 : 400
                         color: root.playing ? RaohaneTheme.accent : RaohaneTheme.textFaint
@@ -97,7 +97,9 @@ RaohaneSurface {
                     spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
 
                     RowLayout {
+                        visible: root.mediaAvailable
                         Layout.fillWidth: true
+                        Layout.preferredHeight: visible ? implicitHeight : 0
                         spacing: RaohaneTheme.spacingSmall
 
                         Text {
@@ -139,8 +141,9 @@ RaohaneSurface {
                     Item { Layout.fillHeight: true }
 
                     Rectangle {
+                        visible: root.mediaAvailable
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 4
+                        Layout.preferredHeight: visible ? 4 : 0
                         radius: 2
                         color: RaohaneTheme.surfaceDeep
 
@@ -183,14 +186,16 @@ RaohaneSurface {
         }
 
         Rectangle {
+            visible: root.mediaAvailable
             Layout.fillWidth: true
-            Layout.preferredHeight: 1
+            Layout.preferredHeight: visible ? 1 : 0
             color: RaohaneTheme.divider
         }
 
         RowLayout {
+            visible: root.mediaAvailable
             Layout.fillWidth: true
-            Layout.preferredHeight: 30
+            Layout.preferredHeight: visible ? 30 : 0
             spacing: RaohaneTheme.spacingSmall
 
             Item { Layout.fillWidth: true }
