@@ -12,53 +12,82 @@ RaohaneSurface {
     signal wallpaperRequested()
     signal powerRequested()
 
-    implicitHeight: 56
-    surfaceRadius: RaohaneTheme.radiusLarge
+    implicitHeight: 154
+    surfaceRadius: RaohaneTheme.radiusHero
     raised: false
     showSheen: false
     showInnerRim: false
-    transparentIdle: true
+    idleColor: RaohaneTheme.surfaceSubtle
     idleBorderColor: "transparent"
 
-    RowLayout {
+    ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 0
-        spacing: RaohaneTheme.spacingTiny
+        anchors.margins: RaohaneTheme.spacing
+        spacing: RaohaneTheme.spacingSmall
 
-        ActionButton {
+        RowLayout {
             Layout.fillWidth: true
-            icon: "screenshot_region"
-            label: qsTr("Screenshot")
-            onTriggered: root.screenshotRequested()
+            Layout.preferredHeight: 24
+
+            Text {
+                text: qsTr("Shortcuts")
+                color: RaohaneTheme.text
+                font.pixelSize: 10
+                font.weight: Font.DemiBold
+            }
+
+            Item { Layout.fillWidth: true }
+
+            RaohaneIcon {
+                text: "grid_view"
+                iconSize: 13
+                color: RaohaneTheme.textFaint
+            }
         }
 
-        ActionButton {
+        GridLayout {
             Layout.fillWidth: true
-            icon: "translate"
-            label: qsTr("Translator")
-            onTriggered: root.translatorRequested()
-        }
+            Layout.fillHeight: true
+            columns: 2
+            columnSpacing: RaohaneTheme.spacingSmall
+            rowSpacing: RaohaneTheme.spacingSmall
 
-        ActionButton {
-            Layout.fillWidth: true
-            icon: "keyboard"
-            label: qsTr("OSK")
-            onTriggered: root.oskRequested()
-        }
+            ActionButton {
+                Layout.fillWidth: true
+                icon: "screenshot_region"
+                label: qsTr("Screenshot")
+                onTriggered: root.screenshotRequested()
+            }
 
-        ActionButton {
-            Layout.fillWidth: true
-            icon: "wallpaper"
-            label: qsTr("Wallpaper")
-            onTriggered: root.wallpaperRequested()
-        }
+            ActionButton {
+                Layout.fillWidth: true
+                icon: "translate"
+                label: qsTr("Translate")
+                onTriggered: root.translatorRequested()
+            }
 
-        ActionButton {
-            Layout.fillWidth: true
-            icon: "power_settings_new"
-            label: qsTr("Power")
-            accent: true
-            onTriggered: root.powerRequested()
+            ActionButton {
+                Layout.fillWidth: true
+                icon: "keyboard"
+                label: qsTr("Keyboard")
+                onTriggered: root.oskRequested()
+            }
+
+            ActionButton {
+                Layout.fillWidth: true
+                icon: "wallpaper"
+                label: qsTr("Wallpaper")
+                onTriggered: root.wallpaperRequested()
+            }
+
+            ActionButton {
+                Layout.fillWidth: true
+                Layout.columnSpan: 2
+                icon: "power_settings_new"
+                label: qsTr("Power")
+                accent: true
+                onTriggered: root.powerRequested()
+            }
         }
     }
 
@@ -70,8 +99,8 @@ RaohaneSurface {
         property bool accent: false
         signal triggered()
 
-        Layout.preferredHeight: 46
-        surfaceRadius: RaohaneTheme.radiusSmall
+        Layout.preferredHeight: 38
+        surfaceRadius: RaohaneTheme.radius
         raised: false
         showSheen: false
         showInnerRim: false
@@ -83,30 +112,40 @@ RaohaneSurface {
         pressedScale: 1
         activeFocusOnTab: true
         transparentIdle: !action.accent
+        idleBorderColor: "transparent"
         hoverColor: RaohaneTheme.surfaceHover
-        hoverBorderColor: RaohaneTheme.borderStrong
+        hoverBorderColor: "transparent"
         activeColor: RaohaneTheme.accentSoft
-        activeBorderColor: RaohaneTheme.accentBorder
+        activeBorderColor: "transparent"
 
-        Column {
-            anchors.centerIn: parent
-            spacing: RaohaneTheme.spacingTiny
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: RaohaneTheme.spacing
+            anchors.rightMargin: RaohaneTheme.spacing
+            spacing: RaohaneTheme.spacingSmall
 
             RaohaneIcon {
-                anchors.horizontalCenter: parent.horizontalCenter
                 text: action.icon
-                iconSize: 16
-                fill: action.accent ? 1 : action.hovered ? 0.4 : 0
-                symbolWeight: action.accent ? 560 : 450
+                iconSize: 15
+                fill: action.accent ? 1 : action.hovered ? 0.35 : 0
+                symbolWeight: action.accent ? 560 : 440
                 color: action.accent || action.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
             }
 
             Text {
-                anchors.horizontalCenter: parent.horizontalCenter
+                Layout.fillWidth: true
                 text: action.label
-                color: action.accent || action.hovered ? RaohaneTheme.text : RaohaneTheme.textFaint
-                font.pixelSize: 7
+                color: action.accent || action.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
+                font.pixelSize: 8
                 font.weight: Font.Medium
+                elide: Text.ElideRight
+            }
+
+            RaohaneIcon {
+                visible: action.accent
+                text: "chevron_right"
+                iconSize: 12
+                color: RaohaneTheme.accent
             }
         }
 
