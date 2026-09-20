@@ -14,10 +14,12 @@ RaohaneSurface {
     signal pickerRequested(string mode)
 
     readonly property var definition: RaohaneQuickControlRegistry.definition(root.tileId)
-    readonly property bool backendAvailable: root.tileId === "bluetooth" ? RaohaneBluetooth.available
+    readonly property bool available: root.tileId === "bluetooth" ? root.definition !== null
         : root.tileId === "easyEffects" ? RaohaneEasyEffects.available
         : root.definition !== null
-    readonly property bool available: root.definition !== null
+    readonly property bool backendAvailable: root.tileId === "bluetooth"
+        ? RaohaneBluetooth.available
+        : root.available
     readonly property bool tileActive: root.tileId === "network" ? RaohaneNetwork.wifiStatus !== "disabled"
         : root.tileId === "bluetooth" ? RaohaneBluetooth.enabled
         : root.tileId === "nightLight" ? RaohaneDisplay.temperatureActive
