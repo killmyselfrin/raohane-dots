@@ -17,9 +17,6 @@ RaohaneSurface {
     readonly property bool available: root.tileId === "bluetooth" ? root.definition !== null
         : root.tileId === "easyEffects" ? RaohaneEasyEffects.available
         : root.definition !== null
-    readonly property bool backendAvailable: root.tileId === "bluetooth"
-        ? RaohaneBluetooth.available
-        : root.available
     readonly property bool tileActive: root.tileId === "network" ? RaohaneNetwork.wifiStatus !== "disabled"
         : root.tileId === "bluetooth" ? RaohaneBluetooth.enabled
         : root.tileId === "nightLight" ? RaohaneDisplay.temperatureActive
@@ -35,8 +32,9 @@ RaohaneSurface {
         || (root.tileId === "gameMode" && RaohanePerformance.lastError.length > 0)
         || (root.tileId === "bluetooth" && RaohaneBluetooth.lastError.length > 0)
         || (root.tileId === "easyEffects" && RaohaneEasyEffects.lastError.length > 0)
-    readonly property bool showMenu: root.tileId === "network"
-    readonly property bool menuOpen: root.tileId === "network" && root.pickerMode === "wifi"
+    readonly property bool showMenu: root.tileId === "network" || root.tileId === "bluetooth"
+    readonly property bool menuOpen: (root.tileId === "network" && root.pickerMode === "wifi")
+        || (root.tileId === "bluetooth" && root.pickerMode === "bluetooth")
     readonly property string currentIcon: root.tileBusy ? "progress_activity"
         : root.tileId === "network" ? RaohaneNetwork.materialSymbol
         : root.tileId === "bluetooth" ? (RaohaneBluetooth.connected ? "bluetooth_connected" : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
@@ -77,7 +75,7 @@ RaohaneSurface {
         : ""
 
     visible: root.available
-    enabled: root.backendAvailable && !root.tileBusy
+    enabled: root.available && !root.tileBusy
     Layout.preferredHeight: visible ? 58 : 0
     surfaceRadius: RaohaneTheme.radiusLarge
     active: root.tileActive
@@ -113,7 +111,7 @@ RaohaneSurface {
             root.pickerRequested("wifi")
             break
         case "bluetooth":
-            RaohaneBluetooth.toggle()
+            root.pickerRequested("bluetooth")
             break
         case "nightLight":
             RaohaneDisplay.toggleTemperature()
