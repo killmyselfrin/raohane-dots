@@ -73,8 +73,8 @@ RaohaneSurface {
 
     visible: root.available
     enabled: root.available && !root.tileBusy
-    Layout.preferredHeight: visible ? 62 : 0
-    surfaceRadius: RaohaneTheme.radiusHero
+    Layout.preferredHeight: visible ? 54 : 0
+    surfaceRadius: RaohaneTheme.radiusLarge
     active: root.tileActive
     showSheen: false
     transparentIdle: false
@@ -149,15 +149,15 @@ RaohaneSurface {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: RaohaneTheme.spacing + 1
-        anchors.rightMargin: RaohaneTheme.spacing + 1
-        anchors.topMargin: RaohaneTheme.spacingSmall + 2
-        anchors.bottomMargin: RaohaneTheme.spacingSmall + 2
-        spacing: RaohaneTheme.spacing + 1
+        anchors.leftMargin: RaohaneTheme.spacing
+        anchors.rightMargin: RaohaneTheme.spacing
+        anchors.topMargin: RaohaneTheme.spacingSmall
+        anchors.bottomMargin: RaohaneTheme.spacingSmall
+        spacing: RaohaneTheme.spacing
 
         RaohaneSurface {
-            Layout.preferredWidth: 36
-            Layout.preferredHeight: 36
+            Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             Layout.alignment: Qt.AlignVCenter
             surfaceRadius: RaohaneTheme.radiusLarge
             showSheen: false
@@ -173,7 +173,7 @@ RaohaneSurface {
             RaohaneIcon {
                 anchors.centerIn: parent
                 text: root.currentIcon
-                iconSize: 18
+                iconSize: 16
                 fill: root.tileActive || root.tileError ? 1 : root.hovered ? 0.4 : 0
                 symbolWeight: root.tileActive || root.tileError ? 560 : root.hovered ? 500 : 430
                 grade: root.tileActive ? 40 : 0
