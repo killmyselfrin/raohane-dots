@@ -108,7 +108,7 @@ Item {
 
                 readonly property var selectedDelegate: navRepeater.itemAt(root.currentPage)
                 readonly property real selectedY: selectedDelegate
-                    ? selectedDelegate.y + selectedDelegate.height - 36
+                    ? selectedDelegate.y + selectedDelegate.height - 38
                     : 0
 
                 RaohaneSurface {
