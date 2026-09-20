@@ -19,20 +19,16 @@ RaohaneSurface {
     readonly property bool rowHovered: rowHover.hovered || activeFocus
     readonly property bool compactRow: width < 620
 
-    height: root.textRow ? 80 : 68
+    height: root.textRow ? 74 : 62
     activeFocusOnTab: root.toggleRow || root.numberRow || root.choiceRow
     surfaceRadius: RaohaneTheme.radiusSmall
     transparentIdle: true
     showSheen: false
     showInnerRim: false
     hovered: root.rowHovered
-    hoverColor: RaohaneTheme.surfaceSubtle
+    hoverColor: RaohaneTheme.surfaceHover
     border.width: 0
-    showStateRail: root.rowHovered
-    stateRailColor: RaohaneTheme.accent
-    stateRailOpacity: activeFocus ? 0.54 : 0.34
-    stateRailWidth: 2
-    stateRailLength: Math.max(16, root.height - 2 * RaohaneTheme.panelPadding)
+    showStateRail: false
 
     function changeNumber(delta: real): void {
         if (!root.entry)
@@ -72,7 +68,7 @@ RaohaneSurface {
         anchors.fill: parent
         anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
         anchors.rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
-        spacing: root.compactRow ? RaohaneTheme.spacing : RaohaneTheme.spacingLarge
+        spacing: root.compactRow ? RaohaneTheme.spacing : RaohaneTheme.spacing + RaohaneTheme.spacingSmall
 
         ColumnLayout {
             Layout.fillWidth: true
@@ -118,7 +114,7 @@ RaohaneSurface {
             active: root.activeFocus && root.numberRow
             idleColor: RaohaneTheme.surfaceDeep
             activeColor: RaohaneTheme.surfaceDeep
-            idleBorderColor: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            idleBorderColor: "transparent"
             activeBorderColor: RaohaneTheme.accentBorder
 
             RowLayout {
@@ -171,7 +167,7 @@ RaohaneSurface {
             active: root.activeFocus && root.choiceRow
             idleColor: RaohaneTheme.surfaceDeep
             activeColor: RaohaneTheme.surfaceDeep
-            idleBorderColor: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            idleBorderColor: "transparent"
             activeBorderColor: RaohaneTheme.accentBorder
 
             RowLayout {
@@ -235,7 +231,7 @@ RaohaneSurface {
             showSheen: false
             idleColor: RaohaneTheme.surfaceDeep
             activeColor: RaohaneTheme.surfaceDeep
-            idleBorderColor: root.rowHovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            idleBorderColor: "transparent"
             activeBorderColor: RaohaneTheme.accentBorder
 
             TextInput {
@@ -264,8 +260,8 @@ RaohaneSurface {
             left: parent.left
             right: parent.right
             bottom: parent.bottom
-            leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
-            rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
+            leftMargin: RaohaneTheme.panelPadding
+            rightMargin: RaohaneTheme.panelPadding
         }
         height: 1
         color: RaohaneTheme.borderFaint
