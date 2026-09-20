@@ -263,4 +263,4 @@ if rg -n '\.\./ii/settings/pages|modules/ii/settings/pages|^import qs$|^import q
   fail 'Settings architecture resolves inherited settings/common/root types'
 fi
 
-printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace, with Sakura ambience, generic sections, reusable control rows and persisted studios/preferences pages\n'
+printf 'settings-boundary-audit: all Settings routes share one animated registry/router/workspace, with neutral theming, generic sections, reusable control rows and persisted studios/preferences pages\n'
