@@ -20,7 +20,7 @@ rg -q '^import Quickshell\.Bluetooth$' "$service" \
 
 for contract in \
   'Bluetooth\.defaultAdapter' \
-  'Bluetooth\.devices\.values' \
+  'root\.adapter\.devices\.values' \
   'BluetoothAdapterState\.Enabling' \
   'BluetoothAdapterState\.Disabling' \
   'BluetoothAdapterState\.Blocked' \
@@ -46,4 +46,4 @@ fi
 rg -q '^bluez$' "$manifest" \
   || fail 'feature manifest no longer provides the BlueZ daemon/runtime'
 
-printf 'bluetooth-performance-audit: adapter power and connected-device state come directly from Quickshell BlueZ with no monitor/probe subprocesses\n'
+printf 'bluetooth-performance-audit: adapter power, discovery and device state come directly from Quickshell BlueZ with no monitor/probe subprocesses\n'
