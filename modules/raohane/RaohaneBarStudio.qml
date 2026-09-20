@@ -15,7 +15,7 @@ Item {
     ColumnLayout {
         id: studioColumn
         width: parent.width
-        spacing: 12
+        spacing: 10
 
         RowLayout {
             Layout.fillWidth: true
@@ -44,15 +44,18 @@ Item {
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 54
-            surfaceRadius: 13
+            Layout.preferredHeight: 48
+            surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
-            border.color: RaohaneTheme.borderFaint
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceSubtle
+            border.color: "transparent"
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 8
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
                 spacing: 8
 
                 Text {
@@ -78,8 +81,8 @@ Item {
                         readonly property bool selected: root.orientation === String(modelData.id)
 
                         Layout.preferredWidth: modeRow.implicitWidth + 20
-                        Layout.preferredHeight: 36
-                        surfaceRadius: 11
+                        Layout.preferredHeight: 32
+                        surfaceRadius: RaohaneTheme.radius
                         raised: false
                         active: selected
                         transparentIdle: !selected
@@ -87,6 +90,11 @@ Item {
                         hovered: modeMouse.containsMouse
                         pressed: modeMouse.pressed
                         showSheen: false
+                        showInnerRim: false
+                        idleBorderColor: "transparent"
+                        hoverBorderColor: "transparent"
+                        activeBorderColor: "transparent"
+                        activeColor: RaohaneTheme.accentSoft
 
                         RowLayout {
                             id: modeRow
