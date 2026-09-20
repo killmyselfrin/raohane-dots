@@ -251,6 +251,8 @@ done
 rg -q '"tiles"[[:space:]]*:[[:space:]]*\[' "$defaults" || fail 'native defaults lost Quick Control tile composition'
 rg -q 'RaohaneConfig\.quickControlTiles' "$quick_runtime" || fail 'Quick Controls runtime does not consume persisted tile composition'
 rg -q 'RaohaneQuickControlRegistry\.sanitizeLayout' "$quick_runtime" || fail 'Quick Controls runtime does not validate persisted tile composition'
+rg -q 'function isKnown\(tileId: string\): bool' "$quick_registry" || fail 'Quick Control registry lost membership validation'
+rg -q 'RaohaneQuickControlRegistry\.isKnown' "$quick_studio" || fail 'Quick Controls Studio does not validate tile ids through the registry'
 
 mapfile -t registry_keys < <(rg -o 'type:[[:space:]]*"(toggle|number|text)",[[:space:]]*key:[[:space:]]*"[A-Za-z0-9_]+"' "$registry" | sed -E 's/.*key:[[:space:]]*"([A-Za-z0-9_]+)"/\1/' | sort -u)
 [[ "${#registry_keys[@]}" -gt 0 ]] || fail 'could not discover native Settings control keys'

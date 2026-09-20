@@ -53,6 +53,10 @@ QtObject {
         return root.definitions[String(tileId ?? "")] ?? null
     }
 
+    function isKnown(tileId: string): bool {
+        return root.tileIds.includes(String(tileId ?? "").trim())
+    }
+
     function label(tileId: string): string {
         return root.definition(tileId)?.label ?? String(tileId ?? "")
     }
