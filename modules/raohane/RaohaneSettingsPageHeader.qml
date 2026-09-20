@@ -11,7 +11,7 @@ Item {
     property bool compact: false
     property int direction: 1
 
-    implicitHeight: 84
+    implicitHeight: 76
 
     function syncImmediately(): void {
         headerSwap.stop()
@@ -47,17 +47,19 @@ Item {
             spacing: RaohaneTheme.spacing
 
             RaohaneSurface {
-                Layout.preferredWidth: 40
-                Layout.preferredHeight: 40
+                Layout.preferredWidth: 34
+                Layout.preferredHeight: 34
                 surfaceRadius: RaohaneTheme.radiusLarge
                 active: true
                 raised: false
                 showSheen: false
+                showInnerRim: false
+                activeBorderColor: "transparent"
 
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: root.displayedPageInfo?.icon ?? "settings"
-                    iconSize: 19
+                    iconSize: 17
                     fill: 1
                     symbolWeight: 550
                     grade: 30
@@ -73,7 +75,7 @@ Item {
                     Layout.fillWidth: true
                     text: root.displayedPageInfo?.name ?? qsTr("Settings")
                     color: RaohaneTheme.text
-                    font.pixelSize: 18
+                    font.pixelSize: 17
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -82,7 +84,7 @@ Item {
                     Layout.fillWidth: true
                     text: root.displayedPageInfo?.subtitle ?? ""
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
+                    font.pixelSize: 8
                     elide: Text.ElideRight
                 }
             }
@@ -98,7 +100,7 @@ Item {
             }
 
             Item {
-                Layout.preferredWidth: root.compact ? 40 : 360
+                Layout.preferredWidth: root.compact ? 36 : 340
                 Layout.fillHeight: true
             }
         }
@@ -149,15 +151,5 @@ Item {
         }
     }
 
-    Rectangle {
-        anchors {
-            left: parent.left
-            right: parent.right
-            bottom: parent.bottom
-            leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacing
-            rightMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
-        }
-        height: 1
-        color: RaohaneTheme.borderFaint
-    }
+
 }
