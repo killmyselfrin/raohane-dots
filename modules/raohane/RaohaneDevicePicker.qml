@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Bluetooth
 
 import qs.modules.raohane.services
 
@@ -11,28 +12,41 @@ Item {
     property string mode: ""
     property string selectedWifi: ""
     property string wifiPassword: ""
+    property bool bluetoothScanStarted: false
     signal closeRequested()
 
     readonly property bool wifiMode: mode === "wifi"
+    readonly property bool bluetoothMode: mode === "bluetooth"
     readonly property bool outputMode: mode === "output"
     readonly property bool inputMode: mode === "input"
     readonly property var visibleEntries: wifiMode
         ? RaohaneNetwork.availableNetworks.slice(0, 6)
-        : outputMode
-            ? RaohaneAudio.outputDevices.slice(0, 6)
-            : RaohaneAudio.inputDevices.slice(0, 6)
+        : bluetoothMode
+            ? RaohaneBluetooth.devices.slice(0, 8)
+            : outputMode
+                ? RaohaneAudio.outputDevices.slice(0, 6)
+                : RaohaneAudio.inputDevices.slice(0, 6)
     readonly property string title: wifiMode ? qsTr("Wi-Fi networks")
+        : bluetoothMode ? qsTr("Bluetooth")
         : outputMode ? qsTr("Sound output")
         : qsTr("Microphone input")
     readonly property string subtitle: wifiMode
         ? (RaohaneNetwork.wifiEnabled ? qsTr("Choose a network") : qsTr("Wi-Fi is turned off"))
-        : outputMode
-            ? (RaohaneAudio.sinkName || qsTr("Choose an output device"))
-            : (RaohaneAudio.sourceName || qsTr("Choose an input device"))
+        : bluetoothMode
+            ? (RaohaneBluetooth.available
+                ? (RaohaneBluetooth.enabled ? qsTr("Choose a device") : qsTr("Off"))
+                : qsTr("No adapter"))
+            : outputMode
+                ? (RaohaneAudio.sinkName || qsTr("Choose an output device"))
+                : (RaohaneAudio.sourceName || qsTr("Choose an input device"))
     readonly property string headerIcon: wifiMode ? RaohaneNetwork.materialSymbol
-        : outputMode ? (RaohaneAudio.muted ? "volume_off" : "speaker")
-        : (RaohaneAudio.microphoneMuted ? "mic_off" : "mic")
+        : bluetoothMode
+            ? (RaohaneBluetooth.connected ? "bluetooth_connected"
+                : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
+            : outputMode ? (RaohaneAudio.muted ? "volume_off" : "speaker")
+            : (RaohaneAudio.microphoneMuted ? "mic_off" : "mic")
     readonly property bool busy: wifiMode ? (RaohaneNetwork.scanning || RaohaneNetwork.connectingSsid.length > 0)
+        : bluetoothMode ? RaohaneBluetooth.discovering
         : RaohaneAudio.devicesRefreshing
 
     implicitHeight: mode.length > 0 ? pickerContent.implicitHeight + 26 : 0
@@ -41,10 +55,27 @@ Item {
     onModeChanged: {
         root.selectedWifi = ""
         root.wifiPassword = ""
-        if (root.wifiMode)
+
+        if (!root.bluetoothMode && root.bluetoothScanStarted) {
+            RaohaneBluetooth.stopDiscovery()
+            root.bluetoothScanStarted = false
+        }
+
+        if (root.wifiMode) {
             RaohaneNetwork.scanNetworks()
-        else if (root.outputMode || root.inputMode)
+        } else if (root.bluetoothMode) {
+            if (RaohaneBluetooth.enabled && !RaohaneBluetooth.discovering) {
+                root.bluetoothScanStarted = true
+                RaohaneBluetooth.startDiscovery()
+            }
+        } else if (root.outputMode || root.inputMode) {
             RaohaneAudio.refreshDevices(true)
+        }
+    }
+
+    Component.onDestruction: {
+        if (root.bluetoothScanStarted)
+            RaohaneBluetooth.stopDiscovery()
     }
 
     function selectEntry(entry): void {
@@ -58,6 +89,11 @@ Item {
                 return
             }
             RaohaneNetwork.connectNetwork(String(entry.ssid ?? ""), "")
+            return
+        }
+
+        if (root.bluetoothMode) {
+            RaohaneBluetooth.toggleDevice(entry)
             return
         }
 
@@ -153,9 +189,21 @@ Item {
                 }
 
                 RaohaneSwitch {
-                    visible: root.wifiMode
-                    checked: RaohaneNetwork.wifiEnabled
-                    onToggled: checked => RaohaneNetwork.setWifiEnabled(checked)
+                    visible: root.wifiMode || root.bluetoothMode
+                    checked: root.wifiMode ? RaohaneNetwork.wifiEnabled : RaohaneBluetooth.enabled
+                    enabled: root.wifiMode || RaohaneBluetooth.available
+                    onToggled: checked => {
+                        if (root.wifiMode) {
+                            RaohaneNetwork.setWifiEnabled(checked)
+                            return
+                        }
+
+                        RaohaneBluetooth.setEnabled(checked)
+                        if (!checked && root.bluetoothScanStarted) {
+                            RaohaneBluetooth.stopDiscovery()
+                            root.bluetoothScanStarted = false
+                        }
+                    }
                 }
 
                 RaohaneIconButton {
@@ -166,12 +214,20 @@ Item {
                     showSheen: false
                     hoverScale: 1
                     pressedScale: 1
-                    enabled: root.wifiMode ? RaohaneNetwork.wifiEnabled && !root.busy : !root.busy
+                    enabled: root.wifiMode
+                        ? RaohaneNetwork.wifiEnabled && !root.busy
+                        : root.bluetoothMode
+                            ? RaohaneBluetooth.available && RaohaneBluetooth.enabled && !root.busy
+                            : !root.busy
                     onClicked: {
-                        if (root.wifiMode)
+                        if (root.wifiMode) {
                             RaohaneNetwork.scanNetworks()
-                        else
+                        } else if (root.bluetoothMode) {
+                            root.bluetoothScanStarted = true
+                            RaohaneBluetooth.startDiscovery()
+                        } else {
                             RaohaneAudio.refreshDevices(true)
+                        }
                     }
 
                     RotationAnimation on rotation {
@@ -209,6 +265,7 @@ Item {
                 showSheen: false
                 color: RaohaneTheme.surfaceSubtle
                 active: root.wifiMode ? RaohaneNetwork.wifiConnected
+                    : root.bluetoothMode ? RaohaneBluetooth.connected
                     : root.outputMode ? RaohaneAudio.ready
                     : RaohaneAudio.microphoneReady
 
@@ -233,9 +290,11 @@ Item {
                             Layout.fillWidth: true
                             text: root.wifiMode
                                 ? (RaohaneNetwork.networkName || qsTr("Not connected"))
-                                : root.outputMode
-                                    ? (RaohaneAudio.sinkName || qsTr("No output device"))
-                                    : (RaohaneAudio.sourceName || qsTr("No input device"))
+                                : root.bluetoothMode
+                                    ? (RaohaneBluetooth.firstConnectedName || qsTr("No devices found"))
+                                    : root.outputMode
+                                        ? (RaohaneAudio.sinkName || qsTr("No output device"))
+                                        : (RaohaneAudio.sourceName || qsTr("No input device"))
                             color: RaohaneTheme.text
                             font.pixelSize: 9
                             font.weight: Font.DemiBold
@@ -248,9 +307,11 @@ Item {
                                 ? (RaohaneNetwork.wifiConnected
                                     ? qsTr("Connected · %1% signal").arg(RaohaneNetwork.networkStrength)
                                     : qsTr("Available networks nearby"))
-                                : root.outputMode
-                                    ? qsTr("Default playback device")
-                                    : qsTr("Default recording device")
+                                : root.bluetoothMode
+                                    ? (RaohaneBluetooth.connected ? qsTr("Currently selected") : qsTr("Available device"))
+                                    : root.outputMode
+                                        ? qsTr("Default playback device")
+                                        : qsTr("Default recording device")
                             color: RaohaneTheme.textFaint
                             font.pixelSize: 7
                             elide: Text.ElideRight
@@ -270,7 +331,9 @@ Item {
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 5
-                visible: root.wifiMode ? RaohaneNetwork.wifiEnabled : true
+                visible: root.wifiMode ? RaohaneNetwork.wifiEnabled
+                    : root.bluetoothMode ? RaohaneBluetooth.enabled
+                    : true
 
                 Repeater {
                     model: root.visibleEntries
@@ -428,9 +491,16 @@ Item {
 
         readonly property bool rowActive: root.wifiMode
             ? Boolean(entry.active)
-            : Boolean(entry.active)
+            : root.bluetoothMode
+                ? Boolean(entry.connected)
+                : Boolean(entry.active)
         readonly property bool waiting: root.wifiMode
-            && RaohaneNetwork.connectingSsid === String(entry.ssid ?? "")
+            ? RaohaneNetwork.connectingSsid === String(entry.ssid ?? "")
+            : root.bluetoothMode
+                ? Boolean(entry.pairing)
+                    || entry.state === BluetoothDeviceState.Connecting
+                    || entry.state === BluetoothDeviceState.Disconnecting
+                : false
 
         Rectangle {
             anchors {
@@ -456,7 +526,9 @@ Item {
             RaohaneIcon {
                 text: root.wifiMode
                     ? RaohaneNetwork.signalIcon(row.entry.strength)
-                    : root.outputMode ? "speaker" : "mic"
+                    : root.bluetoothMode
+                        ? (row.entry.connected ? "bluetooth_connected" : "bluetooth")
+                        : root.outputMode ? "speaker" : "mic"
                 iconSize: 16
                 fill: row.rowActive ? 1 : 0
                 color: row.rowActive || row.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -468,7 +540,11 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: root.wifiMode ? String(row.entry.ssid ?? "") : String(row.entry.name ?? "")
+                    text: root.wifiMode
+                        ? String(row.entry.ssid ?? "")
+                        : root.bluetoothMode
+                            ? RaohaneBluetooth.deviceLabel(row.entry)
+                            : String(row.entry.name ?? "")
                     color: RaohaneTheme.text
                     font.pixelSize: 8
                     font.weight: Font.DemiBold
@@ -479,7 +555,11 @@ Item {
                     Layout.fillWidth: true
                     text: root.wifiMode
                         ? (row.entry.secure ? qsTr("Secured network") : qsTr("Open network"))
-                        : (row.rowActive ? qsTr("Currently selected") : qsTr("Available device"))
+                        : root.bluetoothMode
+                            ? (row.rowActive
+                                ? qsTr("Currently selected")
+                                : (row.entry.paired || row.entry.bonded) ? qsTr("Available device") : String(row.entry.address ?? ""))
+                            : (row.rowActive ? qsTr("Currently selected") : qsTr("Available device"))
                     color: RaohaneTheme.textFaint
                     font.pixelSize: 7
                     elide: Text.ElideRight
@@ -495,7 +575,11 @@ Item {
             }
 
             RaohaneIcon {
-                text: row.waiting ? "sync" : row.rowActive ? "check" : (root.wifiMode && row.entry.secure ? "lock" : "chevron_right")
+                text: row.waiting ? "sync"
+                    : row.rowActive ? "check"
+                    : (root.wifiMode && row.entry.secure ? "lock"
+                        : root.bluetoothMode ? "link"
+                        : "chevron_right")
                 iconSize: 14
                 fill: row.rowActive ? 1 : 0
                 color: row.rowActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
