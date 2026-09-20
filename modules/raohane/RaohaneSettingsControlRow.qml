@@ -274,7 +274,7 @@ RaohaneSurface {
                     currentIndex: choiceCombo.highlightedIndex
                     spacing: 2
                     boundsBehavior: Flickable.StopAtBounds
-                    ScrollIndicator.vertical: Controls.ScrollIndicator {}
+                    Controls.ScrollIndicator.vertical: Controls.ScrollIndicator {}
                 }
             }
         }
