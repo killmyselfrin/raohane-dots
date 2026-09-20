@@ -78,6 +78,17 @@ Item {
             RaohaneBluetooth.stopDiscovery()
     }
 
+    Connections {
+        target: RaohaneBluetooth
+
+        function onEnabledChanged(): void {
+            if (!root.bluetoothMode || !RaohaneBluetooth.enabled || RaohaneBluetooth.discovering)
+                return
+            root.bluetoothScanStarted = true
+            Qt.callLater(() => RaohaneBluetooth.startDiscovery())
+        }
+    }
+
     function selectEntry(entry): void {
         if (root.wifiMode) {
             if (entry.active)
