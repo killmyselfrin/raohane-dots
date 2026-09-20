@@ -56,95 +56,16 @@ Item {
         width: parent.width
         spacing: 12
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 12
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 2
-
-                Text {
-                    text: qsTr("Quick Controls Studio")
-                    color: RaohaneTheme.text
-                    font.pixelSize: 14
-                    font.weight: Font.DemiBold
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: qsTr("Choose and reorder Control Center tiles. Changes apply live and are saved automatically.")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
-                    lineHeight: 1.15
-                    wrapMode: Text.WordWrap
-                }
-            }
-
-            RaohaneSurface {
-                Layout.preferredWidth: resetRow.implicitWidth + 22
-                Layout.preferredHeight: 36
-                surfaceRadius: 11
-                raised: false
-                interactive: true
-                hovered: resetMouse.containsMouse
-                pressed: resetMouse.pressed
-                showSheen: false
-                hoverScale: 1
-                pressedScale: 1
-                border.color: resetMouse.containsMouse ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
-
-                RowLayout {
-                    id: resetRow
-                    anchors.centerIn: parent
-                    spacing: 6
-
-                    RaohaneIcon {
-                        text: "restart_alt"
-                        iconSize: 15
-                        color: resetMouse.containsMouse ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    }
-
-                    Text {
-                        text: qsTr("Reset")
-                        color: resetMouse.containsMouse ? RaohaneTheme.text : RaohaneTheme.textMuted
-                        font.pixelSize: 9
-                        font.weight: Font.DemiBold
-                    }
-                }
-
-                MouseArea {
-                    id: resetMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.resetLayout()
-                }
-            }
-        }
-
         RaohaneSurface {
             Layout.fillWidth: true
             Layout.preferredHeight: previewColumn.implicitHeight + 28
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
-            border.color: RaohaneTheme.borderStrong
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceSubtle
+            border.color: "transparent"
             clip: true
-
-            Rectangle {
-                anchors {
-                    top: parent.top
-                    right: parent.right
-                    topMargin: -68
-                    rightMargin: -42
-                }
-                width: 158
-                height: 158
-                radius: 79
-                color: RaohaneTheme.accentSoft
-                opacity: 0.34
-            }
 
             ColumnLayout {
                 id: previewColumn
@@ -178,9 +99,12 @@ Item {
                     RaohaneSurface {
                         Layout.preferredWidth: previewCount.implicitWidth + 18
                         Layout.preferredHeight: 26
-                        surfaceRadius: 9
-                        transparentIdle: true
+                        surfaceRadius: RaohaneTheme.radiusSmall
+                        raised: false
                         showSheen: false
+                        showInnerRim: false
+                        idleColor: RaohaneTheme.surfaceDeep
+                        idleBorderColor: "transparent"
 
                         Text {
                             id: previewCount
@@ -210,10 +134,12 @@ Item {
 
                             Layout.fillWidth: true
                             Layout.preferredHeight: 46
-                            surfaceRadius: 12
+                            surfaceRadius: RaohaneTheme.radius
                             raised: false
                             showSheen: false
-                            border.color: RaohaneTheme.borderFaint
+                            showInnerRim: false
+                            idleColor: RaohaneTheme.surfaceDeep
+                            idleBorderColor: "transparent"
 
                             RowLayout {
                                 anchors.fill: parent
@@ -242,7 +168,7 @@ Item {
                                     Layout.preferredHeight: 6
                                     radius: 3
                                     color: RaohaneTheme.accent
-                                    opacity: 0.62
+                                    opacity: 0.58
                                 }
                             }
                         }
@@ -253,10 +179,12 @@ Item {
                     visible: root.sliderCount > 0
                     Layout.fillWidth: true
                     Layout.preferredHeight: visible ? sliderPreviewRow.implicitHeight + 12 : 0
-                    surfaceRadius: 12
+                    surfaceRadius: RaohaneTheme.radius
                     raised: false
                     showSheen: false
-                    border.color: RaohaneTheme.borderFaint
+                    showInnerRim: false
+                    idleColor: RaohaneTheme.surfaceDeep
+                    idleBorderColor: "transparent"
 
                     RowLayout {
                         id: sliderPreviewRow
@@ -309,7 +237,9 @@ Item {
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
-                border.color: RaohaneTheme.borderFaint
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceSubtle
+                border.color: "transparent"
 
                 ColumnLayout {
                     id: activeColumn
@@ -338,6 +268,17 @@ Item {
                             font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
+
+                        RaohaneIconButton {
+                            buttonSize: 28
+                            iconSize: 13
+                            icon: "restart_alt"
+                            transparentIdle: true
+                            showSheen: false
+                            hoverScale: 1
+                            pressedScale: 1
+                            onClicked: root.resetLayout()
+                        }
                     }
 
                     Repeater {
@@ -352,10 +293,17 @@ Item {
 
                             Layout.fillWidth: true
                             Layout.preferredHeight: 50
-                            surfaceRadius: 12
+                            surfaceRadius: RaohaneTheme.radius
                             raised: false
                             showSheen: false
-                            border.color: RaohaneTheme.borderFaint
+                            showInnerRim: false
+                            transparentIdle: true
+                            interactive: true
+                            hovered: activeRowHover.hovered
+                            pressed: false
+                            hoverColor: RaohaneTheme.surfaceHover
+                            idleBorderColor: "transparent"
+                            hoverBorderColor: "transparent"
 
                             RowLayout {
                                 anchors.fill: parent
@@ -417,6 +365,10 @@ Item {
                                     onClicked: root.removeAt(activeRow.index)
                                 }
                             }
+
+                            HoverHandler {
+                                id: activeRowHover
+                            }
                         }
                     }
                 }
@@ -429,7 +381,9 @@ Item {
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
-                border.color: RaohaneTheme.borderFaint
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceSubtle
+                border.color: "transparent"
 
                 ColumnLayout {
                     id: availableColumn
@@ -480,10 +434,17 @@ Item {
 
                             Layout.fillWidth: true
                             Layout.preferredHeight: 50
-                            surfaceRadius: 12
+                            surfaceRadius: RaohaneTheme.radius
                             raised: false
                             showSheen: false
-                            border.color: RaohaneTheme.borderFaint
+                            showInnerRim: false
+                            transparentIdle: true
+                            interactive: true
+                            hovered: availableRowHover.hovered
+                            pressed: false
+                            hoverColor: RaohaneTheme.surfaceHover
+                            idleBorderColor: "transparent"
+                            hoverBorderColor: "transparent"
 
                             RowLayout {
                                 anchors.fill: parent
@@ -516,6 +477,10 @@ Item {
                                     pressedScale: 1
                                     onClicked: root.addTile(availableRow.tileId)
                                 }
+                            }
+
+                            HoverHandler {
+                                id: availableRowHover
                             }
                         }
                     }
@@ -560,7 +525,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 4
                     radius: 2
-                    color: RaohaneTheme.borderFaint
+                    color: RaohaneTheme.borderStrong
 
                     Rectangle {
                         width: parent.width * sliderPreview.value
