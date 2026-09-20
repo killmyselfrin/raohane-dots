@@ -18,7 +18,7 @@ Item {
     readonly property bool compactLayout: width < 700
 
     function entryHeight(entry): int {
-        return entry?.type === "text" ? 80 : 68
+        return entry?.type === "text" ? 74 : 62
     }
 
     function entryOffset(index: int): real {
@@ -105,15 +105,18 @@ Item {
                 root.compactLayout ? 680 : 820
             )
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: RaohaneTheme.spacingLarge
+            spacing: RaohaneTheme.spacing
 
             RaohaneSurface {
                 id: sectionHero
                 width: parent.width
-                height: root.compactLayout ? 98 : 110
+                height: root.compactLayout ? 82 : 90
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
+                showInnerRim: false
+                transparentIdle: true
+                idleBorderColor: "transparent"
                 clip: true
                 opacity: root.headerEntered ? 1 : 0
 
@@ -134,24 +137,6 @@ Item {
                     }
                 }
 
-                Rectangle {
-                    width: 158
-                    height: 158
-                    radius: 79
-                    anchors {
-                        right: parent.right
-                        top: parent.top
-                        rightMargin: -46
-                        topMargin: -74
-                    }
-                    color: RaohaneTheme.accentSoft
-                    opacity: root.headerEntered ? 0.34 : 0.12
-
-                    Behavior on opacity {
-                        NumberAnimation { duration: RaohaneMotion.relaxed }
-                    }
-                }
-
                 RowLayout {
                     anchors.fill: parent
                     anchors.leftMargin: RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
@@ -159,16 +144,19 @@ Item {
                     spacing: RaohaneTheme.spacingLarge
 
                     RaohaneSurface {
-                        Layout.preferredWidth: root.compactLayout ? 44 : 50
-                        Layout.preferredHeight: root.compactLayout ? 44 : 50
-                        surfaceRadius: RaohaneTheme.radiusSmall
+                        Layout.preferredWidth: root.compactLayout ? 40 : 44
+                        Layout.preferredHeight: root.compactLayout ? 40 : 44
+                        surfaceRadius: RaohaneTheme.radiusLarge
+                        raised: false
                         active: true
                         showSheen: false
+                        showInnerRim: false
+                        activeBorderColor: "transparent"
 
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: root.pageInfo?.icon ?? "tune"
-                            iconSize: root.compactLayout ? 21 : 24
+                            iconSize: root.compactLayout ? 19 : 21
                             fill: 1
                             color: RaohaneTheme.accent
                         }
@@ -181,7 +169,7 @@ Item {
                         Text {
                             text: root.pageInfo?.name ?? qsTr("Settings")
                             color: RaohaneTheme.text
-                            font.pixelSize: root.compactLayout ? 15 : 16
+                            font.pixelSize: root.compactLayout ? 15 : 17
                             font.weight: Font.DemiBold
                         }
 
@@ -200,7 +188,7 @@ Item {
                     RaohaneSurface {
                         visible: !root.compactLayout
                         Layout.preferredWidth: settingCount.implicitWidth + RaohaneTheme.panelPadding * 2
-                        Layout.preferredHeight: 30
+                        Layout.preferredHeight: 26
                         surfaceRadius: RaohaneTheme.radiusSmall
                         transparentIdle: true
                         showSheen: false
@@ -224,7 +212,8 @@ Item {
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
-                border.color: RaohaneTheme.borderFaint
+                idleColor: RaohaneTheme.surfaceDeep
+                border.color: "transparent"
                 clip: true
                 opacity: root.settingsEntered ? 1 : 0
 
