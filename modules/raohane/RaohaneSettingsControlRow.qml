@@ -133,7 +133,6 @@ RaohaneSurface {
             currentIndex: root.currentChoiceIndex()
             textRole: "label"
             hoverEnabled: true
-            wheelEnabled: false
             leftPadding: 12
             rightPadding: 34
             topPadding: 0
