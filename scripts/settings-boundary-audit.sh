@@ -26,8 +26,9 @@ backup='modules/raohane/RaohaneBackupSettings.qml'
 home='modules/raohane/RaohaneSettingsHome.qml'
 catalog='modules/raohane/RaohaneThemeCatalog.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
+bar_appearance='modules/raohane/RaohaneBarAppearanceSettings.qml'
+bar_layout_editor='modules/raohane/RaohaneBarLayoutEditor.qml'
 quick_studio='modules/raohane/RaohaneQuickControlsStudio.qml'
-sakura_settings='modules/raohane/RaohaneSakuraSettings.qml'
 quick_runtime='modules/raohane/RaohaneQuickControls.qml'
 quick_registry='modules/raohane/RaohaneQuickControlRegistry.qml'
 about='modules/raohane/RaohaneSettingsAbout.qml'
@@ -39,7 +40,7 @@ qmldir='modules/raohane/qmldir'
 required=(
   "$settings" "$search" "$content" "$navigation" "$header" "$registry" "$section_registry" "$router"
   "$section" "$control_row" "$preferences" "$preferences_hub" "$language" "$backup" "$home" "$catalog"
-  "$bar_studio" "$quick_studio" "$sakura_settings" "$quick_runtime" "$quick_registry" "$about" "$config" "$defaults" "$state" "$qmldir"
+  "$bar_studio" "$bar_appearance" "$bar_layout_editor" "$quick_studio" "$quick_runtime" "$quick_registry" "$about" "$config" "$defaults" "$state" "$qmldir"
 )
 for path in "${required[@]}"; do
   [[ -f "$path" ]] || fail "missing settings path: $path"
@@ -59,8 +60,7 @@ for registration in \
   '^RaohaneSettingsPreferences .*RaohaneSettingsPreferences.qml$' \
   '^RaohaneSettingsLanguage .*RaohaneSettingsLanguage.qml$' \
   '^RaohaneBackupSettings .*RaohaneBackupSettings.qml$' \
-  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$' \
-  '^RaohaneSakuraSettings .*RaohaneSakuraSettings.qml$'; do
+  '^RaohaneQuickControlsStudio .*RaohaneQuickControlsStudio.qml$'; do
   rg -q "$registration" "$qmldir" || fail "missing Settings registration: $registration"
 done
 
@@ -96,6 +96,15 @@ done
 for alias in restore 'backup & restore' locale; do
   rg -q "\"${alias}\"[[:space:]]*:" "$registry" || fail "Settings page alias is missing: $alias"
 done
+
+# Bar Studio is the only UI owner for bar-specific controls.
+bar_schema="$(sed -n '/^[[:space:]]*bar:[[:space:]]*{/,/^[[:space:]]*desktop:[[:space:]]*{/p' "$registry")"
+for key in barBottom barVertical barAutoHide barAutoHidePushWindows barShowOnSuper barShowOnSuperDelay barShowDate; do
+  grep -q "key:[[:space:]]*\"$key\"" <<<"$bar_schema" && fail "duplicate generic bar control: $key"
+done
+hyprland_schema="$(sed -n '/^[[:space:]]*hyprland:[[:space:]]*{/,/^[[:space:]]*services:[[:space:]]*{/p' "$registry")"
+grep -q 'key:[[:space:]]*"barShowOnSuperDelay"' <<<"$hyprland_schema" && fail 'duplicate Super reveal delay outside Bar Studio'
+rg -q 'Bar pod size|styleValue\("barScale"' "$catalog" && fail 'duplicate bar size control returned to Theme Studio'
 
 for contract in \
   'signal pageRequested\(string pageKey, string controlKey\)' \
@@ -146,7 +155,6 @@ for contract in \
   'readonly property var extensions:' \
   'source:[[:space:]]*"RaohaneBarStudio\.qml"' \
   'source:[[:space:]]*"RaohaneQuickControlsStudio\.qml"' \
-  'source:[[:space:]]*"RaohaneSakuraSettings\.qml"' \
   'controlKeys:[[:space:]]*\["quickControlTiles"\]' \
   'function extension\(sectionKey: string\): var' 'function source\(sectionKey: string\): string' \
   'function ownsControl\(sectionKey: string, controlKey: string\): bool'; do
@@ -194,7 +202,6 @@ done
 rg -q 'settingsContent\.pageOwnsHeader' "$settings" || fail 'Settings top chrome does not respect page-owned header'
 rg -q 'Qt\.ControlModifier' "$settings" || fail 'Settings lost Ctrl+F search shortcut'
 rg -q 'settingsSearch\.focusSearch\(\)' "$settings" || fail 'Settings lost keyboard search focus'
-rg -q 'RaohaneSakuraOverlay[[:space:]]*\{' "$settings" || fail 'Settings lost Sakura ambience layer'
 if rg -n 'preferencesOpen|backupOpen|openPreferences\(|openBackup\(|showMainSettings\(|onPreferencesRequested|onBackupRequested|onLanguageRequested' "$settings"; then
   fail 'Settings window reintroduced special overlay state'
 fi
@@ -209,8 +216,11 @@ rg -q 'Open native\.json' "$home" || fail 'Settings Home no longer exposes nativ
 rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" || fail 'Settings Home bypasses centralized router'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
+for contract in 'RaohaneBarAppearanceSettings' 'RaohaneBarLayoutEditor'; do
+  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost composed editor contract: $contract"
+done
 for contract in 'RaohaneConfig\.barModuleLayout' 'RaohaneConfig\.barVerticalModuleLayout' 'RaohaneBarModuleRegistry\.sanitizeLayout'; do
-  rg -q "$contract" "$bar_studio" || fail "Bar Studio lost native contract: $contract"
+  rg -q "$contract" "$bar_layout_editor" || fail "Bar layout editor lost native contract: $contract"
 done
 for contract in \
   'RaohaneConfig\.quickControlTiles' \

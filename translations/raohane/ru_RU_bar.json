@@ -99,5 +99,7 @@
   "Vertical": "Вертикальная",
   "Visual spacing divider; can be added more than once": "Визуальный разделитель; можно добавить несколько раз",
   "Width of an invisible spacing divider": "Ширина невидимого разделителя-отступа",
-  "Width of the screen frame": "Ширина рамки экрана"
+  "Width of the screen frame": "Ширина рамки экрана",
+  "Configure the dock here, then use Bar Studio below for every bar-specific option.": "Настройте док здесь, а все параметры панели — ниже в редакторе Bar Studio.",
+  "Overall dock surface height in pixels": "Общая высота поверхности дока в пикселях"
 }
