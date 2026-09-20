@@ -165,9 +165,9 @@ done
 if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$quick_tile" "$control" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_section" "$settings_control"; then
   fail 'minimal primary controls contain retired cyber-noir hard-coded colors'
 fi
-rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles do not consume minimalist surface tokens'
-rg -q 'RaohaneTheme\.borderStrong' "$quick_tile" || fail 'Quick Control tiles do not consume shared minimal borders'
-rg -q 'RaohaneTheme\.surfaceDeep' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles do not consume quiet surface tokens'
+rg -q 'RaohaneTheme\.accentSoft' "$quick_tile" || fail 'Quick Control tiles lost soft active-state fill'
+rg -q 'RaohaneTheme\.surfaceDeep' "$settings_content" || fail 'Settings coordinator lost the quiet navigation pane'
 rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted navigation'
 rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted page header'
 
