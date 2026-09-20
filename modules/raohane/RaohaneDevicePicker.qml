@@ -512,6 +512,14 @@ Item {
                     || entry.state === BluetoothDeviceState.Connecting
                     || entry.state === BluetoothDeviceState.Disconnecting
                 : false
+        readonly property int bluetoothBattery: {
+            if (!root.bluetoothMode || !Boolean(entry.batteryAvailable))
+                return -1
+            const raw = Number(entry.battery)
+            if (!Number.isFinite(raw) || raw < 0)
+                return -1
+            return Math.round(raw <= 1 ? raw * 100 : raw)
+        }
 
         Rectangle {
             anchors {
@@ -580,6 +588,14 @@ Item {
             Text {
                 visible: root.wifiMode
                 text: String(Math.round(Number(row.entry.strength) || 0)) + "%"
+                color: row.rowActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                font.pixelSize: 7
+                font.weight: Font.DemiBold
+            }
+
+            Text {
+                visible: root.bluetoothMode && row.bluetoothBattery >= 0
+                text: String(row.bluetoothBattery) + "%"
                 color: row.rowActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
                 font.pixelSize: 7
                 font.weight: Font.DemiBold
