@@ -92,12 +92,12 @@ fi
 
 for key in \
   glassOpacity borderStrength radiusScale densityScale motionScale accentStrength accentMode customAccent sheenEnabled \
-  barScale dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators \
+  dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators \
   notificationScale notificationCompact notificationBodyLines; do
   rg -q "${key}" "$config" || fail "native style schema missing: $key"
   rg -q "\"${key}\"" "$defaults" || fail "native style defaults missing: $key"
 done
-for key in barScale dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators notificationScale notificationCompact notificationBodyLines; do
+for key in dockHoverScale contextIslandScale contextIslandDetail contextIslandIndicators notificationScale notificationCompact notificationBodyLines; do
   rg -q "${key}" "$catalog" || fail "Advanced Surfaces UI missing: $key"
 done
 rg -q 'dockHoverScale' "$dock" || fail 'Dock does not consume advanced hover scale'
