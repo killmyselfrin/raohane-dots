@@ -128,37 +128,6 @@ Item {
         width: parent.width
         spacing: 12
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 2
-
-                Text {
-                    text: qsTr("Bar configuration")
-                    color: RaohaneTheme.text
-                    font.pixelSize: 14
-                    font.weight: Font.DemiBold
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: qsTr("Configure the Raohane bar like a desktop panel: position, surface, groups, behavior, displays and geometry.")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
-                    wrapMode: Text.WordWrap
-                }
-            }
-
-            Text {
-                text: RaohaneConfig.barStylePreset === "custom" ? qsTr("Custom") : qsTr("Preset")
-                color: RaohaneTheme.textFaint
-                font.pixelSize: 9
-            }
-        }
-
         SectionCard {
             title: qsTr("Presets")
             subtitle: qsTr("Start from a complete panel layout, then customize any option.")
