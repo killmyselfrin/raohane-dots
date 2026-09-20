@@ -11,7 +11,7 @@ Item {
     property bool compact: false
     property int direction: 1
 
-    implicitHeight: 78
+    implicitHeight: 84
 
     function syncImmediately(): void {
         headerSwap.stop()
@@ -47,8 +47,8 @@ Item {
             spacing: RaohaneTheme.spacing
 
             RaohaneSurface {
-                Layout.preferredWidth: 38
-                Layout.preferredHeight: 38
+                Layout.preferredWidth: 40
+                Layout.preferredHeight: 40
                 surfaceRadius: RaohaneTheme.radiusLarge
                 active: true
                 raised: false
@@ -57,7 +57,7 @@ Item {
                 RaohaneIcon {
                     anchors.centerIn: parent
                     text: root.displayedPageInfo?.icon ?? "settings"
-                    iconSize: 18
+                    iconSize: 19
                     fill: 1
                     symbolWeight: 550
                     grade: 30
@@ -73,7 +73,7 @@ Item {
                     Layout.fillWidth: true
                     text: root.displayedPageInfo?.name ?? qsTr("Settings")
                     color: RaohaneTheme.text
-                    font.pixelSize: 16
+                    font.pixelSize: 18
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
@@ -82,33 +82,23 @@ Item {
                     Layout.fillWidth: true
                     text: root.displayedPageInfo?.subtitle ?? ""
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     elide: Text.ElideRight
                 }
             }
 
-            RaohaneSurface {
+            Text {
+                id: groupText
                 visible: !root.compact
-                Layout.preferredWidth: groupText.implicitWidth + RaohaneTheme.spacingLarge
-                Layout.preferredHeight: 24
-                surfaceRadius: RaohaneTheme.radiusSmall
-                transparentIdle: true
-                showSheen: false
-                showInnerRim: false
-
-                Text {
-                    id: groupText
-                    anchors.centerIn: parent
-                    text: root.displayedPageInfo?.group ?? qsTr("SYSTEM")
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: 0.75
-                }
+                text: root.displayedPageInfo?.group ?? qsTr("SYSTEM")
+                color: RaohaneTheme.textFaint
+                font.pixelSize: 8
+                font.weight: Font.DemiBold
+                font.letterSpacing: 0.75
             }
 
             Item {
-                Layout.preferredWidth: root.compact ? 44 : 344
+                Layout.preferredWidth: root.compact ? 40 : 360
                 Layout.fillHeight: true
             }
         }
