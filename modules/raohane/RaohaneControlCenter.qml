@@ -230,8 +230,9 @@ Scope {
                             spacing: RaohaneTheme.spacingSmall
 
                             RowLayout {
+                                visible: !quickControls.pickerOpen
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 30
+                                Layout.preferredHeight: visible ? 30 : 0
 
                                 Text {
                                     text: qsTr("Quick Controls")
