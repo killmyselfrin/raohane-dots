@@ -147,27 +147,9 @@ for file in "${shared_surfaces[@]}"; do
   rg -q 'RaohaneSurface[[:space:]]*\{' "$file" || fail "$file no longer uses the shared RaohaneSurface primitive"
 done
 
-# Primary shell chrome uses the raised glass plane. Media Overlay deliberately
-# stays on the flatter fullscreen-friendly plane so it does not become a second
-# heavy glass window over games/video.
-raised_surfaces=(
-  "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
-  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
-)
-for file in "${raised_surfaces[@]}"; do
-  rg -q 'raised:[[:space:]]*true' "$file" || fail "$file no longer requests a raised primary glass surface"
-done
-if rg -q 'raised:[[:space:]]*true' "$media"; then
-  fail 'Media Overlay reintroduced the raised primary glass plane'
-fi
-
-matte_surfaces=(
-  "$launcher" "$control" "$settings" "$bar" "$vertical" "$dock"
-  "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"
-)
-for file in "${matte_surfaces[@]}"; do
-  rg -q 'showSheen:[[:space:]]*false' "$file" || fail "$file no longer suppresses decorative sheen on minimal shell chrome"
-done
+# Surface elevation and sheen are presentation choices owned by each component.
+# The boundary audit intentionally checks shared RaohaneSurface/theme ownership
+# instead of freezing every shell surface to one raised/matte treatment.
 
 for file in "$context" "$dock" "$control" "$settings" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
