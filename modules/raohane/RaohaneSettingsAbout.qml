@@ -165,7 +165,7 @@ Item {
             anchors.top: parent.top
             anchors.topMargin: RaohaneTheme.spacingLarge
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: RaohaneTheme.spacingLarge + 2
+            spacing: RaohaneTheme.spacing
 
             RaohaneSurface {
                 Layout.fillWidth: true
@@ -173,7 +173,8 @@ Item {
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
-                idleColor: RaohaneTheme.surfaceSubtle
+                showInnerRim: false
+                transparentIdle: true
                 border.color: "transparent"
                 showStateRail: false
 
@@ -478,11 +479,12 @@ Item {
         default property alias actions: actionSlot.data
 
         Layout.fillWidth: true
-        Layout.preferredHeight: secondary.length > 0 ? 90 : 76
+        Layout.preferredHeight: secondary.length > 0 ? 82 : 70
         surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         showSheen: false
-        idleColor: RaohaneTheme.surfaceSubtle
+        showInnerRim: false
+        transparentIdle: true
         border.color: "transparent"
         showStateRail: false
 
@@ -495,11 +497,12 @@ Item {
             RaohaneSurface {
                 Layout.preferredWidth: 38
                 Layout.preferredHeight: 38
-                surfaceRadius: RaohaneTheme.radiusSmall
+                surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 active: true
                 showSheen: false
-                border.color: Qt.rgba(rail.railColor.r, rail.railColor.g, rail.railColor.b, 0.38)
+                showInnerRim: false
+                activeBorderColor: "transparent"
 
                 RaohaneIcon {
                     anchors.centerIn: parent
@@ -581,8 +584,7 @@ Item {
             hoverScale: 1
             pressedScale: 1
             showSheen: false
-            border.color: action.emphasized ? RaohaneTheme.accentBorder
-                : hovered ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
+            border.color: "transparent"
 
             RowLayout {
                 id: actionRow

@@ -73,7 +73,7 @@ RaohaneSurface {
 
     visible: root.available
     enabled: root.available && !root.tileBusy
-    Layout.preferredHeight: visible ? 54 : 0
+    Layout.preferredHeight: visible ? 58 : 0
     surfaceRadius: RaohaneTheme.radiusLarge
     active: root.tileActive
     showSheen: false
@@ -85,16 +85,16 @@ RaohaneSurface {
     pressedScale: 1
     activeFocusOnTab: visible && enabled
     feedback: root.showMenu ? "navigate" : "tap"
-    idleBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.borderFaint
-    hoverBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.borderStrong
-    pressedBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.borderStrong
-    activeBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.accentBorder
+    idleBorderColor: root.tileError ? RaohaneTheme.critical : "transparent"
+    hoverBorderColor: root.tileError ? RaohaneTheme.critical : "transparent"
+    pressedBorderColor: root.tileError ? RaohaneTheme.critical : "transparent"
+    activeBorderColor: root.tileError ? RaohaneTheme.critical : "transparent"
     activeColor: root.tileError
         ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.10)
         : RaohaneTheme.accentSoft
-    showStateRail: root.tileActive || root.menuOpen || root.tileError
+    showStateRail: root.tileError
     stateRailColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.accent
-    stateRailOpacity: root.tileError ? 0.92 : root.menuOpen ? 1 : 0.76
+    stateRailOpacity: root.tileError ? 0.92 : 0
     stateRailWidth: 3
     stateRailLength: 26
 
@@ -167,8 +167,8 @@ RaohaneSurface {
             activeColor: root.tileError
                 ? Qt.rgba(RaohaneTheme.critical.r, RaohaneTheme.critical.g, RaohaneTheme.critical.b, 0.10)
                 : RaohaneTheme.accentSoft
-            idleBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.borderFaint
-            activeBorderColor: root.tileError ? RaohaneTheme.critical : RaohaneTheme.accentBorder
+            idleBorderColor: "transparent"
+            activeBorderColor: "transparent"
 
             RaohaneIcon {
                 anchors.centerIn: parent
@@ -202,7 +202,7 @@ RaohaneSurface {
                 text: root.definition?.label ?? root.tileId
                 color: root.tileError ? RaohaneTheme.critical : RaohaneTheme.text
                 font.pixelSize: 10
-                font.weight: Font.DemiBold
+                font.weight: Font.Medium
                 elide: Text.ElideRight
             }
 

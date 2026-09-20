@@ -95,8 +95,8 @@ Scope {
         Rectangle {
             anchors.fill: parent
             color: RaohaneTheme.dark
-                ? Qt.rgba(0.01, 0.015, 0.035, 0.72)
-                : Qt.rgba(0.18, 0.17, 0.15, 0.32)
+                ? Qt.rgba(0.01, 0.015, 0.035, 0.62)
+                : Qt.rgba(0.18, 0.17, 0.15, 0.26)
             opacity: workspace.entered ? 1 : 0
 
             Behavior on opacity {
@@ -116,13 +116,13 @@ Scope {
             id: workspace
             property bool entered: false
 
-            width: Math.min(parent.width - 56, 1260)
-            height: Math.min(parent.height - 64, 820)
+            width: Math.min(parent.width - 64, 1340)
+            height: Math.min(parent.height - 72, 860)
             anchors.centerIn: parent
             surfaceRadius: RaohaneTheme.radiusHero
             raised: true
             showSheen: false
-            idleColor: RaohaneTheme.surfaceRaised
+            idleColor: RaohaneTheme.surfaceDeep
             border.color: RaohaneTheme.borderFaint
             clip: true
             opacity: entered ? 1 : 0
@@ -145,31 +145,6 @@ Scope {
                 }
             }
 
-            Rectangle {
-                z: 40
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    leftMargin: 16
-                }
-                width: workspace.entered ? 42 : 12
-                height: 2
-                radius: 1
-                color: RaohaneTheme.accent
-                opacity: workspace.entered ? 0.68 : 0
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: RaohaneMotion.relaxed
-                        easing.type: RaohaneMotion.easeEmphasized
-                    }
-                }
-
-                Behavior on opacity {
-                    NumberAnimation { duration: RaohaneMotion.standard }
-                }
-            }
-
             RaohaneSettingsContentV3 {
                 id: settingsContent
                 anchors.fill: parent
@@ -179,13 +154,13 @@ Scope {
                 id: settingsSearch
                 visible: !settingsContent.pageOwnsHeader
                 z: 50
-                width: Math.min(340, Math.max(260, workspace.width * 0.29))
+                width: Math.min(360, Math.max(280, workspace.width * 0.30))
                 height: 36
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 22
-                    rightMargin: 58
+                    topMargin: 28
+                    rightMargin: 64
                 }
                 opacity: workspace.entered ? 1 : 0
 
@@ -209,8 +184,8 @@ Scope {
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 25
-                    rightMargin: 16
+                    topMargin: 28
+                    rightMargin: 20
                 }
                 buttonSize: 29
                 iconSize: 14

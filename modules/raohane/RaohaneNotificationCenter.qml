@@ -16,11 +16,11 @@ RaohaneSurface {
     showSheen: false
     showInnerRim: false
     idleColor: RaohaneTheme.surfaceSubtle
-    idleBorderColor: RaohaneTheme.borderFaint
+    idleBorderColor: "transparent"
     clip: true
-    showStateRail: RaohaneNotifications.unread > 0 || RaohaneNotifications.silent
+    showStateRail: false
     stateRailColor: RaohaneNotifications.silent ? RaohaneTheme.textFaint : RaohaneTheme.accent
-    stateRailOpacity: RaohaneNotifications.silent ? 0.38 : 0.72
+    stateRailOpacity: 0
     stateRailWidth: 2
     stateRailLength: 30
 
@@ -31,7 +31,7 @@ RaohaneSurface {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 40
+            Layout.preferredHeight: 36
             spacing: RaohaneTheme.spacingSmall
 
             RaohaneSurface {
@@ -44,7 +44,7 @@ RaohaneSurface {
                 showSheen: false
                 showInnerRim: false
                 idleColor: RaohaneTheme.surfaceDeep
-                idleBorderColor: RaohaneTheme.borderFaint
+                idleBorderColor: "transparent"
 
                 RaohaneIcon {
                     anchors.centerIn: parent
@@ -64,7 +64,7 @@ RaohaneSurface {
                 Text {
                     text: qsTr("Notifications")
                     color: RaohaneTheme.text
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.weight: Font.DemiBold
                     font.letterSpacing: -0.1
                 }
@@ -81,8 +81,8 @@ RaohaneSurface {
             RaohaneSurface {
                 visible: RaohaneNotifications.unread > 0
                 implicitWidth: unreadText.implicitWidth + RaohaneTheme.spacing
-                implicitHeight: 24
-                surfaceRadius: RaohaneTheme.radiusSmall
+                implicitHeight: 22
+                surfaceRadius: RaohaneTheme.radius
                 active: true
                 showSheen: false
                 showInnerRim: false

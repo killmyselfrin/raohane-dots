@@ -72,9 +72,8 @@ if rg -n 'source:[[:space:]]*root\.currentPageInfo\?\.source|property bool activ
   fail 'Settings reintroduced a stale static-page or active-property contract'
 fi
 
-# Control Center remains one compact system hub with an extracted frame,
-# read-only System Glance, registry-backed Quick Controls, balanced content pair
-# and one action dock/device-picker ownership path.
+# Control Center is a wide glass dashboard with one Quick Controls path,
+# dedicated media/activity panes and one action dock/device-picker owner.
 rg -q 'readonly property int panelHeight:' "$control" \
   || fail 'Control Center lost bounded floating height'
 rg -q 'property bool heldVisible:[[:space:]]*false' "$control" \
@@ -85,14 +84,13 @@ rg -q 'event\.key[[:space:]]*!==[[:space:]]*Qt\.Key_Escape' "$control" \
   || fail 'Control Center lost Escape handling'
 rg -q 'RaohaneQuickControls[[:space:]]*\{' "$control" \
   || fail 'Control Center lost Quick Controls composition'
-rg -q 'tileColumns:[[:space:]]*3' "$control" \
-  || fail 'Control Center lost compact three-column Quick Controls'
+rg -q 'tileColumns:[[:space:]]*2' "$control" \
+  || fail 'Control Center lost dashboard two-column Quick Controls'
 rg -q 'RaohaneNotificationCenter[[:space:]]*\{' "$control" \
   || fail 'Control Center lost notification composition'
 for component in \
   RaohaneControlCenterHeader \
   RaohaneControlCenterFooter \
-  RaohaneControlCenterStatusStrip \
   RaohaneControlCenterActionDock \
   RaohaneControlCenterMediaCard; do
   rg -q "${component}[[:space:]]*\\{" "$control" \
@@ -107,6 +105,7 @@ for contract in \
   'required property string identityText' \
   'required property string timeText' \
   'required property string dateText' \
+  'signal launcherRequested\(\)' \
   'signal settingsRequested\(\)' \
   'signal powerRequested\(\)'; do
   rg -q "$contract" "$control_header" \
@@ -121,6 +120,7 @@ for contract in \
     || fail "Control Center footer lost presentation contract: ${contract}"
 done
 for contract in \
+  'onLauncherRequested: panelWindow\.openSurface\("launcher"\)' \
   'onSettingsRequested: panelWindow\.openSurface\("settings"\)' \
   'onPowerRequested: panelWindow\.openSurface\("session"\)' \
   'onReloadRequested: RaohaneSession\.reloadDesktop\(\)' \
@@ -136,7 +136,7 @@ for signal in screenshotRequested translatorRequested oskRequested wallpaperRequ
   rg -q "signal ${signal}\\(\\)" "$control_actions" \
     || fail "Control Center action dock lost signal: ${signal}"
 done
-for action in Screenshot Translator OSK Wallpaper Power; do
+for action in Screenshot Translate Keyboard Wallpaper Power; do
   rg -q "label:[[:space:]]*qsTr\\(\\\"${action}\\\"\\)" "$control_actions" \
     || fail "Control Center action dock lost ${action}"
 done
@@ -180,7 +180,7 @@ for contract in \
   'signal togglePlayingRequested\(\)' \
   'signal nextRequested\(\)' \
   'idleColor: RaohaneTheme\.surfaceSubtle' \
-  'showStateRail: root\.playing'; do
+  'showStateRail: false'; do
   rg -q "$contract" "$control_media" \
     || fail "Control Center media card lost presentation contract: ${contract}"
 done
@@ -196,8 +196,8 @@ for contract in \
     || fail "Control Center lost coordinator-owned media binding/action: ${contract}"
 done
 
-# The paired Notification Center keeps notification-service ownership but shares
-# the same matte Nocturne content material and compact list presentation.
+# The Notification Center keeps notification-service ownership while sharing
+# the same quiet glass material and compact list presentation.
 for contract in \
   'idleColor: RaohaneTheme\.surfaceSubtle' \
   'showInnerRim: false' \
@@ -304,4 +304,4 @@ if rg -n 'property bool active:[[:space:]]*false' \
   fail 'reusable system surfaces reintroduced an active-property collision'
 fi
 
-printf 'ui-polish-audit: animated Settings, compact interactive Control Center frame/content, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'
+printf 'ui-polish-audit: animated glass Settings, dashboard Control Center, confirmed system transactions, priority-aware Context Island, shared controls and icon fallbacks are valid\n'

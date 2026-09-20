@@ -31,7 +31,7 @@ if grep -Eq 'index[[:space:]]*\*[[:space:]]*72' "$section"; then
 fi
 
 for contract in \
-  'height:[[:space:]]*root\.textRow \? 80 : 68' \
+  'height:[[:space:]]*root\.textRow \? 74 : 62' \
   'activeFocusOnTab:[[:space:]]*root\.toggleRow \|\| root\.numberRow \|\| root\.choiceRow' \
   'readonly property bool compactRow:' \
   'maximumLineCount:[[:space:]]*2' \

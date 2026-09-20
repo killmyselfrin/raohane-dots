@@ -151,7 +151,7 @@ done
 # The boundary audit intentionally checks shared RaohaneSurface/theme ownership
 # instead of freezing every shell surface to one raised/matte treatment.
 
-for file in "$context" "$dock" "$control" "$settings" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
+for file in "$context" "$dock" "$control" "$media" "$sidebar" "$session" "$task_manager" "$overlay" "$lock_surface" "$polkit" "$dropshelf" "$translator" "$osk"; do
   rg -q 'RaohaneTheme\.(accent|accentSecondary|accentGlow|accentBorder)' "$file" || fail "$file lost the centralized Raohane accent system"
 done
 
@@ -165,9 +165,9 @@ done
 if rg -n '#76171420|#8b2b203b|#841c1826|#1fc56cff' "$quick" "$quick_tile" "$control" "$settings" "$settings_content" "$settings_navigation" "$settings_header" "$settings_section" "$settings_control"; then
   fail 'minimal primary controls contain retired cyber-noir hard-coded colors'
 fi
-rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles do not consume minimalist surface tokens'
-rg -q 'RaohaneTheme\.borderStrong' "$quick_tile" || fail 'Quick Control tiles do not consume shared minimal borders'
-rg -q 'RaohaneTheme\.surfaceDeep' "$settings_navigation" || fail 'Settings navigation lost the quiet sidebar plane'
+rg -q 'RaohaneTheme\.surfaceSubtle' "$quick_tile" || fail 'Quick Control tiles do not consume quiet surface tokens'
+rg -q 'RaohaneTheme\.accentSoft' "$quick_tile" || fail 'Quick Control tiles lost soft active-state fill'
+rg -q 'RaohaneTheme\.surfaceDeep' "$settings_content" || fail 'Settings coordinator lost the quiet navigation pane'
 rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted navigation'
 rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" || fail 'Settings coordinator no longer composes extracted page header'
 

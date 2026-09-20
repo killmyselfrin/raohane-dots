@@ -25,8 +25,8 @@ Scope {
     readonly property bool privacyActive: RaohanePrivacy.recordingActive
         || RaohanePrivacy.cameraActive
         || RaohanePrivacy.microphoneActive
-    readonly property int panelWidth: Math.min(640, Math.max(560, Math.round((root.focusedScreen?.width ?? 1280) * 0.42)))
-    readonly property int panelHeight: Math.min(740, Math.max(620, Math.round((root.focusedScreen?.height ?? 800) - 56)))
+    readonly property int panelWidth: Math.min(980, Math.max(820, Math.round((root.focusedScreen?.width ?? 1600) * 0.58)))
+    readonly property int panelHeight: Math.min(760, Math.max(650, Math.round((root.focusedScreen?.height ?? 900) - 64)))
     property date now: new Date()
 
     Timer {
@@ -162,7 +162,7 @@ Scope {
             showSheen: false
             showInnerRim: false
             idleColor: RaohaneTheme.surfaceRaised
-            border.color: RaohaneTheme.borderStrong
+            border.color: RaohaneTheme.borderFaint
             clip: true
             opacity: entered ? 1 : 0
             focus: RaohaneState.controlCenterOpen
@@ -182,41 +182,16 @@ Scope {
             }
 
             Rectangle {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                }
-                height: 92
+                anchors.fill: parent
+                radius: panelSurface.surfaceRadius
                 color: RaohaneTheme.surfaceDeep
-                opacity: 0.30
-            }
-
-            Rectangle {
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    leftMargin: RaohaneTheme.panelPadding
-                }
-                width: panelSurface.entered ? 52 : 14
-                height: 3
-                radius: 2
-                color: RaohaneTheme.accent
-                opacity: panelSurface.entered ? 0.78 : 0
-
-                Behavior on width {
-                    NumberAnimation { duration: RaohaneMotion.relaxed; easing.type: RaohaneMotion.easeEmphasized }
-                }
-                Behavior on opacity { NumberAnimation { duration: RaohaneMotion.standard } }
+                opacity: RaohaneTheme.dark ? 0.16 : 0.10
             }
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.leftMargin: RaohaneTheme.panelPadding
-                anchors.rightMargin: RaohaneTheme.panelPadding
-                anchors.topMargin: RaohaneTheme.spacingLarge
-                anchors.bottomMargin: RaohaneTheme.spacingSmall
-                spacing: RaohaneTheme.spacingSmall
+                anchors.margins: RaohaneTheme.spacingLarge
+                spacing: RaohaneTheme.spacing
 
                 RaohaneControlCenterHeader {
                     Layout.fillWidth: true
@@ -228,116 +203,119 @@ Scope {
                     timeText: Qt.formatTime(root.now, "HH:mm")
                     dateText: Qt.formatDate(root.now, "ddd, d MMM")
 
+                    onLauncherRequested: panelWindow.openSurface("launcher")
                     onSettingsRequested: panelWindow.openSurface("settings")
                     onPowerRequested: panelWindow.openSurface("session")
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 1
-                    color: RaohaneTheme.divider
-                }
-
-                RaohaneControlCenterStatusStrip {
-                    visible: !quickControls.pickerOpen
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: visible ? implicitHeight : 0
-
-                    networkIcon: RaohaneNetwork.materialSymbol
-                    networkValue: RaohaneNetwork.networkName.length > 0
-                        ? RaohaneNetwork.networkName
-                        : (RaohaneNetwork.ethernet ? qsTr("Ethernet") : qsTr("Offline"))
-                    networkActive: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
-
-                    bluetoothIcon: RaohaneBluetooth.connected ? "bluetooth_connected"
-                        : RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled"
-                    bluetoothValue: RaohaneBluetooth.firstConnectedName.length > 0
-                        ? RaohaneBluetooth.firstConnectedName
-                        : (RaohaneBluetooth.enabled ? qsTr("On") : qsTr("Off"))
-                    bluetoothActive: RaohaneBluetooth.connected
-
-                    audioIcon: RaohaneAudio.muted ? "volume_off" : "speaker"
-                    audioValue: RaohaneAudio.sinkName.length > 0
-                        ? RaohaneAudio.sinkName : qsTr("Default output")
-                    audioActive: RaohaneAudio.ready && !RaohaneAudio.muted
-
-                    privacyValue: root.privacyActive ? qsTr("Device in use") : qsTr("Quiet")
-                    privacyActive: root.privacyActive
-
-                    onNetworkRequested: quickControls.pickerMode = "wifi"
-                    onBluetoothRequested: RaohaneBluetooth.toggle()
-                    onAudioRequested: quickControls.pickerMode = "output"
-                }
-
-                SectionLabel {
-                    visible: !quickControls.pickerOpen
-                    label: qsTr("QUICK CONTROLS")
-                    icon: "instant_mix"
-                }
-
-                RaohaneQuickControls {
-                    id: quickControls
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: implicitHeight
-                    screen: panelWindow.screen
-                    tileColumns: 3
-                }
-
                 RowLayout {
-                    visible: !quickControls.pickerOpen
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.minimumHeight: 128
                     spacing: RaohaneTheme.spacing
 
-                    RaohaneControlCenterMediaCard {
-                        Layout.fillWidth: true
+                    RaohaneSurface {
+                        Layout.preferredWidth: 400
                         Layout.fillHeight: true
-                        Layout.preferredWidth: 1
+                        surfaceRadius: RaohaneTheme.radiusHero
+                        raised: false
+                        showSheen: false
+                        showInnerRim: false
+                        idleColor: RaohaneTheme.surfaceSubtle
+                        idleBorderColor: "transparent"
 
-                        mediaAvailable: RaohaneMedia.available
-                        playing: RaohaneMedia.isPlaying
-                        canGoPrevious: RaohaneMedia.canGoPrevious
-                        canTogglePlaying: RaohaneMedia.canTogglePlaying
-                        canGoNext: RaohaneMedia.canGoNext
-                        progress: RaohaneMedia.progress
-                        artUrl: RaohaneMedia.artUrl
-                        playerName: RaohaneMedia.available ? RaohaneMedia.playerName : ""
-                        title: RaohaneMedia.available && RaohaneMedia.title.length > 0
-                            ? RaohaneMedia.title : qsTr("Nothing playing")
-                        subtitle: RaohaneMedia.available
-                            ? (RaohaneMedia.artist.length > 0 ? RaohaneMedia.artist : RaohaneMedia.playerName)
-                            : qsTr("Media controls")
-                        elapsedText: RaohaneMedia.length > 0
-                            ? RaohaneMedia.formatTime(RaohaneMedia.position)
-                            : "--:--"
-                        totalText: RaohaneMedia.length > 0
-                            ? RaohaneMedia.formatTime(RaohaneMedia.length)
-                            : "—"
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: RaohaneTheme.spacing
+                            spacing: RaohaneTheme.spacingSmall
 
-                        onOpenRequested: RaohaneState.toggleSurface("mediaOverlay")
-                        onPreviousRequested: RaohaneMedia.previous()
-                        onTogglePlayingRequested: RaohaneMedia.togglePlaying()
-                        onNextRequested: RaohaneMedia.next()
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 30
+
+                                Text {
+                                    text: qsTr("Quick Controls")
+                                    color: RaohaneTheme.text
+                                    font.pixelSize: 12
+                                    font.weight: Font.DemiBold
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Text {
+                                    text: RaohaneScenes.autoSceneActive ? qsTr("Automatic") : qsTr("Manual")
+                                    color: RaohaneScenes.autoSceneActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                                    font.pixelSize: 8
+                                    font.weight: Font.Medium
+                                }
+                            }
+
+                            RaohaneQuickControls {
+                                id: quickControls
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: implicitHeight
+                                screen: panelWindow.screen
+                                tileColumns: 2
+                            }
+
+                            Item { Layout.fillHeight: true }
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.preferredWidth: 248
+                        Layout.fillHeight: true
+                        spacing: RaohaneTheme.spacing
+
+                        RaohaneControlCenterMediaCard {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.minimumHeight: 248
+
+                            mediaAvailable: RaohaneMedia.available
+                            playing: RaohaneMedia.isPlaying
+                            canGoPrevious: RaohaneMedia.canGoPrevious
+                            canTogglePlaying: RaohaneMedia.canTogglePlaying
+                            canGoNext: RaohaneMedia.canGoNext
+                            progress: RaohaneMedia.progress
+                            artUrl: RaohaneMedia.artUrl
+                            playerName: RaohaneMedia.available ? RaohaneMedia.playerName : ""
+                            title: RaohaneMedia.available && RaohaneMedia.title.length > 0
+                                ? RaohaneMedia.title : qsTr("Nothing playing")
+                            subtitle: RaohaneMedia.available
+                                ? (RaohaneMedia.artist.length > 0 ? RaohaneMedia.artist : RaohaneMedia.playerName)
+                                : qsTr("Media controls")
+                            elapsedText: RaohaneMedia.length > 0
+                                ? RaohaneMedia.formatTime(RaohaneMedia.position)
+                                : "--:--"
+                            totalText: RaohaneMedia.length > 0
+                                ? RaohaneMedia.formatTime(RaohaneMedia.length)
+                                : "—"
+
+                            onOpenRequested: RaohaneState.toggleSurface("mediaOverlay")
+                            onPreviousRequested: RaohaneMedia.previous()
+                            onTogglePlayingRequested: RaohaneMedia.togglePlaying()
+                            onNextRequested: RaohaneMedia.next()
+                        }
+
+                        RaohaneControlCenterActionDock {
+                            visible: !quickControls.pickerOpen
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: visible ? implicitHeight : 0
+
+                            onScreenshotRequested: panelWindow.openTransient("regionSelector")
+                            onTranslatorRequested: panelWindow.openSurface("screenTranslator")
+                            onOskRequested: panelWindow.openTransient("osk")
+                            onWallpaperRequested: panelWindow.openSurface("wallpaper")
+                            onPowerRequested: panelWindow.openSurface("session")
+                        }
                     }
 
                     RaohaneNotificationCenter {
+                        visible: !quickControls.pickerOpen
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.preferredWidth: 1
+                        Layout.minimumWidth: 278
                     }
-                }
-
-                RaohaneControlCenterActionDock {
-                    visible: !quickControls.pickerOpen
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: visible ? implicitHeight : 0
-
-                    onScreenshotRequested: panelWindow.openTransient("regionSelector")
-                    onTranslatorRequested: panelWindow.openSurface("screenTranslator")
-                    onOskRequested: panelWindow.openTransient("osk")
-                    onWallpaperRequested: panelWindow.openSurface("wallpaper")
-                    onPowerRequested: panelWindow.openSurface("session")
                 }
 
                 RaohaneControlCenterFooter {
