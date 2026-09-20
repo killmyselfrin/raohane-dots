@@ -105,6 +105,7 @@ for contract in \
   'required property string identityText' \
   'required property string timeText' \
   'required property string dateText' \
+  'signal launcherRequested\(\)' \
   'signal settingsRequested\(\)' \
   'signal powerRequested\(\)'; do
   rg -q "$contract" "$control_header" \
@@ -119,6 +120,7 @@ for contract in \
     || fail "Control Center footer lost presentation contract: ${contract}"
 done
 for contract in \
+  'onLauncherRequested: panelWindow\.openSurface\("launcher"\)' \
   'onSettingsRequested: panelWindow\.openSurface\("settings"\)' \
   'onPowerRequested: panelWindow\.openSurface\("session"\)' \
   'onReloadRequested: RaohaneSession\.reloadDesktop\(\)' \
