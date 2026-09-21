@@ -222,5 +222,14 @@
   "System summary": "Сводка системы",
   "A quick read-only snapshot of this machine.": "Краткая сводка о системе без элементов управления.",
   "System information": "Сведения о системе",
-  "Diagnostics, runtime and hardware details": "Диагностика, среда выполнения и сведения об оборудовании"
+  "Diagnostics, runtime and hardware details": "Диагностика, среда выполнения и сведения об оборудовании",
+  "Control layout": "Состав элементов",
+  "Playback & display feedback": "Медиа и экранные уведомления",
+  "Dock": "Док",
+  "Wallpaper & overview": "Обои и обзор рабочих столов",
+  "Desktop composition": "Композиция рабочего стола",
+  "Screen framing": "Оформление экрана",
+  "Interaction": "Взаимодействие",
+  "External tools": "Внешние инструменты",
+  "Identity": "Профиль"
 }
