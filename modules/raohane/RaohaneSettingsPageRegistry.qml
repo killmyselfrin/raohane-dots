@@ -20,7 +20,7 @@ QtObject {
         { key: "displays", name: qsTr("Displays"), icon: "monitor", group: qsTr("SYSTEM"), subtitle: qsTr("Resolution, refresh rate, scale and multi-monitor layout"), source: "", externalSurface: "displaySettings" },
         { key: "graphics", name: qsTr("Graphics & Drivers"), icon: "video_settings", group: qsTr("SYSTEM"), subtitle: qsTr("GPU detection, active drivers and safe update checks"), source: "RaohaneSettingsGraphics.qml" },
         { key: "hyprland", name: qsTr("Hyprland"), icon: "select_window_2", group: qsTr("SYSTEM"), subtitle: qsTr("Compositor-facing behavior and interaction boundaries"), source: "RaohaneSettingsSectionPage.qml" },
-        { key: "preferences", name: qsTr("Keyboard & Motion"), icon: "keyboard", group: qsTr("SYSTEM"), subtitle: qsTr("Shortcuts, application bindings and animation behavior"), source: "RaohaneSettingsPreferences.qml", hideHeader: true },
+        { key: "preferences", name: qsTr("Keyboard & Motion"), icon: "keyboard", group: qsTr("SYSTEM"), subtitle: qsTr("Shortcuts, application bindings and animation behavior"), source: "RaohaneSettingsPreferences.qml" },
         { key: "services", name: qsTr("Integrations"), icon: "hub", group: qsTr("SYSTEM"), subtitle: qsTr("External commands and native system helpers"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "profile", name: qsTr("Profile"), icon: "account_circle", group: qsTr("SYSTEM"), subtitle: qsTr("Local identity used by Raohane surfaces"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "backup", name: qsTr("Backup & Restore"), icon: "inventory_2", group: qsTr("SYSTEM"), subtitle: qsTr("Portable Raohane settings, wallpapers and monitor profiles"), source: "RaohaneBackupSettings.qml" },
