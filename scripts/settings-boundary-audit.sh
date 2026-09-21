@@ -212,9 +212,13 @@ for key in themePreset barModuleLayout quickControlTiles desktopWidgetsLayout ke
   rg -q "key:[[:space:]]*\"${key}\"" "$registry" || fail "Settings registry lost search route: $key"
 done
 
-rg -q 'component CategorySection:[[:space:]]*ColumnLayout' "$home" || fail 'Settings Home lost grouped application sections'
-rg -q 'RaohaneSettingsPageRegistry\.page' "$home" || fail 'Settings Home categories are no longer registry-backed'
-rg -q 'RaohaneSettingsRouter\.request\(String\(page' "$home" || fail 'Settings Home bypasses centralized router'
+rg -q 'readonly property var commonSettings:' "$home" || fail 'Settings Home lost its non-navigation common-settings model'
+rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$home" || fail 'Settings Home common controls no longer use the shared settings row'
+rg -q 'RaohaneSystemInfo\.' "$home" || fail 'Settings Home lost the read-only system summary'
+rg -q 'RaohaneSettingsRouter\.request\(String\(page' "$home" || fail 'Settings Home overview links bypass centralized router'
+if rg -q 'component CategorySection|personalizePages|shellPages|systemPages' "$home"; then
+  fail 'Settings Home duplicates the left navigation hierarchy'
+fi
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
 for contract in 'RaohaneBarAppearanceSettings' 'RaohaneBarLayoutEditor'; do

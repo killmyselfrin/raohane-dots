@@ -34,25 +34,46 @@ Item {
                         ? qsTr("Up to date · %1").arg(RaohaneUpdater.lastCheckedText)
                         : qsTr("Up to date")
 
-    readonly property var personalizePages: root.resolvePages(["themes", "widgets", "interface"])
-    readonly property var shellPages: root.resolvePages(["bar", "quick", "scenes", "general", "desktop"])
-    readonly property var systemPages: root.resolvePages([
-        "displays", "graphics", "hyprland", "preferences", "services", "profile",
-        "backup", "language", "about"
-    ])
-
-    function resolvePages(keys): var {
-        const result = []
-        for (const key of keys) {
-            const page = RaohaneSettingsPageRegistry.page(key)
-            if (page)
-                result.push(page)
+    readonly property var commonSettings: [
+        {
+            type: "toggle",
+            key: "contextIslandEnabled",
+            label: qsTr("Context Island"),
+            detail: qsTr("Show live media, privacy and active-window context")
+        },
+        {
+            type: "toggle",
+            key: "dockAutoHide",
+            label: qsTr("Auto-hide dock"),
+            detail: qsTr("Hide the dock when it is not in use")
+        },
+        {
+            type: "toggle",
+            key: "nightLightAutomatic",
+            label: qsTr("Automatic night light"),
+            detail: qsTr("Allow Raohane display service to automate color temperature")
+        },
+        {
+            type: "toggle",
+            key: "mediaOverlayEnabled",
+            label: qsTr("Media overlay"),
+            detail: qsTr("Enable Raohane media overlay surfaces")
+        },
+        {
+            type: "toggle",
+            key: "wallpaperHideWhenFullscreen",
+            label: qsTr("Hide wallpaper on fullscreen"),
+            detail: qsTr("Reduce background rendering behind fullscreen clients")
         }
-        return result
-    }
+    ]
 
     function openPage(page): void {
         RaohaneSettingsRouter.request(String(page ?? ""), "")
+    }
+
+    Component.onCompleted: {
+        if (RaohaneSystemInfo.kernelVersion === "")
+            RaohaneSystemInfo.refresh()
     }
 
     Flickable {
@@ -142,22 +163,110 @@ Item {
                 }
             }
 
-            CategorySection {
-                title: qsTr("Personalize")
-                subtitle: qsTr("Theme, desktop composition and visual appearance.")
-                pages: root.personalizePages
+            SectionTitle {
+                title: qsTr("Common settings")
+                subtitle: qsTr("Frequently used controls without repeating the navigation sidebar.")
             }
 
-            CategorySection {
-                title: qsTr("Shell")
-                subtitle: qsTr("Bar, quick controls, scenes and desktop behavior.")
-                pages: root.shellPages
+            RaohaneSurface {
+                Layout.fillWidth: true
+                Layout.preferredHeight: quickRows.implicitHeight
+                surfaceRadius: RaohaneTheme.radiusLarge
+                raised: false
+                showSheen: false
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceSubtle
+                idleBorderColor: "transparent"
+                clip: true
+
+                Column {
+                    id: quickRows
+                    width: parent.width
+                    spacing: 0
+
+                    Repeater {
+                        model: root.commonSettings
+
+                        delegate: RaohaneSettingsControlRow {
+                            required property var modelData
+                            required property int index
+
+                            width: quickRows.width
+                            height: 62
+                            entry: modelData
+                            lastRow: index >= root.commonSettings.length - 1
+                        }
+                    }
+                }
             }
 
-            CategorySection {
-                title: qsTr("System")
-                subtitle: qsTr("Displays, input, integrations and Raohane maintenance.")
-                pages: root.systemPages
+            SectionTitle {
+                title: qsTr("System summary")
+                subtitle: qsTr("A quick read-only snapshot of this machine.")
+            }
+
+            RaohaneSurface {
+                Layout.fillWidth: true
+                Layout.preferredHeight: systemRows.implicitHeight
+                surfaceRadius: RaohaneTheme.radiusLarge
+                raised: false
+                showSheen: false
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceSubtle
+                idleBorderColor: "transparent"
+                clip: true
+
+                ColumnLayout {
+                    id: systemRows
+                    width: parent.width
+                    spacing: 0
+
+                    InfoRow {
+                        icon: "computer"
+                        title: qsTr("Distribution")
+                        detail: RaohaneSystemInfo.distroName
+                    }
+
+                    RaohaneDivider {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: RaohaneTheme.panelPadding
+                        Layout.rightMargin: RaohaneTheme.panelPadding
+                        color: RaohaneTheme.borderFaint
+                    }
+
+                    InfoRow {
+                        icon: "terminal"
+                        title: qsTr("Kernel")
+                        detail: RaohaneSystemInfo.kernelVersion
+                    }
+
+                    RaohaneDivider {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: RaohaneTheme.panelPadding
+                        Layout.rightMargin: RaohaneTheme.panelPadding
+                        color: RaohaneTheme.borderFaint
+                    }
+
+                    InfoRow {
+                        icon: "developer_board"
+                        title: qsTr("GPU")
+                        detail: RaohaneSystemInfo.gpu
+                    }
+
+                    RaohaneDivider {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: RaohaneTheme.panelPadding
+                        Layout.rightMargin: RaohaneTheme.panelPadding
+                        color: RaohaneTheme.borderFaint
+                    }
+
+                    OverviewRow {
+                        icon: "info"
+                        title: qsTr("System information")
+                        detail: qsTr("Diagnostics, runtime and hardware details")
+                        onTriggered: root.openPage("about")
+                    }
+                }
             }
         }
     }
@@ -236,7 +345,7 @@ Item {
             }
 
             Text {
-                Layout.preferredWidth: Math.min(280, implicitWidth)
+                Layout.preferredWidth: Math.min(320, implicitWidth)
                 text: row.detail
                 color: row.critical ? RaohaneTheme.critical
                     : row.accent ? RaohaneTheme.accent
@@ -263,121 +372,44 @@ Item {
         }
     }
 
-    component CategorySection: ColumnLayout {
-        id: section
+    component InfoRow: Item {
+        id: row
 
+        required property string icon
         required property string title
-        required property string subtitle
-        required property var pages
+        required property string detail
 
         Layout.fillWidth: true
-        spacing: RaohaneTheme.spacingSmall
+        Layout.preferredHeight: 54
 
-        SectionTitle {
-            Layout.fillWidth: true
-            title: section.title
-            subtitle: section.subtitle
-        }
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: RaohaneTheme.panelPadding
+            anchors.rightMargin: RaohaneTheme.panelPadding
+            spacing: RaohaneTheme.spacing + 2
 
-        RaohaneSurface {
-            Layout.fillWidth: true
-            Layout.preferredHeight: categoryRows.implicitHeight
-            surfaceRadius: RaohaneTheme.radiusLarge
-            raised: false
-            showSheen: false
-            showInnerRim: false
-            idleColor: RaohaneTheme.surfaceSubtle
-            idleBorderColor: "transparent"
-            clip: true
+            RaohaneIcon {
+                text: row.icon
+                iconSize: 17
+                color: RaohaneTheme.textMuted
+            }
 
-            ColumnLayout {
-                id: categoryRows
-                width: parent.width
-                spacing: 0
+            Text {
+                Layout.fillWidth: true
+                text: row.title
+                color: RaohaneTheme.text
+                font.pixelSize: 10
+                font.weight: Font.Medium
+                elide: Text.ElideRight
+            }
 
-                Repeater {
-                    model: section.pages
-
-                    delegate: Item {
-                        id: categoryRow
-
-                        required property var modelData
-                        required property int index
-
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 62
-
-                        Rectangle {
-                            anchors.fill: parent
-                            color: categoryHover.hovered ? RaohaneTheme.surfaceHover : "transparent"
-
-                            Behavior on color {
-                                ColorAnimation { duration: RaohaneMotion.micro }
-                            }
-                        }
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: RaohaneTheme.panelPadding
-                            anchors.rightMargin: RaohaneTheme.panelPadding
-                            spacing: RaohaneTheme.spacing + 2
-
-                            RaohaneIcon {
-                                text: String(categoryRow.modelData?.icon ?? "tune")
-                                iconSize: 18
-                                color: categoryHover.hovered ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                            }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 1
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: String(categoryRow.modelData?.name ?? "")
-                                    color: RaohaneTheme.text
-                                    font.pixelSize: 10
-                                    font.weight: Font.Medium
-                                    elide: Text.ElideRight
-                                }
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: String(categoryRow.modelData?.subtitle ?? "")
-                                    color: RaohaneTheme.textMuted
-                                    font.pixelSize: 8
-                                    elide: Text.ElideRight
-                                }
-                            }
-
-                            RaohaneIcon {
-                                text: "chevron_right"
-                                iconSize: 14
-                                color: categoryHover.hovered ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                            }
-                        }
-
-                        RaohaneDivider {
-                            visible: categoryRow.index < section.pages.length - 1
-                            anchors {
-                                left: parent.left
-                                right: parent.right
-                                bottom: parent.bottom
-                                leftMargin: RaohaneTheme.panelPadding
-                                rightMargin: RaohaneTheme.panelPadding
-                            }
-                            color: RaohaneTheme.borderFaint
-                        }
-
-                        HoverHandler {
-                            id: categoryHover
-                        }
-
-                        TapHandler {
-                            onTapped: root.openPage(categoryRow.modelData?.key ?? "")
-                        }
-                    }
-                }
+            Text {
+                Layout.preferredWidth: Math.min(430, implicitWidth)
+                text: row.detail.length > 0 ? row.detail : qsTr("Loading…")
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 9
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideRight
             }
         }
     }
