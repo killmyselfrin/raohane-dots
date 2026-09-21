@@ -11,6 +11,7 @@ RaohaneSurface {
 
     property var entry: null
     property bool lastRow: false
+    property bool highlighted: false
 
     readonly property bool toggleRow: root.entry?.type === "toggle"
     readonly property bool numberRow: root.entry?.type === "number"
@@ -23,11 +24,14 @@ RaohaneSurface {
     height: root.numberRow ? 80 : root.textRow ? 70 : 62
     activeFocusOnTab: root.toggleRow || root.numberRow || root.choiceRow
     surfaceRadius: RaohaneTheme.radiusSmall
-    transparentIdle: true
+    active: root.highlighted
+    transparentIdle: !root.highlighted
     showSheen: false
     showInnerRim: false
     hovered: root.rowHovered
     hoverColor: RaohaneTheme.surfaceHover
+    activeColor: RaohaneTheme.accentSoft
+    activeBorderColor: "transparent"
     border.width: 0
     showStateRail: false
 
