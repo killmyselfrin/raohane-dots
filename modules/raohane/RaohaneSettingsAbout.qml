@@ -434,6 +434,8 @@ Item {
     }
 
     component SystemRow: Item {
+        id: systemRow
+
         required property string icon
         required property string label
         required property string value
@@ -447,14 +449,14 @@ Item {
             spacing: RaohaneTheme.spacing
 
             RaohaneIcon {
-                text: parent.parent.icon
+                text: systemRow.icon
                 iconSize: 16
                 color: RaohaneTheme.textMuted
             }
 
             Text {
                 Layout.fillWidth: true
-                text: parent.parent.label
+                text: systemRow.label
                 color: RaohaneTheme.text
                 font.pixelSize: 9
                 font.weight: Font.Medium
@@ -463,7 +465,7 @@ Item {
 
             Text {
                 Layout.preferredWidth: Math.min(520, implicitWidth)
-                text: parent.parent.value.length > 0 ? parent.parent.value : qsTr("Loading…")
+                text: systemRow.value.length > 0 ? systemRow.value : qsTr("Loading…")
                 color: RaohaneTheme.textMuted
                 font.pixelSize: 9
                 horizontalAlignment: Text.AlignRight
