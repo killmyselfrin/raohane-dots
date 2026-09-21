@@ -10,6 +10,7 @@ Item {
     property string sectionKey: "general"
     property bool settingsEntered: false
     property bool extensionEntered: false
+    property string highlightedControl: ""
 
     readonly property var pageInfo: RaohaneSettingsPageRegistry.page(root.sectionKey)
     readonly property var entries: RaohaneSettingsPageRegistry.sectionEntries(root.sectionKey)
@@ -50,13 +51,23 @@ Item {
         }
         const normalized = needle.toLowerCase()
         const index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(normalized) || entry.key.toLowerCase().includes(normalized))
-        if (index >= 0)
+        if (index >= 0) {
+            root.highlightedControl = String(root.entries[index].key ?? "")
             settingsFlick.contentY = Math.max(0, root.entryOffset(index) - RaohaneTheme.spacingLarge)
+            highlightTimer.restart()
+        }
     }
 
     onSectionKeyChanged: Qt.callLater(root.replayEntrance)
     Component.onCompleted: root.replayEntrance()
 
+
+    Timer {
+        id: highlightTimer
+        interval: 1100
+        repeat: false
+        onTriggered: root.highlightedControl = ""
+    }
 
     Timer {
         id: settingsTimer
@@ -171,6 +182,7 @@ Item {
                             width: settingsList.width
                             entry: modelData
                             lastRow: index >= root.entries.length - 1
+                            highlighted: String(modelData?.key ?? "") === root.highlightedControl
                         }
                     }
                 }
