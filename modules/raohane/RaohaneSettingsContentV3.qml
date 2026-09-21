@@ -191,6 +191,7 @@ Item {
                                 root.preparePageEnter()
                             }
                         }
+                    }
 
                     ParallelAnimation {
                         id: pageExit
