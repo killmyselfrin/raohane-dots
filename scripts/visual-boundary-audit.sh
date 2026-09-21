@@ -201,9 +201,12 @@ rg -q 'RaohaneTheme\.islandHeight' "$context" || fail 'Context Island no longer 
 
 rg -q 'Flickable[[:space:]]*\{' "$settings_home" || fail 'Settings home lost scrollable application layout'
 rg -q 'component OverviewRow:[[:space:]]*Item' "$settings_home" || fail 'Settings home lost compact overview rows'
-rg -q 'component CategorySection:[[:space:]]*ColumnLayout' "$settings_home" || fail 'Settings home lost grouped settings sections'
-rg -q 'RaohaneSettingsPageRegistry\.page' "$settings_home" || fail 'Settings home categories no longer derive from the page registry'
-rg -q 'RaohaneSettingsRouter\.request' "$settings_home" || fail 'Settings home rows no longer use the shared router'
+rg -q 'RaohaneSettingsControlRow[[:space:]]*\{' "$settings_home" || fail 'Settings home lost direct common-setting rows'
+rg -q 'component InfoRow:[[:space:]]*Item' "$settings_home" || fail 'Settings home lost compact read-only system rows'
+rg -q 'RaohaneSettingsRouter\.request' "$settings_home" || fail 'Settings home overview links no longer use the shared router'
+if rg -q 'component CategorySection|personalizePages|shellPages|systemPages' "$settings_home"; then
+  fail 'Settings home duplicates the navigation sidebar'
+fi
 rg -q 'RaohaneScenes\.activeSceneId' "$settings_home" || fail 'Settings home lost live Scene summary'
 rg -q 'RaohaneUpdater\.(updateAvailable|checking|applying|errorText)' "$settings_home" || fail 'Settings home lost cached updater summary'
 if rg -q 'RaohaneWallpapers\.|RaohaneNetwork\.|RaohaneAudio\.|RaohanePrivacy\.' "$settings_home"; then
