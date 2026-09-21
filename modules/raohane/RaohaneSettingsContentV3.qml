@@ -118,7 +118,12 @@ Item {
         Rectangle {
             Layout.fillHeight: true
             Layout.preferredWidth: navigation.implicitWidth + 1
-            color: RaohaneTheme.surfaceDeep
+            color: Qt.rgba(
+                RaohaneTheme.presetSurfaceDeep.r,
+                RaohaneTheme.presetSurfaceDeep.g,
+                RaohaneTheme.presetSurfaceDeep.b,
+                1
+            )
 
             RaohaneSettingsNavigation {
                 id: navigation
@@ -149,7 +154,12 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: RaohaneTheme.background
+            color: Qt.rgba(
+                RaohaneTheme.background.r,
+                RaohaneTheme.background.g,
+                RaohaneTheme.background.b,
+                1
+            )
 
             ColumnLayout {
                 anchors.fill: parent
@@ -177,9 +187,9 @@ Item {
                         Loader {
                             id: pageLoader
                             anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
-                            anchors.bottomMargin: 10
+                            anchors.leftMargin: 0
+                            anchors.rightMargin: 0
+                            anchors.bottomMargin: 0
 
                             onLoaded: {
                                 Qt.callLater(root.configureLoadedPage)

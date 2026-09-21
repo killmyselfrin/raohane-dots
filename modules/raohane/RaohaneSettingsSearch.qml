@@ -13,7 +13,7 @@ Item {
     readonly property var filteredEntries: root.filtered(root.query)
 
     implicitWidth: 300
-    implicitHeight: 34
+    implicitHeight: 32
     z: 100
 
     function filtered(value: string): var {
@@ -50,21 +50,27 @@ Item {
     RaohaneSurface {
         id: searchBox
         anchors.fill: parent
-        surfaceRadius: 11
+        surfaceRadius: RaohaneTheme.radiusSmall
         raised: false
         active: searchInput.activeFocus
         hovered: searchHover.containsMouse
         showSheen: false
+        showInnerRim: false
+        idleColor: RaohaneTheme.surfaceSubtle
+        hoverColor: RaohaneTheme.surfaceHover
+        idleBorderColor: RaohaneTheme.borderFaint
+        hoverBorderColor: RaohaneTheme.borderStrong
+        activeBorderColor: RaohaneTheme.accentBorder
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 9
+            anchors.leftMargin: 11
+            anchors.rightMargin: 8
             spacing: 8
 
             RaohaneIcon {
                 text: "search"
-                iconSize: 16
+                iconSize: 14
                 fill: searchInput.activeFocus ? 1 : 0
                 color: searchInput.activeFocus ? RaohaneTheme.accent : RaohaneTheme.textMuted
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
@@ -81,7 +87,7 @@ Item {
                     color: RaohaneTheme.text
                     selectionColor: RaohaneTheme.accentSoft
                     selectedTextColor: RaohaneTheme.text
-                    font.pixelSize: 10
+                    font.pixelSize: 9
                     clip: true
                     text: root.query
 
@@ -114,17 +120,20 @@ Item {
                     visible: root.query.length === 0 && !searchInput.activeFocus
                     text: qsTr("Search settings")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 10
+                    font.pixelSize: 9
                 }
             }
 
             RaohaneSurface {
                 visible: root.query.length === 0
-                Layout.preferredWidth: 42
-                Layout.preferredHeight: 22
-                surfaceRadius: 8
+                Layout.preferredWidth: 40
+                Layout.preferredHeight: 20
+                surfaceRadius: RaohaneTheme.radiusSmall
                 raised: false
                 showSheen: false
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceDeep
+                idleBorderColor: "transparent"
                 Text {
                     anchors.centerIn: parent
                     text: "Ctrl F"
@@ -161,10 +170,12 @@ Item {
             right: parent.right
         }
         height: root.filteredEntries.length > 0 ? Math.min(310, resultsList.contentHeight + 14) : 50
-        surfaceRadius: 14
+        surfaceRadius: RaohaneTheme.radius
         raised: true
         showSheen: false
-        border.color: RaohaneTheme.borderStrong
+        showInnerRim: false
+        idleColor: RaohaneTheme.surfaceRaised
+        border.color: RaohaneTheme.borderFaint
         clip: true
         z: 101
         opacity: root.query.length > 0 ? 1 : 0
@@ -199,12 +210,12 @@ Item {
                 required property var modelData
                 required property int index
                 width: resultsList.width
-                height: 40
+                height: 38
                 activeFocusOnTab: true
 
                 RaohaneSurface {
                     anchors.fill: parent
-                    surfaceRadius: 10
+                    surfaceRadius: RaohaneTheme.radiusSmall
                     raised: false
                     active: resultRow.index === root.currentIndex || resultRow.activeFocus
                     hovered: resultMouse.containsMouse
@@ -213,13 +224,13 @@ Item {
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 10
+                        anchors.leftMargin: 9
+                        anchors.rightMargin: 9
                         spacing: 9
 
                         RaohaneIcon {
                             text: "tune"
-                            iconSize: 15
+                            iconSize: 14
                             fill: resultRow.index === root.currentIndex ? 1 : 0
                             color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textMuted
                         }
@@ -228,7 +239,7 @@ Item {
                             Layout.fillWidth: true
                             text: resultRow.modelData.label
                             color: RaohaneTheme.text
-                            font.pixelSize: 10
+                            font.pixelSize: 9
                             font.weight: resultRow.index === root.currentIndex ? Font.DemiBold : Font.Medium
                             elide: Text.ElideRight
                         }

@@ -119,10 +119,16 @@ Scope {
             width: Math.min(parent.width - 64, 1340)
             height: Math.min(parent.height - 72, 860)
             anchors.centerIn: parent
-            surfaceRadius: RaohaneTheme.radiusHero
+            surfaceRadius: RaohaneTheme.radiusLarge
             raised: true
             showSheen: false
-            idleColor: RaohaneTheme.surfaceDeep
+            showInnerRim: false
+            idleColor: Qt.rgba(
+                RaohaneTheme.backgroundElevated.r,
+                RaohaneTheme.backgroundElevated.g,
+                RaohaneTheme.backgroundElevated.b,
+                1
+            )
             border.color: RaohaneTheme.borderFaint
             clip: true
             opacity: entered ? 1 : 0
@@ -154,13 +160,13 @@ Scope {
                 id: settingsSearch
                 visible: !settingsContent.pageOwnsHeader
                 z: 50
-                width: Math.min(360, Math.max(280, workspace.width * 0.30))
-                height: 36
+                width: Math.min(340, Math.max(260, workspace.width * 0.28))
+                height: 34
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 28
-                    rightMargin: 64
+                    topMargin: 15
+                    rightMargin: 58
                 }
                 opacity: workspace.entered ? 1 : 0
 
@@ -184,11 +190,11 @@ Scope {
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: 28
-                    rightMargin: 20
+                    topMargin: 17
+                    rightMargin: 18
                 }
-                buttonSize: 29
-                iconSize: 14
+                buttonSize: 28
+                iconSize: 13
                 icon: "close"
                 transparentIdle: true
                 showSheen: false

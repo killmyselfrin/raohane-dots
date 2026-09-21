@@ -10,9 +10,12 @@ Item {
     property string sectionKey: "general"
     property bool settingsEntered: false
     property bool extensionEntered: false
+    property string highlightedControl: ""
 
     readonly property var pageInfo: RaohaneSettingsPageRegistry.page(root.sectionKey)
     readonly property var entries: RaohaneSettingsPageRegistry.sectionEntries(root.sectionKey)
+    readonly property string sectionTitle: RaohaneSettingsPageRegistry.sectionTitle(root.sectionKey)
+    readonly property string sectionDescription: RaohaneSettingsPageRegistry.sectionDescription(root.sectionKey)
     readonly property string extensionSource: RaohaneSettingsSectionRegistry.source(root.sectionKey)
     readonly property bool compactLayout: width < 700
 
@@ -48,13 +51,23 @@ Item {
         }
         const normalized = needle.toLowerCase()
         const index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(normalized) || entry.key.toLowerCase().includes(normalized))
-        if (index >= 0)
+        if (index >= 0) {
+            root.highlightedControl = String(root.entries[index].key ?? "")
             settingsFlick.contentY = Math.max(0, root.entryOffset(index) - RaohaneTheme.spacingLarge)
+            highlightTimer.restart()
+        }
     }
 
     onSectionKeyChanged: Qt.callLater(root.replayEntrance)
     Component.onCompleted: root.replayEntrance()
 
+
+    Timer {
+        id: highlightTimer
+        interval: 1100
+        repeat: false
+        onTriggered: root.highlightedControl = ""
+    }
 
     Timer {
         id: settingsTimer
@@ -103,6 +116,28 @@ Item {
             spacing: RaohaneTheme.spacing
 
 
+            Column {
+                width: parent.width
+                spacing: 2
+
+                Text {
+                    width: parent.width
+                    text: root.sectionTitle
+                    color: RaohaneTheme.text
+                    font.pixelSize: 12
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    width: parent.width
+                    text: root.sectionDescription
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 9
+                    wrapMode: Text.WordWrap
+                }
+            }
+
             RaohaneSurface {
                 id: settingsSurface
                 width: parent.width
@@ -111,7 +146,7 @@ Item {
                 raised: false
                 showSheen: false
                 idleColor: RaohaneTheme.surfaceSubtle
-                border.color: "transparent"
+                border.color: RaohaneTheme.borderFaint
                 clip: true
                 opacity: root.settingsEntered ? 1 : 0
 
@@ -147,6 +182,7 @@ Item {
                             width: settingsList.width
                             entry: modelData
                             lastRow: index >= root.entries.length - 1
+                            highlighted: String(modelData?.key ?? "") === root.highlightedControl
                         }
                     }
                 }
