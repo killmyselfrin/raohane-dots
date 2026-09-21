@@ -133,7 +133,11 @@ QtObject {
                 { type: "toggle", key: "frameEnabled", label: qsTr("Screen frame"), detail: qsTr("Draw the native Raohane screen frame") },
                 { type: "number", key: "frameThickness", label: qsTr("Frame thickness"), detail: qsTr("Screen frame thickness in pixels"), min: 1, max: 24, step: 1 },
                 { type: "toggle", key: "frameBarSideVisible", label: qsTr("Frame on bar edge"), detail: qsTr("Keep frame visible on the bar side") },
-                { type: "number", key: "screenRoundingMode", label: qsTr("Rounding mode"), detail: qsTr("0 off · 1 always · 2 hide on fullscreen"), min: 0, max: 2, step: 1 },
+                { type: "choice", key: "screenRoundingMode", label: qsTr("Rounding mode"), detail: qsTr("Choose when simulated screen rounding is visible"), options: [
+                    { value: 0, label: qsTr("Off"), icon: "rounded_corner" },
+                    { value: 1, label: qsTr("Always"), icon: "crop_square" },
+                    { value: 2, label: qsTr("Hide on fullscreen"), icon: "fullscreen" }
+                ] },
                 { type: "number", key: "screenCornerRadius", label: qsTr("Corner radius"), detail: qsTr("Fake-screen rounding radius in pixels"), min: 6, max: 96, step: 2 },
                 { type: "toggle", key: "hotCornersEnabled", label: qsTr("Hot corners"), detail: qsTr("Enable native bottom-corner actions") },
                 { type: "choice", key: "hotCornerBottomLeftAction", label: qsTr("Bottom-left action"), detail: qsTr("Choose what the lower-left hot corner opens"), options: RaohaneActionRegistry.hotCornerOptions() },
