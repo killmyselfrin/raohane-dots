@@ -163,6 +163,8 @@ Item {
     }
 
     component SectionTitle: ColumnLayout {
+        id: sectionTitle
+
         required property string title
         property string subtitle: ""
 
@@ -171,16 +173,16 @@ Item {
 
         Text {
             Layout.fillWidth: true
-            text: parent.title
+            text: sectionTitle.title
             color: RaohaneTheme.text
             font.pixelSize: 13
             font.weight: Font.DemiBold
         }
 
         Text {
-            visible: parent.subtitle.length > 0
+            visible: sectionTitle.subtitle.length > 0
             Layout.fillWidth: true
-            text: parent.subtitle
+            text: sectionTitle.subtitle
             color: RaohaneTheme.textMuted
             font.pixelSize: 9
             wrapMode: Text.WordWrap
