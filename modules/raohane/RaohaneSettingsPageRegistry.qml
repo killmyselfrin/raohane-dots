@@ -71,6 +71,7 @@ QtObject {
 
     readonly property var sectionSchemas: ({
         quick: {
+            title: qsTr("Control layout"),
             description: qsTr("Choose the controls that belong in the compact Control Center surface."),
             entries: [
                 { type: "toggle", key: "quickSliderBrightness", label: qsTr("Brightness slider"), detail: qsTr("Show display brightness in Quick Controls") },
@@ -79,6 +80,7 @@ QtObject {
             ]
         },
         general: {
+            title: qsTr("Playback & display feedback"),
             description: qsTr("Tune Context Island, media presentation, OSD timing and night-light behavior."),
             entries: [
                 { type: "toggle", key: "contextIslandEnabled", label: qsTr("Context Island"), detail: qsTr("Show live media, privacy and active-window context") },
@@ -89,6 +91,7 @@ QtObject {
             ]
         },
         bar: {
+            title: qsTr("Dock"),
             description: qsTr("Configure the dock here, then use Bar Studio below for every bar-specific option."),
             entries: [
                 { type: "toggle", key: "dockEnabled", label: qsTr("Dock"), detail: qsTr("Enable the Raohane dock") },
@@ -98,6 +101,7 @@ QtObject {
             ]
         },
         desktop: {
+            title: qsTr("Wallpaper & overview"),
             description: qsTr("Configure wallpaper browsing, transitions and the Spaces overview grid."),
             entries: [
                 { type: "toggle", key: "wallpaperPreview", label: qsTr("Wallpaper preview"), detail: qsTr("Preview wallpapers before applying them") },
@@ -109,6 +113,7 @@ QtObject {
             ]
         },
         widgets: {
+            title: qsTr("Desktop composition"),
             description: qsTr("Build a calm desktop composition from native Raohane widgets."),
             entries: [
                 { type: "toggle", key: "desktopWidgetsEnabled", label: qsTr("Desktop widgets"), detail: qsTr("Show the native widget layer on the wallpaper") },
@@ -122,6 +127,7 @@ QtObject {
             ]
         },
         interface: {
+            title: qsTr("Screen framing"),
             description: qsTr("Refine screen framing, rounding and hot-corner presentation."),
             entries: [
                 { type: "toggle", key: "frameEnabled", label: qsTr("Screen frame"), detail: qsTr("Draw the native Raohane screen frame") },
@@ -136,6 +142,7 @@ QtObject {
             ]
         },
         hyprland: {
+            title: qsTr("Interaction"),
             description: qsTr("Configure Hyprland-facing interaction behavior owned by Raohane."),
             entries: [
                 { type: "toggle", key: "integrationMode", label: qsTr("Integration mode"), detail: qsTr("Keep Hyprland integration features enabled") },
@@ -147,6 +154,7 @@ QtObject {
             ]
         },
         services: {
+            title: qsTr("External tools"),
             description: qsTr("Choose commands Raohane launches for system configuration and helper tools."),
             entries: [
                 { type: "text", key: "networkCommand", label: qsTr("Network command"), detail: qsTr("Program launched for Wi-Fi/network settings") },
@@ -157,6 +165,7 @@ QtObject {
             ]
         },
         profile: {
+            title: qsTr("Identity"),
             description: qsTr("Set the local identity used by Settings and session surfaces."),
             entries: [
                 { type: "text", key: "profileDisplayName", label: qsTr("Display name"), detail: qsTr("Name shown in Raohane profile surfaces") },
@@ -216,6 +225,10 @@ QtObject {
     function sectionSchema(key: string): var {
         const normalized = String(key ?? "").trim().toLowerCase()
         return root.sectionSchemas[normalized] ?? null
+    }
+
+    function sectionTitle(key: string): string {
+        return root.sectionSchema(key)?.title ?? ""
     }
 
     function sectionDescription(key: string): string {
