@@ -168,9 +168,10 @@ for source in "${page_sources[@]}"; do
 done
 
 for symbol in \
-  'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsSectionRegistry\.source' \
+  'RaohaneSettingsPageRegistry\.sectionEntries' 'RaohaneSettingsPageRegistry\.sectionTitle' \
+  'RaohaneSettingsPageRegistry\.sectionDescription' 'RaohaneSettingsSectionRegistry\.source' \
   'RaohaneSettingsSectionRegistry\.ownsControl' 'RaohaneSettingsControlRow[[:space:]]*\{' \
-  'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource'; do
+  'Loader[[:space:]]*\{' 'source:[[:space:]]*root\.extensionSource' 'highlightedControl'; do
   rg -q "$symbol" "$section" || fail "native section renderer lost generic composition contract: $symbol"
 done
 if rg -n 'RaohaneConfig\[|RaohaneSwitch[[:space:]]*\{|RaohaneIconButton[[:space:]]*\{|TextInput[[:space:]]*\{|RaohaneBarStudio[[:space:]]*\{|RaohaneQuickControlsStudio[[:space:]]*\{|sectionKey[[:space:]]*===?[[:space:]]*"(bar|quick)"' "$section"; then
