@@ -231,5 +231,13 @@
   "Screen framing": "Оформление экрана",
   "Interaction": "Взаимодействие",
   "External tools": "Внешние инструменты",
-  "Identity": "Профиль"
+  "Identity": "Профиль",
+  "Changes apply immediately. Preview opens the real player using the current Scene policy.": "Изменения применяются сразу. Предпросмотр открывает реальный плеер с правилами текущей сцены.",
+  "Choose when simulated screen rounding is visible": "Выберите, когда отображать имитацию скругления экрана",
+  "Choose where the compact media player appears in normal and Gaming scenes.": "Выберите положение компактного медиаплеера в обычном режиме и в игровой сцене.",
+  "Default position outside Gaming Scene": "Положение по умолчанию вне игровой сцены",
+  "Desktop active": "Активен рабочий стол",
+  "Gaming active": "Активен игровой режим",
+  "Hide on fullscreen": "Скрывать в полноэкранном режиме",
+  "Position used automatically while Gaming Scene is active": "Положение, автоматически используемое во время игровой сцены"
 }
