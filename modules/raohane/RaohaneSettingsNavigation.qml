@@ -16,7 +16,7 @@ Item {
 
     signal pageRequested(int index)
 
-    implicitWidth: compact ? 70 : 196
+    implicitWidth: compact ? 68 : 208
 
     ColumnLayout {
         anchors.fill: parent
@@ -25,15 +25,15 @@ Item {
 
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: 52
+            Layout.preferredHeight: 46
 
             RowLayout {
                 anchors.fill: parent
                 spacing: RaohaneTheme.spacing
 
                 RaohaneSurface {
-                    Layout.preferredWidth: 32
-                    Layout.preferredHeight: 32
+                    Layout.preferredWidth: 28
+                    Layout.preferredHeight: 28
                     surfaceRadius: RaohaneTheme.radiusLarge
                     raised: false
                     active: false
@@ -44,7 +44,7 @@ Item {
                     RaohaneIcon {
                         anchors.centerIn: parent
                         text: "spa"
-                        iconSize: 18
+                        iconSize: 16
                         fill: 1
                         symbolWeight: 560
                         grade: 40
@@ -60,7 +60,7 @@ Item {
                     Text {
                         text: "RAOHANE"
                         color: RaohaneTheme.text
-                        font.pixelSize: 10
+                        font.pixelSize: 9
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.1
                     }
@@ -108,7 +108,7 @@ Item {
 
                 readonly property var selectedDelegate: navRepeater.itemAt(root.currentPage)
                 readonly property real selectedY: selectedDelegate
-                    ? selectedDelegate.y + selectedDelegate.height - 38
+                    ? selectedDelegate.y + selectedDelegate.height - 36
                     : 0
 
                 RaohaneSurface {
@@ -117,7 +117,7 @@ Item {
                     x: 0
                     y: navContent.selectedY
                     width: navContent.width
-                    height: 38
+                    height: 36
                     visible: navContent.selectedDelegate !== null
                     opacity: visible ? 1 : 0
                     surfaceRadius: RaohaneTheme.radius
@@ -160,7 +160,7 @@ Item {
                             readonly property bool selected: root.currentPage === navDelegate.index
 
                             width: navColumn.width
-                            height: root.compact ? 42 : (firstInGroup ? 58 : 42)
+                            height: root.compact ? 40 : (firstInGroup ? 56 : 40)
 
                             Text {
                                 visible: !root.compact && navDelegate.firstInGroup
@@ -172,7 +172,7 @@ Item {
                                 }
                                 text: navDelegate.modelData.group
                                 color: RaohaneTheme.textFaint
-                                font.pixelSize: 7
+                                font.pixelSize: 8
                                 font.weight: Font.DemiBold
                                 font.letterSpacing: 0.8
                             }
@@ -184,8 +184,8 @@ Item {
                                     right: parent.right
                                     bottom: parent.bottom
                                 }
-                                height: 38
-                                surfaceRadius: RaohaneTheme.radius
+                                height: 36
+                                surfaceRadius: RaohaneTheme.radiusSmall
                                 active: false
                                 transparentIdle: true
                                 showSheen: false
@@ -287,7 +287,7 @@ Item {
             hoverScale: 1
             pressedScale: 1
             hoverColor: RaohaneTheme.surfaceSubtle
-            hoverBorderColor: RaohaneTheme.borderStrong
+            hoverBorderColor: "transparent"
 
             RowLayout {
                 anchors.fill: parent

@@ -212,8 +212,9 @@ for key in themePreset barModuleLayout quickControlTiles desktopWidgetsLayout ke
   rg -q "key:[[:space:]]*\"${key}\"" "$registry" || fail "Settings registry lost search route: $key"
 done
 
-rg -q 'Open native\.json' "$home" || fail 'Settings Home no longer exposes native config entry point'
-rg -q 'RaohaneSettingsRouter\.request\(page, ""\)' "$home" || fail 'Settings Home bypasses centralized router'
+rg -q 'component CategorySection:[[:space:]]*ColumnLayout' "$home" || fail 'Settings Home lost grouped application sections'
+rg -q 'RaohaneSettingsPageRegistry\.page' "$home" || fail 'Settings Home categories are no longer registry-backed'
+rg -q 'RaohaneSettingsRouter\.request\(String\(page' "$home" || fail 'Settings Home bypasses centralized router'
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library lost shared preset catalog'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply theme through native config'
 for contract in 'RaohaneBarAppearanceSettings' 'RaohaneBarLayoutEditor'; do

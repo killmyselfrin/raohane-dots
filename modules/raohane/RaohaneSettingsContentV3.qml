@@ -113,23 +113,19 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        anchors.margins: RaohaneTheme.spacing
-        spacing: RaohaneTheme.spacing
+        spacing: 0
 
-        RaohaneSurface {
+        Rectangle {
             Layout.fillHeight: true
-            Layout.preferredWidth: navigation.implicitWidth
-            surfaceRadius: RaohaneTheme.radiusHero
-            raised: false
-            showSheen: false
-            showInnerRim: false
-            idleColor: RaohaneTheme.surfaceDeep
-            idleBorderColor: "transparent"
-            clip: true
+            Layout.preferredWidth: navigation.implicitWidth + 1
+            color: RaohaneTheme.surfaceDeep
 
             RaohaneSettingsNavigation {
                 id: navigation
-                anchors.fill: parent
+                anchors {
+                    fill: parent
+                    rightMargin: 1
+                }
                 pages: root.pages
                 currentPage: root.currentPage
                 compact: root.compactNav
@@ -138,18 +134,22 @@ Item {
                         RaohaneSettingsRouter.request(root.pages[index].key, "")
                 }
             }
+
+            Rectangle {
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                    bottom: parent.bottom
+                }
+                width: 1
+                color: RaohaneTheme.borderFaint
+            }
         }
 
-        RaohaneSurface {
+        Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            surfaceRadius: RaohaneTheme.radiusHero
-            raised: false
-            showSheen: false
-            showInnerRim: false
-            idleColor: RaohaneTheme.surfaceDeep
-            idleBorderColor: "transparent"
-            clip: true
+            color: RaohaneTheme.background
 
             ColumnLayout {
                 anchors.fill: parent
