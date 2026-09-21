@@ -13,6 +13,8 @@ Item {
 
     readonly property var pageInfo: RaohaneSettingsPageRegistry.page(root.sectionKey)
     readonly property var entries: RaohaneSettingsPageRegistry.sectionEntries(root.sectionKey)
+    readonly property string sectionTitle: RaohaneSettingsPageRegistry.sectionTitle(root.sectionKey)
+    readonly property string sectionDescription: RaohaneSettingsPageRegistry.sectionDescription(root.sectionKey)
     readonly property string extensionSource: RaohaneSettingsSectionRegistry.source(root.sectionKey)
     readonly property bool compactLayout: width < 700
 
@@ -103,6 +105,28 @@ Item {
             spacing: RaohaneTheme.spacing
 
 
+            Column {
+                width: parent.width
+                spacing: 2
+
+                Text {
+                    width: parent.width
+                    text: root.sectionTitle
+                    color: RaohaneTheme.text
+                    font.pixelSize: 12
+                    font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    width: parent.width
+                    text: root.sectionDescription
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 9
+                    wrapMode: Text.WordWrap
+                }
+            }
+
             RaohaneSurface {
                 id: settingsSurface
                 width: parent.width
@@ -111,7 +135,7 @@ Item {
                 raised: false
                 showSheen: false
                 idleColor: RaohaneTheme.surfaceSubtle
-                border.color: "transparent"
+                border.color: RaohaneTheme.borderFaint
                 clip: true
                 opacity: root.settingsEntered ? 1 : 0
 
