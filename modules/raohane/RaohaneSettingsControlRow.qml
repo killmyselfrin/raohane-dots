@@ -76,7 +76,10 @@ RaohaneSurface {
     function setChoice(index: int): void {
         if (!root.entry || index < 0 || index >= root.choiceOptions.length)
             return
-        RaohaneConfig[root.entry.key] = String(root.choiceOptions[index].value)
+        const optionValue = root.choiceOptions[index].value
+        RaohaneConfig[root.entry.key] = typeof optionValue === "number"
+            ? Number(optionValue)
+            : String(optionValue)
     }
 
     function changeChoice(delta: int): void {

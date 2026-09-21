@@ -167,8 +167,8 @@ for contract in \
   'readonly property bool gamingActive: RaohaneScenes\.gaming' \
   'function previewPlayer\(\)' \
   'RaohaneState\.mediaOverlayOpen = true' \
-  'qsTr\("LIVE · GAMING"\)' \
-  'qsTr\("LIVE · DESKTOP"\)' \
+  'qsTr\("Gaming active"\)' \
+  'qsTr\("Desktop active"\)' \
   'title: qsTr\("Desktop"\)' \
   'title: qsTr\("Gaming"\)' \
   'qsTr\("Gaming auto-hide"\)' \
@@ -180,7 +180,7 @@ for contract in \
   'activePolicy: root\.gamingActive' \
   'onSelected: position => RaohaneConfig\.mediaOverlayPosition = position' \
   'onSelected: position => RaohaneConfig\.mediaOverlayGamingPosition = position' \
-  'onClicked: RaohaneConfig\.mediaOverlayGamingAutoHideSeconds = autoHideButton\.optionValue' \
+  'onClicked: RaohaneConfig\.mediaOverlayGamingAutoHideSeconds = hideChoice\.optionValue' \
   'MouseArea[[:space:]]*\{' \
   'cursorShape: Qt\.PointingHandCursor'; do
   rg -q "$contract" "$STUDIO" || fail "Media Position Studio lost interaction contract: $contract"

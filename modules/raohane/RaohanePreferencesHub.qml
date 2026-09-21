@@ -179,53 +179,20 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 11
+        anchors.margins: 12
+        spacing: 8
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 48
-            spacing: 10
+            Layout.preferredHeight: 38
+            spacing: 6
 
-            RaohaneIconButton {
-                buttonSize: 32
-                iconSize: 15
-                icon: "arrow_back"
-                transparentIdle: true
-                showSheen: false
-                hoverScale: 1
-                pressedScale: 1
-                onClicked: root.closeRequested()
-            }
-
-            Rectangle {
-                Layout.preferredWidth: 3
-                Layout.preferredHeight: 34
-                radius: 2
-                color: RaohaneTheme.accent
-            }
-
-            ColumnLayout {
+            Text {
                 Layout.fillWidth: true
-                spacing: 1
-
-                Text {
-                    text: root.section === "motion" ? qsTr("Motion & animations") : qsTr("Keyboard shortcuts")
-                    color: RaohaneTheme.text
-                    font.pixelSize: 15
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: -0.1
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: root.section === "motion"
-                        ? qsTr("Tune Raohane shell motion and Hyprland compositor transitions")
-                        : qsTr("All Raohane shell actions in one configurable shortcut map")
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
-                    elide: Text.ElideRight
-                }
+                text: root.section === "motion" ? qsTr("Motion") : qsTr("Keybinds")
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 9
+                font.weight: Font.Medium
             }
 
             TabButton {
@@ -306,7 +273,7 @@ Item {
                 RaohaneSurface {
                     width: parent.width
                     height: actionList.implicitHeight
-                    surfaceRadius: 13
+                    surfaceRadius: RaohaneTheme.radiusLarge
                     raised: false
                     showSheen: false
                     color: RaohaneTheme.surfaceDeep
@@ -545,7 +512,7 @@ Item {
                 RaohaneSurface {
                     width: parent.width
                     height: motionRows.implicitHeight
-                    surfaceRadius: 13
+                    surfaceRadius: RaohaneTheme.radiusLarge
                     raised: false
                     showSheen: false
                     color: RaohaneTheme.surfaceDeep

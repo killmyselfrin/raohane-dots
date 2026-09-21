@@ -169,7 +169,7 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 108
+                Layout.preferredHeight: 82
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
@@ -185,8 +185,8 @@ Item {
                     spacing: RaohaneTheme.spacingLarge
 
                     RaohaneSurface {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
                         surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: true
@@ -195,7 +195,7 @@ Item {
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: "dashboard_customize"
-                            iconSize: 27
+                            iconSize: 20
                             fill: 1
                             symbolWeight: 480
                             grade: 25
@@ -210,9 +210,9 @@ Item {
                         Text {
                             text: "RAOHANE"
                             color: RaohaneTheme.text
-                            font.pixelSize: 22
+                            font.pixelSize: 16
                             font.weight: Font.DemiBold
-                            font.letterSpacing: 2.4
+                            font.letterSpacing: 1.3
                         }
 
                         Text {
@@ -227,7 +227,7 @@ Item {
 
                             RaohaneSurface {
                                 implicitWidth: versionText.implicitWidth + 18
-                                implicitHeight: 27
+                                implicitHeight: 24
                                 surfaceRadius: RaohaneTheme.radiusSmall
                                 raised: false
                                 active: true
@@ -340,20 +340,38 @@ Item {
 
             SectionLabel { text: qsTr("System") }
 
-            GridLayout {
+            RaohaneSurface {
                 Layout.fillWidth: true
-                columns: width >= 760 ? 2 : 1
-                columnSpacing: RaohaneTheme.spacing
-                rowSpacing: RaohaneTheme.spacing
+                Layout.preferredHeight: systemList.implicitHeight
+                surfaceRadius: RaohaneTheme.radiusLarge
+                raised: false
+                showSheen: false
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceSubtle
+                border.color: RaohaneTheme.borderFaint
+                clip: true
 
-                InfoCard { icon: "computer"; label: qsTr("Distribution"); value: RaohaneSystemInfo.distroName }
-                InfoCard { icon: "terminal"; label: qsTr("Kernel"); value: RaohaneSystemInfo.kernelVersion }
-                InfoCard { icon: "memory"; label: qsTr("CPU"); value: RaohaneSystemInfo.cpu }
-                InfoCard { icon: "developer_board"; label: qsTr("GPU"); value: RaohaneSystemInfo.gpu }
-                InfoCard { icon: "memory_alt"; label: qsTr("Memory"); value: RaohaneSystemInfo.memory }
-                InfoCard { icon: "hard_drive"; label: qsTr("Disk"); value: RaohaneSystemInfo.disk }
-                InfoCard { icon: "code"; label: qsTr("Shell"); value: RaohaneSystemInfo.shell }
-                InfoCard { icon: "package_2"; label: qsTr("Packages"); value: RaohaneSystemInfo.packages }
+                Column {
+                    id: systemList
+                    width: parent.width
+                    spacing: 0
+
+                    SystemRow { width: parent.width; icon: "computer"; label: qsTr("Distribution"); value: RaohaneSystemInfo.distroName }
+                    RowDivider { width: parent.width }
+                    SystemRow { width: parent.width; icon: "terminal"; label: qsTr("Kernel"); value: RaohaneSystemInfo.kernelVersion }
+                    RowDivider { width: parent.width }
+                    SystemRow { width: parent.width; icon: "memory"; label: qsTr("CPU"); value: RaohaneSystemInfo.cpu }
+                    RowDivider { width: parent.width }
+                    SystemRow { width: parent.width; icon: "developer_board"; label: qsTr("GPU"); value: RaohaneSystemInfo.gpu }
+                    RowDivider { width: parent.width }
+                    SystemRow { width: parent.width; icon: "memory_alt"; label: qsTr("Memory"); value: RaohaneSystemInfo.memory }
+                    RowDivider { width: parent.width }
+                    SystemRow { width: parent.width; icon: "hard_drive"; label: qsTr("Disk"); value: RaohaneSystemInfo.disk }
+                    RowDivider { width: parent.width }
+                    SystemRow { width: parent.width; icon: "code"; label: qsTr("Shell"); value: RaohaneSystemInfo.shell }
+                    RowDivider { width: parent.width }
+                    SystemRow { width: parent.width; icon: "package_2"; label: qsTr("Packages"); value: RaohaneSystemInfo.packages }
+                }
             }
 
             SectionLabel { text: qsTr("Introduction") }
@@ -406,6 +424,54 @@ Item {
         font.pixelSize: 10
         font.weight: Font.DemiBold
         font.letterSpacing: 1.1
+    }
+
+    component RowDivider: Rectangle {
+        height: 1
+        x: RaohaneTheme.panelPadding
+        width: parent ? Math.max(0, parent.width - RaohaneTheme.panelPadding * 2) : 0
+        color: RaohaneTheme.borderFaint
+    }
+
+    component SystemRow: Item {
+        id: systemRow
+
+        required property string icon
+        required property string label
+        required property string value
+
+        height: 50
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: RaohaneTheme.panelPadding
+            anchors.rightMargin: RaohaneTheme.panelPadding
+            spacing: RaohaneTheme.spacing
+
+            RaohaneIcon {
+                text: systemRow.icon
+                iconSize: 16
+                color: RaohaneTheme.textMuted
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: systemRow.label
+                color: RaohaneTheme.text
+                font.pixelSize: 9
+                font.weight: Font.Medium
+                elide: Text.ElideRight
+            }
+
+            Text {
+                Layout.preferredWidth: Math.min(520, implicitWidth)
+                text: systemRow.value.length > 0 ? systemRow.value : qsTr("Loading…")
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 9
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideRight
+            }
+        }
     }
 
     component InfoCard: RaohaneSurface {

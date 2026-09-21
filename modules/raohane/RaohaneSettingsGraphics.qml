@@ -150,7 +150,7 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: root.compactLayout ? 118 : 126
+                Layout.preferredHeight: root.compactLayout ? 92 : 96
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
                 showSheen: false
@@ -168,8 +168,8 @@ Item {
                     spacing: RaohaneTheme.spacingLarge
 
                     RaohaneSurface {
-                        Layout.preferredWidth: 46
-                        Layout.preferredHeight: 46
+                        Layout.preferredWidth: 36
+                        Layout.preferredHeight: 36
                         surfaceRadius: RaohaneTheme.radiusSmall
                         raised: false
                         active: true
@@ -179,7 +179,7 @@ Item {
                         RaohaneIcon {
                             anchors.centerIn: parent
                             text: root.statusIcon
-                            iconSize: 25
+                            iconSize: 19
                             fill: 1
                             symbolWeight: 480
                             grade: 25
@@ -195,7 +195,7 @@ Item {
                             Layout.fillWidth: true
                             text: root.statusTitle
                             color: RaohaneTheme.text
-                            font.pixelSize: 16
+                            font.pixelSize: 13
                             font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
@@ -223,34 +223,49 @@ Item {
 
             SectionLabel { text: qsTr("Detected hardware") }
 
-            GridLayout {
+            RaohaneSurface {
                 Layout.fillWidth: true
-                columns: width >= 760 ? 2 : 1
-                columnSpacing: RaohaneTheme.spacing
-                rowSpacing: RaohaneTheme.spacing
+                Layout.preferredHeight: hardwareRows.implicitHeight
+                surfaceRadius: RaohaneTheme.radiusLarge
+                raised: false
+                showSheen: false
+                showInnerRim: false
+                idleColor: RaohaneTheme.surfaceSubtle
+                border.color: RaohaneTheme.borderFaint
+                clip: true
 
-                InfoCard {
-                    icon: "developer_board"
-                    label: qsTr("GPU")
-                    value: RaohaneGraphics.gpuSummary.length > 0 ? RaohaneGraphics.gpuSummary : qsTr("Detecting…")
-                }
+                Column {
+                    id: hardwareRows
+                    width: parent.width
+                    spacing: 0
 
-                InfoCard {
-                    icon: "memory"
-                    label: qsTr("Active driver")
-                    value: RaohaneGraphics.driverSummary.length > 0 ? RaohaneGraphics.driverSummary : qsTr("Detecting…")
-                }
-
-                InfoCard {
-                    icon: "database"
-                    label: qsTr("Update source")
-                    value: root.checkSourceLabel
-                }
-
-                InfoCard {
-                    icon: "package_2"
-                    label: qsTr("Pending graphics packages")
-                    value: RaohaneGraphics.checking ? qsTr("Checking…") : String(RaohaneGraphics.updateCount)
+                    HardwareRow {
+                        width: parent.width
+                        icon: "developer_board"
+                        label: qsTr("GPU")
+                        value: RaohaneGraphics.gpuSummary.length > 0 ? RaohaneGraphics.gpuSummary : qsTr("Detecting…")
+                    }
+                    HardwareDivider { width: parent.width }
+                    HardwareRow {
+                        width: parent.width
+                        icon: "memory"
+                        label: qsTr("Active driver")
+                        value: RaohaneGraphics.driverSummary.length > 0 ? RaohaneGraphics.driverSummary : qsTr("Detecting…")
+                    }
+                    HardwareDivider { width: parent.width }
+                    HardwareRow {
+                        width: parent.width
+                        icon: "database"
+                        label: qsTr("Update source")
+                        value: root.checkSourceLabel
+                    }
+                    HardwareDivider { width: parent.width }
+                    HardwareRow {
+                        width: parent.width
+                        icon: "package_2"
+                        label: qsTr("Pending graphics packages")
+                        value: RaohaneGraphics.checking ? qsTr("Checking…") : String(RaohaneGraphics.updateCount)
+                    }
                 }
             }
 
@@ -454,6 +469,54 @@ Item {
         font.pixelSize: 9
         font.weight: Font.DemiBold
         font.letterSpacing: 1.0
+    }
+
+    component HardwareDivider: Rectangle {
+        height: 1
+        x: RaohaneTheme.panelPadding
+        width: parent ? Math.max(0, parent.width - RaohaneTheme.panelPadding * 2) : 0
+        color: RaohaneTheme.borderFaint
+    }
+
+    component HardwareRow: Item {
+        id: hardwareRow
+
+        property string icon: "info"
+        property string label: ""
+        property string value: ""
+
+        height: 52
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: RaohaneTheme.panelPadding
+            anchors.rightMargin: RaohaneTheme.panelPadding
+            spacing: RaohaneTheme.spacing
+
+            RaohaneIcon {
+                text: hardwareRow.icon
+                iconSize: 16
+                color: RaohaneTheme.textMuted
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: hardwareRow.label
+                color: RaohaneTheme.text
+                font.pixelSize: 9
+                font.weight: Font.Medium
+                elide: Text.ElideRight
+            }
+
+            Text {
+                Layout.preferredWidth: Math.min(520, implicitWidth)
+                text: hardwareRow.value
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 9
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideRight
+            }
+        }
     }
 
     component InfoCard: RaohaneSurface {

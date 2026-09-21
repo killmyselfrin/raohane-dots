@@ -32,7 +32,7 @@ Item {
     ColumnLayout {
         id: studioColumn
         width: parent.width
-        spacing: RaohaneTheme.spacingLarge
+        spacing: RaohaneTheme.spacing
 
         RowLayout {
             Layout.fillWidth: true
@@ -42,27 +42,34 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: RaohaneTheme.spacingTiny
+                spacing: 2
 
                 Text {
-                    text: qsTr("Media Position Studio")
+                    text: qsTr("Player position")
                     color: RaohaneTheme.text
-                    font.pixelSize: 13
+                    font.pixelSize: 12
                     font.weight: Font.DemiBold
                 }
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("Choose where the media surface appears in normal use and while Gaming Scene is active.")
+                    text: qsTr("Choose where the compact media player appears in normal and Gaming scenes.")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 9
                     wrapMode: Text.WordWrap
                 }
             }
 
+            Text {
+                text: root.gamingActive ? qsTr("Gaming active") : qsTr("Desktop active")
+                color: RaohaneTheme.accent
+                font.pixelSize: 8
+                font.weight: Font.DemiBold
+            }
+
             RaohaneIconButton {
-                buttonSize: 30
-                iconSize: 15
+                buttonSize: 28
+                iconSize: 14
                 icon: "visibility"
                 transparentIdle: true
                 showSheen: false
@@ -70,184 +77,144 @@ Item {
                 pressedScale: 1
                 onClicked: root.previewPlayer()
             }
-
-            RaohaneSurface {
-                Layout.preferredWidth: liveLabel.implicitWidth + 2 * RaohaneTheme.panelPadding
-                Layout.preferredHeight: 28
-                surfaceRadius: RaohaneTheme.radiusLarge
-                active: true
-                raised: false
-                showSheen: false
-                showInnerRim: false
-                activeColor: RaohaneTheme.accentSoft
-                activeBorderColor: RaohaneTheme.accentBorder
-                showStateRail: true
-                stateRailWidth: 2
-                stateRailLength: 14
-                stateRailOpacity: 0.82
-
-                Text {
-                    id: liveLabel
-                    anchors.centerIn: parent
-                    text: root.gamingActive ? qsTr("LIVE · GAMING") : qsTr("LIVE · DESKTOP")
-                    color: RaohaneTheme.accent
-                    font.pixelSize: 8
-                    font.weight: Font.DemiBold
-                }
-            }
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: RaohaneTheme.spacingLarge
-
-            PlacementCard {
-                Layout.fillWidth: true
-                title: qsTr("Desktop")
-                subtitle: qsTr("Default media position")
-                badge: root.gamingActive ? qsTr("STANDBY") : qsTr("ACTIVE")
-                activePolicy: !root.gamingActive
-                value: RaohaneConfig.mediaOverlayPosition
-                gaming: false
-                positions: root.positionOptions
-                onSelected: position => RaohaneConfig.mediaOverlayPosition = position
-            }
-
-            PlacementCard {
-                Layout.fillWidth: true
-                title: qsTr("Gaming")
-                subtitle: qsTr("Used automatically in Gaming Scene")
-                badge: root.gamingActive ? qsTr("ACTIVE") : qsTr("STANDBY")
-                activePolicy: root.gamingActive
-                value: RaohaneConfig.mediaOverlayGamingPosition
-                gaming: true
-                positions: root.positionOptions
-                onSelected: position => RaohaneConfig.mediaOverlayGamingPosition = position
-            }
         }
 
         RaohaneSurface {
             Layout.fillWidth: true
-            Layout.preferredHeight: 82
+            Layout.preferredHeight: placementRows.implicitHeight
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
             showSheen: false
-            active: root.gamingActive
-            activeColor: RaohaneTheme.surface
-            idleBorderColor: RaohaneTheme.borderFaint
-            activeBorderColor: RaohaneTheme.accentBorder
-            showStateRail: root.gamingActive
-            stateRailWidth: 3
-            stateRailLength: 28
-            stateRailOpacity: 0.70
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceSubtle
+            border.color: RaohaneTheme.borderFaint
+            clip: true
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: RaohaneTheme.spacingLarge
-                spacing: RaohaneTheme.spacingLarge
+            Column {
+                id: placementRows
+                width: parent.width
+                spacing: 0
 
-                RaohaneSurface {
-                    Layout.preferredWidth: 34
-                    Layout.preferredHeight: 34
-                    Layout.alignment: Qt.AlignVCenter
-                    surfaceRadius: RaohaneTheme.radiusLarge
-                    active: root.gamingActive
-                    showSheen: false
-                    showInnerRim: false
-                    idleColor: RaohaneTheme.surfaceSubtle
-                    idleBorderColor: RaohaneTheme.borderFaint
-
-                    RaohaneIcon {
-                        anchors.centerIn: parent
-                        text: "timer"
-                        iconSize: 18
-                        fill: root.gamingActive ? 1 : 0
-                        color: root.gamingActive ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                    }
+                PositionRow {
+                    width: parent.width
+                    title: qsTr("Desktop")
+                    detail: qsTr("Default position outside Gaming Scene")
+                    value: RaohaneConfig.mediaOverlayPosition
+                    activePolicy: !root.gamingActive
+                    positions: root.positionOptions
+                    onSelected: position => RaohaneConfig.mediaOverlayPosition = position
                 }
 
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
-
-                    Text {
-                        text: qsTr("Gaming auto-hide")
-                        color: RaohaneTheme.text
-                        font.pixelSize: 10
-                        font.weight: Font.DemiBold
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Close the compact player automatically after interaction")
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
-                        elide: Text.ElideRight
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: qsTr("Hover pauses the timer. Lyrics stay open until you close them.")
-                        color: RaohaneTheme.textFaint
-                        font.pixelSize: 7
-                        elide: Text.ElideRight
-                    }
+                RaohaneDivider {
+                    width: parent.width - RaohaneTheme.panelPadding * 2
+                    x: RaohaneTheme.panelPadding
+                    color: RaohaneTheme.borderFaint
                 }
 
-                RowLayout {
-                    spacing: Math.max(2, RaohaneTheme.spacingSmall - 1)
+                PositionRow {
+                    width: parent.width
+                    title: qsTr("Gaming")
+                    detail: qsTr("Position used automatically while Gaming Scene is active")
+                    value: RaohaneConfig.mediaOverlayGamingPosition
+                    activePolicy: root.gamingActive
+                    positions: root.positionOptions
+                    onSelected: position => RaohaneConfig.mediaOverlayGamingPosition = position
+                }
 
-                    Repeater {
-                        model: root.autoHideOptions
+                RaohaneDivider {
+                    width: parent.width - RaohaneTheme.panelPadding * 2
+                    x: RaohaneTheme.panelPadding
+                    color: RaohaneTheme.borderFaint
+                }
 
-                        delegate: RaohaneSurface {
-                            id: autoHideButton
-                            required property var modelData
+                Item {
+                    width: parent.width
+                    height: 68
 
-                            readonly property int optionValue: Number(modelData.value)
-                            readonly property bool selected: RaohaneConfig.mediaOverlayGamingAutoHideSeconds === optionValue
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: RaohaneTheme.panelPadding
+                        anchors.rightMargin: RaohaneTheme.panelPadding
+                        spacing: RaohaneTheme.spacingLarge
 
-                            width: optionValue === 0 ? 48 : 42
-                            height: 30
-                            surfaceRadius: RaohaneTheme.radius
-                            active: selected
-                            raised: false
-                            showSheen: false
-                            showInnerRim: false
-                            interactive: true
-                            hovered: autoHideMouse.containsMouse || activeFocus
-                            pressed: autoHideMouse.pressed
-                            hoverScale: 1
-                            pressedScale: 1
-                            activeFocusOnTab: true
-                            idleColor: RaohaneTheme.surfaceDeep
-                            hoverColor: RaohaneTheme.surfaceRaised
-                            activeColor: RaohaneTheme.accentSoft
-                            idleBorderColor: RaohaneTheme.borderFaint
-                            hoverBorderColor: RaohaneTheme.borderStrong
-                            activeBorderColor: RaohaneTheme.accentBorder
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
 
                             Text {
-                                anchors.centerIn: parent
-                                text: String(autoHideButton.modelData.label)
-                                color: autoHideButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                Layout.fillWidth: true
+                                text: qsTr("Gaming auto-hide")
+                                color: RaohaneTheme.text
+                                font.pixelSize: 10
+                                font.weight: Font.Medium
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: qsTr("Close the compact player automatically after interaction")
+                                color: RaohaneTheme.textMuted
                                 font.pixelSize: 8
-                                font.weight: autoHideButton.selected ? Font.DemiBold : Font.Medium
+                                elide: Text.ElideRight
                             }
+                        }
 
-                            MouseArea {
-                                id: autoHideMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onPressed: autoHideButton.forceActiveFocus()
-                                onClicked: RaohaneConfig.mediaOverlayGamingAutoHideSeconds = autoHideButton.optionValue
-                            }
+                        RowLayout {
+                            spacing: 4
 
-                            Keys.onPressed: event => {
-                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                    RaohaneConfig.mediaOverlayGamingAutoHideSeconds = autoHideButton.optionValue
-                                    event.accepted = true
+                            Repeater {
+                                model: root.autoHideOptions
+
+                                delegate: RaohaneSurface {
+                                    id: hideChoice
+                                    required property var modelData
+
+                                    readonly property int optionValue: Number(modelData.value)
+                                    readonly property bool selected: RaohaneConfig.mediaOverlayGamingAutoHideSeconds === optionValue
+
+                                    width: optionValue === 0 ? 48 : 42
+                                    height: 30
+                                    surfaceRadius: RaohaneTheme.radiusSmall
+                                    active: selected
+                                    raised: false
+                                    showSheen: false
+                                    showInnerRim: false
+                                    interactive: true
+                                    hovered: hideMouse.containsMouse || activeFocus
+                                    pressed: hideMouse.pressed
+                                    hoverScale: 1
+                                    pressedScale: 1
+                                    activeFocusOnTab: true
+                                    transparentIdle: !selected
+                                    hoverColor: RaohaneTheme.surfaceHover
+                                    activeColor: RaohaneTheme.accentSoft
+                                    idleBorderColor: "transparent"
+                                    hoverBorderColor: "transparent"
+                                    activeBorderColor: "transparent"
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: String(hideChoice.modelData.label)
+                                        color: hideChoice.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                        font.pixelSize: 8
+                                        font.weight: hideChoice.selected ? Font.DemiBold : Font.Medium
+                                    }
+
+                                    MouseArea {
+                                        id: hideMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onPressed: hideChoice.forceActiveFocus()
+                                        onClicked: RaohaneConfig.mediaOverlayGamingAutoHideSeconds = hideChoice.optionValue
+                                    }
+
+                                    Keys.onPressed: event => {
+                                        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                            RaohaneConfig.mediaOverlayGamingAutoHideSeconds = hideChoice.optionValue
+                                            event.accepted = true
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -260,17 +227,17 @@ Item {
             Layout.fillWidth: true
             Layout.leftMargin: RaohaneTheme.spacingTiny
             Layout.rightMargin: RaohaneTheme.spacingTiny
-            spacing: RaohaneTheme.spacingSmall + 2
+            spacing: RaohaneTheme.spacingSmall
 
             RaohaneIcon {
-                text: "visibility"
+                text: "info"
                 iconSize: 12
                 color: RaohaneTheme.textFaint
             }
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Changes are saved immediately. Preview opens the real overlay using the policy active for the current Scene.")
+                text: qsTr("Changes apply immediately. Preview opens the real player using the current Scene policy.")
                 color: RaohaneTheme.textFaint
                 font.pixelSize: 8
                 wrapMode: Text.WordWrap
@@ -278,214 +245,113 @@ Item {
         }
     }
 
-    component PlacementCard: RaohaneSurface {
-        id: card
+    component PositionRow: Item {
+        id: row
 
         required property string title
-        required property string subtitle
-        required property string badge
+        required property string detail
         required property string value
-        required property bool gaming
         required property bool activePolicy
         required property var positions
         signal selected(string position)
 
-        Layout.preferredHeight: 294
-        surfaceRadius: RaohaneTheme.radiusLarge
-        raised: false
-        showSheen: false
-        active: card.activePolicy
-        activeColor: RaohaneTheme.surface
-        idleBorderColor: RaohaneTheme.borderFaint
-        activeBorderColor: RaohaneTheme.accentBorder
-        showStateRail: card.activePolicy
-        stateRailWidth: 3
-        stateRailLength: 30
-        stateRailOpacity: 0.72
+        height: 72
 
-        ColumnLayout {
+        RowLayout {
             anchors.fill: parent
-            anchors.margins: RaohaneTheme.panelPadding + RaohaneTheme.spacingTiny
+            anchors.leftMargin: RaohaneTheme.panelPadding
+            anchors.rightMargin: RaohaneTheme.panelPadding
             spacing: RaohaneTheme.spacingLarge
 
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                spacing: RaohaneTheme.spacing
+                spacing: 2
 
-                ColumnLayout {
+                RowLayout {
                     Layout.fillWidth: true
-                    spacing: Math.max(1, RaohaneTheme.spacingTiny - 1)
+                    spacing: RaohaneTheme.spacingSmall
 
                     Text {
-                        text: card.title
+                        text: row.title
                         color: RaohaneTheme.text
-                        font.pixelSize: 11
-                        font.weight: Font.DemiBold
+                        font.pixelSize: 10
+                        font.weight: Font.Medium
                     }
 
                     Text {
-                        Layout.fillWidth: true
-                        text: card.subtitle
-                        color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
-                        elide: Text.ElideRight
+                        visible: row.activePolicy
+                        text: qsTr("Active")
+                        color: RaohaneTheme.accent
+                        font.pixelSize: 7
+                        font.weight: Font.DemiBold
                     }
                 }
 
                 Text {
-                    text: card.badge
-                    color: card.activePolicy ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    font.pixelSize: 7
-                    font.weight: Font.DemiBold
+                    Layout.fillWidth: true
+                    text: row.detail
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 8
+                    elide: Text.ElideRight
                 }
             }
 
-            RaohaneSurface {
-                id: monitor
-                Layout.fillWidth: true
-                Layout.preferredHeight: 184
-                surfaceRadius: RaohaneTheme.radiusHero
-                active: card.activePolicy
-                raised: false
-                showSheen: false
-                showInnerRim: true
-                idleColor: RaohaneTheme.surfaceDeep
-                activeColor: RaohaneTheme.surfaceDeep
-                idleBorderColor: RaohaneTheme.borderFaint
-                activeBorderColor: RaohaneTheme.accentBorder
-                clip: true
+            RowLayout {
+                spacing: 4
 
-                RaohaneSurface {
-                    anchors.fill: parent
-                    anchors.margins: RaohaneTheme.spacing + 1
-                    surfaceRadius: RaohaneTheme.radius
-                    raised: false
-                    showSheen: false
-                    showInnerRim: false
-                    idleColor: RaohaneTheme.surfaceSubtle
-                    idleBorderColor: RaohaneTheme.borderFaint
+                Repeater {
+                    model: row.positions
 
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 64
-                        height: 1
-                        color: RaohaneTheme.borderFaint
-                    }
+                    delegate: RaohaneSurface {
+                        id: positionChoice
+                        required property var modelData
 
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 1
-                        height: 48
-                        color: RaohaneTheme.borderFaint
-                    }
+                        readonly property bool selected: row.value === String(modelData.value)
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: card.gaming ? qsTr("GAME") : qsTr("DESKTOP")
-                        color: card.activePolicy ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                        opacity: card.activePolicy ? 0.66 : 0.42
-                        font.pixelSize: 8
-                        font.weight: Font.DemiBold
-                    }
+                        width: 38
+                        height: 32
+                        surfaceRadius: RaohaneTheme.radiusSmall
+                        active: selected
+                        raised: false
+                        showSheen: false
+                        showInnerRim: false
+                        interactive: true
+                        hovered: positionMouse.containsMouse || activeFocus
+                        pressed: positionMouse.pressed
+                        hoverScale: 1
+                        pressedScale: 1
+                        activeFocusOnTab: true
+                        transparentIdle: !selected
+                        hoverColor: RaohaneTheme.surfaceHover
+                        activeColor: RaohaneTheme.accentSoft
+                        idleBorderColor: "transparent"
+                        hoverBorderColor: "transparent"
+                        activeBorderColor: "transparent"
 
-                    Repeater {
-                        model: card.positions
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: String(positionChoice.modelData.icon)
+                            iconSize: 15
+                            fill: positionChoice.selected ? 1 : 0
+                            color: positionChoice.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                        }
 
-                        delegate: RaohaneSurface {
-                            id: cornerButton
-                            required property var modelData
+                        MouseArea {
+                            id: positionMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onPressed: positionChoice.forceActiveFocus()
+                            onClicked: row.selected(String(positionChoice.modelData.value))
+                        }
 
-                            readonly property bool selected: card.value === String(modelData.value)
-                            readonly property bool leftSide: String(modelData.value).endsWith("left")
-                            readonly property bool topSide: String(modelData.value).startsWith("top")
-
-                            width: card.gaming ? 82 : 92
-                            height: card.gaming ? 31 : 34
-                            x: leftSide ? RaohaneTheme.spacing : parent.width - width - RaohaneTheme.spacing
-                            y: topSide ? RaohaneTheme.spacing : parent.height - height - RaohaneTheme.spacing
-                            surfaceRadius: RaohaneTheme.radiusSmall
-                            active: selected
-                            raised: false
-                            showSheen: false
-                            showInnerRim: false
-                            interactive: true
-                            hovered: cornerMouse.containsMouse || activeFocus
-                            pressed: cornerMouse.pressed
-                            hoverScale: 1
-                            pressedScale: 1
-                            activeFocusOnTab: true
-                            idleColor: RaohaneTheme.surfaceDeep
-                            hoverColor: RaohaneTheme.surfaceRaised
-                            activeColor: RaohaneTheme.accentSoft
-                            idleBorderColor: RaohaneTheme.borderFaint
-                            hoverBorderColor: RaohaneTheme.borderStrong
-                            activeBorderColor: RaohaneTheme.accentBorder
-
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: RaohaneTheme.spacingSmall + 2
-                                anchors.rightMargin: RaohaneTheme.spacingSmall + 2
-                                spacing: Math.max(2, RaohaneTheme.spacingSmall - 1)
-
-                                RaohaneIcon {
-                                    text: String(cornerButton.modelData.icon)
-                                    iconSize: card.gaming ? 11 : 12
-                                    color: cornerButton.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
-                                }
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: String(cornerButton.modelData.label)
-                                    color: cornerButton.selected ? RaohaneTheme.text : RaohaneTheme.textMuted
-                                    font.pixelSize: 7
-                                    font.weight: cornerButton.selected ? Font.DemiBold : Font.Medium
-                                    elide: Text.ElideRight
-                                }
-                            }
-
-                            MouseArea {
-                                id: cornerMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onPressed: cornerButton.forceActiveFocus()
-                                onClicked: card.selected(String(cornerButton.modelData.value))
-                            }
-
-                            Keys.onPressed: event => {
-                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                    card.selected(String(cornerButton.modelData.value))
-                                    event.accepted = true
-                                }
+                        Keys.onPressed: event => {
+                            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                row.selected(String(positionChoice.modelData.value))
+                                event.accepted = true
                             }
                         }
                     }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: RaohaneTheme.spacingSmall + 1
-
-                RaohaneIcon {
-                    text: card.positions.find(item => String(item.value) === card.value)?.icon ?? "south_east"
-                    iconSize: 13
-                    color: RaohaneTheme.accent
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: card.positions.find(item => String(item.value) === card.value)?.label ?? qsTr("Bottom right")
-                    color: RaohaneTheme.text
-                    font.pixelSize: 9
-                    font.weight: Font.DemiBold
-                }
-
-                Text {
-                    text: card.activePolicy ? qsTr("in use now") : qsTr("saved")
-                    color: card.activePolicy ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                    font.pixelSize: 7
-                    font.weight: card.activePolicy ? Font.DemiBold : Font.Normal
                 }
             }
         }

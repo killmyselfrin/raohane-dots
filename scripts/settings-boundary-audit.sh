@@ -88,7 +88,9 @@ for source in \
   RaohaneSettingsPreferences.qml RaohaneBackupSettings.qml RaohaneSettingsLanguage.qml; do
   rg -q "source:[[:space:]]*\"${source//./\\.}\"" "$registry" || fail "Settings registry lost unified page source: $source"
 done
-rg -q 'hideHeader:[[:space:]]*true' "$registry" || fail 'Preferences page no longer owns its local header'
+if rg -q 'key:[[:space:]]*"preferences".*hideHeader:[[:space:]]*true' "$registry"; then
+  fail 'Keyboard & Motion regressed to a duplicate page-local header'
+fi
 rg -q 'externalSurface:[[:space:]]*"displaySettings"' "$registry" || fail 'Display Settings route lost external surface ownership'
 for alias in keybinds shortcuts keyboard motion animations animation; do
   rg -q "\"${alias}\"[[:space:]]*:" "$registry" || fail "Settings deep alias is missing: $alias"
