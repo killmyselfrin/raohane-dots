@@ -193,10 +193,14 @@ for symbol in \
   'readonly property var pages:' 'readonly property var aliases:' 'readonly property var routeAliases:' \
   'function resolvePageIndex\(' 'function resolveRoute\(' 'function sectionEntries\(' 'function searchEntries\(' \
   'source:[[:space:]]*"RaohaneSettingsPreferences\.qml"' 'source:[[:space:]]*"RaohaneBackupSettings\.qml"' \
-  'source:[[:space:]]*"RaohaneSettingsLanguage\.qml"' 'hideHeader:[[:space:]]*true' \
+  'source:[[:space:]]*"RaohaneSettingsLanguage\.qml"' \
   'externalSurface:[[:space:]]*"displaySettings"'; do
   rg -q "$symbol" "$settings_registry" || fail "RaohaneSettingsPageRegistry lost unified route contract: $symbol"
 done
+if rg -q 'key:[[:space:]]*"preferences".*hideHeader:[[:space:]]*true' "$settings_registry"; then
+  fail 'Keyboard & Motion regressed to duplicate local header ownership'
+fi
+
 for alias in keybinds shortcuts keyboard motion animations animation; do
   rg -q "\"${alias}\"[[:space:]]*:" "$settings_registry" || fail "Settings route registry lost deep alias: $alias"
 done
