@@ -1,31 +1,68 @@
-# ラオハネ · Raohane
+<div align="center">
 
-A desktop shell for Hyprland, built with Quickshell and Qt/QML. Dark glass surfaces, Japanese-inspired styling, and a shared theme across the desktop.
+# Raohane
+
+**A customizable, atmospheric desktop shell for Hyprland.**  
+Built with **Quickshell + Qt/QML**. Made to feel fast, consistent, and personal.
 
 [![Raohane audit](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](.github/workflows/raohane-audit.yml)
 [![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
-[![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
+[![GPLv3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
+![Linux](https://img.shields.io/badge/platform-Linux-805bd6)
+![Hyprland](https://img.shields.io/badge/compositor-Hyprland-9068cf)
 
-**Status:** `1.2.1` — stable contextual-shell release with the 1.2 Scenes/Launcher/Context foundation plus improved lyrics readability and synced line transitions. See the [release validation guide](docs/RELEASE-VALIDATION.md) and [roadmap](docs/ROADMAP.md) for validation and future work.
+<img src="assets/showcase/nocturne-desktop.svg" alt="Illustrative Raohane Nocturne desktop concept with a floating bar, launcher, Context Island, and Control Center" width="100%">
+
+*Nocturne desktop — design concept, not a screenshot of a running build.*
+
+[Installation](#installation) · [Features](#features) · [Gallery](#design-gallery) · [Configuration](#configuration) · [Documentation](#documentation)
+
+</div>
+
+> [!IMPORTANT]
+> **The images in this README are illustrative UI concepts.** They are not captures from Hyprland. Exact geometry, controls, and interactions may differ from the currently released shell; some depicted ideas are still being developed. See [release validation](docs/RELEASE-VALIDATION.md) for the distinction between static checks and tested runtime behavior.
+
+## Design gallery
+
+<table>
+<tr>
+<td width="50%">
+<img src="assets/showcase/nocturne-settings.svg" alt="Concept art of Raohane Settings, theme presets, and appearance controls" width="100%"><br>
+<strong>Settings &amp; personalization</strong><br>
+<sub>Shared design tokens, theme presets, surfaces, and compact navigation.</sub>
+</td>
+<td width="50%">
+<img src="assets/showcase/nocturne-control-center.svg" alt="Concept art of Raohane Control Center with connectivity, audio, media, and scenes" width="100%"><br>
+<strong>Control Center &amp; Context Island</strong><br>
+<sub>Connected devices, media, audio/display controls, and contextual scenes.</sub>
+</td>
+</tr>
+</table>
+
+**The direction:** deep graphite glass, cool blue-black backgrounds, restrained lavender highlights, floating Bar pods, and lightweight motion. Actual screenshots will replace or complement these concepts as visual validation on real hardware is completed. [Showcase assets](assets/showcase/README.md).
 
 ## Features
 
-- Horizontal and vertical bars, workspaces, system tray, Context Island, and a dock.
-- Contextual Scenes for Balanced, Gaming, Focus, and Work, including application rules and configurable runtime behavior.
-- Application launcher with scene-aware actions, workspace overview, and configurable desktop widgets.
-- Control Center with Wi-Fi, Bluetooth, audio, microphone, brightness, notifications, and Scene switching.
-- Settings, theme import/export, image or video wallpapers, and per-Scene behavior controls.
-- MPRIS media controls, synced/plain lyrics, and a media overlay for fullscreen applications.
-- Screenshots, native gameplay recording, OCR, screen translation, clipboard tools, and an on-screen keyboard.
-- Lock screen, session controls, Polkit authentication, and a process manager.
+| Surface | What Raohane provides |
+| --- | --- |
+| **Bar &amp; Dock** | Horizontal/vertical bars, configurable modules, workspaces, system tray, Context Island, and a dock. |
+| **Launcher &amp; Overview** | Search for apps and actions, navigate workspaces and switch between windows. |
+| **Control Center** | Wi-Fi, Bluetooth, audio, microphone, display brightness, notifications, and Scenes. |
+| **Settings &amp; Themes** | Central settings, theme presets, JSON theme import/export, live appearance controls, and desktop widgets. |
+| **Scenes** | Balanced, Gaming, Focus, and Work modes with application rules and contextual runtime policies. |
+| **Media** | MPRIS controls, synced/plain lyrics, a music surface, and a fullscreen media overlay. |
+| **Utilities** | Screenshots, recording, OCR, translation, clipboard tools, on-screen keyboard, task manager, and power/session controls. |
+| **System integration** | Native service adapters for Hyprland, Wayland, PipeWire, NetworkManager, and Bluetooth. |
 
-Raohane includes its own runtime and dependency manifests. Installation does not require another desktop-shell repository.
+Raohane maintains its own runtime and dependency manifests. It does not install another shell as a runtime dependency.
 
-## Install
+**Current source version:** `1.2.1` (see [VERSION](VERSION) and [CHANGELOG](CHANGELOG.md)). The project remains under active development; static GitHub Actions checks do **not** certify long-session, multi-monitor, or GPU-specific stability. Review the [roadmap](docs/ROADMAP.md) and [release validation](docs/RELEASE-VALIDATION.md).
+
+## Installation
 
 ### Arch Linux and derivatives
 
-Run the guided installer from an existing Hyprland session:
+Install from an existing Hyprland session:
 
 ```bash
 git clone https://github.com/killmyselfrin/raohane-dots.git
@@ -33,21 +70,19 @@ cd raohane-dots
 bash install.sh
 ```
 
-The installer performs a system preflight, shows every missing package before making changes, asks for permission to install the complete dependency set, installs the optional Raohane SDDM login theme, configures Hyprland integration, enables `raohane.service` for autostart, and starts the shell for a live check when a Hyprland session is available. The visual Raohane welcome/onboarding opens on first launch.
+The guided installer checks dependencies, explains missing packages, asks permission for system changes, sets up the Raohane runtime and Hyprland integration, and can install the optional SDDM login theme. The visual onboarding opens on first launch.
 
-For unattended or already-reviewed installation choices:
+After reviewing the package changes, an unattended installer is available:
 
 ```bash
 bash install.sh --yes
 ```
 
-Dependencies are owned by Raohane and listed in [install/arch/required.txt](install/arch/required.txt) and [install/arch/features.txt](install/arch/features.txt). GPU drivers are never changed automatically; fonts and feature backends are installed through the package manager.
-
-`install-raohane.sh` remains the low-level backend installer for development, upgrades, recovery, and scripted maintenance.
+Dependencies: [required packages](install/arch/required.txt) · [optional features](install/arch/features.txt). GPU drivers are **not** automatically replaced. The developer/upgrade backend is `install-raohane.sh`.
 
 ### NixOS and Home Manager
 
-The flake exports a package, a NixOS module, and a Home Manager module. See [Nix installation](docs/NIX.md) for configuration.
+The flake exports a package, a NixOS module, and a Home Manager module. Follow [Nix installation](docs/NIX.md).
 
 ## Update
 
@@ -59,26 +94,30 @@ git pull --ff-only
 raohane restart
 ```
 
-The installer copies the source into `~/.config/quickshell/raohane`; pulling Git changes alone does not update the running shell. Use the guided installer again when dependency requirements change, and omit `--no-login-theme` when updating the login theme.
+Pulling repository changes alone does not replace the installed runtime under `~/.config/quickshell/raohane`. Re-run the guided installer when dependencies change.
 
-## Use
+## Commands
 
-| Command | Opens |
+| Command | Action |
 | --- | --- |
-| `raohane launcher` | Application launcher |
-| `raohane control` | Control Center |
-| `raohane settings` | Settings |
-| `raohane media` | Media overlay |
-| `raohane desktop` | Desktop controls |
-| `raohane wallpaper` | Wallpaper selector |
-| `raohane session` | Session and power controls |
-| `raohane translate` | Screen translation |
+| `raohane launcher` | Open the application launcher |
+| `raohane control` | Open Control Center |
+| `raohane settings` | Open Settings |
+| `raohane media` | Open the media overlay |
+| `raohane desktop` | Open desktop controls |
+| `raohane wallpaper` | Open the wallpaper selector |
+| `raohane session` | Open power and session controls |
+| `raohane translate` | Start screen translation |
+| `raohane doctor all` | Inspect installation and runtime |
+| `raohane validate smoke` | Inspect current-session IPC and significant QML errors |
 
-The launcher supports application names, `/` for built-in and contextual actions, `>` for commands, `=` for calculations, and `:` for clipboard history.
+Launcher search modes: app names · `/` built-in/contextual actions · `>` commands · `=` calculations · `:` clipboard history.
 
-Settings are stored in `~/.config/raohane/native.json`. Scene state and application rules are stored separately under the XDG state directory so temporary policies do not overwrite base settings. User autostart commands belong in `~/.config/raohane/autostart.conf`.
+## Configuration
 
-The default **Raohane** theme uses dark charcoal glass and violet accents. Paper, Sakura, Matcha, Slate, Sand, Sumi, and Midnight are included as built-in alternatives. Themes can be selected in Settings or managed through `raohane theme`; see the [theme format](docs/THEMES.md).
+Settings are stored at `~/.config/raohane/native.json`. Scene state and application rules are tracked separately under XDG state paths, so temporary scene policies don't overwrite base preferences. User autostart commands belong in `~/.config/raohane/autostart.conf`.
+
+The default **Raohane** theme combines dark charcoal glass with lavender accents. Built-in alternatives include **Paper, Rose Glass, Sage Glass, Slate, Sand, Ink,** and **Midnight**. Use Settings or `raohane theme` to select, import, and export themes. See [theme format](docs/THEMES.md).
 
 ## Troubleshooting
 
@@ -86,33 +125,40 @@ The default **Raohane** theme uses dark charcoal glass and violet accents. Paper
 raohane doctor all
 raohane status
 raohane logs
+raohane validate smoke
 ```
 
-To inspect startup errors in the terminal:
+To observe a clean foreground startup:
 
 ```bash
 raohane stop
 raohane run
 ```
 
-For performance or disappearing-panel reports, include the installed version, recent logs, process usage during the problem, and the steps that triggered it.
+For performance or disappearing-panel reports, capture the installed version, GPU/compositor details, recent logs, process CPU/RSS while the issue occurs, and exact reproduction steps. Hardware/runtime issues should be tested in a real Hyprland session.
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Release validation](docs/RELEASE-VALIDATION.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Theme format](docs/THEMES.md)
+- [NixOS / Home Manager](docs/NIX.md)
+- [Contributing](CONTRIBUTING.md)
+- [Localization](translations/l10n/README.md)
+- [Changelog](CHANGELOG.md)
 
 ## Development
 
-Product QML lives in `modules/raohane/`. The [architecture guide](docs/ARCHITECTURE.md) describes the module layout and service interfaces.
+The active Quickshell implementation is under `modules/raohane/`. Verify source and runtime boundaries with:
 
 ```bash
 bash scripts/raohane-audit.sh
 bash scripts/runtime-payload-audit.sh
 ```
 
-Run the relevant feature checks as well. Static checks do not replace testing in a real Hyprland session; the [release validation guide](docs/RELEASE-VALIDATION.md) covers that process.
-
-- [Contributing](CONTRIBUTING.md)
-- [Changelog](CHANGELOG.md)
-- [Roadmap](docs/ROADMAP.md)
-- [Localization](translations/l10n/README.md)
+**Static validation does not replace running the shell.** Check behavior, QML logs, screenshots, session actions, and long-session resource usage on target Hyprland hardware before declaring release readiness.
 
 ## License
 
-Raohane is distributed under [GPLv3](LICENSE). Retained and adapted code, translations, data, and assets keep their applicable attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md).
+Raohane is released under [GNU GPLv3](LICENSE). Retained/adapted code, translations, data, and assets preserve applicable attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md). Original showcase illustrations in this README are presentation concepts, not runtime screenshots.
