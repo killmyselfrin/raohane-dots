@@ -252,7 +252,7 @@ done
 bash -n "$live_check"
 
 for symbol in \
-  'doctor \[all\|graphics\|deps\|services\|runtime\|phase4\]' \
+  'doctor \[all\|graphics\|deps\|services\|runtime\|performance\|phase4\]' \
   'validate phase4' \
   'find_phase4_validator' \
   'run_phase4_validator' \
