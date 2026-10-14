@@ -214,6 +214,11 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            Accessible.role: Accessible.Button
+            Accessible.name: workspaceButton.displayName
+            Accessible.description: workspaceButton.appSummary.length > 0
+                ? qsTr("Applications: %1").arg(workspaceButton.appSummary)
+                : qsTr("Empty workspace")
             onClicked: root.activateWorkspace(workspaceButton.workspaceId)
             onWheel: wheel => {
                 if (wheel.angleDelta.y === 0)
