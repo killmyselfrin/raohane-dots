@@ -84,6 +84,7 @@ The default **Raohane** theme uses dark charcoal glass and violet accents. Paper
 
 ```bash
 raohane doctor all
+raohane doctor performance
 raohane status
 raohane logs
 ```
@@ -95,7 +96,9 @@ raohane stop
 raohane run
 ```
 
-For performance or disappearing-panel reports, include the installed version, recent logs, process usage during the problem, and the steps that triggered it.
+For performance or disappearing-panel reports, run `raohane doctor performance` while the issue occurs and compare with a healthy-session snapshot. Include the installed version, `raohane validate smoke`, recent logs, and the steps that triggered it. The snapshot is read-only and reports process CPU, resident memory, threads and service restart count; it does not measure frame time.
+
+New installations default to **manual update installation** to avoid surprise restarts from development commits on `main`. Update checks still run; automatic installation can be explicitly enabled in **Settings → About → Automatic updates**. Existing explicit automatic-update preferences are respected.
 
 ## Development
 
