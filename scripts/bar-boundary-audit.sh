@@ -263,4 +263,12 @@ if rg -n '^import qs$|^import qs\.services$|^import qs\.modules\.common|^import 
   fail 'RaohaneVerticalBar regressed to inherited plumbing or migration-only presentation'
 fi
 
+# Workspace app badges reuse Hyprland's live model; avoid polling.
+for contract in 'representativeWindow' 'wayland?.appId' 'RaohaneAdaptiveIcon' 'Accessible.name' 'workspaceButton.workspaceId'; do
+  rg -Fq "$contract" "$workspaces" || fail "native workspaces lost app identity/accessibility contract: $contract"
+done
+if rg -n 'hyprctl|Process[[:space:]]*\\{|Timer[[:space:]]*\\{' "$workspaces"; then
+  fail 'workspace app identity regressed to subprocess polling'
+fi
+
 printf 'bar-boundary-audit: horizontal and vertical bars share registry-backed modules, resident fullscreen surfaces, context-owned privacy and independent persisted layouts\n'
