@@ -1,41 +1,90 @@
-# Raohane roadmap
+# Raohane roadmap — stabilization and design polish
 
-The current release target is `0.10.0`. Completed implementation history is recorded in the [changelog](../CHANGELOG.md); this page tracks remaining work.
+This document tracks work **after the 1.2.1 baseline**. `VERSION` is the
+authoritative installed version; see [CHANGELOG](../CHANGELOG.md) for shipped
+features. The pending 1.3 release candidate is not a validated stable release.
 
-## Current priorities
+## P0 — Make daily use predictable
 
-- Diagnose increasing CPU or memory use during long sessions, including video wallpapers.
-- Fix the reported disappearance of the horizontal bar and verify its fullscreen/reveal behavior.
-- Diagnose the reported Log out failure and verify session actions.
-- Finish consistent styling and remove duplicate controls across shell surfaces.
+- [ ] Reproduce and profile CPU/RSS growth in long sessions (static and video
+  wallpapers, music, opening/closing Settings and Overview, gaming/fullscreen).
+  Use `raohane doctor performance` at idle and while the problem is visible,
+  together with `raohane validate smoke`. Record machine specs and elapsed time.
+- [ ] Confirm horizontal **and** vertical Bar reappear after fullscreen exit,
+  workspace moves, display hotplug, suspend/resume, and display reconfiguration.
+  The compositor-facing layer window should not be needlessly destroyed.
+- [ ] Confirm no duplicated Quickshell instances after repeated service restart,
+  user login, upgrades, and crash recovery.
+- [ ] Exercise Settings persistence, single-owner Wi-Fi/Bluetooth/audio controls,
+  and application launchers without QML binding loops or stale state.
+- [ ] Test NVIDIA and integrated/AMD hardware and multi-monitor layouts,
+  including mixed scaling and game fullscreen.
+- [ ] Keep background work demand-driven. Destroy expensive hidden views; pause
+  video decoding in fullscreen when configured; don't poll for data already
+  exposed by native Quickshell subscriptions.
+- [ ] Validate update recovery and rollback; avoid installing unvalidated
+  `main` commits without an explicit user opt-in.
+
+### P0 acceptance gate
+
+Collect real Hyprland evidence for at least one extended idle session and one
+session with repeated launcher/Settings/Control Center/Overview opens, wallpaper
+changes, and fullscreen transitions. Save CPU/RSS snapshots and Quickshell logs.
+Run `raohane validate release --full` **only in an appropriate test session**:
+its optional exercises may lock the screen or use capture/PAM. No critical QML
+runtime errors, restart loops, disappearing bars, or unexpectedly persistent
+heavy background tasks. CI syntax/boundary checks alone are not sufficient.
+
+## P1 — Consistent Raohane Nocturne UI
+
+- [ ] Apply the existing shared surface, spacing, typography, accent and motion
+  tokens consistently across Bar, Context Island, Settings, Control Center,
+  Launcher, Overview, Wallpaper Selector, Media and Notifications.
+- [ ] Keep one clearly owned control for every system function. Avoid duplicate
+  volume/microphone/Wi-Fi tiles or copies of the same autohide/date setting.
+- [ ] Make Settings navigation fast and compact, with responsive layouts,
+  accessible contrast, clear focus, meaningful previews and no duplicate rails.
+- [ ] Tune the floating Bar and Context Island for crowded layouts and smaller
+  displays. Preserve vertical mode, keyboard/screen-reader affordances, and
+  user-customizable module ordering.
+- [ ] Tune animations for responsiveness and respect reduced-motion and Gaming
+  policies. Favor quiet borders and translucent surfaces over heavy glow layers.
+- [ ] Validate all visual changes with screenshots from a real session at 1080p,
+  a smaller resolution and one high-DPI/multi-monitor setup.
+
+Avoid competing edits to in-progress Settings ownership work until its open
+pull requests are resolved.
+
+## P2 — Features worth adding, after P0/P1
+
+These are **ideas**, not claimed shipped capabilities. Check existing Settings
+and service contracts before adding any new control.
+
+- Wallpaper palette extraction integrated with the existing central theme and
+  matugen configuration, with preview/revert and user-preset preservation.
+- Workspace labels/app icons and clearer window identity within Overview and Bar,
+  without continuous screenshot capture or extra background polling.
+- Context Island transient feedback for device connections, screen sharing,
+  transfer progress and nonintrusive resource warnings.
+- Per-Scene refinements for live performance/audio/notification presets, without
+  rewriting the user's normal preferences when a scene ends.
+- Bounded, opt-in process CPU/RAM history in Task Manager, with explicit sample
+  interval and memory cap; optional vendor GPU metrics behind capability checks.
+- Better keyboard-first Launcher actions and cross-surface focus behavior.
 
 ## Release validation
 
-These checks require a real Hyprland session and remain open until evidence is recorded:
+The following require live evidence and remain **open** until tested:
 
-- [ ] Fresh Arch installation and upgrade from an existing installation.
-- [ ] Long-running shell stability, repeated startup/restart, and Settings persistence.
-- [ ] Horizontal/vertical bar, dock, overview, and focus/input behavior.
-- [ ] Multi-monitor placement and fullscreen/game overlays.
+- [ ] Fresh Arch installation and upgrade; Nix runtime packaging.
+- [ ] Sustained shell performance and repeatable restarts.
+- [ ] Horizontal/vertical Bar, Dock, Overview, overlays and focus.
+- [ ] Mixed-DPI/multi-monitor and fullscreen/Gaming.
 - [ ] NVIDIA and AMD/Intel rendering.
-- [ ] Password/PAM, optional fingerprint unlock, and Polkit authentication.
-- [ ] Networking, Bluetooth, audio, microphone, and display controls.
-- [ ] Wallpapers, thumbnails, notifications, and their interactions.
-- [ ] MPRIS controls and lyric lookup/synchronization with browser and native players.
-- [ ] Task Manager refresh and process actions on disposable processes.
-- [ ] Screenshots, recording, OCR, translation, OSK, and DropShelf.
-- [ ] Suspend, hibernate, logout, reboot, and poweroff.
+- [ ] Lock/PAM, optional fingerprint, Polkit, suspend and logout.
+- [ ] Network, Bluetooth, audio, microphones and display changes.
+- [ ] Wallpapers (including videos), notifications, thumbnails and MPRIS/lyrics.
+- [ ] Recording, OCR/translation, clipboard, OSK and DropShelf.
+- [ ] Update check/manual install/explicit automatic install and recovery.
 
-Use `raohane validate release --full` and follow the [release validation guide](RELEASE-VALIDATION.md). Unsupported hardware or untested behavior must remain marked as incomplete. Static checks alone do not establish release readiness.
-
-## Later work
-
-These are candidates rather than scheduled release commitments:
-
-- Theme preview/revert, wallpaper palette extraction, automatic light/dark policy, and per-surface styling.
-- Lyrics offset controls, private lyrics, EasyEffects controls, and demand-driven audio visualization.
-- Scenes that coordinate theme, wallpaper, audio, notifications, and performance settings; start with manual activation.
-- Capture-aware policies for notes, clipboard previews, translations, and selected notifications. Validate protection with the actual capture path.
-- Bounded CPU/RAM history, process trees, hardware-specific GPU metrics, optional network metrics, and process priority controls.
-- Workspace names/icons, Scene associations, and application restoration rules.
-- Context Island events for device changes, capture/privacy state, task completion, and temporary resource warnings.
+Use [release validation](RELEASE-VALIDATION.md) for the exercise procedure.
