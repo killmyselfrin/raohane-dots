@@ -10,7 +10,7 @@ import qs.modules.raohane.config
 Singleton {
     id: root
 
-    property bool automaticUpdates: true
+    property bool automaticUpdates: false
     property bool preferenceReady: false
     property bool checking: false
     property bool applying: false
@@ -82,8 +82,6 @@ Singleton {
             root.errorText = ""
             root.lastApplyError = String(data.last_error ?? "")
 
-            if (root.updateAvailable && root.automaticUpdates && root.autoApplyAfterCheck)
-                Qt.callLater(root.applyUpdate)
         } catch (error) {
             root.errorText = qsTr("Could not read update information")
         }
@@ -111,14 +109,14 @@ Singleton {
 
         onLoaded: {
             root.preferenceReady = true
-            root.automaticUpdates = preferenceFile.text().trim() !== "manual"
+            root.automaticUpdates = preferenceFile.text().trim() === "automatic"
         }
 
         onLoadFailed: error => {
             if (!root.preferenceReady)
                 return
-            root.automaticUpdates = true
-            preferenceFile.setText("automatic\n")
+            root.automaticUpdates = false
+            preferenceFile.setText("manual\n")
         }
     }
 
@@ -156,10 +154,17 @@ Singleton {
         }
 
         onExited: (exitCode, exitStatus) => {
+            // applyUpdate() rejects concurrent checks. Wait until the
+            // process has exited before considering an automatic install.
+            const automaticApplyRequested = root.autoApplyAfterCheck
             root.checking = false
             root.autoApplyAfterCheck = false
             if (exitCode !== 0 && root.errorText.length === 0)
                 root.errorText = qsTr("Update check failed")
+            if (exitCode === 0 && root.errorText.length === 0
+                    && root.updateAvailable && root.automaticUpdates
+                    && automaticApplyRequested)
+                Qt.callLater(root.applyUpdate)
         }
     }
 
