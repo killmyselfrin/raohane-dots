@@ -16,6 +16,12 @@ RaohaneSurface {
     readonly property bool urgent: root.windows.some(toplevel => Boolean(toplevel?.urgent))
     readonly property var focusedWindow: root.windows.find(toplevel => Boolean(toplevel?.activated)) ?? null
     readonly property string focusedTitle: String(root.focusedWindow?.title ?? "")
+    // Named Hyprland workspaces are shown without changing the normal
+    // numeric workspace layout or requiring another settings database.
+    readonly property string workspaceName: {
+        const name = String(root.workspaceObject?.name ?? "").trim()
+        return name.length > 0 && name !== String(root.workspaceId) ? name : ""
+    }
 
     signal hoveredIndex(int index)
     signal workspaceActivated(int workspaceId)
@@ -89,12 +95,15 @@ RaohaneSurface {
 
                 Text {
                     Layout.fillWidth: true
-                    text: root.focusedTitle.length > 0
-                        ? root.focusedTitle
-                        : (root.activeWorkspace ? qsTr("Active") : qsTr("Empty workspace"))
-                    color: root.focusedTitle.length > 0 ? RaohaneTheme.text : RaohaneTheme.textFaint
+                    text: root.workspaceName.length > 0
+                        ? root.workspaceName
+                        : root.focusedTitle.length > 0
+                            ? root.focusedTitle
+                            : (root.activeWorkspace ? qsTr("Active") : qsTr("Empty workspace"))
+                    color: root.workspaceName.length > 0 || root.focusedTitle.length > 0
+                        ? RaohaneTheme.text : RaohaneTheme.textFaint
                     font.pixelSize: 9
-                    font.weight: root.focusedTitle.length > 0 ? Font.DemiBold : Font.Normal
+                    font.weight: root.workspaceName.length > 0 || root.focusedTitle.length > 0 ? Font.DemiBold : Font.Normal
                     elide: Text.ElideRight
                 }
 
