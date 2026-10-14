@@ -96,6 +96,15 @@ jobs:
           python3 scripts/migrate-legacy-config.py --help >/dev/null
           python3 -c 'import pathlib,sys; [compile(pathlib.Path(p).read_text(encoding="utf-8"), p, "exec") for p in sys.argv[1:]]' scripts/process-snapshot.py scripts/lyrics-resolve.py
 
+      - name: Exercise non-invasive performance diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          snapshot="$(bash scripts/raohane doctor performance)"
+          printf '%s\n' "$snapshot"
+          [[ "$snapshot" == *"Raohane performance snapshot"* ]]
+          [[ "$snapshot" == *"Running qs processes (all configs):"* ]]
+
       - name: Parse Raohane QML
         shell: bash
         run: |
