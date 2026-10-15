@@ -68,9 +68,11 @@ class MotionAudit(unittest.TestCase):
             }
         })
         t = motion.motion_phase_speeds(cfg)
-        self.assertGreaterEqual(float(t["windowOut"]), 1.0)
-        self.assertGreaterEqual(float(t["layerOut"]), 0.9)
-        self.assertGreaterEqual(float(t["fadeOut"]), 0.7)
+        self.assertGreaterEqual(float(t["windowOut"]), 0.6)
+        self.assertGreaterEqual(float(t["layerOut"]), 0.6)
+        self.assertGreaterEqual(float(t["fadeOut"]), 0.5)
+        for opening, closing in (("window", "windowOut"), ("layer", "layerOut"), ("fade", "fadeOut")):
+            self.assertLess(float(t[closing]), float(t[opening]))
         lua = "\n".join(motion.lua_animation_lines(cfg))
         legacy = "\n".join(motion.legacy_animation_lines(cfg))
         for key in ("windowOut", "layerOut", "fadeOut"):
