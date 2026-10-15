@@ -1,12 +1,22 @@
+import QtQuick
 import Quickshell
 import Quickshell.Io
 
 import qs.modules.raohane.services
 
 // Resident control plane for shell surfaces whose presentation is loaded on
-// demand. IPC and compositor shortcuts live here so a closed surface never
-// needs to remain instantiated merely to open itself again.
+// demand. IPC, compositor shortcuts and cross-lifetime transaction handoffs
+// live here so a closed surface never needs to remain instantiated merely to
+// open itself again.
 Scope {
+    id: root
+
+    function startScreenTranslation(): void {
+        if (!RaohaneScreenTranslation.start())
+            return
+        RaohaneState.setPrimaryOpen("screenTranslator", false)
+    }
+
     IpcHandler {
         target: "raohaneLauncher"
 
@@ -63,6 +73,22 @@ Scope {
         function close(): void { RaohaneState.setPrimaryOpen("leftSidebar", false) }
     }
 
+    IpcHandler {
+        target: "screenTranslator"
+
+        function translate(): void { root.startScreenTranslation() }
+        function open(): void { RaohaneState.setPrimaryOpen("screenTranslator", true) }
+        function close(): void { RaohaneState.setPrimaryOpen("screenTranslator", false) }
+    }
+
+    Connections {
+        target: RaohaneScreenTranslation
+
+        function onTranslationFinished(): void {
+            RaohaneState.setPrimaryOpen("screenTranslator", true)
+        }
+    }
+
     CompositorGlobalShortcut {
         name: "raohaneLauncherToggle"
         description: "Toggles the Raohane launcher"
@@ -112,5 +138,11 @@ Scope {
         name: "sidebarLeftToggle"
         description: "Toggle the Raohane left sidebar"
         onPressed: RaohaneState.togglePrimary("leftSidebar")
+    }
+
+    CompositorGlobalShortcut {
+        name: "screenTranslate"
+        description: "Select a region and translate its text with Raohane"
+        onPressed: root.startScreenTranslation()
     }
 }
