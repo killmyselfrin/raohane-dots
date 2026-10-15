@@ -235,12 +235,12 @@ def motion_phase_speeds(config: dict[str, Any]) -> dict[str, str]:
 
     return {
         "window": ds(window_ms),
-        "windowOut": ds(max(100, round(window_ms * 0.68))),
+        "windowOut": ds(max(60, round(window_ms * 0.68))),
         "layer": ds(layer_ms),
-        "layerOut": ds(max(90, round(layer_ms * 0.70))),
+        "layerOut": ds(max(60, round(layer_ms * 0.70))),
         "workspace": ds(int(config["workspaceMs"])),
         "fade": ds(fade_ms),
-        "fadeOut": ds(max(70, round(fade_ms * 0.74))),
+        "fadeOut": ds(max(50, round(fade_ms * 0.74))),
     }
 
 
