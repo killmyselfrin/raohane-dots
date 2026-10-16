@@ -32,7 +32,7 @@ Scope {
         if (!RaohaneState.welcomeOpen)
             return
         console.info("[RaohaneWelcome] Skip guided tour")
-        RaohaneState.setPrimaryOpen("welcome", false)
+        // Mark completion before the on-demand window is hidden/unloaded.
         RaohaneOnboardingState.skip()
     }
 
@@ -543,7 +543,7 @@ Scope {
             id: pointer
             z: 150
             anchors.fill: parent
-            enabled: button.enabled && panelWindow.visible
+            enabled: button.enabled
             acceptedButtons: Qt.LeftButton
             preventStealing: true
             hoverEnabled: true
