@@ -8,6 +8,21 @@ RaohaneSurface {
 
     required property var toplevel
     signal activated(var toplevel)
+    // The parent Overview owns one floating drag proxy rather than moving
+    // delegates managed by a ColumnLayout.
+    property Item dragCanvas: null
+    property bool dragStarted: false
+    property bool suppressClick: false
+    property real pressX: 0
+    property real pressY: 0
+    signal windowDragStarted(var toplevel, real x, real y)
+    signal windowDragMoved(real x, real y)
+    signal windowDragFinished()
+    signal windowDragCanceled()
+
+    function dragPoint(x: real, y: real): point {
+        return root.mapToItem(root.dragCanvas, x, y)
+    }
 
     readonly property bool activeWindow: Boolean(root.toplevel?.activated)
     readonly property bool urgentWindow: Boolean(root.toplevel?.urgent)
@@ -42,14 +57,26 @@ RaohaneSurface {
         anchors.rightMargin: RaohaneTheme.spacingSmall + 2
         spacing: RaohaneTheme.spacingSmall + 1
 
-        RaohaneIcon {
-            text: root.urgentWindow ? "priority_high" : "web_asset"
-            iconSize: 13
-            fill: root.activeWindow || root.urgentWindow ? 1 : 0
-            symbolWeight: root.activeWindow ? 520 : 390
-            color: root.urgentWindow
-                ? RaohaneTheme.critical
-                : root.activeWindow ? RaohaneTheme.accent : RaohaneTheme.textFaint
+        Item {
+            Layout.preferredWidth: 16
+            Layout.preferredHeight: 16
+
+            RaohaneAdaptiveIcon {
+                anchors.centerIn: parent
+                visible: !root.urgentWindow
+                iconSource: String(root.toplevel?.wayland?.appId ?? "")
+                iconSize: 16
+                fallbackColor: root.activeWindow ? RaohaneTheme.accent : RaohaneTheme.textFaint
+            }
+
+            RaohaneIcon {
+                anchors.centerIn: parent
+                visible: root.urgentWindow
+                text: "priority_high"
+                iconSize: 15
+                fill: 1
+                color: RaohaneTheme.critical
+            }
         }
 
         Text {
@@ -79,8 +106,44 @@ RaohaneSurface {
         preventStealing: true
         acceptedButtons: Qt.LeftButton
         cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onPressed: root.forceActiveFocus()
-        onClicked: root.activated(root.toplevel)
+        onPressed: mouse => {
+            root.forceActiveFocus()
+            root.pressX = mouse.x
+            root.pressY = mouse.y
+            root.dragStarted = false
+            root.suppressClick = false
+        }
+        onPositionChanged: mouse => {
+            if (!pressed || !root.dragCanvas || !root.toplevel?.wayland
+                    || !String(root.toplevel?.address ?? "").length)
+                return
+            const distance = Math.abs(mouse.x - root.pressX) + Math.abs(mouse.y - root.pressY)
+            if (!root.dragStarted && distance >= 14) {
+                root.dragStarted = true
+                root.suppressClick = true
+                const point = root.dragPoint(mouse.x, mouse.y)
+                root.windowDragStarted(root.toplevel, point.x, point.y)
+            }
+            if (root.dragStarted) {
+                const point = root.dragPoint(mouse.x, mouse.y)
+                root.windowDragMoved(point.x, point.y)
+            }
+        }
+        onReleased: {
+            if (root.dragStarted) {
+                root.dragStarted = false
+                root.windowDragFinished()
+            }
+        }
+        onCanceled: {
+            if (root.dragStarted)
+                root.windowDragCanceled()
+            root.dragStarted = false
+        }
+        onClicked: {
+            if (!root.suppressClick)
+                root.activated(root.toplevel)
+        }
     }
 
     Keys.onPressed: event => {

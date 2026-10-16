@@ -23,8 +23,11 @@ LazyLoader {
     readonly property bool surfaceRequested: surfaceId.length === 0
         || RaohaneState.surfaceOpen(surfaceId)
     readonly property bool deferredUnload: surfaceMetadata?.deferredUnload === true
+    // Hold the component longer than the panel's visual close timer.
+    // This also keeps a short grace window for state changes that close and
+    // immediately reopen a different primary surface.
     readonly property int unloadDelay: deferredUnload
-        ? Math.max(100, RaohaneMotion.relaxed + 40)
+        ? Math.max(80, RaohaneMotion.panelHoldDuration + 60)
         : 0
 
     property Timer unloadTimer: Timer {

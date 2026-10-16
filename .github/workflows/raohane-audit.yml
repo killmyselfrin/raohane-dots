@@ -94,16 +94,18 @@ jobs:
           bash -n scripts/videos/record.sh
           bash -n install-raohane.sh
           python3 scripts/migrate-legacy-config.py --help >/dev/null
-          python3 -c 'import pathlib,sys; [compile(pathlib.Path(p).read_text(encoding="utf-8"), p, "exec") for p in sys.argv[1:]]' scripts/process-snapshot.py scripts/lyrics-resolve.py
+          python3 -m py_compile scripts/hyprland-sync.py scripts/hyprland-motion-audit.py
+          python3 scripts/hyprland-motion-audit.py
 
       - name: Exercise non-invasive performance diagnostics
         shell: bash
         run: |
           set -euo pipefail
           snapshot="$(bash scripts/raohane doctor performance)"
-          printf '%s\n' "$snapshot"
+          printf '%s\\n' "$snapshot"
           [[ "$snapshot" == *"Raohane performance snapshot"* ]]
           [[ "$snapshot" == *"Running qs processes (all configs):"* ]]
+          python3 -c 'import pathlib,sys; [compile(pathlib.Path(p).read_text(encoding="utf-8"), p, "exec") for p in sys.argv[1:]]' scripts/process-snapshot.py scripts/lyrics-resolve.py
 
       - name: Parse Raohane QML
         shell: bash

@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Wayland
+import qs.modules.raohane.services
 
 RaohaneSurface {
     id: root
@@ -12,18 +14,64 @@ RaohaneSurface {
     property bool activeWorkspace: false
     property bool selected: false
     property string shortcutLabel: ""
+    property bool presented: false
+    property bool revealed: false
+    property bool previewEnabled: false
+    property Item dragCanvas: null
+    readonly property var previewWindow: root.focusedWindow
+        ?? root.windows.find(window => Boolean(window?.wayland)) ?? null
+
+    onPresentedChanged: {
+        if (presented)
+            Qt.callLater(() => { if (root.presented) root.revealed = true })
+        else
+            revealed = false
+    }
+    Component.onCompleted: {
+        if (presented)
+            Qt.callLater(() => { if (root.presented) root.revealed = true })
+    }
     readonly property var windows: root.workspaceObject?.toplevels?.values ?? []
     readonly property bool urgent: root.windows.some(toplevel => Boolean(toplevel?.urgent))
     readonly property var focusedWindow: root.windows.find(toplevel => Boolean(toplevel?.activated)) ?? null
     readonly property string focusedTitle: String(root.focusedWindow?.title ?? "")
+    // Named Hyprland workspaces are shown without changing the normal
+    // numeric workspace layout or requiring another settings database.
+    readonly property string workspaceName: {
+        const name = String(root.workspaceObject?.name ?? "").trim()
+        return name.length > 0 && name !== String(root.workspaceId) ? name : ""
+    }
 
     signal hoveredIndex(int index)
     signal workspaceActivated(int workspaceId)
     signal windowActivated(var toplevel)
+    signal windowDropped(var toplevel, int workspaceId)
+    signal windowDragStarted(var toplevel, real x, real y)
+    signal windowDragMoved(real x, real y)
+    signal windowDragFinished()
+    signal windowDragCanceled()
 
     Layout.fillWidth: true
     Layout.fillHeight: true
     Layout.minimumHeight: 148
+    opacity: root.revealed ? 1 : 0
+    transform: Translate {
+        y: root.revealed || !RaohaneMotion.transformMotionEnabled
+            || RaohanePerformance.gameModeActive ? 0 : 12
+        Behavior on y {
+            enabled: RaohaneMotion.transformMotionEnabled && !RaohanePerformance.gameModeActive
+            NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+        }
+    }
+    Behavior on opacity {
+        enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+        SequentialAnimation {
+            PauseAnimation {
+                duration: root.revealed ? Math.max(0, root.cardIndex) * RaohaneMotion.staggerStep : 0
+            }
+            NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+        }
+    }
     surfaceRadius: RaohaneTheme.radiusHero
     raised: false
     active: root.activeWorkspace || root.selected || root.urgent
@@ -89,12 +137,15 @@ RaohaneSurface {
 
                 Text {
                     Layout.fillWidth: true
-                    text: root.focusedTitle.length > 0
-                        ? root.focusedTitle
-                        : (root.activeWorkspace ? qsTr("Active") : qsTr("Empty workspace"))
-                    color: root.focusedTitle.length > 0 ? RaohaneTheme.text : RaohaneTheme.textFaint
+                    text: root.workspaceName.length > 0
+                        ? root.workspaceName
+                        : root.focusedTitle.length > 0
+                            ? root.focusedTitle
+                            : (root.activeWorkspace ? qsTr("Active") : qsTr("Empty workspace"))
+                    color: root.workspaceName.length > 0 || root.focusedTitle.length > 0
+                        ? RaohaneTheme.text : RaohaneTheme.textFaint
                     font.pixelSize: 9
-                    font.weight: root.focusedTitle.length > 0 ? Font.DemiBold : Font.Normal
+                    font.weight: root.workspaceName.length > 0 || root.focusedTitle.length > 0 ? Font.DemiBold : Font.Normal
                     elide: Text.ElideRight
                 }
 
@@ -148,6 +199,26 @@ RaohaneSurface {
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            clip: true
+
+            // Only the selected card captures a single frame. No streaming,
+            // CPU polling or GPU buffers remain in hidden/unselected cards.
+            Loader {
+                id: previewLoader
+                anchors.fill: parent
+                active: root.previewEnabled && !!root.previewWindow?.wayland
+                sourceComponent: ScreencopyView {
+                    anchors.fill: parent
+                    captureSource: root.previewWindow?.wayland ?? null
+                    live: false
+                    paintCursor: false
+                    opacity: hasContent ? 0.30 : 0
+                    Behavior on opacity {
+                        enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+                        NumberAnimation { duration: RaohaneMotion.standard }
+                    }
+                }
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -159,6 +230,11 @@ RaohaneSurface {
                     delegate: RaohaneOverviewWindowRow {
                         required property var modelData
                         toplevel: modelData
+                        dragCanvas: root.dragCanvas
+                        onWindowDragStarted: (toplevel, x, y) => root.windowDragStarted(toplevel, x, y)
+                        onWindowDragMoved: (x, y) => root.windowDragMoved(x, y)
+                        onWindowDragFinished: root.windowDragFinished()
+                        onWindowDragCanceled: root.windowDragCanceled()
                         onHoveredChanged: {
                             if (hovered)
                                 root.hoveredIndex(root.cardIndex)
@@ -203,12 +279,21 @@ RaohaneSurface {
             spacing: RaohaneTheme.spacingSmall
 
             Rectangle {
-                width: root.activeWorkspace ? 16 : 6
+                width: root.activeWorkspace ? 16 : root.selected ? 12 : 6
                 height: 4
                 radius: 2
                 color: root.urgent ? RaohaneTheme.critical
-                    : root.activeWorkspace ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                opacity: root.activeWorkspace || root.urgent ? 1 : 0.42
+                    : root.activeWorkspace || root.selected ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                opacity: root.activeWorkspace || root.urgent || root.selected ? 1 : 0.42
+
+                Behavior on width {
+                    enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+                    NumberAnimation { duration: RaohaneMotion.selectionTravel; easing.type: RaohaneMotion.easeEmphasized }
+                }
+                Behavior on opacity {
+                    enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+                    NumberAnimation { duration: RaohaneMotion.micro }
+                }
             }
 
             Text {
@@ -229,6 +314,35 @@ RaohaneSurface {
                 font.weight: Font.DemiBold
             }
         }
+    }
+
+    // Accept drops on the whole workspace card, even when it is empty.
+    // Moving is delegated to Overview, which validates the exact window
+    // address and target id before dispatching anything to Hyprland.
+    DropArea {
+        id: dropZone
+        anchors.fill: parent
+        z: 3
+        keys: ["raohane-overview-window"]
+        onDropped: drop => {
+            const dragged = drop.source
+            if (dragged?.toplevel && dragged.originWorkspaceId !== root.workspaceId) {
+                root.windowDropped(dragged.toplevel, root.workspaceId)
+                drop.accept(Qt.MoveAction)
+            }
+        }
+    }
+
+    Rectangle {
+        z: 2
+        anchors.fill: parent
+        radius: root.surfaceRadius
+        color: "transparent"
+        border.width: 2
+        border.color: RaohaneTheme.accent
+        visible: dropZone.containsDrag
+            && dropZone.drag.source?.originWorkspaceId !== root.workspaceId
+        opacity: 0.8
     }
 
     MouseArea {

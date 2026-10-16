@@ -2,6 +2,7 @@
   "%1 modules": "%1 модулей",
   "All displays": "Все мониторы",
   "All single-instance modules are already on the bar.": "Все модули с одним экземпляром уже добавлены на панель.",
+  "Applications: %1": "Приложения: %1",
   "Auto-hide": "Автоскрытие",
   "Available modules": "Доступные модули",
   "Bar configuration": "Настройка панели",
@@ -20,6 +21,7 @@
   "Compose the horizontal bar from native modules. Changes apply live and are saved automatically.": "Соберите горизонтальную панель из нативных модулей. Изменения применяются сразу и сохраняются автоматически.",
   "Compose the selected bar orientation from native modules. Changes apply live and are saved automatically.": "Соберите выбранную ориентацию панели из нативных модулей. Изменения применяются сразу и сохраняются автоматически.",
   "Configure appearance and drag modules into the layout. Changes apply live and are saved automatically.": "Настройте внешний вид и перетаскивайте модули в раскладку. Изменения применяются сразу и сохраняются автоматически.",
+  "Configure the dock here, then use Bar Studio below for every bar-specific option.": "Настройте док здесь, а все параметры панели — ниже в редакторе Bar Studio.",
   "Configure the Raohane bar like a desktop panel: position, surface, groups, behavior, displays and geometry.": "Настройте панель Raohane как полноценную desktop-панель: положение, поверхность, группы, поведение, мониторы и геометрию.",
   "Control placement, reveal behavior and module composition while preserving Raohane's spatial rhythm.": "Настройте расположение, поведение появления и состав модулей, сохраняя пространственный ритм Raohane.",
   "Control placement, reveal behavior, appearance and module composition for the Raohane bar.": "Настройте положение, появление, внешний вид и состав модулей панели Raohane.",
@@ -57,6 +59,7 @@
   "Open the application launcher": "Открыть меню приложений",
   "Open the compact Control Center": "Открыть компактный Центр управления",
   "Outer gap": "Внешний отступ",
+  "Overall dock surface height in pixels": "Общая высота поверхности дока в пикселях",
   "Panel": "Панель",
   "Pills": "Капсулы",
   "Placement, reveal behavior, modules and dock sizing": "Расположение, появление, модули и размер дока",
@@ -99,7 +102,5 @@
   "Vertical": "Вертикальная",
   "Visual spacing divider; can be added more than once": "Визуальный разделитель; можно добавить несколько раз",
   "Width of an invisible spacing divider": "Ширина невидимого разделителя-отступа",
-  "Width of the screen frame": "Ширина рамки экрана",
-  "Configure the dock here, then use Bar Studio below for every bar-specific option.": "Настройте док здесь, а все параметры панели — ниже в редакторе Bar Studio.",
-  "Overall dock surface height in pixels": "Общая высота поверхности дока в пикселях"
+  "Width of the screen frame": "Ширина рамки экрана"
 }

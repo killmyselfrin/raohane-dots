@@ -90,7 +90,11 @@ Scope {
     PanelWindow {
         id: panelWindow
 
-        visible: RaohaneState.launcherOpen
+        // Remain mapped while the visual exit plays; the registry defers
+        // destroying this on-demand Scope until after the hold has elapsed.
+        property bool heldVisible: false
+
+        visible: heldVisible
         screen: root.focusedScreen
         exclusiveZone: 0
         implicitWidth: 716
@@ -110,17 +114,49 @@ Scope {
         }
         margins.top: RaohaneTheme.barHeight + 3 * RaohaneTheme.panelPadding + RaohaneTheme.spacingSmall
 
-        onVisibleChanged: {
-            if (visible) {
+        function present(): void {
+            closeHold.stop()
+            const firstPresentation = !heldVisible
+            heldVisible = true
+            if (firstPresentation) {
                 root.reset()
                 launcherSurface.entered = false
-                Qt.callLater(() => launcherSurface.entered = true)
-                RaohaneFocusGrab.addDismissable(panelWindow)
-                searchBar.focusSearch()
-            } else {
-                launcherSurface.entered = false
-                RaohaneFocusGrab.removeDismissable(panelWindow)
             }
+            RaohaneFocusGrab.addDismissable(panelWindow)
+            Qt.callLater(() => {
+                if (!RaohaneState.launcherOpen)
+                    return
+                launcherSurface.entered = true
+                searchBar.focusSearch()
+            })
+        }
+
+        function dismissVisual(): void {
+            launcherSurface.entered = false
+            RaohaneFocusGrab.removeDismissable(panelWindow)
+            closeHold.restart()
+        }
+
+        Component.onCompleted: {
+            if (RaohaneState.launcherOpen)
+                present()
+        }
+
+        Connections {
+            target: RaohaneState
+            function onLauncherOpenChanged(): void {
+                if (RaohaneState.launcherOpen)
+                    panelWindow.present()
+                else if (panelWindow.heldVisible)
+                    panelWindow.dismissVisual()
+            }
+        }
+
+        Timer {
+            id: closeHold
+            interval: RaohaneMotion.panelHoldDuration
+            repeat: false
+            onTriggered: panelWindow.heldVisible = false
         }
 
         Component.onDestruction: RaohaneFocusGrab.removeDismissable(panelWindow)
@@ -144,8 +180,25 @@ Scope {
             clip: true
             opacity: entered ? 1 : 0
 
+            transform: Translate {
+                y: launcherSurface.entered || !RaohaneMotion.panelTransformEnabled ? 0 : -8
+                Behavior on y {
+                    enabled: RaohaneMotion.panelTransformEnabled
+                    NumberAnimation {
+                        duration: launcherSurface.entered
+                            ? RaohaneMotion.panelEnterDuration : RaohaneMotion.panelExitDuration
+                        easing.type: launcherSurface.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
+                    }
+                }
+            }
+
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+                enabled: RaohaneMotion.panelMotionEnabled
+                NumberAnimation {
+                    duration: launcherSurface.entered
+                        ? RaohaneMotion.panelEnterDuration : RaohaneMotion.panelExitDuration
+                    easing.type: launcherSurface.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
+                }
             }
 
             ColumnLayout {

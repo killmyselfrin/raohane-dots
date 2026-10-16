@@ -219,29 +219,55 @@ def lua_bind_lines(config: dict[str, str]) -> list[str]:
     return lines
 
 
+def motion_phase_speeds(config: dict[str, Any]) -> dict[str, str]:
+    """Return decisecond timings shared by Lua and legacy Hyprland renderers.
+
+    Entry inherits the user's saved duration; exit ends faster. The minimum
+    durations prevent a tuned short profile from turning into a hard cut.
+    These are derived values, not a second persisted settings schema.
+    """
+    window_ms = int(config["windowMs"])
+    layer_ms = int(config["layerMs"])
+    fade_ms = int(config["fadeMs"])
+
+    def ds(ms: float) -> str:
+        return f"{max(0.5, ms / 100.0):.2f}"
+
+    return {
+        "window": ds(window_ms),
+        "windowOut": ds(max(60, round(window_ms * 0.68))),
+        "layer": ds(layer_ms),
+        "layerOut": ds(max(60, round(layer_ms * 0.70))),
+        "workspace": ds(int(config["workspaceMs"])),
+        "fade": ds(fade_ms),
+        "fadeOut": ds(max(50, round(fade_ms * 0.74))),
+    }
+
+
 def lua_animation_lines(config: dict[str, Any]) -> list[str]:
     enabled = bool(config["enabled"])
     lines = [f"hl.config({{ animations = {{ enabled = {'true' if enabled else 'false'} }} }})"]
     if not enabled:
         return lines
 
-    def ds(ms: int) -> str:
-        return f"{max(0.5, ms / 100.0):.2f}"
-
-    window_ms = int(config["windowMs"])
-    workspace_ms = int(config["workspaceMs"])
-    layer_ms = int(config["layerMs"])
-    fade_ms = int(config["fadeMs"])
+    t = motion_phase_speeds(config)
     distance = int(config["workspaceDistance"])
 
     lines.extend(
         [
             'hl.curve("raohaneEase", { type = "bezier", points = { {0.22, 1.0}, {0.36, 1.0} } })',
             'hl.curve("raohaneFade", { type = "bezier", points = { {0.20, 0.0}, {0.0, 1.0} } })',
-            f'hl.animation({{ leaf = "windows", enabled = true, speed = {ds(window_ms)}, bezier = "raohaneEase", style = "popin 96%" }})',
-            f'hl.animation({{ leaf = "layers", enabled = true, speed = {ds(layer_ms)}, bezier = "raohaneEase", style = "popin 98%" }})',
-            f'hl.animation({{ leaf = "workspaces", enabled = true, speed = {ds(workspace_ms)}, bezier = "raohaneEase", style = "slidefade {distance}%" }})',
-            f'hl.animation({{ leaf = "fade", enabled = true, speed = {ds(fade_ms)}, bezier = "raohaneFade" }})',
+            'hl.curve("raohaneExit", { type = "bezier", points = { {0.40, 0.0}, {1.0, 1.0} } })',
+            f'hl.animation({{ leaf = "windows", enabled = true, speed = {t["window"]}, bezier = "raohaneEase" }})',
+            f'hl.animation({{ leaf = "windowsIn", enabled = true, speed = {t["window"]}, bezier = "raohaneEase", style = "popin 92%" }})',
+            f'hl.animation({{ leaf = "windowsOut", enabled = true, speed = {t["windowOut"]}, bezier = "raohaneExit", style = "popin 96%" }})',
+            f'hl.animation({{ leaf = "layers", enabled = true, speed = {t["layer"]}, bezier = "raohaneEase" }})',
+            f'hl.animation({{ leaf = "layersIn", enabled = true, speed = {t["layer"]}, bezier = "raohaneEase", style = "popin 97%" }})',
+            f'hl.animation({{ leaf = "layersOut", enabled = true, speed = {t["layerOut"]}, bezier = "raohaneExit", style = "fade" }})',
+            f'hl.animation({{ leaf = "workspaces", enabled = true, speed = {t["workspace"]}, bezier = "raohaneEase", style = "slidefade {distance}%" }})',
+            f'hl.animation({{ leaf = "fade", enabled = true, speed = {t["fade"]}, bezier = "raohaneFade" }})',
+            f'hl.animation({{ leaf = "fadeIn", enabled = true, speed = {t["fade"]}, bezier = "raohaneFade" }})',
+            f'hl.animation({{ leaf = "fadeOut", enabled = true, speed = {t["fadeOut"]}, bezier = "raohaneExit" }})',
         ]
     )
     return lines
@@ -308,13 +334,7 @@ def legacy_animation_lines(config: dict[str, Any]) -> list[str]:
     if not config["enabled"]:
         return ["animations {", "    enabled = false", "}"]
 
-    def ds(ms: int) -> str:
-        return f"{max(0.5, ms / 100.0):.2f}"
-
-    window_ms = int(config["windowMs"])
-    workspace_ms = int(config["workspaceMs"])
-    layer_ms = int(config["layerMs"])
-    fade_ms = int(config["fadeMs"])
+    t = motion_phase_speeds(config)
     distance = int(config["workspaceDistance"])
 
     return [
@@ -322,10 +342,17 @@ def legacy_animation_lines(config: dict[str, Any]) -> list[str]:
         "    enabled = true",
         "    bezier = raohaneEase, 0.22, 1.0, 0.36, 1.0",
         "    bezier = raohaneFade, 0.20, 0.0, 0.0, 1.0",
-        f"    animation = windows, 1, {ds(window_ms)}, raohaneEase, popin 96%",
-        f"    animation = layers, 1, {ds(layer_ms)}, raohaneEase, popin 98%",
-        f"    animation = workspaces, 1, {ds(workspace_ms)}, raohaneEase, slidefade {distance}%",
-        f"    animation = fade, 1, {ds(fade_ms)}, raohaneFade",
+        "    bezier = raohaneExit, 0.40, 0.0, 1.0, 1.0",
+        f'    animation = windows, 1, {t["window"]}, raohaneEase',
+        f'    animation = windowsIn, 1, {t["window"]}, raohaneEase, popin 92%',
+        f'    animation = windowsOut, 1, {t["windowOut"]}, raohaneExit, popin 96%',
+        f'    animation = layers, 1, {t["layer"]}, raohaneEase',
+        f'    animation = layersIn, 1, {t["layer"]}, raohaneEase, popin 97%',
+        f'    animation = layersOut, 1, {t["layerOut"]}, raohaneExit, fade',
+        f'    animation = workspaces, 1, {t["workspace"]}, raohaneEase, slidefade {distance}%',
+        f'    animation = fade, 1, {t["fade"]}, raohaneFade',
+        f'    animation = fadeIn, 1, {t["fade"]}, raohaneFade',
+        f'    animation = fadeOut, 1, {t["fadeOut"]}, raohaneExit',
         "}",
     ]
 
