@@ -15,11 +15,25 @@ Scope {
         ?? Quickshell.screens[0]
     readonly property string wallpaperPath: String(RaohaneConfig.wallpaperPath ?? "")
     readonly property bool videoWallpaper: RaohaneWallpapers.isVideo(root.wallpaperPath)
-    readonly property bool compactLayout: (root.focusedScreen?.width ?? 1280) < 920
-        || (root.focusedScreen?.height ?? 720) < 590
+    // Use the actual layer-shell logical size (not monitor mode pixels);
+    // monitor scale and output changes can make those differ considerably.
+    readonly property bool compactLayout: panelWindow.width < 960 || panelWindow.height < 620
+    readonly property string mascotUrl: RaohanePaths.fileUrl(
+        RaohanePaths.join(RaohanePaths.assetsPath, "images/welcome-mascot.svg"))
+
+    function startTour(): void {
+        if (!RaohaneState.welcomeOpen || RaohaneOnboardingState.active)
+            return
+        console.info("[RaohaneWelcome] Start guided tour")
+        RaohaneOnboardingState.start()
+    }
 
     function skipWelcome(): void {
-        RaohaneOnboardingState.complete()
+        if (!RaohaneState.welcomeOpen)
+            return
+        console.info("[RaohaneWelcome] Skip guided tour")
+        RaohaneState.setPrimaryOpen("welcome", false)
+        RaohaneOnboardingState.skip()
     }
 
     PanelWindow {
@@ -27,7 +41,10 @@ Scope {
 
         property bool entered: false
 
+        // The language picker is another full-screen Overlay layer. Do not
+        // display a second clickable Welcome beneath it.
         visible: RaohaneState.welcomeOpen
+            && RaohaneI18n.languageChosen && !RaohaneI18n.pickerOpen
         screen: root.focusedScreen
         color: "transparent"
         exclusiveZone: 0
@@ -35,8 +52,7 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         // The first-run language picker owns focus until a language is
         // selected. Welcome must not compete with its exclusive layer.
-        WlrLayershell.keyboardFocus: RaohaneState.welcomeOpen
-            && RaohaneI18n.languageChosen && !RaohaneI18n.pickerOpen
+        WlrLayershell.keyboardFocus: visible
             ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
         anchors {
@@ -51,7 +67,7 @@ Scope {
             if (!visible)
                 return
             Qt.callLater(() => {
-                if (!panelWindow.visible || !RaohaneState.welcomeOpen)
+                if (!panelWindow.visible || !RaohaneState.welcomeOpen || RaohaneOnboardingState.active)
                     return
                 panelWindow.entered = true
                 stage.forceActiveFocus()
@@ -171,6 +187,17 @@ Scope {
                                 }
                             }
 
+                            // Keep the mascot visible even on small laptop displays.
+                            Image {
+                                visible: root.compactLayout
+                                Layout.preferredWidth: visible ? 56 : 0
+                                Layout.preferredHeight: visible ? 56 : 0
+                                source: root.mascotUrl
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                                sourceSize: Qt.size(224, 224)
+                            }
+
                             ColumnLayout {
                                 spacing: 0
 
@@ -255,7 +282,7 @@ Scope {
                                 emphasized: true
                                 label: qsTr("Show me around")
                                 icon: "arrow_forward"
-                                onTriggered: RaohaneOnboardingState.start()
+                                onTriggered: root.startTour()
                             }
 
                             WelcomeButton {
@@ -300,7 +327,7 @@ Scope {
                     }
 
                     Rectangle {
-                        visible: !root.compactLayout && welcomeCard.width >= 860
+                        visible: !root.compactLayout
                         Layout.preferredWidth: 1
                         Layout.fillHeight: true
                         Layout.topMargin: 18
@@ -312,7 +339,7 @@ Scope {
                     // mock dashboard. No background image refreshes or timers.
                     Item {
                         id: mascotStage
-                        visible: !root.compactLayout && welcomeCard.width >= 860
+                        visible: !root.compactLayout
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.minimumWidth: 280
@@ -367,7 +394,7 @@ Scope {
                                     topMargin: 26
                                     bottomMargin: 72
                                 }
-                                source: Quickshell.shellPath("assets/images/welcome-mascot.svg")
+                                source: root.mascotUrl
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
                                 smooth: true
@@ -435,7 +462,7 @@ Scope {
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                    RaohaneOnboardingState.start()
+                    root.startTour()
                     event.accepted = true
                 } else if (event.key === Qt.Key_Escape) {
                     root.skipWelcome()
@@ -509,12 +536,23 @@ Scope {
             RaohaneIcon { text: button.icon; iconSize: 14; fill: button.emphasized ? 1 : 0; color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted }
         }
 
+        Accessible.role: Accessible.Button
+        Accessible.name: button.label
+
         MouseArea {
             id: pointer
+            z: 150
             anchors.fill: parent
+            enabled: button.enabled && panelWindow.visible
+            acceptedButtons: Qt.LeftButton
+            preventStealing: true
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: button.triggered()
+            onPressed: button.forceActiveFocus()
+            onClicked: {
+                console.info("[RaohaneWelcome] Click:", button.label)
+                button.triggered()
+            }
         }
 
         Keys.onPressed: event => {
