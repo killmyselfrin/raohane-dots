@@ -5,7 +5,47 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 fail() {
-  printf 'overview-pointer-boundary-audit: %s\n' "$*" >&2
+  # Overview keeps one screenshot per selected workspace, captured once. It
+# must not add permanent live streams, subprocess polling, or mouse-only
+# navigation paths when drag-and-drop is added.
+for contract in \
+  'moveWindowToWorkspace(toplevel, workspaceId: int)' \
+  'movetoworkspacesilent' \
+  'hl.dsp.window.move(' \
+  'function beginWindowDrag(' \
+  'function finishWindowDrag(' \
+  'dragProxy.Drag.drop()' \
+  'dragProxy.Drag.cancel()' \
+  'previewEnabled: RaohaneState.overviewOpen' \
+  'property bool presented: false'; do
+  rg -Fq "$contract" "$overview" || fail "Overview interaction/motion contract missing: $contract"
+done
+for contract in \
+  'ScreencopyView {' \
+  'live: false' \
+  'active: root.previewEnabled' \
+  'keys: ["raohane-overview-window"]' \
+  'onDropped: drop =>' \
+  'root.windowDropped(dragged.toplevel, root.workspaceId)' \
+  'Behavior on opacity'; do
+  rg -Fq "$contract" "$card" || fail "Overview preview/target contract missing: $contract"
+done
+for contract in \
+  'signal windowDragStarted(' \
+  'signal windowDragMoved(' \
+  'signal windowDragFinished()' \
+  'root.suppressClick' \
+  'preventStealing: true' \
+  'onClicked: {'; do
+  rg -Fq "$contract" "$window_row" || fail "Overview window drag/click contract missing: $contract"
+done
+if rg -n 'live:[[:space:]]*true|Process[[:space:]]*\\{|hyprctl' "$overview" "$card" "$window_row"; then
+  fail 'Overview preview/drag regressed to live screencopy or active shell polling'
+fi
+rg -Uq '"overview":[[:space:]]*\\{[^}]*deferredUnload:[[:space:]]*true' modules/raohane/RaohaneSurfaceRegistry.qml \
+  || fail 'Overview is destroyed before its dismissal animation can finish'
+
+printf 'overview-pointer-boundary-audit: %s\n' "$*" >&2
   exit 1
 }
 
