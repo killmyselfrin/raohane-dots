@@ -17,7 +17,13 @@ for path in "$welcome" "$state" "$mascot" "$credit" "$translations"; do
 done
 
 for expected in \
-  'Quickshell.shellPath("assets/images/welcome-mascot.svg")' \
+  'RaohanePaths.join(RaohanePaths.assetsPath, "images/welcome-mascot.svg")' \
+  'source: root.mascotUrl' \
+  'visible: root.compactLayout' \
+  'function startTour(): void' \
+  'RaohaneOnboardingState.skip()' \
+  'z: 150' \
+  'preventStealing: true' \
   'activeFocusOnTab: true' \
   'if (!panelWindow.visible || !RaohaneState.welcomeOpen)' \
   'if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)' \
@@ -35,6 +41,25 @@ rg -Fq 'if (!root.ready || root.completed || root.active || RaohaneState.screenL
   || fail 'Welcome launch does not re-check completion/locked state inside deferred callback'
 rg -Fq 'RaohaneState.setPrimaryOpen("welcome", true)' "$state" \
   || fail 'Welcome open route was lost'
+
+# The source action must finish updating state before the lazy Welcome
+# component is allowed to unload. The old order dropped user clicks.
+python3 - "$state" <<'PY'
+import pathlib, re, sys
+src = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+def body(name):
+    m = re.search(r"function " + name + r"\([^)]*\): void \{([\s\S]*?)\n    \}", src)
+    assert m, "Missing onboarding function " + name
+    return m.group(1)
+start = body("start")
+assert start.index("root.active = true") < start.index("root.applyStep()"), "Tour must activate before closing Welcome"
+assert 'setPrimaryOpen("welcome", false)' not in start, "Tour must not eagerly destroy its caller"
+complete = body("complete")
+assert complete.index("root.markCompleted()") < complete.index("root.closeTourSurfaces()"), "Completion must persist before closing Welcome"
+PY
+rg -Uq '"welcome":[[:space:]]*\{[^}]*deferredUnload:[[:space:]]*true' modules/raohane/RaohaneSurfaceRegistry.qml \
+  || fail 'Welcome buttons can be destroyed before click callbacks finish'
+
 rg -Fq 'assets "$runtime/"' scripts/runtime-payload-audit.sh \
   || fail 'mascot might be omitted from installed shell payload'
 
