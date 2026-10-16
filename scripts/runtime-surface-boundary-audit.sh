@@ -229,9 +229,9 @@ loader='modules/raohane/RaohanePanelLoader.qml'
 for symbol in 'panelMotionEnabled' 'panelTransformEnabled' 'panelEnterDuration' 'panelExitDuration' 'panelHoldDuration' 'RaohanePerformance.gameModeActive'; do
   rg -Fq "$symbol" "$motion" || fail "shared panel motion lost $symbol"
 done
-rg -q 'RaohaneMotion\\.panelHoldDuration' "$loader" \
+rg -q 'RaohaneMotion\.panelHoldDuration' "$loader" \
   || fail 'lazy loader can unload a panel before its exit motion completes'
-rg -Uq '"launcher":[[:space:]]*\\{[^}]*deferredUnload:[[:space:]]*true' "$registry" \
+rg -Uq '"launcher":[[:space:]]*\{[^}]*deferredUnload:[[:space:]]*true' "$registry" \
   || fail 'launcher exit animation is truncated by immediate unload'
 for spec in \
   'RaohaneLauncher.qml:launcher:Launcher' \
