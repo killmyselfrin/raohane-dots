@@ -68,6 +68,22 @@ rg -Fq 'assets "$runtime/"' scripts/runtime-payload-audit.sh \
 if rg -ni '<script\b|<foreignObject\b|<image\b|(?:xlink:)?href=["\x27]https?://' "$mascot"; then
   fail 'mascot SVG embeds executable or remote content'
 fi
+# The previous asset was silently truncated mid-path, which SVG viewers
+# rejected without a QML parse failure. Parse the entire SVG in CI.
+python3 - "$mascot" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+
+try:
+    root = ET.parse(sys.argv[1]).getroot()
+except ET.ParseError as error:
+    raise SystemExit(f"Invalid Welcome mascot SVG: {error}")
+assert root.tag == "{http://www.w3.org/2000/svg}svg", "Mascot root is not SVG"
+assert root.attrib.get("viewBox"), "Mascot is missing viewBox"
+paths = sum(1 for node in root.iter() if node.tag == "{http://www.w3.org/2000/svg}path")
+assert paths >= 20, f"Welcome mascot appears incomplete: only {paths} paths"
+PY
+
 rg -Fq 'CC0' "$credit" || fail 'missing licence attribution'
 python3 - "$translations" <<'PY'
 import json, sys
