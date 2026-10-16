@@ -91,9 +91,11 @@ Rectangle {
         opacity: root.pressed ? 0.55 : 1
 
         Behavior on border.color {
+            enabled: root.transformMotionAllowed
             ColorAnimation { duration: RaohaneMotion.micro }
         }
         Behavior on opacity {
+            enabled: root.transformMotionAllowed
             NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
     }
@@ -113,9 +115,11 @@ Rectangle {
         opacity: root.stateRailOpacity
 
         Behavior on color {
+            enabled: root.transformMotionAllowed
             ColorAnimation { duration: RaohaneMotion.micro }
         }
         Behavior on opacity {
+            enabled: root.transformMotionAllowed
             NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
     }
@@ -137,17 +141,21 @@ Rectangle {
         opacity: root.pressed ? 0.03 : root.active ? 0.20 : root.hovered ? 0.13 : root.raised ? 0.08 : 0.045
 
         Behavior on opacity {
+            enabled: root.transformMotionAllowed
             NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
         }
     }
 
     Behavior on color {
+        enabled: root.transformMotionAllowed
         ColorAnimation { duration: RaohaneMotion.micro }
     }
     Behavior on border.color {
+        enabled: root.transformMotionAllowed
         ColorAnimation { duration: RaohaneMotion.micro }
     }
     Behavior on border.width {
+        enabled: root.transformMotionAllowed
         NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
     }
     Behavior on scale {

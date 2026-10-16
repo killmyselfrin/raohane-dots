@@ -109,6 +109,7 @@ Pulling repository changes alone does not replace the installed runtime under `~
 | `raohane session` | Open power and session controls |
 | `raohane translate` | Start screen translation |
 | `raohane doctor all` | Inspect installation and runtime |
+| `raohane doctor performance` | Read-only process CPU, RSS, threads, and service restarts |
 | `raohane validate smoke` | Inspect current-session IPC and significant QML errors |
 
 Launcher search modes: app names · `/` built-in/contextual actions · `>` commands · `=` calculations · `:` clipboard history.
@@ -123,6 +124,7 @@ The default **Raohane** theme combines dark charcoal glass with lavender accents
 
 ```bash
 raohane doctor all
+raohane doctor performance
 raohane status
 raohane logs
 raohane validate smoke
@@ -135,7 +137,11 @@ raohane stop
 raohane run
 ```
 
-For performance or disappearing-panel reports, capture the installed version, GPU/compositor details, recent logs, process CPU/RSS while the issue occurs, and exact reproduction steps. Hardware/runtime issues should be tested in a real Hyprland session.
+For performance or disappearing-panel reports, run `raohane doctor performance` while the issue occurs and compare with a healthy-session snapshot. Include the installed version, GPU/compositor details, `raohane validate smoke`, recent logs, and exact reproduction steps. The read-only process snapshot reports lifetime-average CPU, RSS, threads and service restart counts; it does not measure frame time. Hardware/runtime issues should be tested in a real Hyprland session.
+
+Raohane installs updates **manually by default**; automatic installation can be explicitly enabled in Settings → About. Existing explicit automatic-update preferences remain respected.
+
+If Shelly or another package manager reports that polkit is missing on the system bus, check `systemctl status polkit`, `busctl --system status org.freedesktop.PolicyKit1`, and `pkexec whoami`. The system-wide `polkit` daemon is a required dependency; Raohane also provides its own graphical authorization agent via Quickshell. Do not start a second polkit agent unless the built-in one is unavailable. See [Shelly's polkit troubleshooting guide](https://www.seafoam-labs.org/shelly-alpm/docs/polkit/).
 
 ## Documentation
 

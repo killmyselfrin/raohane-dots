@@ -20,7 +20,7 @@ Shell:
   theme [list|import FILE|remove ID|export ID FILE]
 
 Diagnostics:
-  doctor [all|graphics|deps|services|runtime|phase4]
+  doctor [all|graphics|deps|services|runtime|performance|phase4]
   validate smoke [--since WHEN] [--log-file FILE] [--strict-logs]
   validate phase4 [--exercise] [--lock] [--capture] [--translate] [--full]
   validate release [--phase4|--full] [--report PATH]
@@ -139,6 +139,46 @@ print_shell_runtime_status() {
 
   echo "  [--] no Raohane runtime active ($SERVICE inactive)"
   return 1
+}
+
+print_performance_report() {
+  printf 'Raohane performance snapshot\n'
+  local pid=""
+  local restarts=""
+
+  if command -v systemctl >/dev/null 2>&1; then
+    pid="$(systemctl --user show "$SERVICE" -p MainPID --value 2>/dev/null || true)"
+    restarts="$(systemctl --user show "$SERVICE" -p NRestarts --value 2>/dev/null || true)"
+  fi
+
+  if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]] || [[ ! -d "/proc/$pid" ]]; then
+    pid="$(foreground_shell_pid || true)"
+  fi
+
+  if [[ "$pid" =~ ^[1-9][0-9]*$ ]] && [[ -d "/proc/$pid" ]]; then
+    printf '  Runtime PID: %s\n' "$pid"
+    if command -v ps >/dev/null 2>&1; then
+      echo '  Process sample (CPU is lifetime average; RSS is in KiB):'
+      ps -p "$pid" -o pid,ppid,etime,%cpu,rss,nlwp,stat,comm | sed 's/^/    /' || true
+    fi
+    if [[ -r "/proc/$pid/status" ]]; then
+      awk '/^(VmPeak|VmSize|VmRSS|VmHWM|Threads):/ {print "  " $0}' "/proc/$pid/status" || true
+    fi
+  else
+    echo '  [--] No running Raohane process found.'
+  fi
+
+  if [[ "$restarts" =~ ^[0-9]+$ ]]; then
+    printf '  Service restarts (systemd counter): %s\n' "$restarts"
+  fi
+  if command -v pgrep >/dev/null 2>&1; then
+    local qs_count
+    qs_count="$(pgrep -u "$(id -u)" -x qs 2>/dev/null | wc -l || true)"
+    printf '  Running qs processes (all configs): %s\n' "${qs_count//[[:space:]]/}"
+  fi
+
+  echo '  Re-run this command during a lag spike to compare RSS, CPU and thread counts.'
+  echo '  For QML errors use: raohane validate smoke'
 }
 
 check_cmd() {
@@ -603,6 +643,9 @@ case "${1:-help}" in
       runtime)
         echo 'Raohane doctor runtime'
         print_runtime_integrity
+        ;;
+      performance)
+        print_performance_report
         ;;
       phase4)
         run_phase4_validator
