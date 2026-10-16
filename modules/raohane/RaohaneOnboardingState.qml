@@ -88,7 +88,10 @@ Singleton {
     }
 
     function start(): void {
-        RaohaneState.setPrimaryOpen("welcome", false)
+        if (root.active)
+            return
+        // Publish tour state before closing Welcome: on-demand unloading
+        // may destroy the calling button as soon as welcomeOpen flips false.
         root.active = true
         root.step = 0
         root.applyStep()
@@ -117,9 +120,12 @@ Singleton {
     }
 
     function complete(): void {
+        // Skipping an explicitly reopened Welcome must still close it, even
+        // when the initial onboarding was already completed previously.
+        // Persist completion before closing the on-demand Welcome scope.
         root.active = false
-        root.closeTourSurfaces()
         root.markCompleted()
+        root.closeTourSurfaces()
         root.finished()
     }
 

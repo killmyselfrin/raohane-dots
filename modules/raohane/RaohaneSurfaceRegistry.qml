@@ -107,7 +107,10 @@ QtObject {
             role: "onboarding",
             layer: "overlay",
             placement: "center",
-            loadPolicy: "on-demand"
+            loadPolicy: "on-demand",
+            // A click changes welcomeOpen; preserve the caller until its
+            // tour/skip action returns instead of destroying it mid-handler.
+            deferredUnload: true
         },
         "session": {
             stateProperty: "sessionOpen",
