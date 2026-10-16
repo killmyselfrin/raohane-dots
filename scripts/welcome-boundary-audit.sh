@@ -56,6 +56,7 @@ assert start.index("root.active = true") < start.index("root.applyStep()"), "Tou
 assert 'setPrimaryOpen("welcome", false)' not in start, "Tour must not eagerly destroy its caller"
 complete = body("complete")
 assert complete.index("root.markCompleted()") < complete.index("root.closeTourSurfaces()"), "Completion must persist before closing Welcome"
+assert "if (root.completed && !root.active)" not in complete, "Skip must also dismiss explicitly reopened Welcome"
 PY
 rg -Uq '"welcome":[[:space:]]*\{[^}]*deferredUnload:[[:space:]]*true' modules/raohane/RaohaneSurfaceRegistry.qml \
   || fail 'Welcome buttons can be destroyed before click callbacks finish'
