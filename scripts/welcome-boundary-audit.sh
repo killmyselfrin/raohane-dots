@@ -23,7 +23,9 @@ for expected in \
   'if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)' \
   'RaohaneOnboardingState.start()' \
   'onTriggered: root.skipWelcome()' \
-  'root.compactLayout'; do
+  'root.compactLayout' \
+  'RaohaneI18n.languageChosen' \
+  '!RaohaneI18n.pickerOpen'; do
   rg -Fq "$expected" "$welcome" || fail "Welcome lost contract: $expected"
 done
 if rg -n 'id: shellPreview|component PreviewTile:|component PreviewPod:|Qt.formatTime\(new Date\(\)' "$welcome"; then
