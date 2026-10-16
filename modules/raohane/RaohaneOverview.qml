@@ -13,6 +13,8 @@ Scope {
     id: root
 
     property int selectedIndex: 0
+    property var draggedWindow: null
+    property bool dragging: false
 
     readonly property var focusedScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
@@ -73,6 +75,58 @@ Scope {
         toplevel.wayland.activate()
     }
 
+    // Target a validated compositor address, never an implicitly focused window.
+    function moveWindowToWorkspace(toplevel, workspaceId: int): void {
+        if (!toplevel || workspaceId < 1 || workspaceId > 100)
+            return
+        if (Number(toplevel?.workspace?.id ?? 0) === workspaceId)
+            return
+        const address = String(toplevel?.address ?? "").replace(/^0x/i, "")
+        if (!/^[0-9a-fA-F]+$/.test(address))
+            return
+        const selector = "address:0x" + address
+        if (Hyprland.usingLua)
+            Hyprland.dispatch('hl.dsp.window.move({ window = "' + selector
+                + '", workspace = "' + workspaceId + '", follow = false })')
+        else
+            Hyprland.dispatch("movetoworkspacesilent " + workspaceId + "," + selector)
+    }
+
+    function beginWindowDrag(toplevel, x: real, y: real): void {
+        if (!RaohaneState.overviewOpen || !toplevel?.wayland || !toplevel?.address)
+            return
+        root.draggedWindow = toplevel
+        dragProxy.toplevel = toplevel
+        dragProxy.originWorkspaceId = Number(toplevel?.workspace?.id ?? 0)
+        dragProxy.x = x - dragProxy.width / 2
+        dragProxy.y = y - dragProxy.height / 2
+        root.dragging = true
+    }
+
+    function moveWindowDrag(x: real, y: real): void {
+        if (!root.dragging)
+            return
+        dragProxy.x = x - dragProxy.width / 2
+        dragProxy.y = y - dragProxy.height / 2
+    }
+
+    function finishWindowDrag(): void {
+        if (!root.dragging)
+            return
+        dragProxy.Drag.drop()
+        root.dragging = false
+        root.draggedWindow = null
+        dragProxy.toplevel = null
+    }
+
+    function cancelWindowDrag(): void {
+        if (root.dragging)
+            dragProxy.Drag.cancel()
+        root.dragging = false
+        root.draggedWindow = null
+        dragProxy.toplevel = null
+    }
+
     function activateSelected(): void {
         const index = Math.max(0, Math.min(root.selectedIndex, root.workspaceIds.length - 1))
         root.activateWorkspace(root.workspaceIds[index])
@@ -109,15 +163,22 @@ Scope {
     Connections {
         target: RaohaneState
         function onOverviewOpenChanged(): void {
-            if (RaohaneState.overviewOpen)
+            if (RaohaneState.overviewOpen) {
                 root.syncSelection()
+                panelWindow.present()
+            } else {
+                root.cancelWindowDrag()
+                panelWindow.dismissVisual()
+            }
         }
     }
 
     PanelWindow {
         id: panelWindow
 
-        visible: RaohaneState.overviewOpen
+        property bool presented: false
+
+        visible: presented
         screen: root.focusedScreen
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
@@ -135,16 +196,34 @@ Scope {
             right: true
         }
 
-        onVisibleChanged: {
-            if (visible) {
+        function present(): void {
+            closeTimer.stop()
+            if (!presented)
                 overviewPanel.entered = false
-                Qt.callLater(() => {
-                    overviewPanel.entered = true
-                    overviewPanel.forceActiveFocus()
-                })
-            } else {
-                overviewPanel.entered = false
-            }
+            presented = true
+            Qt.callLater(() => {
+                if (!RaohaneState.overviewOpen)
+                    return
+                overviewPanel.entered = true
+                overviewPanel.forceActiveFocus()
+            })
+        }
+
+        function dismissVisual(): void {
+            overviewPanel.entered = false
+            closeTimer.restart()
+        }
+
+        Component.onCompleted: {
+            if (RaohaneState.overviewOpen)
+                present()
+        }
+
+        Timer {
+            id: closeTimer
+            interval: Math.max(1, RaohaneMotion.standard)
+            repeat: false
+            onTriggered: panelWindow.presented = false
         }
 
         Rectangle {
@@ -155,7 +234,12 @@ Scope {
             opacity: overviewPanel.entered ? 1 : 0
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+                enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+                NumberAnimation {
+                    duration: overviewPanel.entered
+                        ? RaohaneMotion.standard : Math.round(RaohaneMotion.standard * 0.68)
+                    easing.type: overviewPanel.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
+                }
             }
 
             MouseArea {
@@ -178,8 +262,22 @@ Scope {
             clip: true
             opacity: entered ? 1 : 0
 
+            transform: Translate {
+                y: overviewPanel.entered || !RaohaneMotion.transformMotionEnabled
+                    || RaohanePerformance.gameModeActive ? 0 : 12
+                Behavior on y {
+                    enabled: RaohaneMotion.transformMotionEnabled && !RaohanePerformance.gameModeActive
+                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+                }
+            }
+
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+                enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+                NumberAnimation {
+                    duration: overviewPanel.entered
+                        ? RaohaneMotion.standard : Math.round(RaohaneMotion.standard * 0.68)
+                    easing.type: overviewPanel.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
+                }
             }
 
             MouseArea {
@@ -350,9 +448,21 @@ Scope {
                             shortcutLabel: root.shortcutLabel(index)
                             activeWorkspace: workspaceId === root.activeWorkspaceId
                             selected: index === root.selectedIndex
-                            onHoveredIndex: hoveredIndex => root.selectedIndex = hoveredIndex
+                            presented: overviewPanel.entered
+                            previewEnabled: RaohaneState.overviewOpen
+                                && index === root.selectedIndex && !RaohanePerformance.gameModeActive
+                            dragCanvas: overviewPanel
+                            onHoveredIndex: hoveredIndex => {
+                                if (!root.dragging)
+                                    root.selectedIndex = hoveredIndex
+                            }
                             onWorkspaceActivated: workspaceId => root.activateWorkspace(workspaceId)
                             onWindowActivated: toplevel => root.activateWindow(toplevel)
+                            onWindowDropped: (toplevel, workspaceId) => root.moveWindowToWorkspace(toplevel, workspaceId)
+                            onWindowDragStarted: (toplevel, x, y) => root.beginWindowDrag(toplevel, x, y)
+                            onWindowDragMoved: (x, y) => root.moveWindowDrag(x, y)
+                            onWindowDragFinished: root.finishWindowDrag()
+                            onWindowDragCanceled: root.cancelWindowDrag()
                         }
                     }
                 }
@@ -398,6 +508,39 @@ Scope {
                     }
                 }
             }
+        // One drag proxy outside the grid: moving it does not relayout cards.
+        RaohaneSurface {
+            id: dragProxy
+            property var toplevel: null
+            property int originWorkspaceId: 0
+            z: 500
+            visible: root.dragging
+            width: 164
+            height: 34
+            surfaceRadius: RaohaneTheme.radiusSmall
+            raised: true
+            active: true
+            showSheen: false
+            opacity: 0.94
+
+            Drag.active: root.dragging
+            Drag.source: dragProxy
+            Drag.keys: ["raohane-overview-window"]
+            Drag.hotSpot.x: width / 2
+            Drag.hotSpot.y: height / 2
+            Drag.supportedActions: Qt.MoveAction
+
+            Text {
+                anchors.centerIn: parent
+                width: parent.width - 18
+                text: String(dragProxy.toplevel?.title ?? "")
+                font.pixelSize: 9
+                font.weight: Font.DemiBold
+                color: RaohaneTheme.text
+                elide: Text.ElideRight
+                horizontalAlignment: Text.AlignHCenter
+            }
+        }
         }
     }
 }
