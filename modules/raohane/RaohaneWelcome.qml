@@ -15,6 +15,8 @@ Scope {
         ?? Quickshell.screens[0]
     readonly property string wallpaperPath: String(RaohaneConfig.wallpaperPath ?? "")
     readonly property bool videoWallpaper: RaohaneWallpapers.isVideo(root.wallpaperPath)
+    readonly property bool compactLayout: (root.focusedScreen?.width ?? 1280) < 920
+        || (root.focusedScreen?.height ?? 720) < 590
 
     function skipWelcome(): void {
         RaohaneOnboardingState.complete()
@@ -31,7 +33,8 @@ Scope {
         exclusiveZone: 0
         WlrLayershell.namespace: "quickshell:raohane-welcome"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: RaohaneState.welcomeOpen
+            ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
         anchors {
             top: true
@@ -45,6 +48,8 @@ Scope {
             if (!visible)
                 return
             Qt.callLater(() => {
+                if (!panelWindow.visible || !RaohaneState.welcomeOpen)
+                    return
                 panelWindow.entered = true
                 stage.forceActiveFocus()
             })
@@ -109,8 +114,8 @@ Scope {
             RaohaneSurface {
                 id: welcomeCard
 
-                width: Math.min(parent.width - 72, 1120)
-                height: Math.min(parent.height - 86, 680)
+                width: Math.max(0, Math.min(parent.width - (root.compactLayout ? 24 : 72), 1120))
+                height: Math.max(0, Math.min(parent.height - (root.compactLayout ? 24 : 86), 680))
                 anchors.centerIn: parent
                 surfaceRadius: RaohaneTheme.radiusHero
                 raised: true
@@ -132,13 +137,13 @@ Scope {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: Math.max(24, Math.min(40, welcomeCard.width * 0.035))
-                    spacing: Math.max(28, welcomeCard.width * 0.045)
+                    anchors.margins: Math.max(15, Math.min(32, welcomeCard.width * 0.033))
+                    spacing: Math.max(16, welcomeCard.width * 0.026)
 
                     ColumnLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.maximumWidth: 520
+                        Layout.maximumWidth: 540
                         spacing: 0
 
                         RowLayout {
@@ -193,7 +198,7 @@ Scope {
                         Item { Layout.fillHeight: true }
 
                         Text {
-                            text: qsTr("Welcome to Raohane")
+                            text: qsTr("A quieter place to create")
                             color: RaohaneTheme.accent
                             font.pixelSize: 11
                             font.weight: Font.Medium
@@ -205,7 +210,7 @@ Scope {
                             Layout.topMargin: 8
                             text: qsTr("Welcome to Raohane")
                             color: RaohaneTheme.text
-                            font.pixelSize: Math.max(37, Math.min(54, welcomeCard.width * 0.052))
+                            font.pixelSize: Math.max(30, Math.min(51, welcomeCard.width * 0.052))
                             font.weight: Font.DemiBold
                             font.letterSpacing: -1.35
                             wrapMode: Text.WordWrap
@@ -215,10 +220,10 @@ Scope {
                             Layout.fillWidth: true
                             Layout.maximumWidth: 490
                             Layout.topMargin: 13
-                            text: qsTr("Your desktop is ready. Learn the surfaces that stay close when you need them — and disappear when you do not.")
+                            text: qsTr("Everything you need, beautifully within reach. Take a short tour or make Raohane your own.")
                             color: RaohaneTheme.textMuted
-                            font.pixelSize: 13
-                            lineHeight: 1.34
+                            font.pixelSize: 12
+                            lineHeight: 1.35
                             wrapMode: Text.WordWrap
                         }
 
@@ -243,7 +248,7 @@ Scope {
                             spacing: 9
 
                             WelcomeButton {
-                                Layout.preferredWidth: 188
+                                Layout.preferredWidth: Math.min(190, Math.max(144, welcomeCard.width * 0.19))
                                 emphasized: true
                                 label: qsTr("Show me around")
                                 icon: "arrow_forward"
@@ -251,7 +256,7 @@ Scope {
                             }
 
                             WelcomeButton {
-                                Layout.preferredWidth: 150
+                                Layout.preferredWidth: Math.min(155, Math.max(116, welcomeCard.width * 0.145))
                                 label: qsTr("Explore myself")
                                 icon: "explore"
                                 onTriggered: root.skipWelcome()
@@ -261,8 +266,8 @@ Scope {
                         Text {
                             Layout.topMargin: 12
                             text: qsTr("Enter starts the tour · Esc skips it")
-                            color: RaohaneTheme.textFaint
-                            font.pixelSize: 8
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 10
                         }
 
                         Item { Layout.fillHeight: true }
@@ -278,21 +283,21 @@ Scope {
                                 color: RaohaneTheme.success
                             }
                             Text {
-                                text: qsTr("Raohane runtime ready")
-                                color: RaohaneTheme.textFaint
-                                font.pixelSize: 8
+                                text: qsTr("Ready when you are")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 9
                             }
                             Item { Layout.fillWidth: true }
                             Text {
-                                text: qsTr("A live shell, not a mockup")
-                                color: RaohaneTheme.textFaint
-                                font.pixelSize: 8
+                                text: qsTr("Made for Hyprland")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 9
                             }
                         }
                     }
 
                     Rectangle {
-                        visible: welcomeCard.width >= 820
+                        visible: !root.compactLayout && welcomeCard.width >= 860
                         Layout.preferredWidth: 1
                         Layout.fillHeight: true
                         Layout.topMargin: 18
@@ -303,7 +308,7 @@ Scope {
                     Item {
                         id: previewStage
 
-                        visible: welcomeCard.width >= 820
+                        visible: !root.compactLayout && welcomeCard.width >= 860
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.minimumWidth: 330
