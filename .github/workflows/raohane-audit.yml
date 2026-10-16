@@ -68,6 +68,7 @@ jobs:
           bash -n scripts/fullscreen-boundary-audit.sh
           bash -n scripts/primary-surface-boundary-audit.sh
           bash -n scripts/overview-pointer-boundary-audit.sh
+          bash -n scripts/welcome-boundary-audit.sh
           bash -n scripts/privacy-performance-audit.sh
           bash -n scripts/pipewire-probe-performance-audit.sh
           bash -n scripts/sidebar-performance-audit.sh
@@ -137,6 +138,7 @@ jobs:
           bash scripts/fullscreen-boundary-audit.sh
           bash scripts/primary-surface-boundary-audit.sh
           bash scripts/overview-pointer-boundary-audit.sh
+          bash scripts/welcome-boundary-audit.sh
           bash scripts/privacy-performance-audit.sh
           bash scripts/pipewire-probe-performance-audit.sh
           bash scripts/sidebar-performance-audit.sh
