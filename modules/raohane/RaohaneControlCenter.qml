@@ -43,8 +43,10 @@ Scope {
             if (RaohaneState.controlCenterOpen) {
                 closeHold.stop()
                 openRefresh.stop()
+                const firstPresentation = !panelWindow.heldVisible
                 panelWindow.heldVisible = true
-                panelSurface.entered = false
+                if (firstPresentation)
+                    panelSurface.entered = false
                 root.now = new Date()
                 RaohaneNotifications.markAllRead()
                 RaohaneFocusGrab.addDismissable(panelWindow)
@@ -142,7 +144,7 @@ Scope {
 
         Timer {
             id: closeHold
-            interval: Math.max(80, RaohaneMotion.standard)
+            interval: RaohaneMotion.panelHoldDuration
             repeat: false
             onTriggered: panelWindow.heldVisible = false
         }
@@ -168,17 +170,24 @@ Scope {
             focus: RaohaneState.controlCenterOpen
 
             transform: Translate {
-                x: panelSurface.entered || !RaohaneMotion.transformMotionEnabled ? 0 : 8
+                x: panelSurface.entered || !RaohaneMotion.panelTransformEnabled ? 0 : 8
                 Behavior on x {
+                    enabled: RaohaneMotion.panelTransformEnabled
                     NumberAnimation {
-                        duration: RaohaneMotion.standard
-                        easing.type: panelSurface.entered ? RaohaneMotion.easeEmphasized : RaohaneMotion.easeExit
+                        duration: panelSurface.entered
+                            ? RaohaneMotion.panelEnterDuration : RaohaneMotion.panelExitDuration
+                        easing.type: panelSurface.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
                     }
                 }
             }
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+                enabled: RaohaneMotion.panelMotionEnabled
+                NumberAnimation {
+                    duration: panelSurface.entered
+                        ? RaohaneMotion.panelEnterDuration : RaohaneMotion.panelExitDuration
+                    easing.type: panelSurface.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
+                }
             }
 
             Rectangle {
