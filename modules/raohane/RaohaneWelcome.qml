@@ -18,7 +18,11 @@ Scope {
     // Use the actual layer-shell logical size (not monitor mode pixels);
     // monitor scale and output changes can make those differ considerably.
     readonly property bool compactLayout: panelWindow.width < 960 || panelWindow.height < 620
+    // Optional original PNG mascot. Fall back to the bundled SVG if it is
+    // not installed yet, so Welcome remains functional after an update.
     readonly property string mascotUrl: RaohanePaths.fileUrl(
+        RaohanePaths.join(RaohanePaths.assetsPath, "images/raohane-welcome-girl.png"))
+    readonly property string fallbackMascotUrl: RaohanePaths.fileUrl(
         RaohanePaths.join(RaohanePaths.assetsPath, "images/welcome-mascot.svg"))
 
     function startTour(): void {
@@ -193,6 +197,10 @@ Scope {
                                 Layout.preferredWidth: visible ? 56 : 0
                                 Layout.preferredHeight: visible ? 56 : 0
                                 source: root.mascotUrl
+                                onStatusChanged: {
+                                    if (status === Image.Error && source.toString() !== root.fallbackMascotUrl)
+                                        source = root.fallbackMascotUrl
+                                }
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
                                 sourceSize: Qt.size(224, 224)
@@ -335,8 +343,8 @@ Scope {
                         color: RaohaneTheme.borderFaint
                     }
 
-                    // A static, local mascot replaces the previous non-functional
-                    // mock dashboard. No background image refreshes or timers.
+                    // Static local artwork, with SVG fallback when the optional PNG
+                    // has not been installed. No background refreshes or timers.
                     Item {
                         id: mascotStage
                         visible: !root.compactLayout
@@ -395,6 +403,10 @@ Scope {
                                     bottomMargin: 72
                                 }
                                 source: root.mascotUrl
+                                onStatusChanged: {
+                                    if (status === Image.Error && source.toString() !== root.fallbackMascotUrl)
+                                        source = root.fallbackMascotUrl
+                                }
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
                                 smooth: true
