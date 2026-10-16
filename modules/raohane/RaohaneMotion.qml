@@ -33,6 +33,18 @@ QtObject {
     // short enough that staggered content still feels immediate rather than
     // theatrical. It scales with the user's persisted motion preference and
     // the temporary Scene cadence.
+    // Primary shell panels share one open/close cadence and hold lifetime.
+    // Animation is opt-out for low-motion preferences and active Game Mode.
+    // Only opacity is animated by default; small translations stay disabled
+    // when reducing motion so translucent full-screen surfaces remain cheap.
+    readonly property bool panelMotionEnabled: enabled && !RaohanePerformance.gameModeActive
+    readonly property bool panelTransformEnabled: transformMotionEnabled && !RaohanePerformance.gameModeActive
+    readonly property int panelEnterDuration: panelMotionEnabled ? standard : 0
+    readonly property int panelExitDuration: panelMotionEnabled
+        ? Math.max(0, Math.round(standard * 0.70))
+        : 0
+    readonly property int panelHoldDuration: panelExitDuration > 0 ? panelExitDuration + 24 : 1
+
     readonly property int staggerStep: Math.max(0, Math.round(22 * motionScale * sceneDurationFactor))
     readonly property int selectionTravel: Math.max(1, Math.round(standard * 1.08))
 
