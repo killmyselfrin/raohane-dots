@@ -37,9 +37,14 @@ Scope {
 
         function present(): void {
             closeTimer.stop()
+            const firstPresentation = !panelWindow.presented
             panelWindow.presented = true
-            workspace.entered = false
-            Qt.callLater(() => workspace.entered = true)
+            if (firstPresentation)
+                workspace.entered = false
+            Qt.callLater(() => {
+                if (RaohaneState.settingsOpen)
+                    workspace.entered = true
+            })
         }
 
         function dismissVisual(): void {
@@ -75,7 +80,7 @@ Scope {
 
         Timer {
             id: closeTimer
-            interval: Math.max(1, RaohaneMotion.standard)
+            interval: RaohaneMotion.panelHoldDuration
             repeat: false
             onTriggered: panelWindow.presented = false
         }
@@ -100,9 +105,11 @@ Scope {
             opacity: workspace.entered ? 1 : 0
 
             Behavior on opacity {
+                enabled: RaohaneMotion.panelMotionEnabled
                 NumberAnimation {
-                    duration: RaohaneMotion.standard
-                    easing.type: workspace.entered ? RaohaneMotion.easeStandard : RaohaneMotion.easeExit
+                    duration: workspace.entered
+                        ? RaohaneMotion.panelEnterDuration : RaohaneMotion.panelExitDuration
+                    easing.type: workspace.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
                 }
             }
 
@@ -135,19 +142,23 @@ Scope {
             focus: RaohaneState.settingsOpen
 
             transform: Translate {
-                y: workspace.entered || !RaohaneMotion.transformMotionEnabled ? 0 : 10
+                y: workspace.entered || !RaohaneMotion.panelTransformEnabled ? 0 : 10
                 Behavior on y {
+                    enabled: RaohaneMotion.panelTransformEnabled
                     NumberAnimation {
-                        duration: RaohaneMotion.relaxed
-                        easing.type: workspace.entered ? RaohaneMotion.easeEmphasized : RaohaneMotion.easeExit
+                        duration: workspace.entered
+                            ? RaohaneMotion.panelEnterDuration : RaohaneMotion.panelExitDuration
+                        easing.type: workspace.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
                     }
                 }
             }
 
             Behavior on opacity {
+                enabled: RaohaneMotion.panelMotionEnabled
                 NumberAnimation {
-                    duration: RaohaneMotion.standard
-                    easing.type: workspace.entered ? RaohaneMotion.easeStandard : RaohaneMotion.easeExit
+                    duration: workspace.entered
+                        ? RaohaneMotion.panelEnterDuration : RaohaneMotion.panelExitDuration
+                    easing.type: workspace.entered ? RaohaneMotion.easeEnter : RaohaneMotion.easeExit
                 }
             }
 
