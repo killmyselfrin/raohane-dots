@@ -39,10 +39,10 @@ for contract in \
   'onClicked: {'; do
   rg -Fq "$contract" "$window_row" || fail "Overview window drag/click contract missing: $contract"
 done
-if rg -n 'live:[[:space:]]*true|Process[[:space:]]*\\{|hyprctl' "$overview" "$card" "$window_row"; then
+if rg -n 'live:[[:space:]]*true|Process[[:space:]]*\{|hyprctl' "$overview" "$card" "$window_row"; then
   fail 'Overview preview/drag regressed to live screencopy or active shell polling'
 fi
-rg -Uq '"overview":[[:space:]]*\\{[^}]*deferredUnload:[[:space:]]*true' modules/raohane/RaohaneSurfaceRegistry.qml \
+rg -Uq '"overview":[[:space:]]*\{[^}]*deferredUnload:[[:space:]]*true' modules/raohane/RaohaneSurfaceRegistry.qml \
   || fail 'Overview is destroyed before its dismissal animation can finish'
 
 printf 'overview-pointer-boundary-audit: %s\n' "$*" >&2
