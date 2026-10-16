@@ -70,6 +70,13 @@ Item {
 
     function applyMotionPreset(preset: string): void {
         switch (preset) {
+        case "nocturne":
+            // Balanced, non-bouncy entrances with a deliberately quicker exit.
+            RaohaneConfig.animations = RaohaneConfig.sanitizeAnimations({
+                enabled: true, windowMs: 260, workspaceMs: 290, layerMs: 235, fadeMs: 185, workspaceDistance: 12
+            })
+            root.setShellMotionScale(0.94)
+            break
         case "snappy":
             RaohaneConfig.animations = RaohaneConfig.sanitizeAnimations({
                 enabled: true, windowMs: 170, workspaceMs: 220, layerMs: 160, fadeMs: 120, workspaceDistance: 10
@@ -388,10 +395,11 @@ Item {
 
                 GridLayout {
                     width: parent.width
-                    columns: width > 620 ? 4 : 2
+                    columns: width > 620 ? 5 : 2
                     columnSpacing: 8
                     rowSpacing: 8
 
+                    MotionPreset { title: qsTr("Nocturne"); detail: qsTr("Soft entry, quick exit"); icon: "dark_mode"; onClicked: root.applyMotionPreset("nocturne") }
                     MotionPreset { title: qsTr("Zen"); detail: qsTr("Quiet and balanced"); icon: "spa"; onClicked: root.applyMotionPreset("zen") }
                     MotionPreset { title: qsTr("Snappy"); detail: qsTr("Fast response"); icon: "bolt"; onClicked: root.applyMotionPreset("snappy") }
                     MotionPreset { title: qsTr("Fluid"); detail: qsTr("Longer and softer"); icon: "water"; onClicked: root.applyMotionPreset("fluid") }
@@ -425,9 +433,9 @@ Item {
                             onToggled: root.setAnimation("enabled", checked)
                         }
 
-                        NumberMotionRow { label: qsTr("Window duration"); detail: qsTr("Open, close and window movement timing"); keyName: "windowMs"; suffix: " ms"; minimum: 80; maximum: 1200; step: 10 }
+                        NumberMotionRow { label: qsTr("Window duration"); detail: qsTr("Entrance timing; exit scales down automatically"); keyName: "windowMs"; suffix: " ms"; minimum: 80; maximum: 1200; step: 10 }
                         NumberMotionRow { label: qsTr("Workspace duration"); detail: qsTr("Workspace slide-fade timing"); keyName: "workspaceMs"; suffix: " ms"; minimum: 80; maximum: 1600; step: 10 }
-                        NumberMotionRow { label: qsTr("Layer duration"); detail: qsTr("Panels and compositor layer timing"); keyName: "layerMs"; suffix: " ms"; minimum: 80; maximum: 1200; step: 10 }
+                        NumberMotionRow { label: qsTr("Layer duration"); detail: qsTr("Panel entrance timing; closing is quicker"); keyName: "layerMs"; suffix: " ms"; minimum: 80; maximum: 1200; step: 10 }
                         NumberMotionRow { label: qsTr("Fade duration"); detail: qsTr("Opacity transition timing"); keyName: "fadeMs"; suffix: " ms"; minimum: 60; maximum: 1000; step: 10 }
                         NumberMotionRow { label: qsTr("Workspace travel"); detail: qsTr("How far workspace transitions move across the screen"); keyName: "workspaceDistance"; suffix: "%"; minimum: 4; maximum: 40; step: 1 }
 
@@ -472,7 +480,7 @@ Item {
 
                 Text {
                     width: parent.width
-                    text: qsTr("The Zen curve is intentionally non-bouncy: quick acceleration, soft landing and restrained movement. Hyprland settings are written to Raohane's managed compositor snippet and applied with a compositor reload.")
+                    text: qsTr("Nocturne uses smooth, restrained window and panel entrances with shorter exits. The Off preset disables compositor animations. Settings apply through Raohane's managed Hyprland snippet.")
                     color: RaohaneTheme.textFaint
                     font.pixelSize: 8
                     lineHeight: 1.25
