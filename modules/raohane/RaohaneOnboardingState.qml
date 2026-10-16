@@ -120,8 +120,8 @@ Singleton {
     }
 
     function complete(): void {
-        if (root.completed && !root.active)
-            return
+        // Skipping an explicitly reopened Welcome must still close it, even
+        // when the initial onboarding was already completed previously.
         // Persist completion before closing the on-demand Welcome scope.
         root.active = false
         root.markCompleted()
