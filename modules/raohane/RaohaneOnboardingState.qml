@@ -21,7 +21,13 @@ Singleton {
     function maybeShowWelcome(): void {
         if (!root.ready || root.completed || root.active || RaohaneState.screenLocked)
             return
-        Qt.callLater(() => RaohaneState.setPrimaryOpen("welcome", true))
+        // Recheck when the callback runs: the user might start/finish the
+        // tour, lock the session or explicitly dismiss Welcome meanwhile.
+        Qt.callLater(() => {
+            if (!root.ready || root.completed || root.active || RaohaneState.screenLocked)
+                return
+            RaohaneState.setPrimaryOpen("welcome", true)
+        })
     }
 
     function writeState(value: string): void {
