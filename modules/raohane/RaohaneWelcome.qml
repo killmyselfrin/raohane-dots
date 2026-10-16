@@ -33,7 +33,10 @@ Scope {
         exclusiveZone: 0
         WlrLayershell.namespace: "quickshell:raohane-welcome"
         WlrLayershell.layer: WlrLayer.Overlay
+        // The first-run language picker owns focus until a language is
+        // selected. Welcome must not compete with its exclusive layer.
         WlrLayershell.keyboardFocus: RaohaneState.welcomeOpen
+            && RaohaneI18n.languageChosen && !RaohaneI18n.pickerOpen
             ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
         anchors {
