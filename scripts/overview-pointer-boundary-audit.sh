@@ -57,4 +57,13 @@ rg -q 'preventStealing:[[:space:]]*true' "$window_row" \
 rg -q 'onClicked:[[:space:]]*root\.activated\(root\.toplevel\)' "$window_row" \
   || fail 'window-row pointer no longer emits direct toplevel activation'
 
+# Overview labels follow Hyprland workspace names, while window icons use
+# the native Wayland application ID rather than guessing from titles.
+for contract in 'workspaceObject?.name' 'root.workspaceName' 'root.focusedTitle'; do
+  rg -Fq "$contract" "$card" || fail "Overview lost named workspace header contract: $contract"
+done
+for contract in 'RaohaneAdaptiveIcon' 'root.toplevel?.wayland?.appId' 'root.urgentWindow'; do
+  rg -Fq "$contract" "$window_row" || fail "Overview lost app icon/fallback contract: $contract"
+done
+
 printf 'overview-pointer-boundary-audit: extracted window rows retain pointer activation and Overview exposes direct numeric workspace shortcuts\n'

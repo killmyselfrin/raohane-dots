@@ -93,8 +93,30 @@ Item {
 
         readonly property var workspaceObject: root.workspaceForId(workspaceId)
         readonly property bool selected: root.activeWorkspaceId === workspaceId
-        readonly property bool occupied: (workspaceObject?.toplevels?.values?.length ?? 0) > 0
+        readonly property var windows: workspaceObject?.toplevels?.values ?? []
+        readonly property bool occupied: windows.length > 0
         readonly property bool urgent: workspaceObject?.urgent ?? false
+        // Reuse the compositor's existing model instead of polling hyprctl.
+        // HyprlandToplevel exposes appId through its Wayland toplevel handle.
+        readonly property var representativeWindow: windows.find(window => Boolean(window?.activated))
+            ?? windows.find(window => String(window?.wayland?.appId ?? "").length > 0)
+            ?? null
+        readonly property string appId: String(representativeWindow?.wayland?.appId ?? "").trim()
+        readonly property string workspaceName: String(workspaceObject?.name ?? "").trim()
+        readonly property string displayName: workspaceName.length > 0
+            && workspaceName !== String(workspaceId)
+            ? workspaceName : qsTr("Workspace %1").arg(workspaceId)
+        readonly property string appSummary: {
+            const ids = []
+            for (const window of windows) {
+                const id = String(window?.wayland?.appId ?? "").trim()
+                if (id.length > 0 && !ids.includes(id))
+                    ids.push(id)
+                if (ids.length >= 3)
+                    break
+            }
+            return ids.join(", ")
+        }
 
         implicitWidth: verticalMode ? 30 : 26
         implicitHeight: verticalMode ? 26 : 26
@@ -135,21 +157,38 @@ Item {
             }
         }
 
-        Text {
+        Row {
             anchors.centerIn: parent
             anchors.verticalCenterOffset: !workspaceButton.verticalMode && workspaceButton.occupied ? -1 : 0
-            text: workspaceButton.workspaceId
-            color: workspaceButton.urgent ? RaohaneTheme.critical
-                : workspaceButton.selected ? RaohaneTheme.accent
-                : workspaceButton.occupied ? RaohaneTheme.textMuted
-                : RaohaneTheme.textFaint
-            opacity: workspaceButton.selected || workspaceButton.urgent ? 1
-                : workspaceButton.occupied ? 0.86 : 0.62
-            font.pixelSize: workspaceButton.selected ? 9 : 8
-            font.weight: workspaceButton.selected ? Font.DemiBold : Font.Medium
+            spacing: 2
 
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+            // Preserve the workspace number even when showing an app icon.
+            Text {
+                text: workspaceButton.workspaceId
+                color: workspaceButton.urgent ? RaohaneTheme.critical
+                    : workspaceButton.selected ? RaohaneTheme.accent
+                    : workspaceButton.occupied ? RaohaneTheme.textMuted
+                    : RaohaneTheme.textFaint
+                opacity: workspaceButton.selected || workspaceButton.urgent ? 1
+                    : workspaceButton.occupied ? 0.86 : 0.62
+                font.pixelSize: workspaceButton.selected ? 9 : 8
+                font.weight: workspaceButton.selected ? Font.DemiBold : Font.Medium
+
+                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+                Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+            }
+
+            Loader {
+                active: workspaceButton.appId.length > 0
+                width: active ? 12 : 0
+                height: active ? 12 : 0
+                sourceComponent: RaohaneAdaptiveIcon {
+                    iconSource: workspaceButton.appId
+                    iconSize: 12
+                    fallbackColor: workspaceButton.selected
+                        ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                }
+            }
         }
 
         Rectangle {
@@ -175,6 +214,11 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            Accessible.role: Accessible.Button
+            Accessible.name: workspaceButton.displayName
+            Accessible.description: workspaceButton.appSummary.length > 0
+                ? qsTr("Applications: %1").arg(workspaceButton.appSummary)
+                : qsTr("Empty workspace")
             onClicked: root.activateWorkspace(workspaceButton.workspaceId)
             onWheel: wheel => {
                 if (wheel.angleDelta.y === 0)

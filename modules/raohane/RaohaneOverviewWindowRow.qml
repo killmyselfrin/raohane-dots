@@ -42,14 +42,26 @@ RaohaneSurface {
         anchors.rightMargin: RaohaneTheme.spacingSmall + 2
         spacing: RaohaneTheme.spacingSmall + 1
 
-        RaohaneIcon {
-            text: root.urgentWindow ? "priority_high" : "web_asset"
-            iconSize: 13
-            fill: root.activeWindow || root.urgentWindow ? 1 : 0
-            symbolWeight: root.activeWindow ? 520 : 390
-            color: root.urgentWindow
-                ? RaohaneTheme.critical
-                : root.activeWindow ? RaohaneTheme.accent : RaohaneTheme.textFaint
+        Item {
+            Layout.preferredWidth: 16
+            Layout.preferredHeight: 16
+
+            RaohaneAdaptiveIcon {
+                anchors.centerIn: parent
+                visible: !root.urgentWindow
+                iconSource: String(root.toplevel?.wayland?.appId ?? "")
+                iconSize: 16
+                fallbackColor: root.activeWindow ? RaohaneTheme.accent : RaohaneTheme.textFaint
+            }
+
+            RaohaneIcon {
+                anchors.centerIn: parent
+                visible: root.urgentWindow
+                text: "priority_high"
+                iconSize: 15
+                fill: 1
+                color: RaohaneTheme.critical
+            }
         }
 
         Text {
