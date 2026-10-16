@@ -490,6 +490,20 @@ Scope {
                         font.pixelSize: 8
                     }
 
+                    RaohaneIcon {
+                        visible: overviewPanel.width > 800
+                        text: "drag_indicator"
+                        iconSize: 14
+                        color: RaohaneTheme.textFaint
+                    }
+
+                    Text {
+                        visible: overviewPanel.width > 800
+                        text: qsTr("Drag windows to move")
+                        color: RaohaneTheme.textFaint
+                        font.pixelSize: 8
+                    }
+
                     Item { Layout.fillWidth: true }
 
                     Rectangle {
