@@ -270,12 +270,21 @@ RaohaneSurface {
             spacing: RaohaneTheme.spacingSmall
 
             Rectangle {
-                width: root.activeWorkspace ? 16 : 6
+                width: root.activeWorkspace ? 16 : root.selected ? 12 : 6
                 height: 4
                 radius: 2
                 color: root.urgent ? RaohaneTheme.critical
-                    : root.activeWorkspace ? RaohaneTheme.accent : RaohaneTheme.textFaint
-                opacity: root.activeWorkspace || root.urgent ? 1 : 0.42
+                    : root.activeWorkspace || root.selected ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                opacity: root.activeWorkspace || root.urgent || root.selected ? 1 : 0.42
+
+                Behavior on width {
+                    enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+                    NumberAnimation { duration: RaohaneMotion.selectionTravel; easing.type: RaohaneMotion.easeEmphasized }
+                }
+                Behavior on opacity {
+                    enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+                    NumberAnimation { duration: RaohaneMotion.micro }
+                }
             }
 
             Text {
