@@ -220,4 +220,32 @@ for contract in \
     || fail "native desktop menu lost contract: $contract"
 done
 
+# Primary panel motion is a single policy: shell entry can be slower than
+# exit, Game Mode/reduced-motion skips expensive transforms, and the on-demand
+# loader must not destroy Launcher/Settings/Control Center mid-exit.
+motion='modules/raohane/RaohaneMotion.qml'
+registry='modules/raohane/RaohaneSurfaceRegistry.qml'
+loader='modules/raohane/RaohanePanelLoader.qml'
+for symbol in 'panelMotionEnabled' 'panelTransformEnabled' 'panelEnterDuration' 'panelExitDuration' 'panelHoldDuration' 'RaohanePerformance.gameModeActive'; do
+  rg -Fq "$symbol" "$motion" || fail "shared panel motion lost $symbol"
+done
+rg -q 'RaohaneMotion\\.panelHoldDuration' "$loader" \
+  || fail 'lazy loader can unload a panel before its exit motion completes'
+rg -Uq '"launcher":[[:space:]]*\\{[^}]*deferredUnload:[[:space:]]*true' "$registry" \
+  || fail 'launcher exit animation is truncated by immediate unload'
+for spec in \
+  'RaohaneLauncher.qml:launcher:Launcher' \
+  'RaohaneControlCenter.qml:panelSurface:ControlCenter' \
+  'RaohaneSettings.qml:workspace:Settings'; do
+  IFS=: read -r file surface signal <<< "$spec"
+  path="modules/raohane/$file"
+  for symbol in "on${signal}OpenChanged" 'RaohaneMotion.panelEnterDuration' 'RaohaneMotion.panelExitDuration' 'RaohaneMotion.panelHoldDuration' 'RaohaneMotion.panelMotionEnabled' 'RaohaneMotion.panelTransformEnabled'; do
+    rg -Fq "$symbol" "$path" || fail "$file lost panel motion/lifetime contract: $symbol"
+  done
+done
+for path in modules/raohane/RaohaneLauncher.qml modules/raohane/RaohaneSettings.qml modules/raohane/RaohaneControlCenter.qml; do
+  rg -q 'visible:[[:space:]]*(heldVisible|presented)' "$path" \
+    || fail "$path unmaps its layer before exit transition"
+done
+
 printf 'runtime-surface-boundary-audit: native bootstrap, idle-safe overlay, capture/OCR/search and active family boundaries are valid\n'
