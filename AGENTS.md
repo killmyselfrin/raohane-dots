@@ -54,13 +54,13 @@ Preserve GNU GPLv3 obligations for covered derivative work. Runtime independence
 
 ## Final design direction
 
-The approved visual target is the dark **Raohane Nocturne** concept: atmospheric Japanese minimalism with compact glass surfaces and restrained violet accents. This is now the final product direction rather than a temporary mood board.
+The approved visual target is the dark **Raohane Nocturne** concept: neutral, modern minimalism with compact glass surfaces and restrained violet accents. This is the shared product direction, not a temporary mood board. Do not introduce Japanese-themed names, copy, imagery or decorative symbols as a default UI identity.
 
 - deep graphite / blue-black desktop chrome with translucent frosted surfaces;
 - soft violet-lavender accent for active controls, selection and focus, never uncontrolled neon bloom;
 - thin blue-gray/violet borders, subtle inner highlights and low-contrast depth;
 - rounded compact cards with consistent geometry across Settings, Control Center, Launcher, Wallpaper, Overview, Media, Sidebar and Notifications;
-- wallpaper-aware atmosphere inspired by night ocean, rain, mist, sakura and subdued anime photography;
+- wallpaper-aware atmosphere inspired by night ocean, rain, mist and subdued cinematic photography;
 - clear information hierarchy: strong primary text, cool muted secondary text and very faint metadata;
 - floating Bar pods, Context Island and Dock remain signature geometry;
 - Settings uses a dark sidebar, compact page header and dense two-column navigation cards;
@@ -70,9 +70,9 @@ The approved visual target is the dark **Raohane Nocturne** concept: atmospheric
 - Overview, Media Overlay, Sidebar and Notifications should visually match the same nocturne material system;
 - animation stays short and smooth, with subtle scale/opacity movement instead of decorative motion;
 - semantic recording/warning/success colors remain distinct, but decorative glow stays restrained;
-- light presets such as Paper, Sakura and Matcha remain optional alternatives, not the default visual target.
+- light and soft-color presets remain optional alternatives, not the default visual target; preserve old preset ids only where existing users need migration.
 
-For compatibility the persisted default preset id may remain `zen-mist`, but its current palette is the approved Raohane nocturne signature mood. Do not regress it back to the old off-white appearance unless the user explicitly changes the product direction again.
+Use the current Raohane-owned neutral preset names for new defaults and visible UI. Preserve historical preset ids only as backward-compatible migration aliases, so existing user configurations do not break. Do not regress the dark Nocturne default to an off-white palette unless the user explicitly changes direction.
 
 References may inform behavior, but the final user-facing design must remain recognizably Raohane rather than a renamed upstream shell.
 
