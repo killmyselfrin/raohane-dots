@@ -84,8 +84,20 @@ if ! have python3; then
 fi
 
 printf 'Live runtime\n'
-payload="$(qs -c "$QS_CONFIG" ipc call runtime phase4 2>/dev/null || true)"
-if [[ -z "$payload" ]]; then
+# Bound an unresponsive Quickshell IPC endpoint so Settings diagnostics can retry.
+# Only the IPC client is timed out; the running shell is not restarted.
+payload=""
+ipc_status=0
+if have timeout; then
+  payload="$(timeout -k 2s 15s qs -c "$QS_CONFIG" ipc call runtime phase4 2>/dev/null)" || ipc_status=$?
+else
+  ipc_status=127
+fi
+if ((ipc_status == 124 || ipc_status == 137)); then
+  bad "runtime IPC timed out after 15 seconds for config '$QS_CONFIG'"
+elif ((ipc_status == 127)); then
+  bad 'coreutils timeout is unavailable; cannot safely probe live IPC'
+elif [[ -z "$payload" ]]; then
   bad "runtime IPC unavailable for config '$QS_CONFIG'"
 else
   if printf '%s' "$payload" | python3 -c '
