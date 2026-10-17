@@ -225,6 +225,12 @@ rg -q 'contextText:[[:space:]]*RaohaneAudio\.sourceName' "$quick" \
   || fail 'Microphone row lost current input context'
 rg -q 'readonly property bool tileBusy:' "$quick_tile" \
   || fail 'Quick Control tiles lost asynchronous busy state'
+# Indefinite spinner animations should not defeat reduced-motion or Gaming
+# policies, and the icon must return to an upright pose when work completes.
+rg -Fq 'running: root.tileBusy && RaohaneMotion.panelMotionEnabled && root.visible' "$quick_tile" \
+  || fail 'Quick Control busy animation no longer respects motion/performance settings'
+rg -Fq 'onStopped: busyIcon.rotation = 0' "$quick_tile" \
+  || fail 'Quick Control spinner leaves completed action icons rotated'
 for busy_binding in \
   'RaohaneNetwork\.wifiBusy' \
   'RaohanePerformance\.busy' \
