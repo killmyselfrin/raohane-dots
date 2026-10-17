@@ -71,7 +71,7 @@ for contract in 'RaohaneAdaptiveIcon' 'root.toplevel?.wayland?.appId' 'root.urge
   rg -Fq "$contract" "$window_row" || fail "Overview lost app icon/fallback contract: $contract"
 done
 
-  # Overview keeps one screenshot per selected workspace, captured once. It
+# Overview keeps one screenshot per selected workspace, captured once. It
 # must not add permanent live streams, subprocess polling, or mouse-only
 # navigation paths when drag-and-drop is added.
 for contract in \
@@ -110,8 +110,5 @@ if rg -n 'live:[[:space:]]*true|Process[[:space:]]*\{|hyprctl' "$overview" "$car
 fi
 rg -Uq '"overview":[[:space:]]*\{[^}]*deferredUnload:[[:space:]]*true' modules/raohane/RaohaneSurfaceRegistry.qml \
   || fail 'Overview is destroyed before its dismissal animation can finish'
-
-printf 'overview-pointer-boundary-audit: %s\n' "$*" >&2
-  exit 1
 
 printf 'overview-pointer-boundary-audit: extracted window rows retain pointer activation and Overview exposes direct numeric workspace shortcuts\n'
