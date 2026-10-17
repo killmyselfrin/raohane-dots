@@ -25,7 +25,7 @@ for expected in \
   'z: 150' \
   'preventStealing: true' \
   'activeFocusOnTab: true' \
-  'if (!panelWindow.visible || !RaohaneState.welcomeOpen)' \
+  'if (!panelWindow.visible || !RaohaneState.welcomeOpen || RaohaneOnboardingState.active)' \
   'if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)' \
   'RaohaneOnboardingState.start()' \
   'onTriggered: root.skipWelcome()' \
