@@ -267,7 +267,8 @@ fi
 for contract in 'representativeWindow' 'wayland?.appId' 'RaohaneAdaptiveIcon' 'Accessible.name' 'workspaceButton.workspaceId'; do
   rg -Fq "$contract" "$workspaces" || fail "native workspaces lost app identity/accessibility contract: $contract"
 done
-if rg -n 'hyprctl|Process[[:space:]]*\{|Timer[[:space:]]*\{' "$workspaces"; then
+# Commented guidance may mention hyprctl: reject executable paths, not prose.
+if rg -v '^[[:space:]]*//' "$workspaces" | rg -n 'hyprctl|Process[[:space:]]*\{|Timer[[:space:]]*\{'; then
   fail 'workspace app identity regressed to subprocess polling'
 fi
 
