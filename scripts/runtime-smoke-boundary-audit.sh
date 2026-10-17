@@ -27,6 +27,9 @@ bash -n "$cli"
 
 for contract in \
   'qs -c "\$QS_CONFIG" ipc call runtime phase4' \
+  'timeout -k 2s 15s qs -c "\$QS_CONFIG" ipc call runtime phase4' \
+  'ipc_status == 124' \
+  'coreutils timeout is unavailable' \
   'ActiveEnterTimestamp' \
   'journalctl --user -u "\$SERVICE"' \
   '--log-file' \
