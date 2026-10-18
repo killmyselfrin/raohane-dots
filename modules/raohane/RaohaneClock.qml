@@ -7,6 +7,8 @@ Item {
     id: root
 
     property bool showDate: true
+    property bool compactMode: false
+    readonly property bool effectiveShowDate: showDate && !compactMode
     property bool active: true
     property date now: new Date()
 
@@ -38,13 +40,13 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             text: root.timeText
             color: RaohaneTheme.text
-            font.pixelSize: 12
+            font.pixelSize: root.compactMode ? 11 : 12
             font.weight: Font.DemiBold
             font.letterSpacing: -0.15
         }
 
         Rectangle {
-            visible: root.showDate
+            visible: root.effectiveShowDate
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredWidth: 1
             Layout.preferredHeight: 13
@@ -52,7 +54,7 @@ Item {
         }
 
         Text {
-            visible: root.showDate
+            visible: root.effectiveShowDate
             Layout.alignment: Qt.AlignVCenter
             text: root.dateText
             color: RaohaneTheme.textMuted
