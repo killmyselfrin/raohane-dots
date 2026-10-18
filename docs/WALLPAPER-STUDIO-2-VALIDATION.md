@@ -47,9 +47,19 @@ Open Wallpaper Picker → **Studio**.
 - **Adaptive on/off** opts in to wallpaper-driven accent color. It never
   overwrites the user's saved manual `theme.style.customAccent` or
   `accentMode`. Switching it off restores the previous theme.
+  **Important:** this setting defaults to OFF for existing user
+  configurations. After updating, open Wallpaper Picker → Studio → **Adaptive
+  off** and click it to switch to **Adaptive on**. Bar and widgets will start
+  using the palette of the confirmed wallpaper once sampling completes.
 - A tiny Python Pillow helper extracts a muted accent only after a confirmed
-  global wallpaper changes. Video wallpapers use their generated poster.
-  There is no frame-by-frame sampling or network API.
+  global wallpaper changes. For MP4/WebM and other video wallpapers, a single
+  bounded FFmpeg still-frame extraction runs **without** requiring Wallpaper
+  Picker to generate a poster first. There is no frame-by-frame sampling or
+  network API.
+- Adaptive color now tints the shared glass surface, raised/deep surfaces,
+  borders, hover/pressed materials, and accent tokens consumed by Bar and
+  Desktop Widgets. It preserves opacity and existing text contrast instead
+  of replacing the entire window with a saturated color.
 - If Pillow or an image decoder is unavailable, the last validated accent
   remains and normal wallpaper application still succeeds.
 - **Pause/Resume** appears when previewing a video wallpaper; normal video
