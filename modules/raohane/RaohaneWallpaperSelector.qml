@@ -486,6 +486,12 @@ Scope {
                                     active: selector.cinematicMode
                                     visible: active
                                     source: active ? Qt.resolvedUrl("RaohaneWallpaperCinema.qml") : ""
+                                    // The model may select its first item before
+                                    // Connections attaches to the new Loader item.
+                                    onLoaded: Qt.callLater(() => {
+                                        if (selector.cinematicMode && cinemaLoader.item)
+                                            cinemaLoader.item.focusCurrent()
+                                    })
                                     onStatusChanged: {
                                         if (status === Loader.Error && selector.cinematicMode) {
                                             console.warn("[Raohane] Cinematic gallery unavailable, restoring grid")
