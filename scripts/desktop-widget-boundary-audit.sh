@@ -50,8 +50,13 @@ done
 
 # Widget context menus must reuse the existing desktop popup and Qt input
 # masks: wallpaper remains clickable outside the four widget bounds.
-rg -Fq 'RaohaneDesktopWidgetPopover 1.0 RaohaneDesktopWidgetPopover.qml' "$qmldir" \
-  || fail 'widget gallery is not registered in native qmldir'
+rg -Fq 'RaohaneDesktopEditGrid 1.0 RaohaneDesktopEditGrid.qml' "$qmldir" \
+  || fail 'desktop grid is not registered in native qmldir'
+[[ -f "$edit_grid" ]] || fail 'desktop editing component is missing from the checkout'
+rg -Fq 'source: active ? Qt.resolvedUrl("RaohaneDesktopEditGrid.qml") : ""' "$widgets" \
+  || fail 'desktop editor is a hard dependency that can crash shell startup'
+rg -Fq 'status === Loader.Error' "$widgets" \
+  || fail 'desktop edit grid load failure does not leave edit mode safely'
 rg -Fq 'mask: Region {' "$canvas" || fail 'widget canvas traps clicks across the wallpaper'
 for widget in clock context system motto; do
   rg -Fq "desktopWidgets.freeHitRect(\"$widget\")" "$canvas" \
@@ -75,8 +80,8 @@ rg -Fq 'desktopMenuWidgetId' "$state" \
 # must not return and normal pointer input must be restored upon exit.
 rg -Fq 'RaohaneDesktopEditGrid 1.0 RaohaneDesktopEditGrid.qml' "$qmldir" \
   || fail 'desktop edit grid is not registered'
-rg -Fq 'RaohaneDesktopEditGrid {' "$widgets" \
-  || fail 'real desktop does not render grid editing overlay'
+rg -Fq 'Qt.resolvedUrl("RaohaneDesktopEditGrid.qml")' "$widgets" \
+  || fail 'real desktop does not lazily load edit grid'
 rg -Fq 'function startWidgetEditing(): void' "$desktop_menu" \
   || fail 'desktop Widgets menu no longer enters direct edit mode'
 rg -Fq 'onTriggered: root.startWidgetEditing()' "$desktop_menu" \
@@ -101,7 +106,7 @@ rg -Fq 'Component.onDestruction:' "$canvas" \
 if rg -Fq 'RaohaneState.desktopWidgetEditMode = false' "$edit_grid"; then
   fail 'edit grid must signal closure rather than mutate global state directly'
 fi
-rg -Fq 'onDoneRequested: RaohaneState.desktopWidgetEditMode = false' "$widgets" \
+rg -Fq 'function onDoneRequested(): void' "$widgets" \
   || fail 'editing has no Done action'
 rg -Fq 'onReleased: placedWidget.finishInteraction()' "$widgets" \
   || fail 'desktop widgets cannot commit interactive drag/resize'
