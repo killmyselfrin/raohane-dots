@@ -131,6 +131,7 @@ required_runtime=(
   "install/arch/required.txt"
   "install/arch/features.txt"
   "modules/raohane"
+  "modules/raohane/RaohaneDesktopEditGrid.qml"
   "panelFamilies/RaohaneFamily.qml"
 )
 missing_runtime=()
