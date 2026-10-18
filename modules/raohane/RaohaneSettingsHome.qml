@@ -103,63 +103,41 @@ Item {
                 subtitle: qsTr("The settings that most often change during a session.")
             }
 
-            RaohaneSurface {
+            // Three prominent dashboard tiles replace the previous list.
+            // These are the same existing routes; no duplicate setting owner.
+            GridLayout {
+                id: setupGrid
                 Layout.fillWidth: true
-                Layout.preferredHeight: setupRows.implicitHeight
-                surfaceRadius: RaohaneTheme.radiusLarge
-                raised: false
-                showSheen: true
-                showInnerRim: true
-                idleColor: RaohaneTheme.surfaceSubtle
-                idleBorderColor: RaohaneTheme.borderFaint
-                clip: true
+                columns: width >= 720 ? 3 : 1
+                columnSpacing: RaohaneTheme.spacing
+                rowSpacing: RaohaneTheme.spacing
 
-                ColumnLayout {
-                    id: setupRows
-                    width: parent.width
-                    spacing: 0
+                SetupTile {
+                    icon: "palette"
+                    title: qsTr("Theme")
+                    detail: RaohaneTheme.presetName
+                    onTriggered: root.openPage("themes")
+                }
 
-                    OverviewRow {
-                        icon: "palette"
-                        title: qsTr("Theme")
-                        detail: RaohaneTheme.presetName
-                        onTriggered: root.openPage("themes")
-                    }
+                SetupTile {
+                    icon: RaohaneScenes.activeSceneId === "gaming" ? "sports_esports"
+                        : RaohaneScenes.activeSceneId === "focus" ? "center_focus_strong"
+                        : RaohaneScenes.activeSceneId === "work" ? "work" : "tune"
+                    title: qsTr("Scene")
+                    detail: root.sceneDetail
+                    onTriggered: root.openPage("scenes")
+                }
 
-                    RaohaneDivider {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: RaohaneTheme.panelPadding
-                        Layout.rightMargin: RaohaneTheme.panelPadding
-                        color: RaohaneTheme.borderFaint
-                    }
-
-                    OverviewRow {
-                        icon: RaohaneScenes.activeSceneId === "gaming" ? "sports_esports"
-                            : RaohaneScenes.activeSceneId === "focus" ? "center_focus_strong"
-                            : RaohaneScenes.activeSceneId === "work" ? "work" : "tune"
-                        title: qsTr("Scene")
-                        detail: root.sceneDetail
-                        onTriggered: root.openPage("scenes")
-                    }
-
-                    RaohaneDivider {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: RaohaneTheme.panelPadding
-                        Layout.rightMargin: RaohaneTheme.panelPadding
-                        color: RaohaneTheme.borderFaint
-                    }
-
-                    OverviewRow {
-                        icon: RaohaneUpdater.errorText.length > 0 ? "error"
-                            : RaohaneUpdater.updateAvailable ? "new_releases"
-                            : RaohaneUpdater.checking || RaohaneUpdater.applying ? "sync"
-                            : "verified"
-                        title: qsTr("Software updates")
-                        detail: root.updateStatus
-                        accent: RaohaneUpdater.updateAvailable || RaohaneUpdater.checking || RaohaneUpdater.applying
-                        critical: RaohaneUpdater.errorText.length > 0
-                        onTriggered: root.openPage("about")
-                    }
+                SetupTile {
+                    icon: RaohaneUpdater.errorText.length > 0 ? "error"
+                        : RaohaneUpdater.updateAvailable ? "new_releases"
+                        : RaohaneUpdater.checking || RaohaneUpdater.applying ? "sync"
+                        : "verified"
+                    title: qsTr("Software updates")
+                    detail: root.updateStatus
+                    accent: RaohaneUpdater.updateAvailable || RaohaneUpdater.checking || RaohaneUpdater.applying
+                    critical: RaohaneUpdater.errorText.length > 0
+                    onTriggered: root.openPage("about")
                 }
             }
 
@@ -295,6 +273,117 @@ Item {
             color: RaohaneTheme.textMuted
             font.pixelSize: 9
             wrapMode: Text.WordWrap
+        }
+    }
+
+    // Compact dashboard modules communicate the active theme, scene and
+    // update state before opening their existing Settings route.
+    component SetupTile: RaohaneSurface {
+        id: tile
+
+        required property string icon
+        required property string title
+        required property string detail
+        property bool accent: false
+        property bool critical: false
+        signal triggered()
+
+        Layout.fillWidth: true
+        Layout.minimumWidth: 0
+        Layout.preferredWidth: 240
+        Layout.preferredHeight: 132
+        surfaceRadius: RaohaneTheme.radiusHero
+        raised: true
+        showSheen: true
+        showInnerRim: true
+        idleColor: RaohaneTheme.surfaceRaised
+        idleBorderColor: RaohaneTheme.borderFaint
+        hovered: tileHover.hovered || tile.activeFocus
+        pressed: tileTap.pressed
+        interactive: true
+        activeFocusOnTab: true
+        clip: true
+        showStateRail: true
+        stateRailColor: tile.critical ? RaohaneTheme.critical
+            : tile.accent ? RaohaneTheme.warning : RaohaneTheme.accent
+        stateRailLength: 42
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: RaohaneTheme.panelPadding
+            spacing: RaohaneTheme.spacingTiny
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                RaohaneSurface {
+                    Layout.preferredWidth: 36
+                    Layout.preferredHeight: 36
+                    surfaceRadius: RaohaneTheme.radiusSmall
+                    active: true
+                    showSheen: false
+                    showInnerRim: false
+
+                    RaohaneIcon {
+                        anchors.centerIn: parent
+                        text: tile.icon
+                        iconSize: 19
+                        fill: tile.accent ? 1 : 0
+                        color: tile.critical ? RaohaneTheme.critical
+                            : tile.accent ? RaohaneTheme.warning : RaohaneTheme.accent
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+
+                RaohaneIcon {
+                    text: "arrow_outward"
+                    iconSize: 15
+                    color: tile.hovered || tile.activeFocus
+                        ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                }
+            }
+
+            Item { Layout.fillHeight: true }
+
+            Text {
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                text: tile.title
+                color: RaohaneTheme.text
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+            }
+
+            Text {
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                text: tile.detail
+                color: tile.critical ? RaohaneTheme.critical
+                    : tile.accent ? RaohaneTheme.warning : RaohaneTheme.textMuted
+                font.pixelSize: 10
+                maximumLineCount: 2
+                wrapMode: Text.WordWrap
+                elide: Text.ElideRight
+            }
+        }
+
+        HoverHandler { id: tileHover }
+
+        TapHandler {
+            id: tileTap
+            onTapped: {
+                tile.forceActiveFocus()
+                tile.triggered()
+            }
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                tile.triggered()
+                event.accepted = true
+            }
         }
     }
 
