@@ -66,6 +66,7 @@ RaohaneSurface {
             ActionButton {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
+                actionHeight: root.actionHeight
                 icon: "screenshot_region"
                 label: qsTr("Screenshot")
                 onTriggered: root.screenshotRequested()
@@ -74,6 +75,7 @@ RaohaneSurface {
             ActionButton {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
+                actionHeight: root.actionHeight
                 icon: "translate"
                 label: qsTr("Translate")
                 onTriggered: root.translatorRequested()
@@ -82,6 +84,7 @@ RaohaneSurface {
             ActionButton {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
+                actionHeight: root.actionHeight
                 icon: "keyboard"
                 label: qsTr("Keyboard")
                 onTriggered: root.oskRequested()
@@ -90,6 +93,7 @@ RaohaneSurface {
             ActionButton {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
+                actionHeight: root.actionHeight
                 icon: "wallpaper"
                 label: qsTr("Wallpaper")
                 onTriggered: root.wallpaperRequested()
@@ -99,6 +103,7 @@ RaohaneSurface {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
                 Layout.columnSpan: root.singleColumn ? 1 : 2
+                actionHeight: root.actionHeight
                 icon: "power_settings_new"
                 label: qsTr("Power")
                 accent: true
@@ -112,10 +117,11 @@ RaohaneSurface {
 
         required property string icon
         required property string label
+        required property int actionHeight
         property bool accent: false
         signal triggered()
 
-        Layout.preferredHeight: root.actionHeight
+        Layout.preferredHeight: action.actionHeight
         surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
         showSheen: false
