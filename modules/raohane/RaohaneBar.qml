@@ -75,6 +75,7 @@ Scope {
             readonly property int podHeight: Math.max(34, Math.min(64, Math.round(RaohaneConfig.barHeight * podScale)))
             readonly property string surfaceStyle: RaohaneConfig.barSurfaceStyle
             readonly property string groupStyle: RaohaneConfig.barGroupStyle
+            readonly property bool cinematicPreset: RaohaneConfig.barStylePreset === "cinematic"
             readonly property int edgeMargin: Math.max(0, Math.round(RaohaneConfig.barEdgeMargin * RaohaneTheme.densityScale))
             readonly property int effectiveEdgeMargin: surfaceStyle === "hug" || surfaceStyle === "panel" ? 0 : edgeMargin
             readonly property int outerGap: surfaceStyle === "hug" || surfaceStyle === "panel" ? 0 : 6
@@ -203,8 +204,26 @@ Scope {
                     opacity: RaohaneConfig.barOpacity
                     raised: RaohaneConfig.barShadow
                     transparentIdle: !barWindow.zoneBackgroundVisible
-                    showSheen: false
-                    border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
+                    showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    showInnerRim: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    idleColor: barWindow.cinematicPreset ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface
+                    border.color: barWindow.zoneBackgroundVisible
+                        ? (barWindow.cinematicPreset && false
+                            ? RaohaneTheme.accentBorder : RaohaneTheme.border)
+                        : "transparent"
+
+                    // One quiet accent line per floating pod, never an extra
+                    // bar/process or an independently positioned widget.
+                    Rectangle {
+                        visible: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width * 0.22
+                        height: 2
+                        radius: 1
+                        color: RaohaneTheme.accent
+                        opacity: 0.36
+                    }
 
                     RowLayout {
                         id: leftRow
@@ -248,8 +267,26 @@ Scope {
                     opacity: RaohaneConfig.barOpacity
                     raised: RaohaneConfig.barShadow
                     transparentIdle: !barWindow.zoneBackgroundVisible
-                    showSheen: false
-                    border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
+                    showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    showInnerRim: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    idleColor: barWindow.cinematicPreset ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface
+                    border.color: barWindow.zoneBackgroundVisible
+                        ? (barWindow.cinematicPreset && true
+                            ? RaohaneTheme.accentBorder : RaohaneTheme.border)
+                        : "transparent"
+
+                    // One quiet accent line per floating pod, never an extra
+                    // bar/process or an independently positioned widget.
+                    Rectangle {
+                        visible: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width * 0.38
+                        height: 2
+                        radius: 1
+                        color: RaohaneTheme.accent
+                        opacity: 0.85
+                    }
 
                     RowLayout {
                         id: centerRow
@@ -298,8 +335,26 @@ Scope {
                     opacity: RaohaneConfig.barOpacity
                     raised: RaohaneConfig.barShadow
                     transparentIdle: !barWindow.zoneBackgroundVisible
-                    showSheen: false
-                    border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
+                    showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    showInnerRim: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    idleColor: barWindow.cinematicPreset ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface
+                    border.color: barWindow.zoneBackgroundVisible
+                        ? (barWindow.cinematicPreset && false
+                            ? RaohaneTheme.accentBorder : RaohaneTheme.border)
+                        : "transparent"
+
+                    // One quiet accent line per floating pod, never an extra
+                    // bar/process or an independently positioned widget.
+                    Rectangle {
+                        visible: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width * 0.22
+                        height: 2
+                        radius: 1
+                        color: RaohaneTheme.accent
+                        opacity: 0.36
+                    }
 
                     RowLayout {
                         id: rightRow
