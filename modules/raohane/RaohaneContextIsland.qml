@@ -13,6 +13,7 @@ RaohaneSurface {
     readonly property bool priorityMode: RaohaneContext.mode === "recording" || RaohaneContext.mode === "privacy"
     readonly property bool progressMode: RaohaneContext.mode === "event" && RaohaneContext.eventProgress >= 0
     readonly property bool mediaMode: RaohaneContext.mode === "media"
+    readonly property bool haloStyle: RaohaneConfig.barStylePreset === "halo"
     readonly property bool mediaProgressMode: root.mediaMode
         && RaohaneMedia.available
         && RaohaneMedia.length > 0
@@ -97,8 +98,12 @@ RaohaneSurface {
     }
     implicitHeight: Math.max(38, Math.min(50, Math.round((root.showProgress ? RaohaneTheme.islandHeight + 3 : RaohaneTheme.islandHeight) * root.islandScale)))
     surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)
-    raised: true
-    showSheen: true
+    // Do not stack an opaque inner capsule on top of Halo's continuous
+    // glass backing. Important media/privacy events keep their own emphasis.
+    raised: !root.haloStyle || root.priorityMode || root.mediaMode
+    transparentIdle: root.haloStyle && !root.priorityMode && !root.mediaMode
+    showSheen: !root.haloStyle || root.priorityMode || root.mediaMode
+    showInnerRim: !root.haloStyle || root.priorityMode || root.mediaMode
     clip: true
     border.color: root.priorityMode
         ? Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b, 0.72)
