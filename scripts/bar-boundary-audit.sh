@@ -149,14 +149,54 @@ for contract in \
   'strength: RaohaneConfig.barChromaticIntensity'; do
   rg -Fq "$contract" "$bar" || fail "Chromatic Flow contract missing: $contract"
 done
+# The previous design layered a 5–45% opacity gradient *over* a tinted
+# glass material, washing both colors into a muddy middle. The gradient now
+# replaces the original surface fill with a dark, high-contrast two-tone
+# material. Its colors stay distinct throughout the whole animation.
 for contract in \
-  'GradientStop {' \
+  'gradient: Gradient {' \
   'orientation: Gradient.Horizontal' \
-  'return Qt.rgba(' \
-  'root.blend(root.firstColor, root.secondColor, root.phase)' \
-  'root.blend(root.secondColor, root.firstColor, root.phase)'; do
-  rg -Fq "$contract" "$wash" || fail "Chromatic Flow material missing: $contract"
+  'readonly property color leftTone:' \
+  'readonly property color rightTone:' \
+  'readonly property real colorStrength:' \
+  'opacity: 1' \
+  'position: 0.34' \
+  'position: 0.64' \
+  'x: parent ? -parent.width * 0.40 * phase : 0' \
+  'root.tint(root.materialBase, root.firstColor, root.colorStrength)' \
+  'root.tint(root.materialBase, root.secondColor, root.colorStrength)'; do
+  rg -Fq "$contract" "$wash" || fail "primary chromatic fill lost contract: $contract"
 done
+for contract in \
+  'idleColor: barWindow.chromaticFlowEnabled' \
+  '? "transparent"' \
+  '!barWindow.chromaticFlowEnabled' \
+  '!barWindow.panelPreset || parent === panelSurface' \
+  '!barWindow.haloPreset || parent === panelSurface'; do
+  rg -Fq "$contract" "$bar" || fail "double-layer prevention missing: $contract"
+done
+if rg -Fq 'anchors.fill: parent' "$wash" \
+   || rg -Fq 'root.blend(' "$wash" \
+   || rg -Fq 'opacity: Math.max(0, Math.min(0.45, strength))' "$wash"; then
+  fail 'Chromatic Flow reverted to tinted overlay or per-frame gradient blending'
+fi
+rg -Fq 'root.moduleId !== "separator" && root.moduleId !== "context"' "$module_host" \
+  || fail 'module backgrounds were stacked under the gradient'
+rg -Fq 'root.chromaticBackground ? "transparent"' "$module_host" \
+  || fail 'individual module card still masks the chromatic surface'
+rg -Fq 'chromaticBackground: root.chromaticBackground' "$module_host" \
+  || fail 'context island still paints its own opaque base'
+rg -Fq 'transparentIdle: (root.haloStyle || root.chromaticBackground)' modules/raohane/RaohaneContextIsland.qml \
+  || fail 'chromatic context island still masks the two-tone material'
+
+# Software geometry/visibility smoke for fixed gradient stops. At every
+# phase, the clipped viewport still shows an A-only and a B-only region.
+python3 - <<'PY'
+for phase in (0, .1, .25, .5, .75, .9, 1):
+    left = (.4 * phase) / 1.4
+    right = (.4 * phase + 1) / 1.4
+    assert left < .34 and right > .64, (phase, left, right)
+PY
 for setting in barChromaticFlow barChromaticIntensity barChromaticSeconds; do
   rg -Fq "property " "$config" || fail "config properties missing"
   rg -Fq "root.$setting" "$config" || fail "missing persisted Bar value $setting"
