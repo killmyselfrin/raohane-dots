@@ -189,9 +189,9 @@ Item {
                     readonly property var definition: RaohaneDesktopWidgetRegistry.definition(widgetId)
                     readonly property var placement: RaohaneConfig.desktopWidgetPlacement(root.monitorName, widgetId)
                     readonly property bool enabledWidget: Boolean(RaohaneConfig[definition?.key ?? ""])
-                    readonly property real baseWidth: Math.max(65,
+                    readonly property real baseWidth: Math.max(40,
                         (definition?.freeWidth ?? 280) * preview.width / root.monitorWidth)
-                    readonly property real baseHeight: Math.max(30,
+                    readonly property real baseHeight: Math.max(22,
                         (definition?.freeHeight ?? 120) * preview.height / root.monitorHeight)
                     property bool editing: false
                     property real workingX: 0
@@ -204,8 +204,11 @@ Item {
                     property real pressStartSize: 1
 
                     readonly property real shownSize: editing ? workingSize : (placement?.size ?? 1)
-                    width: Math.min(preview.width, baseWidth * shownSize)
-                    height: Math.min(preview.height, baseHeight * shownSize)
+                    readonly property real totalScale: shownSize * RaohaneConfig.desktopWidgetsScale
+                    width: Math.max(1, Math.min(preview.width,
+                        Math.min((root.monitorWidth - 32) / Math.max(0.01, totalScale),
+                            definition?.freeWidth ?? 280) * preview.width / root.monitorWidth * totalScale))
+                    height: Math.min(preview.height, baseHeight * totalScale)
                     readonly property real travelX: Math.max(0, preview.width - width)
                     readonly property real travelY: Math.max(0, preview.height - height)
                     x: editing ? workingX : (placement?.x ?? 0) * travelX
@@ -316,8 +319,8 @@ Item {
                                 if (!pressed || !tile.editing)
                                     return
                                 const p = mapToItem(preview, mouse.x, mouse.y)
-                                const dx = (p.x - tile.pressPointerX) / tile.baseWidth
-                                const dy = (p.y - tile.pressPointerY) / tile.baseHeight
+                                const dx = (p.x - tile.pressPointerX) / (tile.baseWidth * RaohaneConfig.desktopWidgetsScale)
+                                const dy = (p.y - tile.pressPointerY) / (tile.baseHeight * RaohaneConfig.desktopWidgetsScale)
                                 const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy
                                 tile.workingSize = Math.max(0.65, Math.min(1.4,
                                     tile.pressStartSize + delta))
