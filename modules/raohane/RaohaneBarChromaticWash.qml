@@ -28,6 +28,12 @@ Rectangle {
     readonly property color leftTone: root.tint(root.materialBase, root.firstColor, root.colorStrength)
     readonly property color rightTone: root.tint(root.materialBase, root.secondColor, root.colorStrength)
 
+    // Move the precomputed linear gradient as a texture, rather than
+    // animating GradientStop positions and rebuilding four gradient textures
+    // each frame. Parent pod clips the oversize material to its round shape.
+    width: parent ? parent.width * 1.40 : 0
+    height: parent ? parent.height : 0
+    x: parent ? -parent.width * 0.40 * phase : 0
     radius: parent ? parent.radius : 0
     color: "transparent"
     // The parent glass surface already owns opacity. Opaquely replace its
@@ -41,11 +47,11 @@ Rectangle {
             color: root.leftTone
         }
         GradientStop {
-            position: 0.26 + root.phase * 0.22
+            position: 0.34
             color: root.leftTone
         }
         GradientStop {
-            position: 0.59 + root.phase * 0.19
+            position: 0.64
             color: root.rightTone
         }
         GradientStop {
