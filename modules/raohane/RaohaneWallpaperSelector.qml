@@ -82,6 +82,10 @@ Scope {
             // Keep the selector open until the file probe has validated the
             // chosen path; a bad selection must not close the UI.
             RaohaneWallpapers.select(path, true, finalPath => {
+                // "All monitors" is deliberate: remove per-output overrides
+                // only for this explicit Apply, never for auto-rotation.
+                if (!root.targetScreenName.length)
+                    RaohaneConfig.wallpaperMonitors = ({})
                 RaohaneWallpapers.apply(finalPath, true, root.targetScreenName)
                 root.close()
             })
