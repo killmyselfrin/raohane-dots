@@ -488,10 +488,20 @@ Scope {
                                     source: active ? Qt.resolvedUrl("RaohaneWallpaperCinema.qml") : ""
                                     // The model may select its first item before
                                     // Connections attaches to the new Loader item.
-                                    onLoaded: Qt.callLater(() => {
-                                        if (selector.cinematicMode && cinemaLoader.item)
-                                            cinemaLoader.item.focusCurrent()
-                                    })
+                                    onLoaded: {
+                                        // Pass the real Qt model explicitly at creation
+                                        // time. Relying on later Binding evaluation may
+                                        // leave the ListView without delegates.
+                                        if (item) {
+                                            item.folderModel = RaohaneWallpapers.folderModel
+                                            item.width = cinemaLoader.width
+                                            item.height = cinemaLoader.height
+                                        }
+                                        Qt.callLater(() => {
+                                            if (selector.cinematicMode && cinemaLoader.item)
+                                                cinemaLoader.item.focusCurrent()
+                                        })
+                                    }
                                     onStatusChanged: {
                                         if (status === Loader.Error && selector.cinematicMode) {
                                             console.warn("[Raohane] Cinematic gallery unavailable, restoring grid")
@@ -504,6 +514,22 @@ Scope {
                                     target: cinemaLoader.item
                                     property: "folderModel"
                                     value: RaohaneWallpapers.folderModel
+                                    when: cinemaLoader.item !== null
+                                }
+                                // Force real viewport dimensions even if a
+                                // dynamically instantiated root Item has no
+                                // implicit size. A zero-size carousel produces
+                                // the exact blank picker shown in the report.
+                                Binding {
+                                    target: cinemaLoader.item
+                                    property: "width"
+                                    value: cinemaLoader.width
+                                    when: cinemaLoader.item !== null
+                                }
+                                Binding {
+                                    target: cinemaLoader.item
+                                    property: "height"
+                                    value: cinemaLoader.height
                                     when: cinemaLoader.item !== null
                                 }
                                 Binding {
