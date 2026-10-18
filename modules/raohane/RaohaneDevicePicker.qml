@@ -52,40 +52,55 @@ Item {
     implicitHeight: mode.length > 0 ? pickerContent.implicitHeight + 26 : 0
     visible: mode.length > 0
 
+    // Only the picker that started discovery may stop it. Deferred adapter
+    // callbacks must recheck the current mode before starting a scan.
+    function startBluetoothDiscovery(): void {
+        if (!root.bluetoothMode || !RaohaneBluetooth.enabled || RaohaneBluetooth.discovering)
+            return
+
+        root.bluetoothScanStarted = true
+        RaohaneBluetooth.startDiscovery()
+    }
+
+    function stopBluetoothDiscovery(): void {
+        if (!root.bluetoothScanStarted)
+            return
+
+        root.bluetoothScanStarted = false
+        RaohaneBluetooth.stopDiscovery()
+    }
+
     onModeChanged: {
         root.selectedWifi = ""
         root.wifiPassword = ""
 
-        if (!root.bluetoothMode && root.bluetoothScanStarted) {
-            RaohaneBluetooth.stopDiscovery()
-            root.bluetoothScanStarted = false
-        }
+        if (!root.bluetoothMode)
+            root.stopBluetoothDiscovery()
 
         if (root.wifiMode) {
             RaohaneNetwork.scanNetworks()
         } else if (root.bluetoothMode) {
-            if (RaohaneBluetooth.enabled && !RaohaneBluetooth.discovering) {
-                root.bluetoothScanStarted = true
-                RaohaneBluetooth.startDiscovery()
-            }
+            root.startBluetoothDiscovery()
         } else if (root.outputMode || root.inputMode) {
             RaohaneAudio.refreshDevices(true)
         }
     }
 
-    Component.onDestruction: {
-        if (root.bluetoothScanStarted)
-            RaohaneBluetooth.stopDiscovery()
-    }
+    Component.onDestruction: root.stopBluetoothDiscovery()
 
     Connections {
         target: RaohaneBluetooth
 
         function onEnabledChanged(): void {
-            if (!root.bluetoothMode || !RaohaneBluetooth.enabled || RaohaneBluetooth.discovering)
+            if (!RaohaneBluetooth.enabled) {
+                root.bluetoothScanStarted = false
                 return
-            root.bluetoothScanStarted = true
-            Qt.callLater(() => RaohaneBluetooth.startDiscovery())
+            }
+
+            // Adapter transitions settle asynchronously. The deferred
+            // callback rechecks both picker visibility and discovery ownership.
+            if (root.bluetoothMode)
+                Qt.callLater(() => root.startBluetoothDiscovery())
         }
     }
 
@@ -234,15 +249,14 @@ Item {
                         if (root.wifiMode) {
                             RaohaneNetwork.scanNetworks()
                         } else if (root.bluetoothMode) {
-                            root.bluetoothScanStarted = true
-                            RaohaneBluetooth.startDiscovery()
+                            root.startBluetoothDiscovery()
                         } else {
                             RaohaneAudio.refreshDevices(true)
                         }
                     }
 
                     RotationAnimation on rotation {
-                        running: root.busy
+                        running: root.busy && root.visible && RaohaneMotion.panelMotionEnabled
                         loops: Animation.Infinite
                         from: 0
                         to: 360
@@ -612,7 +626,7 @@ Item {
                 color: row.rowActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
 
                 RotationAnimation on rotation {
-                    running: row.waiting
+                    running: row.waiting && root.visible && RaohaneMotion.panelMotionEnabled
                     loops: Animation.Infinite
                     from: 0
                     to: 360
