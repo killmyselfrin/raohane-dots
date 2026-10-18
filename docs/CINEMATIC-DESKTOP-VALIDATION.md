@@ -29,10 +29,24 @@ Open **Wallpaper** through the desktop context menu or existing shortcut.
 The default view is now **Cinematic**, an image carousel with:
 
 - a larger centered card, subdued angled neighbors and a restrained selection rim;
-- keyboard left/right, arrow buttons, mouse scrolling and double-click apply;
-- softly tinted backdrop based on the selected local wallpaper;
+- smooth scroll snapping, keyboard left/right, working arrow buttons in a floating
+  glass toolbar, and double-click Apply;
+- delayed (165 ms) selection preview: browsing updates the pending filename
+  immediately, but only settled selections trigger live desktop preview;
+- two bounded, asynchronously decoded background layers that crossfade over
+  about 210 ms after the incoming image is ready (reduced-motion respected);
+- softly tinted, translucent backdrop on the *real wallpaper*, not a solid
+  mini-preview that covers the entire screen;
 - shared folder/search/back/forward/random commands and existing Apply / Preview;
 - a **Grid** toggle that restores the previous full thumbnail browser.
+
+
+Live desktop preview is controlled by the existing
+`RaohaneConfig.wallpaperPreview` setting. When that setting is disabled,
+carousel selection and in-picker crossfade still work, but the running desktop
+background does not change until Apply. Videos preview only after an explicit
+click, rather than launching video decode for every flick. Saved wallpaper
+configuration is modified **only by Apply or the existing Random action**.
 
 Folder navigation is explicit: highlighting a folder in the carousel never
 opens it automatically. Movies and folders receive their own placeholders.
@@ -75,8 +89,12 @@ Verify:
 
 1. Raohane starts normally, and the old desktop widgets / floating bar have not
    changed until you select a different bar preset.
-2. Open Wallpaper. Confirm Cinema loads, scroll through actual images,
-   use arrow keys, choose an image, click Preview, then Apply.
+2. Open Wallpaper. Confirm Cinema loads, scroll through actual images
+   using a mouse/trackpad or the arrows, and watch the centered card move with
+   soft scaling/rotation. Selection should not apply the wallpaper.
+   Wait briefly for the image crossfade and live background preview, click
+   Preview, then Apply. Check that rapid scrolling does not launch a flurry
+   of expensive intermediate wallpaper decodes.
 3. Double-click an image to apply it; click/double-click a folder to navigate.
    Make sure browsing past a folder does not navigate by itself.
 4. Switch Grid → Cinematic → Grid. Verify folder navigation, search, thumbnail
