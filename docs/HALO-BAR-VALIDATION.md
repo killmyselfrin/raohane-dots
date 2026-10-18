@@ -65,11 +65,20 @@ Wallpaper Studio's **Adaptive Colors** toggle.
 - The existing bounded wallpaper palette worker samples the **applied**
   image or a single FFmpeg video frame once and chooses two distinguishable
   hues that actually appear in the wallpaper.
-- The 2-color glass wash works in **Classic, Float, Cinematic, Halo, Islands,
-  Compact and Panel**. Separate islands share one animation phase per display.
-- **Gradient intensity:** 5–45% opacity (default 20%). Text, status icons
-  and click targets remain untouched and on top of the translucent overlay.
-- **Flow duration:** 12–60 seconds for a full swap-and-return (default 28 s).
+- The 2-color glass material works in **Classic, Float, Cinematic,
+  Halo, Islands, Compact and Panel**. Separate islands share one animation
+  phase per display; in Halo and Panel only the continuous backing receives
+  the material, so three additional washes cannot muddy it.
+- **Color richness:** 5–45% control range (default 20%). This controls
+  the **color depth of the two primary glass tones**, not overlay opacity.
+  The old approach stacked a low-opacity colored filter over an existing
+  tinted surface and produced a muddy grey/purple mix. Chromatic Flow now
+  replaces that surface with two visibly distinct wallpaper-derived tones.
+  They are luminance-capped for readable text and system icons.
+- **Flow duration:** 12–60 seconds for the moving transition's
+  round trip (default 28 s). A single animation shifts an oversized,
+  pre-rendered two-color gradient; it does not reblend both hues into
+  the same neutral middle or regenerate gradient stops every frame.
   No new service/polling timer is required.
 - Animation pauses when the Bar is hidden, during fullscreen Game Mode, or
   if the shell's reduced-motion preference disables transform motion. The
