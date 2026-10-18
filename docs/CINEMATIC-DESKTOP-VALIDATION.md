@@ -99,15 +99,21 @@ Verify:
    centered card move with soft scaling/rotation. Selection should not apply
    the wallpaper.
    Wait briefly for the image crossfade and live background preview, click
-   Preview, then Apply. Check that rapid scrolling does not launch a flurry
+   Preview, then Apply. Card scale/rotation should settle in about 145 ms,
+   the preview debounce in about 70 ms, and the background image crossfade
+   in about 120 ms. Check that rapid scrolling does not launch a flurry
    of expensive intermediate wallpaper decodes.
 3. Open a folder with a `.mp4` or `.webm` video. The existing
    existing thumbnail generator should produce an x-large poster frame at
    ~5 seconds (falling back to 1/0 seconds for short videos); the carousel
    should show that actual extracted frame **inside the video card and behind
    the carousel**, instead of a permanently dark video-icon placeholder.
-   The decoder uses the installed FFmpeg CLI and Python Pillow; if these are
-   missing or the file is corrupt, the original fallback icon remains.
+   The decoder uses the installed FFmpeg CLI and Python Pillow. The
+   generator now reports its **actual cached PNG path** to Raohane, which
+   also works for symlinked and Cyrillic folder paths. The same poster
+   image powers the video card and translucent in-picker crossfade.
+   If FFmpeg/Pillow are missing or the file is corrupt, only the fallback
+   video icon remains.
    Double-click an image to apply it; click/double-click a folder to navigate.
    Make sure browsing past a folder does not navigate by itself.
 4. Switch Grid → Cinematic → Grid. Verify folder navigation, search, thumbnail
