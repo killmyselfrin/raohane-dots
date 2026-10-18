@@ -120,7 +120,7 @@ QtObject {
     readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAdaptiveAccent
     readonly property color wallpaperTint: RaohaneConfig.wallpaperAdaptiveColor
 
-    function tintedMaterial(base: color, mix: real): color {
+    function tintedMaterial(base, mix) {
         if (!root.adaptivePaletteActive)
             return base
         const amount = Math.max(0, Math.min(0.65, mix))
