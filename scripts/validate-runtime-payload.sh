@@ -76,17 +76,28 @@ done
   || fail 'root qmldir must contain only module qs'
 [[ -s "$TARGET/VERSION" ]] || fail 'VERSION is empty'
 
-python3 - "$TARGET/defaults/native.json" <<'PY' || fail 'defaults/native.json is not valid schema v13'
+# Compare the staged defaults with the staged QML config schema instead
+# of hard-coding a version here. This validator runs for every OTA update.
+python3 - "$TARGET/defaults/native.json" "$TARGET/modules/raohane/config/RaohaneConfig.qml" <<'PY' || fail 'defaults/native.json schemaVersion does not match the Raohane runtime config'
 import json
 import pathlib
+import re
 import sys
 
-path = pathlib.Path(sys.argv[1])
 try:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    defaults = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+    qml = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
 except (OSError, json.JSONDecodeError):
     raise SystemExit(1)
-raise SystemExit(0 if data.get("schemaVersion") == 13 else 1)
+
+match = re.search(r"^\\s*readonly property int schemaVersion:\\s*(\\d+)\\s*$", qml, re.MULTILINE)
+valid = (
+    isinstance(defaults, dict)
+    and match is not None
+    and type(defaults.get("schemaVersion")) is int
+    and defaults["schemaVersion"] == int(match.group(1))
+)
+raise SystemExit(0 if valid else 1)
 PY
 
 python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/cover-accent.py" "$TARGET/scripts/update-raohane.py" "$TARGET/scripts/theme-catalog.py" "$TARGET/scripts/graphics-driver-check.py" <<'PY' || fail 'native Python runtime helper is invalid'
