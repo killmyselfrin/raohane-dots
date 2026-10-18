@@ -22,11 +22,9 @@ Variants {
     Timer {
         interval: Math.max(1000, RaohaneConfig.wallpaperChangeInterval)
         running: RaohaneConfig.wallpaperChangeInterval > 0
+            && !RaohaneState.screenLocked
         repeat: true
-        onTriggered: {
-            if (RaohaneWallpapers.wallpapers.length > 0)
-                RaohaneWallpapers.randomFromCurrentFolder()
-        }
+        onTriggered: RaohaneWallpapers.autoAdvance()
     }
 
     PanelWindow {
@@ -46,11 +44,14 @@ Variants {
         readonly property string requestedPath: {
             if (RaohaneState.screenLocked && RaohaneConfig.lockWallpaperPath.length > 0)
                 return RaohaneConfig.lockWallpaperPath
-            if (RaohaneConfig.wallpaperPreview && RaohaneWallpapers.previewPath.length > 0)
+            if (RaohaneConfig.wallpaperPreview && RaohaneWallpapers.previewPath.length > 0
+                    && (RaohaneWallpapers.previewScreenName.length === 0
+                        || RaohaneWallpapers.previewScreenName === String(modelData.name)))
                 return RaohaneWallpapers.previewPath
-            if (RaohaneWallpapers.confirmedPath.length > 0)
-                return RaohaneWallpapers.confirmedPath
-            return RaohaneConfig.wallpaperPath
+            // Monitor overrides are optional and fall back to the existing
+            // global wallpaper. A configured monitor keeps its own background
+            // even when other outputs change or the global slideshow runs.
+            return RaohaneConfig.wallpaperPathForScreen(String(modelData.name))
         }
 
         property string currentPath: requestedPath
