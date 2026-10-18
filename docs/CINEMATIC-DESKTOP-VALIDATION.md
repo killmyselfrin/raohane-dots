@@ -4,6 +4,25 @@ The first cinematic redesign pass builds on Raohane's **existing native**
 wallpaper service and Bar. The project does not add a second wallpaper
 database, an independently polling Bar, or extra compositor surfaces.
 
+## Transparent glass — Wallpaper Picker only
+
+The picker now uses a low-opacity screen scrim and theme-aware translucent
+surfaces. Cinematic mode also uses a semitransparent background gradient that
+lets the **real desktop wallpaper** show through behind the carousel. In
+Grid mode the navigation sidebar and search field have matching glass density.
+Only **background fills** are translucent; thumbnail cards, controls and text
+stay fully opaque for readability.
+
+This refinement **does not modify the Bar or its presets**. The separately
+available Cinematic Bar described below remains opt-in and unchanged.
+Transparency uses QML alpha composition; background blur is available only
+if the user's Hyprland configuration applies blur to the wallpaper selector's
+layer namespace. No shader-based blur worker is added.
+
+After installing, test both dark and light themes against bright and dark
+wallpapers. Verify that the search text, folder names, Preview/Apply controls
+and selected-card indicators remain clearly readable.
+
 ## Wallpaper picker
 
 Open **Wallpaper** through the desktop context menu or existing shortcut.
