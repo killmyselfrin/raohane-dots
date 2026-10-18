@@ -32,6 +32,7 @@ required=(
   install/arch/features.txt
   modules/raohane
   modules/raohane/qmldir
+  modules/raohane/RaohaneDesktopEditGrid.qml
   modules/raohane/RaohaneTaskManager.qml
   modules/raohane/RaohaneOverlay.qml
   modules/raohane/RaohaneSettingsGraphics.qml
