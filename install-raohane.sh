@@ -127,6 +127,7 @@ required_runtime=(
   "scripts/migrate-legacy-config.py"
   "scripts/prune-runtime.sh"
   "scripts/validate-runtime-payload.sh"
+  "scripts/wallpaper-palette.py"
   "defaults/native.json"
   "install/arch/required.txt"
   "install/arch/features.txt"
