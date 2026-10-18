@@ -25,6 +25,7 @@ Item {
     property string displayedPreviewPath: ""
     property string incomingPreviewPath: ""
     property real incomingPreviewOpacity: 0
+    property bool transferringPreview: false
     property bool thumbnailsReady: false
     property string thumbnailRequestFolder: ""
     // Carousel gestures should feel immediate, even on slow wallpaper disks.
@@ -153,8 +154,22 @@ Item {
         }
     }
 
+    // Keep the decoded incoming layer visible until the permanent layer has
+    // picked up the same file. Otherwise async QQuickImage briefly reveals a
+    // blank desktop between two wallpapers.
     function finishPreview(): void {
+        if (!incomingPreviewPath.length)
+            return
+        transferringPreview = true
         displayedPreviewPath = incomingPreviewPath
+        if (displayedPreview.status === Image.Ready)
+            completePreviewTransfer()
+    }
+
+    function completePreviewTransfer(): void {
+        if (!transferringPreview)
+            return
+        transferringPreview = false
         incomingPreviewPath = ""
         incomingPreviewOpacity = 0
     }
@@ -214,6 +229,7 @@ Item {
             root.incomingPreviewPath = ""
             root.displayedPreviewPath = ""
             root.incomingPreviewOpacity = 0
+            root.transferringPreview = false
             carousel.currentIndex = 0
             root.queueVideoThumbnails()
         }
@@ -240,13 +256,20 @@ Item {
         // image is decoded. This avoids flashes and redundant full-size loads
         // when the user flicks across several wallpapers.
         Image {
+            id: displayedPreview
             anchors.fill: parent
             source: root.previewSource(root.displayedPreviewPath)
             sourceSize.width: 1024
             sourceSize.height: 640
             asynchronous: true
             fillMode: Image.PreserveAspectCrop
-            opacity: status === Image.Ready ? 0.18 : 0
+            opacity: status === Image.Ready
+                ? (root.transferringPreview ? 0.18 : Math.max(0, 0.18 - root.incomingPreviewOpacity))
+                : 0
+            onStatusChanged: {
+                if (status === Image.Ready && root.transferringPreview)
+                    Qt.callLater(() => root.completePreviewTransfer())
+            }
         }
 
         Image {
