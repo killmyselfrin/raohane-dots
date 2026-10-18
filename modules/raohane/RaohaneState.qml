@@ -35,6 +35,10 @@ QtObject {
     property var desktopMenuScreen: null
     property real desktopMenuX: 0
     property real desktopMenuY: 0
+    // Blank desktop clicks leave widgetId empty. Widget context actions target
+    // the originating output rather than whichever monitor has focus later.
+    property string desktopMenuWidgetId: ""
+    property string desktopMenuWidgetMonitor: ""
 
     function surfaceOpen(name: string): bool {
         const stateProperty = RaohaneSurfaceRegistry.stateProperty(name)
