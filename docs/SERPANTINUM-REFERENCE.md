@@ -83,4 +83,4 @@
 4. Ship Clock + Music face variants first, then System + Image; add optional extras only after profiling.
 5. Polish Control Center transitions and bar face presets using current shared design tokens.
 
-**Status:** study and plan only. No feature in this roadmap should be marked shipped until corresponding implementation and live validation are complete.
+**Status (2026-10-18):** an initial source-level, opt-in free-layout MVP is implemented on `main` with per-monitor placement, preview dragging and resizing; see [validation and rollback](WIDGET-STUDIO-2-VALIDATION.md). It is **not yet live-validated on Hyprland**, and the larger widget catalog, rich face variants and P0 stability gates remain unfinished.
