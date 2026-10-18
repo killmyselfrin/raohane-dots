@@ -76,6 +76,7 @@ Scope {
             readonly property string surfaceStyle: RaohaneConfig.barSurfaceStyle
             readonly property string groupStyle: RaohaneConfig.barGroupStyle
             readonly property bool cinematicPreset: RaohaneConfig.barStylePreset === "cinematic"
+            readonly property bool haloPreset: RaohaneConfig.barStylePreset === "halo"
             readonly property int edgeMargin: Math.max(0, Math.round(RaohaneConfig.barEdgeMargin * RaohaneTheme.densityScale))
             readonly property int effectiveEdgeMargin: surfaceStyle === "hug" || surfaceStyle === "panel" ? 0 : edgeMargin
             readonly property int outerGap: surfaceStyle === "hug" || surfaceStyle === "panel" ? 0 : 6
@@ -85,6 +86,7 @@ Scope {
             readonly property int effectiveModuleSpacing: groupStyle === "segmented" ? 1 : moduleSpacing
             readonly property int horizontalPadding: Math.max(2, Math.round(RaohaneConfig.barHorizontalPadding))
             readonly property bool zoneBackgroundVisible: RaohaneConfig.barShowBackground
+                && !haloPreset
                 && surfaceStyle !== "panel"
                 && groupStyle === "pills"
             readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
@@ -154,7 +156,8 @@ Scope {
                 // pods can paint over the center on narrow logical outputs.
                 readonly property real sideIslandLimit: Math.max(0,
                     (width - centerIsland.width) / 2
-                    - barWindow.effectiveEdgeMargin - Math.max(6, barWindow.moduleSpacing))
+                    - barWindow.effectiveEdgeMargin - Math.max(6, barWindow.moduleSpacing)
+                    - (barWindow.haloPreset ? 12 : 0))
                 y: {
                     if (barWindow.contentShown)
                         return RaohaneConfig.barBottom
@@ -173,18 +176,42 @@ Scope {
 
                 RaohaneSurface {
                     id: panelSurface
-                    visible: RaohaneConfig.barShowBackground && barWindow.surfaceStyle === "panel"
+                    // Halo is one continuous glass surface. Keep the same
+                    // native modules and their click targets in three zones;
+                    // the previous island/panel presets remain unchanged.
+                    visible: RaohaneConfig.barShowBackground
+                        && (barWindow.surfaceStyle === "panel" || barWindow.haloPreset)
                     anchors {
                         left: parent.left
                         right: parent.right
+                        leftMargin: barWindow.haloPreset ? barWindow.effectiveEdgeMargin : 0
+                        rightMargin: barWindow.haloPreset ? barWindow.effectiveEdgeMargin : 0
                         verticalCenter: parent.verticalCenter
                     }
                     height: barWindow.podHeight
                     surfaceRadius: barWindow.effectiveRadius
                     opacity: RaohaneConfig.barOpacity
                     raised: RaohaneConfig.barShadow
-                    showSheen: false
-                    border.color: RaohaneTheme.border
+                    showSheen: barWindow.haloPreset
+                    showInnerRim: barWindow.haloPreset
+                    idleColor: barWindow.haloPreset
+                        ? RaohaneTheme.surfaceRaised
+                        : (RaohaneConfig.barShadow ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface)
+                    border.color: barWindow.haloPreset
+                        ? RaohaneTheme.accentBorder : RaohaneTheme.border
+
+                    Rectangle {
+                        // One restrained highlight, not an animated GPU glow.
+                        visible: barWindow.haloPreset
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.topMargin: 1
+                        width: parent.width * 0.32
+                        height: 1
+                        radius: 1
+                        color: RaohaneTheme.accent
+                        opacity: 0.28
+                    }
                 }
 
                 RaohaneSurface {
@@ -192,7 +219,7 @@ Scope {
                     visible: root.activeLayout.left.length > 0
                     anchors {
                         left: parent.left
-                        leftMargin: barWindow.effectiveEdgeMargin
+                        leftMargin: barWindow.effectiveEdgeMargin + (barWindow.haloPreset ? 10 : 0)
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
@@ -201,9 +228,9 @@ Scope {
                     height: visible ? barWindow.podHeight : 0
                     clip: true
                     surfaceRadius: barWindow.effectiveRadius
-                    opacity: RaohaneConfig.barOpacity
-                    raised: RaohaneConfig.barShadow
-                    transparentIdle: !barWindow.zoneBackgroundVisible
+                    opacity: barWindow.haloPreset ? 1 : RaohaneConfig.barOpacity
+                    raised: barWindow.haloPreset ? false : RaohaneConfig.barShadow
+                    transparentIdle: barWindow.haloPreset || !barWindow.zoneBackgroundVisible
                     showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
@@ -258,10 +285,11 @@ Scope {
                         ? Math.min(parent.width * 0.42, Math.max(48, centerRow.implicitWidth + barWindow.horizontalPadding * 2))
                         : 0
                     height: visible ? barWindow.podHeight : 0
+                    clip: barWindow.haloPreset
                     surfaceRadius: barWindow.effectiveRadius
-                    opacity: RaohaneConfig.barOpacity
-                    raised: RaohaneConfig.barShadow
-                    transparentIdle: !barWindow.zoneBackgroundVisible
+                    opacity: barWindow.haloPreset ? 1 : RaohaneConfig.barOpacity
+                    raised: barWindow.haloPreset ? false : RaohaneConfig.barShadow
+                    transparentIdle: barWindow.haloPreset || !barWindow.zoneBackgroundVisible
                     showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
                     border.color: barWindow.zoneBackgroundVisible
                         ? (barWindow.cinematicPreset ? RaohaneTheme.accentBorder : RaohaneTheme.border)
@@ -315,7 +343,7 @@ Scope {
                     visible: root.activeLayout.right.length > 0
                     anchors {
                         right: parent.right
-                        rightMargin: barWindow.effectiveEdgeMargin
+                        rightMargin: barWindow.effectiveEdgeMargin + (barWindow.haloPreset ? 10 : 0)
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
@@ -324,9 +352,9 @@ Scope {
                     height: visible ? barWindow.podHeight : 0
                     clip: true
                     surfaceRadius: barWindow.effectiveRadius
-                    opacity: RaohaneConfig.barOpacity
-                    raised: RaohaneConfig.barShadow
-                    transparentIdle: !barWindow.zoneBackgroundVisible
+                    opacity: barWindow.haloPreset ? 1 : RaohaneConfig.barOpacity
+                    raised: barWindow.haloPreset ? false : RaohaneConfig.barShadow
+                    transparentIdle: barWindow.haloPreset || !barWindow.zoneBackgroundVisible
                     showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
