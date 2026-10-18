@@ -25,7 +25,11 @@ RaohaneSurface {
     signal bluetoothRequested()
     signal audioRequested()
 
-    implicitHeight: 60
+    // Preserve all four status actions when the middle dashboard column is
+    // narrow; 2x2 cards give labels room to breathe on compact layouts.
+    readonly property bool compact: root.width < 480
+
+    implicitHeight: root.compact ? 122 : 60
     surfaceRadius: RaohaneTheme.radiusLarge
     raised: false
     showSheen: false
@@ -37,13 +41,14 @@ RaohaneSurface {
 
     GridLayout {
         anchors.fill: parent
-        columns: 4
+        columns: root.compact ? 2 : 4
         columnSpacing: RaohaneTheme.spacingSmall
-        rowSpacing: 0
+        rowSpacing: root.compact ? RaohaneTheme.spacingSmall : 0
 
         StatusCell {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumWidth: 0
             icon: root.networkIcon
             label: qsTr("Network")
             value: root.networkValue
@@ -55,6 +60,7 @@ RaohaneSurface {
         StatusCell {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumWidth: 0
             icon: root.bluetoothIcon
             label: qsTr("Bluetooth")
             value: root.bluetoothValue
@@ -66,6 +72,7 @@ RaohaneSurface {
         StatusCell {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumWidth: 0
             icon: root.audioIcon
             label: qsTr("Audio")
             value: root.audioValue
@@ -77,6 +84,7 @@ RaohaneSurface {
         StatusCell {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumWidth: 0
             icon: root.privacyActive ? "shield_person" : "verified_user"
             label: qsTr("Privacy")
             value: root.privacyValue
@@ -96,10 +104,10 @@ RaohaneSurface {
         property bool clickable: false
         signal triggered()
 
-        surfaceRadius: RaohaneTheme.radius
+        surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
-        showSheen: false
-        showInnerRim: false
+        showSheen: true
+        showInnerRim: true
         interactive: status.clickable
         hovered: status.clickable && (statusMouse.containsMouse || activeFocus)
         pressed: status.clickable && statusMouse.pressed
@@ -142,7 +150,7 @@ RaohaneSurface {
                     Layout.fillWidth: true
                     text: status.label
                     color: status.statusActive || status.hovered ? RaohaneTheme.textMuted : RaohaneTheme.textFaint
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     font.weight: Font.Medium
                     elide: Text.ElideRight
                 }
@@ -152,7 +160,7 @@ RaohaneSurface {
                 Layout.fillWidth: true
                 text: status.value
                 color: status.critical ? RaohaneTheme.critical : RaohaneTheme.text
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
