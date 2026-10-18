@@ -23,6 +23,11 @@ Item {
             opacity: 0.94, margin: 16, spacing: 5, padding: 8, background: true, shadow: true
         },
         {
+            id: "cinematic", label: qsTr("Cinematic"), detail: qsTr("Refined glass islands with an accent halo"),
+            surface: "float", group: "pills", height: 46, radius: 23,
+            opacity: 0.93, margin: 20, spacing: 6, padding: 11, background: true, shadow: true
+        },
+        {
             id: "islands", label: qsTr("Islands"), detail: qsTr("Separated functional groups"),
             surface: "islands", group: "separated", height: 44, radius: 16,
             opacity: 0.94, margin: 14, spacing: 7, padding: 6, background: true, shadow: true
