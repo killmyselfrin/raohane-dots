@@ -76,6 +76,44 @@ For compatibility the persisted default preset id may remain `zen-mist`, but its
 
 References may inform behavior, but the final user-facing design must remain recognizably Raohane rather than a renamed upstream shell.
 
+## Autonomous development loop
+
+Treat each coding session as one verifiable increment, not permission to declare the
+whole shell stable. Use this sequence, including when resuming after a long gap:
+
+1. Read the latest `main`, `git status`, open PRs/issues, current CI failures,
+   `docs/ROADMAP.md` and the previous work's acceptance notes. Preserve local
+   uncommitted changes and avoid repeating or overwriting another open PR.
+2. Choose one reproducible P0 runtime defect first, then P1 shared UX/material
+   consistency, and only then P2 features. Inspect the real component and
+   its ownership before editing. Prefer a small patch over a redesign.
+3. Keep visual effects cheap: shared translucent surfaces, compositor blur
+   only where available, reduced-motion and Gaming Mode opt-outs, no
+   unbounded blur/shader loops, timers or background captures.
+4. Add a focused regression test where it can detect the specific failure.
+   Run syntax/QML parsing, relevant boundary audits and GitHub Actions.
+5. Compare screenshots from a real Hyprland session; record the actual GPU,
+   logical output size, scale, fullscreen state, CPU/RSS and QML warnings.
+   Static CI cannot prove compositor, input, PAM or rendering behavior.
+6. Publish a focused PR with changed paths, evidence and remaining risks.
+   Merge into `main` only after its required gates pass. Report exact
+   commit/PR links and do not invent a successful test or deployed feature.
+
+Do not solve audit failures by weakening truthful assertions. If the current
+`main` audit is already broken, isolate and repair that baseline separately
+or incorporate an existing reviewed audit fix without copying unrelated,
+unvalidated QML.
+
+## Website synchronization gate
+
+The companion site is `killmyselfrin/raohane-site`. Update it **after**
+the shell's corresponding design and behavior are approved and tested.
+Reuse Raohane's actual palette, typography, spacing and surface language,
+rather than an unrelated website mock-up. Show real, attributable Hyprland
+screenshots at desktop and compact scales; label concept art as concepts.
+Validate mobile layout, link targets, metadata, SEO and site build before
+publishing. Do not advertise planned features as shipped.
+
 ## Runtime validation rule
 
 A UI/runtime task is not complete only because QML parses or static checks pass.
