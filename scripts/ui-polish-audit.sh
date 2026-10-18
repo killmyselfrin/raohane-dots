@@ -17,6 +17,8 @@ settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 settings_home='modules/raohane/RaohaneSettingsHome.qml'
+settings_about='modules/raohane/RaohaneSettingsAbout.qml'
+settings_graphics='modules/raohane/RaohaneSettingsGraphics.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 control_header='modules/raohane/RaohaneControlCenterHeader.qml'
 control_footer='modules/raohane/RaohaneControlCenterFooter.qml'
@@ -40,7 +42,7 @@ sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 
 for file in \
   "$settings" "$settings_v3" "$settings_navigation" "$settings_header" \
-  "$settings_section" "$settings_control" "$settings_search" "$settings_home" \
+  "$settings_section" "$settings_control" "$settings_search" "$settings_home" "$settings_about" "$settings_graphics" \
   "$control" "$control_header" "$control_footer" "$control_status" "$control_actions" "$control_media" \
   "$quick" "$quick_tile" "$device_picker" "$bluetooth" "$context" "$context_island" "$performance" "$notifications" \
   "$osd" "$systray" "$adaptive_icon" "$icon_resolver" "$workspaces" "$sidebar"; do
@@ -97,6 +99,27 @@ done
   || fail 'Settings Home lost shared glass on its three section cards'
 [[ "$(rg -Fc 'OverviewRow {' "$settings_home")" == 4 ]] \
   || fail 'Settings Home routes were added or removed unexpectedly'
+
+
+# Read-only hardware metadata can be much longer than its left-hand label.
+# Both specialized pages reserve label space on compact logical outputs and
+# use the same subtle Raohane Flow glass material as Settings Home.
+for page in "$settings_about" "$settings_graphics"; do
+  for contract in \
+    'Layout.minimumWidth: 0' \
+    'width < 600' \
+    'Math.min(180,' \
+    'showSheen: true' \
+    'showInnerRim: true' \
+    'font.pixelSize: 10'; do
+    rg -Fq "$contract" "$page" \
+      || fail "Settings hardware rows lost readable layout/material: $page / $contract"
+  done
+done
+rg -Fq 'Layout.preferredWidth: systemRow.width < 600' "$settings_about" \
+  || fail 'About hardware values can crowd their labels'
+rg -Fq 'Layout.preferredWidth: hardwareRow.width < 600' "$settings_graphics" \
+  || fail 'Graphics hardware values can crowd their labels'
 
 
 # Control Center is a wide glass dashboard with one Quick Controls path,
