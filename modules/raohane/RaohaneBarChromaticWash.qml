@@ -20,9 +20,12 @@ Rectangle {
 
     function tint(base, hue, factor) {
         const f = Math.max(0, Math.min(1, factor))
-        return Qt.rgba(base.r * (1 - f) + hue.r * f,
-            base.g * (1 - f) + hue.g * f,
-            base.b * (1 - f) + hue.b * f, 1)
+        // Use the actual wallpaper hue, but keep its luminance restrained.
+        // Bright yellow/white text must retain contrast against the glass.
+        const scale = Math.min(1, 0.50 / Math.max(hue.r, hue.g, hue.b, 0.001))
+        return Qt.rgba(base.r * (1 - f) + hue.r * scale * f,
+            base.g * (1 - f) + hue.g * scale * f,
+            base.b * (1 - f) + hue.b * scale * f, 1)
     }
 
     readonly property color leftTone: root.tint(root.materialBase, root.firstColor, root.colorStrength)
