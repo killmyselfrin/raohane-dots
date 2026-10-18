@@ -16,6 +16,7 @@ settings_header='modules/raohane/RaohaneSettingsPageHeader.qml'
 settings_section='modules/raohane/RaohaneSettingsSectionPage.qml'
 settings_control='modules/raohane/RaohaneSettingsControlRow.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
+settings_home='modules/raohane/RaohaneSettingsHome.qml'
 control='modules/raohane/RaohaneControlCenter.qml'
 control_header='modules/raohane/RaohaneControlCenterHeader.qml'
 control_footer='modules/raohane/RaohaneControlCenterFooter.qml'
@@ -39,7 +40,7 @@ sidebar='modules/raohane/RaohaneSidebarLeft.qml'
 
 for file in \
   "$settings" "$settings_v3" "$settings_navigation" "$settings_header" \
-  "$settings_section" "$settings_control" "$settings_search" \
+  "$settings_section" "$settings_control" "$settings_search" "$settings_home" \
   "$control" "$control_header" "$control_footer" "$control_status" "$control_actions" "$control_media" \
   "$quick" "$quick_tile" "$device_picker" "$bluetooth" "$context" "$context_island" "$performance" "$notifications" \
   "$osd" "$systray" "$adaptive_icon" "$icon_resolver" "$workspaces" "$sidebar"; do
@@ -73,6 +74,30 @@ if rg -n 'source:[[:space:]]*root\.currentPageInfo\?\.source|property bool activ
   "$settings_v3" "$settings_navigation"; then
   fail 'Settings reintroduced a stale static-page or active-property contract'
 fi
+
+# Settings Home has one keyboard-operable route per overview row. Its
+# shared cards must not crowd long machine names or animate in Gaming Mode.
+for contract in \
+  'width: Math.max(1, Math.min(flick.width - RaohaneTheme.spacingLarge * 2, 900))' \
+  'activeFocusOnTab: true' \
+  'border.width: row.activeFocus ? 1 : 0' \
+  'enabled: RaohaneMotion.panelMotionEnabled && root.visible' \
+  'row.forceActiveFocus()' \
+  'row.triggered()' \
+  'event.key === Qt.Key_Space' \
+  'event.key === Qt.Key_Return' \
+  'event.key === Qt.Key_Enter' \
+  'row.width < 580' \
+  'Layout.minimumWidth: 0' \
+  'showInnerRim: true'; do
+  rg -Fq "$contract" "$settings_home" \
+    || fail "Settings Home lost keyboard/responsive glass contract: $contract"
+done
+[[ "$(rg -Fc 'showInnerRim: true' "$settings_home")" == 3 ]] \
+  || fail 'Settings Home lost shared glass on its three section cards'
+[[ "$(rg -Fc 'OverviewRow {' "$settings_home")" == 4 ]] \
+  || fail 'Settings Home routes were added or removed unexpectedly'
+
 
 # Control Center is a wide glass dashboard with one Quick Controls path,
 # dedicated media/activity panes and one action dock/device-picker owner.
