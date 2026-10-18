@@ -181,6 +181,27 @@ rg -Fq 'id: videoPoster' "$cinema" \
   || fail 'video card is back to a blank placeholder'
 rg -Fq 'tile.video && root.thumbnailsReady' "$cinema" \
   || fail 'video poster is loaded before the thumbnail job has finished'
+rg -Fq 'function previewSource(path: string): string' "$cinema" \
+  || fail 'cinematic backdrop does not render actual cached video frames'
+rg -Fq 'return root.thumbnailsReady ? root.thumbnailUrl(path) : ""' "$cinema" \
+  || fail 'video preview was passed to Image as a raw MP4 URL'
+rg -Fq 'source: root.previewSource(root.displayedPreviewPath)' "$cinema" \
+  || fail 'previous backdrop frame does not support videos'
+rg -Fq 'source: root.previewSource(root.incomingPreviewPath)' "$cinema" \
+  || fail 'incoming backdrop frame does not support videos'
+rg -Fq 'root.highlightPath(root.selectedPath, true)' "$cinema" \
+  || fail 'selected video poster is not refreshed after thumbnail generation'
+rg -Fq 'previewDelay: animateMotion ? 70 : 0' "$cinema" \
+  || fail 'cinematic preview debounce reverted to a slow value'
+rg -Fq 'previewFadeDuration: animateMotion ? 120 : 0' "$cinema" \
+  || fail 'cinematic preview fade became too slow'
+rg -Fq 'cardTransitionDuration: animateMotion ? 145 : 0' "$cinema" \
+  || fail 'cinematic card motion became too slow'
+rg -Fq 'flickDeceleration: 8300' "$cinema" \
+  || fail 'carousel flicking lost fast inertial braking'
+rg -Fq 'extract_video_frame(ffmpeg, source, temp, "5", size)' "$thumb_generator" \
+  || fail 'video thumbnail generator lost representative 5-second frame'
+
 
 # Hidden QQuickImage items still evaluate and decode their source. Gallery image
 # sources therefore must be empty for directories and video files instead of
@@ -249,4 +270,38 @@ path = pathlib.Path(sys.argv[1])
 ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 PY
 
-printf 'wallpaper-boundary-audit: responsive selector gallery, guarded image sources, fullscreen-aware video background and standalone thumbnails are Raohane-owned\n'
+# Real thumbnail integration smoke: create a short MP4, run the same
+# generator as the picker, and verify the Freedesktop XDG cache key.
+# Respect machines/CI without optional ffmpeg or Pillow packages.
+if command -v ffmpeg >/dev/null 2>&1 && python3 -c 'from PIL import Image' >/dev/null 2>&1; then
+  temp_dir="$(mktemp -d)"
+  trap 'rm -rf "$temp_dir"' EXIT
+  clip="$temp_dir/Видео тест 01.mp4"
+  ffmpeg -hide_banner -loglevel error -nostdin -y -f lavfi \
+    -i 'testsrc=size=192x108:rate=1:duration=7' -c:v mpeg4 -q:v 7 "$clip" \
+    || fail 'could not create video thumbnail test fixture'
+  XDG_CACHE_HOME="$temp_dir/cache" bash "$thumb_wrapper" -s x-large -d "$temp_dir" \
+    >/dev/null || fail 'real video thumbnail generator failed'
+  python3 - "$clip" "$temp_dir/cache" <<'PY'
+import hashlib
+from pathlib import Path
+import sys
+from urllib.parse import quote
+from PIL import Image, ImageStat
+
+clip = Path(sys.argv[1]).resolve()
+cache = Path(sys.argv[2])
+uri = "file://" + quote(str(clip), safe="/")
+digest = hashlib.md5(uri.encode("utf-8"), usedforsecurity=False).hexdigest()
+poster = cache / "thumbnails" / "x-large" / f"{digest}.png"
+if not poster.is_file():
+    raise SystemExit(f"missing video poster at {poster}")
+with Image.open(poster) as preview:
+    if preview.width < 1 or preview.height < 1:
+        raise SystemExit("video poster has invalid size")
+    if ImageStat.Stat(preview.convert("L")).mean[0] < 8:
+        raise SystemExit("video poster is unexpectedly black")
+PY
+fi
+
+printf 'wallpaper-boundary-audit: cinematic video posters, quick transitions, guarded image sources and existing wallpaper backends verified\n'
