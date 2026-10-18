@@ -217,7 +217,7 @@ import sys
 
 path = pathlib.Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
-assert data["schemaVersion"] == 14
+assert data["schemaVersion"] == 15
 assert data["wallpaper"]["path"] == "/tmp/keep-wallpaper.png"
 assert data["wallpaper"]["preview"] is False
 assert data["dock"]["iconSize"] == 51
@@ -281,4 +281,4 @@ root_qml_count="$(find "$tmp_runtime" -mindepth 1 -maxdepth 1 -type f -name '*.q
 
 bash scripts/runtime-payload-audit.sh
 
-printf 'standalone-runtime-audit: source/runtime are native-only, current Task/Lyrics/graphics/product/smoke validators survive clean staging, doctor reuses strict payload validation and older settings upgrade safely to schema v14\n'
+printf 'standalone-runtime-audit: source/runtime are native-only, current Task/Lyrics/graphics/product/smoke validators survive clean staging, doctor reuses strict payload validation and older settings upgrade safely to schema v15\n'
