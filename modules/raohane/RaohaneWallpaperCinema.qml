@@ -49,7 +49,7 @@ Item {
             return ""
         const encodedPath = encodeURIComponent(path)
             .replace(/%2F/gi, "/")
-            .replace(/[!'()*]/g, character => "%" + character.charCodeAt(0).toString(16).toUpperCase())
+            .replace(/[\x21\x27\x28\x29\x2a]/g, character => "%" + character.charCodeAt(0).toString(16).toUpperCase())
         const digest = Qt.md5("file://" + encodedPath)
         return "file://" + RaohanePaths.cacheRoot + "/thumbnails/x-large/" + digest + ".png"
     }
