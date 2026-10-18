@@ -5,9 +5,9 @@
 ## Scope of the first increment
 
 - Adds `Free layout` as an optional fourth Widget Studio composition.
-- In Settings → Widgets → Free layout, drag each enabled widget in the monitor preview to change its position, or drag the lower-right handle (or use +/-) to change its scale.
+- In Settings → Widgets → Free layout, drag each enabled widget in the monitor preview to change its position, or drag the lower-right handle (or use +/-) to change its scale. Click a widget and press the arrow keys for 1% position steps; choose a widget in the selector to edit it without a pointer, or use **Reset** to restore only that widget.
 - The runtime renders the existing four native widgets on each monitor using normalized positions and per-widget size, without creating extra media/audio/network services.
-- Geometry is stored in `desktopWidgets.freeLayouts` under `~/.config/raohane/native.json`, indexed by monitor name.
+- Geometry is stored in `desktopWidgets.freeLayouts` under `~/.config/raohane/native.json`, indexed by monitor name. The editor falls back to a connected output when the selected monitor disconnects.
 - The QML config serializer validates known widget IDs, monitor names, position and scale bounds. The legacy `composition` object and original three layout presets are still present.
 - The new schema is v14. The existing install migration deep-merges defaults and changes schema v13 → v14 while preserving user values.
 
@@ -17,8 +17,8 @@
 2. Fetch the updated checkout: `cd ~/raohane-dots && git pull --ff-only`.
 3. Install the edited runtime: `./install-raohane.sh --no-deps --no-login-theme`, then `raohane restart`.
 4. Open **Settings → Widgets**. Confirm `Balanced`, `Left rail` and `Right rail` still work, then choose **Free layout**.
-5. Drag clock, media/context, system and motto previews. Resize one. Verify the real desktop updates, the widgets do not disappear when moving to an edge, and the resize does not affect other widgets.
-6. On multi-monitor setups, choose each monitor in the editor and give the same widget different placements. Check fractional scaling, disconnect/reconnect, fullscreen games and return to desktop.
+5. Drag clock, media/context, system and motto previews. Resize one. Click the preview, press arrow keys and use the widget selector / Reset control; verify the changes. Change the global widget scale to 0.75 and 1.25 and confirm free widgets stay inside monitor edges.
+6. On multi-monitor setups, choose each monitor in the editor and give the same widget different placements. Unplug the selected monitor while the editor is open and confirm it switches to a connected output; check fractional scaling, fullscreen games and return to desktop.
 7. Restart the shell and Settings. Confirm positions and scales persist. Switch back to `Balanced` and confirm the previous rail ordering is unchanged.
 8. Confirm disabled widgets stay unloaded. Ensure that moving widgets does not start additional media polling or background Quickshell processes.
 9. Check `raohane doctor performance`, `raohane validate smoke` and `raohane logs` for QML errors, CPU/RSS growth and stale service state.
