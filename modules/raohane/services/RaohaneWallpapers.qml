@@ -383,7 +383,8 @@ Singleton {
     // Extract an accent once when a confirmed wallpaper changes, never
     // when hovering a carousel item or during video playback.
     function queueAdaptiveAccent(): void {
-        if (!RaohaneConfig.ready || !RaohaneConfig.wallpaperAdaptiveAccent) {
+        if (!RaohaneConfig.ready
+                || (!RaohaneConfig.wallpaperAdaptiveAccent && !RaohaneConfig.barChromaticFlow)) {
             accentDebounce.stop()
             return
         }
@@ -403,7 +404,7 @@ Singleton {
             if (accentProcess.running || !root.accentProbePath.length)
                 return
             accentProcess.sourcePath = root.accentProbePath
-            accentProcess.command = ["python3", "-E", root.paletteScriptPath, accentProcess.sourcePath]
+            accentProcess.command = ["python3", "-E", root.paletteScriptPath, "--dual", accentProcess.sourcePath]
             accentProcess.running = true
         }
     }
@@ -414,17 +415,24 @@ Singleton {
         stdout: SplitParser {
             onRead: data => {
                 const value = String(data).trim()
-                if (/^#[0-9a-fA-F]{6}$/.test(value)
-                        && RaohaneConfig.wallpaperAdaptiveAccent
-                        && RaohaneConfig.ready
-                        && accentProcess.sourcePath === root.cleanPath(RaohaneConfig.wallpaperPath))
-                    RaohaneConfig.wallpaperAdaptiveColor = value
+                const pair = value.match(/^(#[0-9a-fA-F]{6})\s+(#[0-9a-fA-F]{6})$/)
+                if (!pair || !RaohaneConfig.ready
+                        || (!RaohaneConfig.wallpaperAdaptiveAccent && !RaohaneConfig.barChromaticFlow)
+                        || accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath))
+                    return
+                if (RaohaneConfig.wallpaperAdaptiveAccent)
+                    RaohaneConfig.wallpaperAdaptiveColor = pair[1]
+                // Persist the detected pair for restart and the moment the
+                // Bar opt-in is toggled. This does not override the manual
+                // theme's accent setting.
+                RaohaneConfig.wallpaperFlowColorA = pair[1]
+                RaohaneConfig.wallpaperFlowColorB = pair[2]
             }
         }
         onExited: (code, status) => {
             // An old sampling process may finish after the user applies a
             // new wallpaper. Ignore stale stdout and sample the new source.
-            if (RaohaneConfig.wallpaperAdaptiveAccent
+            if ((RaohaneConfig.wallpaperAdaptiveAccent || RaohaneConfig.barChromaticFlow)
                     && accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath))
                 root.queueAdaptiveAccent()
         }
@@ -461,6 +469,7 @@ Singleton {
             root.queueAdaptiveAccent()
         }
         function onWallpaperAdaptiveAccentChanged(): void { root.queueAdaptiveAccent() }
+        function onBarChromaticFlowChanged(): void { root.queueAdaptiveAccent() }
         function onReadyChanged(): void { root.queueAdaptiveAccent() }
         function onWallpaperMonitorsChanged(): void { root.changed() }
         function onWallpaperDirectoryChanged(): void {
