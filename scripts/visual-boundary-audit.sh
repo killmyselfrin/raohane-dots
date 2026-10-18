@@ -83,6 +83,19 @@ for preset in raohane-dark paper rose-glass sage-glass slate sand ink-dark midni
 done
 rg -q 'property string themePreset:[[:space:]]*"raohane-dark"' "$config" || fail 'native config does not default to Raohane'
 rg -q '"themePreset"[[:space:]]*:[[:space:]]*"raohane-dark"' "$defaults" || fail 'native defaults do not select Raohane'
+# Raohane's primary material is intentionally implemented with existing QML
+# color/shape tokens: no costly shader dependency or copied upstream QML.
+rg -Fq 'background: "#151420", backgroundElevated: "#1d1b2d"' "$theme" \
+  || fail 'Raohane Flow lost its layered charcoal palette'
+rg -Fq 'accent: "#c2a4ee"' "$theme" \
+  || fail 'Raohane Flow lost its subdued mauve accent'
+rg -Fq 'Math.round(16 * radiusScale)' "$theme" \
+  || fail 'Raohane modular surface radius regressed'
+rg -Fq 'Math.round(20 * radiusScale)' "$theme" \
+  || fail 'Raohane raised surface radius regressed'
+rg -Fq 'root.raised ? 0.095 : 0.055' "$surface" \
+  || fail 'Raohane soft raised glass rim regressed'
+
 rg -q 'RaohaneTheme\.presets' "$catalog" || fail 'Theme Library does not consume the shared preset source'
 rg -q 'RaohaneConfig\.themePreset[[:space:]]*=' "$catalog" || fail 'Theme Library cannot apply a preset live'
 
