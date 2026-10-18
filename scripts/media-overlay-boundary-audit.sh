@@ -92,16 +92,18 @@ for contract in \
   rg -q "$contract" "$CONTEXT" || fail "Context Island media handoff lost contract: $contract"
 done
 
-# Compact media context is an entry point to the dedicated player, not a second
-# half-working mini-player. Clicking the Island opens the overlay and the icon
-# communicates that transition explicitly.
+# The small Now Playing island can play/pause, but the full media overlay
+# remains the only owner of rich controls, lyrics and player configuration.
+# Leave recording/privacy precedence and all service ownership unchanged.
 for contract in \
   'readonly property bool mediaMode: RaohaneContext\.mode === "media"' \
-  'root\.mediaMode \? "open_in_new"' \
+  'RaohaneMedia\.isPlaying \? "pause" : "play_arrow"' \
+  'RaohaneMedia\.canTogglePlaying' \
+  'RaohaneMedia\.togglePlaying\(\)' \
   'id: mediaOpenArea' \
   'enabled: root\.mediaMode' \
-  'onClicked: RaohaneState\.mediaOverlayOpen = true'; do
-  rg -q "$contract" "$ISLAND" || fail "Context Island media entrypoint lost contract: $contract"
+  'RaohaneState\.mediaOverlayOpen = true'; do
+  rg -q "$contract" "$ISLAND" || fail "Context Island Now Playing contract lost: $contract"
 done
 
 # One Scene change should produce one coherent Island event. DND, Game Mode and
