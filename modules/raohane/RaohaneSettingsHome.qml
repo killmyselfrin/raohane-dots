@@ -93,7 +93,7 @@ Item {
         ColumnLayout {
             id: homeColumn
 
-            width: Math.min(flick.width - RaohaneTheme.spacingLarge * 2, 900)
+            width: Math.max(1, Math.min(flick.width - RaohaneTheme.spacingLarge * 2, 900))
             x: Math.max(RaohaneTheme.spacingLarge, (flick.width - width) / 2)
             y: RaohaneTheme.spacingLarge
             spacing: RaohaneTheme.spacingLarge
@@ -108,10 +108,10 @@ Item {
                 Layout.preferredHeight: setupRows.implicitHeight
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
-                showSheen: false
-                showInnerRim: false
+                showSheen: true
+                showInnerRim: true
                 idleColor: RaohaneTheme.surfaceSubtle
-                idleBorderColor: "transparent"
+                idleBorderColor: RaohaneTheme.borderFaint
                 clip: true
 
                 ColumnLayout {
@@ -173,10 +173,10 @@ Item {
                 Layout.preferredHeight: quickRows.implicitHeight
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
-                showSheen: false
-                showInnerRim: false
+                showSheen: true
+                showInnerRim: true
                 idleColor: RaohaneTheme.surfaceSubtle
-                idleBorderColor: "transparent"
+                idleBorderColor: RaohaneTheme.borderFaint
                 clip: true
 
                 Column {
@@ -210,10 +210,10 @@ Item {
                 Layout.preferredHeight: systemRows.implicitHeight
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
-                showSheen: false
-                showInnerRim: false
+                showSheen: true
+                showInnerRim: true
                 idleColor: RaohaneTheme.surfaceSubtle
-                idleBorderColor: "transparent"
+                idleBorderColor: RaohaneTheme.borderFaint
                 clip: true
 
                 ColumnLayout {
@@ -309,13 +309,19 @@ Item {
         signal triggered()
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 58
+        Layout.preferredHeight: 62
+        activeFocusOnTab: true
 
         Rectangle {
             anchors.fill: parent
-            color: rowHover.hovered ? RaohaneTheme.surfaceHover : "transparent"
+            radius: RaohaneTheme.radiusSmall
+            color: rowHover.hovered || row.activeFocus
+                ? RaohaneTheme.surfaceHover : "transparent"
+            border.width: row.activeFocus ? 1 : 0
+            border.color: RaohaneTheme.accentBorder
 
             Behavior on color {
+                enabled: RaohaneMotion.panelMotionEnabled && root.visible
                 ColorAnimation { duration: RaohaneMotion.micro }
             }
         }
@@ -337,20 +343,23 @@ Item {
 
             Text {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: row.title
                 color: RaohaneTheme.text
-                font.pixelSize: 10
+                font.pixelSize: 11
                 font.weight: Font.Medium
                 elide: Text.ElideRight
             }
 
             Text {
-                Layout.preferredWidth: Math.min(320, implicitWidth)
+                Layout.minimumWidth: 0
+                Layout.preferredWidth: row.width < 580
+                    ? Math.min(145, row.width * 0.34) : Math.min(320, implicitWidth)
                 text: row.detail
                 color: row.critical ? RaohaneTheme.critical
                     : row.accent ? RaohaneTheme.accent
                     : RaohaneTheme.textMuted
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.weight: Font.Medium
                 horizontalAlignment: Text.AlignRight
                 elide: Text.ElideRight
@@ -368,7 +377,17 @@ Item {
         }
 
         TapHandler {
-            onTapped: row.triggered()
+            onTapped: {
+                row.forceActiveFocus()
+                row.triggered()
+            }
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                row.triggered()
+                event.accepted = true
+            }
         }
     }
 
@@ -380,7 +399,7 @@ Item {
         required property string detail
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 54
+        Layout.preferredHeight: 60
 
         RowLayout {
             anchors.fill: parent
@@ -396,18 +415,21 @@ Item {
 
             Text {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: row.title
                 color: RaohaneTheme.text
-                font.pixelSize: 10
+                font.pixelSize: 11
                 font.weight: Font.Medium
                 elide: Text.ElideRight
             }
 
             Text {
-                Layout.preferredWidth: Math.min(430, implicitWidth)
+                Layout.minimumWidth: 0
+                Layout.preferredWidth: row.width < 580
+                    ? Math.min(180, row.width * 0.42) : Math.min(430, implicitWidth)
                 text: row.detail.length > 0 ? row.detail : qsTr("Loading…")
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 9
+                font.pixelSize: 10
                 horizontalAlignment: Text.AlignRight
                 elide: Text.ElideRight
             }
