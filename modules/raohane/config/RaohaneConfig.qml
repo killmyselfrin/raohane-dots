@@ -24,6 +24,14 @@ Singleton {
     property bool wallpaperPreview: true
     property int wallpaperColumns: 4
     property int wallpaperChangeInterval: 0
+    // Wallpaper Studio 2.0 metadata lives in native.json, not a second
+    // background daemon or an independently managed favorites database.
+    property var wallpaperFavorites: []
+    property var wallpaperCollections: []
+    property var wallpaperMonitors: ({})
+    property string wallpaperAutoSource: "folder"
+    property bool wallpaperAdaptiveAccent: false
+    property string wallpaperAdaptiveColor: "#94b5e5"
     property bool wallpaperHideWhenFullscreen: true
     property int wallpaperTransitionDuration: 650
     property real wallpaperDim: 0.06
@@ -514,6 +522,71 @@ Singleton {
         }
     }
 
+    function sanitizeWallpaperPaths(value): var {
+        if (!Array.isArray(value))
+            return []
+        const seen = new Set()
+        const result = []
+        for (const item of value) {
+            const path = String(item ?? "").trim()
+            if (!path.startsWith("/") || path.length > 4096 || seen.has(path))
+                continue
+            seen.add(path)
+            result.push(path)
+            if (result.length >= 256)
+                break
+        }
+        return result
+    }
+
+    function sanitizeWallpaperCollections(value): var {
+        if (!Array.isArray(value))
+            return []
+        const result = []
+        const used = new Set()
+        for (const item of value) {
+            if (!item || typeof item !== "object")
+                continue
+            const path = String(item.path ?? "").trim()
+            const name = String(item.name ?? "").trim().slice(0, 48)
+            if (!path.startsWith("/") || path.length > 4096 || !name.length || used.has(path))
+                continue
+            result.push({ name: name, path: path })
+            used.add(path)
+            if (result.length >= 24)
+                break
+        }
+        return result
+    }
+
+    function sanitizeWallpaperMonitors(value): var {
+        const result = {}
+        if (!value || typeof value !== "object" || Array.isArray(value))
+            return result
+        for (const name of Object.keys(value).slice(0, 16)) {
+            const path = String(value[name] ?? "")
+            if (name.length > 0 && name.length < 128 && !["__proto__", "constructor", "prototype"].includes(name)
+                    && path.startsWith("/") && path.length <= 4096)
+                result[name] = path
+        }
+        return result
+    }
+
+    function wallpaperPathForScreen(screenName): string {
+        const key = String(screenName ?? "")
+        return String(root.wallpaperMonitors?.[key] ?? root.wallpaperPath)
+    }
+
+    function setWallpaperForScreen(screenName, path): void {
+        const key = String(screenName ?? "")
+        const file = String(path ?? "")
+        if (!key.length || key.length >= 128 || !file.startsWith("/"))
+            return
+        const next = Object.assign({}, root.sanitizeWallpaperMonitors(root.wallpaperMonitors))
+        next[key] = file
+        root.wallpaperMonitors = next
+    }
+
     function snapshot(): var {
         return {
             schemaVersion: root.schemaVersion,
@@ -524,6 +597,12 @@ Singleton {
                 preview: root.wallpaperPreview,
                 columns: root.wallpaperColumns,
                 changeInterval: root.wallpaperChangeInterval,
+                favorites: root.sanitizeWallpaperPaths(root.wallpaperFavorites),
+                collections: root.sanitizeWallpaperCollections(root.wallpaperCollections),
+                monitors: root.sanitizeWallpaperMonitors(root.wallpaperMonitors),
+                autoSource: root.wallpaperAutoSource,
+                adaptiveAccent: root.wallpaperAdaptiveAccent,
+                adaptiveColor: root.wallpaperAdaptiveColor,
                 hideWhenFullscreen: root.wallpaperHideWhenFullscreen,
                 transitionDuration: root.wallpaperTransitionDuration,
                 dim: root.wallpaperDim,
@@ -685,7 +764,16 @@ Singleton {
         root.assignIfPresent(wallpaper, "directory", value => root.wallpaperDirectory = String(value ?? ""))
         root.assignIfPresent(wallpaper, "preview", value => root.wallpaperPreview = Boolean(value))
         root.assignIfPresent(wallpaper, "columns", value => root.wallpaperColumns = Math.max(2, Math.min(8, Number(value) || 4)))
-        root.assignIfPresent(wallpaper, "changeInterval", value => root.wallpaperChangeInterval = Math.max(0, Number(value) || 0))
+        root.assignIfPresent(wallpaper, "changeInterval", value => root.wallpaperChangeInterval = Math.max(0, Math.min(86400000, Number(value) || 0)))
+        root.assignIfPresent(wallpaper, "favorites", value => root.wallpaperFavorites = root.sanitizeWallpaperPaths(value))
+        root.assignIfPresent(wallpaper, "collections", value => root.wallpaperCollections = root.sanitizeWallpaperCollections(value))
+        root.assignIfPresent(wallpaper, "monitors", value => root.wallpaperMonitors = root.sanitizeWallpaperMonitors(value))
+        root.assignIfPresent(wallpaper, "autoSource", value => root.wallpaperAutoSource = value === "favorites" ? "favorites" : "folder")
+        root.assignIfPresent(wallpaper, "adaptiveAccent", value => root.wallpaperAdaptiveAccent = Boolean(value))
+        root.assignIfPresent(wallpaper, "adaptiveColor", value => {
+            const hex = String(value ?? "")
+            root.wallpaperAdaptiveColor = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : "#94b5e5"
+        })
         root.assignIfPresent(wallpaper, "hideWhenFullscreen", value => root.wallpaperHideWhenFullscreen = Boolean(value))
         root.assignIfPresent(wallpaper, "transitionDuration", value => root.wallpaperTransitionDuration = Math.max(0, Math.min(3000, Number(value) || 650)))
         root.assignIfPresent(wallpaper, "dim", value => root.wallpaperDim = Math.max(0, Math.min(0.8, Number(value) || 0)))
@@ -859,6 +947,12 @@ Singleton {
     onWallpaperPreviewChanged: scheduleSave()
     onWallpaperColumnsChanged: scheduleSave()
     onWallpaperChangeIntervalChanged: scheduleSave()
+    onWallpaperFavoritesChanged: scheduleSave()
+    onWallpaperCollectionsChanged: scheduleSave()
+    onWallpaperMonitorsChanged: scheduleSave()
+    onWallpaperAutoSourceChanged: scheduleSave()
+    onWallpaperAdaptiveAccentChanged: scheduleSave()
+    onWallpaperAdaptiveColorChanged: scheduleSave()
     onWallpaperHideWhenFullscreenChanged: scheduleSave()
     onWallpaperTransitionDurationChanged: scheduleSave()
     onWallpaperDimChanged: scheduleSave()
