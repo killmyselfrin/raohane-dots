@@ -73,9 +73,8 @@ Rectangle {
             RaohaneUiFeedback.play(root.feedback)
     }
 
-    // Reference material: every real glass card gets a quiet inner rim. It is
-    // deliberately independent from hover so stacked panels keep their depth
-    // even while idle.
+    // Soft glass rim: one inexpensive 1px layer shared by all cards. Raised
+    // surfaces reflect more light without animated blurs or frame shaders.
     Rectangle {
         visible: root.showInnerRim && (!root.transparentIdle || root.active || root.hovered || root.pressed)
         z: 98
@@ -85,9 +84,9 @@ Rectangle {
         color: "transparent"
         border.width: 1
         border.color: root.active
-            ? Qt.rgba(root.activeBorderColor.r, root.activeBorderColor.g, root.activeBorderColor.b, 0.10)
+            ? Qt.rgba(root.activeBorderColor.r, root.activeBorderColor.g, root.activeBorderColor.b, 0.16)
             : Qt.rgba(RaohaneTheme.highlight.r, RaohaneTheme.highlight.g, RaohaneTheme.highlight.b,
-                root.hovered ? 0.080 : root.raised ? 0.052 : 0.032)
+                root.hovered ? 0.14 : root.raised ? 0.095 : 0.055)
         opacity: root.pressed ? 0.55 : 1
 
         Behavior on border.color {
@@ -125,7 +124,7 @@ Rectangle {
     }
 
     // A one-pixel top catch-light gives the smoky panels the same polished rim
-    // as the reference without a compositor-expensive shadow/glow layer.
+    // across the shell without a compositor-expensive shadow/glow layer.
     Rectangle {
         visible: root.showSheen && RaohaneTheme.sheenEnabled && !root.transparentIdle
         z: 100
@@ -138,7 +137,7 @@ Rectangle {
         }
         height: 1
         color: root.active ? root.activeBorderColor : RaohaneTheme.highlight
-        opacity: root.pressed ? 0.03 : root.active ? 0.20 : root.hovered ? 0.13 : root.raised ? 0.08 : 0.045
+        opacity: root.pressed ? 0.03 : root.active ? 0.24 : root.hovered ? 0.18 : root.raised ? 0.12 : 0.07
 
         Behavior on opacity {
             enabled: root.transformMotionAllowed
