@@ -171,7 +171,8 @@ for contract in \
   '+ root.actionRows * root.actionHeight' \
   'columns: root.singleColumn ? 1 : 2' \
   'Layout.columnSpan: root.singleColumn ? 1 : 2' \
-  'Layout.preferredHeight: root.actionHeight' \
+  'required property int actionHeight' \
+  'Layout.preferredHeight: action.actionHeight' \
   'showInnerRim: true' \
   'hoverBorderColor: RaohaneTheme.borderStrong' \
   'font.pixelSize: 9'; do
@@ -180,6 +181,8 @@ for contract in \
 done
 [[ "$(rg -Fc 'Layout.minimumWidth: 0' "$control_actions")" == 5 ]] \
   || fail 'Control Center action dock can overflow its compact columns'
+[[ "$(rg -Fc 'actionHeight: root.actionHeight' "$control_actions")" == 5 ]] \
+  || fail 'Action tiles lost their explicit shared height binding'
 python3 - "$control_actions" <<'PY'
 from pathlib import Path
 import sys
