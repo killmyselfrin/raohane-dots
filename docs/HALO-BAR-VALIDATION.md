@@ -7,12 +7,19 @@ auto-hide/fullscreen handling and presets remain available.
 
 ## Visual changes
 
-- One 46px capsule with 24px outer horizontal margins and a 23px radius.
+- One centered capsule capped at 1240px, 44px high with 24px outer
+  horizontal margins and a 22px radius. The full-width red strip has been
+  replaced with quieter, wallpaper-tinted elevated glass.
 - Three collision-safe module zones on top of the same glass surface.
+  The center reserves a hard width budget and the side zones cannot draw over
+  it. Long track names are elided inside a compact context.
 - Small round workspace controls bound to real Hyprland workspaces.
 - Native clock and context in the center; tray, system and Control Center
   on the right. Context retains media/recording/privacy attention styling.
 - Minimal 1px separators appear only on wider outputs (>=1100px).
+  At narrower output widths, secondary date text, workspaces and tray entries
+  compress progressively without moving the central clock away from the
+  physical screen center.
 - Accent border and catch light consume shared `RaohaneTheme` colors, including
   Wallpaper Studio's optional adaptive wallpaper palette.
 - No new polling, GPU blur shader or persistent background process.
@@ -32,12 +39,29 @@ without removing its availability.
 To adapt the glass to the wallpaper, open **Wallpaper Picker → Studio →
 Adaptive on**. Halo also works with manual themes and adaptive color OFF.
 
+## Other presets (same geometry engine)
+
+- **Classic:** edge-hugging groups, consistent compact spacing.
+- **Floating:** three balanced glass islands with softer shadows.
+- **Cinematic:** slightly larger rounded islands and a modest accent line.
+- **Islands:** separated functional module cards with wider gaps.
+- **Compact:** shorter 38px pods, fewer visible details and quick access to
+  primary actions.
+- **Panel:** continuous edge-to-edge system surface, with the same central
+  reservation logic.
+
+The layout is bounded by a shared set of width and density rules, not a
+new set of components for each preset. Even custom module sequences are
+clipped within their zones instead of painting on top of other modules.
+The native three-zone layout editor remains authoritative.
+
 ## Smoke checks — fish shell
 
 ```fish
 cd ~/raohane-dots
 git pull --ff-only
 bash scripts/bar-boundary-audit.sh
+# Geometry regression test includes sizes from 320 to 3840 logical px.
 bash scripts/multimonitor-boundary-audit.sh
 bash scripts/fullscreen-boundary-audit.sh
 ./install-raohane.sh --no-deps --no-login-theme --no-start
