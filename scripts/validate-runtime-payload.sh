@@ -90,7 +90,7 @@ try:
 except (OSError, json.JSONDecodeError):
     raise SystemExit(1)
 
-match = re.search(r"^\\s*readonly property int schemaVersion:\\s*(\\d+)\\s*$", qml, re.MULTILINE)
+match = re.search(r"^\s*readonly property int schemaVersion:\s*(\d+)\s*$", qml, re.MULTILINE)
 valid = (
     isinstance(defaults, dict)
     and match is not None
