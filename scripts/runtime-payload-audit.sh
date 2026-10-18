@@ -66,6 +66,17 @@ grep -Fq 'schemaVersion does not match the Raohane runtime config' "$tmp_root/in
 mv "$tmp_root/valid-native.json" "$runtime/defaults/native.json"
 bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
 
+# Regression: a partial update without the newly introduced QML component
+# must be rejected BEFORE it becomes a broken installed shell.
+mv "$runtime/modules/raohane/RaohaneDesktopEditGrid.qml" "$tmp_root/RaohaneDesktopEditGrid.qml"
+if bash scripts/validate-runtime-payload.sh "$runtime" >"$tmp_root/missing-grid.log" 2>&1; then
+  fail 'staged payload validator accepted a runtime without desktop edit grid'
+fi
+grep -Fq 'missing modules/raohane/RaohaneDesktopEditGrid.qml' "$tmp_root/missing-grid.log" \
+  || fail 'staged payload validator did not identify the missing grid'
+mv "$tmp_root/RaohaneDesktopEditGrid.qml" "$runtime/modules/raohane/RaohaneDesktopEditGrid.qml"
+bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
+
 # Prove common source-only paths never enter a clean staged runtime even before
 # an actual Hyprland session is involved.
 for path in \
