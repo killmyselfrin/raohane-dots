@@ -157,6 +157,29 @@ else
   echo '[Raohane] ripgrep (rg) is unavailable; skipping extended static audit.'
 fi
 
+# Syntax-check the new widget faces BEFORE stopping the running shell.
+# Not all Linux distributions ship qmlformat by default, so the CI validation
+# remains authoritative; this is a local safety net when Qt tools are present.
+QMLFORMAT_BIN="$(command -v qmlformat || true)"
+if [[ -z "$QMLFORMAT_BIN" && -x /usr/lib/qt6/bin/qmlformat ]]; then
+  QMLFORMAT_BIN=/usr/lib/qt6/bin/qmlformat
+fi
+if [[ -n "$QMLFORMAT_BIN" ]]; then
+  for qml in \
+    modules/raohane/RaohaneDesktopClockStyles.qml \
+    modules/raohane/RaohaneDesktopMediaStyles.qml \
+    modules/raohane/RaohaneDesktopSystemStyles.qml \
+    modules/raohane/RaohaneDesktopWidgetStyleStudio.qml \
+    modules/raohane/RaohaneDesktopWidgetHost.qml \
+    modules/raohane/RaohaneDesktopWidgetRegistry.qml \
+    modules/raohane/config/RaohaneConfig.qml; do
+    if ! "$QMLFORMAT_BIN" "$ROOT/$qml" >/dev/null; then
+      echo "[Raohane] QML syntax validation failed for $qml; leaving installed shell untouched." >&2
+      exit 1
+    fi
+  done
+fi
+
 printf '[Raohane] Installing Hyprland shell...\n'
 
 systemctl --user stop raohane.service >/dev/null 2>&1 || true
