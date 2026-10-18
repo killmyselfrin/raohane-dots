@@ -194,6 +194,11 @@ def main() -> int:
             failures += 1
         if args.machine_progress:
             print(f"PROGRESS {index}/{total} FILE {source}", flush=True)
+            if ok:
+                # Send the actual resolved cache filename to the Qt service.
+                # It may differ from a QML-computed MD5 for symlinked
+                # folders; don't make the view reconstruct its location.
+                print(f"THUMBNAIL {source}\t{thumbnail_path(source, args.size)}", flush=True)
 
     if not args.machine_progress:
         print(f"Raohane thumbnails: {total - failures}/{total} processed")
