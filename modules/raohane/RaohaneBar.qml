@@ -329,6 +329,7 @@ Scope {
                                 densityMode: barWindow.moduleDensity
                                 compactClock: barWindow.clockCompact
                                 compactWorkspaces: barWindow.compactWidth
+                                minimalWorkspaces: barWindow.ultraNarrow
                                 canShow: !(barWindow.narrowWidth && moduleId === "tray")
                                     && !(barWindow.ultraNarrow && moduleId === "launcher")
                                 groupStyle: barWindow.groupStyle
@@ -395,6 +396,7 @@ Scope {
                                 densityMode: barWindow.moduleDensity
                                 compactClock: barWindow.clockCompact
                                 compactWorkspaces: barWindow.compactWidth
+                                minimalWorkspaces: barWindow.ultraNarrow
                                 canShow: !(barWindow.narrowWidth && moduleId === "tray")
                                     && !(barWindow.ultraNarrow && moduleId === "launcher")
                                 groupStyle: barWindow.groupStyle
@@ -463,6 +465,7 @@ Scope {
                                 densityMode: barWindow.moduleDensity
                                 compactClock: barWindow.clockCompact
                                 compactWorkspaces: barWindow.compactWidth
+                                minimalWorkspaces: barWindow.ultraNarrow
                                 canShow: !(barWindow.narrowWidth && moduleId === "tray")
                                     && !(barWindow.ultraNarrow && moduleId === "launcher")
                                 groupStyle: barWindow.groupStyle
