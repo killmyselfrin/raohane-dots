@@ -12,13 +12,24 @@ RaohaneSurface {
     signal wallpaperRequested()
     signal powerRequested()
 
-    implicitHeight: 154
+    // Five actions fit in three rows normally. On narrow panels give them
+    // dedicated rows, and size the surface from the actual row geometry.
+    // A fixed 154px card used to clip its third row at default spacing.
+    readonly property bool singleColumn: root.width < 224
+    readonly property int actionRows: root.singleColumn ? 5 : 3
+    readonly property int actionHeight: 40
+    readonly property int headerHeight: 24
+
+    implicitHeight: 2 * RaohaneTheme.spacing + root.headerHeight
+        + RaohaneTheme.spacingSmall
+        + root.actionRows * root.actionHeight
+        + (root.actionRows - 1) * RaohaneTheme.spacingSmall
     surfaceRadius: RaohaneTheme.radiusHero
     raised: false
-    showSheen: false
-    showInnerRim: false
+    showSheen: true
+    showInnerRim: true
     idleColor: RaohaneTheme.surfaceSubtle
-    idleBorderColor: "transparent"
+    idleBorderColor: RaohaneTheme.borderFaint
 
     ColumnLayout {
         anchors.fill: parent
@@ -27,12 +38,12 @@ RaohaneSurface {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 24
+            Layout.preferredHeight: root.headerHeight
 
             Text {
                 text: qsTr("Shortcuts")
                 color: RaohaneTheme.text
-                font.pixelSize: 10
+                font.pixelSize: 11
                 font.weight: Font.DemiBold
             }
 
@@ -48,12 +59,13 @@ RaohaneSurface {
         GridLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            columns: 2
+            columns: root.singleColumn ? 1 : 2
             columnSpacing: RaohaneTheme.spacingSmall
             rowSpacing: RaohaneTheme.spacingSmall
 
             ActionButton {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 icon: "screenshot_region"
                 label: qsTr("Screenshot")
                 onTriggered: root.screenshotRequested()
@@ -61,6 +73,7 @@ RaohaneSurface {
 
             ActionButton {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 icon: "translate"
                 label: qsTr("Translate")
                 onTriggered: root.translatorRequested()
@@ -68,6 +81,7 @@ RaohaneSurface {
 
             ActionButton {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 icon: "keyboard"
                 label: qsTr("Keyboard")
                 onTriggered: root.oskRequested()
@@ -75,6 +89,7 @@ RaohaneSurface {
 
             ActionButton {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 icon: "wallpaper"
                 label: qsTr("Wallpaper")
                 onTriggered: root.wallpaperRequested()
@@ -82,7 +97,8 @@ RaohaneSurface {
 
             ActionButton {
                 Layout.fillWidth: true
-                Layout.columnSpan: 2
+                Layout.minimumWidth: 0
+                Layout.columnSpan: root.singleColumn ? 1 : 2
                 icon: "power_settings_new"
                 label: qsTr("Power")
                 accent: true
@@ -99,11 +115,11 @@ RaohaneSurface {
         property bool accent: false
         signal triggered()
 
-        Layout.preferredHeight: 38
-        surfaceRadius: RaohaneTheme.radius
+        Layout.preferredHeight: root.actionHeight
+        surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
         showSheen: false
-        showInnerRim: false
+        showInnerRim: true
         interactive: true
         hovered: actionMouse.containsMouse || activeFocus
         pressed: actionMouse.pressed
@@ -114,9 +130,9 @@ RaohaneSurface {
         transparentIdle: !action.accent
         idleBorderColor: "transparent"
         hoverColor: RaohaneTheme.surfaceHover
-        hoverBorderColor: "transparent"
+        hoverBorderColor: RaohaneTheme.borderStrong
         activeColor: RaohaneTheme.accentSoft
-        activeBorderColor: "transparent"
+        activeBorderColor: RaohaneTheme.accentBorder
 
         RowLayout {
             anchors.fill: parent
@@ -136,7 +152,7 @@ RaohaneSurface {
                 Layout.fillWidth: true
                 text: action.label
                 color: action.accent || action.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
-                font.pixelSize: 8
+                font.pixelSize: 9
                 font.weight: Font.Medium
                 elide: Text.ElideRight
             }
