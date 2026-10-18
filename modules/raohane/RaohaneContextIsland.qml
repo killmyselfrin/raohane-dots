@@ -105,6 +105,7 @@ RaohaneSurface {
     showSheen: !root.haloStyle || root.priorityMode || root.mediaMode
     showInnerRim: !root.haloStyle || root.priorityMode || root.mediaMode
     clip: true
+    border.width: root.haloStyle && !root.priorityMode && !root.mediaMode ? 0 : 1
     border.color: root.priorityMode
         ? Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b, 0.72)
         : RaohaneContext.mode === "event"
