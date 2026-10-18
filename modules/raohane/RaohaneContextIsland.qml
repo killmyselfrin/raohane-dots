@@ -6,10 +6,15 @@ import qs.modules.raohane.services
 RaohaneSurface {
     id: root
 
+    property string densityMode: "full"  // full | compact | icon
+    readonly property bool condensed: densityMode !== "full"
+    readonly property bool iconOnly: densityMode === "icon"
     readonly property var styleConfig: RaohaneConfig.style ?? ({})
     readonly property real islandScale: Number(styleConfig.contextIslandScale ?? 1.0)
-    readonly property bool showDetail: styleConfig.contextIslandDetail === undefined ? true : Boolean(styleConfig.contextIslandDetail)
-    readonly property bool showIndicators: styleConfig.contextIslandIndicators === undefined ? true : Boolean(styleConfig.contextIslandIndicators)
+    readonly property bool showDetail: !root.condensed
+        && (styleConfig.contextIslandDetail === undefined ? true : Boolean(styleConfig.contextIslandDetail))
+    readonly property bool showIndicators: !root.iconOnly
+        && (styleConfig.contextIslandIndicators === undefined ? true : Boolean(styleConfig.contextIslandIndicators))
     readonly property bool priorityMode: RaohaneContext.mode === "recording" || RaohaneContext.mode === "privacy"
     readonly property bool progressMode: RaohaneContext.mode === "event" && RaohaneContext.eventProgress >= 0
     readonly property bool mediaMode: RaohaneContext.mode === "media"
@@ -17,7 +22,7 @@ RaohaneSurface {
     readonly property bool mediaProgressMode: root.mediaMode
         && RaohaneMedia.available
         && RaohaneMedia.length > 0
-    readonly property bool showProgress: root.progressMode || root.mediaProgressMode
+    readonly property bool showProgress: !root.iconOnly && (root.progressMode || root.mediaProgressMode)
     readonly property real progressValue: root.progressMode
         ? RaohaneContext.eventProgress
         : root.mediaProgressMode ? RaohaneMedia.progress : 0
@@ -90,22 +95,26 @@ RaohaneSurface {
         : "circle"
 
     implicitWidth: {
+        if (root.iconOnly)
+            return 42
+        if (root.condensed)
+            return Math.max(130, Math.min(176, Math.round(160 * root.islandScale)))
         const titleWidth = titleMetrics.advanceWidth
         const detailWidth = root.showDetail ? detailMetrics.advanceWidth : 0
         const indicatorSpace = root.showIndicators ? (root.indicatorIsIcon ? 34 : 28) : 10
         const contentWidth = Math.max(titleWidth, detailWidth) + 58 + indicatorSpace
-        return Math.max(root.modeMinimumWidth, Math.min(440, Math.round(contentWidth * root.islandScale)))
+        return Math.max(root.modeMinimumWidth, Math.min(380, Math.round(contentWidth * root.islandScale)))
     }
     implicitHeight: Math.max(38, Math.min(50, Math.round((root.showProgress ? RaohaneTheme.islandHeight + 3 : RaohaneTheme.islandHeight) * root.islandScale)))
     surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)
     // Do not stack an opaque inner capsule on top of Halo's continuous
     // glass backing. Important media/privacy events keep their own emphasis.
-    raised: !root.haloStyle || root.priorityMode || root.mediaMode
-    transparentIdle: root.haloStyle && !root.priorityMode && !root.mediaMode
-    showSheen: !root.haloStyle || root.priorityMode || root.mediaMode
-    showInnerRim: !root.haloStyle || root.priorityMode || root.mediaMode
+    raised: !root.haloStyle || root.priorityMode
+    transparentIdle: root.haloStyle && !root.priorityMode
+    showSheen: !root.haloStyle || root.priorityMode
+    showInnerRim: !root.haloStyle || root.priorityMode
     clip: true
-    border.width: root.haloStyle && !root.priorityMode && !root.mediaMode ? 0 : 1
+    border.width: root.haloStyle && !root.priorityMode ? 0 : 1
     border.color: root.priorityMode
         ? Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b, 0.72)
         : RaohaneContext.mode === "event"
@@ -178,7 +187,7 @@ RaohaneSurface {
         height: width
         radius: Math.min(RaohaneTheme.radiusSmall, width / 2)
         anchors.left: parent.left
-        anchors.leftMargin: 7
+        anchors.leftMargin: root.iconOnly ? 5 : 7
         anchors.verticalCenter: parent.verticalCenter
         color: Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b,
             root.priorityMode ? 0.16 : RaohaneContext.mode === "idle" ? 0.055 : RaohaneContext.mode === "scene" ? 0.13 : 0.10)
@@ -206,6 +215,7 @@ RaohaneSurface {
     }
 
     Column {
+        visible: !root.iconOnly
         anchors.left: iconPlate.right
         anchors.leftMargin: 9
         anchors.right: root.showIndicators ? statusIndicator.left : parent.right
