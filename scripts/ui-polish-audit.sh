@@ -81,17 +81,17 @@ rg -q 'readonly property int panelHeight:' "$control" \
 # Small logical outputs must not clip the dashboard or create duplicate controls.
 rg -q 'readonly property bool compactPanel:' "$control" \
   || fail 'Control Center lost compact-output layout policy'
-rg -q 'root\\.screenWidth - 32' "$control" \
+rg -Fq 'root.screenWidth - 32' "$control" \
   || fail 'Control Center width can exceed the output again'
-rg -q 'root\\.screenHeight - 32' "$control" \
+rg -Fq 'root.screenHeight - 32' "$control" \
   || fail 'Control Center height can exceed the output again'
-rg -q 'Flickable[[:space:]]*\\{' "$control" \
+rg -Fq 'Flickable {' "$control" \
   || fail 'Control Center lost overflow scrolling'
-rg -q 'columns:[[:space:]]*root\\.compactPanel[[:space:]]*\\?[[:space:]]*1[[:space:]]*:[[:space:]]*3' "$control" \
+rg -Fq 'columns: root.compactPanel ? 1 : 3' "$control" \
   || fail 'Control Center lost responsive single/three column switching'
-[[ "$(rg -c 'RaohaneQuickControls[[:space:]]*\\{' "$control")" == 1 ]] \
+[[ "$(rg -Fc 'RaohaneQuickControls {' "$control")" == 1 ]] \
   || fail 'Control Center duplicated the live Quick Controls owner'
-[[ "$(rg -c 'RaohaneNotificationCenter[[:space:]]*\\{' "$control")" == 1 ]] \
+[[ "$(rg -Fc 'RaohaneNotificationCenter {' "$control")" == 1 ]] \
   || fail 'Control Center duplicated notification composition'
 rg -q 'property bool heldVisible:[[:space:]]*false' "$control" \
   || fail 'Control Center lost animated close hold'
