@@ -418,22 +418,29 @@ print_runtime_integrity() {
   fi
 
   if [[ -f "$config_file" ]]; then
-    if python3 - "$config_file" <<'PY'
+    if python3 - "$config_file" "$RUNTIME/defaults/native.json" <<'PY'
 import json
 import pathlib
 import sys
 
-path = pathlib.Path(sys.argv[1])
 try:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+    defaults = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
 except (OSError, json.JSONDecodeError):
     raise SystemExit(1)
-raise SystemExit(0 if data.get("schemaVersion") == 13 else 1)
+valid = (
+    isinstance(data, dict)
+    and isinstance(defaults, dict)
+    and type(defaults.get("schemaVersion")) is int
+    and type(data.get("schemaVersion")) is int
+    and data["schemaVersion"] == defaults["schemaVersion"]
+)
+raise SystemExit(0 if valid else 1)
 PY
     then
-      echo '  [ok] ~/.config/raohane/native.json schema v13'
+      echo '  [ok] ~/.config/raohane/native.json schema matches installed runtime'
     else
-      echo '  [!!] ~/.config/raohane/native.json is missing/invalid schema v13'
+      echo '  [!!] ~/.config/raohane/native.json schema does not match installed runtime'
       failures=$((failures + 1))
     fi
   else
