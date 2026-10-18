@@ -331,7 +331,8 @@ Scope {
                                 compactWorkspaces: barWindow.compactWidth
                                 minimalWorkspaces: barWindow.ultraNarrow
                                 canShow: !(barWindow.narrowWidth && moduleId === "tray")
-                                    && !(barWindow.ultraNarrow && moduleId === "launcher")
+                                    && !(barWindow.ultraNarrow
+                                        && (moduleId === "launcher" || moduleId === "system"))
                                 groupStyle: barWindow.groupStyle
                                 showBackground: RaohaneConfig.barShowBackground
                                 primaryAction: root.togglePrimarySurface
@@ -398,7 +399,8 @@ Scope {
                                 compactWorkspaces: barWindow.compactWidth
                                 minimalWorkspaces: barWindow.ultraNarrow
                                 canShow: !(barWindow.narrowWidth && moduleId === "tray")
-                                    && !(barWindow.ultraNarrow && moduleId === "launcher")
+                                    && !(barWindow.ultraNarrow
+                                        && (moduleId === "launcher" || moduleId === "system"))
                                 groupStyle: barWindow.groupStyle
                                 showBackground: RaohaneConfig.barShowBackground
                                 primaryAction: root.togglePrimarySurface
@@ -467,7 +469,8 @@ Scope {
                                 compactWorkspaces: barWindow.compactWidth
                                 minimalWorkspaces: barWindow.ultraNarrow
                                 canShow: !(barWindow.narrowWidth && moduleId === "tray")
-                                    && !(barWindow.ultraNarrow && moduleId === "launcher")
+                                    && !(barWindow.ultraNarrow
+                                        && (moduleId === "launcher" || moduleId === "system"))
                                 groupStyle: barWindow.groupStyle
                                 showBackground: RaohaneConfig.barShowBackground
                                 primaryAction: root.togglePrimarySurface
