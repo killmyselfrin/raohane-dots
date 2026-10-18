@@ -39,7 +39,7 @@ for registration in \
   '^RaohaneDesktopContextWidget 1\.0 RaohaneDesktopContextWidget\.qml$' \
   '^RaohaneDesktopSystemWidget 1\.0 RaohaneDesktopSystemWidget\.qml$' \
   '^RaohaneDesktopMottoWidget 1\.0 RaohaneDesktopMottoWidget\.qml$' \
-  '^RaohaneDesktopWidgetLayoutStudio 1\.0 RaohaneDesktopWidgetLayoutStudio\.qml$'' \
+  '^RaohaneDesktopWidgetLayoutStudio 1\.0 RaohaneDesktopWidgetLayoutStudio\.qml$' \
   '^RaohaneFreeWidgetStudio 1\.0 RaohaneFreeWidgetStudio\.qml$'; do
   rg -q "$registration" "$qmldir" || fail "desktop widget runtime lost registration: $registration"
 done
