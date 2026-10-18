@@ -38,7 +38,7 @@ Item {
         anchors.fill: parent
         z: 50
         acceptedButtons: Qt.RightButton
-        enabled: root.widgetEnabled && root.shown
+        enabled: root.widgetEnabled && root.shown && !RaohaneState.desktopWidgetEditMode
         onClicked: mouse => {
             const p = mapToItem(null, mouse.x, mouse.y)
             root.widgetMenuRequested(root.widgetId, p.x, p.y)
