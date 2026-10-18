@@ -44,7 +44,11 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 18
-        color: RaohaneTheme.background
+        // Transparent presentation glass: the live desktop remains visible
+        // between cinematic cards. The wallpaper previews themselves stay
+        // fully opaque and legible.
+        color: Qt.rgba(RaohaneTheme.background.r, RaohaneTheme.background.g,
+            RaohaneTheme.background.b, RaohaneTheme.dark ? 0.10 : 0.18)
         border.color: RaohaneTheme.borderFaint
         clip: true
 
@@ -56,15 +60,15 @@ Item {
             sourceSize.height: 640
             asynchronous: true
             fillMode: Image.PreserveAspectCrop
-            opacity: status === Image.Ready ? 0.19 : 0
+            opacity: status === Image.Ready ? 0.14 : 0
         }
 
         Rectangle {
             anchors.fill: parent
             gradient: Gradient {
-                GradientStop { position: 0; color: RaohaneTheme.dark ? "#cf090d18" : "#e4f1eff5" }
-                GradientStop { position: 0.52; color: RaohaneTheme.dark ? "#a9080b13" : "#a6f6f4f9" }
-                GradientStop { position: 1; color: RaohaneTheme.dark ? "#ec080b12" : "#eaf7f5fa" }
+                GradientStop { position: 0; color: RaohaneTheme.dark ? "#48090d18" : "#70f1eff5" }
+                GradientStop { position: 0.52; color: RaohaneTheme.dark ? "#26080b13" : "#38f6f4f9" }
+                GradientStop { position: 1; color: RaohaneTheme.dark ? "#72080b12" : "#7cf7f5fa" }
             }
         }
     }
@@ -338,7 +342,9 @@ Item {
         surfaceRadius: 12
         raised: false
         showSheen: false
-        idleColor: RaohaneTheme.surfaceRaised
+        idleColor: Qt.rgba(RaohaneTheme.background.r,
+            RaohaneTheme.background.g, RaohaneTheme.background.b,
+            RaohaneTheme.dark ? 0.60 : 0.80)
         border.color: RaohaneTheme.borderFaint
 
         RaohaneIcon {
