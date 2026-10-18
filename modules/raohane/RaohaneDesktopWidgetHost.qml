@@ -31,6 +31,12 @@ Item {
         height: item?.implicitHeight ?? 0
         active: root.widgetEnabled && root.shown && root.definition !== null
         source: RaohaneDesktopWidgetRegistry.sourceFor(root.widgetId, root.faceStyle)
+        onStatusChanged: {
+            if (status === Loader.Error && root.faceStyle !== "classic") {
+                console.warn("[Raohane] Widget face failed to load; restoring Classic:", root.widgetId)
+                RaohaneConfig.setDesktopWidgetStyle(root.widgetId, "classic")
+            }
+        }
     }
 
     // Only right-clicks are intercepted. Media and other widget controls
