@@ -269,8 +269,8 @@ jobs:
             [[ -e "$path" ]] || { echo "Missing integration path: $path" >&2; exit 1; }
           done
 
-          jq -e '.schemaVersion == 14' defaults/native.json >/dev/null || {
-            echo 'defaults/native.json is not Raohane schema v14.' >&2
+          jq -e '.schemaVersion == 15' defaults/native.json >/dev/null || {
+            echo 'defaults/native.json is not Raohane schema v15.' >&2
             exit 1
           }
 
