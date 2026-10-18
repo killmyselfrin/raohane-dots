@@ -30,6 +30,10 @@ Singleton {
     property list<string> wallpapers: []
     property string previewPath: ""
     property string confirmedPath: RaohaneConfig.wallpaperPath
+    // Exact thumbnail locations reported by the existing Python generator.
+    // Keep only video posters in memory; their URI may differ from an
+    // independently calculated QML hash when browsing a symlinked folder.
+    property var generatedVideoPosters: ({})
 
     property list<url> folderHistory: []
     property int currentFolderHistoryIndex: -1
@@ -64,6 +68,22 @@ Singleton {
         if (!clean.length)
             return false
         return root.videoExtensions.some(extension => clean.endsWith("." + extension))
+    }
+
+    function generatedVideoPosterUrl(path: string): string {
+        const stored = root.generatedVideoPosters[root.cleanPath(path)] ?? ""
+        return stored.length > 0 ? "file://" + stored : ""
+    }
+
+    function rememberVideoPoster(path: string, location: string): void {
+        const key = root.cleanPath(path)
+        const file = root.cleanPath(location)
+        if (!root.isVideo(key) || !file.length || root.generatedVideoPosters[key] === file)
+            return
+        // Publish a new object to trigger Qt bindings for existing delegates.
+        const updated = Object.assign({}, root.generatedVideoPosters)
+        updated[key] = file
+        root.generatedVideoPosters = updated
     }
 
     function parentDirectory(path: string): string {
@@ -298,6 +318,9 @@ Singleton {
                 match = data.match(/FILE (.+)/)
                 if (match)
                     root.thumbnailGeneratedFile(match[1])
+                match = data.match(/^THUMBNAIL ([^\t]+)\t([^\r\n]+)/)
+                if (match)
+                    root.rememberVideoPoster(match[1], match[2])
             }
         }
 
