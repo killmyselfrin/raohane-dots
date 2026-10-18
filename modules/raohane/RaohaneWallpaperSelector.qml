@@ -522,6 +522,19 @@ Scope {
                                     function onEntryChosen(path: string, directory: bool): void {
                                         root.selectPath(path, directory)
                                     }
+                                    // Browsing updates the pending selection immediately,
+                                    // but live wallpaper decoding happens only after the
+                                    // cinematic debounce (or an explicit click).
+                                    function onEntryHighlighted(path: string): void {
+                                        if (path.length > 0)
+                                            root.pendingPath = path
+                                    }
+                                    function onPreviewRequested(path: string): void {
+                                        if (RaohaneConfig.wallpaperPreview
+                                                && RaohaneState.wallpaperSelectorOpen
+                                                && root.pendingPath === path)
+                                            RaohaneWallpapers.startPreview(path)
+                                    }
                                     function onApplyRequested(): void {
                                         root.applyPending()
                                     }
