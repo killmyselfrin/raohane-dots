@@ -214,20 +214,20 @@ fi
 lyrics='modules/raohane/services/RaohaneLyrics.qml'
 for contract in \
   'readonly property int maxCacheEntries:[[:space:]]*64' \
-  'property var cacheOrder:[[:space:]]*\\[\\]' \
-  'function cachedRecord\\(key: string\\): var' \
-  'function forgetCachedRecord\\(key: string\\): void' \
-  'function rememberRecord\\(key: string, record\\): void' \
-  'while \\(order\\.length > root\\.maxCacheEntries\\)' \
-  'const oldestKey = order\\.shift\\(\\)' \
-  'delete root\\.cache\\[oldestKey\\]' \
-  'root\\.cacheOrder = order' \
-  'root\\.rememberRecord\\(key, compact\\)' \
-  'root\\.cachedRecord\\(key\\)' \
-  'root\\.forgetCachedRecord\\(key\\)'; do
+  'property var cacheOrder:[[:space:]]*\[\]' \
+  'function cachedRecord\(key: string\): var' \
+  'function forgetCachedRecord\(key: string\): void' \
+  'function rememberRecord\(key: string, record\): void' \
+  'while \(order\.length > root\.maxCacheEntries\)' \
+  'const oldestKey = order\.shift\(\)' \
+  'delete root\.cache\[oldestKey\]' \
+  'root\.cacheOrder = order' \
+  'root\.rememberRecord\(key, compact\)' \
+  'root\.cachedRecord\(key\)' \
+  'root\.forgetCachedRecord\(key\)'; do
   rg -q "$contract" "$lyrics" || fail "lyrics cache lost bounded LRU contract: $contract"
 done
-[[ "$(rg -c 'root\\.cache\\[key\\][[:space:]]*=' "$lyrics")" == 1 ]] \
+[[ "$(rg -c 'root\.cache\[key\][[:space:]]*=' "$lyrics")" == 1 ]] \
   || fail 'lyrics cache has direct write paths outside the eviction policy'
 
 python3 - scripts/lyrics-resolve.py <<'PY'
