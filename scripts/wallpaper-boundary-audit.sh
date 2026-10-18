@@ -207,7 +207,7 @@ rg -Fq 'generatedVideoPosters: ({})' "$service" \
   || fail 'wallpaper service cannot keep an exact poster map'
 rg -Fq 'root.rememberVideoPoster(match[1], match[2])' "$service" \
   || fail 'wallpaper service ignores thumbnail generator output paths'
-rg -Fq 'print(f"THUMBNAIL {source}\\t{thumbnail_path(source, args.size)}", flush=True)' "$thumb_generator" \
+rg -Fq 'print(f"THUMBNAIL {source}\t{thumbnail_path(source, args.size)}", flush=True)' "$thumb_generator" \
   || fail 'generator no longer reports exact poster filenames'
 
 
@@ -309,7 +309,7 @@ digest = hashlib.md5(uri.encode("utf-8"), usedforsecurity=False).hexdigest()
 poster = cache / "thumbnails" / "x-large" / f"{digest}.png"
 if not poster.is_file():
     raise SystemExit(f"missing video poster at {poster}")
-expected = f"THUMBNAIL {alias / clip.name}\\t{poster}"
+expected = f"THUMBNAIL {alias / clip.name}\t{poster}"
 lines = log.read_text(encoding="utf-8").splitlines()
 if expected not in lines:
     raise SystemExit(f"generator did not report the exact symlink-safe cache file: {lines}")
