@@ -59,6 +59,11 @@ Variants {
         property real transitionProgress: 1.0
 
         readonly property bool currentIsVideo: RaohaneWallpapers.isVideo(currentPath)
+        readonly property bool previewingVideo: currentIsVideo
+            && RaohaneConfig.wallpaperPreview
+            && RaohaneWallpapers.previewPath === currentPath
+            && (RaohaneWallpapers.previewScreenName.length === 0
+                || RaohaneWallpapers.previewScreenName === String(modelData.name))
         readonly property bool previousIsVideo: RaohaneWallpapers.isVideo(previousPath)
 
         function switchToRequestedPath(): void {
@@ -177,8 +182,24 @@ Variants {
                         activeAudioTrack: -1
                         onTracksChanged: activeAudioTrack = -1
 
-                        Component.onCompleted: play()
+                        Component.onCompleted: {
+                            play()
+                            if (backgroundWindow.previewingVideo && RaohaneWallpapers.videoPreviewPaused)
+                                Qt.callLater(() => videoPlayer.pause())
+                        }
                         onSourceChanged: play()
+
+                        Connections {
+                            target: RaohaneWallpapers
+                            function onVideoPreviewPausedChanged(): void {
+                                if (!backgroundWindow.previewingVideo)
+                                    return
+                                if (RaohaneWallpapers.videoPreviewPaused)
+                                    videoPlayer.pause()
+                                else
+                                    videoPlayer.play()
+                            }
+                        }
                     }
                 }
             }
