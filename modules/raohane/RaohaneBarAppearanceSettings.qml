@@ -389,8 +389,8 @@ Item {
 
                 BarSlider {
                     Layout.fillWidth: true
-                    title: qsTr("Gradient intensity")
-                    detail: qsTr("Keep text and status icons readable")
+                    title: qsTr("Color richness")
+                    detail: qsTr("Make both wallpaper tones clearer without increasing opacity")
                     enabled: RaohaneConfig.barChromaticFlow
                     value: RaohaneConfig.barChromaticIntensity
                     minimum: 0.05
