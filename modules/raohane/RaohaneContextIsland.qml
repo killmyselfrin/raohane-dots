@@ -7,6 +7,9 @@ RaohaneSurface {
     id: root
 
     property string densityMode: "full"  // full | compact | icon
+    // Only the Bar passes this flag. Other Context Island instances keep
+    // their original material and urgent state emphasis.
+    property bool chromaticBackground: false
     readonly property bool condensed: densityMode !== "full"
     readonly property bool iconOnly: densityMode === "icon"
     readonly property var styleConfig: RaohaneConfig.style ?? ({})
@@ -109,12 +112,12 @@ RaohaneSurface {
     surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)
     // Do not stack an opaque inner capsule on top of Halo's continuous
     // glass backing. Important media/privacy events keep their own emphasis.
-    raised: !root.haloStyle || root.priorityMode
-    transparentIdle: root.haloStyle && !root.priorityMode
-    showSheen: !root.haloStyle || root.priorityMode
-    showInnerRim: !root.haloStyle || root.priorityMode
+    raised: root.priorityMode || (!root.haloStyle && !root.chromaticBackground)
+    transparentIdle: (root.haloStyle || root.chromaticBackground) && !root.priorityMode
+    showSheen: root.priorityMode || (!root.haloStyle && !root.chromaticBackground)
+    showInnerRim: root.priorityMode || (!root.haloStyle && !root.chromaticBackground)
     clip: true
-    border.width: root.haloStyle && !root.priorityMode ? 0 : 1
+    border.width: (root.haloStyle || root.chromaticBackground) && !root.priorityMode ? 0 : 1
     border.color: root.priorityMode
         ? Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b, 0.72)
         : RaohaneContext.mode === "event"
