@@ -86,6 +86,18 @@ for player in re.finditer(r'\bMediaPlayer\s*\{', source):
 PY
 rg -Fq 'RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
   || fail 'adaptive accent is not wired to native theme'
+for token in background backgroundElevated surface surfaceRaised surfaceDeep surfaceSubtle surfaceHover surfacePressed border borderStrong borderFaint; do
+  rg -Fq "readonly property color $token: root.tintedMaterial(" "$theme" \
+    || fail "adaptive wallpaper palette does not reach shared $token material"
+done
+rg -Fq 'readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
+  || fail 'adaptive material tint cannot be disabled independently'
+rg -Fq 'root.accentProbePath = root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
+  || fail 'applied video cannot be sampled without a pre-existing gallery poster'
+rg -Fq 'accentProcess.sourcePath === root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
+  || fail 'stale palette subprocess may recolor newer wallpaper'
+rg -Fq 'VIDEO_SUFFIXES' "$palette" \
+  || fail 'wallpaper palette extractor lost video wallpaper support'
 if rg -Fq 'Process {' "$theme"; then
   fail 'adaptive theme creates a rendering subprocess'
 fi
@@ -121,6 +133,25 @@ Image.new("RGB", (32, 32), (50, 115, 220)).save(Path(sys.argv[1]) / "accent.png"
 PY
   color="$(python3 "$palette" "$temp_dir/accent.png")" || fail 'palette extractor failed for fixture'
   [[ "$color" =~ ^#[[:xdigit:]]{6}$ ]] || fail "invalid adaptive accent: $color"
+
+  if command -v ffmpeg >/dev/null 2>&1; then
+    ffmpeg -hide_banner -loglevel error -nostdin -y \
+      -f lavfi -i 'color=c=#bd4a32:size=96x54:rate=1:duration=7' \
+      -c:v mpeg4 -q:v 6 "$temp_dir/warm.mp4" \
+      || fail 'cannot produce sample video wallpaper'
+    video_color="$(python3 "$palette" "$temp_dir/warm.mp4")" \
+      || fail 'adaptive palette cannot sample a video directly'
+    [[ "$video_color" =~ ^#[[:xdigit:]]{6}$ ]] \
+      || fail "invalid video wallpaper accent: $video_color"
+    python3 - "$video_color" <<'PY'
+import sys
+value = sys.argv[1]
+red = int(value[1:3], 16)
+blue = int(value[5:7], 16)
+if red <= blue:
+    raise SystemExit(f"video accent is not derived from the warm red frame: {value}")
+PY
+  fi
 fi
 
 printf 'wallpaper-studio-audit: native library, scoped monitors, opt-in scheduler, palette and video preview contracts verified\n'
