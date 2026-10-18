@@ -205,12 +205,7 @@ Scope {
                     raised: RaohaneConfig.barShadow
                     transparentIdle: !barWindow.zoneBackgroundVisible
                     showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
-                    showInnerRim: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
-                    idleColor: barWindow.cinematicPreset ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface
-                    border.color: barWindow.zoneBackgroundVisible
-                        ? (barWindow.cinematicPreset && false
-                            ? RaohaneTheme.accentBorder : RaohaneTheme.border)
-                        : "transparent"
+                    border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     // One quiet accent line per floating pod, never an extra
                     // bar/process or an independently positioned widget.
@@ -268,11 +263,8 @@ Scope {
                     raised: RaohaneConfig.barShadow
                     transparentIdle: !barWindow.zoneBackgroundVisible
                     showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
-                    showInnerRim: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
-                    idleColor: barWindow.cinematicPreset ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface
                     border.color: barWindow.zoneBackgroundVisible
-                        ? (barWindow.cinematicPreset && true
-                            ? RaohaneTheme.accentBorder : RaohaneTheme.border)
+                        ? (barWindow.cinematicPreset ? RaohaneTheme.accentBorder : RaohaneTheme.border)
                         : "transparent"
 
                     // One quiet accent line per floating pod, never an extra
@@ -336,12 +328,7 @@ Scope {
                     raised: RaohaneConfig.barShadow
                     transparentIdle: !barWindow.zoneBackgroundVisible
                     showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
-                    showInnerRim: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
-                    idleColor: barWindow.cinematicPreset ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface
-                    border.color: barWindow.zoneBackgroundVisible
-                        ? (barWindow.cinematicPreset && false
-                            ? RaohaneTheme.accentBorder : RaohaneTheme.border)
-                        : "transparent"
+                    border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     // One quiet accent line per floating pod, never an extra
                     // bar/process or an independently positioned widget.
