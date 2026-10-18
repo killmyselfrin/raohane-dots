@@ -35,6 +35,7 @@ RaohaneBackground 1.0 RaohaneBackground.qml
 RaohaneDesktopCanvas 1.0 RaohaneDesktopCanvas.qml
 RaohaneDesktopWidgets 1.0 RaohaneDesktopWidgets.qml
 RaohaneDesktopWidgetHost 1.0 RaohaneDesktopWidgetHost.qml
+RaohaneDesktopWidgetContextActions 1.0 RaohaneDesktopWidgetContextActions.qml
 RaohaneDesktopClockWidget 1.0 RaohaneDesktopClockWidget.qml
 RaohaneDesktopContextWidget 1.0 RaohaneDesktopContextWidget.qml
 RaohaneDesktopSystemWidget 1.0 RaohaneDesktopSystemWidget.qml
