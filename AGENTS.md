@@ -54,13 +54,13 @@ Preserve GNU GPLv3 obligations for covered derivative work. Runtime independence
 
 ## Final design direction
 
-The approved visual target is the dark **Raohane Nocturne** concept: atmospheric Japanese minimalism with compact glass surfaces and restrained violet accents. This is now the final product direction rather than a temporary mood board.
+The approved visual target is the dark **Raohane Nocturne** concept: original atmospheric minimalism with compact glass surfaces and restrained violet accents. Japanese-themed styling is not a product requirement. This is now the final product direction rather than a temporary mood board.
 
 - deep graphite / blue-black desktop chrome with translucent frosted surfaces;
 - soft violet-lavender accent for active controls, selection and focus, never uncontrolled neon bloom;
 - thin blue-gray/violet borders, subtle inner highlights and low-contrast depth;
 - rounded compact cards with consistent geometry across Settings, Control Center, Launcher, Wallpaper, Overview, Media, Sidebar and Notifications;
-- wallpaper-aware atmosphere inspired by night ocean, rain, mist, sakura and subdued anime photography;
+- wallpaper-aware atmosphere inspired by night ocean, rain, mist and subdued photography;
 - clear information hierarchy: strong primary text, cool muted secondary text and very faint metadata;
 - floating Bar pods, Context Island and Dock remain signature geometry;
 - Settings uses a dark sidebar, compact page header and dense two-column navigation cards;
@@ -75,6 +75,44 @@ The approved visual target is the dark **Raohane Nocturne** concept: atmospheric
 For compatibility the persisted default preset id may remain `zen-mist`, but its current palette is the approved Raohane nocturne signature mood. Do not regress it back to the old off-white appearance unless the user explicitly changes the product direction again.
 
 References may inform behavior, but the final user-facing design must remain recognizably Raohane rather than a renamed upstream shell.
+
+## Autonomous development loop
+
+Treat each coding session as one verifiable increment, not permission to declare the
+whole shell stable. Use this sequence, including when resuming after a long gap:
+
+1. Read the latest `main`, `git status`, open PRs/issues, current CI failures,
+   `docs/ROADMAP.md` and the previous work's acceptance notes. Preserve local
+   uncommitted changes and avoid repeating or overwriting another open PR.
+2. Choose one reproducible P0 runtime defect first, then P1 shared UX/material
+   consistency, and only then P2 features. Inspect the real component and
+   its ownership before editing. Prefer a small patch over a redesign.
+3. Keep visual effects cheap: shared translucent surfaces, compositor blur
+   only where available, reduced-motion and Gaming Mode opt-outs, no
+   unbounded blur/shader loops, timers or background captures.
+4. Add a focused regression test where it can detect the specific failure.
+   Run syntax/QML parsing, relevant boundary audits and GitHub Actions.
+5. Compare screenshots from a real Hyprland session; record the actual GPU,
+   logical output size, scale, fullscreen state, CPU/RSS and QML warnings.
+   Static CI cannot prove compositor, input, PAM or rendering behavior.
+6. Publish a focused PR with changed paths, evidence and remaining risks.
+   Merge into `main` only after its required gates pass. Report exact
+   commit/PR links and do not invent a successful test or deployed feature.
+
+Do not solve audit failures by weakening truthful assertions. If the current
+`main` audit is already broken, isolate and repair that baseline separately
+or incorporate an existing reviewed audit fix without copying unrelated,
+unvalidated QML.
+
+## Website synchronization gate
+
+The companion site is `killmyselfrin/raohane-site`. Update it **after**
+the shell's corresponding design and behavior are approved and tested.
+Reuse Raohane's actual palette, typography, spacing and surface language,
+rather than an unrelated website mock-up. Show real, attributable Hyprland
+screenshots at desktop and compact scales; label concept art as concepts.
+Validate mobile layout, link targets, metadata, SEO and site build before
+publishing. Do not advertise planned features as shipped.
 
 ## Runtime validation rule
 
