@@ -299,12 +299,17 @@ Item {
 
                 delegate: Item {
                     id: tile
-                    required property var modelData
+                    // Named FolderListModel roles are provided directly by
+                    // Qt. A required modelData object may be absent on some
+                    // versions, causing every card to fail creation.
+                    required property string filePath
+                    required property string fileName
+                    required property bool fileIsDir
                     required property int index
 
-                    readonly property string filePath: String(modelData.filePath ?? "")
-                    readonly property string title: String(modelData.fileName ?? filePath.split("/").pop())
-                    readonly property bool isDirectory: Boolean(modelData.fileIsDir ?? false)
+                    readonly property string title: fileName.length > 0
+                        ? fileName : filePath.split("/").pop()
+                    readonly property bool isDirectory: fileIsDir
                     readonly property bool video: RaohaneWallpapers.isVideo(filePath)
                     readonly property bool focused: ListView.isCurrentItem
                     readonly property bool applied: !isDirectory && root.appliedPath === filePath
