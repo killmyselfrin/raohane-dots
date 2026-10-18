@@ -77,14 +77,38 @@ Scope {
             readonly property string groupStyle: RaohaneConfig.barGroupStyle
             readonly property bool cinematicPreset: RaohaneConfig.barStylePreset === "cinematic"
             readonly property bool haloPreset: RaohaneConfig.barStylePreset === "halo"
+            readonly property bool compactPreset: RaohaneConfig.barStylePreset === "compact"
+            readonly property bool islandsPreset: RaohaneConfig.barStylePreset === "islands"
+            readonly property bool panelPreset: surfaceStyle === "panel"
+            // Geometry is independent of the look: all presets use the same
+            // collision-proof zones, while Halo/Cinematic/Float have their
+            // own maximum content widths for an intentional silhouette.
+            readonly property real contentWidthLimit: haloPreset ? 1240
+                : cinematicPreset ? 1360
+                : compactPreset ? 1200
+                : islandsPreset ? 1320
+                : panelPreset || surfaceStyle === "hug" ? barWindow.width
+                : 1400
+            readonly property bool compactWidth: barContent.width < 960
+            readonly property bool narrowWidth: barContent.width < 770
+            readonly property bool ultraNarrow: barContent.width < 590
+            readonly property string moduleDensity: ultraNarrow ? "icon"
+                : (haloPreset || compactPreset || compactWidth) ? "compact" : "full"
+            readonly property bool clockCompact: compactPreset || narrowWidth
+            readonly property real centerWidthLimit: Math.max(48,
+                Math.min(barContent.width * (ultraNarrow ? 0.36 : narrowWidth ? 0.38 : 0.39),
+                    haloPreset ? 405 : compactPreset ? 320 : 460))
             readonly property int edgeMargin: Math.max(0, Math.round(RaohaneConfig.barEdgeMargin * RaohaneTheme.densityScale))
             readonly property int effectiveEdgeMargin: surfaceStyle === "hug" || surfaceStyle === "panel" ? 0 : edgeMargin
             readonly property int outerGap: surfaceStyle === "hug" || surfaceStyle === "panel" ? 0 : 6
             readonly property int podRadius: Math.max(0, Math.min(Math.round(RaohaneConfig.barRadius), Math.floor(podHeight / 2)))
             readonly property int effectiveRadius: surfaceStyle === "hug" ? Math.min(10, podRadius) : podRadius
             readonly property int moduleSpacing: Math.max(0, Math.round(RaohaneConfig.barModuleSpacing))
-            readonly property int effectiveModuleSpacing: groupStyle === "segmented" ? 1 : moduleSpacing
+            readonly property int effectiveModuleSpacing: narrowWidth ? Math.min(3, moduleSpacing)
+                : groupStyle === "segmented" ? 1 : moduleSpacing
             readonly property int horizontalPadding: Math.max(2, Math.round(RaohaneConfig.barHorizontalPadding))
+            readonly property int effectivePadding: ultraNarrow ? 3
+                : narrowWidth ? Math.min(6, horizontalPadding) : horizontalPadding
             readonly property bool zoneBackgroundVisible: RaohaneConfig.barShowBackground
                 && !haloPreset
                 && surfaceStyle !== "panel"
@@ -149,15 +173,19 @@ Scope {
 
             Item {
                 id: barContent
-                width: parent.width
+                width: Math.min(parent.width, barWindow.contentWidthLimit)
+                anchors.horizontalCenter: parent.horizontalCenter
                 height: barWindow.implicitHeight
-                // Reserve the centered island's actual width and a visible
-                // gap on both sides. Without this bound, separate left/right
-                // pods can paint over the center on narrow logical outputs.
+                // Side zones reserve the complete center footprint plus a
+                // real gap. The footprint does not depend on either side's
+                // implicit width, so custom layouts cannot create loops.
+                readonly property real zoneGap: barWindow.ultraNarrow ? 3
+                    : barWindow.narrowWidth ? 5 : barWindow.haloPreset ? 12 : 10
+                readonly property real sideInset: barWindow.effectiveEdgeMargin
+                    + (barWindow.haloPreset ? 10 : 0)
                 readonly property real sideIslandLimit: Math.max(0,
                     (width - centerIsland.width) / 2
-                    - barWindow.effectiveEdgeMargin - Math.max(6, barWindow.moduleSpacing)
-                    - (barWindow.haloPreset ? 12 : 0))
+                    - sideInset - zoneGap)
                 y: {
                     if (barWindow.contentShown)
                         return RaohaneConfig.barBottom
@@ -194,11 +222,13 @@ Scope {
                     raised: RaohaneConfig.barShadow
                     showSheen: barWindow.haloPreset
                     showInnerRim: barWindow.haloPreset
+                    // A dark muted glass base prevents a red wallpaper from
+                    // turning the entire bar into an opaque saturated strip.
                     idleColor: barWindow.haloPreset
-                        ? RaohaneTheme.surfaceRaised
+                        ? RaohaneTheme.backgroundElevated
                         : (RaohaneConfig.barShadow ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface)
                     border.color: barWindow.haloPreset
-                        ? RaohaneTheme.accentBorder : RaohaneTheme.border
+                        ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                     Rectangle {
                         // One restrained highlight, not an animated GPU glow.
@@ -248,11 +278,11 @@ Scope {
                     visible: root.activeLayout.left.length > 0
                     anchors {
                         left: parent.left
-                        leftMargin: barWindow.effectiveEdgeMargin + (barWindow.haloPreset ? 10 : 0)
+                        leftMargin: barContent.sideInset
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
-                        ? Math.min(barContent.sideIslandLimit, Math.max(48, leftRow.implicitWidth + barWindow.horizontalPadding * 2))
+                        ? Math.min(barContent.sideIslandLimit, Math.max(0, leftRow.implicitWidth + barWindow.effectivePadding * 2))
                         : 0
                     height: visible ? barWindow.podHeight : 0
                     clip: true
@@ -280,8 +310,8 @@ Scope {
                         id: leftRow
                         anchors {
                             fill: parent
-                            leftMargin: barWindow.horizontalPadding
-                            rightMargin: barWindow.horizontalPadding
+                            leftMargin: barWindow.effectivePadding
+                            rightMargin: barWindow.effectivePadding
                         }
                         spacing: barWindow.effectiveModuleSpacing
 
@@ -296,6 +326,11 @@ Scope {
                                 parentWindow: barWindow
                                 hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                 showDate: root.showDateConfigured
+                                densityMode: barWindow.moduleDensity
+                                compactClock: barWindow.clockCompact
+                                compactWorkspaces: barWindow.compactWidth
+                                canShow: !(barWindow.narrowWidth && moduleId === "tray")
+                                    && !(barWindow.ultraNarrow && moduleId === "launcher")
                                 groupStyle: barWindow.groupStyle
                                 showBackground: RaohaneConfig.barShowBackground
                                 primaryAction: root.togglePrimarySurface
@@ -311,10 +346,10 @@ Scope {
                     visible: root.activeLayout.center.length > 0
                     anchors.centerIn: parent
                     width: visible
-                        ? Math.min(parent.width * 0.42, Math.max(48, centerRow.implicitWidth + barWindow.horizontalPadding * 2))
+                        ? Math.min(barWindow.centerWidthLimit, Math.max(0, centerRow.implicitWidth + barWindow.effectivePadding * 2))
                         : 0
                     height: visible ? barWindow.podHeight : 0
-                    clip: barWindow.haloPreset
+                    clip: true
                     surfaceRadius: barWindow.effectiveRadius
                     opacity: barWindow.haloPreset ? 1 : RaohaneConfig.barOpacity
                     raised: barWindow.haloPreset ? false : RaohaneConfig.barShadow
@@ -341,8 +376,8 @@ Scope {
                         id: centerRow
                         anchors {
                             fill: parent
-                            leftMargin: barWindow.horizontalPadding
-                            rightMargin: barWindow.horizontalPadding
+                            leftMargin: barWindow.effectivePadding
+                            rightMargin: barWindow.effectivePadding
                         }
                         spacing: barWindow.effectiveModuleSpacing
 
@@ -357,6 +392,11 @@ Scope {
                                 parentWindow: barWindow
                                 hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                 showDate: root.showDateConfigured
+                                densityMode: barWindow.moduleDensity
+                                compactClock: barWindow.clockCompact
+                                compactWorkspaces: barWindow.compactWidth
+                                canShow: !(barWindow.narrowWidth && moduleId === "tray")
+                                    && !(barWindow.ultraNarrow && moduleId === "launcher")
                                 groupStyle: barWindow.groupStyle
                                 showBackground: RaohaneConfig.barShowBackground
                                 primaryAction: root.togglePrimarySurface
@@ -372,11 +412,11 @@ Scope {
                     visible: root.activeLayout.right.length > 0
                     anchors {
                         right: parent.right
-                        rightMargin: barWindow.effectiveEdgeMargin + (barWindow.haloPreset ? 10 : 0)
+                        rightMargin: barContent.sideInset
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
-                        ? Math.min(barContent.sideIslandLimit, Math.max(48, rightRow.implicitWidth + barWindow.horizontalPadding * 2))
+                        ? Math.min(barContent.sideIslandLimit, Math.max(0, rightRow.implicitWidth + barWindow.effectivePadding * 2))
                         : 0
                     height: visible ? barWindow.podHeight : 0
                     clip: true
@@ -404,8 +444,8 @@ Scope {
                         id: rightRow
                         anchors {
                             fill: parent
-                            leftMargin: barWindow.horizontalPadding
-                            rightMargin: barWindow.horizontalPadding
+                            leftMargin: barWindow.effectivePadding
+                            rightMargin: barWindow.effectivePadding
                         }
                         spacing: barWindow.effectiveModuleSpacing
 
@@ -420,6 +460,11 @@ Scope {
                                 parentWindow: barWindow
                                 hostActive: barWindow.visible && !barWindow.fullscreenSuppressed
                                 showDate: root.showDateConfigured
+                                densityMode: barWindow.moduleDensity
+                                compactClock: barWindow.clockCompact
+                                compactWorkspaces: barWindow.compactWidth
+                                canShow: !(barWindow.narrowWidth && moduleId === "tray")
+                                    && !(barWindow.ultraNarrow && moduleId === "launcher")
                                 groupStyle: barWindow.groupStyle
                                 showBackground: RaohaneConfig.barShowBackground
                                 primaryAction: root.togglePrimarySurface
