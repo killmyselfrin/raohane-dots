@@ -16,7 +16,11 @@ Singleton {
     property string providerName: "LRCLIB"
     property string debugStatus: "idle"
     property int requestSerial: 0
+    // Successful lyric payloads are retained only for the 64 most recently
+    // used tracks, avoiding unbounded growth across a long music session.
+    readonly property int maxCacheEntries: 64
     property var cache: ({})
+    property var cacheOrder: []
 
     readonly property bool syncedAvailable: lines.length > 0
     readonly property bool available: instrumental || syncedAvailable || plainLyrics.trim().length > 0
@@ -72,6 +76,34 @@ Singleton {
         ].join("|")
     }
 
+    function cachedRecord(key: string): var {
+        if (!Object.prototype.hasOwnProperty.call(root.cache, key))
+            return null
+
+        const order = root.cacheOrder.filter(entry => entry !== key)
+        order.push(key)
+        root.cacheOrder = order
+        return root.cache[key]
+    }
+
+    function forgetCachedRecord(key: string): void {
+        if (Object.prototype.hasOwnProperty.call(root.cache, key))
+            delete root.cache[key]
+        root.cacheOrder = root.cacheOrder.filter(entry => entry !== key)
+    }
+
+    function rememberRecord(key: string, record): void {
+        const order = root.cacheOrder.filter(entry => entry !== key)
+        order.push(key)
+        root.cache[key] = record
+
+        while (order.length > root.maxCacheEntries) {
+            const oldestKey = order.shift()
+            delete root.cache[oldestKey]
+        }
+        root.cacheOrder = order
+    }
+
     function clear(): void {
         resolver.running = false
         requestWatchdog.stop()
@@ -90,8 +122,7 @@ Singleton {
     function forceRefresh(): void {
         const meta = root.metadata()
         const key = root.trackKey(meta)
-        if (Object.prototype.hasOwnProperty.call(root.cache, key))
-            delete root.cache[key]
+        root.forgetCachedRecord(key)
         root.lookup()
     }
 
@@ -109,7 +140,7 @@ Singleton {
         }
 
         const key = root.trackKey(meta)
-        const cached = root.cache[key]
+        const cached = root.cachedRecord(key)
         if (cached && root.recordMatches(cached, meta, false)) {
             root.applyRecord(cached, key, meta)
             return
@@ -229,7 +260,7 @@ Singleton {
             syncedLyrics: String(record.syncedLyrics ?? "")
         }
 
-        root.cache[key] = compact
+        root.rememberRecord(key, compact)
         root.instrumental = compact.instrumental
         root.plainLyrics = compact.plainLyrics
         root.lines = root.parseSyncedLyrics(compact.syncedLyrics)
