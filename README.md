@@ -49,7 +49,7 @@ Built with **Quickshell + Qt/QML**. Made to feel fast, consistent, and personal.
 | **Launcher &amp; Overview** | Search for apps and actions, navigate workspaces and switch between windows. |
 | **Control Center** | Wi-Fi, Bluetooth, audio, microphone, display brightness, notifications, and Scenes. |
 | **Settings &amp; Themes** | Central settings, theme presets, JSON theme import/export, live appearance controls, and desktop widgets with an on-wallpaper grid editor and nine selectable Clock/Music/System faces (Classic, Minimal, Aurora). |
-| **Wallpaper &amp; Bar** | Wallpaper Studio 2.0 adds favorites, saved folder collections, per-monitor wallpapers, optional adaptive accents, video preview controls and timed rotation; Bar Studio includes the original styles plus the opt-in **Halo** full-width adaptive-glass capsule. |
+| **Wallpaper &amp; Bar** | Wallpaper Studio 2.0 adds favorites, saved folder collections, per-monitor wallpapers, optional adaptive accents, video preview controls and timed rotation; Bar Studio includes the original styles, the centered **Halo** glass capsule, and optional **Chromatic Flow** that slowly blends two colors detected in the applied wallpaper. |
 | **Scenes** | Balanced, Gaming, Focus, and Work modes with application rules and contextual runtime policies. |
 | **Media** | MPRIS controls, synced/plain lyrics, a music surface, and a fullscreen media overlay. |
 | **Utilities** | Screenshots, recording, OCR, translation, clipboard tools, on-screen keyboard, task manager, and power/session controls. |
