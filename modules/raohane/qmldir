@@ -123,6 +123,7 @@ RaohaneTaskManager 1.0 RaohaneTaskManager.qml
 RaohaneOsd 1.0 RaohaneOsd.qml
 RaohaneNotificationPopup 1.0 RaohaneNotificationPopup.qml
 RaohaneWallpaperSelector 1.0 RaohaneWallpaperSelector.qml
+RaohaneWallpaperCinema 1.0 RaohaneWallpaperCinema.qml
 RaohaneDesktopMenu 1.0 RaohaneDesktopMenu.qml
 RaohaneSessionScreen 1.0 RaohaneSessionScreen.qml
 RaohaneLockContext 1.0 RaohaneLockContext.qml
