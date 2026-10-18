@@ -12,6 +12,7 @@ Item {
     property var screen: null
     property string orientation: "horizontal"
     property bool compactMode: false
+    property bool minimalMode: false
 
     readonly property bool vertical: orientation === "vertical"
     readonly property var monitor: root.screen ? Hyprland.monitorFor(root.screen) : Hyprland.focusedMonitor
@@ -23,8 +24,10 @@ Item {
     // count and model remain available on normal screens and vertical bars.
     readonly property var workspaceIds: {
         const group = Array.from({ length: root.workspaceCount }, (_, index) => root.groupStart + index)
-        if (!root.compactMode || root.vertical)
+        if (root.vertical || (!root.compactMode && !root.minimalMode))
             return group
+        if (root.minimalMode)
+            return [root.activeWorkspaceId]
         const currentIndex = group.indexOf(root.activeWorkspaceId)
         const start = Math.max(0, Math.min(group.length - 3, currentIndex - 1))
         return group.slice(start, start + 3)
