@@ -337,6 +337,87 @@ Item {
         }
 
         SectionCard {
+            icon: "gradient"
+            title: qsTr("Chromatic Flow")
+            subtitle: qsTr("Two wallpaper colors quietly flow across the glass bar.")
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                ToggleRow {
+                    Layout.fillWidth: true
+                    icon: "auto_awesome"
+                    title: qsTr("Wallpaper gradient")
+                    detail: qsTr("Gently exchange two prominent wallpaper colors")
+                    checked: RaohaneConfig.barChromaticFlow
+                    onToggled: value => RaohaneConfig.barChromaticFlow = value
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: RaohaneConfig.barChromaticFlow
+                    spacing: 9
+                    Layout.leftMargin: 12
+                    Layout.rightMargin: 12
+                    Layout.bottomMargin: 4
+
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 11
+                        color: RaohaneConfig.wallpaperFlowColorA
+                        border.width: 1
+                        border.color: RaohaneTheme.borderStrong
+                    }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 11
+                        color: RaohaneConfig.wallpaperFlowColorB
+                        border.width: 1
+                        border.color: RaohaneTheme.borderStrong
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Colors extracted from the currently applied wallpaper")
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 10
+                        wrapMode: Text.WordWrap
+                    }
+                }
+
+                BarSlider {
+                    Layout.fillWidth: true
+                    title: qsTr("Gradient intensity")
+                    detail: qsTr("Keep text and status icons readable")
+                    enabled: RaohaneConfig.barChromaticFlow
+                    value: RaohaneConfig.barChromaticIntensity
+                    minimum: 0.05
+                    maximum: 0.45
+                    step: 0.01
+                    multiplier: 100
+                    suffix: "%"
+                    onUserChanged: value => RaohaneConfig.barChromaticIntensity = value
+                }
+
+                BarSlider {
+                    Layout.fillWidth: true
+                    title: qsTr("Flow duration")
+                    detail: qsTr("Time for a complete, gentle color exchange")
+                    enabled: RaohaneConfig.barChromaticFlow
+                    value: RaohaneConfig.barChromaticSeconds
+                    minimum: 12
+                    maximum: 60
+                    step: 2
+                    suffix: " s"
+                    showDivider: false
+                    onUserChanged: value => RaohaneConfig.barChromaticSeconds = Math.round(value)
+                }
+            }
+        }
+
+        SectionCard {
             icon: "straighten"
             title: qsTr("Geometry")
             subtitle: qsTr("Tune panel dimensions independently from the global interface scale.")
