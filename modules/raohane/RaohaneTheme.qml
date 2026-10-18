@@ -114,14 +114,32 @@ QtObject {
     readonly property color presetBorderFaint: activePreset.borderFaint
     readonly property color presetHighlight: activePreset.highlight
 
-    readonly property color background: presetBackground
-    readonly property color backgroundElevated: presetBackgroundElevated
-    readonly property color surface: Qt.rgba(presetSurface.r, presetSurface.g, presetSurface.b, Math.min(1, presetSurface.a * glassOpacity))
-    readonly property color surfaceRaised: Qt.rgba(presetSurfaceRaised.r, presetSurfaceRaised.g, presetSurfaceRaised.b, Math.min(1, presetSurfaceRaised.a * glassOpacity))
-    readonly property color surfaceDeep: Qt.rgba(presetSurfaceDeep.r, presetSurfaceDeep.g, presetSurfaceDeep.b, Math.min(1, presetSurfaceDeep.a * glassOpacity))
-    readonly property color surfaceSubtle: Qt.rgba(presetSurfaceSubtle.r, presetSurfaceSubtle.g, presetSurfaceSubtle.b, Math.min(1, presetSurfaceSubtle.a * glassOpacity))
-    readonly property color surfaceHover: Qt.rgba(presetSurfaceHover.r, presetSurfaceHover.g, presetSurfaceHover.b, Math.min(1, presetSurfaceHover.a * glassOpacity))
-    readonly property color surfacePressed: Qt.rgba(presetSurfacePressed.r, presetSurfacePressed.g, presetSurfacePressed.b, Math.min(1, presetSurfacePressed.a * glassOpacity))
+    // A wallpaper accent used to recolor only the glass material, borders
+    // and highlights. Keep preset text colors and light/dark contrast intact.
+    // All Bar/desktop widget surfaces already consume these shared tokens.
+    readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAdaptiveAccent
+    readonly property color wallpaperTint: RaohaneConfig.wallpaperAdaptiveColor
+
+    function tintedMaterial(base: color, mix: real): color {
+        if (!root.adaptivePaletteActive)
+            return base
+        const amount = Math.max(0, Math.min(0.65, mix))
+        return Qt.rgba(
+            base.r * (1 - amount) + root.wallpaperTint.r * amount,
+            base.g * (1 - amount) + root.wallpaperTint.g * amount,
+            base.b * (1 - amount) + root.wallpaperTint.b * amount,
+            base.a
+        )
+    }
+
+    readonly property color background: root.tintedMaterial(presetBackground, dark ? 0.16 : 0.07)
+    readonly property color backgroundElevated: root.tintedMaterial(presetBackgroundElevated, dark ? 0.27 : 0.10)
+    readonly property color surface: root.tintedMaterial(Qt.rgba(presetSurface.r, presetSurface.g, presetSurface.b, Math.min(1, presetSurface.a * glassOpacity)), dark ? 0.42 : 0.15)
+    readonly property color surfaceRaised: root.tintedMaterial(Qt.rgba(presetSurfaceRaised.r, presetSurfaceRaised.g, presetSurfaceRaised.b, Math.min(1, presetSurfaceRaised.a * glassOpacity)), dark ? 0.45 : 0.18)
+    readonly property color surfaceDeep: root.tintedMaterial(Qt.rgba(presetSurfaceDeep.r, presetSurfaceDeep.g, presetSurfaceDeep.b, Math.min(1, presetSurfaceDeep.a * glassOpacity)), dark ? 0.32 : 0.13)
+    readonly property color surfaceSubtle: root.tintedMaterial(Qt.rgba(presetSurfaceSubtle.r, presetSurfaceSubtle.g, presetSurfaceSubtle.b, Math.min(1, presetSurfaceSubtle.a * glassOpacity)), dark ? 0.40 : 0.14)
+    readonly property color surfaceHover: root.tintedMaterial(Qt.rgba(presetSurfaceHover.r, presetSurfaceHover.g, presetSurfaceHover.b, Math.min(1, presetSurfaceHover.a * glassOpacity)), dark ? 0.48 : 0.18)
+    readonly property color surfacePressed: root.tintedMaterial(Qt.rgba(presetSurfacePressed.r, presetSurfacePressed.g, presetSurfacePressed.b, Math.min(1, presetSurfacePressed.a * glassOpacity)), dark ? 0.52 : 0.22)
 
     readonly property color glass: surface
     readonly property color glassStrong: surfaceRaised
@@ -130,9 +148,9 @@ QtObject {
     readonly property color surfaceCard: surface
     readonly property color surfaceMuted: surfaceSubtle
 
-    readonly property color border: Qt.rgba(presetBorder.r, presetBorder.g, presetBorder.b, Math.min(1, presetBorder.a * borderStrength))
-    readonly property color borderStrong: Qt.rgba(presetBorderStrong.r, presetBorderStrong.g, presetBorderStrong.b, Math.min(1, presetBorderStrong.a * borderStrength))
-    readonly property color borderFaint: Qt.rgba(presetBorderFaint.r, presetBorderFaint.g, presetBorderFaint.b, Math.min(1, presetBorderFaint.a * borderStrength))
+    readonly property color border: root.tintedMaterial(Qt.rgba(presetBorder.r, presetBorder.g, presetBorder.b, Math.min(1, presetBorder.a * borderStrength)), dark ? 0.56 : 0.24)
+    readonly property color borderStrong: root.tintedMaterial(Qt.rgba(presetBorderStrong.r, presetBorderStrong.g, presetBorderStrong.b, Math.min(1, presetBorderStrong.a * borderStrength)), dark ? 0.55 : 0.22)
+    readonly property color borderFaint: root.tintedMaterial(Qt.rgba(presetBorderFaint.r, presetBorderFaint.g, presetBorderFaint.b, Math.min(1, presetBorderFaint.a * borderStrength)), dark ? 0.54 : 0.20)
     readonly property color highlight: presetHighlight
     readonly property color divider: borderFaint
 
@@ -150,8 +168,8 @@ QtObject {
         : accentMode === "sand" ? "#806f59"
         : accentMode === "custom" ? customAccent
         : presetAccent
-    readonly property color accentSecondary: accentMode === "theme" ? activePreset.accentSecondary : accent
-    readonly property color accentBlue: accentMode === "theme" ? activePreset.accentBlue : accent
+    readonly property color accentSecondary: root.adaptivePaletteActive ? accent : accentMode === "theme" ? activePreset.accentSecondary : accent
+    readonly property color accentBlue: root.adaptivePaletteActive ? accent : accentMode === "theme" ? activePreset.accentBlue : accent
     readonly property color accentSoft: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.46, (dark ? 0.15 : 0.10) * accentStrength))
     readonly property color accentHover: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.56, (dark ? 0.22 : 0.15) * accentStrength))
     readonly property color accentPressed: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.66, (dark ? 0.30 : 0.21) * accentStrength))
