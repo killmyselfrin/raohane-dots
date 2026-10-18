@@ -27,25 +27,30 @@ rg -q 'PwObjectTracker[[:space:]]*\{' "$privacy" \
   || fail 'privacy does not bind node properties and link states'
 rg -q 'PwLinkState\.Active' "$privacy" \
   || fail 'privacy no longer limits capture indicators to active graph links'
-# PipeWire ObjectModel.values is a typed QML list. At startup the lists can
-# be temporarily unavailable and some Qt versions reject JS iterable syntax.
-# Guard the graph and output fields, keeping PwObjectTracker.objects defined.
-rg -Fq 'function trackableObjects(nodes, linkGroups): var' "$privacy" \
-  || fail 'privacy no longer normalizes Qt object lists'
-rg -Fq 'readonly property var trackedObjects: root.trackableObjects(' "$privacy" \
-  || fail 'privacy tracker can receive an uninitialized object list'
-rg -Fq 'Pipewire.nodes?.values ?? []' "$privacy" \
-  || fail 'privacy nodes lack startup-safe list fallback'
-rg -Fq 'Pipewire.linkGroups?.values ?? []' "$privacy" \
-  || fail 'privacy link groups lack startup-safe list fallback'
-rg -Fq 'root.captureState?.microphoneActive ?? false' "$privacy" \
-  || fail 'privacy active indicators no longer guard pending capture state'
-rg -Fq 'root.captureState?.recordingApp ?? ""' "$privacy" \
-  || fail 'privacy capture app labels no longer guard pending state'
-if rg -Fq '[...root.graphNodes' "$privacy" || rg -Fq 'for (const group of linkGroups' "$privacy" \
-  || rg -Fq 'for (const node of nodes' "$privacy"; then
-  fail 'privacy uses JS iteration syntax that can fail on Qt object lists'
+# Always publish typed Qt lists to PwObjectTracker. A converted JavaScript
+# variant can become undefined when coerced into QList<QObject*>.
+rg -Fq 'property bool initialized: false' "$privacy" \
+  || fail 'privacy singleton lacks a startup guard'
+rg -Fq 'Component.onCompleted: initialized = true' "$privacy" \
+  || fail 'privacy singleton initializes bindings prematurely'
+rg -Fq 'objects: root.initialized && Pipewire.nodes' "$privacy" \
+  || fail 'node tracker does not receive the native typed Qt list'
+rg -Fq 'objects: root.initialized && Pipewire.linkGroups' "$privacy" \
+  || fail 'link tracker does not receive the native typed Qt list'
+rg -Fq 'root.buildCaptureState(root.refreshRevision,' "$privacy" \
+  || fail 'privacy lost native capture state classification'
+rg -Fq 'console.warn("[Raohane] Unable to read PipeWire capture graph:"' "$privacy" \
+  || fail 'privacy snapshot has no failure-safe fallback'
+for marker in 'microphoneActive: false' 'cameraActive: false' 'recordingActive: false' \
+              'unclassifiedVideoCaptureActive: false' 'microphoneApp: ""' \
+              'cameraApp: ""' 'recordingApp: ""'; do
+  rg -Fq "$marker" "$privacy" || fail "privacy startup default missing $marker"
+done
+if rg -Fq 'readonly property var trackedObjects' "$privacy" \
+  || rg -Fq 'function trackableObjects(' "$privacy"; then
+  fail 'privacy reintroduced intermediate JavaScript QObject list'
 fi
+
 for property in 'media\.class' 'media\.category' 'media\.role' 'application\.name'; do
   rg -q "$property" "$privacy" || fail "privacy lost capture metadata contract: $property"
 done
