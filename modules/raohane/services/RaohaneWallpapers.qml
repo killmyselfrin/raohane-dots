@@ -387,9 +387,10 @@ Singleton {
             accentDebounce.stop()
             return
         }
-        const wallpaper = RaohaneConfig.wallpaperPath
-        const image = root.isVideo(wallpaper) ? root.generatedVideoPosterUrl(wallpaper) : wallpaper
-        root.accentProbePath = root.cleanPath(image)
+        // Extract one representative frame directly from a video when its
+        // poster has not been requested by the picker. This also works at
+        // login and for wallpapers applied by another entry point.
+        root.accentProbePath = root.cleanPath(RaohaneConfig.wallpaperPath)
         if (root.accentProbePath.length > 0)
             accentDebounce.restart()
     }
@@ -401,25 +402,30 @@ Singleton {
         onTriggered: {
             if (accentProcess.running || !root.accentProbePath.length)
                 return
-            accentProcess.command = ["python3", "-E", root.paletteScriptPath, root.accentProbePath]
+            accentProcess.sourcePath = root.accentProbePath
+            accentProcess.command = ["python3", "-E", root.paletteScriptPath, accentProcess.sourcePath]
             accentProcess.running = true
         }
     }
 
     Process {
         id: accentProcess
+        property string sourcePath: ""
         stdout: SplitParser {
             onRead: data => {
                 const value = String(data).trim()
-                if (/^#[0-9a-fA-F]{6}$/.test(value) && RaohaneConfig.wallpaperAdaptiveAccent
-                        && RaohaneConfig.ready)
+                if (/^#[0-9a-fA-F]{6}$/.test(value)
+                        && RaohaneConfig.wallpaperAdaptiveAccent
+                        && RaohaneConfig.ready
+                        && accentProcess.sourcePath === root.cleanPath(RaohaneConfig.wallpaperPath))
                     RaohaneConfig.wallpaperAdaptiveColor = value
             }
         }
         onExited: (code, status) => {
-            if (root.accentProbePath.length > 0 && RaohaneConfig.wallpaperAdaptiveAccent
-                    && RaohaneConfig.wallpaperPath !== root.accentProbePath
-                    && !root.isVideo(RaohaneConfig.wallpaperPath))
+            // An old sampling process may finish after the user applies a
+            // new wallpaper. Ignore stale stdout and sample the new source.
+            if (RaohaneConfig.wallpaperAdaptiveAccent
+                    && accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath))
                 root.queueAdaptiveAccent()
         }
     }
