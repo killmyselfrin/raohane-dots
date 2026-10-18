@@ -201,6 +201,14 @@ rg -Fq 'flickDeceleration: 8300' "$cinema" \
   || fail 'carousel flicking lost fast inertial braking'
 rg -Fq 'extract_video_frame(ffmpeg, source, temp, "5", size)' "$thumb_generator" \
   || fail 'video thumbnail generator lost representative 5-second frame'
+rg -Fq 'RaohaneWallpapers.generatedVideoPosterUrl(path)' "$cinema" \
+  || fail 'cinematic poster ignores the exact cache file reported by the generator'
+rg -Fq 'generatedVideoPosters: ({})' "$service" \
+  || fail 'wallpaper service cannot keep an exact poster map'
+rg -Fq 'root.rememberVideoPoster(match[1], match[2])' "$service" \
+  || fail 'wallpaper service ignores thumbnail generator output paths'
+rg -Fq 'print(f"THUMBNAIL {source}\\t{thumbnail_path(source, args.size)}", flush=True)' "$thumb_generator" \
+  || fail 'generator no longer reports exact poster filenames'
 
 
 # Hidden QQuickImage items still evaluate and decode their source. Gallery image
@@ -276,13 +284,16 @@ PY
 if command -v ffmpeg >/dev/null 2>&1 && python3 -c 'from PIL import Image' >/dev/null 2>&1; then
   temp_dir="$(mktemp -d)"
   trap 'rm -rf "$temp_dir"' EXIT
-  clip="$temp_dir/Видео тест 01.mp4"
+  mkdir -p "$temp_dir/videos"
+  clip="$temp_dir/videos/Видео тест 01.mp4"
+  ln -s "$temp_dir/videos" "$temp_dir/alias"
   ffmpeg -hide_banner -loglevel error -nostdin -y -f lavfi \
     -i 'testsrc=size=192x108:rate=1:duration=7' -c:v mpeg4 -q:v 7 "$clip" \
     || fail 'could not create video thumbnail test fixture'
-  XDG_CACHE_HOME="$temp_dir/cache" bash "$thumb_wrapper" -s x-large -d "$temp_dir" \
-    >/dev/null || fail 'real video thumbnail generator failed'
-  python3 - "$clip" "$temp_dir/cache" <<'PY'
+  XDG_CACHE_HOME="$temp_dir/cache" bash "$thumb_wrapper" -s x-large \
+    --machine_progress -d "$temp_dir/alias" >"$temp_dir/posters.log" \
+    || fail 'real video thumbnail generator failed'
+  python3 - "$clip" "$temp_dir/cache" "$temp_dir/posters.log" "$temp_dir/alias" <<'PY'
 import hashlib
 from pathlib import Path
 import sys
@@ -291,11 +302,17 @@ from PIL import Image, ImageStat
 
 clip = Path(sys.argv[1]).resolve()
 cache = Path(sys.argv[2])
+log = Path(sys.argv[3])
+alias = Path(sys.argv[4])
 uri = "file://" + quote(str(clip), safe="/")
 digest = hashlib.md5(uri.encode("utf-8"), usedforsecurity=False).hexdigest()
 poster = cache / "thumbnails" / "x-large" / f"{digest}.png"
 if not poster.is_file():
     raise SystemExit(f"missing video poster at {poster}")
+expected = f"THUMBNAIL {alias / clip.name}\\t{poster}"
+lines = log.read_text(encoding="utf-8").splitlines()
+if expected not in lines:
+    raise SystemExit(f"generator did not report the exact symlink-safe cache file: {lines}")
 with Image.open(poster) as preview:
     if preview.width < 1 or preview.height < 1:
         raise SystemExit("video poster has invalid size")
