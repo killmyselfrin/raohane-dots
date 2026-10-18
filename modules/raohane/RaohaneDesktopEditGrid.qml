@@ -137,6 +137,20 @@ Item {
             Item { Layout.fillWidth: true }
 
             ToolAction {
+                icon: "palette"
+                label: qsTr("Style")
+                enabled: ["clock", "context", "system"].includes(RaohaneState.desktopWidgetEditWidgetId)
+                opacity: enabled ? 1 : 0.35
+                onTriggered: {
+                    const id = RaohaneState.desktopWidgetEditWidgetId
+                    const styles = ["classic", "minimal", "aurora"]
+                    const current = RaohaneConfig.desktopWidgetStyle(id)
+                    const next = styles[(styles.indexOf(current) + 1) % styles.length]
+                    RaohaneConfig.setDesktopWidgetStyle(id, next)
+                }
+            }
+
+            ToolAction {
                 icon: "restart_alt"
                 label: qsTr("Reset")
                 onTriggered: {
