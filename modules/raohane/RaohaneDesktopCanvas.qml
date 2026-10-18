@@ -38,8 +38,14 @@ Variants {
                 RaohaneState.desktopWidgetEditMode = false
         }
         onEditInputEnabledChanged: {
-            if (editInputEnabled)
-                Qt.callLater(() => desktopWidgets.forceActiveFocus())
+            if (editInputEnabled) {
+                Qt.callLater(() => {
+                    if (!desktopWindow.editInputEnabled)
+                        return
+                    desktopWindow.requestActivate()
+                    desktopWidgets.forceActiveFocus()
+                })
+            }
         }
 
         Connections {
