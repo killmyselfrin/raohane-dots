@@ -10,7 +10,13 @@
     "hideWhenFullscreen": true,
     "transitionDuration": 650,
     "dim": 0.06,
-    "lockDim": 0.28
+    "lockDim": 0.28,
+    "favorites": [],
+    "collections": [],
+    "monitors": {},
+    "autoSource": "folder",
+    "adaptiveAccent": false,
+    "adaptiveColor": "#94b5e5"
   },
   "overview": {
     "workspaceCount": 6,
