@@ -18,7 +18,7 @@ system='modules/raohane/RaohaneDesktopSystemWidget.qml'
 motto='modules/raohane/RaohaneDesktopMottoWidget.qml'
 studio='modules/raohane/RaohaneWidgetStudio.qml'
 layout_studio='modules/raohane/RaohaneDesktopWidgetLayoutStudio.qml'
-widget_gallery='modules/raohane/RaohaneDesktopWidgetPopover.qml'
+edit_grid='modules/raohane/RaohaneDesktopEditGrid.qml'
 desktop_menu='modules/raohane/RaohaneDesktopMenu.qml'
 background='modules/raohane/RaohaneBackground.qml'
 state='modules/raohane/RaohaneState.qml'
@@ -31,7 +31,7 @@ search='modules/raohane/RaohaneSettingsSearch.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 
-for path in "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$widget_gallery" "$desktop_menu" "$background" "$state" "$free_studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
+for path in "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$edit_grid" "$desktop_menu" "$background" "$state" "$free_studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
   [[ -f "$path" ]] || fail "missing native widget path: $path"
 done
 
@@ -71,31 +71,49 @@ rg -Fq 'acceptedButtons: Qt.RightButton' "$background" \
   || fail 'blank wallpaper lost right-click action'
 rg -Fq 'desktopMenuWidgetId' "$state" \
   || fail 'desktop menu no longer remembers selected widget'
-# One desktop menu owns both views. Widgets expands into a single
-# on-demand gallery/canvas panel with a back button, not direct action rows.
-rg -Fq 'sourceComponent: RaohaneDesktopWidgetPopover {' "$desktop_menu" \
-  || fail 'desktop menu no longer opens widget gallery'
-rg -Fq 'visible: !root.showWidgetManager' "$desktop_menu" \
-  || fail 'right click bypasses the compact desktop menu'
-rg -Fq 'active: root.showWidgetManager' "$desktop_menu" \
-  || fail 'widget gallery is instantiated while its view is closed'
-rg -Fq 'onBackRequested: root.showWidgetManager = false' "$desktop_menu" \
-  || fail 'widget gallery lost return navigation'
-if rg -Fq 'RaohaneDesktopWidgetContextActions {' "$desktop_menu"; then
-  fail 'obsolete direct widget action list returned to the desktop menu'
+# Widgets now enter edit mode on the real desktop. The old gallery
+# must not return and normal pointer input must be restored upon exit.
+rg -Fq 'RaohaneDesktopEditGrid 1.0 RaohaneDesktopEditGrid.qml' "$qmldir" \
+  || fail 'desktop edit grid is not registered'
+rg -Fq 'RaohaneDesktopEditGrid {' "$widgets" \
+  || fail 'real desktop does not render grid editing overlay'
+rg -Fq 'function startWidgetEditing(): void' "$desktop_menu" \
+  || fail 'desktop Widgets menu no longer enters direct edit mode'
+rg -Fq 'onTriggered: root.startWidgetEditing()' "$desktop_menu" \
+  || fail 'Widgets command does not enter direct desktop edit mode'
+rg -Fq 'desktopWidgetEditMode = true' "$desktop_menu" \
+  || fail 'menu does not activate desktop editing'
+if rg -Fq 'RaohaneDesktopWidgetPopover' "$desktop_menu"; then
+  fail 'obsolete mock widget gallery returned'
 fi
-rg -Fq 'GridLayout {' "$widget_gallery" \
-  || fail 'widget gallery lost the widget card grid'
-rg -Fq 'RaohaneSwitch {' "$widget_gallery" \
-  || fail 'widget gallery cannot toggle widgets'
-rg -Fq 'RaohaneFreeWidgetStudio {' "$widget_gallery" \
-  || fail 'widget gallery cannot drag and resize layouts'
-rg -Fq 'onSelectedWidgetIdChanged: root.selectedWidgetId = selectedWidgetId' "$widget_gallery" \
-  || fail 'widget gallery lost selected widget synchronization'
-rg -Fq 'RaohaneConfig.desktopWidgetsLayout = "free"' "$widget_gallery" \
-  || fail 'widget gallery cannot enable free layout'
-rg -Fq 'RaohaneSettingsRouter.request("widgets", "")' "$widget_gallery" \
-  || fail 'widget gallery lost full-editor navigation'
+rg -Fq 'property bool desktopWidgetEditMode:' "$state" \
+  || fail 'transient edit state is missing'
+rg -Fq 'desktopWidgetEditScreenName:' "$state" \
+  || fail 'desktop editor lost monitor selection'
+rg -Fq 'width: desktopWindow.editInputEnabled ? desktopWindow.width : 0' "$canvas" \
+  || fail 'desktop editing input region does not cover work area'
+rg -Fq 'WlrLayershell.keyboardFocus: desktopWindow.editInputEnabled' "$canvas" \
+  || fail 'desktop editor has no scoped keyboard focus'
+rg -Fq 'onFullscreenActiveChanged:' "$canvas" \
+  || fail 'desktop editor cannot dismiss on fullscreen'
+rg -Fq 'Component.onDestruction:' "$canvas" \
+  || fail 'desktop editor cannot dismiss on monitor disconnect'
+rg -Fq 'RaohaneState.desktopWidgetEditMode = false' "$edit_grid" \
+  && fail 'edit grid must signal closure rather than mutate global state directly'
+rg -Fq 'onDoneRequested: RaohaneState.desktopWidgetEditMode = false' "$widgets" \
+  || fail 'editing has no Done action'
+rg -Fq 'onReleased: placedWidget.finishInteraction()' "$widgets" \
+  || fail 'desktop widgets cannot commit interactive drag/resize'
+rg -Fq 'Math.round(workingX / root.editGridStep)' "$widgets" \
+  || fail 'desktop widget movement lost grid snapping'
+rg -Fq 'RaohaneConfig.setDesktopWidgetPlacement(' "$widgets" \
+  || fail 'real widget drags do not persist positions'
+rg -Fq 'acceptedButtons: Qt.LeftButton' "$widgets" \
+  || fail 'editor blocks existing widget left-button controls outside edit mode'
+rg -Fq 'model: RaohaneDesktopWidgetRegistry.definitions()' "$edit_grid" \
+  || fail 'desktop editor cannot restore hidden widget types'
+rg -Fq 'signal doneRequested()' "$edit_grid" \
+  || fail 'desktop grid lost its completion action'
 
 rg -q 'readonly property var widgetIds:[[:space:]]*\["clock", "context", "system", "motto"\]' "$widget_registry" \
   || fail 'Desktop Widget Registry lost the native widget ids'
