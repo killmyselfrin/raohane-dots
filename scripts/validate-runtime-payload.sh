@@ -35,6 +35,7 @@ required=(
   modules/raohane/RaohaneDesktopWidgets.qml
   modules/raohane/RaohaneDesktopEditGrid.qml
   modules/raohane/RaohaneWallpaperCinema.qml
+  modules/raohane/RaohaneBarChromaticWash.qml
   modules/raohane/RaohaneDesktopClockStyles.qml
   modules/raohane/RaohaneDesktopMediaStyles.qml
   modules/raohane/RaohaneDesktopSystemStyles.qml
@@ -94,6 +95,9 @@ grep -Fq 'Qt.resolvedUrl("RaohaneDesktopEditGrid.qml")' \
 grep -Fxq 'RaohaneWallpaperCinema 1.0 RaohaneWallpaperCinema.qml' \
   "$TARGET/modules/raohane/qmldir" \
   || fail 'cinematic wallpaper view missing from QML module'
+grep -Fxq 'RaohaneBarChromaticWash 1.0 RaohaneBarChromaticWash.qml' \
+  "$TARGET/modules/raohane/qmldir" \
+  || fail 'Chromatic Flow material missing from QML module'
 grep -Fq 'Qt.resolvedUrl("RaohaneWallpaperCinema.qml")' \
   "$TARGET/modules/raohane/RaohaneWallpaperSelector.qml" \
   || fail 'wallpaper selector lost lazy cinematic view fallback'
