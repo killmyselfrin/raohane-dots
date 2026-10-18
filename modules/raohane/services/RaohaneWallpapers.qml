@@ -42,6 +42,8 @@ Singleton {
 
     readonly property string thumbgenScriptPath: Quickshell.shellPath("scripts/thumbnails/thumbgen.sh")
     readonly property string magickThumbnailScriptPath: Quickshell.shellPath("scripts/thumbnails/generate-thumbnails-magick.sh")
+    readonly property string paletteScriptPath: Quickshell.shellPath("scripts/wallpaper-palette.py")
+    property string accentProbePath: ""
     readonly property bool thumbnailGenerationRunning: thumbnailProcess.running
     property real thumbnailGenerationProgress: 0
 
@@ -85,6 +87,8 @@ Singleton {
         const updated = Object.assign({}, root.generatedVideoPosters)
         updated[key] = file
         root.generatedVideoPosters = updated
+        if (key === RaohaneConfig.wallpaperPath && RaohaneConfig.wallpaperAdaptiveAccent)
+            root.queueAdaptiveAccent()
     }
 
     function parentDirectory(path: string): string {
@@ -354,6 +358,50 @@ Singleton {
         onAccepted: root.apply(selectedFile.toString(), darkMode)
     }
 
+    // Extract an accent once when a confirmed wallpaper changes, never
+    // when hovering a carousel item or during video playback.
+    function queueAdaptiveAccent(): void {
+        if (!RaohaneConfig.ready || !RaohaneConfig.wallpaperAdaptiveAccent) {
+            accentDebounce.stop()
+            return
+        }
+        const wallpaper = RaohaneConfig.wallpaperPath
+        const image = root.isVideo(wallpaper) ? root.generatedVideoPosterUrl(wallpaper) : wallpaper
+        root.accentProbePath = root.cleanPath(image)
+        if (root.accentProbePath.length > 0)
+            accentDebounce.restart()
+    }
+
+    Timer {
+        id: accentDebounce
+        interval: 350
+        repeat: false
+        onTriggered: {
+            if (accentProcess.running || !root.accentProbePath.length)
+                return
+            accentProcess.command = ["python3", "-E", root.paletteScriptPath, root.accentProbePath]
+            accentProcess.running = true
+        }
+    }
+
+    Process {
+        id: accentProcess
+        stdout: SplitParser {
+            onRead: data => {
+                const value = String(data).trim()
+                if (/^#[0-9a-fA-F]{6}$/.test(value) && RaohaneConfig.wallpaperAdaptiveAccent
+                        && RaohaneConfig.ready)
+                    RaohaneConfig.wallpaperAdaptiveColor = value
+            }
+        }
+        onExited: (code, status) => {
+            if (root.accentProbePath.length > 0 && RaohaneConfig.wallpaperAdaptiveAccent
+                    && RaohaneConfig.wallpaperPath !== root.accentProbePath
+                    && !root.isVideo(RaohaneConfig.wallpaperPath))
+                root.queueAdaptiveAccent()
+        }
+    }
+
     Process {
         id: thumbnailProcess
         property string directory: ""
@@ -382,7 +430,11 @@ Singleton {
         target: RaohaneConfig
         function onWallpaperPathChanged(): void {
             root.confirmedPath = RaohaneConfig.wallpaperPath
+            root.queueAdaptiveAccent()
         }
+        function onWallpaperAdaptiveAccentChanged(): void { root.queueAdaptiveAccent() }
+        function onReadyChanged(): void { root.queueAdaptiveAccent() }
+        function onWallpaperMonitorsChanged(): void { root.changed() }
         function onWallpaperDirectoryChanged(): void {
             const configured = RaohaneConfig.wallpaperDirectory
             if (configured.length > 0 && root.cleanPath(folderModel.folder.toString()) !== configured)
