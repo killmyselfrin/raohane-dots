@@ -11,8 +11,8 @@ QtObject {
     readonly property var builtInPresets: [
         {
             // Raohane Flow: softly layered charcoal/mauve material, translucent
-            // modular islands and legible raised surfaces. This is Raohane-
-            // authored QML and does not embed third-party shaders or code.
+            // modular islands and legible raised surfaces. The palette is
+            // built from Raohane's existing shared material tokens.
             id: "raohane-dark", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
             background: "#151420", backgroundElevated: "#1d1b2d", surface: "#c5201e31", surfaceRaised: "#da29263d", surfaceDeep: "#ed13121f", surfaceSubtle: "#94342e4a", surfaceHover: "#d9363150", surfacePressed: "#e2413b5e",
             border: "#4a817999", borderStrong: "#7b958dab", borderFaint: "#287f7996", highlight: "#52ffffff",
