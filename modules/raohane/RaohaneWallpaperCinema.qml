@@ -25,8 +25,10 @@ Item {
 
     function focusCurrent(): void {
         const tile = carousel.currentItem
-        if (tile && tile.filePath.length > 0)
-            root.entryChosen(tile.filePath, tile.isDirectory)
+        // Folder navigation is explicit (click/double-click), never a
+        // side effect of sliding across directories in the carousel.
+        if (tile && tile.filePath.length > 0 && !tile.isDirectory)
+            root.entryChosen(tile.filePath, false)
     }
 
     function step(direction: int): void {
@@ -163,7 +165,7 @@ Item {
                         }
                         Behavior on opacity {
                             enabled: root.animateMotion
-                            NumberAnimation { duration: RaohaneMotion.fast }
+                            NumberAnimation { duration: RaohaneMotion.micro }
                         }
 
                         transform: Rotation {
@@ -272,6 +274,25 @@ Item {
                             }
                         }
                     }
+                }
+            }
+
+            Column {
+                anchors.centerIn: parent
+                visible: carousel.count === 0
+                spacing: 8
+
+                RaohaneIcon {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "image_not_supported"
+                    iconSize: 34
+                    color: RaohaneTheme.textFaint
+                }
+
+                Text {
+                    text: qsTr("No wallpapers found in this folder")
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 11
                 }
             }
 
