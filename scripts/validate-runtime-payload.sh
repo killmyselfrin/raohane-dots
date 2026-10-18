@@ -32,6 +32,7 @@ required=(
   install/arch/features.txt
   modules/raohane
   modules/raohane/qmldir
+  modules/raohane/RaohaneDesktopWidgets.qml
   modules/raohane/RaohaneDesktopEditGrid.qml
   modules/raohane/RaohaneTaskManager.qml
   modules/raohane/RaohaneOverlay.qml
@@ -76,6 +77,16 @@ done
 [[ "$(tr -d '\r\n' < "$TARGET/qmldir")" == 'module qs' ]] \
   || fail 'root qmldir must contain only module qs'
 [[ -s "$TARGET/VERSION" ]] || fail 'VERSION is empty'
+
+# The edit grid is optional at boot, but must be shipped and registered so
+# users don't enter a non-functional editor after an incomplete upgrade.
+grep -Fxq 'RaohaneDesktopEditGrid 1.0 RaohaneDesktopEditGrid.qml' \
+  "$TARGET/modules/raohane/qmldir" \
+  || fail 'desktop edit grid is absent from qmldir'
+grep -Fq 'Qt.resolvedUrl("RaohaneDesktopEditGrid.qml")' \
+  "$TARGET/modules/raohane/RaohaneDesktopWidgets.qml" \
+  || fail 'desktop edit grid is not loaded lazily by the renderer'
+
 
 # Compare the staged defaults with the staged QML config schema instead
 # of hard-coding a version here. This validator runs for every OTA update.
