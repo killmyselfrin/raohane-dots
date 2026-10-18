@@ -74,6 +74,27 @@ fi
 rg -Fq 'if (tile && tile.filePath.length > 0 && !tile.isDirectory)' "$cinema" \
   || fail 'cinematic scrolling may accidentally open folders'
 
+# The Wallpaper Picker alone uses translucent material colors. Applying
+# opacity to the entire PanelWindow/selector would fade text and image cards;
+# the scrim and glass backing must be separate from the contents.
+rg -Fq 'Qt.rgba(0.01, 0.015, 0.035, 0.24)' "$selector" \
+  || fail 'wallpaper picker fullscreen scrim became too opaque'
+rg -Fq 'idleColor: Qt.rgba(RaohaneTheme.background.r,' "$selector" \
+  || fail 'wallpaper picker lost its translucent glass backing'
+rg -Fq 'RaohaneTheme.dark ? 0.53 : 0.76' "$selector" \
+  || fail 'wallpaper picker lost theme-aware glass density'
+rg -Fq 'RaohaneTheme.dark ? 0.34 : 0.64' "$selector" \
+  || fail 'grid sidebar became opaque again'
+rg -Fq 'color: Qt.rgba(RaohaneTheme.background.r, RaohaneTheme.background.g,' "$cinema" \
+  || fail 'cinematic backdrop no longer lets the desktop show through'
+rg -Fq 'GradientStop { position: 0.52; color: RaohaneTheme.dark ? "#26080b13" : "#38f6f4f9" }' "$cinema" \
+  || fail 'cinematic backdrop gradient became opaque'
+rg -Fq 'sourceSize.width: 660' "$cinema" \
+  || fail 'cinematic preview lost bounded decode'
+if rg -Fq 'opacity: entered ? 0.' "$selector"; then
+  fail 'selector is fading all content instead of its glass backing'
+fi
+
 # Hidden QQuickImage items still evaluate and decode their source. Gallery image
 # sources therefore must be empty for directories and video files instead of
 # relying on visible:false, which produces noisy decode/open warnings at runtime.
