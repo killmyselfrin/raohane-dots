@@ -124,7 +124,7 @@ Rectangle {
     }
 
     // A one-pixel top catch-light gives the smoky panels the same polished rim
-    // as the reference without a compositor-expensive shadow/glow layer.
+    // across the shell without a compositor-expensive shadow/glow layer.
     Rectangle {
         visible: root.showSheen && RaohaneTheme.sheenEnabled && !root.transparentIdle
         z: 100
