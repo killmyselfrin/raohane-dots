@@ -113,10 +113,15 @@ def video_thumbnail(source: Path, target: Path, size: int) -> bool:
     temp = Path(temp_name)
     temp.unlink(missing_ok=True)
     try:
-        if not extract_video_frame(ffmpeg, source, temp, "1", size):
+        # Video wallpapers often begin with a black fade. Prefer a frame
+        # several seconds in, then fall back to shorter clips. This file is
+        # generated once per source mtime and reused by every QML preview.
+        if not extract_video_frame(ffmpeg, source, temp, "5", size):
             temp.unlink(missing_ok=True)
-            if not extract_video_frame(ffmpeg, source, temp, "0", size):
-                return False
+            if not extract_video_frame(ffmpeg, source, temp, "1", size):
+                temp.unlink(missing_ok=True)
+                if not extract_video_frame(ffmpeg, source, temp, "0", size):
+                    return False
         with Image.open(temp) as image:
             save_thumbnail(image, source, target, size)
         return True
