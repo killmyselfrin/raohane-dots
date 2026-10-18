@@ -30,6 +30,8 @@ Item {
 
     readonly property bool vertical: orientation === "vertical"
     readonly property bool known: RaohaneBarModuleRegistry.supports(moduleId, orientation)
+    readonly property bool chromaticBackground: !root.vertical
+        && root.showBackground && RaohaneConfig.barChromaticFlow
     readonly property bool individualSurface: root.showBackground
         // Context owns its interactive background and privacy/event state.
         // A second module surface behind it looks like nested pills.
@@ -162,6 +164,11 @@ Item {
         showSheen: false
         border.color: RaohaneTheme.borderFaint
         opacity: RaohaneConfig.barOpacity
+        // Do not stack a neutral semi-opaque rectangle over a chromatic
+        // island. Hover and active controls retain their own local feedback.
+        idleColor: root.chromaticBackground ? "transparent" : RaohaneTheme.surfaceRaised
+        showInnerRim: !root.chromaticBackground
+        border.width: root.chromaticBackground ? 0 : 1
     }
 
     Loader {
@@ -203,6 +210,7 @@ Item {
 
         RaohaneContextIsland {
             densityMode: root.densityMode
+            chromaticBackground: root.chromaticBackground
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
