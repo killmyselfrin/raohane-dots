@@ -161,6 +161,37 @@ if rg -q 'label:[[:space:]]*qsTr\("Performance"\)|label:[[:space:]]*qsTr\("DND"\
   fail 'Control Center reintroduced duplicate system toggles in the action dock'
 fi
 
+# The action dock must allocate room for all five actions at the current
+# spacing; a fixed short height used to clip the last row at 2-column widths.
+for contract in \
+  'readonly property bool singleColumn: root.width < 224' \
+  'readonly property int actionRows: root.singleColumn ? 5 : 3' \
+  'readonly property int actionHeight: 40' \
+  'implicitHeight: 2 * RaohaneTheme.spacing + root.headerHeight' \
+  '+ root.actionRows * root.actionHeight' \
+  'columns: root.singleColumn ? 1 : 2' \
+  'Layout.columnSpan: root.singleColumn ? 1 : 2' \
+  'Layout.preferredHeight: root.actionHeight' \
+  'showInnerRim: true' \
+  'hoverBorderColor: RaohaneTheme.borderStrong' \
+  'font.pixelSize: 9'; do
+  rg -Fq "$contract" "$control_actions" \
+    || fail "Control Center action dock lost adaptive layout/material: $contract"
+done
+[[ "$(rg -Fc 'Layout.minimumWidth: 0' "$control_actions")" == 5 ]] \
+  || fail 'Control Center action dock can overflow its compact columns'
+python3 - "$control_actions" <<'PY'
+from pathlib import Path
+import sys
+source = Path(sys.argv[1]).read_text()
+assert source.count("ActionButton {") == 5, "action ownership has changed"
+for spacing in (4, 7, 10, 16):
+    for rows in (3, 5):
+        height = 2 * 10 + 24 + spacing + rows * 40 + (rows - 1) * spacing
+        required = 2 * 10 + 24 + spacing + rows * 40 + (rows - 1) * spacing
+        assert height >= required and height > 154
+PY
+
 # Responsive status chips should not squeeze four unreadable cells into a
 # narrow column; network/audio/Bluetooth actions remain coordinator-owned.
 rg -Fq 'readonly property bool compact: root.width < 480' "$control_status" \
