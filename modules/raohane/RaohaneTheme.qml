@@ -141,7 +141,9 @@ QtObject {
     readonly property color textFaint: activePreset.textFaint
 
     readonly property color presetAccent: activePreset.accent
-    readonly property color accent: accentMode === "ink" ? (dark ? "#eeeae2" : "#2b2a27")
+    readonly property color accent: RaohaneConfig.wallpaperAdaptiveAccent
+        ? RaohaneConfig.wallpaperAdaptiveColor
+        : accentMode === "ink" ? (dark ? "#eeeae2" : "#2b2a27")
         : accentMode === "rose" ? "#9a7077"
         : accentMode === "sage" ? "#667866"
         : accentMode === "slate" ? "#657987"
