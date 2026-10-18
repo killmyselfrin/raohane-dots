@@ -1023,6 +1023,16 @@ Scope {
                                 }
 
                                 FooterButton {
+                                    visible: root.isVideo(root.pendingPath)
+                                        && RaohaneWallpapers.previewPath === root.pendingPath
+                                    icon: RaohaneWallpapers.videoPreviewPaused ? "play_arrow" : "pause"
+                                    label: RaohaneWallpapers.videoPreviewPaused
+                                        ? qsTr("Resume") : qsTr("Pause")
+                                    onTriggered: RaohaneWallpapers.videoPreviewPaused =
+                                        !RaohaneWallpapers.videoPreviewPaused
+                                }
+
+                                FooterButton {
                                     icon: "visibility"
                                     label: qsTr("Preview")
                                     enabled: root.pendingPath.length > 0
