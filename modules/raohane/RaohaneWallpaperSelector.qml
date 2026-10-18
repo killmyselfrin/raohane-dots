@@ -22,6 +22,8 @@ Scope {
         ? root.picturesPath + "/Wallpapers"
         : ""
     property string pendingPath: ""
+    property string targetScreenName: ""
+    property bool studioExpanded: false
 
     function isVideo(path: string): bool {
         return RaohaneWallpapers.isVideo(path)
@@ -30,7 +32,7 @@ Scope {
     function appliedPath(): string {
         return RaohaneState.wallpaperSelectorTarget === "lockWall"
             ? RaohaneConfig.lockWallpaperPath
-            : RaohaneConfig.wallpaperPath
+            : RaohaneConfig.wallpaperPathForScreen(root.targetScreenName)
     }
 
     function resetPending(): void {
@@ -56,12 +58,12 @@ Scope {
 
         root.pendingPath = path
         if (RaohaneConfig.wallpaperPreview)
-            RaohaneWallpapers.startPreview(path)
+            RaohaneWallpapers.startPreview(path, root.targetScreenName)
     }
 
     function previewPending(): void {
         if (root.pendingPath.length > 0)
-            RaohaneWallpapers.startPreview(root.pendingPath)
+            RaohaneWallpapers.startPreview(root.pendingPath, root.targetScreenName)
     }
 
     function applyPending(): void {
@@ -77,8 +79,12 @@ Scope {
                 root.close()
             })
         } else {
-            RaohaneWallpapers.select(path)
-            root.close()
+            // Keep the selector open until the file probe has validated the
+            // chosen path; a bad selection must not close the UI.
+            RaohaneWallpapers.select(path, true, finalPath => {
+                RaohaneWallpapers.apply(finalPath, true, root.targetScreenName)
+                root.close()
+            })
         }
     }
 
@@ -299,6 +305,13 @@ Scope {
                             }
 
                             FooterButton {
+                                icon: "tune"
+                                label: qsTr("Studio")
+                                accent: root.studioExpanded
+                                onTriggered: root.studioExpanded = !root.studioExpanded
+                            }
+
+                            FooterButton {
                                 icon: selector.cinematicMode ? "grid_view" : "view_carousel"
                                 label: selector.cinematicMode ? qsTr("Grid") : qsTr("Cinematic")
                                 onTriggered: selector.cinematicMode = !selector.cinematicMode
@@ -324,6 +337,132 @@ Scope {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
                         color: RaohaneTheme.borderFaint
+                    }
+
+                    // Saved folders, quick favorites, source and timing controls
+                    // share the normal wallpaper picker instead of creating a
+                    // second wallpaper manager or an always-active overlay.
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        visible: root.studioExpanded
+                        spacing: 6
+                        Layout.leftMargin: 14
+                        Layout.rightMargin: 14
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            StudioChip {
+                                glyph: RaohaneWallpapers.isFavorite(root.pendingPath) ? "star" : "star_border"
+                                title: qsTr("Favorite")
+                                enabled: root.pendingPath.startsWith("/")
+                                onTriggered: RaohaneWallpapers.toggleFavorite(root.pendingPath)
+                            }
+                            StudioChip {
+                                glyph: "create_new_folder"
+                                title: qsTr("Save collection")
+                                onTriggered: RaohaneWallpapers.saveCurrentCollection()
+                            }
+                            StudioChip {
+                                glyph: "palette"
+                                title: RaohaneConfig.wallpaperAdaptiveAccent
+                                    ? qsTr("Adaptive on") : qsTr("Adaptive off")
+                                onTriggered: RaohaneConfig.wallpaperAdaptiveAccent =
+                                    !RaohaneConfig.wallpaperAdaptiveAccent
+                            }
+
+                            Text {
+                                text: qsTr("Monitor")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 10
+                            }
+                            ComboBox {
+                                id: targetMonitorChoice
+                                Layout.preferredWidth: 150
+                                Layout.preferredHeight: 30
+                                enabled: RaohaneState.wallpaperSelectorTarget !== "lockWall"
+                                model: [qsTr("All monitors")].concat(
+                                    Quickshell.screens.map(screen => String(screen.name)))
+                                currentIndex: Math.max(0, model.indexOf(root.targetScreenName.length
+                                    ? root.targetScreenName : qsTr("All monitors")))
+                                onActivated: index => {
+                                    root.targetScreenName = index > 0
+                                        ? String(Quickshell.screens[index - 1]?.name ?? "") : ""
+                                    RaohaneWallpapers.stopPreview()
+                                    root.resetPending()
+                                }
+                            }
+
+                            Text {
+                                text: qsTr("Auto")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 10
+                            }
+                            ComboBox {
+                                Layout.preferredWidth: 112
+                                Layout.preferredHeight: 30
+                                model: [qsTr("Off"), qsTr("5 min"), qsTr("15 min"), qsTr("1 hour")]
+                                currentIndex: RaohaneConfig.wallpaperChangeInterval === 300000 ? 1
+                                    : RaohaneConfig.wallpaperChangeInterval === 900000 ? 2
+                                    : RaohaneConfig.wallpaperChangeInterval === 3600000 ? 3 : 0
+                                onActivated: index => {
+                                    const intervals = [0, 300000, 900000, 3600000]
+                                    RaohaneConfig.wallpaperChangeInterval = intervals[index]
+                                }
+                            }
+                            ComboBox {
+                                Layout.preferredWidth: 125
+                                Layout.preferredHeight: 30
+                                model: [qsTr("Folder"), qsTr("Favorites")]
+                                currentIndex: RaohaneConfig.wallpaperAutoSource === "favorites" ? 1 : 0
+                                onActivated: index => RaohaneConfig.wallpaperAutoSource =
+                                    index === 1 ? "favorites" : "folder"
+                            }
+                            Item { Layout.fillWidth: true }
+                        }
+
+                        Flickable {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 36
+                            contentWidth: shortcuts.implicitWidth
+                            contentHeight: height
+                            clip: true
+                            boundsBehavior: Flickable.StopAtBounds
+
+                            Row {
+                                id: shortcuts
+                                spacing: 6
+                                height: parent.height
+
+                                Repeater {
+                                    model: RaohaneConfig.wallpaperCollections
+                                    delegate: StudioChip {
+                                        required property var modelData
+                                        glyph: "folder"
+                                        title: modelData.name
+                                        onTriggered: RaohaneWallpapers.setDirectory(modelData.path)
+                                    }
+                                }
+                                Repeater {
+                                    model: RaohaneConfig.wallpaperFavorites
+                                    delegate: StudioChip {
+                                        required property string modelData
+                                        glyph: "star"
+                                        title: modelData.split("/").pop()
+                                        onTriggered: root.selectPath(modelData, false)
+                                    }
+                                }
+                                Text {
+                                    visible: RaohaneConfig.wallpaperCollections.length === 0
+                                        && RaohaneConfig.wallpaperFavorites.length === 0
+                                    text: qsTr("Star an image or save a folder to build your library")
+                                    color: RaohaneTheme.textFaint
+                                    font.pixelSize: 10
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                        }
                     }
 
                     RowLayout {
@@ -597,7 +736,7 @@ Scope {
                                         if (RaohaneConfig.wallpaperPreview
                                                 && RaohaneState.wallpaperSelectorOpen
                                                 && root.pendingPath === path)
-                                            RaohaneWallpapers.startPreview(path)
+                                            RaohaneWallpapers.startPreview(path, root.targetScreenName)
                                     }
                                     function onApplyRequested(): void {
                                         root.applyPending()
@@ -921,6 +1060,44 @@ Scope {
         name: "wallpaperSelectorRandom"
         description: "Select random wallpaper in current folder"
         onPressed: RaohaneWallpapers.randomFromCurrentFolder()
+    }
+
+    component StudioChip: RaohaneSurface {
+        id: chip
+        required property string glyph
+        required property string title
+        signal triggered()
+        implicitWidth: Math.min(200, chipLabel.implicitWidth + 43)
+        implicitHeight: 30
+        surfaceRadius: 10
+        showSheen: false
+        raised: false
+        idleColor: RaohaneTheme.surfaceDeep
+        idleBorderColor: RaohaneTheme.borderFaint
+
+        Row {
+            anchors.centerIn: parent
+            spacing: 6
+            RaohaneIcon {
+                text: chip.glyph
+                iconSize: 14
+                color: RaohaneTheme.accent
+            }
+            Text {
+                id: chipLabel
+                text: chip.title
+                color: RaohaneTheme.text
+                font.pixelSize: 10
+                elide: Text.ElideRight
+                width: Math.min(155, implicitWidth)
+            }
+        }
+        MouseArea {
+            anchors.fill: parent
+            enabled: chip.enabled
+            cursorShape: Qt.PointingHandCursor
+            onClicked: chip.triggered()
+        }
     }
 
     component NavButton: RaohaneIconButton {
