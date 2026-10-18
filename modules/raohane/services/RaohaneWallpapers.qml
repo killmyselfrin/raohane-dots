@@ -100,7 +100,7 @@ Singleton {
         return index <= 0 ? "/" : clean.substring(0, index)
     }
 
-    function startPreview(path: string, screenName = ""): void {
+    function startPreview(path: string, screenName): void {
         const clean = root.cleanPath(path)
         if (clean.length > 0) {
             if (root.previewPath !== clean)
