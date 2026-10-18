@@ -113,6 +113,8 @@ Singleton {
     property bool desktopWidgetSystem: true
     property bool desktopWidgetMotto: true
     property var desktopWidgetComposition: root.defaultDesktopWidgetComposition()
+    // Per-monitor positions are used only by the opt-in free layout.
+    property var desktopWidgetFreeLayouts: ({})
     property bool desktopWidgetsCompact: false
     property string desktopWidgetsLayout: "balanced"
     property real desktopWidgetsScale: 1.0
@@ -294,6 +296,80 @@ Singleton {
             primary: ["clock", "context"],
             secondary: ["system", "motto"]
         }
+    }
+
+    function defaultDesktopWidgetFreePlacements(): var {
+        return {
+            clock: { x: 0.03, y: 0.08, size: 1.0 },
+            context: { x: 0.03, y: 0.32, size: 1.0 },
+            system: { x: 0.97, y: 0.62, size: 1.0 },
+            motto: { x: 0.97, y: 0.87, size: 1.0 }
+        }
+    }
+
+    function sanitizeDesktopWidgetFreePlacements(value): var {
+        const defaults = root.defaultDesktopWidgetFreePlacements()
+        const input = value && typeof value === "object" && !Array.isArray(value) ? value : {}
+        const result = {}
+        for (const id of Object.keys(defaults)) {
+            const item = input[id] && typeof input[id] === "object" ? input[id] : {}
+            result[id] = {
+                x: root.clampNumber(item.x, 0, 1, defaults[id].x),
+                y: root.clampNumber(item.y, 0, 1, defaults[id].y),
+                size: root.clampNumber(item.size, 0.65, 1.4, defaults[id].size)
+            }
+        }
+        return result
+    }
+
+    function sanitizeDesktopWidgetFreeLayouts(value): var {
+        const input = value && typeof value === "object" && !Array.isArray(value) ? value : {}
+        const result = {}
+        let count = 0
+        for (const monitor of Object.keys(input)) {
+            if (!/^[a-zA-Z0-9_.:-]{1,80}$/.test(monitor) || count >= 8)
+                continue
+            result[monitor] = root.sanitizeDesktopWidgetFreePlacements(input[monitor])
+            count++
+        }
+        return result
+    }
+
+    function desktopWidgetPlacement(monitor, widgetId): var {
+        const name = String(monitor ?? "default")
+        const id = String(widgetId ?? "")
+        const defaults = root.defaultDesktopWidgetFreePlacements()
+        if (!Object.prototype.hasOwnProperty.call(defaults, id))
+            return null
+        const placements = root.desktopWidgetFreeLayouts[name]
+        return placements?.[id] ?? defaults[id]
+    }
+
+    function setDesktopWidgetPlacement(monitor, widgetId, x, y, size): void {
+        const name = String(monitor ?? "default")
+        const id = String(widgetId ?? "")
+        if (!/^[a-zA-Z0-9_.:-]{1,80}$/.test(name) || !Object.prototype.hasOwnProperty.call(root.defaultDesktopWidgetFreePlacements(), id))
+            return
+        const next = Object.assign({}, root.desktopWidgetFreeLayouts)
+        if (!Object.prototype.hasOwnProperty.call(next, name) && Object.keys(next).length >= 8)
+            return
+        const data = Object.assign({}, root.sanitizeDesktopWidgetFreePlacements(next[name]))
+        data[id] = {
+            x: root.clampNumber(x, 0, 1, data[id].x),
+            y: root.clampNumber(y, 0, 1, data[id].y),
+            size: root.clampNumber(size, 0.65, 1.4, data[id].size)
+        }
+        next[name] = data
+        root.desktopWidgetFreeLayouts = next
+    }
+
+    function resetDesktopWidgetFreeLayout(monitor): void {
+        const name = String(monitor ?? "default")
+        const next = Object.assign({}, root.desktopWidgetFreeLayouts)
+        if (!Object.prototype.hasOwnProperty.call(next, name))
+            return
+        delete next[name]
+        root.desktopWidgetFreeLayouts = next
     }
 
     function sanitizeDesktopWidgetZone(value, used): var {
@@ -513,6 +589,7 @@ Singleton {
                 showSystem: root.desktopWidgetSystem,
                 showMotto: root.desktopWidgetMotto,
                 composition: root.sanitizeDesktopWidgetComposition(root.desktopWidgetComposition),
+                freeLayouts: root.sanitizeDesktopWidgetFreeLayouts(root.desktopWidgetFreeLayouts),
                 compact: root.desktopWidgetsCompact,
                 layout: root.desktopWidgetsLayout,
                 scale: root.desktopWidgetsScale,
@@ -673,10 +750,11 @@ Singleton {
         root.assignIfPresent(desktopWidgets, "showSystem", value => root.desktopWidgetSystem = Boolean(value))
         root.assignIfPresent(desktopWidgets, "showMotto", value => root.desktopWidgetMotto = Boolean(value))
         root.assignIfPresent(desktopWidgets, "composition", value => root.desktopWidgetComposition = root.sanitizeDesktopWidgetComposition(value))
+        root.assignIfPresent(desktopWidgets, "freeLayouts", value => root.desktopWidgetFreeLayouts = root.sanitizeDesktopWidgetFreeLayouts(value))
         root.assignIfPresent(desktopWidgets, "compact", value => root.desktopWidgetsCompact = Boolean(value))
         root.assignIfPresent(desktopWidgets, "layout", value => {
             const requested = String(value ?? "balanced")
-            root.desktopWidgetsLayout = ["balanced", "left", "right"].indexOf(requested) >= 0 ? requested : "balanced"
+            root.desktopWidgetsLayout = ["balanced", "left", "right", "free"].indexOf(requested) >= 0 ? requested : "balanced"
         })
         root.assignIfPresent(desktopWidgets, "scale", value => root.desktopWidgetsScale = root.clampNumber(value, 0.75, 1.25, 1.0))
         root.assignIfPresent(desktopWidgets, "opacity", value => root.desktopWidgetsOpacity = root.clampNumber(value, 0.45, 1.0, 0.94))
@@ -820,6 +898,7 @@ Singleton {
     onDesktopWidgetSystemChanged: scheduleSave()
     onDesktopWidgetMottoChanged: scheduleSave()
     onDesktopWidgetCompositionChanged: scheduleSave()
+    onDesktopWidgetFreeLayoutsChanged: scheduleSave()
     onDesktopWidgetsCompactChanged: scheduleSave()
     onDesktopWidgetsLayoutChanged: scheduleSave()
     onDesktopWidgetsScaleChanged: scheduleSave()
