@@ -54,12 +54,16 @@ Item {
         const path = queuedPreviewPath
         if (!path.length || RaohaneWallpapers.isVideo(path))
             return
-        if (path !== displayedPreviewPath && path !== incomingPreviewPath) {
+        if (path === displayedPreviewPath && incomingPreviewPath.length === 0) {
+            // Already decoded in this view; no new thumbnail load required.
+            root.previewRequested(path)
+            return
+        }
+        if (path !== incomingPreviewPath) {
             previewFade.stop()
             incomingPreviewOpacity = 0
             incomingPreviewPath = path
         }
-        root.previewRequested(path)
     }
 
     function finishPreview(): void {
@@ -149,6 +153,9 @@ Item {
             opacity: status === Image.Ready ? root.incomingPreviewOpacity : 0
             onStatusChanged: {
                 if (status === Image.Ready && root.incomingPreviewPath.length > 0) {
+                    // Only switch the live desktop once the bounded preview
+                    // has actually decoded, avoiding black frames on slow disks.
+                    root.previewRequested(root.incomingPreviewPath)
                     previewFade.stop()
                     root.incomingPreviewOpacity = 0
                     previewFade.start()
