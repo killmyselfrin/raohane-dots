@@ -55,6 +55,7 @@ required_root=(
   scripts/easyeffects-performance-audit.sh
   scripts/keyboard-layout-boundary-audit.sh
   scripts/desktop-widget-boundary-audit.sh
+  scripts/wallpaper-studio-audit.sh
   scripts/install-deps.sh
   scripts/migrate-legacy-config.py
   scripts/screen-translate.sh
@@ -303,6 +304,7 @@ bash -n scripts/bluetooth-performance-audit.sh
 bash -n scripts/easyeffects-performance-audit.sh
 bash -n scripts/keyboard-layout-boundary-audit.sh
 bash -n scripts/desktop-widget-boundary-audit.sh
+bash -n scripts/wallpaper-studio-audit.sh
 bash -n scripts/install-deps.sh
 bash -n scripts/screen-translate.sh
 bash -n scripts/region-ocr.sh
@@ -325,5 +327,6 @@ bash scripts/bluetooth-performance-audit.sh
 bash scripts/easyeffects-performance-audit.sh
 bash scripts/keyboard-layout-boundary-audit.sh
 bash scripts/desktop-widget-boundary-audit.sh
+bash scripts/wallpaper-studio-audit.sh
 
 printf 'raohane-audit: native bootstrap, source lineage, release CLI, coordinated Task Manager, owned lyrics resolver, Phase 4 runtime contract, overview routing, multi-monitor/fullscreen behavior and native release boundaries are valid\n'
