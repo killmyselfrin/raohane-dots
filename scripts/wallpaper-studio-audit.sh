@@ -98,6 +98,16 @@ rg -Fq 'accentProcess.sourcePath === root.cleanPath(RaohaneConfig.wallpaperPath)
   || fail 'stale palette subprocess may recolor newer wallpaper'
 rg -Fq 'VIDEO_SUFFIXES' "$palette" \
   || fail 'wallpaper palette extractor lost video wallpaper support'
+rg -Fq 'RaohaneConfig.barChromaticFlow' "$wallpapers" \
+  || fail 'two-color Bar glow cannot run with adaptive accent disabled'
+rg -Fq 'root.queueAdaptiveAccent()' "$wallpapers" \
+  || fail 'native wallpaper color probe was disconnected'
+rg -Fq 'root.paletteScriptPath, "--dual", accentProcess.sourcePath' "$wallpapers" \
+  || fail 'one-shot wallpaper sampler does not request dual colors'
+rg -Fq 'RaohaneConfig.wallpaperFlowColorA = pair[1]' "$wallpapers" \
+  || fail 'first wallpaper chromatic color is not persisted'
+rg -Fq 'RaohaneConfig.wallpaperFlowColorB = pair[2]' "$wallpapers" \
+  || fail 'second wallpaper chromatic color is not persisted'
 if rg -Fq 'Process {' "$theme"; then
   fail 'adaptive theme creates a rendering subprocess'
 fi
@@ -133,6 +143,26 @@ Image.new("RGB", (32, 32), (50, 115, 220)).save(Path(sys.argv[1]) / "accent.png"
 PY
   color="$(python3 "$palette" "$temp_dir/accent.png")" || fail 'palette extractor failed for fixture'
   [[ "$color" =~ ^#[[:xdigit:]]{6}$ ]] || fail "invalid adaptive accent: $color"
+
+  # Two real visible hues, not a fabricated complementary color. Verify
+  # backward-compatible single output and a distinct dual-color result.
+  python3 - "$temp_dir" <<'PY'
+from PIL import Image
+from pathlib import Path
+import sys
+image = Image.new("RGB", (100, 40), (187, 62, 78))
+image.paste((215, 158, 53), (50, 0, 100, 40))
+image.save(Path(sys.argv[1]) / "two-tones.png")
+PY
+  dual="$(python3 "$palette" --dual "$temp_dir/two-tones.png")" \
+    || fail 'palette extractor failed for two-color fixture'
+  python3 - "$dual" <<'PY'
+import re
+import sys
+match = re.fullmatch(r"(#[0-9a-f]{6}) (#[0-9a-f]{6})", sys.argv[1])
+if not match or match.group(1) == match.group(2):
+    raise SystemExit("two-color palette failed to distinguish warm red and gold")
+PY
 
   if command -v ffmpeg >/dev/null 2>&1; then
     ffmpeg -hide_banner -loglevel error -nostdin -y \
