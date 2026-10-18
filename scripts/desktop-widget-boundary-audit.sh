@@ -195,4 +195,46 @@ if rg -n '^import qs\.services$|^import qs\.modules\.common|AbstractBackgroundWi
   fail 'desktop widgets depend on retired inherited APIs'
 fi
 
+# The desktop widget deck must change composition, not just theme colors,
+# without introducing new polling or crossing native service ownership.
+for contract in \
+  'implicitHeight: root.compact ? 154 : 190' \
+  'text: "RAOHANE"' \
+  'font.pixelSize: root.compact ? 52 : 70' \
+  'showSheen: true' \
+  'showInnerRim: true' \
+  'interval: 60000' \
+  'running: root.visible'; do
+  rg -Fq "$contract" "$clock" \
+    || fail "Desktop hero clock lost its layout/idle policy: $contract"
+done
+for contract in \
+  'implicitHeight: root.compact ? 146 : 164' \
+  'Layout.preferredWidth: root.compact ? 62 : 80' \
+  'source: root.visible && root.hasMedia ? root.coverUrl : ""' \
+  'sourceSize.width: 160' \
+  'asynchronous: true' \
+  'font.pixelSize: root.compact ? 12 : 15' \
+  'RaohaneMedia.progress' \
+  'RaohaneContext.title'; do
+  rg -Fq "$contract" "$context" \
+    || fail "Desktop media/context feature card lost its layout: $contract"
+done
+for contract in \
+  'implicitHeight: root.compact ? 122 : 142' \
+  'component StatusTile: RaohaneSurface' \
+  'required property bool statusActive' \
+  'RaohaneNetwork.materialSymbol' \
+  'RaohaneAudio.muted' \
+  'RaohaneSystemInfo.hostname'; do
+  rg -Fq "$contract" "$system" \
+    || fail "Desktop system deck lost its status tile contract: $contract"
+done
+[[ "$(rg -Fc 'StatusTile {' "$system")" == 2 ]] \
+  || fail 'Desktop system deck must contain exactly two status tiles'
+if rg -Fq 'required property bool active' "$system"; then
+  fail 'Desktop status tiles redeclare the inherited surface active property'
+fi
+
+
 printf 'desktop-widget-boundary-audit: persisted registry-driven widget composition, Widget Studio, animated Settings routing, native config and service ownership are valid\n'
