@@ -10,7 +10,8 @@ import qs.modules.raohane.config
 Item {
     id: root
 
-    property bool editing: false
+    // This QML file is loaded only while the on-desktop editor is active.
+    property bool editing: true
     property string monitorName: ""
     readonly property int gridStep: 32
 
