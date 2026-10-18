@@ -116,6 +116,20 @@ Item {
         carousel.currentIndex = 0
     }
 
+    Connections {
+        target: root.folderModel
+        ignoreUnknownSignals: true
+        function onFolderChanged(): void {
+            previewTimer.stop()
+            previewFade.stop()
+            root.queuedPreviewPath = ""
+            root.incomingPreviewPath = ""
+            root.displayedPreviewPath = ""
+            root.incomingPreviewOpacity = 0
+            carousel.currentIndex = 0
+        }
+    }
+
     Component.onDestruction: previewTimer.stop()
 
     Rectangle {
