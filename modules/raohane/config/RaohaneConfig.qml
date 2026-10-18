@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 14
+    readonly property int schemaVersion: 15
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -115,6 +115,7 @@ Singleton {
     property var desktopWidgetComposition: root.defaultDesktopWidgetComposition()
     // Per-monitor positions are used only by the opt-in free layout.
     property var desktopWidgetFreeLayouts: ({})
+    property var desktopWidgetStyles: root.defaultDesktopWidgetStyles()
     property bool desktopWidgetsCompact: false
     property string desktopWidgetsLayout: "balanced"
     property real desktopWidgetsScale: 1.0
@@ -296,6 +297,41 @@ Singleton {
             primary: ["clock", "context"],
             secondary: ["system", "motto"]
         }
+    }
+
+    function defaultDesktopWidgetStyles(): var {
+        return { clock: "classic", context: "classic", system: "classic" }
+    }
+
+    function sanitizeDesktopWidgetStyles(value): var {
+        const defaults = root.defaultDesktopWidgetStyles()
+        const result = Object.assign({}, defaults)
+        if (!value || typeof value !== "object" || Array.isArray(value))
+            return result
+        for (const id of Object.keys(defaults)) {
+            const choice = String(value[id] ?? defaults[id])
+            result[id] = ["classic", "minimal", "aurora"].includes(choice) ? choice : defaults[id]
+        }
+        return result
+    }
+
+    function desktopWidgetStyle(id): string {
+        const key = String(id ?? "")
+        return root.sanitizeDesktopWidgetStyles(root.desktopWidgetStyles)[key] ?? "classic"
+    }
+
+    function setDesktopWidgetStyle(id, style): void {
+        const key = String(id ?? "")
+        if (!Object.prototype.hasOwnProperty.call(root.defaultDesktopWidgetStyles(), key))
+            return
+        const requested = String(style ?? "classic")
+        if (!["classic", "minimal", "aurora"].includes(requested))
+            return
+        const next = root.sanitizeDesktopWidgetStyles(root.desktopWidgetStyles)
+        if (next[key] === requested)
+            return
+        next[key] = requested
+        root.desktopWidgetStyles = next
     }
 
     function defaultDesktopWidgetFreePlacements(): var {
@@ -590,6 +626,7 @@ Singleton {
                 showMotto: root.desktopWidgetMotto,
                 composition: root.sanitizeDesktopWidgetComposition(root.desktopWidgetComposition),
                 freeLayouts: root.sanitizeDesktopWidgetFreeLayouts(root.desktopWidgetFreeLayouts),
+                styles: root.sanitizeDesktopWidgetStyles(root.desktopWidgetStyles),
                 compact: root.desktopWidgetsCompact,
                 layout: root.desktopWidgetsLayout,
                 scale: root.desktopWidgetsScale,
@@ -751,6 +788,7 @@ Singleton {
         root.assignIfPresent(desktopWidgets, "showMotto", value => root.desktopWidgetMotto = Boolean(value))
         root.assignIfPresent(desktopWidgets, "composition", value => root.desktopWidgetComposition = root.sanitizeDesktopWidgetComposition(value))
         root.assignIfPresent(desktopWidgets, "freeLayouts", value => root.desktopWidgetFreeLayouts = root.sanitizeDesktopWidgetFreeLayouts(value))
+        root.assignIfPresent(desktopWidgets, "styles", value => root.desktopWidgetStyles = root.sanitizeDesktopWidgetStyles(value))
         root.assignIfPresent(desktopWidgets, "compact", value => root.desktopWidgetsCompact = Boolean(value))
         root.assignIfPresent(desktopWidgets, "layout", value => {
             const requested = String(value ?? "balanced")
@@ -899,6 +937,7 @@ Singleton {
     onDesktopWidgetMottoChanged: scheduleSave()
     onDesktopWidgetCompositionChanged: scheduleSave()
     onDesktopWidgetFreeLayoutsChanged: scheduleSave()
+    onDesktopWidgetStylesChanged: scheduleSave()
     onDesktopWidgetsCompactChanged: scheduleSave()
     onDesktopWidgetsLayoutChanged: scheduleSave()
     onDesktopWidgetsScaleChanged: scheduleSave()
