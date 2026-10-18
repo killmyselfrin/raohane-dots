@@ -511,6 +511,12 @@ Item {
                                 asynchronous: true
                                 cache: false
                                 fillMode: Image.PreserveAspectCrop
+                                onStatusChanged: {
+                                    if (status === Image.Error && tile.video
+                                            && root.thumbnailsReady && tile.focused)
+                                        console.warn("[Raohane] Video poster unavailable:",
+                                            tile.filePath, "cache:", source)
+                                }
                             }
 
                             Rectangle {
