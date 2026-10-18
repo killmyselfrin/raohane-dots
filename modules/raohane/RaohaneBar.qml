@@ -148,6 +148,12 @@ Scope {
                 id: barContent
                 width: parent.width
                 height: barWindow.implicitHeight
+                // Reserve the centered island's actual width and a visible
+                // gap on both sides. Without this bound, separate left/right
+                // pods can paint over the center on narrow logical outputs.
+                readonly property real sideIslandLimit: Math.max(0,
+                    (width - centerIsland.width) / 2
+                    - barWindow.effectiveEdgeMargin - Math.max(6, barWindow.moduleSpacing))
                 y: {
                     if (barWindow.contentShown)
                         return RaohaneConfig.barBottom
@@ -189,9 +195,10 @@ Scope {
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
-                        ? Math.min(parent.width * 0.38, Math.max(48, leftRow.implicitWidth + 18))
+                        ? Math.min(barContent.sideIslandLimit, Math.max(48, leftRow.implicitWidth + barWindow.horizontalPadding * 2))
                         : 0
                     height: visible ? barWindow.podHeight : 0
+                    clip: true
                     surfaceRadius: barWindow.effectiveRadius
                     opacity: RaohaneConfig.barOpacity
                     raised: RaohaneConfig.barShadow
@@ -283,9 +290,10 @@ Scope {
                         verticalCenter: parent.verticalCenter
                     }
                     width: visible
-                        ? Math.min(parent.width * 0.40, Math.max(48, rightRow.implicitWidth + 18))
+                        ? Math.min(barContent.sideIslandLimit, Math.max(48, rightRow.implicitWidth + barWindow.horizontalPadding * 2))
                         : 0
                     height: visible ? barWindow.podHeight : 0
+                    clip: true
                     surfaceRadius: barWindow.effectiveRadius
                     opacity: RaohaneConfig.barOpacity
                     raised: RaohaneConfig.barShadow
