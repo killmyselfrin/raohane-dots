@@ -308,6 +308,10 @@ rg -Fq 'if (root.iconOnly)' modules/raohane/RaohaneContextIsland.qml \
   || fail 'Bar context has no minimal fallback'
 rg -Fq 'if (root.minimalMode)' "$workspaces" \
   || fail 'ultra-narrow bar does not reserve a visible active workspace'
+rg -Fq '&& (moduleId === "launcher" || moduleId === "system"))' "$bar" \
+  || fail 'ultra-narrow Bar does not reserve a Control Center action'
+rg -Fq 'root.moduleId !== "separator" && root.moduleId !== "context"' "$module_host" \
+  || fail 'separated/segmented presets draw double surfaces behind context'
 rg -Fq '(!root.compactMode && !root.minimalMode)' "$workspaces" \
   || fail 'normal Bar lost full workspace switcher'
 python3 - "$bar" <<'PY'
