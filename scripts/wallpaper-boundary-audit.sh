@@ -56,6 +56,19 @@ rg -Fq 'RaohaneWallpaperCinema 1.0 RaohaneWallpaperCinema.qml' "$qmldir" \
   || fail 'cinematic wallpaper picker is not a registered native QML type'
 rg -Fq 'Qt.resolvedUrl("RaohaneWallpaperCinema.qml")' "$selector" \
   || fail 'cinematic wallpaper must be loaded by URL for safe fallback'
+# Deployed Quickshell QML rejects typed default arguments. Any reintroduction
+# makes the loader fail, even while the rest of the shell is running.
+if rg -n 'function[[:space:]]+[A-Za-z0-9_]+\\([^)]*:[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=' \
+  "$cinema" "$selector"; then
+  fail 'wallpaper QML contains a typed default function parameter'
+fi
+rg -Fq 'function highlightPath(path: string, previewImmediately): void' "$cinema" \
+  || fail 'cinematic preview arguments changed unexpectedly'
+rg -Fq 'source: Qt.resolvedUrl("RaohaneWallpaperCinema.qml")' "$selector" \
+  || fail 'cinematic Loader.source must be independent from Loader.active'
+rg -Fq 'Qt.callLater(() => {' "$selector" \
+  || fail 'cinematic Loader.error recovery must defer state changes'
+
 rg -Fq 'if (status === Loader.Error && selector.cinematicMode)' "$selector" \
   || fail 'failed cinematic view must fall back to working grid mode'
 rg -Fq 'model: selector.cinematicMode ? null : RaohaneWallpapers.folderModel' "$selector" \
@@ -124,7 +137,7 @@ rg -Fq 'root.previewRequested(root.incomingPreviewPath)' "$cinema" \
   || fail 'live preview triggers before bounded image decoding finishes'
 rg -Fq 'root.pendingPath === path' "$selector" \
   || fail 'stale carousel preview is no longer rejected'
-rg -Fq 'onLoaded: Qt.callLater(' "$selector" \
+rg -Fq 'cinemaLoader.item.focusCurrent()' "$selector" \
   || fail 'lazy carousel can lose its initial selection event'
 rg -Fq 'function onFolderChanged(): void' "$cinema" \
   || fail 'carousel does not reset pending transitions across folders'
