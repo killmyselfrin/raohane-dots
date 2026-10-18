@@ -335,6 +335,7 @@ Scope {
                         || barWindow.haloPreset || !barWindow.zoneBackgroundVisible
                     showSheen: !barWindow.chromaticFlowEnabled
                         && barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    showInnerRim: !barWindow.chromaticFlowEnabled
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     RaohaneBarChromaticWash {
@@ -418,6 +419,7 @@ Scope {
                         || barWindow.haloPreset || !barWindow.zoneBackgroundVisible
                     showSheen: !barWindow.chromaticFlowEnabled
                         && barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    showInnerRim: !barWindow.chromaticFlowEnabled
                     border.color: barWindow.zoneBackgroundVisible
                         ? (barWindow.cinematicPreset ? RaohaneTheme.accentBorder : RaohaneTheme.border)
                         : "transparent"
@@ -507,6 +509,7 @@ Scope {
                         || barWindow.haloPreset || !barWindow.zoneBackgroundVisible
                     showSheen: !barWindow.chromaticFlowEnabled
                         && barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    showInnerRim: !barWindow.chromaticFlowEnabled
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     RaohaneBarChromaticWash {
