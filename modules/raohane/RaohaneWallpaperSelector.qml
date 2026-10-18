@@ -501,10 +501,30 @@ Scope {
                                             if (selector.cinematicMode && cinemaLoader.item)
                                                 cinemaLoader.item.focusCurrent()
                                         })
+                                        cinemaHealthCheck.restart()
                                     }
                                     onStatusChanged: {
                                         if (status === Loader.Error && selector.cinematicMode) {
                                             console.warn("[Raohane] Cinematic gallery unavailable, restoring grid")
+                                            selector.cinematicMode = false
+                                        }
+                                    }
+                                }
+
+                                // A QML type can report Loader.Ready while a
+                                // ListView failed to create delegates (for
+                                // example, incorrect required model roles).
+                                // Never strand the user in an empty gallery.
+                                Timer {
+                                    id: cinemaHealthCheck
+                                    interval: 1200
+                                    repeat: false
+                                    onTriggered: {
+                                        const gallery = cinemaLoader.item
+                                        if (selector.cinematicMode && gallery
+                                                && RaohaneWallpapers.folderModel.count > 0
+                                                && (!gallery.hasCurrentCard || gallery.width < 2 || gallery.height < 2)) {
+                                            console.warn("[Raohane] Cinematic cards are unavailable; reverting to Grid")
                                             selector.cinematicMode = false
                                         }
                                     }
