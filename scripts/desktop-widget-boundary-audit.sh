@@ -59,6 +59,10 @@ for widget in clock context system motto; do
 done
 rg -Fq 'function freeHitRect(id: string): rect' "$widgets" \
   || fail 'desktop widgets lost bounded click geometry'
+rg -Fq 'readonly property real railOffsetX:' "$widgets" \
+  || fail 'rail click region no longer accounts for global scale'
+rg -Fq 'readonly property real railOffsetY:' "$widgets" \
+  || fail 'rail click region no longer accounts for vertical scaling'
 rg -Fq 'onWidgetMenuRequested:' "$widgets" \
   || fail 'widget faces cannot open the desktop context menu'
 rg -Fq 'acceptedButtons: Qt.RightButton' "$host" \
