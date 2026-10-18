@@ -507,6 +507,27 @@ rg -q 'RaohaneContext\.eventProgress' "$context_island" \
 rg -q 'RaohaneMedia\.progress' "$context_island" \
   || fail 'Context Island lost live media progress'
 
+# Now Playing is visibly distinct from generic context: album artwork,
+# readable central metadata and a dedicated right-hand transport target.
+# Keep state ownership in the existing MPRIS service and don't retain images
+# when the music capsule is hidden or another context takes priority.
+for contract in \
+  'readonly property bool albumArtAvailable: root.mediaMode' \
+  'readonly property int modeMinimumWidth: root.mediaMode ? 286' \
+  'id: mediaCover' \
+  'source: root.albumArtAvailable && root.visible ? RaohaneMedia.artUrl : ""' \
+  'sourceSize.width: 96' \
+  'asynchronous: true' \
+  'fillMode: Image.PreserveAspectCrop' \
+  'RaohaneMedia.isPlaying ? "pause" : "play_arrow"' \
+  'RaohaneMedia.canTogglePlaying' \
+  'RaohaneMedia.togglePlaying()' \
+  'RaohaneState.mediaOverlayOpen = true'; do
+  rg -Fq "$contract" "$context_island" \
+    || fail "Context Island lost its Now Playing layout: $contract"
+done
+
+
 # Compact Bar surfaces use the same soft Raohane Flow material and leave
 # no text smaller than 9px. TextMetrics must match their visible text.
 rg -Fq 'surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)' "$context_island" \
