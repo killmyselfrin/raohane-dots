@@ -27,19 +27,21 @@ RaohaneSurface {
     readonly property real clampedProgress: Math.max(0, Math.min(1, Number(root.progress) || 0))
 
     implicitHeight: root.mediaAvailable ? 220 : 118
-    surfaceRadius: RaohaneTheme.radiusLarge
+    // Raohane Flow: softly raised edges and a quiet wash, with the full
+    // card opening the existing overlay only when a player is available.
+    surfaceRadius: RaohaneTheme.radiusHero
     raised: false
-    showSheen: false
-    showInnerRim: false
-    interactive: true
-    hovered: summaryMouse.containsMouse
-    pressed: summaryMouse.pressed
+    showSheen: true
+    showInnerRim: true
+    interactive: root.mediaAvailable
+    hovered: root.mediaAvailable && summaryMouse.containsMouse
+    pressed: root.mediaAvailable && summaryMouse.pressed
     hoverScale: 1
     pressedScale: 1
     idleColor: RaohaneTheme.surfaceSubtle
     hoverColor: RaohaneTheme.surfaceHover
-    idleBorderColor: "transparent"
-    hoverBorderColor: "transparent"
+    idleBorderColor: RaohaneTheme.borderFaint
+    hoverBorderColor: RaohaneTheme.borderStrong
     showStateRail: false
     stateRailColor: RaohaneTheme.accent
     stateRailWidth: 2
@@ -67,15 +69,17 @@ RaohaneSurface {
                     surfaceRadius: RaohaneTheme.radiusLarge
                     raised: false
                     showSheen: false
-                    showInnerRim: false
+                    showInnerRim: true
                     idleColor: RaohaneTheme.surfaceDeep
-                    idleBorderColor: "transparent"
+                    idleBorderColor: RaohaneTheme.borderFaint
                     clip: true
 
                     Image {
                         id: mediaArt
                         anchors.fill: parent
-                        source: root.artUrl
+                        // Release artwork decoding when the card has no
+                        // player or the containing panel is not visible.
+                        source: root.mediaAvailable && root.visible ? root.artUrl : ""
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         visible: status === Image.Ready
@@ -106,7 +110,7 @@ RaohaneSurface {
                             Layout.fillWidth: true
                             text: root.mediaAvailable ? qsTr("Now playing") : qsTr("Media")
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
+                            font.pixelSize: 9
                             font.weight: Font.DemiBold
                             font.letterSpacing: 0.7
                             elide: Text.ElideRight
@@ -114,9 +118,11 @@ RaohaneSurface {
 
                         Text {
                             visible: root.playerName.length > 0
+                            Layout.minimumWidth: 0
+                            Layout.maximumWidth: root.width * 0.36
                             text: root.playerName
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
+                            font.pixelSize: 9
                             elide: Text.ElideRight
                         }
                     }
@@ -125,7 +131,7 @@ RaohaneSurface {
                         Layout.fillWidth: true
                         text: root.title
                         color: RaohaneTheme.text
-                        font.pixelSize: 11
+                        font.pixelSize: 13
                         font.weight: Font.DemiBold
                         elide: Text.ElideRight
                     }
@@ -134,7 +140,7 @@ RaohaneSurface {
                         Layout.fillWidth: true
                         text: root.subtitle
                         color: RaohaneTheme.textMuted
-                        font.pixelSize: 8
+                        font.pixelSize: 10
                         elide: Text.ElideRight
                     }
 
@@ -143,8 +149,8 @@ RaohaneSurface {
                     Rectangle {
                         visible: root.mediaAvailable
                         Layout.fillWidth: true
-                        Layout.preferredHeight: visible ? 4 : 0
-                        radius: 2
+                        Layout.preferredHeight: visible ? 5 : 0
+                        radius: height / 2
                         color: RaohaneTheme.surfaceDeep
 
                         Rectangle {
@@ -164,13 +170,13 @@ RaohaneSurface {
                         Text {
                             text: root.elapsedText
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
+                            font.pixelSize: 9
                         }
                         Item { Layout.fillWidth: true }
                         Text {
                             text: root.totalText
                             color: RaohaneTheme.textFaint
-                            font.pixelSize: 7
+                            font.pixelSize: 9
                         }
                     }
                 }
@@ -180,7 +186,8 @@ RaohaneSurface {
                 id: summaryMouse
                 anchors.fill: parent
                 z: 20
-                hoverEnabled: true
+                hoverEnabled: root.mediaAvailable
+                enabled: root.mediaAvailable
                 acceptedButtons: Qt.LeftButton
                 cursorShape: root.mediaAvailable ? Qt.PointingHandCursor : Qt.ArrowCursor
                 onClicked: {
@@ -221,9 +228,9 @@ RaohaneSurface {
                 buttonSize: 30
                 iconSize: 16
                 icon: root.playing ? "pause" : "play_arrow"
-                emphasized: root.playing
-                transparentIdle: !root.playing
-                showSheen: false
+                emphasized: root.canTogglePlaying
+                transparentIdle: !root.canTogglePlaying
+                showSheen: true
                 hoverScale: 1
                 pressedScale: 1
                 enabled: root.canTogglePlaying
