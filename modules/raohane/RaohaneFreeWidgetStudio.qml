@@ -21,8 +21,54 @@ Item {
     readonly property int monitorHeight: Math.max(1, Math.round(root.monitorScreen?.height ?? 1080))
     readonly property var selectedDefinition: RaohaneDesktopWidgetRegistry.definition(root.selectedWidgetId)
     readonly property var selectedPlacement: RaohaneConfig.desktopWidgetPlacement(root.monitorName, root.selectedWidgetId)
+    readonly property var widgetChoices: RaohaneDesktopWidgetRegistry.definitions()
+    readonly property var widgetIds: RaohaneDesktopWidgetRegistry.widgetIds
+
+    // A disconnected output must not leave the editor writing invisible layouts.
+    onMonitorScreenChanged: {
+        if (root.monitorScreen && root.monitorName !== String(root.monitorScreen.name))
+            root.monitorName = String(root.monitorScreen.name)
+    }
 
     implicitHeight: contentColumn.implicitHeight
+    focus: false
+
+    // Clicking a widget focuses the preview. Arrow keys then move it in 1%
+    // steps without requiring a pointer drag.
+    Keys.onPressed: event => {
+        if (!root.visible)
+            return
+        let dx = 0
+        let dy = 0
+        if (event.key === Qt.Key_Left)
+            dx = -0.01
+        else if (event.key === Qt.Key_Right)
+            dx = 0.01
+        else if (event.key === Qt.Key_Up)
+            dy = -0.01
+        else if (event.key === Qt.Key_Down)
+            dy = 0.01
+        else
+            return
+        root.nudgeSelected(dx, dy)
+        event.accepted = true
+    }
+
+    function nudgeSelected(dx: real, dy: real): void {
+        const p = root.selectedPlacement
+        if (!p)
+            return
+        RaohaneConfig.setDesktopWidgetPlacement(root.monitorName, root.selectedWidgetId,
+            p.x + dx, p.y + dy, p.size)
+    }
+
+    function resetSelected(): void {
+        const defaults = RaohaneConfig.defaultDesktopWidgetFreePlacements()
+        const p = defaults[root.selectedWidgetId]
+        if (p)
+            RaohaneConfig.setDesktopWidgetPlacement(root.monitorName, root.selectedWidgetId,
+                p.x, p.y, p.size)
+    }
 
     function adjustSelectedSize(delta: real): void {
         if (!root.selectedPlacement)
@@ -175,6 +221,7 @@ Item {
 
                     function beginInteraction(px, py): void {
                         root.selectedWidgetId = widgetId
+                        root.forceActiveFocus()
                         workingX = x
                         workingY = y
                         workingSize = shownSize
@@ -271,8 +318,9 @@ Item {
                                 const p = mapToItem(preview, mouse.x, mouse.y)
                                 const dx = (p.x - tile.pressPointerX) / tile.baseWidth
                                 const dy = (p.y - tile.pressPointerY) / tile.baseHeight
+                                const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy
                                 tile.workingSize = Math.max(0.65, Math.min(1.4,
-                                    tile.pressStartSize + Math.max(dx, dy)))
+                                    tile.pressStartSize + delta))
                                 tile.workingX = Math.min(tile.pressStartX, tile.travelX)
                                 tile.workingY = Math.min(tile.pressStartY, tile.travelY)
                             }
@@ -299,6 +347,21 @@ Item {
             Layout.fillWidth: true
             spacing: 10
 
+            Controls.ComboBox {
+                id: selectedWidgetChoice
+                Layout.preferredWidth: 170
+                model: root.widgetChoices
+                textRole: "title"
+                currentIndex: Math.max(0, root.widgetIds.indexOf(root.selectedWidgetId))
+                onActivated: index => root.selectedWidgetId = String(root.widgetChoices[index].id)
+                font.pixelSize: 10
+                background: Rectangle {
+                    radius: 8
+                    color: RaohaneTheme.surfaceRaised
+                    border.color: RaohaneTheme.borderFaint
+                }
+            }
+
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 2
@@ -312,7 +375,7 @@ Item {
                 }
 
                 Text {
-                    text: qsTr("Select any widget in the preview to adjust its size.")
+                    text: qsTr("Drag to move; use arrow keys after selection for precise adjustments.")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 9
                 }
@@ -330,6 +393,12 @@ Item {
                 enabled: (root.selectedPlacement?.size ?? 1) < 1.4
                 onClicked: root.adjustSelectedSize(0.05)
                 font.pixelSize: 14
+            }
+
+            Controls.Button {
+                text: qsTr("Reset")
+                onClicked: root.resetSelected()
+                font.pixelSize: 10
             }
         }
     }
