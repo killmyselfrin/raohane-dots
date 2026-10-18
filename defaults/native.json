@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 14,
+  "schemaVersion": 15,
   "wallpaper": {
     "path": "",
     "lockPath": "",
@@ -150,7 +150,12 @@
     "layout": "balanced",
     "freeLayouts": {},
     "scale": 1,
-    "opacity": 0.94
+    "opacity": 0.94,
+    "styles": {
+      "clock": "classic",
+      "context": "classic",
+      "system": "classic"
+    }
   },
   "features": {
     "contextIsland": true,
