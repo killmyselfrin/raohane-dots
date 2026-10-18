@@ -91,6 +91,20 @@ done
 [[ -f "$runtime/install/arch/required.txt" ]] || fail 'required package manifest was lost'
 [[ -f "$runtime/install/arch/features.txt" ]] || fail 'feature package manifest was lost'
 [[ -f "$runtime/modules/raohane/RaohaneDesktopEditGrid.qml" ]] || fail 'desktop editing grid was lost during staging'
+for face in RaohaneDesktopClockStyles RaohaneDesktopMediaStyles RaohaneDesktopSystemStyles RaohaneDesktopWidgetStyleStudio; do
+  [[ -f "$runtime/modules/raohane/$face.qml" ]] || fail "widget face library lost $face during staging"
+done
+
+# Regression: a missing alternative face must be rejected before installation.
+mv "$runtime/modules/raohane/RaohaneDesktopMediaStyles.qml" "$tmp_root/RaohaneDesktopMediaStyles.qml"
+if bash scripts/validate-runtime-payload.sh "$runtime" >"$tmp_root/missing-music-style.log" 2>&1; then
+  fail 'staged payload validator accepted missing media-style widget'
+fi
+grep -Fq 'missing modules/raohane/RaohaneDesktopMediaStyles.qml' "$tmp_root/missing-music-style.log" \
+  || fail 'staged validator did not report missing media-style widget'
+mv "$tmp_root/RaohaneDesktopMediaStyles.qml" "$runtime/modules/raohane/RaohaneDesktopMediaStyles.qml"
+bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
+
 [[ -f "$runtime/modules/raohane/RaohaneTaskManager.qml" ]] || fail 'native Task Manager was lost'
 [[ -f "$runtime/modules/raohane/RaohaneOverlay.qml" ]] || fail 'Command Deck was lost'
 [[ -f "$runtime/modules/raohane/services/RaohaneProcesses.qml" ]] || fail 'native process service was lost'
