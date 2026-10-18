@@ -145,15 +145,17 @@ Scope {
                 height: Math.max(1, Math.min(parent.height - 48, cinematicMode ? 790 : 720))
                 anchors.centerIn: parent
                 surfaceRadius: RaohaneTheme.radiusHero
-                raised: true
-                showSheen: true
-                showInnerRim: true
-                // Glass opacity belongs to the material only. Do not reduce
-                // the whole selector's opacity: text, previews and controls
-                // must remain sharp and fully readable on bright wallpapers.
+                raised: !cinematicMode
+                showSheen: !cinematicMode
+                showInnerRim: !cinematicMode
+                transparentIdle: cinematicMode
+                // Cinematic is an immersive overlay on the real wallpaper,
+                // while Grid retains a denser glass panel for search/folders.
+                // Only material alpha changes: thumbnails/buttons stay crisp.
                 idleColor: Qt.rgba(RaohaneTheme.background.r,
                     RaohaneTheme.background.g, RaohaneTheme.background.b,
-                    RaohaneTheme.dark ? 0.53 : 0.76)
+                    cinematicMode ? (RaohaneTheme.dark ? 0.10 : 0.20)
+                        : (RaohaneTheme.dark ? 0.53 : 0.76))
                 idleBorderColor: RaohaneTheme.borderStrong
                 clip: true
                 opacity: entered ? 1 : 0
