@@ -3,79 +3,121 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 
-Item {
+// A large, quiet desktop anchor. No extra weather/network polling or custom
+// font dependency: every label uses the native clock and shared theme.
+RaohaneSurface {
     id: root
 
     property bool compact: false
     property date now: new Date()
 
-    implicitHeight: root.compact ? 98 : 124
+    implicitHeight: root.compact ? 154 : 190
+    surfaceRadius: RaohaneTheme.radiusHero
+    raised: true
+    showSheen: true
+    showInnerRim: true
+    idleColor: RaohaneTheme.surfaceRaised
+    idleBorderColor: RaohaneTheme.borderFaint
+    clip: true
 
+    // A minute refresh is sufficient for an HH:mm widget. Stop the clock
+    // when the desktop canvas or its persisted widget slot is hidden.
     Timer {
-        interval: 1000
+        interval: 60000
         running: root.visible
         repeat: true
         onTriggered: root.now = new Date()
     }
 
-    RowLayout {
+    Rectangle {
         anchors.fill: parent
-        spacing: 11
+        radius: root.surfaceRadius
+        opacity: 0.25
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0; color: RaohaneTheme.accentSoft }
+            GradientStop { position: 1; color: "transparent" }
+        }
+    }
 
-        Rectangle {
-            Layout.preferredWidth: 2
-            Layout.preferredHeight: root.compact ? 48 : 62
-            radius: 1
-            color: RaohaneTheme.accent
-            opacity: 0.64
+    Rectangle {
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 3
+        height: parent.height - 32
+        radius: 2
+        color: RaohaneTheme.accent
+        opacity: 0.75
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: root.compact ? 15 : 19
+        spacing: 0
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 7
+
+            RaohaneIcon {
+                text: "schedule"
+                iconSize: 14
+                color: RaohaneTheme.accent
+            }
+
+            Text {
+                text: "RAOHANE"
+                color: RaohaneTheme.textMuted
+                font.pixelSize: 10
+                font.weight: Font.DemiBold
+                font.letterSpacing: 1.8
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Text {
+                text: Qt.formatDate(root.now, "ddd").toUpperCase()
+                color: RaohaneTheme.textFaint
+                font.pixelSize: 10
+                font.weight: Font.DemiBold
+                font.letterSpacing: 0.8
+            }
         }
 
-        ColumnLayout {
+        Item { Layout.fillHeight: true }
+
+        Text {
             Layout.fillWidth: true
-            spacing: 0
+            Layout.minimumWidth: 0
+            text: Qt.formatTime(root.now, "HH:mm")
+            color: RaohaneTheme.text
+            font.pixelSize: root.compact ? 52 : 70
+            font.weight: Font.Light
+            font.letterSpacing: -2.4
+            elide: Text.ElideRight
+        }
 
-            RowLayout {
-                spacing: 7
-
-                Text {
-                    text: "生きる"
-                    color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
-                    font.weight: Font.Medium
-                    font.letterSpacing: 1.2
-                }
-
-                Rectangle {
-                    width: 20
-                    height: 1
-                    radius: 1
-                    color: RaohaneTheme.textFaint
-                    opacity: 0.64
-                }
-
-                Text {
-                    text: Qt.formatDate(root.now, "ddd").toUpperCase()
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: 0.8
-                }
-            }
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: root.compact ? 1 : 5
+            spacing: 9
 
             Text {
-                Layout.topMargin: 1
-                text: Qt.formatTime(root.now, "HH:mm")
-                color: RaohaneTheme.text
-                font.pixelSize: root.compact ? 46 : 58
-                font.weight: Font.ExtraLight
-                font.letterSpacing: -2.1
-            }
-
-            Text {
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: Qt.formatDate(root.now, "dddd, d MMMM")
                 color: RaohaneTheme.textMuted
-                font.pixelSize: root.compact ? 9 : 10
+                font.pixelSize: root.compact ? 10 : 12
                 font.weight: Font.Medium
+                elide: Text.ElideRight
+            }
+
+            Rectangle {
+                Layout.preferredWidth: 28
+                Layout.preferredHeight: 2
+                radius: 1
+                color: RaohaneTheme.accent
+                opacity: 0.75
             }
         }
     }
