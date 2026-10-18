@@ -135,6 +135,40 @@ if rg -Fq 'RaohaneWallpapers.apply(' "$cinema"; then
   fail 'cinematic browsing bypassed the existing wallpaper confirmation flow'
 fi
 
+# Regression from live screenshot: FolderListModel can show N entries while
+# the cinematic ListView creates no delegates. Use the named Qt roles directly,
+# pass the model/geometry to the dynamically loaded viewport, and fall back to
+# Grid if delegates never materialize.
+for role in 'required property string filePath' \
+            'required property string fileName' \
+            'required property bool fileIsDir' \
+            'required property int index'; do
+  rg -Fq "$role" "$cinema" || fail "carousel lost named FolderListModel role $role"
+done
+if rg -Fq 'required property var modelData' "$cinema"; then
+  fail 'carousel reintroduced fragile modelData binding'
+fi
+rg -Fq 'item.folderModel = RaohaneWallpapers.folderModel' "$selector" \
+  || fail 'lazy carousel does not receive the real file model on load'
+rg -Fq 'property: "width"' "$selector" \
+  || fail 'lazy carousel loses visible viewport width'
+rg -Fq 'property: "height"' "$selector" \
+  || fail 'lazy carousel loses visible viewport height'
+rg -Fq 'id: cinemaHealthCheck' "$selector" \
+  || fail 'blank carousel no longer falls back to Grid'
+rg -Fq 'gallery.hasCurrentCard' "$selector" \
+  || fail 'cinema delegate watchdog is missing'
+rg -Fq 'function thumbnailUrl(path: string): string' "$cinema" \
+  || fail 'video entries have no poster thumbnail resolver'
+rg -Fq 'RaohaneWallpapers.generateThumbnail("x-large")' "$cinema" \
+  || fail 'video posters cannot be generated from existing thumbnail pipeline'
+rg -Fq 'Qt.md5("file://" + encodedPath)' "$cinema" \
+  || fail 'Freedesktop thumbnail URI lookup no longer matches generator'
+rg -Fq 'id: videoPoster' "$cinema" \
+  || fail 'video card is back to a blank placeholder'
+rg -Fq 'tile.video && root.thumbnailsReady' "$cinema" \
+  || fail 'video poster is loaded before the thumbnail job has finished'
+
 # Hidden QQuickImage items still evaluate and decode their source. Gallery image
 # sources therefore must be empty for directories and video files instead of
 # relying on visible:false, which produces noisy decode/open warnings at runtime.
