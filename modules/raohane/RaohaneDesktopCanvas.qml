@@ -22,18 +22,46 @@ Variants {
         readonly property bool canvasVisible: RaohaneConfig.desktopWidgetsEnabled
             && !RaohaneState.screenLocked
             && !(RaohaneConfig.wallpaperHideWhenFullscreen && fullscreenActive)
+        readonly property bool editInputEnabled: canvasVisible && !fullscreenActive
+            && RaohaneState.desktopWidgetEditMode
+            && RaohaneState.desktopWidgetEditScreenName === String(modelData.name)
+
+        onFullscreenActiveChanged: {
+            if (fullscreenActive && editInputEnabled)
+                RaohaneState.desktopWidgetEditMode = false
+        }
+        onEditInputEnabledChanged: {
+            if (editInputEnabled)
+                Qt.callLater(() => desktopWidgets.forceActiveFocus())
+        }
+
+        Connections {
+            target: RaohaneState
+            function onScreenLockedChanged(): void {
+                if (RaohaneState.screenLocked)
+                    RaohaneState.desktopWidgetEditMode = false
+            }
+        }
 
         screen: modelData
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:raohane-desktop-widgets"
         WlrLayershell.layer: WlrLayer.Bottom
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: desktopWindow.editInputEnabled ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         anchors { top: true; bottom: true; left: true; right: true }
 
         // Keep unoccupied wallpaper click-through. Only existing widget
         // faces receive pointer events (right-click for context actions).
         mask: Region {
+            // While editing, the whole desktop accepts drag operations.
+            // Leaving edit mode restores the exact original widget-only mask.
+            Region {
+                x: 0
+                y: 0
+                width: desktopWindow.editInputEnabled ? desktopWindow.width : 0
+                height: desktopWindow.editInputEnabled ? desktopWindow.height : 0
+            }
             Region {
                 x: desktopWidgets.primaryHitRect.x
                 y: desktopWidgets.primaryHitRect.y
