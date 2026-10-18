@@ -31,10 +31,10 @@ The default view is now **Cinematic**, an image carousel with:
 - a larger centered card, subdued angled neighbors and a restrained selection rim;
 - smooth scroll snapping, keyboard left/right, working arrow buttons in a floating
   glass toolbar, and double-click Apply;
-- delayed (165 ms) selection preview: browsing updates the pending filename
+- fast delayed (70 ms) selection preview: browsing updates the pending filename
   immediately, but only settled selections trigger live desktop preview;
 - two bounded, asynchronously decoded background layers that crossfade over
-  about 210 ms after the incoming image is ready (reduced-motion respected);
+  about 120 ms after the incoming image is ready (reduced-motion respected);
 - softly tinted, translucent backdrop on the *real wallpaper*, not a solid
   mini-preview that covers the entire screen;
 - shared folder/search/back/forward/random commands and existing Apply / Preview;
@@ -78,6 +78,8 @@ In fish shell:
 cd ~/raohane-dots
 git pull --ff-only
 bash scripts/wallpaper-boundary-audit.sh
+# When ffmpeg and Pillow are installed, this now also generates a real test
+# MP4 and verifies the exact cache thumbnail path/decoded image.
 bash scripts/bar-boundary-audit.sh
 bash scripts/runtime-payload-audit.sh
 ./install-raohane.sh --no-deps --no-login-theme --no-start
@@ -100,9 +102,12 @@ Verify:
    Preview, then Apply. Check that rapid scrolling does not launch a flurry
    of expensive intermediate wallpaper decodes.
 3. Open a folder with a `.mp4` or `.webm` video. The existing
-   thumbnail generator should produce an x-large poster frame; the carousel
-   should show the poster instead of a permanently blank video card. If ffmpeg
-   or a video codec cannot decode it, the video icon placeholder remains.
+   existing thumbnail generator should produce an x-large poster frame at
+   ~5 seconds (falling back to 1/0 seconds for short videos); the carousel
+   should show that actual extracted frame **inside the video card and behind
+   the carousel**, instead of a permanently dark video-icon placeholder.
+   The decoder uses the installed FFmpeg CLI and Python Pillow; if these are
+   missing or the file is corrupt, the original fallback icon remains.
    Double-click an image to apply it; click/double-click a folder to navigate.
    Make sure browsing past a folder does not navigate by itself.
 4. Switch Grid → Cinematic → Grid. Verify folder navigation, search, thumbnail
