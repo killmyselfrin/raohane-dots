@@ -34,6 +34,10 @@ required=(
   modules/raohane/qmldir
   modules/raohane/RaohaneDesktopWidgets.qml
   modules/raohane/RaohaneDesktopEditGrid.qml
+  modules/raohane/RaohaneDesktopClockStyles.qml
+  modules/raohane/RaohaneDesktopMediaStyles.qml
+  modules/raohane/RaohaneDesktopSystemStyles.qml
+  modules/raohane/RaohaneDesktopWidgetStyleStudio.qml
   modules/raohane/RaohaneTaskManager.qml
   modules/raohane/RaohaneOverlay.qml
   modules/raohane/RaohaneSettingsGraphics.qml
@@ -85,6 +89,11 @@ grep -Fxq 'RaohaneDesktopEditGrid 1.0 RaohaneDesktopEditGrid.qml' \
 grep -Fq 'Qt.resolvedUrl("RaohaneDesktopEditGrid.qml")' \
   "$TARGET/modules/raohane/RaohaneDesktopWidgets.qml" \
   || fail 'desktop edit grid is not loaded lazily by the renderer'
+for type_name in RaohaneDesktopClockStyles RaohaneDesktopMediaStyles RaohaneDesktopSystemStyles RaohaneDesktopWidgetStyleStudio; do
+  grep -Fxq "$type_name 1.0 $type_name.qml" "$TARGET/modules/raohane/qmldir" \
+    || fail "widget style $type_name is not registered in qmldir"
+done
+
 
 
 # Compare the staged defaults with the staged QML config schema instead
