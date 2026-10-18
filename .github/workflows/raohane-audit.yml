@@ -269,8 +269,50 @@ jobs:
             [[ -e "$path" ]] || { echo "Missing integration path: $path" >&2; exit 1; }
           done
 
-          jq -e '.schemaVersion == 13' defaults/native.json >/dev/null || {
-            echo 'defaults/native.json is not Raohane schema v13.' >&2
+          # Catch schema upgrades in CI before they reach the updater.
+          jq -e '.schemaVersion == 14' defaults/native.json >/dev/null || {
+            echo 'defaults/native.json is not Raohane schema v14.' >&2
+            exit 1
+          }
+          grep -Eq '^[[:space:]]*readonly property int schemaVersion:[[:space:]]*14[[:space:]]*
+
+          [[ ! -e modules/raohane/RaohaneLegacyBridge.qml ]] || {
+            echo 'Retired RaohaneLegacyBridge returned to the integration graph.' >&2
+            exit 1
+          }
+
+          [[ ! -e modules/ii ]] || {
+            echo 'Retired modules/ii source tree returned to the integration graph.' >&2
+            exit 1
+          }
+
+          grep -q 'RaohaneFamily' shell.qml || {
+            echo 'shell.qml no longer routes into RaohaneFamily.' >&2
+            exit 1
+          }
+
+          if find . -path './.git' -prune -o -type f \
+            \( -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' -o -iname '*.eot' \) \
+            -print -quit | grep -q .; then
+            echo 'Vendored font binary detected.' >&2
+            exit 1
+          fi
+
+      - name: Assert checkout remains clean
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo 'Audit modified the repository:' >&2
+            git status --short >&2
+            git diff -- >&2
+            exit 1
+          fi
+ modules/raohane/config/RaohaneConfig.qml || {
+            echo 'RaohaneConfig.qml and defaults/native.json schema versions are inconsistent.' >&2
+            exit 1
+          }
+          bash scripts/validate-runtime-payload.sh /dev/null 2>/dev/null && {
+            echo 'Runtime payload validator accepted an invalid payload target.' >&2
             exit 1
           }
 
