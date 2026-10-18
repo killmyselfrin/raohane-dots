@@ -102,7 +102,7 @@ Item {
         function onCountChanged(): void { root.queueVideoThumbnails() }
     }
 
-    function highlightPath(path: string, previewImmediately: bool = false): void {
+    function highlightPath(path: string, previewImmediately): void {
         if (!path || RaohaneWallpapers.isVideo(path)) {
             previewTimer.stop()
             queuedPreviewPath = ""
