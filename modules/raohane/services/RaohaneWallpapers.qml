@@ -30,6 +30,7 @@ Singleton {
     property list<string> wallpapers: []
     property string previewPath: ""
     property string previewScreenName: ""
+    property bool videoPreviewPaused: false
     property string confirmedPath: RaohaneConfig.wallpaperPath
     // Exact thumbnail locations reported by the existing Python generator.
     // Keep only video posters in memory; their URI may differ from an
@@ -102,6 +103,8 @@ Singleton {
     function startPreview(path: string, screenName = ""): void {
         const clean = root.cleanPath(path)
         if (clean.length > 0) {
+            if (root.previewPath !== clean)
+                root.videoPreviewPaused = false
             root.previewScreenName = String(screenName ?? "")
             root.previewPath = clean
         }
@@ -110,6 +113,7 @@ Singleton {
     function stopPreview(): void {
         root.previewPath = ""
         root.previewScreenName = ""
+        root.videoPreviewPaused = false
     }
 
     function apply(path: string, darkMode = true, screenName = ""): void {
