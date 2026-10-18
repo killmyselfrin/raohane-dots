@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 13
+    readonly property int schemaVersion: 14
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -327,7 +327,7 @@ Singleton {
         const result = {}
         let count = 0
         for (const monitor of Object.keys(input)) {
-            if (!/^[a-zA-Z0-9_.:-]{1,80}$/.test(monitor) || count >= 8)
+            if (!/^[a-zA-Z0-9_.:-]{1,80}$/.test(monitor) || ["__proto__", "prototype", "constructor"].includes(monitor) || count >= 8)
                 continue
             result[monitor] = root.sanitizeDesktopWidgetFreePlacements(input[monitor])
             count++
@@ -348,7 +348,7 @@ Singleton {
     function setDesktopWidgetPlacement(monitor, widgetId, x, y, size): void {
         const name = String(monitor ?? "default")
         const id = String(widgetId ?? "")
-        if (!/^[a-zA-Z0-9_.:-]{1,80}$/.test(name) || !Object.prototype.hasOwnProperty.call(root.defaultDesktopWidgetFreePlacements(), id))
+        if (!/^[a-zA-Z0-9_.:-]{1,80}$/.test(name) || ["__proto__", "prototype", "constructor"].includes(name) || !Object.prototype.hasOwnProperty.call(root.defaultDesktopWidgetFreePlacements(), id))
             return
         const next = Object.assign({}, root.desktopWidgetFreeLayouts)
         if (!Object.prototype.hasOwnProperty.call(next, name) && Object.keys(next).length >= 8)
