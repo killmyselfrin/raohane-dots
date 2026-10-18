@@ -27,7 +27,14 @@ Variants {
             && RaohaneState.desktopWidgetEditScreenName === String(modelData.name)
 
         onFullscreenActiveChanged: {
-            if (fullscreenActive && editInputEnabled)
+            if (fullscreenActive && RaohaneState.desktopWidgetEditMode
+                    && RaohaneState.desktopWidgetEditScreenName === String(modelData.name))
+                RaohaneState.desktopWidgetEditMode = false
+        }
+
+        Component.onDestruction: {
+            if (RaohaneState.desktopWidgetEditMode
+                    && RaohaneState.desktopWidgetEditScreenName === String(modelData.name))
                 RaohaneState.desktopWidgetEditMode = false
         }
         onEditInputEnabledChanged: {
