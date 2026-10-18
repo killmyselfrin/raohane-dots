@@ -214,6 +214,35 @@ Scope {
                     }
                 }
 
+                // Fine separators are painted only when the three zones
+                // have comfortable spacing. No artificial icons, polling or
+                // hit-target overlays are added.
+                Rectangle {
+                    visible: barWindow.haloPreset && barContent.width >= 1100
+                        && centerIsland.visible && leftIsland.visible
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.right: centerIsland.left
+                    anchors.rightMargin: 9
+                    width: 1
+                    height: 15
+                    radius: 1
+                    color: RaohaneTheme.borderStrong
+                    opacity: 0.52
+                }
+
+                Rectangle {
+                    visible: barWindow.haloPreset && barContent.width >= 1100
+                        && centerIsland.visible && rightIsland.visible
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: centerIsland.right
+                    anchors.leftMargin: 9
+                    width: 1
+                    height: 15
+                    radius: 1
+                    color: RaohaneTheme.borderStrong
+                    opacity: 0.52
+                }
+
                 RaohaneSurface {
                     id: leftIsland
                     visible: root.activeLayout.left.length > 0
