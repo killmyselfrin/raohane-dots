@@ -31,7 +31,9 @@ Item {
     readonly property bool vertical: orientation === "vertical"
     readonly property bool known: RaohaneBarModuleRegistry.supports(moduleId, orientation)
     readonly property bool individualSurface: root.showBackground
-        && root.moduleId !== "separator"
+        // Context owns its interactive background and privacy/event state.
+        // A second module surface behind it looks like nested pills.
+        && root.moduleId !== "separator" && root.moduleId !== "context"
         && (root.groupStyle === "separated" || root.groupStyle === "segmented")
     readonly property int individualPadding: root.individualSurface
         ? (root.groupStyle === "segmented" ? 2 : 4)
