@@ -40,6 +40,11 @@ QtObject {
     property string desktopMenuWidgetId: ""
     property string desktopMenuWidgetMonitor: ""
 
+    // Transient on-desktop widget editing; placements remain in RaohaneConfig.
+    property bool desktopWidgetEditMode: false
+    property string desktopWidgetEditScreenName: ""
+    property string desktopWidgetEditWidgetId: "clock"
+
     function surfaceOpen(name: string): bool {
         const stateProperty = RaohaneSurfaceRegistry.stateProperty(name)
         if (!stateProperty)
