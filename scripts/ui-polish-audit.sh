@@ -161,6 +161,30 @@ if rg -q 'label:[[:space:]]*qsTr\("Performance"\)|label:[[:space:]]*qsTr\("DND"\
   fail 'Control Center reintroduced duplicate system toggles in the action dock'
 fi
 
+# Responsive status chips should not squeeze four unreadable cells into a
+# narrow column; network/audio/Bluetooth actions remain coordinator-owned.
+rg -Fq 'readonly property bool compact: root.width < 480' "$control_status" \
+  || fail 'Control Center status strip lost compact breakpoint'
+rg -Fq 'implicitHeight: root.compact ? 122 : 60' "$control_status" \
+  || fail 'Control Center status strip lost two-row height'
+rg -Fq 'columns: root.compact ? 2 : 4' "$control_status" \
+  || fail 'Control Center status strip lost responsive columns'
+rg -Fq 'rowSpacing: root.compact ? RaohaneTheme.spacingSmall : 0' "$control_status" \
+  || fail 'Control Center status strip lost compact row spacing'
+[[ "$(rg -Fc 'Layout.minimumWidth: 0' "$control_status")" == 4 ]] \
+  || fail 'Control Center status cards can exceed allocated grid columns'
+rg -Fq 'font.pixelSize: 9' "$control_status" \
+  || fail 'Control Center status labels became unreadably small'
+rg -Fq 'font.pixelSize: 10' "$control_status" \
+  || fail 'Control Center status values became unreadably small'
+for contract in \
+  'onTriggered: root.networkRequested()' \
+  'onTriggered: root.bluetoothRequested()' \
+  'onTriggered: root.audioRequested()'; do
+  rg -Fq "$contract" "$control_status" \
+    || fail "Control Center status action lost: $contract"
+done
+
 # Extracted frame/status/action/media surfaces are presentation-only. System
 # services and state transitions remain in the Control Center coordinator.
 for presentation in "$control_header" "$control_footer" "$control_status" "$control_actions" "$control_media"; do
