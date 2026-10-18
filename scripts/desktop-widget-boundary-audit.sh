@@ -18,7 +18,7 @@ system='modules/raohane/RaohaneDesktopSystemWidget.qml'
 motto='modules/raohane/RaohaneDesktopMottoWidget.qml'
 studio='modules/raohane/RaohaneWidgetStudio.qml'
 layout_studio='modules/raohane/RaohaneDesktopWidgetLayoutStudio.qml'
-context_actions='modules/raohane/RaohaneDesktopWidgetContextActions.qml'
+widget_gallery='modules/raohane/RaohaneDesktopWidgetPopover.qml'
 desktop_menu='modules/raohane/RaohaneDesktopMenu.qml'
 background='modules/raohane/RaohaneBackground.qml'
 state='modules/raohane/RaohaneState.qml'
@@ -31,7 +31,7 @@ search='modules/raohane/RaohaneSettingsSearch.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 
-for path in "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$context_actions" "$desktop_menu" "$background" "$state" "$free_studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
+for path in "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$widget_gallery" "$desktop_menu" "$background" "$state" "$free_studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
   [[ -f "$path" ]] || fail "missing native widget path: $path"
 done
 
@@ -50,8 +50,8 @@ done
 
 # Widget context menus must reuse the existing desktop popup and Qt input
 # masks: wallpaper remains clickable outside the four widget bounds.
-rg -Fq 'RaohaneDesktopWidgetContextActions 1.0 RaohaneDesktopWidgetContextActions.qml' "$qmldir" \
-  || fail 'widget context actions are not registered in native qmldir'
+rg -Fq 'RaohaneDesktopWidgetPopover 1.0 RaohaneDesktopWidgetPopover.qml' "$qmldir" \
+  || fail 'widget gallery is not registered in native qmldir'
 rg -Fq 'mask: Region {' "$canvas" || fail 'widget canvas traps clicks across the wallpaper'
 for widget in clock context system motto; do
   rg -Fq "desktopWidgets.freeHitRect(\"$widget\")" "$canvas" \
@@ -71,16 +71,31 @@ rg -Fq 'acceptedButtons: Qt.RightButton' "$background" \
   || fail 'blank wallpaper lost right-click action'
 rg -Fq 'desktopMenuWidgetId' "$state" \
   || fail 'desktop menu no longer remembers selected widget'
-rg -Fq 'RaohaneDesktopWidgetContextActions {' "$desktop_menu" \
-  || fail 'desktop menu is not sharing the widget context actions'
-for action in move resize setPosition reset; do
-  rg -Fq "function $action(" "$context_actions" \
-    || fail "widget context menu lost $action operation"
-done
-rg -Fq 'RaohaneConfig.desktopWidgetsLayout = "free"' "$context_actions" \
-  || fail 'widget context actions cannot activate free placement'
-rg -Fq 'RaohaneSettingsRouter.request("widgets", "")' "$context_actions" \
-  || fail 'widget context actions cannot open the full editor'
+# One desktop menu owns both views. Widgets expands into a single
+# on-demand gallery/canvas panel with a back button, not direct action rows.
+rg -Fq 'sourceComponent: RaohaneDesktopWidgetPopover {' "$desktop_menu" \
+  || fail 'desktop menu no longer opens widget gallery'
+rg -Fq 'visible: !root.showWidgetManager' "$desktop_menu" \
+  || fail 'right click bypasses the compact desktop menu'
+rg -Fq 'active: root.showWidgetManager' "$desktop_menu" \
+  || fail 'widget gallery is instantiated while its view is closed'
+rg -Fq 'onBackRequested: root.showWidgetManager = false' "$desktop_menu" \
+  || fail 'widget gallery lost return navigation'
+if rg -Fq 'RaohaneDesktopWidgetContextActions {' "$desktop_menu"; then
+  fail 'obsolete direct widget action list returned to the desktop menu'
+fi
+rg -Fq 'GridLayout {' "$widget_gallery" \
+  || fail 'widget gallery lost the widget card grid'
+rg -Fq 'RaohaneSwitch {' "$widget_gallery" \
+  || fail 'widget gallery cannot toggle widgets'
+rg -Fq 'RaohaneFreeWidgetStudio {' "$widget_gallery" \
+  || fail 'widget gallery cannot drag and resize layouts'
+rg -Fq 'onSelectedWidgetIdChanged: root.selectedWidgetId = selectedWidgetId' "$widget_gallery" \
+  || fail 'widget gallery lost selected widget synchronization'
+rg -Fq 'RaohaneConfig.desktopWidgetsLayout = "free"' "$widget_gallery" \
+  || fail 'widget gallery cannot enable free layout'
+rg -Fq 'RaohaneSettingsRouter.request("widgets", "")' "$widget_gallery" \
+  || fail 'widget gallery lost full-editor navigation'
 
 rg -q 'readonly property var widgetIds:[[:space:]]*\["clock", "context", "system", "motto"\]' "$widget_registry" \
   || fail 'Desktop Widget Registry lost the native widget ids'
