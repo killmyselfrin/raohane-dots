@@ -54,13 +54,13 @@ Preserve GNU GPLv3 obligations for covered derivative work. Runtime independence
 
 ## Final design direction
 
-The approved visual target is the dark **Raohane Nocturne** concept: atmospheric Japanese minimalism with compact glass surfaces and restrained violet accents. This is now the final product direction rather than a temporary mood board.
+The approved visual target is the dark **Raohane Nocturne** concept: original atmospheric minimalism with compact glass surfaces and restrained violet accents. Japanese-themed styling is not a product requirement. This is now the final product direction rather than a temporary mood board.
 
 - deep graphite / blue-black desktop chrome with translucent frosted surfaces;
 - soft violet-lavender accent for active controls, selection and focus, never uncontrolled neon bloom;
 - thin blue-gray/violet borders, subtle inner highlights and low-contrast depth;
 - rounded compact cards with consistent geometry across Settings, Control Center, Launcher, Wallpaper, Overview, Media, Sidebar and Notifications;
-- wallpaper-aware atmosphere inspired by night ocean, rain, mist, sakura and subdued anime photography;
+- wallpaper-aware atmosphere inspired by night ocean, rain, mist and subdued photography;
 - clear information hierarchy: strong primary text, cool muted secondary text and very faint metadata;
 - floating Bar pods, Context Island and Dock remain signature geometry;
 - Settings uses a dark sidebar, compact page header and dense two-column navigation cards;
