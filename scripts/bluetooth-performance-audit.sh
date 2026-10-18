@@ -50,16 +50,16 @@ rg -q '^bluez$' "$manifest" \
 
 # Picker-owned discovery must not restart after Bluetooth mode is closed.
 for contract in \
-  'function startBluetoothDiscovery\\(\\): void' \
-  'function stopBluetoothDiscovery\\(\\): void' \
-  'Qt\\.callLater\\(\\(\\) => root\\.startBluetoothDiscovery\\(\\)\\)' \
-  'if \\(!root\\.bluetoothMode \\|\\| !RaohaneBluetooth\\.enabled \\|\\| RaohaneBluetooth\\.discovering\\)' \
-  'Component\\.onDestruction: root\\.stopBluetoothDiscovery\\(\\)' \
-  'running: root\\.busy && root\\.visible && RaohaneMotion\\.panelMotionEnabled' \
-  'running: row\\.waiting && root\\.visible && RaohaneMotion\\.panelMotionEnabled'; do
+  'function startBluetoothDiscovery\(\): void' \
+  'function stopBluetoothDiscovery\(\): void' \
+  'Qt\.callLater\(\(\) => root\.startBluetoothDiscovery\(\)\)' \
+  'if \(!root\.bluetoothMode \|\| !RaohaneBluetooth\.enabled \|\| RaohaneBluetooth\.discovering\)' \
+  'Component\.onDestruction: root\.stopBluetoothDiscovery\(\)' \
+  'running: root\.busy && root\.visible && RaohaneMotion\.panelMotionEnabled' \
+  'running: row\.waiting && root\.visible && RaohaneMotion\.panelMotionEnabled'; do
   rg -q "$contract" "$device_picker" || fail "picker discovery/motion contract missing: $contract"
 done
-if rg -n 'Qt\\.callLater\\(\\(\\) => RaohaneBluetooth\\.startDiscovery\\(\\)\\)' "$device_picker"; then
+if rg -n 'Qt\.callLater\(\(\) => RaohaneBluetooth\.startDiscovery\(\)\)' "$device_picker"; then
   fail 'picker can restart Bluetooth discovery after it closes'
 fi
 
