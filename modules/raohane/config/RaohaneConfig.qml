@@ -574,13 +574,16 @@ Singleton {
 
     function wallpaperPathForScreen(screenName): string {
         const key = String(screenName ?? "")
-        return String(root.wallpaperMonitors?.[key] ?? root.wallpaperPath)
+        const saved = root.wallpaperMonitors
+        return saved && Object.prototype.hasOwnProperty.call(saved, key)
+            ? String(saved[key]) : root.wallpaperPath
     }
 
     function setWallpaperForScreen(screenName, path): void {
         const key = String(screenName ?? "")
         const file = String(path ?? "")
-        if (!key.length || key.length >= 128 || !file.startsWith("/"))
+        if (!key.length || key.length >= 128 || !file.startsWith("/")
+                || ["__proto__", "constructor", "prototype"].includes(key))
             return
         const next = Object.assign({}, root.sanitizeWallpaperMonitors(root.wallpaperMonitors))
         next[key] = file
