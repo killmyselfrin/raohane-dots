@@ -1,57 +1,54 @@
-# Raohane Flow — visual direction
+# Raohane Flow — visual system
 
-This is Raohane's own interpretation of the calm, modular desktop language seen
-in [Serpantinum](https://github.com/ilyamiro/serpantinum). **Do not import
-Serpantinum's AGPL-3.0 QML, shaders, art, font files, or bundled assets** to
-implement this design. Study the *visual ideas* and author Raohane-owned
-components using the existing Quickshell infrastructure.
+Raohane Flow is the native visual system for the Raohane desktop shell.
+It aims to balance a calm, cohesive interface with predictable Quickshell
+performance on ordinary Wayland systems.
 
-Reference screenshots (upstream design, **not** Raohane output):
+All UI implementations should use Raohane-owned QML components and the
+existing shared service contracts. Do not introduce third-party code, art,
+fonts or binary shaders without first checking their licenses and recording
+any legally required notices in the appropriate license files.
 
-- [Serpantinum preview 1](https://github.com/ilyamiro/serpantinum/blob/master/docs/assets/previews/preview_1.png)
-- [Serpantinum preview 2](https://github.com/ilyamiro/serpantinum/blob/master/docs/assets/previews/preview_2.png)
-- [Serpantinum preview 3](https://github.com/ilyamiro/serpantinum/blob/master/docs/assets/previews/preview_3.png)
-- [Serpantinum preview 4](https://github.com/ilyamiro/serpantinum/blob/master/docs/assets/previews/preview_4.png)
+## Shared material contract — phase 1
 
-## Shared visual contract — phase 1
+- **Palette:** deep charcoal with a subtle plum cast, subdued lavender
+  accents, clearly distinguished secondary text and muted status colors.
+- **Shape:** modular islands, softly rounded panels, consistent padding
+  and restrained one-pixel hairline reflections.
+- **Material:** translucency comes from `RaohaneTheme.glassOpacity` and the
+  `RaohaneSurface` state machine. Base usability must not depend on
+  continuous wallpaper capture, expensive fragment shaders or
+  full-screen blur. Compositor blur is optional and requires dedicated
+  NVIDIA/Wayland and fullscreen testing.
+- **Components:** Bar, Control Center, Settings, Launcher, Media, Dock,
+  Notifications and desktop widgets use shared theme, motion and control
+  tokens instead of isolated magic colors or duplicated state owners.
+- **Customization:** the existing `raohane-dark` preset adopts Raohane
+  Flow without overwriting user settings. Alternate presets, accent choices,
+  reduced-motion preferences and custom Style Studio values remain available.
+- **Delivery:** this initial change concerns shared visual materials, not
+  a complete layout redesign or a guarantee of compositor behavior.
 
-- Core palette: deep charcoal with a subtle plum cast, lavender accents,
-  soft secondary text, muted semantic status colors.
-- Shape language: round modular islands and softly rounded larger panels,
-  consistent spacing and restrained 1px hairline reflections.
-- Material: translucency is controlled by `RaohaneTheme.glassOpacity` and
-  the existing RaohaneSurface state machine. Never require an expensive
-  fragment shader, constantly captured wallpaper, or full-scene blur for basic
-  usability. Compositor blur remains an **optional future enhancement**, tested
-  separately for NVIDIA/Wayland and games.
-- Reuse: Bar, Control Center, Settings, Launcher, Media, Dock, Notification
-  surfaces and desktop widgets consume shared tokens; do not add duplicate
-  service owners or create one-off local theme colors.
-- The primary `raohane-dark` preset carries the new visual language so
-  existing installs using it receive the redesign; other presets and user
-  overrides remain independently selectable.
-- Changes in this PR affect material only. They do **not** claim a complete
-  UI replication, new features, or verified live screenshots.
+## UI roadmap
 
-## Next phases (tracked separately)
-
-1. **Bar composition:** align island spacing, workspace indicators, tray
-   grouping, module hover states and compact/multi-monitor behavior.
-2. **Control Center + Settings:** coherent navigation rail, responsive cards,
-   fewer redundant control groups and consistent content density.
-3. **Music:** unified track artwork, transport, seek bar, audio visualization,
-   lyrics and game-overlay appearance with idle work suspended.
-4. **Widgets and wallpaper:** matching calendar/system/media tiles with
-   wallpaper-aware but legible color contrast.
-5. **Animations:** shared open/close cadence; honor Reduced Motion, Gaming
-   Mode and fullscreen suppression.
+1. **Bar:** modular grouping, hover/focus states, workspace indicators,
+   tray alignment, responsive sizing and multi-monitor recovery.
+2. **Settings & Control Center:** clear navigation, balanced responsive
+   cards and a single owner for each audio/network/Bluetooth control.
+3. **Media:** consistent artwork, transport, progress, visualization, lyrics
+   and an overlay that suspends unnecessary work when hidden.
+4. **Desktop:** wallpaper-aware widgets, accessible text contrast and
+   unified calendar/system/media tiles.
+5. **Motion:** shared enter/exit cadence, opt-outs for Reduced Motion and
+   Gaming Mode, and no off-screen animation loops.
+6. **Website:** align public presentation and capture genuine screenshots
+   only after the actual shell layout passes runtime validation.
 
 ## Runtime acceptance before merging
 
-Test with the actual current shell on Hyprland, including a compact logical
-output, a 1920x1080 desktop, fractional scaling and an active fullscreen game.
-Verify QML warnings, CPU and RSS over an extended session, input/focus
-behavior, active button contrast, reduced-motion mode and whether transparency
-is supported by the compositor. Capture **real screenshots** for review; do
-not substitute mock-ups. The website should use this language *only after*
-the shell design is approved and runtime verified.
+Verify behavior in an actual Hyprland session with 1920 × 1080 and compact
+logical outputs, fractional scaling and fullscreen applications. Exercise
+Keyboard/Mouse focus, contrast, accessibility, notification timing, panel
+recovery, CPU/RSS during an extended session, GPU load and QML diagnostics.
+Compare real screenshots against the desired Raohane Flow composition.
+Static CI is necessary, but not a substitute for these tests.
