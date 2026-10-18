@@ -246,6 +246,12 @@ Item {
 
             RaohaneDesktopWidgetLayoutStudio {
                 width: parent.width
+                visible: RaohaneConfig.desktopWidgetsLayout !== "free"
+            }
+
+            RaohaneFreeWidgetStudio {
+                width: parent.width
+                visible: RaohaneConfig.desktopWidgetsLayout === "free"
             }
 
             RowLayout {
