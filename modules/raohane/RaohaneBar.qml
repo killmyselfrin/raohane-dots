@@ -115,6 +115,31 @@ Scope {
                 && groupStyle === "pills"
             readonly property bool surfaceMotionAllowed: RaohaneMotion.transformMotionEnabled
                 && !RaohanePerformance.gameModeActive
+            readonly property bool chromaticFlowEnabled: RaohaneConfig.barChromaticFlow
+                && RaohaneConfig.barShowBackground
+            readonly property bool chromaticFlowAnimating: chromaticFlowEnabled
+                && contentShown && visible && RaohaneMotion.panelTransformEnabled
+            property real chromaticPhase: 0
+
+            // One slow oscillator per output, shared by all existing pod
+            // surfaces. It stops entirely in fullscreen/Game Mode and for
+            // reduced-motion preferences. Static gradient remains opt-in.
+            SequentialAnimation on chromaticPhase {
+                running: barWindow.chromaticFlowAnimating
+                loops: Animation.Infinite
+                NumberAnimation {
+                    from: 0
+                    to: 1
+                    duration: RaohaneConfig.barChromaticSeconds * 500
+                    easing.type: Easing.InOutSine
+                }
+                NumberAnimation {
+                    from: 1
+                    to: 0
+                    duration: RaohaneConfig.barChromaticSeconds * 500
+                    easing.type: Easing.InOutSine
+                }
+            }
 
             // Keep the layer-shell surface alive across fullscreen transitions.
             // Hiding/recreating the window itself could leave the bar missing
@@ -222,6 +247,7 @@ Scope {
                     raised: RaohaneConfig.barShadow
                     showSheen: barWindow.haloPreset
                     showInnerRim: barWindow.haloPreset
+                    clip: true
                     // A dark muted glass base prevents a red wallpaper from
                     // turning the entire bar into an opaque saturated strip.
                     idleColor: barWindow.haloPreset
@@ -229,6 +255,15 @@ Scope {
                         : (RaohaneConfig.barShadow ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface)
                     border.color: barWindow.haloPreset
                         ? RaohaneTheme.borderStrong : RaohaneTheme.border
+
+                    RaohaneBarChromaticWash {
+                        anchors.fill: parent
+                        visible: barWindow.chromaticFlowEnabled && parent.visible
+                        phase: barWindow.chromaticPhase
+                        firstColor: RaohaneConfig.wallpaperFlowColorA
+                        secondColor: RaohaneConfig.wallpaperFlowColorB
+                        strength: RaohaneConfig.barChromaticIntensity
+                    }
 
                     Rectangle {
                         // One restrained highlight, not an animated GPU glow.
@@ -292,6 +327,15 @@ Scope {
                     transparentIdle: barWindow.haloPreset || !barWindow.zoneBackgroundVisible
                     showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
+
+                    RaohaneBarChromaticWash {
+                        anchors.fill: parent
+                        visible: barWindow.chromaticFlowEnabled && parent.visible
+                        phase: barWindow.chromaticPhase
+                        firstColor: RaohaneConfig.wallpaperFlowColorA
+                        secondColor: RaohaneConfig.wallpaperFlowColorB
+                        strength: RaohaneConfig.barChromaticIntensity
+                    }
 
                     // One quiet accent line per floating pod, never an extra
                     // bar/process or an independently positioned widget.
@@ -360,6 +404,15 @@ Scope {
                     border.color: barWindow.zoneBackgroundVisible
                         ? (barWindow.cinematicPreset ? RaohaneTheme.accentBorder : RaohaneTheme.border)
                         : "transparent"
+
+                    RaohaneBarChromaticWash {
+                        anchors.fill: parent
+                        visible: barWindow.chromaticFlowEnabled && parent.visible
+                        phase: barWindow.chromaticPhase
+                        firstColor: RaohaneConfig.wallpaperFlowColorA
+                        secondColor: RaohaneConfig.wallpaperFlowColorB
+                        strength: RaohaneConfig.barChromaticIntensity
+                    }
 
                     // One quiet accent line per floating pod, never an extra
                     // bar/process or an independently positioned widget.
@@ -430,6 +483,15 @@ Scope {
                     transparentIdle: barWindow.haloPreset || !barWindow.zoneBackgroundVisible
                     showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
+
+                    RaohaneBarChromaticWash {
+                        anchors.fill: parent
+                        visible: barWindow.chromaticFlowEnabled && parent.visible
+                        phase: barWindow.chromaticPhase
+                        firstColor: RaohaneConfig.wallpaperFlowColorA
+                        secondColor: RaohaneConfig.wallpaperFlowColorB
+                        strength: RaohaneConfig.barChromaticIntensity
+                    }
 
                     // One quiet accent line per floating pod, never an extra
                     // bar/process or an independently positioned widget.
