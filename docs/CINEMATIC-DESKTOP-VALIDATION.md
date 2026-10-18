@@ -89,13 +89,21 @@ Verify:
 
 1. Raohane starts normally, and the old desktop widgets / floating bar have not
    changed until you select a different bar preset.
-2. Open Wallpaper. Confirm Cinema loads, scroll through actual images
-   using a mouse/trackpad or the arrows, and watch the centered card move with
-   soft scaling/rotation. Selection should not apply the wallpaper.
+2. Open Wallpaper. Confirm Cinema shows **actual cards and its floating
+   CINEMATIC toolbar** (not a blank transparent section), even if the folder
+   contains only 1–2 items. The cards read `filePath/fileName/fileIsDir`
+   from `FolderListModel`, with dimensions supplied by the Loader. Scroll
+   through actual images using mouse/trackpad or the arrows, and watch the
+   centered card move with soft scaling/rotation. Selection should not apply
+   the wallpaper.
    Wait briefly for the image crossfade and live background preview, click
    Preview, then Apply. Check that rapid scrolling does not launch a flurry
    of expensive intermediate wallpaper decodes.
-3. Double-click an image to apply it; click/double-click a folder to navigate.
+3. Open a folder with a `.mp4` or `.webm` video. The existing
+   thumbnail generator should produce an x-large poster frame; the carousel
+   should show the poster instead of a permanently blank video card. If ffmpeg
+   or a video codec cannot decode it, the video icon placeholder remains.
+   Double-click an image to apply it; click/double-click a folder to navigate.
    Make sure browsing past a folder does not navigate by itself.
 4. Switch Grid → Cinematic → Grid. Verify folder navigation, search, thumbnail
    display, video entries, random wallpaper and lockscreen target.
@@ -109,6 +117,14 @@ Verify:
    raohane doctor runtime
    raohane doctor performance
    ```
+
+If Cinema reports a loaded view but its cards fail to instantiate, the
+picker automatically reverts to Grid after a short health check. Capture
+`journalctl --user -u raohane.service -n 100 --no-pager` for messages
+containing `RaohaneWallpaperCinema`, `Required property`, `Cinematic
+cards` or `Loader`. A folder showing only **2 items** can display only two
+different cards; point Raohane at a folder with more wallpaper files to see
+the full fanned-out composition.
 
 The installer checks required QML assets and, when `qmlformat` is present,
 parses the new picker, Bar, and related components **before stopping Raohane**.
