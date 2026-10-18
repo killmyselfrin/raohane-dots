@@ -48,7 +48,14 @@ Item {
     // Caches are only read after the generator finishes; the media player
     // never runs for inactive carousel cards.
     function thumbnailUrl(path: string): string {
-        if (!path || !RaohanePaths.cacheRoot.length)
+        if (!path)
+            return ""
+        // The generator resolves symlinks before hashing. Prefer the exact
+        // filename that it reports, rather than duplicating URI logic.
+        const generated = RaohaneWallpapers.generatedVideoPosterUrl(path)
+        if (generated.length > 0)
+            return generated
+        if (!RaohanePaths.cacheRoot.length)
             return ""
         const encodedPath = encodeURIComponent(path)
             .replace(/%2F/gi, "/")
