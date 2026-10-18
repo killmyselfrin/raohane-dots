@@ -77,6 +77,17 @@ grep -Fq 'missing modules/raohane/RaohaneDesktopEditGrid.qml' "$tmp_root/missing
 mv "$tmp_root/RaohaneDesktopEditGrid.qml" "$runtime/modules/raohane/RaohaneDesktopEditGrid.qml"
 bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
 
+# The new Chromatic Flow material is a statically referenced QML type.
+# Stage validation must reject a missing component before a shell restart.
+mv "$runtime/modules/raohane/RaohaneBarChromaticWash.qml" "$tmp_root/RaohaneBarChromaticWash.qml"
+if bash scripts/validate-runtime-payload.sh "$runtime" >"$tmp_root/missing-chromatic.log" 2>&1; then
+  fail 'staged runtime accepted a missing Chromatic Flow component'
+fi
+grep -Fq 'missing modules/raohane/RaohaneBarChromaticWash.qml' "$tmp_root/missing-chromatic.log" \
+  || fail 'staged validator did not identify the missing Chromatic Flow component'
+mv "$tmp_root/RaohaneBarChromaticWash.qml" "$runtime/modules/raohane/RaohaneBarChromaticWash.qml"
+bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
+
 # A palette helper missing from a partial update must be rejected in staging,
 # not discovered only after the user enables adaptive colors.
 mv "$runtime/scripts/wallpaper-palette.py" "$tmp_root/wallpaper-palette.py"
