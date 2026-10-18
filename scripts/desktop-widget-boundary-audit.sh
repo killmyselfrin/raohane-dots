@@ -204,7 +204,7 @@ rg -Fq 'RaohaneMedia.togglePlaying()' "$music_faces" \
 rg -Fq 'RaohaneMedia.next()' "$music_faces" \
   || fail 'music variant lost next-track control'
 for face in "$clock_faces" "$music_faces" "$system_faces"; do
-  if rg -q '\\b(Process|IpcHandler|FileView|StdioCollector)\\s*\\{' "$face"; then
+  if rg -q '^[[:space:]]*(Process|IpcHandler|FileView|StdioCollector)[[:space:]]*\{' "$face"; then
     fail "new widget face starts extra service workers: $face"
   fi
 done
