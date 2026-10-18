@@ -63,6 +63,27 @@ rg -Fq 'RaohaneWallpapers.autoAdvance()' "$background" \
   || fail 'background lost native scheduler source selection'
 rg -Fq 'onVideoPreviewPausedChanged' "$background" \
   || fail 'wallpaper video preview cannot be paused'
+
+# QtMultimedia.MediaPlayer is not an Item and cannot contain QML objects.
+# The pause notification must be a sibling of MediaPlayer inside Item.
+python3 - "$background" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+source = Path(sys.argv[1]).read_text(encoding="utf-8")
+for player in re.finditer(r'\bMediaPlayer\s*\{', source):
+    cursor = player.end()
+    depth = 1
+    while cursor < len(source) and depth:
+        if source[cursor] == "{":
+            depth += 1
+        elif source[cursor] == "}":
+            depth -= 1
+        cursor += 1
+    if depth or re.search(r'\bConnections\s*\{', source[player.end():cursor-1]):
+        raise SystemExit("MediaPlayer illegally contains a Connections child or unclosed block")
+PY
 rg -Fq 'RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
   || fail 'adaptive accent is not wired to native theme'
 if rg -Fq 'Process {' "$theme"; then
