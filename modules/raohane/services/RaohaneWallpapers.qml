@@ -300,11 +300,29 @@ Singleton {
                 root.setDirectory(selectProbe.filePath)
                 return
             }
+            // A missing favorite and a regular file both fail 'test -d'.
+            // Validate the regular file before changing the active wallpaper.
+            fileProbe.filePath = selectProbe.filePath
+            fileProbe.darkMode = selectProbe.darkMode
+            fileProbe.onFileSelected = selectProbe.onFileSelected
+            fileProbe.exec(["test", "-f", selectProbe.filePath])
+        }
+    }
 
-            if (selectProbe.onFileSelected)
-                selectProbe.onFileSelected(selectProbe.filePath)
+    Process {
+        id: fileProbe
+        property string filePath: ""
+        property bool darkMode: true
+        property var onFileSelected: null
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                console.warn("[Raohane] Wallpaper file is missing:", filePath)
+                return
+            }
+            if (onFileSelected)
+                onFileSelected(filePath)
             else
-                root.apply(selectProbe.filePath, selectProbe.darkMode)
+                root.apply(filePath, darkMode)
         }
     }
 
