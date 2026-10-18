@@ -49,7 +49,7 @@ Built with **Quickshell + Qt/QML**. Made to feel fast, consistent, and personal.
 | **Launcher &amp; Overview** | Search for apps and actions, navigate workspaces and switch between windows. |
 | **Control Center** | Wi-Fi, Bluetooth, audio, microphone, display brightness, notifications, and Scenes. |
 | **Settings &amp; Themes** | Central settings, theme presets, JSON theme import/export, live appearance controls, and desktop widgets with an on-wallpaper grid editor and nine selectable Clock/Music/System faces (Classic, Minimal, Aurora). |
-| **Wallpaper &amp; Bar** | Cinematic wallpaper carousel alongside the existing searchable grid; optional Cinematic floating-bar preset in Bar Studio. |
+| **Wallpaper &amp; Bar** | Wallpaper Studio 2.0 adds favorites, saved folder collections, per-monitor wallpapers, optional adaptive accents, video preview controls and timed rotation on top of the Cinematic carousel/Grid; optional Cinematic floating-bar preset. |
 | **Scenes** | Balanced, Gaming, Focus, and Work modes with application rules and contextual runtime policies. |
 | **Media** | MPRIS controls, synced/plain lyrics, a music surface, and a fullscreen media overlay. |
 | **Utilities** | Screenshots, recording, OCR, translation, clipboard tools, on-screen keyboard, task manager, and power/session controls. |
@@ -152,6 +152,7 @@ If Shelly or another package manager reports that polkit is missing on the syste
 - [Widget Studio 2.0 testing and rollback](docs/WIDGET-STUDIO-2-VALIDATION.md)
 - [Widget face library — styles, controls and runtime checks](docs/WIDGET-FACE-LIBRARY.md)
 - [Cinematic wallpaper + floating bar validation](docs/CINEMATIC-DESKTOP-VALIDATION.md)
+- [Wallpaper Studio 2.0 — features and live tests](docs/WALLPAPER-STUDIO-2-VALIDATION.md)
 - [Theme format](docs/THEMES.md)
 - [NixOS / Home Manager](docs/NIX.md)
 - [Contributing](CONTRIBUTING.md)
