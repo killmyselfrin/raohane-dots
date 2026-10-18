@@ -119,9 +119,11 @@ Scope {
 
             Rectangle {
                 anchors.fill: parent
+                // Let the actual wallpaper show around the selector instead
+                // of covering the desktop in an opaque full-screen scrim.
                 color: RaohaneTheme.dark
-                    ? Qt.rgba(0.01, 0.015, 0.035, 0.56)
-                    : Qt.rgba(0.18, 0.17, 0.15, 0.20)
+                    ? Qt.rgba(0.01, 0.015, 0.035, 0.24)
+                    : Qt.rgba(0.18, 0.17, 0.15, 0.10)
                 opacity: selector.entered ? 1 : 0
 
                 Behavior on opacity {
@@ -145,6 +147,13 @@ Scope {
                 surfaceRadius: RaohaneTheme.radiusHero
                 raised: true
                 showSheen: true
+                showInnerRim: true
+                // Glass opacity belongs to the material only. Do not reduce
+                // the whole selector's opacity: text, previews and controls
+                // must remain sharp and fully readable on bright wallpapers.
+                idleColor: Qt.rgba(RaohaneTheme.background.r,
+                    RaohaneTheme.background.g, RaohaneTheme.background.b,
+                    RaohaneTheme.dark ? 0.53 : 0.76)
                 idleBorderColor: RaohaneTheme.borderStrong
                 clip: true
                 opacity: entered ? 1 : 0
@@ -249,8 +258,12 @@ Scope {
                                 active: searchField.activeFocus
                                 showSheen: false
                                 showInnerRim: false
-                                idleColor: RaohaneTheme.surface
-                                activeColor: RaohaneTheme.surface
+                                idleColor: Qt.rgba(RaohaneTheme.background.r,
+                                    RaohaneTheme.background.g, RaohaneTheme.background.b,
+                                    RaohaneTheme.dark ? 0.42 : 0.68)
+                                activeColor: Qt.rgba(RaohaneTheme.background.r,
+                                    RaohaneTheme.background.g, RaohaneTheme.background.b,
+                                    RaohaneTheme.dark ? 0.65 : 0.84)
                                 idleBorderColor: RaohaneTheme.borderFaint
                                 activeBorderColor: RaohaneTheme.accentBorder
 
@@ -324,7 +337,9 @@ Scope {
                             raised: false
                             showSheen: false
                             showInnerRim: false
-                            idleColor: RaohaneTheme.surfaceDeep
+                            idleColor: Qt.rgba(RaohaneTheme.background.r,
+                                RaohaneTheme.background.g, RaohaneTheme.background.b,
+                                RaohaneTheme.dark ? 0.34 : 0.64)
                             idleBorderColor: "transparent"
                             border.width: 0
 
