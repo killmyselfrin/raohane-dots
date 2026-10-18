@@ -29,6 +29,7 @@ Singleton {
     ]
     property list<string> wallpapers: []
     property string previewPath: ""
+    property string previewScreenName: ""
     property string confirmedPath: RaohaneConfig.wallpaperPath
     // Exact thumbnail locations reported by the existing Python generator.
     // Keep only video posters in memory; their URI may differ from an
@@ -94,23 +95,30 @@ Singleton {
         return index <= 0 ? "/" : clean.substring(0, index)
     }
 
-    function startPreview(path: string): void {
+    function startPreview(path: string, screenName = ""): void {
         const clean = root.cleanPath(path)
-        if (clean.length > 0)
+        if (clean.length > 0) {
+            root.previewScreenName = String(screenName ?? "")
             root.previewPath = clean
+        }
     }
 
     function stopPreview(): void {
         root.previewPath = ""
+        root.previewScreenName = ""
     }
 
-    function apply(path: string, darkMode = true): void {
+    function apply(path: string, darkMode = true, screenName = ""): void {
         const clean = root.cleanPath(path)
         if (clean.length === 0)
             return
 
-        root.confirmedPath = clean
-        RaohaneConfig.wallpaperPath = clean
+        if (String(screenName ?? "").length > 0)
+            RaohaneConfig.setWallpaperForScreen(screenName, clean)
+        else {
+            root.confirmedPath = clean
+            RaohaneConfig.wallpaperPath = clean
+        }
         root.changed()
     }
 
@@ -123,6 +131,49 @@ Singleton {
         selectProbe.darkMode = darkMode
         selectProbe.onFileSelected = onFileSelected
         selectProbe.exec(["test", "-d", clean])
+    }
+
+    function isFavorite(path: string): bool {
+        return RaohaneConfig.wallpaperFavorites.includes(root.cleanPath(path))
+    }
+
+    function toggleFavorite(path: string): void {
+        const clean = root.cleanPath(path)
+        if (!clean.startsWith("/") || clean.length > 4096)
+            return
+        const current = RaohaneConfig.sanitizeWallpaperPaths(RaohaneConfig.wallpaperFavorites)
+        const next = current.includes(clean)
+            ? current.filter(item => item !== clean)
+            : current.concat([clean])
+        RaohaneConfig.wallpaperFavorites = RaohaneConfig.sanitizeWallpaperPaths(next)
+    }
+
+    function saveCurrentCollection(): void {
+        const path = root.effectiveDirectory
+        if (!path.startsWith("/"))
+            return
+        const current = RaohaneConfig.sanitizeWallpaperCollections(RaohaneConfig.wallpaperCollections)
+        if (current.some(entry => entry.path === path))
+            return
+        const name = path.split("/").pop() || qsTr("Wallpapers")
+        RaohaneConfig.wallpaperCollections =
+            RaohaneConfig.sanitizeWallpaperCollections(current.concat([{ name: name, path: path }]))
+    }
+
+    function removeCollection(path): void {
+        const target = root.cleanPath(path)
+        RaohaneConfig.wallpaperCollections = RaohaneConfig.wallpaperCollections
+            .filter(entry => entry.path !== target)
+    }
+
+    function autoAdvance(): void {
+        const source = RaohaneConfig.wallpaperAutoSource === "favorites"
+            ? RaohaneConfig.wallpaperFavorites : root.wallpapers
+        const previous = RaohaneConfig.wallpaperPath
+        const pool = source.filter(path => path && path !== previous)
+        if (pool.length === 0)
+            return
+        root.apply(pool[Math.floor(Math.random() * pool.length)])
     }
 
     function randomFromCurrentFolder(darkMode = true): void {
