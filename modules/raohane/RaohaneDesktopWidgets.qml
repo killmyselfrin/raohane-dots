@@ -22,12 +22,19 @@ Item {
 
     // Expose exact input geometry to the desktop PanelWindow mask. The mask
     // covers only widgets, so empty wallpaper remains right-clickable.
-    readonly property rect primaryHitRect: Qt.rect(primaryColumn.x, primaryColumn.y,
-        root.shown && root.layoutPreset !== "free" ? primaryColumn.width : 0,
-        root.shown && root.layoutPreset !== "free" ? primaryColumn.height : 0)
-    readonly property rect secondaryHitRect: Qt.rect(secondaryColumn.x, secondaryColumn.y,
-        root.shown && root.layoutPreset !== "free" ? secondaryColumn.width : 0,
-        root.shown && root.layoutPreset !== "free" ? secondaryColumn.height : 0)
+    readonly property real railScale: RaohaneConfig.desktopWidgetsScale
+    readonly property real railOffsetX: (root.width - root.width * root.railScale) / 2
+    readonly property real railOffsetY: (root.height - root.height * root.railScale) / 2
+    readonly property rect primaryHitRect: Qt.rect(
+        root.railOffsetX + primaryColumn.x * root.railScale,
+        root.railOffsetY + primaryColumn.y * root.railScale,
+        root.shown && root.layoutPreset !== "free" ? primaryColumn.width * root.railScale : 0,
+        root.shown && root.layoutPreset !== "free" ? primaryColumn.height * root.railScale : 0)
+    readonly property rect secondaryHitRect: Qt.rect(
+        root.railOffsetX + secondaryColumn.x * root.railScale,
+        root.railOffsetY + secondaryColumn.y * root.railScale,
+        root.shown && root.layoutPreset !== "free" ? secondaryColumn.width * root.railScale : 0,
+        root.shown && root.layoutPreset !== "free" ? secondaryColumn.height * root.railScale : 0)
 
     function freeHitRect(id: string): rect {
         if (!root.shown || root.layoutPreset !== "free")
