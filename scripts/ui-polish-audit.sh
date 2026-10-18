@@ -299,6 +299,40 @@ rg -q 'RaohaneContext\.eventProgress' "$context_island" \
 rg -q 'RaohaneMedia\.progress' "$context_island" \
   || fail 'Context Island lost live media progress'
 
+# Compact Bar surfaces use the same soft Raohane Flow material and leave
+# no text smaller than 9px. TextMetrics must match their visible text.
+rg -Fq 'surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)' "$context_island" \
+  || fail 'Context Island lost the shared rounded material'
+rg -Fq 'showSheen: true' "$context_island" \
+  || fail 'Context Island lost its glass catch-light'
+[[ "$(rg -Fc 'font.pixelSize: 11' "$context_island")" == 2 ]] \
+  || fail 'Context Island title font and metrics differ'
+[[ "$(rg -Fc 'font.pixelSize: 9' "$context_island")" == 2 ]] \
+  || fail 'Context Island detail font and metrics differ'
+rg -Fq 'scale: root.morphMotionAllowed && recorderMouse.containsMouse' "$context_island" \
+  || fail 'Context Island recorder icon animates during gaming/low-motion'
+rg -Fq 'showInnerRim: true' "$systray" \
+  || fail 'System tray lost shared soft hover rim'
+rg -Fq 'hoverColor: RaohaneTheme.surfaceSubtle' "$systray" \
+  || fail 'System tray hover lost shared glass wash'
+python3 - "$context_island" <<'PY'
+from pathlib import Path
+import re
+import sys
+source = Path(sys.argv[1]).read_text()
+lines = source.splitlines()
+for n, line in enumerate(lines):
+    if not re.search(r"Behavior on [\w.]+\s*\{", line):
+        continue
+    remainder = line.split("{", 1)[1]
+    guarded = "enabled: root.morphMotionAllowed" in remainder
+    if not guarded and n + 1 < len(lines):
+        guarded = lines[n + 1].strip() == "enabled: root.morphMotionAllowed"
+    if not guarded:
+        raise SystemExit(f"Context Island animation is not motion-gated at line {n + 1}")
+PY
+
+
 # Shared visuals and fallbacks should not create noisy generic icon requests.
 rg -q 'RaohaneAdaptiveIcon[[:space:]]*\{' "$systray" \
   || fail 'System tray lost adaptive icon rendering'

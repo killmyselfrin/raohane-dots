@@ -20,7 +20,8 @@ RaohaneSurface {
     readonly property real progressValue: root.progressMode
         ? RaohaneContext.eventProgress
         : root.mediaProgressMode ? RaohaneMedia.progress : 0
-    readonly property bool morphMotionAllowed: RaohaneMotion.transformMotionEnabled
+    readonly property bool morphMotionAllowed: root.visible
+        && RaohaneMotion.transformMotionEnabled
         && !RaohanePerformance.gameModeActive
 
     readonly property string sceneId: RaohaneScenes.activeSceneId
@@ -95,9 +96,9 @@ RaohaneSurface {
         return Math.max(root.modeMinimumWidth, Math.min(440, Math.round(contentWidth * root.islandScale)))
     }
     implicitHeight: Math.max(38, Math.min(50, Math.round((root.showProgress ? RaohaneTheme.islandHeight + 3 : RaohaneTheme.islandHeight) * root.islandScale)))
-    surfaceRadius: Math.min(RaohaneTheme.radiusLarge, height / 2)
+    surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)
     raised: true
-    showSheen: false
+    showSheen: true
     clip: true
     border.color: root.priorityMode
         ? Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b, 0.72)
@@ -126,6 +127,7 @@ RaohaneSurface {
     }
 
     Behavior on border.color {
+        enabled: root.morphMotionAllowed
         ColorAnimation { duration: RaohaneMotion.micro }
     }
 
@@ -137,8 +139,8 @@ RaohaneSurface {
         color: root.modeColor
         opacity: RaohaneContext.mode === "scene" ? 0.035 : 0.045
 
-        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+        Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
+        Behavior on opacity { enabled: root.morphMotionAllowed; NumberAnimation { duration: RaohaneMotion.micro } }
     }
 
     Rectangle {
@@ -160,8 +162,8 @@ RaohaneSurface {
             enabled: root.morphMotionAllowed
             NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
         }
-        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-        Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+        Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
+        Behavior on opacity { enabled: root.morphMotionAllowed; NumberAnimation { duration: RaohaneMotion.micro } }
     }
 
     Rectangle {
@@ -178,8 +180,8 @@ RaohaneSurface {
         border.color: Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b,
             root.priorityMode ? 0.56 : RaohaneContext.mode === "event" ? 0.38 : RaohaneContext.mode === "scene" ? 0.40 : 0.24)
 
-        Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-        Behavior on border.color { ColorAnimation { duration: RaohaneMotion.micro } }
+        Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
+        Behavior on border.color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
 
         RaohaneIcon {
             anchors.centerIn: parent
@@ -193,7 +195,7 @@ RaohaneSurface {
             symbolWeight: root.priorityMode || RaohaneContext.mode === "event" || RaohaneContext.mode === "scene" ? 560 : 470
             color: root.modeColor
 
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
         }
     }
 
@@ -210,7 +212,7 @@ RaohaneSurface {
             width: parent.width
             text: RaohaneContext.title
             color: RaohaneTheme.text
-            font.pixelSize: 10
+            font.pixelSize: 11
             font.weight: root.priorityMode || RaohaneContext.mode === "event" || RaohaneContext.mode === "scene" ? Font.DemiBold : Font.Medium
             elide: Text.ElideRight
         }
@@ -223,10 +225,10 @@ RaohaneSurface {
                 ? root.modeColor
                 : RaohaneTheme.textMuted
             opacity: root.priorityMode ? 0.90 : RaohaneContext.mode === "event" || RaohaneContext.mode === "scene" ? 0.82 : 1
-            font.pixelSize: 8
+            font.pixelSize: 9
             elide: Text.ElideRight
 
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
         }
     }
 
@@ -258,8 +260,8 @@ RaohaneSurface {
                 enabled: root.morphMotionAllowed
                 NumberAnimation { duration: RaohaneMotion.shortDuration; easing.type: RaohaneMotion.easeEmphasized }
             }
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-            Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
+            Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on opacity { enabled: root.morphMotionAllowed; NumberAnimation { duration: RaohaneMotion.micro } }
         }
 
         RaohaneIcon {
@@ -272,10 +274,10 @@ RaohaneSurface {
             color: root.gameplayRecording ? RaohaneTheme.critical
                 : root.mediaMode ? root.modeColor
                 : root.sceneColor
-            scale: recorderMouse.containsMouse && root.gameplayRecording ? 1.08 : 1
+            scale: root.morphMotionAllowed && recorderMouse.containsMouse && root.gameplayRecording ? 1.08 : 1
 
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
-            Behavior on scale { NumberAnimation { duration: RaohaneMotion.micro } }
+            Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on scale { enabled: root.morphMotionAllowed; NumberAnimation { duration: RaohaneMotion.micro } }
         }
 
         MouseArea {
@@ -299,8 +301,8 @@ RaohaneSurface {
             rightMargin: 8
             bottomMargin: 5
         }
-        height: 2
-        radius: 1
+        height: 3
+        radius: height / 2
         color: RaohaneTheme.surfaceSubtle
 
         Rectangle {
@@ -313,7 +315,7 @@ RaohaneSurface {
                 enabled: root.morphMotionAllowed
                 NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
             }
-            Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
+            Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
         }
     }
 
@@ -329,13 +331,13 @@ RaohaneSurface {
 
     TextMetrics {
         id: titleMetrics
-        font.pixelSize: 10
+        font.pixelSize: 11
         font.weight: root.priorityMode || RaohaneContext.mode === "event" || RaohaneContext.mode === "scene" ? Font.DemiBold : Font.Medium
         text: RaohaneContext.title
     }
     TextMetrics {
         id: detailMetrics
-        font.pixelSize: 8
+        font.pixelSize: 9
         text: RaohaneContext.detail
     }
 }

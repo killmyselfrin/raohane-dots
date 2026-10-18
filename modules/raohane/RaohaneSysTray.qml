@@ -37,10 +37,13 @@ Item {
                 interactive: trayItem !== null
                 hoverScale: 1
                 pressedScale: 1
+                // Keep icons transparent at rest; a single subtle glass wash
+                // and soft inner rim reveal click targets only on hover.
                 showSheen: false
-                showInnerRim: false
+                showInnerRim: true
+                hoverColor: RaohaneTheme.surfaceSubtle
                 idleBorderColor: "transparent"
-                hoverBorderColor: RaohaneTheme.borderStrong
+                hoverBorderColor: RaohaneTheme.border
                 pressedBorderColor: RaohaneTheme.borderStrong
 
                 RaohaneAdaptiveIcon {
