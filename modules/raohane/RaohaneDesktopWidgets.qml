@@ -268,15 +268,35 @@ Item {
         // The grid is completely unloaded outside editing sessions, so
         // normal desktop rendering does not keep a fullscreen QML grid alive.
         Loader {
+            id: editGridLoader
             anchors.fill: parent
             z: 30
             active: root.desktopEditActive
             visible: active
+            // Loading by URL avoids a hard QML type dependency during shell
+            // startup. A missing/broken edit-only file must not crash Raohane.
+            source: active ? Qt.resolvedUrl("RaohaneDesktopEditGrid.qml") : ""
 
-            sourceComponent: RaohaneDesktopEditGrid {
-                editing: true
-                monitorName: root.monitorName
-                onDoneRequested: RaohaneState.desktopWidgetEditMode = false
+            onStatusChanged: {
+                if (status === Loader.Error && root.desktopEditActive) {
+                    console.warn("[Raohane] Desktop grid failed to load; leaving edit mode")
+                    RaohaneState.desktopWidgetEditMode = false
+                }
+            }
+        }
+
+        Binding {
+            target: editGridLoader.item
+            property: "monitorName"
+            value: root.monitorName
+            when: editGridLoader.item !== null
+        }
+
+        Connections {
+            target: editGridLoader.item
+            ignoreUnknownSignals: true
+            function onDoneRequested(): void {
+                RaohaneState.desktopWidgetEditMode = false
             }
         }
     }
