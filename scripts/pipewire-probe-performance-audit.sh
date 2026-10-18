@@ -49,8 +49,8 @@ for contract in \
 done
 
 for contract in \
-  'Pipewire\.nodes\.values' \
-  'Pipewire\.linkGroups\.values' \
+  'Pipewire\.nodes\??\.values' \
+  'Pipewire\.linkGroups\??\.values' \
   'PwLinkState\.Active' \
   'media\.class' \
   'media\.category' \
