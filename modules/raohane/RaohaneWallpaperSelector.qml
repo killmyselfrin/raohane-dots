@@ -442,6 +442,7 @@ Scope {
                                         glyph: "folder"
                                         title: modelData.name
                                         onTriggered: RaohaneWallpapers.setDirectory(modelData.path)
+                                        onRemoveRequested: RaohaneWallpapers.removeCollection(modelData.path)
                                     }
                                 }
                                 Repeater {
@@ -451,6 +452,7 @@ Scope {
                                         glyph: "star"
                                         title: modelData.split("/").pop()
                                         onTriggered: root.selectPath(modelData, false)
+                                        onRemoveRequested: RaohaneWallpapers.toggleFavorite(modelData)
                                     }
                                 }
                                 Text {
@@ -1077,6 +1079,7 @@ Scope {
         required property string glyph
         required property string title
         signal triggered()
+        signal removeRequested()
         implicitWidth: Math.min(200, chipLabel.implicitWidth + 43)
         implicitHeight: 30
         surfaceRadius: 10
@@ -1105,8 +1108,14 @@ Scope {
         MouseArea {
             anchors.fill: parent
             enabled: chip.enabled
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             cursorShape: Qt.PointingHandCursor
-            onClicked: chip.triggered()
+            onClicked: mouse => {
+                if (mouse.button === Qt.RightButton)
+                    chip.removeRequested()
+                else
+                    chip.triggered()
+            }
         }
     }
 
