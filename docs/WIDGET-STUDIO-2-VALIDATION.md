@@ -5,6 +5,9 @@
 ## Scope of the first increment
 
 - Adds `Free layout` as an optional fourth Widget Studio composition.
+- **Right-click wallpaper** to open Raohane's existing Desktop menu, now with a **Desktop widgets** shortcut to Widget Studio. **Right-click a displayed widget** to open its contextual actions.
+- In a preset layout, use **Enable free positioning** explicitly; the original preset order is preserved. In Free Layout, the context menu provides 5%-step directional movement, 5%-step size changes (65–140%), quick positions, per-widget reset and hide, plus the full Widget Studio link.
+- Only widget hit areas receive pointer input from the desktop widget layer; the remaining wallpaper should remain clickable. Mouse/touch playback controls are not replaced by a new fullscreen interaction layer.
 - In Settings → Widgets → Free layout, drag each enabled widget in the monitor preview to change its position, or drag the lower-right handle (or use +/-) to change its scale. Click a widget and press the arrow keys for 1% position steps; choose a widget in the selector to edit it without a pointer, or use **Reset** to restore only that widget.
 - The runtime renders the existing four native widgets on each monitor using normalized positions and per-widget size, without creating extra media/audio/network services.
 - Geometry is stored in `desktopWidgets.freeLayouts` under `~/.config/raohane/native.json`, indexed by monitor name. The editor falls back to a connected output when the selected monitor disconnects.
@@ -19,10 +22,13 @@
 4. Open **Settings → Widgets**. Confirm `Balanced`, `Left rail` and `Right rail` still work, then choose **Free layout**.
 5. Drag clock, media/context, system and motto previews. Resize one. Click the preview, press arrow keys and use the widget selector / Reset control; verify the changes. Change the global widget scale to 0.75 and 1.25 and confirm free widgets stay inside monitor edges.
 6. On multi-monitor setups, choose each monitor in the editor and give the same widget different placements. Unplug the selected monitor while the editor is open and confirm it switches to a connected output; check fractional scaling, fullscreen games and return to desktop.
-7. Restart the shell and Settings. Confirm positions and scales persist. Switch back to `Balanced` and confirm the previous rail ordering is unchanged.
-8. Confirm disabled widgets stay unloaded. Ensure that moving widgets does not start additional media polling or background Quickshell processes.
-9. Check `raohane doctor performance`, `raohane validate smoke` and `raohane logs` for QML errors, CPU/RSS growth and stale service state.
-10. In a source checkout with dependencies, run `bash scripts/desktop-widget-boundary-audit.sh`, `bash scripts/raohane-audit.sh`, `bash scripts/runtime-payload-audit.sh`. CI also runs Qt `qmlformat` parsing.
+7. On an uncovered area of wallpaper, **right-click** and confirm the standard Desktop menu opens with Desktop widgets. Right-click each widget to open its focused context menu instead. Try size +/−, directional shifts, quick positions, Reset widget and Hide widget.
+8. While in Balanced mode, right-click Clock and choose **Enable free positioning**; confirm you can adjust it and switching back to Balanced restores the previous rail positions.
+9. Verify *left-click actions, media playback and pointer controls* continue functioning. On a fullscreen window, verify the widget layer does not intercept right-clicks. Check an uncovered desktop area beside the widgets also receives right-click.
+10. Restart the shell and Settings. Confirm positions and scales persist. Switch back to `Balanced` and confirm the previous rail ordering is unchanged.
+11. Confirm disabled widgets stay unloaded. Ensure that moving widgets does not start additional media polling or background Quickshell processes.
+12. Check `raohane doctor performance`, `raohane validate smoke` and `raohane logs` for QML errors, CPU/RSS growth and stale service state.
+13. In a source checkout with dependencies, run `bash scripts/desktop-widget-boundary-audit.sh`, `bash scripts/raohane-audit.sh`, `bash scripts/runtime-payload-audit.sh`. CI also runs Qt `qmlformat` parsing.
 
 ## Rollback
 
