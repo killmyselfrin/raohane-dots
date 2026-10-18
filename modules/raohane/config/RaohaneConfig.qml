@@ -716,7 +716,7 @@ Singleton {
         root.assignIfPresent(bar, "verticalModules", value => root.barVerticalModuleLayout = root.sanitizeVerticalBarModuleLayout(value))
         root.assignIfPresent(bar, "stylePreset", value => {
             const requested = String(value ?? "floating")
-            root.barStylePreset = ["classic", "floating", "islands", "compact", "panel", "pill", "flat", "custom"].includes(requested) ? requested : "floating"
+            root.barStylePreset = ["classic", "floating", "cinematic", "islands", "compact", "panel", "pill", "flat", "custom"].includes(requested) ? requested : "floating"
         })
         root.assignIfPresent(bar, "surfaceStyle", value => {
             const requested = String(value ?? "float")
