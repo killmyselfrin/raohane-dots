@@ -95,6 +95,37 @@ if rg -Fq 'opacity: entered ? 0.' "$selector"; then
   fail 'selector is fading all content instead of its glass backing'
 fi
 
+# Browsing must update the active selection immediately while deferring
+# expensive live preview and preview background decodes until the motion settles.
+for contract in \
+  'signal entryHighlighted(string path)' \
+  'signal previewRequested(string path)' \
+  'readonly property int previewDelay:' \
+  'function commitPreview(): void' \
+  'function finishPreview(): void' \
+  'id: previewTimer' \
+  'previewTimer.restart()' \
+  'id: incomingPreview' \
+  'id: previewFade' \
+  'asynchronous: true' \
+  'onFinished: root.finishPreview()' \
+  'Layout.preferredWidth: Math.min(root.width - 28, 480)'; do
+  rg -Fq "$contract" "$cinema" || fail "cinematic preview/crossfade lost $contract"
+done
+rg -Fq 'function onEntryHighlighted(path: string): void' "$selector" \
+  || fail 'carousel focus no longer updates pending selection without applying'
+rg -Fq 'function onPreviewRequested(path: string): void' "$selector" \
+  || fail 'carousel settled preview no longer reaches wallpaper background'
+rg -Fq 'root.pendingPath === path' "$selector" \
+  || fail 'stale preview can override more recent carousel selection'
+rg -Fq 'root.applyPending()' "$selector" \
+  || fail 'wallpaper Apply action was lost in cinematic refactor'
+rg -Fq 'root.entryChosen(tile.filePath, false)' "$cinema" \
+  || fail 'cinematic double-click can no longer apply a selected file'
+if rg -Fq 'RaohaneWallpapers.apply(' "$cinema"; then
+  fail 'cinematic browsing bypassed the existing wallpaper confirmation flow'
+fi
+
 # Hidden QQuickImage items still evaluate and decode their source. Gallery image
 # sources therefore must be empty for directories and video files instead of
 # relying on visible:false, which produces noisy decode/open warnings at runtime.
