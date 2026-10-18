@@ -71,6 +71,7 @@ required=(
   scripts/screen-translate.sh
   scripts/thumbnails/thumbgen.sh
   scripts/thumbnails/thumbgen.py
+  scripts/wallpaper-palette.py
   scripts/thumbnails/generate-thumbnails-magick.sh
   scripts/videos/record.sh
 )
@@ -127,7 +128,7 @@ valid = (
 raise SystemExit(0 if valid else 1)
 PY
 
-python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/cover-accent.py" "$TARGET/scripts/update-raohane.py" "$TARGET/scripts/theme-catalog.py" "$TARGET/scripts/graphics-driver-check.py" <<'PY' || fail 'native Python runtime helper is invalid'
+python3 - "$TARGET/scripts/process-snapshot.py" "$TARGET/scripts/lyrics-resolve.py" "$TARGET/scripts/cover-accent.py" "$TARGET/scripts/wallpaper-palette.py" "$TARGET/scripts/update-raohane.py" "$TARGET/scripts/theme-catalog.py" "$TARGET/scripts/graphics-driver-check.py" <<'PY' || fail 'native Python runtime helper is invalid'
 import pathlib
 import sys
 for raw in sys.argv[1:]:
