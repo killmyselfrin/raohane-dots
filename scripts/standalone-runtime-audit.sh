@@ -134,7 +134,7 @@ rg -q 'bash "\$pruner" "\$RUNTIME"' scripts/raohane || fail 'Raohane CLI does no
 rg -q 'doctor \[[^]]*runtime[^]]*\]' scripts/raohane || fail 'CLI usage does not expose doctor runtime'
 rg -q '^print_runtime_integrity\(\)' scripts/raohane || fail 'CLI lost installed-runtime integrity diagnostics'
 rg -q '^[[:space:]]*runtime\)' scripts/raohane || fail 'doctor runtime route is missing'
-rg -q 'native\.json.*schema v13|schemaVersion.*13' scripts/raohane || fail 'doctor runtime no longer validates native config schema v13'
+rg -q 'schema matches installed runtime' scripts/raohane || fail 'doctor runtime no longer validates native config schema v13'
 rg -q '^find_runtime_payload_validator\(\)' scripts/raohane || fail 'doctor runtime no longer resolves the strict runtime payload validator'
 rg -q '\$RUNTIME/scripts/validate-runtime-payload\.sh' scripts/raohane || fail 'doctor runtime does not prefer the validator installed with the runtime'
 rg -q 'bash "\$payload_validator" "\$RUNTIME"' scripts/raohane || fail 'doctor runtime does not execute strict payload validation against the installed runtime'
@@ -217,7 +217,7 @@ import sys
 
 path = pathlib.Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
-assert data["schemaVersion"] == 13
+assert data["schemaVersion"] == 14
 assert data["wallpaper"]["path"] == "/tmp/keep-wallpaper.png"
 assert data["wallpaper"]["preview"] is False
 assert data["dock"]["iconSize"] == 51
