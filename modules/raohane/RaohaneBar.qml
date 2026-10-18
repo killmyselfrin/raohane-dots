@@ -245,21 +245,26 @@ Scope {
                     surfaceRadius: barWindow.effectiveRadius
                     opacity: RaohaneConfig.barOpacity
                     raised: RaohaneConfig.barShadow
-                    showSheen: barWindow.haloPreset
-                    showInnerRim: barWindow.haloPreset
+                    showSheen: barWindow.haloPreset && !barWindow.chromaticFlowEnabled
+                    showInnerRim: barWindow.haloPreset && !barWindow.chromaticFlowEnabled
                     clip: true
                     // A dark muted glass base prevents a red wallpaper from
                     // turning the entire bar into an opaque saturated strip.
-                    idleColor: barWindow.haloPreset
-                        ? RaohaneTheme.backgroundElevated
-                        : (RaohaneConfig.barShadow ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface)
+                    idleColor: barWindow.chromaticFlowEnabled
+                        ? "transparent"
+                        : barWindow.haloPreset
+                            ? RaohaneTheme.backgroundElevated
+                            : (RaohaneConfig.barShadow ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface)
                     border.color: barWindow.haloPreset
                         ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                     RaohaneBarChromaticWash {
                         anchors.fill: parent
                         visible: barWindow.chromaticFlowEnabled && parent.visible
+                            && (!barWindow.panelPreset || parent === panelSurface)
+                            && (!barWindow.haloPreset || parent === panelSurface)
                         phase: barWindow.chromaticPhase
+                        darkMode: RaohaneTheme.dark
                         firstColor: RaohaneConfig.wallpaperFlowColorA
                         secondColor: RaohaneConfig.wallpaperFlowColorB
                         strength: RaohaneConfig.barChromaticIntensity
@@ -267,7 +272,7 @@ Scope {
 
                     Rectangle {
                         // One restrained highlight, not an animated GPU glow.
-                        visible: barWindow.haloPreset
+                        visible: barWindow.haloPreset && !barWindow.chromaticFlowEnabled
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.topMargin: 1
@@ -323,15 +328,21 @@ Scope {
                     clip: true
                     surfaceRadius: barWindow.effectiveRadius
                     opacity: barWindow.haloPreset ? 1 : RaohaneConfig.barOpacity
-                    raised: barWindow.haloPreset ? false : RaohaneConfig.barShadow
-                    transparentIdle: barWindow.haloPreset || !barWindow.zoneBackgroundVisible
-                    showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    raised: !barWindow.chromaticFlowEnabled
+                        && !barWindow.haloPreset && RaohaneConfig.barShadow
+                    transparentIdle: barWindow.chromaticFlowEnabled
+                        || barWindow.haloPreset || !barWindow.zoneBackgroundVisible
+                    showSheen: !barWindow.chromaticFlowEnabled
+                        && barWindow.cinematicPreset && RaohaneConfig.barShowBackground
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     RaohaneBarChromaticWash {
                         anchors.fill: parent
                         visible: barWindow.chromaticFlowEnabled && parent.visible
+                            && (!barWindow.panelPreset || parent === panelSurface)
+                            && (!barWindow.haloPreset || parent === panelSurface)
                         phase: barWindow.chromaticPhase
+                        darkMode: RaohaneTheme.dark
                         firstColor: RaohaneConfig.wallpaperFlowColorA
                         secondColor: RaohaneConfig.wallpaperFlowColorB
                         strength: RaohaneConfig.barChromaticIntensity
@@ -341,6 +352,7 @@ Scope {
                     // bar/process or an independently positioned widget.
                     Rectangle {
                         visible: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                            && !barWindow.chromaticFlowEnabled
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: parent.width * 0.22
@@ -398,9 +410,12 @@ Scope {
                     clip: true
                     surfaceRadius: barWindow.effectiveRadius
                     opacity: barWindow.haloPreset ? 1 : RaohaneConfig.barOpacity
-                    raised: barWindow.haloPreset ? false : RaohaneConfig.barShadow
-                    transparentIdle: barWindow.haloPreset || !barWindow.zoneBackgroundVisible
-                    showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    raised: !barWindow.chromaticFlowEnabled
+                        && !barWindow.haloPreset && RaohaneConfig.barShadow
+                    transparentIdle: barWindow.chromaticFlowEnabled
+                        || barWindow.haloPreset || !barWindow.zoneBackgroundVisible
+                    showSheen: !barWindow.chromaticFlowEnabled
+                        && barWindow.cinematicPreset && RaohaneConfig.barShowBackground
                     border.color: barWindow.zoneBackgroundVisible
                         ? (barWindow.cinematicPreset ? RaohaneTheme.accentBorder : RaohaneTheme.border)
                         : "transparent"
@@ -408,7 +423,10 @@ Scope {
                     RaohaneBarChromaticWash {
                         anchors.fill: parent
                         visible: barWindow.chromaticFlowEnabled && parent.visible
+                            && (!barWindow.panelPreset || parent === panelSurface)
+                            && (!barWindow.haloPreset || parent === panelSurface)
                         phase: barWindow.chromaticPhase
+                        darkMode: RaohaneTheme.dark
                         firstColor: RaohaneConfig.wallpaperFlowColorA
                         secondColor: RaohaneConfig.wallpaperFlowColorB
                         strength: RaohaneConfig.barChromaticIntensity
@@ -418,6 +436,7 @@ Scope {
                     // bar/process or an independently positioned widget.
                     Rectangle {
                         visible: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                            && !barWindow.chromaticFlowEnabled
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: parent.width * 0.38
@@ -479,15 +498,21 @@ Scope {
                     clip: true
                     surfaceRadius: barWindow.effectiveRadius
                     opacity: barWindow.haloPreset ? 1 : RaohaneConfig.barOpacity
-                    raised: barWindow.haloPreset ? false : RaohaneConfig.barShadow
-                    transparentIdle: barWindow.haloPreset || !barWindow.zoneBackgroundVisible
-                    showSheen: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                    raised: !barWindow.chromaticFlowEnabled
+                        && !barWindow.haloPreset && RaohaneConfig.barShadow
+                    transparentIdle: barWindow.chromaticFlowEnabled
+                        || barWindow.haloPreset || !barWindow.zoneBackgroundVisible
+                    showSheen: !barWindow.chromaticFlowEnabled
+                        && barWindow.cinematicPreset && RaohaneConfig.barShowBackground
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     RaohaneBarChromaticWash {
                         anchors.fill: parent
                         visible: barWindow.chromaticFlowEnabled && parent.visible
+                            && (!barWindow.panelPreset || parent === panelSurface)
+                            && (!barWindow.haloPreset || parent === panelSurface)
                         phase: barWindow.chromaticPhase
+                        darkMode: RaohaneTheme.dark
                         firstColor: RaohaneConfig.wallpaperFlowColorA
                         secondColor: RaohaneConfig.wallpaperFlowColorB
                         strength: RaohaneConfig.barChromaticIntensity
@@ -497,6 +522,7 @@ Scope {
                     // bar/process or an independently positioned widget.
                     Rectangle {
                         visible: barWindow.cinematicPreset && RaohaneConfig.barShowBackground
+                            && !barWindow.chromaticFlowEnabled
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: parent.width * 0.22
