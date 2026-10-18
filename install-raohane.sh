@@ -132,6 +132,7 @@ required_runtime=(
   "install/arch/features.txt"
   "modules/raohane"
   "modules/raohane/RaohaneDesktopEditGrid.qml"
+  "modules/raohane/RaohaneWallpaperCinema.qml"
   "modules/raohane/RaohaneDesktopClockStyles.qml"
   "modules/raohane/RaohaneDesktopMediaStyles.qml"
   "modules/raohane/RaohaneDesktopSystemStyles.qml"
@@ -170,6 +171,10 @@ if [[ -z "$QMLFORMAT_BIN" && -x /usr/lib/qt6/bin/qmlformat ]]; then
 fi
 if [[ -n "$QMLFORMAT_BIN" ]]; then
   for qml in \
+    modules/raohane/RaohaneWallpaperCinema.qml \
+    modules/raohane/RaohaneWallpaperSelector.qml \
+    modules/raohane/RaohaneBar.qml \
+    modules/raohane/RaohaneBarAppearanceSettings.qml \
     modules/raohane/RaohaneDesktopClockStyles.qml \
     modules/raohane/RaohaneDesktopMediaStyles.qml \
     modules/raohane/RaohaneDesktopSystemStyles.qml \
