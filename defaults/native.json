@@ -16,7 +16,9 @@
     "monitors": {},
     "autoSource": "folder",
     "adaptiveAccent": false,
-    "adaptiveColor": "#94b5e5"
+    "adaptiveColor": "#94b5e5",
+    "flowColorA": "#9067b3",
+    "flowColorB": "#ca7e67"
   },
   "overview": {
     "workspaceCount": 6,
@@ -78,7 +80,10 @@
         "control",
         "session"
       ]
-    }
+    },
+    "chromaticFlow": false,
+    "chromaticIntensity": 0.2,
+    "chromaticSeconds": 28
   },
   "frame": {
     "enabled": false,
