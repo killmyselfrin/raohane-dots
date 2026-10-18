@@ -24,6 +24,10 @@ background='modules/raohane/RaohaneBackground.qml'
 state='modules/raohane/RaohaneState.qml'
 free_studio='modules/raohane/RaohaneFreeWidgetStudio.qml'
 widget_registry='modules/raohane/RaohaneDesktopWidgetRegistry.qml'
+style_studio='modules/raohane/RaohaneDesktopWidgetStyleStudio.qml'
+clock_faces='modules/raohane/RaohaneDesktopClockStyles.qml'
+music_faces='modules/raohane/RaohaneDesktopMediaStyles.qml'
+system_faces='modules/raohane/RaohaneDesktopSystemStyles.qml'
 qmldir='modules/raohane/qmldir'
 settings='modules/raohane/RaohaneSettingsContentV3.qml'
 registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
@@ -31,7 +35,7 @@ search='modules/raohane/RaohaneSettingsSearch.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
 defaults='defaults/native.json'
 
-for path in "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$edit_grid" "$desktop_menu" "$background" "$state" "$free_studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
+for path in "$canvas" "$widgets" "$host" "$clock" "$context" "$system" "$motto" "$studio" "$layout_studio" "$edit_grid" "$style_studio" "$clock_faces" "$music_faces" "$system_faces" "$desktop_menu" "$background" "$state" "$free_studio" "$widget_registry" "$qmldir" "$settings" "$registry" "$search" "$config" "$defaults"; do
   [[ -f "$path" ]] || fail "missing native widget path: $path"
 done
 
@@ -164,11 +168,47 @@ jq -e '
   (.desktopWidgets.compact | type == "boolean") and
   (.desktopWidgets.layout == "balanced") and
   (.desktopWidgets.freeLayouts == {}) and
+  (.desktopWidgets.styles == {"clock":"classic","context":"classic","system":"classic"}) and
   (.desktopWidgets.scale | type == "number") and
   (.desktopWidgets.opacity | type == "number")
 ' "$defaults" >/dev/null || fail 'native widget defaults are invalid'
 
 # Free layout retains rail mode and uses native config persistence.
+# Style library: three validated faces for each live slot, using shared
+# services and persisted choice, with no additional MPRIS or procfs workers.
+rg -Fq 'property var desktopWidgetStyles:' "$config" || fail 'missing widget face store'
+rg -Fq 'function sanitizeDesktopWidgetStyles(value): var' "$config" || fail 'widget style values are not sanitized'
+rg -Fq 'function setDesktopWidgetStyle(id, style): void' "$config" || fail 'widget face changes are not persisted'
+rg -Fq 'styles: root.sanitizeDesktopWidgetStyles(root.desktopWidgetStyles)' "$config" \
+  || fail 'widget styles are not saved in native config'
+rg -Fq 'assignIfPresent(desktopWidgets, "styles"' "$config" \
+  || fail 'widget styles are not restored from native config'
+rg -Fq 'onDesktopWidgetStylesChanged: scheduleSave()' "$config" \
+  || fail 'widget styles do not trigger persistent writes'
+rg -Fq 'function sourceFor(id: string, style: string): string' "$widget_registry" \
+  || fail 'widget registry no longer selects native variants'
+rg -Fq 'source: RaohaneDesktopWidgetRegistry.sourceFor(root.widgetId, root.faceStyle)' "$host" \
+  || fail 'widget host no longer routes selected face'
+rg -Fq 'RaohaneDesktopWidgetStyleStudio {' "$studio" \
+  || fail 'Widget Studio lost style library'
+rg -Fq 'RaohaneConfig.setDesktopWidgetStyle(' "$style_studio" \
+  || fail 'style catalog cannot select an appearance'
+rg -Fq 'RaohaneConfig.setDesktopWidgetStyle(' "$edit_grid" \
+  || fail 'on-desktop editing lost style selector'
+for type_name in RaohaneDesktopClockStyles RaohaneDesktopMediaStyles RaohaneDesktopSystemStyles RaohaneDesktopWidgetStyleStudio; do
+  rg -Fq "$type_name 1.0 $type_name.qml" "$qmldir" \
+    || fail "widget style $type_name is not registered"
+done
+rg -Fq 'RaohaneMedia.togglePlaying()' "$music_faces" \
+  || fail 'music variant lost MPRIS playback control'
+rg -Fq 'RaohaneMedia.next()' "$music_faces" \
+  || fail 'music variant lost next-track control'
+for face in "$clock_faces" "$music_faces" "$system_faces"; do
+  if rg -q '\\b(Process|IpcHandler|FileView|StdioCollector)\\s*\\{' "$face"; then
+    fail "new widget face starts extra service workers: $face"
+  fi
+done
+
 rg -Fq 'property var desktopWidgetFreeLayouts:' "$config" || fail 'missing free layout store'
 rg -Fq 'function sanitizeDesktopWidgetFreeLayouts(value): var' "$config" || fail 'missing free layout sanitizer'
 rg -Fq 'function setDesktopWidgetPlacement(' "$config" || fail 'missing placement API'
