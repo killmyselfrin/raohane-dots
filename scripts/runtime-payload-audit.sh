@@ -77,6 +77,17 @@ grep -Fq 'missing modules/raohane/RaohaneDesktopEditGrid.qml' "$tmp_root/missing
 mv "$tmp_root/RaohaneDesktopEditGrid.qml" "$runtime/modules/raohane/RaohaneDesktopEditGrid.qml"
 bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
 
+# A palette helper missing from a partial update must be rejected in staging,
+# not discovered only after the user enables adaptive colors.
+mv "$runtime/scripts/wallpaper-palette.py" "$tmp_root/wallpaper-palette.py"
+if bash scripts/validate-runtime-payload.sh "$runtime" >"$tmp_root/missing-palette.log" 2>&1; then
+  fail 'staged payload validator accepted a runtime without wallpaper palette helper'
+fi
+grep -Fq 'missing scripts/wallpaper-palette.py' "$tmp_root/missing-palette.log" \
+  || fail 'staged payload validator did not identify the missing palette helper'
+mv "$tmp_root/wallpaper-palette.py" "$runtime/scripts/wallpaper-palette.py"
+bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
+
 # Prove common source-only paths never enter a clean staged runtime even before
 # an actual Hyprland session is involved.
 for path in \
