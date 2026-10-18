@@ -16,6 +16,18 @@ Item {
     readonly property int cardWidth: compact ? 226 : 278
     readonly property string layoutPreset: RaohaneConfig.desktopWidgetsLayout
     readonly property string monitorName: String(root.screen?.name ?? "default")
+    readonly property bool desktopEditActive: root.shown && !RaohaneState.screenLocked
+        && RaohaneState.desktopWidgetEditMode
+        && RaohaneState.desktopWidgetEditScreenName === root.monitorName
+    readonly property int editGridStep: 32
+
+    Keys.onPressed: event => {
+        if (root.desktopEditActive && event.key === Qt.Key_Escape) {
+            RaohaneState.desktopWidgetEditMode = false
+            event.accepted = true
+        }
+    }
+
     readonly property var composition: RaohaneConfig.sanitizeDesktopWidgetComposition(RaohaneConfig.desktopWidgetComposition)
     readonly property var primaryWidgetIds: root.composition.primary
     readonly property var secondaryWidgetIds: root.composition.secondary
@@ -67,7 +79,7 @@ Item {
         RaohaneState.setPrimaryOpen("desktopMenu", true)
     }
 
-    opacity: shown ? RaohaneConfig.desktopWidgetsOpacity : 0
+    opacity: root.desktopEditActive ? 1 : (shown ? RaohaneConfig.desktopWidgetsOpacity : 0)
     // In free mode the global scale is applied per widget, so coordinate
     // clamping still uses the physical monitor bounds, not a scaled canvas.
     scale: root.layoutPreset === "free" ? 1 : RaohaneConfig.desktopWidgetsScale
@@ -94,22 +106,87 @@ Item {
             delegate: Item {
                 id: placedWidget
                 required property var modelData
+
                 readonly property string widgetId: String(modelData)
                 readonly property var definition: RaohaneDesktopWidgetRegistry.definition(widgetId)
                 readonly property var placement: RaohaneConfig.desktopWidgetPlacement(root.monitorName, widgetId)
                 readonly property real itemSize: placement?.size ?? 1
-                readonly property real renderedScale: itemSize * RaohaneConfig.desktopWidgetsScale
+                property bool editingInteraction: false
+                property real workingX: 0
+                property real workingY: 0
+                property real workingSize: 1
+                property real pointerStartX: 0
+                property real pointerStartY: 0
+                property real originX: 0
+                property real originY: 0
+                property real originSize: 1
+                property real resizeReferenceWidth: 1
+                property real resizeReferenceHeight: 1
 
-                // Scale the face, not the whole desktop canvas. A narrow
-                // monitor still keeps an enlarged face within its right edge.
+                readonly property bool editMode: root.desktopEditActive
+                readonly property bool selected: RaohaneState.desktopWidgetEditWidgetId === widgetId
+                readonly property real renderedScale: (editingInteraction ? workingSize : itemSize)
+                    * RaohaneConfig.desktopWidgetsScale
+                readonly property real travelX: Math.max(0, root.width - width * renderedScale)
+                readonly property real travelY: Math.max(0, root.height - height * renderedScale)
+
                 width: Math.max(1, Math.min(
                     (root.width - 32) / Math.max(0.01, renderedScale),
                     definition?.freeWidth ?? 280))
                 height: widgetContent.implicitHeight
                 scale: renderedScale
                 transformOrigin: Item.TopLeft
-                x: Math.max(0, root.width - width * renderedScale) * (placement?.x ?? 0)
-                y: Math.max(0, root.height - height * renderedScale) * (placement?.y ?? 0)
+                x: editingInteraction ? workingX : travelX * (placement?.x ?? 0)
+                y: editingInteraction ? workingY : travelY * (placement?.y ?? 0)
+                z: editMode && selected ? 5 : 1
+
+                function beginInteraction(px: real, py: real): void {
+                    RaohaneState.desktopWidgetEditWidgetId = widgetId
+                    workingX = x
+                    workingY = y
+                    workingSize = itemSize
+                    pointerStartX = px
+                    pointerStartY = py
+                    originX = x
+                    originY = y
+                    originSize = itemSize
+                    resizeReferenceWidth = Math.max(1, width * renderedScale)
+                    resizeReferenceHeight = Math.max(1, height * renderedScale)
+                    editingInteraction = true
+                    root.forceActiveFocus()
+                }
+
+                function moveTo(px: real, py: real): void {
+                    if (!editingInteraction)
+                        return
+                    workingX = Math.max(0, Math.min(travelX, originX + px - pointerStartX))
+                    workingY = Math.max(0, Math.min(travelY, originY + py - pointerStartY))
+                }
+
+                function resizeTo(px: real, py: real): void {
+                    if (!editingInteraction)
+                        return
+                    const dx = (px - pointerStartX) / resizeReferenceWidth
+                    const dy = (py - pointerStartY) / resizeReferenceHeight
+                    const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy
+                    workingSize = Math.max(0.65, Math.min(1.4, originSize * (1 + delta)))
+                    workingX = Math.max(0, Math.min(travelX, originX))
+                    workingY = Math.max(0, Math.min(travelY, originY))
+                }
+
+                function finishInteraction(): void {
+                    if (!editingInteraction)
+                        return
+                    const snapX = Math.max(0, Math.min(travelX,
+                        Math.round(workingX / root.editGridStep) * root.editGridStep))
+                    const snapY = Math.max(0, Math.min(travelY,
+                        Math.round(workingY / root.editGridStep) * root.editGridStep))
+                    const xFraction = travelX > 0 ? snapX / travelX : 0
+                    const yFraction = travelY > 0 ? snapY / travelY : 0
+                    RaohaneConfig.setDesktopWidgetPlacement(root.monitorName, widgetId,
+                        xFraction, yFraction, workingSize)
+                    editingInteraction = false
+                }
 
                 RaohaneDesktopWidgetHost {
                     id: widgetContent
@@ -118,9 +195,82 @@ Item {
                     widgetId: placedWidget.widgetId
                     compact: root.compact
                     shown: root.shown && root.layoutPreset === "free"
-                    onWidgetMenuRequested: (id, x, y) => root.openWidgetContext(id, x, y)
+                    onWidgetMenuRequested: (id, px, py) => root.openWidgetContext(id, px, py)
+                }
+
+                // The edit handles belong to the actual widget, never a proxy
+                // in a settings or gallery window.
+                Rectangle {
+                    anchors.fill: parent
+                    visible: placedWidget.editMode && widgetContent.visible
+                    radius: 12
+                    color: "transparent"
+                    border.width: placedWidget.selected ? 2 : 1
+                    border.color: placedWidget.selected ? RaohaneTheme.accent : RaohaneTheme.accentBorder
+                    z: 7
+
+                    MouseArea {
+                        anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton
+                        cursorShape: Qt.SizeAllCursor
+                        onPressed: mouse => {
+                            const p = mapToItem(root, mouse.x, mouse.y)
+                            placedWidget.beginInteraction(p.x, p.y)
+                        }
+                        onPositionChanged: mouse => {
+                            if (!pressed)
+                                return
+                            const p = mapToItem(root, mouse.x, mouse.y)
+                            placedWidget.moveTo(p.x, p.y)
+                        }
+                        onReleased: placedWidget.finishInteraction()
+                        onCanceled: placedWidget.editingInteraction = false
+                    }
+
+                    Rectangle {
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        width: 25
+                        height: 25
+                        radius: 8
+                        color: RaohaneTheme.accent
+                        border.color: RaohaneTheme.surfaceDeep
+
+                        RaohaneIcon {
+                            anchors.centerIn: parent
+                            text: "open_in_full"
+                            iconSize: 14
+                            color: RaohaneTheme.background
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            acceptedButtons: Qt.LeftButton
+                            cursorShape: Qt.SizeFDiagCursor
+                            onPressed: mouse => {
+                                const p = mapToItem(root, mouse.x, mouse.y)
+                                placedWidget.beginInteraction(p.x, p.y)
+                            }
+                            onPositionChanged: mouse => {
+                                if (!pressed)
+                                    return
+                                const p = mapToItem(root, mouse.x, mouse.y)
+                                placedWidget.resizeTo(p.x, p.y)
+                            }
+                            onReleased: placedWidget.finishInteraction()
+                            onCanceled: placedWidget.editingInteraction = false
+                        }
+                    }
                 }
             }
+        }
+
+        RaohaneDesktopEditGrid {
+            anchors.fill: parent
+            z: 30
+            editing: root.desktopEditActive
+            monitorName: root.monitorName
+            onDoneRequested: RaohaneState.desktopWidgetEditMode = false
         }
     }
 
