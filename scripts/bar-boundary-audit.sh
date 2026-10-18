@@ -101,7 +101,7 @@ rg -Fq 'RaohaneConfig.barStylePreset === "halo"' "$bar" \
   || fail 'Halo is not selectable on the real horizontal bar'
 rg -Fq '"cinematic", "halo", "islands"' "$config" \
   || fail 'Halo preset is not restorable from native preferences'
-rg -Fq 'surface: "float", group: "transparent", height: 46, radius: 23' "$bar_appearance" \
+rg -Fq 'surface: "float", group: "transparent", height: 44, radius: 22' "$bar_appearance" \
   || fail 'Halo lost its slender transparent capsule dimensions'
 rg -Fq 'RaohaneConfig.barModuleLayout = {' "$bar_appearance" \
   || fail 'Halo does not configure the existing native three-zone modules'
@@ -119,10 +119,12 @@ rg -Fq 'readonly property bool haloStyle:' "$workspaces" \
   || fail 'Halo workspace dots are not bound to actual compositor desktops'
 rg -Fq 'RaohaneConfig.barStylePreset === "halo"' "$workspaces" \
   || fail 'Halo workspace styling is not scoped to its preset'
-rg -Fq 'root.priorityMode || root.mediaMode' modules/raohane/RaohaneContextIsland.qml \
-  || fail 'Halo context styling does not preserve media/privacy emphasis'
+rg -Fq 'raised: !root.haloStyle || root.priorityMode' modules/raohane/RaohaneContextIsland.qml \
+  || fail 'Halo context styling does not preserve privacy/recording emphasis'
+rg -Fq 'readonly property bool mediaMode:' modules/raohane/RaohaneContextIsland.qml \
+  || fail 'Halo context styling removed media interaction'
 rg -Fq 'border.color: barWindow.haloPreset' "$bar" \
-  || fail 'Halo accent glass rim no longer follows adaptive wallpaper palette'
+  || fail 'Halo border no longer follows the wallpaper-tinted shared theme'
 rg -Fq 'barWindow.haloPreset && barContent.width >= 1100' "$bar" \
   || fail 'Halo zone dividers are not responsive'
 # Existing saved layouts and service calls remain authoritative: no fresh
@@ -269,37 +271,82 @@ if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
 
-# Centered Bar pods must reserve enough space for the neighboring islands,
-# including when a custom workspace/tray layout or fractional scale changes.
-# Both side surfaces clip overflow rather than painting over each other.
+# Every preset shares a collision-free three-zone geometry and never
+# hides clock/system under a long media title. Width budgets depend only on
+# the physical viewport, not a circular width->implicitWidth dependency.
 for contract in \
+  'readonly property real contentWidthLimit:' \
+  'haloPreset ? 1240' \
+  'cinematicPreset ? 1360' \
+  'readonly property real centerWidthLimit:' \
+  'readonly property bool compactWidth:' \
+  'readonly property bool narrowWidth:' \
+  'readonly property bool ultraNarrow:' \
   'readonly property real sideIslandLimit:' \
   '(width - centerIsland.width) / 2' \
-  'barWindow.effectiveEdgeMargin - Math.max(6, barWindow.moduleSpacing)' \
-  'Math.min(barContent.sideIslandLimit, Math.max(48, leftRow.implicitWidth' \
-  'Math.min(barContent.sideIslandLimit, Math.max(48, rightRow.implicitWidth'; do
-  rg -Fq "$contract" "$bar" || fail "horizontal Bar lost collision-safe islands: $contract"
+  '- sideInset - zoneGap' \
+  'Math.min(barContent.sideIslandLimit, Math.max(0, leftRow.implicitWidth' \
+  'Math.min(barContent.sideIslandLimit, Math.max(0, rightRow.implicitWidth' \
+  'Math.min(barWindow.centerWidthLimit, Math.max(0, centerRow.implicitWidth' \
+  'width: Math.min(parent.width, barWindow.contentWidthLimit)' \
+  'anchors.horizontalCenter: parent.horizontalCenter' \
+  'densityMode: barWindow.moduleDensity' \
+  'compactClock: barWindow.clockCompact' \
+  'compactWorkspaces: barWindow.compactWidth' \
+  'minimalWorkspaces: barWindow.ultraNarrow'; do
+  rg -Fq "$contract" "$bar" || fail "horizontal Bar lost responsive geometry: $contract"
 done
+for file in "$bar" modules/raohane/RaohaneClock.qml modules/raohane/RaohaneContextIsland.qml \
+            modules/raohane/RaohaneBarModule.qml modules/raohane/RaohaneWorkspaces.qml; do
+  [[ -f "$file" ]] || fail "required responsive module missing: $file"
+done
+rg -Fq 'readonly property bool effectiveShowDate: showDate && !compactMode' modules/raohane/RaohaneClock.qml \
+  || fail 'compact Bar no longer hides secondary date'
+rg -Fq 'property string densityMode: "full"' modules/raohane/RaohaneContextIsland.qml \
+  || fail 'Bar context cannot switch density'
+rg -Fq 'if (root.iconOnly)' modules/raohane/RaohaneContextIsland.qml \
+  || fail 'Bar context has no minimal fallback'
+rg -Fq 'if (root.minimalMode)' "$workspaces" \
+  || fail 'ultra-narrow bar does not reserve a visible active workspace'
+rg -Fq 'if (!root.compactMode && !root.minimalMode)' "$workspaces" \
+  || rg -Fq '(!root.compactMode && !root.minimalMode)' "$workspaces" \
+  || fail 'normal Bar lost full workspace switcher'
 python3 - "$bar" <<'PY'
 import re
 import sys
 from pathlib import Path
+
 source = Path(sys.argv[1]).read_text()
-for island in ("leftIsland", "rightIsland"):
+for island in ("leftIsland", "centerIsland", "rightIsland"):
     match = re.search(r'id:\s*' + island + r'\b([\s\S]*?)\n\s*RowLayout\s*\{', source)
     if not match or not re.search(r'\bclip:\s*true\b', match.group(1)):
-        raise SystemExit(f"{island} no longer clips content to its allocated width")
-# Validate the actual geometric contract for narrow and wide outputs.
-for width in (320, 640, 800, 1024, 1280, 1920):
-    for center_ratio in (0, .17, .42):
-        center_width = width * center_ratio
-        for margin, spacing in ((0, 0), (12, 6), (28, 16)):
-            gap = max(6, spacing)
-            limit = max(0, (width - center_width) / 2 - margin - gap)
-            if limit > 0:
-                assert limit + margin + gap + center_width / 2 <= width / 2 + 1e-6
-PY
+        raise SystemExit(f"{island} no longer clips oversized custom modules")
 
+# Geometry proof for real width limits, center percentages and margins.
+# Side islands are capped before the center; a margin + gap is reserved on
+# *each* side. Check a range of logical-output sizes and preset profiles.
+for screen_width in (320, 480, 590, 680, 770, 960, 1024, 1280, 1540, 1920, 2560, 3840):
+    for maximum in (1200, 1240, 1320, 1360, 1400, screen_width):
+        width = min(screen_width, maximum)
+        ratio = .36 if width < 590 else .38 if width < 770 else .39
+        for center_implicit in (0, 80, 240, 420, 750):
+            center = min(max(48, min(width * ratio, 460)), center_implicit)
+            for edge in (0, 16, 24, 48):
+                for halo in (False, True):
+                    gap = 3 if width < 590 else 5 if width < 770 else 12 if halo else 10
+                    inset = edge + (10 if halo else 0)
+                    side_limit = max(0, (width - center) / 2 - inset - gap)
+                    left = min(side_limit, 300)
+                    right = min(side_limit, 380)
+                    left_end = inset + left
+                    center_left = (width - center) / 2
+                    center_right = (width + center) / 2
+                    right_start = width - inset - right
+                    # Very narrow windows may have no room for side modules.
+                    # In that case the side collapses to zero, never overlaps.
+                    assert left_end <= center_left - gap + 1e-7 or left == 0
+                    assert right_start >= center_right + gap - 1e-7 or right == 0
+PY
 
 # Both bar orientations keep their layer-shell surface resident during fullscreen.
 # Content and timers are suspended, exclusion drops to zero, and a zero-sized
