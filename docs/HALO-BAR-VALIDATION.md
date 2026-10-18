@@ -55,12 +55,38 @@ new set of components for each preset. Even custom module sequences are
 clipped within their zones instead of painting on top of other modules.
 The native three-zone layout editor remains authoritative.
 
+## Chromatic Flow — optional wallpaper gradient
+
+Open **Settings → Bar Studio → Chromatic Flow** and enable
+**Wallpaper gradient**. The control is **OFF by default** and does not change
+the current wallpaper or the manual theme. It works independently of
+Wallpaper Studio's **Adaptive Colors** toggle.
+
+- The existing bounded wallpaper palette worker samples the **applied**
+  image or a single FFmpeg video frame once and chooses two distinguishable
+  hues that actually appear in the wallpaper.
+- The 2-color glass wash works in **Classic, Float, Cinematic, Halo, Islands,
+  Compact and Panel**. Separate islands share one animation phase per display.
+- **Gradient intensity:** 5–45% opacity (default 20%). Text, status icons
+  and click targets remain untouched and on top of the translucent overlay.
+- **Flow duration:** 12–60 seconds for a full swap-and-return (default 28 s).
+  No new service/polling timer is required.
+- Animation pauses when the Bar is hidden, during fullscreen Game Mode, or
+  if the shell's reduced-motion preference disables transform motion. The
+  tint remains static if motion is disabled.
+
+The two sampled colors are cached in existing native preferences, so the
+bar can render immediately on the next login without decoding the same
+wallpaper every frame. If decoding fails or the artwork is essentially one
+color, the cached/fallback palette remains available.
+
 ## Smoke checks — fish shell
 
 ```fish
 cd ~/raohane-dots
 git pull --ff-only
 bash scripts/bar-boundary-audit.sh
+bash scripts/wallpaper-studio-audit.sh
 # Geometry regression test includes sizes from 320 to 3840 logical px.
 bash scripts/multimonitor-boundary-audit.sh
 bash scripts/fullscreen-boundary-audit.sh
