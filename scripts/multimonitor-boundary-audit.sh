@@ -75,20 +75,20 @@ rg -q 'screen:[[:space:]]*RaohaneState\.desktopMenuScreen' "$desktop_menu" \
 registry='modules/raohane/RaohaneBarModuleRegistry.qml'
 [[ -f "$registry" ]] || fail 'missing shared Bar module registry'
 for contract in \
-  'function selectBarScreens\\(screens, configured, focusedName: string\\): var' \
-  'if \\(available\\.length === 0\\)' \
-  'if \\(!Array\\.isArray\\(configured\\) \\|\\| configured\\.length === 0\\)' \
-  'if \\(matching\\.length > 0\\)' \
-  'available\\.find\\(screen => screen\\.name === focusedName\\)' \
-  'return \\[focused \\?\\? available\\[0\\]\\]'; do
+  'function selectBarScreens\(screens, configured, focusedName: string\): var' \
+  'if \(available\.length === 0\)' \
+  'if \(!Array\.isArray\(configured\) \|\| configured\.length === 0\)' \
+  'if \(matching\.length > 0\)' \
+  'available\.find\(screen => screen\.name === focusedName\)' \
+  'return \[focused \?\? available\[0\]\]'; do
   rg -q "$contract" "$registry" || fail "Bar failover lost contract: $contract"
 done
 for bar in modules/raohane/RaohaneBar.qml modules/raohane/RaohaneVerticalBar.qml; do
-  rg -Uq 'model:[[:space:]]*RaohaneBarModuleRegistry\\.selectBarScreens\\(' "$bar" \
+  rg -Uq 'model:[[:space:]]*RaohaneBarModuleRegistry\.selectBarScreens\(' "$bar" \
     || fail "$bar lost resilient monitor selection"
-  rg -q 'RaohaneConfig\\.barScreenList' "$bar" \
+  rg -q 'RaohaneConfig\.barScreenList' "$bar" \
     || fail "$bar ignores selected monitor preferences"
-  rg -q 'Hyprland\\.focusedMonitor\\?\\.name' "$bar" \
+  rg -q 'Hyprland\.focusedMonitor\?\.name' "$bar" \
     || fail "$bar lost focused-monitor failover"
 done
 
