@@ -131,7 +131,6 @@ RaohaneSurface {
         required property string glyph
         required property string title
         required property string info
-        property bool active: false
 
         Layout.fillHeight: true
         Layout.minimumWidth: 0
