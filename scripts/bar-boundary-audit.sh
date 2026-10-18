@@ -160,9 +160,12 @@ for contract in \
   'readonly property color rightTone:' \
   'readonly property real colorStrength:' \
   'opacity: 1' \
-  'position: 0.34' \
-  'position: 0.64' \
-  'x: parent ? -parent.width * 0.40 * phase : 0' \
+  'anchors.fill: parent' \
+  'GradientStop { position: 0.26; color: root.leftTone }' \
+  'GradientStop { position: 0.54; color: root.rightTone }' \
+  'GradientStop { position: 0.46; color: root.leftTone }' \
+  'GradientStop { position: 0.74; color: root.rightTone }' \
+  'opacity: Math.max(0, Math.min(1, root.phase))' \
   'root.tint(root.materialBase, root.firstColor, root.colorStrength)' \
   'root.tint(root.materialBase, root.secondColor, root.colorStrength)'; do
   rg -Fq "$contract" "$wash" || fail "primary chromatic fill lost contract: $contract"
@@ -175,10 +178,10 @@ for contract in \
   '!barWindow.haloPreset || parent === panelSurface'; do
   rg -Fq "$contract" "$bar" || fail "double-layer prevention missing: $contract"
 done
-if rg -Fq 'anchors.fill: parent' "$wash" \
-   || rg -Fq 'root.blend(' "$wash" \
+if rg -Fq 'root.blend(' "$wash" \
+   || rg -Fq 'position: 0.26 + root.phase' "$wash" \
    || rg -Fq 'opacity: Math.max(0, Math.min(0.45, strength))' "$wash"; then
-  fail 'Chromatic Flow reverted to tinted overlay or per-frame gradient blending'
+  fail 'Chromatic Flow reverted to tinted overlay or per-frame gradient rebuilding'
 fi
 rg -Fq 'root.moduleId !== "separator" && root.moduleId !== "context"' "$module_host" \
   || fail 'module backgrounds were stacked under the gradient'
@@ -189,13 +192,16 @@ rg -Fq 'chromaticBackground: root.chromaticBackground' "$module_host" \
 rg -Fq 'transparentIdle: (root.haloStyle || root.chromaticBackground)' modules/raohane/RaohaneContextIsland.qml \
   || fail 'chromatic context island still masks the two-tone material'
 
-# Software geometry/visibility smoke for fixed gradient stops. At every
-# phase, the clipped viewport still shows an A-only and a B-only region.
+# Both static gradients have the same solid endpoint colors at every
+# phase. Only their *transition positions* crossfade, so the entire bar
+# never becomes one flat blend in the middle of the animation.
 python3 - <<'PY'
 for phase in (0, .1, .25, .5, .75, .9, 1):
-    left = (.4 * phase) / 1.4
-    right = (.4 * phase + 1) / 1.4
-    assert left < .34 and right > .64, (phase, left, right)
+    for x in (0, .20, .25):
+        assert x <= .26
+    for x in (.75, .80, 1):
+        assert x >= .74
+    assert 0 <= phase <= 1
 PY
 for setting in barChromaticFlow barChromaticIntensity barChromaticSeconds; do
   rg -Fq "property " "$config" || fail "config properties missing"
