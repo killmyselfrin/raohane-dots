@@ -154,10 +154,18 @@ Item {
                             showInnerRim: true
                             hoverScale: 1
                             pressedScale: 1
+                            activeFocusOnTab: true
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return
+                                        || event.key === Qt.Key_Enter) {
+                                    root.selectWidget(widgetCard.widgetId)
+                                    event.accepted = true
+                                }
+                            }
                             border.width: selected ? 2 : 1
                             border.color: selected ? RaohaneTheme.accentBorder
-                                : cardMouse.containsMouse ? RaohaneTheme.borderStrong
-                                : RaohaneTheme.borderFaint
+                                : widgetCard.activeFocus || cardMouse.containsMouse
+                                    ? RaohaneTheme.borderStrong : RaohaneTheme.borderFaint
                             color: selected ? RaohaneTheme.surfaceRaised
                                 : RaohaneTheme.surfaceDeep
 
@@ -166,7 +174,10 @@ Item {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.selectWidget(widgetCard.widgetId)
+                                onClicked: {
+                                    widgetCard.forceActiveFocus()
+                                    root.selectWidget(widgetCard.widgetId)
+                                }
                             }
 
                             ColumnLayout {
@@ -476,7 +487,15 @@ Item {
         showSheen: false
         hoverScale: 1
         pressedScale: 1
-        hovered: pointer.containsMouse
+        hovered: pointer.containsMouse || activeFocus
+        activeFocusOnTab: true
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return
+                    || event.key === Qt.Key_Enter) {
+                button.triggered()
+                event.accepted = true
+            }
+        }
         color: hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceDeep
 
         Row {
@@ -517,7 +536,15 @@ Item {
         showSheen: false
         hoverScale: 1
         pressedScale: 1
-        hovered: pointer.containsMouse
+        hovered: pointer.containsMouse || activeFocus
+        activeFocusOnTab: true
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return
+                    || event.key === Qt.Key_Enter) {
+                button.triggered()
+                event.accepted = true
+            }
+        }
         color: hovered ? RaohaneTheme.surfaceHover : RaohaneTheme.surfaceSubtle
 
         Row {
