@@ -176,31 +176,66 @@ Item {
         anchors.margins: Math.max(10, Math.min(22, width * 0.035))
         spacing: 8
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 33
-            spacing: 8
+        // A small floating glass toolbar, not a second row of decorative
+        // controls. Every arrow directly navigates the real wallpaper model.
+        RaohaneSurface {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: Math.min(root.width - 28, 480)
+            Layout.preferredHeight: 48
+            surfaceRadius: 16
+            raised: true
+            showSheen: true
+            idleColor: Qt.rgba(RaohaneTheme.background.r,
+                RaohaneTheme.background.g, RaohaneTheme.background.b,
+                RaohaneTheme.dark ? 0.64 : 0.84)
+            idleBorderColor: RaohaneTheme.borderStrong
 
-            RaohaneIcon {
-                text: "auto_awesome"
-                iconSize: 17
-                color: RaohaneTheme.accent
-            }
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 12
+                spacing: 9
 
-            Text {
-                text: qsTr("CINEMATIC GALLERY")
-                color: RaohaneTheme.text
-                font.pixelSize: 10
-                font.weight: Font.DemiBold
-                font.letterSpacing: 1.7
-            }
+                NavigationButton {
+                    glyph: "chevron_left"
+                    enabled: carousel.currentIndex > 0
+                    Layout.preferredWidth: 32
+                    Layout.preferredHeight: 32
+                    onTriggered: root.step(-1)
+                }
 
-            Item { Layout.fillWidth: true }
+                RaohaneIcon {
+                    text: "auto_awesome"
+                    iconSize: 16
+                    color: RaohaneTheme.accent
+                }
 
-            Text {
-                text: qsTr("%1 items").arg(root.folderModel?.count ?? 0)
-                color: RaohaneTheme.textMuted
-                font.pixelSize: 10
+                Text {
+                    text: qsTr("CINEMATIC")
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 1.6
+                    color: RaohaneTheme.text
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Text {
+                    text: carousel.count > 0
+                        ? qsTr("%1 / %2").arg(carousel.currentIndex + 1).arg(carousel.count)
+                        : qsTr("No images")
+                    font.pixelSize: 10
+                    color: RaohaneTheme.textMuted
+                }
+
+                NavigationButton {
+                    glyph: "chevron_right"
+                    enabled: carousel.currentIndex >= 0
+                        && carousel.currentIndex < carousel.count - 1
+                    Layout.preferredWidth: 32
+                    Layout.preferredHeight: 32
+                    onTriggered: root.step(1)
+                }
             }
         }
 
@@ -405,14 +440,6 @@ Item {
                 }
             }
 
-            Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
-                spacing: 12
-
-                NavigationButton { glyph: "chevron_left"; onTriggered: root.step(-1) }
-                NavigationButton { glyph: "chevron_right"; onTriggered: root.step(1) }
-            }
         }
 
         Text {
@@ -442,9 +469,10 @@ Item {
         required property string glyph
         signal triggered()
 
-        width: 38
-        height: 38
-        surfaceRadius: 12
+        implicitWidth: 38
+        implicitHeight: 38
+        surfaceRadius: 11
+        opacity: enabled ? 1 : 0.4
         raised: false
         showSheen: false
         idleColor: Qt.rgba(RaohaneTheme.background.r,
@@ -461,7 +489,8 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
+            enabled: nav.enabled
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
             onClicked: nav.triggered()
         }
     }
