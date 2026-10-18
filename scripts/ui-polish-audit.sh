@@ -317,11 +317,26 @@ rg -Fq 'font.pixelSize: 13' "$control_media" \
   || fail 'Control Center media title became unreadable'
 
 
+# Notifications remain readable at rest, and entry fades honor the shared
+# low-motion and Gaming Mode policy, including hidden Control Center panels.
+for contract in \
+  'surfaceRadius: RaohaneTheme.radiusHero' \
+  'idleBorderColor: RaohaneTheme.borderFaint' \
+  'font.pixelSize: 11' \
+  'font.pixelSize: 9' \
+  'opacity: entered || !RaohaneMotion.panelMotionEnabled || !root.visible ? 1 : 0' \
+  'enabled: RaohaneMotion.panelMotionEnabled && root.visible' \
+  'showSheen: true'; do
+  rg -Fq "$contract" "$notifications" \
+    || fail "Notification Center lost legible low-motion glass: $contract"
+done
+
+
 # The Notification Center keeps notification-service ownership while sharing
 # the same quiet glass material and compact list presentation.
 for contract in \
   'idleColor: RaohaneTheme\.surfaceSubtle' \
-  'showInnerRim: false' \
+  'showInnerRim: true' \
   'stateRailWidth: 2' \
   'delegate: Item[[:space:]]*\{' \
   'RaohaneNotificationCard[[:space:]]*\{' \
