@@ -56,9 +56,10 @@ def read_wallpaper(path: Path):
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
+    dual = len(sys.argv) == 3 and sys.argv[1] == "--dual"
+    if len(sys.argv) != (3 if dual else 2):
         return 2
-    path = Path(sys.argv[1])
+    path = Path(sys.argv[2] if dual else sys.argv[1])
     if not path.is_file():
         return 2
     try:
@@ -72,30 +73,62 @@ def main() -> int:
     except (ImportError, OSError, ValueError):
         return 2
 
-    best_score = -1.0
-    best = (148, 181, 229)
+    candidates = []
     for amount, index in swatches:
         rgb = palette[index * 3:index * 3 + 3]
         if len(rgb) != 3:
             continue
-        r, g, b = (value / 255.0 for value in rgb)
-        hue, saturation, value = colorsys.rgb_to_hsv(r, g, b)
+        normalized = tuple(channel / 255.0 for channel in rgb)
+        hue, saturation, value = colorsys.rgb_to_hsv(*normalized)
+        # Black and white dominate many dark wallpapers but do not produce
+        # pleasant flowing colors. Prefer genuine chromatic wallpaper regions.
         if saturation < 0.20 or value < 0.17 or value > 0.96:
             continue
-        # Prefer distinguishable chromatic colors, not the most frequent
-        # black/white pixels in wallpaper art.
         score = (amount ** 0.5) * (0.35 + saturation) * (0.50 + value)
-        if score > best_score:
-            # Limit extremes so the accent remains readable on dark glass.
-            saturation = min(0.70, max(0.35, saturation))
-            value = min(0.85, max(0.48, value))
-            best = tuple(round(channel * 255)
-                         for channel in colorsys.hsv_to_rgb(hue, saturation, value))
-            best_score = score
+        candidates.append((score, hue, saturation, value, tuple(rgb)))
 
-    print("#{0:02x}{1:02x}{2:02x}".format(*best), flush=True)
+    candidates.sort(key=lambda entry: entry[0], reverse=True)
+
+    def readable(entry):
+        if entry is None:
+            return (148, 181, 229)
+        _, hue, saturation, value, _ = entry
+        saturation = min(0.70, max(0.35, saturation))
+        value = min(0.85, max(0.48, value))
+        return tuple(round(channel * 255)
+                     for channel in colorsys.hsv_to_rgb(hue, saturation, value))
+
+    first = candidates[0] if candidates else None
+    second = None
+    if first is not None:
+        # Pick a real second visible color, rather than manufacturing an
+        # unrelated complement. A second burgundy/gold region is valid even
+        # if it covers less area than the main wallpaper tone.
+        scored = []
+        for entry in candidates[1:]:
+            hue_distance = min(abs(entry[1] - first[1]), 1 - abs(entry[1] - first[1]))
+            color_distance = sum((entry[4][i] - first[4][i]) ** 2
+                                 for i in range(3)) ** 0.5
+            if hue_distance < 0.075 and color_distance < 66:
+                continue
+            diversity = 0.65 + min(0.9, 3.0 * hue_distance + color_distance / 330)
+            scored.append((entry[0] * diversity, entry))
+        if scored:
+            second = max(scored, key=lambda entry: entry[0])[1]
+        elif len(candidates) > 1:
+            second = candidates[1]
+
+    first_rgb = readable(first)
+    second_rgb = readable(second or first)
+
+    def hex_color(rgb):
+        return "#{0:02x}{1:02x}{2:02x}".format(*rgb)
+
+    # Backward compatible: callers not requesting --dual receive exactly the
+    # original one-color output. Both colors are from the same bounded read.
+    print(hex_color(first_rgb) +
+          (" " + hex_color(second_rgb) if dual else ""), flush=True)
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
