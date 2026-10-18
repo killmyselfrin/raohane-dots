@@ -95,10 +95,28 @@ for contract in \
   rg -Fq "$contract" "$settings_home" \
     || fail "Settings Home lost keyboard/responsive glass contract: $contract"
 done
+# The main Settings landing surface uses three visually distinct
+# dashboard modules, never three stacked navigation rows.
+rg -Fq 'id: setupGrid' "$settings_home" \
+  || fail 'Settings Home lost its current-setup dashboard grid'
+rg -Fq 'columns: width >= 720 ? 3 : 1' "$settings_home" \
+  || fail 'Settings Home dashboard tiles lost their compact layout'
+rg -Fq 'surfaceRadius: RaohaneTheme.radiusHero' "$settings_home" \
+  || fail 'Settings Home dashboard lost modular surface geometry'
+rg -Fq 'showStateRail: true' "$settings_home" \
+  || fail 'Settings Home tiles lost their contextual accent'
+rg -Fq 'activeFocusOnTab: true' "$settings_home" \
+  || fail 'Settings Home dashboard lost keyboard focus'
+[[ "$(rg -Fc 'SetupTile {' "$settings_home")" == 3 ]] \
+  || fail 'Settings Home should expose exactly three existing setup routes'
+[[ "$(rg -Fc 'OverviewRow {' "$settings_home")" == 1 ]] \
+  || fail 'Settings Home retained duplicated overview navigation rows'
 [[ "$(rg -Fc 'showInnerRim: true' "$settings_home")" == 3 ]] \
-  || fail 'Settings Home lost shared glass on its three section cards'
-[[ "$(rg -Fc 'OverviewRow {' "$settings_home")" == 4 ]] \
-  || fail 'Settings Home routes were added or removed unexpectedly'
+  || fail 'Settings Home modular and section surfaces lost glass material'
+for route in 'root.openPage("themes")' 'root.openPage("scenes")' 'root.openPage("about")'; do
+  rg -Fq "$route" "$settings_home" \
+    || fail "Settings Home lost its existing dashboard route: $route"
+done
 
 
 # Read-only hardware metadata can be much longer than its left-hand label.
