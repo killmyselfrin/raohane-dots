@@ -50,7 +50,7 @@ done
 
 # Widget context menus must reuse the existing desktop popup and Qt input
 # masks: wallpaper remains clickable outside the four widget bounds.
-rg -q '^RaohaneDesktopWidgetContextActions 1\\.0 RaohaneDesktopWidgetContextActions\\.qml$' "$qmldir" \
+rg -Fq 'RaohaneDesktopWidgetContextActions 1.0 RaohaneDesktopWidgetContextActions.qml' "$qmldir" \
   || fail 'widget context actions are not registered in native qmldir'
 rg -Fq 'mask: Region {' "$canvas" || fail 'widget canvas traps clicks across the wallpaper'
 for widget in clock context system motto; do
