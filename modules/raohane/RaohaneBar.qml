@@ -259,7 +259,8 @@ Scope {
                         ? RaohaneTheme.borderStrong : RaohaneTheme.border
 
                     RaohaneBarChromaticWash {
-                        anchors.fill: parent
+                        // The material deliberately extends past its host
+                        // and slides underneath the host's rounded clip.
                         visible: barWindow.chromaticFlowEnabled && parent.visible
                             && (!barWindow.panelPreset || parent === panelSurface)
                             && (!barWindow.haloPreset || parent === panelSurface)
@@ -337,7 +338,8 @@ Scope {
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     RaohaneBarChromaticWash {
-                        anchors.fill: parent
+                        // The material deliberately extends past its host
+                        // and slides underneath the host's rounded clip.
                         visible: barWindow.chromaticFlowEnabled && parent.visible
                             && (!barWindow.panelPreset || parent === panelSurface)
                             && (!barWindow.haloPreset || parent === panelSurface)
@@ -421,7 +423,8 @@ Scope {
                         : "transparent"
 
                     RaohaneBarChromaticWash {
-                        anchors.fill: parent
+                        // The material deliberately extends past its host
+                        // and slides underneath the host's rounded clip.
                         visible: barWindow.chromaticFlowEnabled && parent.visible
                             && (!barWindow.panelPreset || parent === panelSurface)
                             && (!barWindow.haloPreset || parent === panelSurface)
@@ -507,7 +510,8 @@ Scope {
                     border.color: barWindow.zoneBackgroundVisible ? RaohaneTheme.border : "transparent"
 
                     RaohaneBarChromaticWash {
-                        anchors.fill: parent
+                        // The material deliberately extends past its host
+                        // and slides underneath the host's rounded clip.
                         visible: barWindow.chromaticFlowEnabled && parent.visible
                             && (!barWindow.panelPreset || parent === panelSurface)
                             && (!barWindow.haloPreset || parent === panelSurface)
