@@ -31,35 +31,36 @@ Rectangle {
     readonly property color leftTone: root.tint(root.materialBase, root.firstColor, root.colorStrength)
     readonly property color rightTone: root.tint(root.materialBase, root.secondColor, root.colorStrength)
 
-    // Move the precomputed linear gradient as a texture, rather than
-    // animating GradientStop positions and rebuilding four gradient textures
-    // each frame. Parent pod clips the oversize material to its round shape.
-    width: parent ? parent.width * 1.40 : 0
-    height: parent ? parent.height : 0
-    x: parent ? -parent.width * 0.40 * phase : 0
+    // Two static gradients share the same endpoint hues but shift the
+    // transition zone. Crossfade the *transition location*, never the end
+    // colors, so both wallpaper hues remain visible even at phase=0.5.
+    // Both fills match the actual capsule bounds and rounded corners.
+    anchors.fill: parent
     radius: parent ? parent.radius : 0
     color: "transparent"
-    // The parent glass surface already owns opacity. Opaquely replace its
-    // fill here, so turning up strength makes hues *clearer*, not muddier.
     opacity: 1
 
     gradient: Gradient {
         orientation: Gradient.Horizontal
-        GradientStop {
-            position: 0.0
-            color: root.leftTone
-        }
-        GradientStop {
-            position: 0.34
-            color: root.leftTone
-        }
-        GradientStop {
-            position: 0.64
-            color: root.rightTone
-        }
-        GradientStop {
-            position: 1.0
-            color: root.rightTone
+        GradientStop { position: 0.0; color: root.leftTone }
+        GradientStop { position: 0.26; color: root.leftTone }
+        GradientStop { position: 0.54; color: root.rightTone }
+        GradientStop { position: 1.0; color: root.rightTone }
+    }
+
+    Rectangle {
+        id: shiftedTransition
+        anchors.fill: parent
+        radius: parent.radius
+        color: "transparent"
+        opacity: Math.max(0, Math.min(1, root.phase))
+
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0.0; color: root.leftTone }
+            GradientStop { position: 0.46; color: root.leftTone }
+            GradientStop { position: 0.74; color: root.rightTone }
+            GradientStop { position: 1.0; color: root.rightTone }
         }
     }
 }
