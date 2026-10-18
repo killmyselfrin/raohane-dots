@@ -29,8 +29,8 @@ Item {
         },
         {
             id: "halo", label: qsTr("Halo"), detail: qsTr("One slender adaptive-glass capsule with three balanced zones"),
-            surface: "float", group: "transparent", height: 40, radius: 20,
-            opacity: 0.93, margin: 20, spacing: 7, padding: 12, background: true, shadow: true
+            surface: "float", group: "transparent", height: 46, radius: 23,
+            opacity: 0.91, margin: 24, spacing: 7, padding: 11, background: true, shadow: true
         },
         {
             id: "islands", label: qsTr("Islands"), detail: qsTr("Separated functional groups"),
