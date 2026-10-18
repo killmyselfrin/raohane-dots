@@ -14,6 +14,7 @@ vertical='modules/raohane/RaohaneVerticalBar.qml'
 module_host='modules/raohane/RaohaneBarModule.qml'
 module_registry='modules/raohane/RaohaneBarModuleRegistry.qml'
 bar_studio='modules/raohane/RaohaneBarStudio.qml'
+bar_appearance='modules/raohane/RaohaneBarAppearanceSettings.qml'
 bar_layout_editor='modules/raohane/RaohaneBarLayoutEditor.qml'
 context='modules/raohane/RaohaneContext.qml'
 config='modules/raohane/config/RaohaneConfig.qml'
@@ -24,7 +25,7 @@ status='modules/raohane/RaohaneSystemIcons.qml'
 clock='modules/raohane/RaohaneClock.qml'
 qmldir='modules/raohane/qmldir'
 
-for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$bar_layout_editor" "$context" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
+for path in "$bar" "$vertical" "$module_host" "$module_registry" "$bar_studio" "$bar_appearance" "$bar_layout_editor" "$context" "$config" "$defaults" "$workspaces" "$tray" "$status" "$clock" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing native bar path: $path"
 done
 
@@ -79,6 +80,17 @@ for module_id in network bluetooth notifications audio session; do
 done
 rg -q '"modules"[[:space:]]*:' "$defaults" || fail 'native defaults do not persist horizontal bar modules'
 rg -q '"verticalModules"[[:space:]]*:' "$defaults" || fail 'native defaults do not persist vertical bar modules'
+
+# Cinematic is opt-in; module identity, configuration and existing layouts
+# must continue to use the shared native bar rather than a second panel.
+rg -Fq 'id: "cinematic", label: qsTr("Cinematic")' "$bar_appearance" \
+  || fail 'Cinematic preset missing from Bar Studio'
+rg -Fq 'RaohaneConfig.barStylePreset === "cinematic"' "$bar" \
+  || fail 'Cinematic visual treatment is not active in native bar'
+rg -Fq '"cinematic", "islands"' "$config" \
+  || fail 'Cinematic preset cannot be loaded from saved settings'
+rg -Fq 'RaohaneTheme.accentBorder' "$bar" \
+  || fail 'Cinematic center island lost accent treatment'
 
 rg -q 'RaohaneConfig\.barModuleLayout' "$bar" \
   || fail 'horizontal bar does not consume persisted module layout'
