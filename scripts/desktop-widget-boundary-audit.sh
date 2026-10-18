@@ -97,6 +97,19 @@ rg -Fq 'RaohaneFreeWidgetStudio {' "$studio" || fail 'free editor missing from S
 rg -Fq 'setDesktopWidgetPlacement(' "$free_studio" || fail 'free editor cannot persist drags'
 rg -Fq 'resetDesktopWidgetFreeLayout(' "$free_studio" || fail 'free editor cannot reset monitor'
 
+rg -Fq 'onMonitorScreenChanged:' "$free_studio" || fail 'free editor cannot recover after output removal'
+rg -Fq 'Keys.onPressed:' "$free_studio" || fail 'free editor lost keyboard movement'
+rg -Fq 'function resetSelected(): void' "$free_studio" || fail 'free editor lost per-widget reset'
+rg -Fq 'root.forceActiveFocus()' "$free_studio" || fail 'free editor does not focus keyboard movement'
+rg -Fq 'readonly property real totalScale:' "$free_studio" || fail 'free preview lost global scale'
+rg -Fq 'readonly property real renderedScale:' "$widgets" || fail 'free canvas lost per-widget scale bounds'
+rg -Fq 'root.layoutPreset === "free" ? 1 : RaohaneConfig.desktopWidgetsScale' "$widgets" \
+  || fail 'free canvas is still globally scaled and can push widgets off-screen'
+rg -Fq 'readonly property bool widgetEnabled:' "$host" || fail 'widget host lost own enable state'
+if rg -q 'readonly property bool enabled:' "$host"; then
+  fail 'widget host shadows QtQuick.Item.enabled'
+fi
+
 rg -q 'RaohaneConfig\.sanitizeDesktopWidgetComposition\(RaohaneConfig\.desktopWidgetComposition\)' "$widgets" \
   || fail 'desktop runtime does not consume the persisted sanitized composition'
 rg -q 'root\.composition\.primary' "$widgets" \
