@@ -166,7 +166,8 @@ Item {
         opacity: RaohaneConfig.barOpacity
         // Do not stack a neutral semi-opaque rectangle over a chromatic
         // island. Hover and active controls retain their own local feedback.
-        idleColor: root.chromaticBackground ? "transparent" : RaohaneTheme.surfaceRaised
+        idleColor: root.chromaticBackground ? "transparent"
+            : (RaohaneConfig.barShadow ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface)
         showInnerRim: !root.chromaticBackground
         border.width: root.chromaticBackground ? 0 : 1
     }
