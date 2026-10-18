@@ -13,6 +13,8 @@ RaohaneSurface {
     readonly property bool priorityMode: RaohaneContext.mode === "recording" || RaohaneContext.mode === "privacy"
     readonly property bool progressMode: RaohaneContext.mode === "event" && RaohaneContext.eventProgress >= 0
     readonly property bool mediaMode: RaohaneContext.mode === "media"
+    readonly property bool albumArtAvailable: root.mediaMode
+        && RaohaneMedia.available && String(RaohaneMedia.artUrl ?? "").length > 0
     readonly property bool mediaProgressMode: root.mediaMode
         && RaohaneMedia.available
         && RaohaneMedia.length > 0
@@ -65,7 +67,7 @@ RaohaneSurface {
                     : RaohaneContext.mode === "window"
                         ? RaohaneTheme.accentSecondary
                         : RaohaneTheme.accent
-    readonly property int modeMinimumWidth: root.mediaMode ? 220
+    readonly property int modeMinimumWidth: root.mediaMode ? 286
         : RaohaneContext.mode === "privacy" ? 208
         : RaohaneContext.mode === "recording" ? 218
         : RaohaneContext.mode === "event" ? (root.progressMode ? 214 : 196)
@@ -83,7 +85,7 @@ RaohaneSurface {
     }
 
     readonly property string indicatorIcon: root.gameplayRecording ? "stop_circle"
-        : root.mediaMode ? "open_in_new"
+        : root.mediaMode ? (RaohaneMedia.isPlaying ? "pause" : "play_arrow")
         : RaohaneContext.mode === "scene" ? (root.sceneAutomatic ? "auto_awesome" : "touch_app")
         : root.sceneActive ? root.sceneIcon(root.sceneId)
         : "circle"
@@ -91,7 +93,8 @@ RaohaneSurface {
     implicitWidth: {
         const titleWidth = titleMetrics.advanceWidth
         const detailWidth = root.showDetail ? detailMetrics.advanceWidth : 0
-        const indicatorSpace = root.showIndicators ? (root.indicatorIsIcon ? 34 : 28) : 10
+        const indicatorSpace = root.showIndicators
+            ? (root.mediaMode ? 44 : root.indicatorIsIcon ? 34 : 28) : 10
         const contentWidth = Math.max(titleWidth, detailWidth) + 58 + indicatorSpace
         return Math.max(root.modeMinimumWidth, Math.min(440, Math.round(contentWidth * root.islandScale)))
     }
@@ -168,9 +171,12 @@ RaohaneSurface {
 
     Rectangle {
         id: iconPlate
-        width: Math.max(29, Math.min(34, Math.round(root.height * 0.70)))
+        width: root.mediaMode
+            ? Math.min(38, Math.max(32, Math.round(root.height - 6)))
+            : Math.max(29, Math.min(34, Math.round(root.height * 0.70)))
         height: width
         radius: Math.min(RaohaneTheme.radiusSmall, width / 2)
+        clip: true
         anchors.left: parent.left
         anchors.leftMargin: 7
         anchors.verticalCenter: parent.verticalCenter
@@ -183,8 +189,24 @@ RaohaneSurface {
         Behavior on color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
         Behavior on border.color { enabled: root.morphMotionAllowed; ColorAnimation { duration: RaohaneMotion.micro } }
 
+        // Artwork is decoded only while the media state is visible. Keep
+        // the existing status symbol as a fallback for missing/error covers.
+        Image {
+            id: mediaCover
+            anchors.fill: parent
+            anchors.margins: 1
+            visible: root.albumArtAvailable && status === Image.Ready
+            source: root.albumArtAvailable && root.visible ? RaohaneMedia.artUrl : ""
+            sourceSize.width: 96
+            sourceSize.height: 96
+            asynchronous: true
+            cache: true
+            fillMode: Image.PreserveAspectCrop
+        }
+
         RaohaneIcon {
             anchors.centerIn: parent
+            visible: !root.albumArtAvailable || mediaCover.status !== Image.Ready
             text: RaohaneContext.icon
             iconSize: root.priorityMode ? 16 : 15
             fill: root.mediaMode
@@ -240,8 +262,17 @@ RaohaneSurface {
             rightMargin: 10
             verticalCenter: parent.verticalCenter
         }
-        width: root.indicatorIsIcon ? 18 : 12
-        height: 20
+        width: root.mediaMode ? 30 : root.indicatorIsIcon ? 18 : 12
+        height: root.mediaMode ? 28 : 20
+
+        Rectangle {
+            visible: root.mediaMode
+            anchors.fill: parent
+            radius: RaohaneTheme.radiusSmall
+            color: RaohaneTheme.accentSoft
+            border.width: 1
+            border.color: RaohaneTheme.accentBorder
+        }
 
         Rectangle {
             visible: !root.indicatorIsIcon
@@ -268,7 +299,7 @@ RaohaneSurface {
             visible: root.indicatorIsIcon
             anchors.centerIn: parent
             text: root.indicatorIcon
-            iconSize: root.gameplayRecording ? 14 : 12
+            iconSize: root.gameplayRecording ? 14 : root.mediaMode ? 17 : 12
             fill: 1
             symbolWeight: 600
             color: root.gameplayRecording ? RaohaneTheme.critical
@@ -326,7 +357,15 @@ RaohaneSurface {
         enabled: root.mediaMode
         hoverEnabled: enabled
         cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onClicked: RaohaneState.mediaOverlayOpen = true
+        onClicked: mouse => {
+            // The right-hand media action is the transport button; clicking
+            // artwork/title/progress still opens the full music surface.
+            if (mouse.x >= root.width - 43 && RaohaneMedia.canTogglePlaying) {
+                RaohaneMedia.togglePlaying()
+                return
+            }
+            RaohaneState.mediaOverlayOpen = true
+        }
     }
 
     TextMetrics {
