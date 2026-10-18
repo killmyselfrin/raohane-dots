@@ -10,19 +10,22 @@ Singleton {
 
     property int refreshRevision: 0
 
-    readonly property var graphNodes: Pipewire.nodes.values
-    readonly property var graphLinks: Pipewire.linkGroups.values
-    readonly property var trackedObjects: [...root.graphNodes, ...root.graphLinks]
+    // Quickshell ObjectModel.values is a typed Qt list. It can be temporarily
+    // unavailable during PipeWire startup and is not guaranteed to implement
+    // JavaScript's iterable protocol. Keep every exposed binding defined.
+    readonly property var graphNodes: Pipewire.nodes?.values ?? []
+    readonly property var graphLinks: Pipewire.linkGroups?.values ?? []
+    readonly property var trackedObjects: root.trackableObjects(root.graphNodes, root.graphLinks)
     readonly property var captureState: root.buildCaptureState(root.refreshRevision, root.graphNodes, root.graphLinks)
 
-    readonly property bool microphoneActive: Boolean(root.captureState.microphoneActive)
-    readonly property bool cameraActive: Boolean(root.captureState.cameraActive)
-    readonly property bool recordingActive: Boolean(root.captureState.recordingActive)
-    readonly property bool unclassifiedVideoCaptureActive: Boolean(root.captureState.unclassifiedVideoCaptureActive)
+    readonly property bool microphoneActive: Boolean(root.captureState?.microphoneActive ?? false)
+    readonly property bool cameraActive: Boolean(root.captureState?.cameraActive ?? false)
+    readonly property bool recordingActive: Boolean(root.captureState?.recordingActive ?? false)
+    readonly property bool unclassifiedVideoCaptureActive: Boolean(root.captureState?.unclassifiedVideoCaptureActive ?? false)
 
-    readonly property string microphoneApp: String(root.captureState.microphoneApp ?? "")
-    readonly property string cameraApp: String(root.captureState.cameraApp ?? "")
-    readonly property string recordingApp: String(root.captureState.recordingApp ?? "")
+    readonly property string microphoneApp: String(root.captureState?.microphoneApp ?? "")
+    readonly property string cameraApp: String(root.captureState?.cameraApp ?? "")
+    readonly property string recordingApp: String(root.captureState?.recordingApp ?? "")
 
     function stringProp(props, key): string {
         return String(props?.[key] ?? "")
@@ -48,13 +51,33 @@ Singleton {
         }
     }
 
+    // An indexed copy is compatible with QML lists and regular JS arrays.
+    // Do not use [...qtList] or for...of on ObjectModel.values: some Qt
+    // versions expose list-like sequences that are not JS-iterable.
+    function trackableObjects(nodes, linkGroups): var {
+        const objects = []
+        const nodeList = nodes ?? []
+        const groupList = linkGroups ?? []
+        for (let i = 0; i < (nodeList.length ?? 0); ++i) {
+            if (nodeList[i])
+                objects.push(nodeList[i])
+        }
+        for (let i = 0; i < (groupList.length ?? 0); ++i) {
+            if (groupList[i])
+                objects.push(groupList[i])
+        }
+        return objects
+    }
+
     function buildCaptureState(revision: int, nodes, linkGroups): var {
         const state = root.emptyState()
         if (!Pipewire.ready)
             return state
 
         const activeNodeIds = new Set()
-        for (const group of linkGroups ?? []) {
+        const groups = linkGroups ?? []
+        for (let i = 0; i < (groups.length ?? 0); ++i) {
+            const group = groups[i]
             if (!group || group.state !== PwLinkState.Active)
                 continue
             if (group.source)
@@ -63,7 +86,9 @@ Singleton {
                 activeNodeIds.add(Number(group.target.id))
         }
 
-        for (const node of nodes ?? []) {
+        const nodeList = nodes ?? []
+        for (let i = 0; i < (nodeList.length ?? 0); ++i) {
+            const node = nodeList[i]
             if (!node || !node.isStream || !activeNodeIds.has(Number(node.id)))
                 continue
 
