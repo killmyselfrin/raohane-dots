@@ -98,8 +98,9 @@ rg -Fq 'onFullscreenActiveChanged:' "$canvas" \
   || fail 'desktop editor cannot dismiss on fullscreen'
 rg -Fq 'Component.onDestruction:' "$canvas" \
   || fail 'desktop editor cannot dismiss on monitor disconnect'
-rg -Fq 'RaohaneState.desktopWidgetEditMode = false' "$edit_grid" \
-  && fail 'edit grid must signal closure rather than mutate global state directly'
+if rg -Fq 'RaohaneState.desktopWidgetEditMode = false' "$edit_grid"; then
+  fail 'edit grid must signal closure rather than mutate global state directly'
+fi
 rg -Fq 'onDoneRequested: RaohaneState.desktopWidgetEditMode = false' "$widgets" \
   || fail 'editing has no Done action'
 rg -Fq 'onReleased: placedWidget.finishInteraction()' "$widgets" \
@@ -114,6 +115,10 @@ rg -Fq 'model: RaohaneDesktopWidgetRegistry.definitions()' "$edit_grid" \
   || fail 'desktop editor cannot restore hidden widget types'
 rg -Fq 'signal doneRequested()' "$edit_grid" \
   || fail 'desktop grid lost its completion action'
+rg -Fq 'active: root.desktopEditActive' "$widgets" \
+  || fail 'on-desktop edit grid is not unloaded when inactive'
+rg -Fq 'desktopWidgetEditMode' "$host" \
+  || fail 'widget host may open context menu during a drag'
 
 rg -q 'readonly property var widgetIds:[[:space:]]*\["clock", "context", "system", "motto"\]' "$widget_registry" \
   || fail 'Desktop Widget Registry lost the native widget ids'
