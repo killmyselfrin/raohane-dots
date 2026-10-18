@@ -17,18 +17,86 @@ Item {
     property string appliedPath: ""
     property bool animateMotion: true
 
+    // Highlighting a carousel card must not immediately decode a full
+    // background or change the applied wallpaper. Only the selected item is
+    // queued; rapid wheel/drags collapse into a single preview request.
+    property string queuedPreviewPath: ""
+    property string displayedPreviewPath: ""
+    property string incomingPreviewPath: ""
+    property real incomingPreviewOpacity: 0
+    readonly property int previewDelay: animateMotion ? 165 : 50
+    readonly property int previewFadeDuration: animateMotion ? 210 : 0
+
     signal entryChosen(string path, bool directory)
+    signal entryHighlighted(string path)
+    signal previewRequested(string path)
     signal applyRequested()
 
-    readonly property int cardWidth: Math.min(350, Math.max(174, Math.round(width * 0.46)))
-    readonly property int cardHeight: Math.max(180, Math.min(370, Math.round(height * 0.65)))
+    readonly property int cardWidth: Math.min(505, Math.max(174, Math.round(width * 0.44)))
+    readonly property int cardHeight: Math.max(180, Math.min(458, Math.round(height * 0.70)))
+
+    function highlightPath(path: string, previewImmediately: bool = false): void {
+        if (!path || RaohaneWallpapers.isVideo(path)) {
+            previewTimer.stop()
+            queuedPreviewPath = ""
+            return
+        }
+        queuedPreviewPath = path
+        if (previewImmediately) {
+            previewTimer.stop()
+            commitPreview()
+        } else {
+            previewTimer.restart()
+        }
+    }
+
+    function commitPreview(): void {
+        const path = queuedPreviewPath
+        if (!path.length || RaohaneWallpapers.isVideo(path))
+            return
+        if (path !== displayedPreviewPath && path !== incomingPreviewPath) {
+            previewFade.stop()
+            incomingPreviewOpacity = 0
+            incomingPreviewPath = path
+        }
+        root.previewRequested(path)
+    }
+
+    function finishPreview(): void {
+        displayedPreviewPath = incomingPreviewPath
+        incomingPreviewPath = ""
+        incomingPreviewOpacity = 0
+    }
+
+    Timer {
+        id: previewTimer
+        interval: root.previewDelay
+        repeat: false
+        onTriggered: root.commitPreview()
+    }
+
+    NumberAnimation {
+        id: previewFade
+        target: root
+        property: "incomingPreviewOpacity"
+        from: 0
+        to: 0.18
+        duration: root.previewFadeDuration
+        easing.type: RaohaneMotion.easeStandard
+        onFinished: root.finishPreview()
+    }
 
     function focusCurrent(): void {
         const tile = carousel.currentItem
         // Folder navigation is explicit (click/double-click), never a
         // side effect of sliding across directories in the carousel.
-        if (tile && tile.filePath.length > 0 && !tile.isDirectory)
-            root.entryChosen(tile.filePath, false)
+        if (tile && tile.filePath.length > 0 && !tile.isDirectory) {
+            root.entryHighlighted(tile.filePath)
+            root.highlightPath(tile.filePath)
+        } else {
+            previewTimer.stop()
+            root.queuedPreviewPath = ""
+        }
     }
 
     function step(direction: int): void {
@@ -36,10 +104,15 @@ Item {
             carousel.incrementCurrentIndex()
         else
             carousel.decrementCurrentIndex()
-        root.focusCurrent()
     }
 
-    onFolderModelChanged: carousel.currentIndex = 0
+    onFolderModelChanged: {
+        previewTimer.stop()
+        queuedPreviewPath = ""
+        carousel.currentIndex = 0
+    }
+
+    Component.onDestruction: previewTimer.stop()
 
     Rectangle {
         anchors.fill: parent
@@ -52,15 +125,40 @@ Item {
         border.color: RaohaneTheme.borderFaint
         clip: true
 
+        // Two bounded asynchronous layers crossfade only after the incoming
+        // image is decoded. This avoids flashes and redundant full-size loads
+        // when the user flicks across several wallpapers.
         Image {
             anchors.fill: parent
-            source: root.selectedPath.length > 0 && !RaohaneWallpapers.isVideo(root.selectedPath)
-                ? "file://" + root.selectedPath : ""
+            source: root.displayedPreviewPath.length > 0 ? "file://" + root.displayedPreviewPath : ""
             sourceSize.width: 1024
             sourceSize.height: 640
             asynchronous: true
             fillMode: Image.PreserveAspectCrop
-            opacity: status === Image.Ready ? 0.14 : 0
+            opacity: status === Image.Ready ? 0.18 : 0
+        }
+
+        Image {
+            id: incomingPreview
+            anchors.fill: parent
+            source: root.incomingPreviewPath.length > 0 ? "file://" + root.incomingPreviewPath : ""
+            sourceSize.width: 1024
+            sourceSize.height: 640
+            asynchronous: true
+            fillMode: Image.PreserveAspectCrop
+            opacity: status === Image.Ready ? root.incomingPreviewOpacity : 0
+            onStatusChanged: {
+                if (status === Image.Ready && root.incomingPreviewPath.length > 0) {
+                    previewFade.stop()
+                    root.incomingPreviewOpacity = 0
+                    previewFade.start()
+                }
+                if (status === Image.Error) {
+                    previewFade.stop()
+                    root.incomingPreviewPath = ""
+                    root.incomingPreviewOpacity = 0
+                }
+            }
         }
 
         Rectangle {
@@ -117,14 +215,14 @@ Item {
                 orientation: ListView.Horizontal
                 model: root.folderModel
                 interactive: true
-                spacing: -Math.min(42, root.cardWidth * 0.10)
+                spacing: -Math.min(64, root.cardWidth * 0.12)
                 clip: false
                 boundsBehavior: Flickable.StopAtBounds
                 snapMode: ListView.SnapToItem
                 highlightRangeMode: ListView.StrictlyEnforceRange
                 preferredHighlightBegin: width / 2 - root.cardWidth / 2
                 preferredHighlightEnd: width / 2 + root.cardWidth / 2
-                cacheBuffer: root.cardWidth
+                cacheBuffer: root.cardWidth * 1.5
                 currentIndex: -1
 
                 header: Item { width: Math.max(0, carousel.width / 2 - root.cardWidth / 2); height: 1 }
@@ -133,6 +231,10 @@ Item {
                 onCountChanged: {
                     if (count > 0 && currentIndex < 0)
                         currentIndex = 0
+                    if (count === 0) {
+                        previewTimer.stop()
+                        root.queuedPreviewPath = ""
+                    }
                 }
                 onCurrentItemChanged: {
                     if (root.visible)
@@ -160,12 +262,12 @@ Item {
                         width: tile.width - 7
                         height: root.cardHeight
                         anchors.centerIn: parent
-                        scale: tile.focused ? 1 : 0.78
-                        opacity: tile.focused ? 1 : 0.66
+                        scale: tile.focused ? 1 : 0.76
+                        opacity: tile.focused ? 1 : 0.69
 
                         Behavior on scale {
                             enabled: root.animateMotion
-                            NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeEmphasized }
+                            NumberAnimation { duration: RaohaneMotion.selectionTravel; easing.type: RaohaneMotion.easeEmphasized }
                         }
                         Behavior on opacity {
                             enabled: root.animateMotion
@@ -179,7 +281,7 @@ Item {
                             angle: tile.focused ? 0 : (tile.index < carousel.currentIndex ? 10 : -10)
                             Behavior on angle {
                                 enabled: root.animateMotion
-                                NumberAnimation { duration: RaohaneMotion.standard }
+                                NumberAnimation { duration: RaohaneMotion.selectionTravel; easing.type: RaohaneMotion.easeEmphasized }
                             }
                         }
 
@@ -262,10 +364,13 @@ Item {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    if (carousel.currentIndex === tile.index)
+                                    if (carousel.currentIndex === tile.index) {
                                         root.entryChosen(tile.filePath, tile.isDirectory)
-                                    else
+                                        if (!tile.isDirectory)
+                                            root.highlightPath(tile.filePath, true)
+                                    } else {
                                         carousel.currentIndex = tile.index
+                                    }
                                 }
                                 onDoubleClicked: {
                                     if (tile.isDirectory) {
