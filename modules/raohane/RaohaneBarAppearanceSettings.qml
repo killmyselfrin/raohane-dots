@@ -28,6 +28,11 @@ Item {
             opacity: 0.93, margin: 20, spacing: 6, padding: 11, background: true, shadow: true
         },
         {
+            id: "halo", label: qsTr("Halo"), detail: qsTr("One slender adaptive-glass capsule with three balanced zones"),
+            surface: "float", group: "transparent", height: 40, radius: 20,
+            opacity: 0.93, margin: 20, spacing: 7, padding: 12, background: true, shadow: true
+        },
+        {
             id: "islands", label: qsTr("Islands"), detail: qsTr("Separated functional groups"),
             surface: "islands", group: "separated", height: 44, radius: 16,
             opacity: 0.94, margin: 14, spacing: 7, padding: 6, background: true, shadow: true
@@ -102,6 +107,16 @@ Item {
         RaohaneConfig.barHorizontalPadding = Number(preset.padding)
         RaohaneConfig.barShowBackground = Boolean(preset.background)
         RaohaneConfig.barShadow = Boolean(preset.shadow)
+        if (preset.id === "halo") {
+            // Preset composition uses the existing native modules and keeps
+            // context/music accessible without introducing duplicate widgets.
+            RaohaneConfig.barVertical = false
+            RaohaneConfig.barModuleLayout = {
+                left: ["launcher", "workspaces"],
+                center: ["clock", "context"],
+                right: ["tray", "system", "control"]
+            }
+        }
     }
 
     function markCustom(): void {
