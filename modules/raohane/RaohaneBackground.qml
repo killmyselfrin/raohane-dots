@@ -208,6 +208,23 @@ Variants {
             }
         }
 
+        // Right-click on uncovered wallpaper opens the native desktop menu.
+        // This area accepts only the secondary button; ordinary clicks still
+        // pass through to normal wallpaper/desktop behavior.
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.RightButton
+            enabled: !RaohaneState.screenLocked && !backgroundWindow.hiddenForFullscreen
+            onClicked: mouse => {
+                RaohaneState.desktopMenuScreen = backgroundWindow.modelData
+                RaohaneState.desktopMenuX = mouse.x
+                RaohaneState.desktopMenuY = mouse.y
+                RaohaneState.desktopMenuWidgetId = ""
+                RaohaneState.desktopMenuWidgetMonitor = ""
+                RaohaneState.setPrimaryOpen("desktopMenu", true)
+            }
+        }
+
         NumberAnimation {
             id: transitionAnimation
             target: backgroundWindow
