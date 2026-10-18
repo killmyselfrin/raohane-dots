@@ -11,12 +11,13 @@ RaohaneSurface {
     readonly property var notifications: RaohaneNotifications.list.slice().reverse()
 
     implicitHeight: 320
-    surfaceRadius: RaohaneTheme.radiusLarge
+    // Match Raohane Flow's shared quiet glass on the notification rail.
+    surfaceRadius: RaohaneTheme.radiusHero
     raised: false
-    showSheen: false
-    showInnerRim: false
+    showSheen: true
+    showInnerRim: true
     idleColor: RaohaneTheme.surfaceSubtle
-    idleBorderColor: "transparent"
+    idleBorderColor: RaohaneTheme.borderFaint
     clip: true
     showStateRail: false
     stateRailColor: RaohaneNotifications.silent ? RaohaneTheme.textFaint : RaohaneTheme.accent
@@ -73,8 +74,8 @@ RaohaneSurface {
                     text: RaohaneNotifications.unread > 0
                         ? qsTr("%1 unread").arg(RaohaneNotifications.unread)
                         : qsTr("You're all caught up")
-                    color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 9
                 }
             }
 
@@ -92,7 +93,7 @@ RaohaneSurface {
                     anchors.centerIn: parent
                     text: String(RaohaneNotifications.unread)
                     color: RaohaneTheme.accent
-                    font.pixelSize: 7
+                    font.pixelSize: 9
                     font.weight: Font.DemiBold
                 }
             }
@@ -147,11 +148,12 @@ RaohaneSurface {
 
                     width: listView.width
                     height: card.implicitHeight
-                    opacity: entered ? 1 : 0
+                    opacity: entered || !RaohaneMotion.panelMotionEnabled || !root.visible ? 1 : 0
 
                     Component.onCompleted: entered = true
 
                     Behavior on opacity {
+                        enabled: RaohaneMotion.panelMotionEnabled && root.visible
                         NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
                     }
 
@@ -171,12 +173,12 @@ RaohaneSurface {
 
                 RaohaneSurface {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: 40
-                    height: 40
-                    surfaceRadius: RaohaneTheme.radiusLarge
+                    width: 44
+                    height: 44
+                    surfaceRadius: RaohaneTheme.radiusHero
                     raised: false
-                    showSheen: false
-                    showInnerRim: false
+                    showSheen: true
+                    showInnerRim: true
                     idleColor: RaohaneTheme.surfaceDeep
                     idleBorderColor: RaohaneTheme.borderFaint
 
@@ -193,7 +195,7 @@ RaohaneSurface {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("No notifications")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 9
+                    font.pixelSize: 11
                     font.weight: Font.DemiBold
                 }
 
@@ -201,7 +203,7 @@ RaohaneSurface {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: qsTr("New activity will appear here")
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    font.pixelSize: 9
                 }
             }
         }
