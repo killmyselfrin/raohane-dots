@@ -92,6 +92,46 @@ rg -Fq '"cinematic", "islands"' "$config" \
 rg -Fq 'RaohaneTheme.accentBorder' "$bar" \
   || fail 'Cinematic center island lost accent treatment'
 
+# Halo stays an opt-in, single-surface variant of the existing horizontal Bar.
+# It must not fork module rendering, change the vertical Bar, or erase the
+# original Floating/Cinematic presets.
+rg -Fq 'id: "halo", label: qsTr("Halo")' "$bar_appearance" \
+  || fail 'Halo capsule is missing from Bar Studio'
+rg -Fq 'RaohaneConfig.barStylePreset === "halo"' "$bar" \
+  || fail 'Halo is not selectable on the real horizontal bar'
+rg -Fq '"cinematic", "halo", "islands"' "$config" \
+  || fail 'Halo preset is not restorable from native preferences'
+rg -Fq 'surface: "float", group: "transparent", height: 46, radius: 23' "$bar_appearance" \
+  || fail 'Halo lost its slender transparent capsule dimensions'
+rg -Fq 'RaohaneConfig.barModuleLayout = {' "$bar_appearance" \
+  || fail 'Halo does not configure the existing native three-zone modules'
+rg -Fq 'center: ["clock", "context"]' "$bar_appearance" \
+  || fail 'Halo does not center the existing clock and context modules'
+rg -Fq 'right: ["tray", "system", "control"]' "$bar_appearance" \
+  || fail 'Halo lost existing system/tray/control interactions'
+rg -Fq '(barWindow.surfaceStyle === "panel" || barWindow.haloPreset)' "$bar" \
+  || fail 'Halo glass backing was lost'
+rg -Fq '&& !haloPreset' "$bar" \
+  || fail 'Halo overlays separate opaque island backgrounds'
+rg -Fq 'barWindow.haloPreset || !barWindow.zoneBackgroundVisible' "$bar" \
+  || fail 'Halo did not flatten all three native zone surfaces'
+rg -Fq 'readonly property bool haloStyle:' "$workspaces" \
+  || fail 'Halo workspace dots are not bound to actual compositor desktops'
+rg -Fq 'RaohaneConfig.barStylePreset === "halo"' "$workspaces" \
+  || fail 'Halo workspace styling is not scoped to its preset'
+rg -Fq 'root.priorityMode || root.mediaMode' modules/raohane/RaohaneContextIsland.qml \
+  || fail 'Halo context styling does not preserve media/privacy emphasis'
+rg -Fq 'border.color: barWindow.haloPreset' "$bar" \
+  || fail 'Halo accent glass rim no longer follows adaptive wallpaper palette'
+rg -Fq 'barWindow.haloPreset && barContent.width >= 1100' "$bar" \
+  || fail 'Halo zone dividers are not responsive'
+# Existing saved layouts and service calls remain authoritative: no fresh
+# timers/Hyprland probes or separate Wayland layer are added for this preset.
+if rg -Fq 'Timer {' modules/raohane/RaohaneBarAppearanceSettings.qml; then
+  fail 'Halo Bar Studio gained an unnecessary background timer'
+fi
+
+
 rg -q 'RaohaneConfig\.barModuleLayout' "$bar" \
   || fail 'horizontal bar does not consume persisted module layout'
 rg -q 'readonly property var activeLayout:[[:space:]]*RaohaneBarModuleRegistry\.sanitizeLayout' "$bar" \
