@@ -9,6 +9,15 @@ QtObject {
 
     readonly property var widgetIds: ["clock", "context", "system", "motto"]
 
+    // One persistent style key per existing widget slot. Each alternative
+    // is a lightweight presentation of the same services, not another widget
+    // instance or backend.
+    readonly property var faceStyles: [
+        { key: "classic", title: qsTr("Classic"), detail: qsTr("Original glass card") },
+        { key: "minimal", title: qsTr("Minimal"), detail: qsTr("Quiet typography") },
+        { key: "aurora", title: qsTr("Aurora"), detail: qsTr("Soft violet glow") }
+    ]
+
     readonly property var widgets: ({
         clock: {
             id: "clock",
@@ -79,6 +88,20 @@ QtObject {
 
     function configKey(id: string): string {
         return root.definition(id)?.key ?? ""
+    }
+
+    function sourceFor(id: string, style: string): string {
+        const known = root.definition(id)
+        if (!known)
+            return ""
+        if (style === "minimal" || style === "aurora") {
+            switch (id) {
+            case "clock": return "RaohaneDesktopClockStyles.qml"
+            case "context": return "RaohaneDesktopMediaStyles.qml"
+            case "system": return "RaohaneDesktopSystemStyles.qml"
+            }
+        }
+        return known.source
     }
 
     function source(id: string): string {
