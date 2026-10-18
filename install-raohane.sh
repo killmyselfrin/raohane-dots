@@ -174,6 +174,9 @@ if [[ -n "$QMLFORMAT_BIN" ]]; then
   for qml in \
     modules/raohane/RaohaneWallpaperCinema.qml \
     modules/raohane/RaohaneWallpaperSelector.qml \
+    modules/raohane/RaohaneBackground.qml \
+    modules/raohane/RaohaneTheme.qml \
+    modules/raohane/services/RaohaneWallpapers.qml \
     modules/raohane/RaohaneBar.qml \
     modules/raohane/RaohaneBarAppearanceSettings.qml \
     modules/raohane/RaohaneDesktopClockStyles.qml \
