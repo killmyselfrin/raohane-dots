@@ -93,6 +93,7 @@ Item {
 
         readonly property var workspaceObject: root.workspaceForId(workspaceId)
         readonly property bool selected: root.activeWorkspaceId === workspaceId
+        readonly property bool haloStyle: !verticalMode && RaohaneConfig.barStylePreset === "halo"
         readonly property var windows: workspaceObject?.toplevels?.values ?? []
         readonly property bool occupied: windows.length > 0
         readonly property bool urgent: workspaceObject?.urgent ?? false
@@ -123,13 +124,23 @@ Item {
         Layout.alignment: Qt.AlignCenter
         Layout.preferredWidth: implicitWidth
         Layout.preferredHeight: implicitHeight
-        surfaceRadius: RaohaneTheme.radiusSmall
+        surfaceRadius: haloStyle ? 13 : RaohaneTheme.radiusSmall
         raised: false
         active: selected
+        // In Halo, desktops are round status dots, with a soft highlight
+        // on the actual Hyprland active workspace (no synthetic state).
+        idleColor: haloStyle
+            ? Qt.rgba(RaohaneTheme.textMuted.r, RaohaneTheme.textMuted.g,
+                RaohaneTheme.textMuted.b, 0.12)
+            : "transparent"
+        activeColor: haloStyle
+            ? Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g,
+                RaohaneTheme.accent.b, 0.27)
+            : RaohaneTheme.accentSoft
         hovered: workspaceMouse.containsMouse
         pressed: workspaceMouse.pressed
         interactive: true
-        transparentIdle: !selected && !urgent
+        transparentIdle: !haloStyle && !selected && !urgent
         hoverScale: 1
         pressedScale: 1
         showSheen: false
@@ -140,7 +151,8 @@ Item {
         activeBorderColor: urgent ? RaohaneTheme.critical : RaohaneTheme.accentBorder
 
         Rectangle {
-            visible: workspaceButton.selected || workspaceButton.urgent
+            visible: !workspaceButton.haloStyle
+                && (workspaceButton.selected || workspaceButton.urgent)
             width: workspaceButton.verticalMode ? 2 : (workspaceButton.selected ? 10 : 6)
             height: workspaceButton.verticalMode ? (workspaceButton.selected ? 12 : 8) : 2
             radius: 1
@@ -166,7 +178,9 @@ Item {
             Text {
                 text: workspaceButton.workspaceId
                 color: workspaceButton.urgent ? RaohaneTheme.critical
-                    : workspaceButton.selected ? RaohaneTheme.accent
+                    : workspaceButton.selected && workspaceButton.haloStyle
+                        ? RaohaneTheme.text
+                        : workspaceButton.selected ? RaohaneTheme.accent
                     : workspaceButton.occupied ? RaohaneTheme.textMuted
                     : RaohaneTheme.textFaint
                 opacity: workspaceButton.selected || workspaceButton.urgent ? 1
