@@ -10,6 +10,8 @@ fail() {
 }
 
 selector='modules/raohane/RaohaneWallpaperSelector.qml'
+cinema='modules/raohane/RaohaneWallpaperCinema.qml'
+qmldir='modules/raohane/qmldir'
 background='modules/raohane/RaohaneBackground.qml'
 service='modules/raohane/services/RaohaneWallpapers.qml'
 paths='modules/raohane/config/RaohanePaths.qml'
@@ -20,7 +22,7 @@ thumb_generator='scripts/thumbnails/thumbgen.py'
 magick_generator='scripts/thumbnails/generate-thumbnails-magick.sh'
 features='install/arch/features.txt'
 
-for file in "$selector" "$background" "$service" "$paths" "$focus" "$thumb_wrapper" "$thumb_generator" "$magick_generator" "$features"; do
+for file in "$selector" "$cinema" "$qmldir" "$background" "$service" "$paths" "$focus" "$thumb_wrapper" "$thumb_generator" "$magick_generator" "$features"; do
   [[ -f "$file" ]] || fail "missing required file: $file"
 done
 [[ ! -e "$retired_wrapper" ]] || fail 'retired thumbnail venv wrapper returned'
@@ -36,9 +38,8 @@ for symbol in \
   rg -q "$symbol" "$selector" || fail "selector lost native dependency: $symbol"
 done
 
-# The wallpaper browser is a responsive gallery rather than the old horizontal
-# carousel. Preserve adaptive density, vertical browsing, selected-state and
-# hover-preview behavior while keeping directory navigation native.
+# Grid mode keeps the full keyboard/folder/thumbnail browser. Cinematic
+# mode loads only when selected, and uses the same FolderListModel/backend.
 for symbol in \
   'GridView[[:space:]]*\{' \
   'cellWidth:[[:space:]]*width[[:space:]]*/' \
@@ -50,6 +51,28 @@ for symbol in \
   'root\.selectPath\(cell\.filePath,[[:space:]]*cell\.isDirectory\)'; do
   rg -q "$symbol" "$selector" || fail "wallpaper gallery lost interaction contract: $symbol"
 done
+
+rg -Fq 'RaohaneWallpaperCinema 1.0 RaohaneWallpaperCinema.qml' "$qmldir" \
+  || fail 'cinematic wallpaper picker is not a registered native QML type'
+rg -Fq 'Qt.resolvedUrl("RaohaneWallpaperCinema.qml")' "$selector" \
+  || fail 'cinematic wallpaper must be loaded by URL for safe fallback'
+rg -Fq 'if (status === Loader.Error && selector.cinematicMode)' "$selector" \
+  || fail 'failed cinematic view must fall back to working grid mode'
+rg -Fq 'model: selector.cinematicMode ? null : RaohaneWallpapers.folderModel' "$selector" \
+  || fail 'hidden grid continues decoding images alongside cinematic carousel'
+rg -Fq 'signal entryChosen(string path, bool directory)' "$cinema" \
+  || fail 'cinematic carousel cannot select the existing wallpaper backend'
+rg -Fq 'signal applyRequested()' "$cinema" \
+  || fail 'cinematic carousel cannot apply a wallpaper'
+rg -Fq 'ListView {' "$cinema" \
+  || fail 'cinematic carousel lost its virtualized card view'
+rg -Fq 'sourceSize.width: 660' "$cinema" \
+  || fail 'cinematic carousel thumbnails may decode full-resolution images'
+if rg -Fq 'required property var folderModel' "$cinema"; then
+  fail 'dynamically loaded cinema has an unsatisfied required property'
+fi
+rg -Fq 'if (tile && tile.filePath.length > 0 && !tile.isDirectory)' "$cinema" \
+  || fail 'cinematic scrolling may accidentally open folders'
 
 # Hidden QQuickImage items still evaluate and decode their source. Gallery image
 # sources therefore must be empty for directories and video files instead of
