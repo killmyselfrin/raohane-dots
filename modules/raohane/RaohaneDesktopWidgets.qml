@@ -287,6 +287,13 @@ Item {
 
         Binding {
             target: editGridLoader.item
+            property: "editing"
+            value: root.desktopEditActive
+            when: editGridLoader.item !== null
+        }
+
+        Binding {
+            target: editGridLoader.item
             property: "monitorName"
             value: root.monitorName
             when: editGridLoader.item !== null
