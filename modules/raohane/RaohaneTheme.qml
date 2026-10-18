@@ -10,13 +10,14 @@ QtObject {
     // overrides on top without changing Raohane's information architecture.
     readonly property var builtInPresets: [
         {
-            // Canonical Raohane reference material: smoky navy glass with a
-            // restrained lilac signal color and cool, thin rims.
+            // Raohane Flow: softly layered charcoal/mauve material, translucent
+            // modular islands and legible raised surfaces. The palette is
+            // built from Raohane's existing shared material tokens.
             id: "raohane-dark", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
-            background: "#080a14", backgroundElevated: "#0d1020", surface: "#dc111524", surfaceRaised: "#ef171c2e", surfaceDeep: "#f3070912", surfaceSubtle: "#921c2237", surfaceHover: "#e9232a44", surfacePressed: "#ef2c3553",
-            border: "#3a59627f", borderStrong: "#6a7b86aa", borderFaint: "#2059627f", highlight: "#40ffffff",
-            text: "#f2f1fa", textMuted: "#aaa9bd", textFaint: "#73758c", accent: "#aa91ff", accentSecondary: "#8b7bd8", accentBlue: "#899dff",
-            success: "#7fd7aa", warning: "#d7b26e", critical: "#e5889a", info: "#8eb8ff"
+            background: "#151420", backgroundElevated: "#1d1b2d", surface: "#c5201e31", surfaceRaised: "#da29263d", surfaceDeep: "#ed13121f", surfaceSubtle: "#94342e4a", surfaceHover: "#d9363150", surfacePressed: "#e2413b5e",
+            border: "#4a817999", borderStrong: "#7b958dab", borderFaint: "#287f7996", highlight: "#52ffffff",
+            text: "#f2effa", textMuted: "#bcb5ce", textFaint: "#928ca9", accent: "#c2a4ee", accentSecondary: "#a792da", accentBlue: "#94b5e5",
+            success: "#97daba", warning: "#ebc48d", critical: "#e59aaf", info: "#a0c6f1"
         },
         {
             id: "paper", name: qsTr("Paper"), description: qsTr("Neutral white with crisp ink contrast"), tone: qsTr("Light"), dark: false,
@@ -161,22 +162,21 @@ QtObject {
     readonly property color critical: activePreset.critical
     readonly property color info: activePreset.info
 
-    // Canonical Raohane geometry. Defaults stay compact and structural;
-    // Style Studio's radiusScale/densityScale can still make them quieter or
-    // more expressive without returning large surfaces to pill-like geometry.
+    // Modular geometry with soft corners; user-configured Style Studio scales
+    // remain authoritative and no new persisted fields are required.
     readonly property int barHeight: Math.round(42 * densityScale)
     readonly property int islandHeight: Math.round(42 * densityScale)
     readonly property int radiusTiny: Math.max(3, Math.round(6 * radiusScale))
-    readonly property int radiusSmall: Math.max(4, Math.round(8 * radiusScale))
-    readonly property int radius: Math.max(5, Math.round(10 * radiusScale))
-    readonly property int radiusLarge: Math.max(7, Math.round(12 * radiusScale))
-    readonly property int radiusHero: Math.max(9, Math.round(14 * radiusScale))
+    readonly property int radiusSmall: Math.max(4, Math.round(10 * radiusScale))
+    readonly property int radius: Math.max(5, Math.round(12 * radiusScale))
+    readonly property int radiusLarge: Math.max(7, Math.round(16 * radiusScale))
+    readonly property int radiusHero: Math.max(9, Math.round(20 * radiusScale))
 
     readonly property int spacingTiny: Math.max(2, Math.round(3 * densityScale))
-    readonly property int spacingSmall: Math.max(4, Math.round(6 * densityScale))
-    readonly property int spacing: Math.max(6, Math.round(9 * densityScale))
-    readonly property int spacingLarge: Math.max(9, Math.round(14 * densityScale))
-    readonly property int panelPadding: Math.max(10, Math.round(12 * densityScale))
+    readonly property int spacingSmall: Math.max(4, Math.round(7 * densityScale))
+    readonly property int spacing: Math.max(6, Math.round(10 * densityScale))
+    readonly property int spacingLarge: Math.max(9, Math.round(16 * densityScale))
+    readonly property int panelPadding: Math.max(10, Math.round(14 * densityScale))
 
     readonly property int animationFast: Math.max(0, Math.round(100 * motionScale))
     readonly property int animationDuration: Math.max(0, Math.round(160 * motionScale))
