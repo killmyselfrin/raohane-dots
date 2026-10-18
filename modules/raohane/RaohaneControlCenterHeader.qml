@@ -14,6 +14,10 @@ Item {
     signal settingsRequested()
     signal powerRequested()
 
+    // Below 780 logical pixels the search affordance becomes an icon, while
+    // the active profile and time remain visible. Keep all original actions.
+    readonly property bool compactHeader: root.width < 780
+
     implicitHeight: 48
 
     RowLayout {
@@ -45,6 +49,7 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
+            Layout.minimumWidth: 0
             spacing: 0
 
             Text {
@@ -59,28 +64,28 @@ Item {
                 Layout.fillWidth: true
                 text: root.identityText
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 8
+                font.pixelSize: 9
                 elide: Text.ElideRight
             }
         }
 
         RaohaneSurface {
             id: searchButton
-            Layout.preferredWidth: 210
+            Layout.preferredWidth: root.compactHeader ? 36 : 210
             Layout.preferredHeight: 32
             Layout.alignment: Qt.AlignVCenter
             surfaceRadius: RaohaneTheme.radiusLarge
             raised: false
-            showSheen: false
-            showInnerRim: false
+            showSheen: true
+            showInnerRim: true
             interactive: true
             hovered: searchMouse.containsMouse || activeFocus
             pressed: searchMouse.pressed
             activeFocusOnTab: true
             idleColor: RaohaneTheme.surfaceSubtle
-            idleBorderColor: "transparent"
+            idleBorderColor: RaohaneTheme.borderFaint
             hoverColor: RaohaneTheme.surfaceHover
-            hoverBorderColor: "transparent"
+            hoverBorderColor: RaohaneTheme.borderStrong
             hoverScale: 1
             pressedScale: 1
 
@@ -97,16 +102,18 @@ Item {
                 }
 
                 Text {
+                    visible: !root.compactHeader
                     Layout.fillWidth: true
                     text: qsTr("Search")
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                 }
 
                 Text {
+                    visible: !root.compactHeader
                     text: "SUPER + R"
                     color: RaohaneTheme.textFaint
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                 }
             }
 
@@ -139,10 +146,11 @@ Item {
             }
 
             Text {
+                visible: !root.compactHeader
                 Layout.alignment: Qt.AlignRight
                 text: root.dateText
                 color: RaohaneTheme.textFaint
-                font.pixelSize: 8
+                font.pixelSize: 9
             }
         }
 
