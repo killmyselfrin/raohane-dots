@@ -123,13 +123,14 @@ path = pathlib.Path(sys.argv[1])
 compile(path.read_text(encoding="utf-8"), str(path), "exec")
 PY
 
-# The Task Manager presentation owns grouping, refresh cadence and destructive
+# The Task Manager presentation owns grouping, a 3-second refresh cadence
+# (matching the 2.8-second service throttle) and destructive
 # confirmation. Its IPC/global shortcut entrypoints live in the resident surface
 # router so the heavyweight UI graph can be destroyed while closed.
 for contract in \
   'RaohaneProcesses\.' \
   'running:[[:space:]]*RaohaneState\.taskManagerOpen' \
-  'interval:[[:space:]]*1500' \
+  'interval:[[:space:]]*3000' \
   'function prepareOpen\(\): void' \
   'Component\.onCompleted:' \
   'pendingAction' \
