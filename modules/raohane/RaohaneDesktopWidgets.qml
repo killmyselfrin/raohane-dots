@@ -265,12 +265,19 @@ Item {
             }
         }
 
-        RaohaneDesktopEditGrid {
+        // The grid is completely unloaded outside editing sessions, so
+        // normal desktop rendering does not keep a fullscreen QML grid alive.
+        Loader {
             anchors.fill: parent
             z: 30
-            editing: root.desktopEditActive
-            monitorName: root.monitorName
-            onDoneRequested: RaohaneState.desktopWidgetEditMode = false
+            active: root.desktopEditActive
+            visible: active
+
+            sourceComponent: RaohaneDesktopEditGrid {
+                editing: true
+                monitorName: root.monitorName
+                onDoneRequested: RaohaneState.desktopWidgetEditMode = false
+            }
         }
     }
 
