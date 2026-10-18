@@ -217,6 +217,38 @@ if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
 
+# Centered Bar pods must reserve enough space for the neighboring islands,
+# including when a custom workspace/tray layout or fractional scale changes.
+# Both side surfaces clip overflow rather than painting over each other.
+for contract in \
+  'readonly property real sideIslandLimit:' \
+  '(width - centerIsland.width) / 2' \
+  'barWindow.effectiveEdgeMargin - Math.max(6, barWindow.moduleSpacing)' \
+  'Math.min(barContent.sideIslandLimit, Math.max(48, leftRow.implicitWidth' \
+  'Math.min(barContent.sideIslandLimit, Math.max(48, rightRow.implicitWidth'; do
+  rg -Fq "$contract" "$bar" || fail "horizontal Bar lost collision-safe islands: $contract"
+done
+python3 - "$bar" <<'PY'
+import re
+import sys
+from pathlib import Path
+source = Path(sys.argv[1]).read_text()
+for island in ("leftIsland", "rightIsland"):
+    match = re.search(r'id:\s*' + island + r'\b([\s\S]*?)\n\s*RowLayout\s*\{', source)
+    if not match or not re.search(r'\bclip:\s*true\b', match.group(1)):
+        raise SystemExit(f"{island} no longer clips content to its allocated width")
+# Validate the actual geometric contract for narrow and wide outputs.
+for width in (320, 640, 800, 1024, 1280, 1920):
+    for center_ratio in (0, .17, .42):
+        center_width = width * center_ratio
+        for margin, spacing in ((0, 0), (12, 6), (28, 16)):
+            gap = max(6, spacing)
+            limit = max(0, (width - center_width) / 2 - margin - gap)
+            if limit > 0:
+                assert limit + margin + gap + center_width / 2 <= width / 2 + 1e-6
+PY
+
+
 # Both bar orientations keep their layer-shell surface resident during fullscreen.
 # Content and timers are suspended, exclusion drops to zero, and a zero-sized
 # Region makes the transparent surface fully click-through instead of destroying
