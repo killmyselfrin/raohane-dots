@@ -7,24 +7,68 @@ already have an extracted still image; this script never starts video playback.
 from __future__ import annotations
 
 import colorsys
+import io
+import shutil
+import subprocess
 import sys
 from pathlib import Path
+
+VIDEO_SUFFIXES = {".mp4", ".webm", ".mkv", ".mov", ".avi", ".m4v"}
+
+
+def read_wallpaper(path: Path):
+    """Return a tiny RGB image, never a live video decoder or full-size frame."""
+    from PIL import Image
+
+    if path.suffix.lower() not in VIDEO_SUFFIXES:
+        if path.stat().st_size > 200_000_000:
+            return None
+        with Image.open(path) as original:
+            original.thumbnail((96, 96))
+            return original.convert("RGB")
+
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        return None
+
+    # Film wallpapers often fade in from black. Seek a few seconds in; short
+    # clips fall back to earlier timestamps. Max decode time is bounded.
+    for second in ("5", "1", "0"):
+        command = [
+            ffmpeg, "-hide_banner", "-loglevel", "error", "-nostdin",
+            "-ss", second, "-i", str(path),
+            "-frames:v", "1", "-an", "-sn",
+            "-vf", "scale=min(320\\,iw):-2",
+            "-f", "image2pipe", "-vcodec", "png", "pipe:1",
+        ]
+        try:
+            result = subprocess.run(
+                command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                timeout=8, check=False,
+            )
+            if result.returncode == 0 and 0 < len(result.stdout) < 4_000_000:
+                with Image.open(io.BytesIO(result.stdout)) as frame:
+                    frame.thumbnail((96, 96))
+                    return frame.convert("RGB")
+        except (subprocess.TimeoutExpired, OSError, ValueError):
+            continue
+    return None
 
 
 def main() -> int:
     if len(sys.argv) != 2:
         return 2
     path = Path(sys.argv[1])
-    if not path.is_file() or path.stat().st_size > 200_000_000:
+    if not path.is_file():
         return 2
     try:
         from PIL import Image
-        with Image.open(path) as image:
-            image = image.convert("RGB")
-            image.thumbnail((96, 96))
-            counts = image.quantize(colors=20, method=Image.Quantize.MEDIANCUT)
-            palette = counts.getpalette()
-            swatches = counts.getcolors(maxcolors=96 * 96) or []
+        image = read_wallpaper(path)
+        if image is None:
+            return 2
+        counts = image.quantize(colors=20, method=Image.Quantize.MEDIANCUT)
+        palette = counts.getpalette()
+        swatches = counts.getcolors(maxcolors=96 * 96) or []
     except (ImportError, OSError, ValueError):
         return 2
 
