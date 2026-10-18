@@ -368,6 +368,11 @@ Item {
                 clip: false
                 boundsBehavior: Flickable.StopAtBounds
                 snapMode: ListView.SnapToItem
+                // Snappy, predictable gestures without losing natural
+                // inertial movement or the centered selected wallpaper.
+                flickDeceleration: 8300
+                maximumFlickVelocity: 3700
+                highlightMoveDuration: root.cardTransitionDuration
                 highlightRangeMode: ListView.StrictlyEnforceRange
                 preferredHighlightBegin: width / 2 - root.cardWidth / 2
                 preferredHighlightEnd: width / 2 + root.cardWidth / 2
