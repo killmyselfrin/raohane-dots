@@ -77,9 +77,6 @@ done
 [[ "$(tr -d '\r\n' < "$TARGET/qmldir")" == 'module qs' ]] \
   || fail 'root qmldir must contain only module qs'
 [[ -s "$TARGET/VERSION" ]] || fail 'VERSION is empty'
-grep -Fxq 'RaohaneDesktopEditGrid 1.0 RaohaneDesktopEditGrid.qml' "$TARGET/modules/raohane/qmldir" \
-  || fail 'desktop edit grid type is missing from installed qmldir'
-
 # The edit grid is optional at boot, but must be shipped and registered so
 # users don't enter a non-functional editor after an incomplete upgrade.
 grep -Fxq 'RaohaneDesktopEditGrid 1.0 RaohaneDesktopEditGrid.qml' \
