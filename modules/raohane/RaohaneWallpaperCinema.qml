@@ -149,6 +149,9 @@ Item {
         }
         if (path !== incomingPreviewPath) {
             previewFade.stop()
+            // A newer selection cancels any pending ownership transfer.
+            // Only the currently decoded incoming path may be promoted.
+            transferringPreview = false
             incomingPreviewOpacity = 0
             incomingPreviewPath = path
         }
@@ -167,7 +170,8 @@ Item {
     }
 
     function completePreviewTransfer(): void {
-        if (!transferringPreview)
+        if (!transferringPreview || incomingPreviewPath !== displayedPreviewPath
+                || displayedPreview.status !== Image.Ready)
             return
         transferringPreview = false
         incomingPreviewPath = ""
