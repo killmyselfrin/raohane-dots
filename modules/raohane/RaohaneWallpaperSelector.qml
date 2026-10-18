@@ -137,9 +137,10 @@ Scope {
             RaohaneSurface {
                 id: selector
                 property bool entered: false
+                property bool cinematicMode: true
 
-                width: Math.min(parent.width - 72, 1040)
-                height: Math.min(parent.height - 72, 720)
+                width: Math.max(1, Math.min(parent.width - 32, cinematicMode ? 1400 : 1040))
+                height: Math.max(1, Math.min(parent.height - 48, cinematicMode ? 790 : 720))
                 anchors.centerIn: parent
                 surfaceRadius: RaohaneTheme.radiusHero
                 raised: true
@@ -172,6 +173,14 @@ Scope {
                         event.accepted = true
                     } else if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
                         searchField.forceActiveFocus()
+                        event.accepted = true
+                    } else if (selector.cinematicMode && event.key === Qt.Key_Left) {
+                        if (cinemaLoader.item)
+                            cinemaLoader.item.step(-1)
+                        event.accepted = true
+                    } else if (selector.cinematicMode && event.key === Qt.Key_Right) {
+                        if (cinemaLoader.item)
+                            cinemaLoader.item.step(1)
                         event.accepted = true
                     } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                         root.applyPending()
@@ -274,6 +283,12 @@ Scope {
                                 }
                             }
 
+                            FooterButton {
+                                icon: selector.cinematicMode ? "grid_view" : "view_carousel"
+                                label: selector.cinematicMode ? qsTr("Grid") : qsTr("Cinematic")
+                                onTriggered: selector.cinematicMode = !selector.cinematicMode
+                            }
+
                             NavButton {
                                 icon: "casino"
                                 onTriggered: {
@@ -302,7 +317,8 @@ Scope {
                         spacing: 0
 
                         RaohaneSurface {
-                            Layout.preferredWidth: 176
+                            visible: !selector.cinematicMode
+                            Layout.preferredWidth: visible ? 176 : 0
                             Layout.fillHeight: true
                             surfaceRadius: 0
                             raised: false
@@ -392,8 +408,9 @@ Scope {
                         }
 
                         Rectangle {
+                            visible: !selector.cinematicMode
                             Layout.fillHeight: true
-                            Layout.preferredWidth: 1
+                            Layout.preferredWidth: visible ? 1 : 0
                             color: RaohaneTheme.borderFaint
                         }
 
@@ -444,11 +461,63 @@ Scope {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
 
+                                // A URL loader prevents a faulty optional carousel
+                                // from breaking startup of the existing grid.
+                                Loader {
+                                    id: cinemaLoader
+                                    anchors.fill: parent
+                                    active: selector.cinematicMode
+                                    visible: active
+                                    source: active ? Qt.resolvedUrl("RaohaneWallpaperCinema.qml") : ""
+                                    onStatusChanged: {
+                                        if (status === Loader.Error && selector.cinematicMode) {
+                                            console.warn("[Raohane] Cinematic gallery unavailable, restoring grid")
+                                            selector.cinematicMode = false
+                                        }
+                                    }
+                                }
+
+                                Binding {
+                                    target: cinemaLoader.item
+                                    property: "folderModel"
+                                    value: RaohaneWallpapers.folderModel
+                                    when: cinemaLoader.item !== null
+                                }
+                                Binding {
+                                    target: cinemaLoader.item
+                                    property: "selectedPath"
+                                    value: root.pendingPath
+                                    when: cinemaLoader.item !== null
+                                }
+                                Binding {
+                                    target: cinemaLoader.item
+                                    property: "appliedPath"
+                                    value: root.appliedPath()
+                                    when: cinemaLoader.item !== null
+                                }
+                                Binding {
+                                    target: cinemaLoader.item
+                                    property: "animateMotion"
+                                    value: RaohaneMotion.transformMotionEnabled && !RaohanePerformance.gameModeActive
+                                    when: cinemaLoader.item !== null
+                                }
+                                Connections {
+                                    target: cinemaLoader.item
+                                    ignoreUnknownSignals: true
+                                    function onEntryChosen(path: string, directory: bool): void {
+                                        root.selectPath(path, directory)
+                                    }
+                                    function onApplyRequested(): void {
+                                        root.applyPending()
+                                    }
+                                }
+
                                 GridView {
                                     id: gallery
                                     anchors.fill: parent
                                     clip: true
-                                    model: RaohaneWallpapers.folderModel
+                                    visible: !selector.cinematicMode
+                                    model: selector.cinematicMode ? null : RaohaneWallpapers.folderModel
                                     boundsBehavior: Flickable.StopAtBounds
                                     cellWidth: width / Math.max(1, width >= 650 ? 3 : 2)
                                     cellHeight: Math.max(158, Math.min(198, cellWidth * 0.69))
@@ -670,7 +739,7 @@ Scope {
 
                                 Column {
                                     anchors.centerIn: parent
-                                    visible: RaohaneWallpapers.folderModel.count === 0
+                                    visible: !selector.cinematicMode && RaohaneWallpapers.folderModel.count === 0
                                     spacing: RaohaneTheme.spacingSmall + 1
 
                                     RaohaneSurface {
