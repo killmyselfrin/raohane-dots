@@ -46,6 +46,26 @@ cp -a defaults/native.json "$config_home/raohane/native.json"
 XDG_CONFIG_HOME="$config_home" bash scripts/prune-runtime.sh "$runtime" >/dev/null
 bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
 
+# An updater must reject a syntactically valid but mismatched schema.
+cp "$runtime/defaults/native.json" "$tmp_root/valid-native.json"
+python3 - "$runtime/defaults/native.json" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["schemaVersion"] = 13 if data["schemaVersion"] != 13 else 14
+path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+if bash scripts/validate-runtime-payload.sh "$runtime" >"$tmp_root/invalid-schema.log" 2>&1; then
+  fail 'staged payload validator accepted a mismatched JSON/QML schema'
+fi
+grep -Fq 'schemaVersion does not match the Raohane runtime config' "$tmp_root/invalid-schema.log" \
+  || fail 'staged payload validator did not identify the schema mismatch'
+mv "$tmp_root/valid-native.json" "$runtime/defaults/native.json"
+bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
+
 # Prove common source-only paths never enter a clean staged runtime even before
 # an actual Hyprland session is involved.
 for path in \
