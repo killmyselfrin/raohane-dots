@@ -13,39 +13,39 @@ Item {
 
     readonly property var presets: [
         {
-            id: "classic", label: qsTr("Classic"), detail: qsTr("Edge-hugging grouped bar"),
-            surface: "hug", group: "pills", height: 44, radius: 14,
-            opacity: 0.96, margin: 0, spacing: 5, padding: 8, background: true, shadow: false
+            id: "classic", label: qsTr("Classic"), detail: qsTr("Calm edge-hugging groups with consistent spacing"),
+            surface: "hug", group: "pills", height: 42, radius: 12,
+            opacity: 0.96, margin: 0, spacing: 6, padding: 8, background: true, shadow: false
         },
         {
-            id: "floating", label: qsTr("Float"), detail: qsTr("Floating capsules with soft depth"),
+            id: "floating", label: qsTr("Float"), detail: qsTr("Three quiet glass islands with comfortable gaps"),
             surface: "float", group: "pills", height: 44, radius: 18,
-            opacity: 0.94, margin: 16, spacing: 5, padding: 8, background: true, shadow: true
+            opacity: 0.92, margin: 18, spacing: 6, padding: 9, background: true, shadow: true
         },
         {
-            id: "cinematic", label: qsTr("Cinematic"), detail: qsTr("Refined glass islands with an accent halo"),
-            surface: "float", group: "pills", height: 46, radius: 23,
-            opacity: 0.93, margin: 20, spacing: 6, padding: 11, background: true, shadow: true
+            id: "cinematic", label: qsTr("Cinematic"), detail: qsTr("Soft accent highlights and balanced floating pods"),
+            surface: "float", group: "pills", height: 44, radius: 22,
+            opacity: 0.91, margin: 20, spacing: 7, padding: 10, background: true, shadow: true
         },
         {
-            id: "halo", label: qsTr("Halo"), detail: qsTr("One slender adaptive-glass capsule with three balanced zones"),
-            surface: "float", group: "transparent", height: 46, radius: 23,
-            opacity: 0.91, margin: 24, spacing: 7, padding: 11, background: true, shadow: true
+            id: "halo", label: qsTr("Halo"), detail: qsTr("One centered, muted adaptive-glass capsule"),
+            surface: "float", group: "transparent", height: 44, radius: 22,
+            opacity: 0.90, margin: 24, spacing: 6, padding: 10, background: true, shadow: true
         },
         {
-            id: "islands", label: qsTr("Islands"), detail: qsTr("Separated functional groups"),
+            id: "islands", label: qsTr("Islands"), detail: qsTr("Distinct module cards and open breathing room"),
             surface: "islands", group: "separated", height: 44, radius: 16,
-            opacity: 0.94, margin: 14, spacing: 7, padding: 6, background: true, shadow: true
+            opacity: 0.92, margin: 16, spacing: 8, padding: 7, background: true, shadow: true
         },
         {
-            id: "compact", label: qsTr("Compact"), detail: qsTr("Dense segmented layout"),
-            surface: "float", group: "segmented", height: 38, radius: 10,
-            opacity: 0.96, margin: 10, spacing: 1, padding: 5, background: true, shadow: false
+            id: "compact", label: qsTr("Compact"), detail: qsTr("A compact bar with simplified clock and context"),
+            surface: "float", group: "segmented", height: 38, radius: 11,
+            opacity: 0.94, margin: 10, spacing: 3, padding: 5, background: true, shadow: false
         },
         {
-            id: "panel", label: qsTr("Panel"), detail: qsTr("Full-width continuous surface"),
+            id: "panel", label: qsTr("Panel"), detail: qsTr("Simple continuous edge-to-edge system panel"),
             surface: "panel", group: "transparent", height: 42, radius: 0,
-            opacity: 0.98, margin: 0, spacing: 5, padding: 8, background: true, shadow: false
+            opacity: 0.96, margin: 0, spacing: 6, padding: 8, background: true, shadow: false
         }
     ]
 
