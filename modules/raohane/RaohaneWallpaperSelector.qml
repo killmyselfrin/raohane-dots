@@ -484,8 +484,11 @@ Scope {
                                     id: cinemaLoader
                                     anchors.fill: parent
                                     active: selector.cinematicMode
-                                    visible: active
-                                    source: active ? Qt.resolvedUrl("RaohaneWallpaperCinema.qml") : ""
+                                    visible: selector.cinematicMode
+                                    // The URL is constant. Toggling active only
+                                    // creates/destroys the item; deriving source
+                                    // from active creates an unnecessary cycle.
+                                    source: Qt.resolvedUrl("RaohaneWallpaperCinema.qml")
                                     // The model may select its first item before
                                     // Connections attaches to the new Loader item.
                                     onLoaded: {
@@ -506,7 +509,14 @@ Scope {
                                     onStatusChanged: {
                                         if (status === Loader.Error && selector.cinematicMode) {
                                             console.warn("[Raohane] Cinematic gallery unavailable, restoring grid")
-                                            selector.cinematicMode = false
+                                            // Changing active synchronously from its own
+                                            // statusChanged notification triggers a
+                                            // re-entrant binding loop on this Qt version.
+                                            Qt.callLater(() => {
+                                                if (selector.cinematicMode
+                                                        && cinemaLoader.status === Loader.Error)
+                                                    selector.cinematicMode = false
+                                            })
                                         }
                                     }
                                 }
