@@ -228,8 +228,8 @@ Item {
                 Layout.preferredHeight: hardwareRows.implicitHeight
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
-                showSheen: false
-                showInnerRim: false
+                showSheen: true
+                showInnerRim: true
                 idleColor: RaohaneTheme.surfaceSubtle
                 border.color: RaohaneTheme.borderFaint
                 clip: true
@@ -501,18 +501,23 @@ Item {
 
             Text {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: hardwareRow.label
                 color: RaohaneTheme.text
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.weight: Font.Medium
                 elide: Text.ElideRight
             }
 
             Text {
-                Layout.preferredWidth: Math.min(520, implicitWidth)
+                Layout.minimumWidth: 0
+                // Long GPU/driver strings must not crowd the left-hand label.
+                Layout.preferredWidth: hardwareRow.width < 600
+                    ? Math.min(180, hardwareRow.width * 0.43)
+                    : Math.min(520, implicitWidth)
                 text: hardwareRow.value
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 9
+                font.pixelSize: 10
                 horizontalAlignment: Text.AlignRight
                 elide: Text.ElideRight
             }

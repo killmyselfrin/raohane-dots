@@ -345,8 +345,8 @@ Item {
                 Layout.preferredHeight: systemList.implicitHeight
                 surfaceRadius: RaohaneTheme.radiusLarge
                 raised: false
-                showSheen: false
-                showInnerRim: false
+                showSheen: true
+                showInnerRim: true
                 idleColor: RaohaneTheme.surfaceSubtle
                 border.color: RaohaneTheme.borderFaint
                 clip: true
@@ -456,18 +456,24 @@ Item {
 
             Text {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: systemRow.label
                 color: RaohaneTheme.text
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.weight: Font.Medium
                 elide: Text.ElideRight
             }
 
             Text {
-                Layout.preferredWidth: Math.min(520, implicitWidth)
+                Layout.minimumWidth: 0
+                // Reserve space for "Kernel", "GPU" and other row labels
+                // even when the full hardware name is exceptionally long.
+                Layout.preferredWidth: systemRow.width < 600
+                    ? Math.min(180, systemRow.width * 0.43)
+                    : Math.min(520, implicitWidth)
                 text: systemRow.value.length > 0 ? systemRow.value : qsTr("Loading…")
                 color: RaohaneTheme.textMuted
-                font.pixelSize: 9
+                font.pixelSize: 10
                 horizontalAlignment: Text.AlignRight
                 elide: Text.ElideRight
             }
