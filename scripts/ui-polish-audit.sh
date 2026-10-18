@@ -237,6 +237,29 @@ for contract in \
     || fail "Control Center lost coordinator-owned media binding/action: ${contract}"
 done
 
+# The media tile follows the same material/typography contract and does
+# not decode artwork or expose an active click target when media is absent.
+for contract in \
+  'surfaceRadius: RaohaneTheme.radiusHero' \
+  'idleBorderColor: RaohaneTheme.borderFaint' \
+  'hoverBorderColor: RaohaneTheme.borderStrong' \
+  'interactive: root.mediaAvailable' \
+  'source: root.mediaAvailable && root.visible ? root.artUrl : ""' \
+  'Layout.maximumWidth: root.width * 0.36' \
+  'Layout.preferredHeight: visible ? 5 : 0' \
+  'emphasized: root.canTogglePlaying' \
+  'enabled: root.mediaAvailable'; do
+  rg -Fq "$contract" "$control_media" \
+    || fail "Control Center media card lost the Raohane Flow contract: $contract"
+done
+[[ "$(rg -Fc 'font.pixelSize: 9' "$control_media")" == 4 ]] \
+  || fail 'Control Center media metadata lost readable 9px labels'
+rg -Fq 'font.pixelSize: 10' "$control_media" \
+  || fail 'Control Center media subtitle became unreadable'
+rg -Fq 'font.pixelSize: 13' "$control_media" \
+  || fail 'Control Center media title became unreadable'
+
+
 # The Notification Center keeps notification-service ownership while sharing
 # the same quiet glass material and compact list presentation.
 for contract in \
