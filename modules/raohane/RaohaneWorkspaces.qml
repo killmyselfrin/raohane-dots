@@ -11,13 +11,24 @@ Item {
 
     property var screen: null
     property string orientation: "horizontal"
+    property bool compactMode: false
 
     readonly property bool vertical: orientation === "vertical"
     readonly property var monitor: root.screen ? Hyprland.monitorFor(root.screen) : Hyprland.focusedMonitor
     readonly property int activeWorkspaceId: Math.max(1, root.monitor?.activeWorkspace?.id ?? 1)
     readonly property int workspaceCount: Math.max(2, Math.min(10, RaohaneConfig.overviewWorkspaceCount))
     readonly property int groupStart: Math.floor((root.activeWorkspaceId - 1) / root.workspaceCount) * root.workspaceCount + 1
-    readonly property var workspaceIds: Array.from({ length: root.workspaceCount }, (_, index) => root.groupStart + index)
+    // Narrow Bar layouts show the active workspace and its neighbors
+    // rather than painting six desktops into a 90px clipped slot. The full
+    // count and model remain available on normal screens and vertical bars.
+    readonly property var workspaceIds: {
+        const group = Array.from({ length: root.workspaceCount }, (_, index) => root.groupStart + index)
+        if (!root.compactMode || root.vertical)
+            return group
+        const currentIndex = group.indexOf(root.activeWorkspaceId)
+        const start = Math.max(0, Math.min(group.length - 3, currentIndex - 1))
+        return group.slice(start, start + 3)
+    }
 
     implicitWidth: workspaceLoader.item?.implicitWidth ?? workspaceLoader.item?.width ?? 0
     implicitHeight: workspaceLoader.item?.implicitHeight ?? workspaceLoader.item?.height ?? 0
