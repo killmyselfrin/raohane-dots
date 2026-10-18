@@ -120,6 +120,15 @@ rg -Fq 'root.pendingPath === path' "$selector" \
   || fail 'stale preview can override more recent carousel selection'
 rg -Fq 'root.applyPending()' "$selector" \
   || fail 'wallpaper Apply action was lost in cinematic refactor'
+rg -Fq 'root.previewRequested(root.incomingPreviewPath)' "$cinema" \
+  || fail 'live preview triggers before bounded image decoding finishes'
+rg -Fq 'root.pendingPath === path' "$selector" \
+  || fail 'stale carousel preview is no longer rejected'
+rg -Fq 'onLoaded: Qt.callLater(' "$selector" \
+  || fail 'lazy carousel can lose its initial selection event'
+rg -Fq 'function onFolderChanged(): void' "$cinema" \
+  || fail 'carousel does not reset pending transitions across folders'
+
 rg -Fq 'root.entryChosen(tile.filePath, false)' "$cinema" \
   || fail 'cinematic double-click can no longer apply a selected file'
 if rg -Fq 'RaohaneWallpapers.apply(' "$cinema"; then
