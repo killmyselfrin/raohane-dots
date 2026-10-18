@@ -21,7 +21,9 @@ Item {
     readonly property var secondaryWidgetIds: root.composition.secondary
 
     opacity: shown ? RaohaneConfig.desktopWidgetsOpacity : 0
-    scale: RaohaneConfig.desktopWidgetsScale
+    // In free mode the global scale is applied per widget, so coordinate
+    // clamping still uses the physical monitor bounds, not a scaled canvas.
+    scale: root.layoutPreset === "free" ? 1 : RaohaneConfig.desktopWidgetsScale
     transformOrigin: Item.Center
     visible: opacity > 0
 
@@ -49,13 +51,18 @@ Item {
                 readonly property var definition: RaohaneDesktopWidgetRegistry.definition(widgetId)
                 readonly property var placement: RaohaneConfig.desktopWidgetPlacement(root.monitorName, widgetId)
                 readonly property real itemSize: placement?.size ?? 1
+                readonly property real renderedScale: itemSize * RaohaneConfig.desktopWidgetsScale
 
-                width: Math.max(1, Math.min(root.width - 32, definition?.freeWidth ?? 280))
+                // Scale the face, not the whole desktop canvas. A narrow
+                // monitor still keeps an enlarged face within its right edge.
+                width: Math.max(1, Math.min(
+                    (root.width - 32) / Math.max(0.01, renderedScale),
+                    definition?.freeWidth ?? 280))
                 height: widgetContent.implicitHeight
-                scale: itemSize
+                scale: renderedScale
                 transformOrigin: Item.TopLeft
-                x: Math.max(0, root.width - width * itemSize) * (placement?.x ?? 0)
-                y: Math.max(0, root.height - height * itemSize) * (placement?.y ?? 0)
+                x: Math.max(0, root.width - width * renderedScale) * (placement?.x ?? 0)
+                y: Math.max(0, root.height - height * renderedScale) * (placement?.y ?? 0)
 
                 RaohaneDesktopWidgetHost {
                     id: widgetContent
