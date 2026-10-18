@@ -79,6 +79,7 @@ done
 [[ -d "$runtime/translations" ]] || fail 'translations were lost from staged runtime'
 [[ -f "$runtime/install/arch/required.txt" ]] || fail 'required package manifest was lost'
 [[ -f "$runtime/install/arch/features.txt" ]] || fail 'feature package manifest was lost'
+[[ -f "$runtime/modules/raohane/RaohaneDesktopEditGrid.qml" ]] || fail 'desktop editing grid was lost during staging'
 [[ -f "$runtime/modules/raohane/RaohaneTaskManager.qml" ]] || fail 'native Task Manager was lost'
 [[ -f "$runtime/modules/raohane/RaohaneOverlay.qml" ]] || fail 'Command Deck was lost'
 [[ -f "$runtime/modules/raohane/services/RaohaneProcesses.qml" ]] || fail 'native process service was lost'
