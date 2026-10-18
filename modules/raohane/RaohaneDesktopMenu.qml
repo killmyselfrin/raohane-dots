@@ -13,18 +13,6 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
-    property bool showWidgetManager: false
-
-    // An external primary surface may close the menu without calling close().
-    // Each new invocation must begin with the compact desktop menu.
-    Connections {
-        target: RaohaneState
-        function onDesktopMenuOpenChanged(): void {
-            if (!RaohaneState.desktopMenuOpen)
-                root.showWidgetManager = false
-        }
-    }
-
     function openCentered(shouldOpen: bool): void {
         if (!shouldOpen) {
             RaohaneState.setPrimaryOpen("desktopMenu", false)
@@ -45,8 +33,22 @@ Scope {
     }
 
     function close(): void {
-        root.showWidgetManager = false
         RaohaneState.setPrimaryOpen("desktopMenu", false)
+    }
+
+    function startWidgetEditing(): void {
+        const screen = RaohaneState.desktopMenuScreen ?? Quickshell.screens[0]
+        if (!screen)
+            return
+        const id = RaohaneState.desktopMenuWidgetId
+        RaohaneState.desktopWidgetEditScreenName = String(screen.name)
+        RaohaneState.desktopWidgetEditWidgetId =
+            RaohaneDesktopWidgetRegistry.definition(id) ? id : "clock"
+        // Free placement is additive: the previous rail composition is saved.
+        RaohaneConfig.desktopWidgetsEnabled = true
+        RaohaneConfig.desktopWidgetsLayout = "free"
+        root.close()
+        RaohaneState.desktopWidgetEditMode = true
     }
 
     Loader {
@@ -80,10 +82,8 @@ Scope {
                 id: menuCard
                 property bool entered: false
 
-                width: Math.max(1, Math.min(menuWindow.width - 24, root.showWidgetManager ? 960 : 330))
-                implicitHeight: root.showWidgetManager
-                    ? Math.max(1, Math.min(menuWindow.height - 24, 710))
-                    : menuContent.implicitHeight + 22
+                width: Math.max(1, Math.min(menuWindow.width - 24, 330))
+                implicitHeight: menuContent.implicitHeight + 22
                 x: Math.max(12, Math.min(RaohaneState.desktopMenuX - width / 2, menuWindow.width - width - 12))
                 y: Math.max(12, Math.min(RaohaneState.desktopMenuY - implicitHeight / 2, menuWindow.height - implicitHeight - 12))
                 surfaceRadius: 15
@@ -129,12 +129,9 @@ Scope {
                         margins: 11
                     }
                     spacing: 5
-                    height: root.showWidgetManager ? menuCard.height - 22 : implicitHeight
 
-                    // The first level is always the compact desktop menu.
                     ColumnLayout {
                         Layout.fillWidth: true
-                        visible: !root.showWidgetManager
                         spacing: 5
 
                         RaohaneSurface {
@@ -269,7 +266,7 @@ Scope {
                             icon: "widgets"
                             title: qsTr("Desktop widgets")
                             detail: qsTr("Position, size and visibility")
-                            onTriggered: root.showWidgetManager = true
+                            onTriggered: root.startWidgetEditing()
                         }
 
                         MenuAction {
@@ -340,32 +337,12 @@ Scope {
                         }
                     }
 
-                    // The second level has a real widget gallery and an
-                    // interactive canvas instead of a list of dev-style actions.
-                    // Loader keeps the editor out of the scene until requested.
-                    Loader {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        active: root.showWidgetManager
-                        visible: active
-                        sourceComponent: RaohaneDesktopWidgetPopover {
-                            initialWidgetId: RaohaneState.desktopMenuWidgetId
-                            initialMonitorName: RaohaneState.desktopMenuWidgetMonitor.length > 0
-                                ? RaohaneState.desktopMenuWidgetMonitor
-                                : String(menuWindow.screen?.name ?? "default")
-                            onBackRequested: root.showWidgetManager = false
-                            onCloseRequested: root.close()
-                        }
-                    }
 
                 }
 
                 Keys.onPressed: event => {
                     if (event.key === Qt.Key_Escape) {
-                        if (root.showWidgetManager)
-                            root.showWidgetManager = false
-                        else
-                            root.close()
+                        root.close()
                         event.accepted = true
                     }
                 }
