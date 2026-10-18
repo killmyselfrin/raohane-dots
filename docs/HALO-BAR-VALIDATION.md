@@ -75,11 +75,12 @@ Wallpaper Studio's **Adaptive Colors** toggle.
   tinted surface and produced a muddy grey/purple mix. Chromatic Flow now
   replaces that surface with two visibly distinct wallpaper-derived tones.
   They are luminance-capped for readable text and system icons.
-- **Flow duration:** 12–60 seconds for the moving transition's
-  round trip (default 28 s). A single animation shifts an oversized,
-  pre-rendered two-color gradient; it does not reblend both hues into
-  the same neutral middle or regenerate gradient stops every frame.
-  No new service/polling timer is required.
+- **Flow duration:** 12–60 seconds for a complete transition
+  round trip (default 28 s). Two static, fully rounded gradients share
+  the same left/right colors but have slightly different transitions.
+  One inexpensive opacity crossfade moves the transition visually.
+  The two endpoints stay distinct throughout the cycle, and no dynamic
+  gradient stops, shader masks or background sampler are needed.
 - Animation pauses when the Bar is hidden, during fullscreen Game Mode, or
   if the shell's reduced-motion preference disables transform motion. The
   tint remains static if motion is disabled.
