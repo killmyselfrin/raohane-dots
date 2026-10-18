@@ -176,8 +176,24 @@ rg -Fq 'root.screenHeight - 32' "$control" \
   || fail 'Control Center height can exceed the output again'
 rg -Fq 'Flickable {' "$control" \
   || fail 'Control Center lost overflow scrolling'
-rg -Fq 'columns: root.compactPanel ? 1 : 3' "$control" \
-  || fail 'Control Center lost responsive single/three column switching'
+rg -Fq 'columns: root.compactPanel ? 1 : 2' "$control" \
+  || fail 'Control Center lost responsive two-lane dashboard'
+# On wide displays two hero lanes replace three narrow cards; the
+# notification activity rail spans both lanes, and device pickers can expand
+# across the full row without a second state owner.
+for contract in \
+  'Layout.columnSpan: quickControls.pickerOpen && !root.compactPanel ? 2 : 1' \
+  'Layout.preferredWidth: root.compactPanel ? -1 : 470' \
+  'Layout.preferredWidth: root.compactPanel ? -1 : (visible ? 470 : 0)' \
+  'Layout.columnSpan: root.compactPanel ? 1 : 2' \
+  'Layout.preferredHeight: root.compactPanel ? 320 : 264' \
+  'idleColor: RaohaneTheme.surfaceRaised' \
+  'showSheen: true' \
+  'showInnerRim: true'; do
+  rg -Fq "$contract" "$control" \
+    || fail "Control Center lost two-lane visual architecture: $contract"
+done
+
 [[ "$(rg -Fc 'RaohaneQuickControls {' "$control")" == 1 ]] \
   || fail 'Control Center duplicated the live Quick Controls owner'
 [[ "$(rg -Fc 'RaohaneNotificationCenter {' "$control")" == 1 ]] \
