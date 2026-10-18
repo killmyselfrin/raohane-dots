@@ -132,6 +132,10 @@ required_runtime=(
   "install/arch/features.txt"
   "modules/raohane"
   "modules/raohane/RaohaneDesktopEditGrid.qml"
+  "modules/raohane/RaohaneDesktopClockStyles.qml"
+  "modules/raohane/RaohaneDesktopMediaStyles.qml"
+  "modules/raohane/RaohaneDesktopSystemStyles.qml"
+  "modules/raohane/RaohaneDesktopWidgetStyleStudio.qml"
   "panelFamilies/RaohaneFamily.qml"
 )
 missing_runtime=()
