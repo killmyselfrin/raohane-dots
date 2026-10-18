@@ -4,13 +4,15 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import qs.modules.raohane.services
+
 // The cinematic mode uses the same FolderListModel as the normal grid.
 // Only a handful of thumbnails are instantiated; applying wallpapers stays
 // owned by RaohaneWallpaperSelector and RaohaneWallpapers.
 Item {
     id: root
 
-    required property var folderModel
+    property var folderModel: null
     property string selectedPath: ""
     property string appliedPath: ""
     property bool animateMotion: true
