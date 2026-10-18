@@ -246,22 +246,27 @@ Scope {
                     GridLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: !root.compactPanel
-                        columns: root.compactPanel ? 1 : 3
+                        // Two principal lanes give media the same visual
+                        // importance as Quick Controls. Notifications have a
+                        // full-width activity rail beneath them on desktop.
+                        columns: root.compactPanel ? 1 : 2
                         rowSpacing: RaohaneTheme.spacing
                         columnSpacing: RaohaneTheme.spacing
 
                         RaohaneSurface {
-                            Layout.preferredWidth: root.compactPanel ? -1 : 400
+                            Layout.preferredWidth: root.compactPanel ? -1 : 470
                             Layout.fillWidth: true
+                            // A Bluetooth/Wi-Fi picker needs the whole row;
+                            // there is still only one live Quick Controls tree.
+                            Layout.columnSpan: quickControls.pickerOpen && !root.compactPanel ? 2 : 1
                             Layout.fillHeight: !root.compactPanel
-                            Layout.preferredHeight: root.compactPanel
-                                ? Math.max(360, quickControls.implicitHeight + 68) : -1
+                            Layout.preferredHeight: Math.max(360, quickControls.implicitHeight + 68)
                             surfaceRadius: RaohaneTheme.radiusHero
-                            raised: false
-                            showSheen: false
-                            showInnerRim: false
-                            idleColor: RaohaneTheme.surfaceSubtle
-                            idleBorderColor: "transparent"
+                            raised: true
+                            showSheen: true
+                            showInnerRim: true
+                            idleColor: RaohaneTheme.surfaceRaised
+                            idleBorderColor: RaohaneTheme.borderFaint
 
                             ColumnLayout {
                                 anchors.fill: parent
@@ -304,8 +309,9 @@ Scope {
 
                         ColumnLayout {
                             visible: !quickControls.pickerOpen
-                            Layout.preferredWidth: root.compactPanel ? -1 : (visible ? 248 : 0)
-                            Layout.fillWidth: root.compactPanel
+                            Layout.preferredWidth: root.compactPanel ? -1 : (visible ? 470 : 0)
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
                             Layout.fillHeight: !root.compactPanel
                             spacing: RaohaneTheme.spacing
 
@@ -356,9 +362,10 @@ Scope {
                         RaohaneNotificationCenter {
                             visible: !quickControls.pickerOpen
                             Layout.fillWidth: true
-                            Layout.fillHeight: !root.compactPanel
-                            Layout.preferredHeight: root.compactPanel ? 320 : -1
-                            Layout.minimumWidth: root.compactPanel ? 0 : 278
+                            Layout.columnSpan: root.compactPanel ? 1 : 2
+                            Layout.fillHeight: false
+                            Layout.preferredHeight: root.compactPanel ? 320 : 264
+                            Layout.minimumWidth: 0
                         }
                     }
 
