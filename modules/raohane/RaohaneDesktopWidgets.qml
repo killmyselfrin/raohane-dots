@@ -20,6 +20,46 @@ Item {
     readonly property var primaryWidgetIds: root.composition.primary
     readonly property var secondaryWidgetIds: root.composition.secondary
 
+    // Expose exact input geometry to the desktop PanelWindow mask. The mask
+    // covers only widgets, so empty wallpaper remains right-clickable.
+    readonly property rect primaryHitRect: Qt.rect(primaryColumn.x, primaryColumn.y,
+        root.shown && root.layoutPreset !== "free" ? primaryColumn.width : 0,
+        root.shown && root.layoutPreset !== "free" ? primaryColumn.height : 0)
+    readonly property rect secondaryHitRect: Qt.rect(secondaryColumn.x, secondaryColumn.y,
+        root.shown && root.layoutPreset !== "free" ? secondaryColumn.width : 0,
+        root.shown && root.layoutPreset !== "free" ? secondaryColumn.height : 0)
+
+    function freeHitRect(id: string): rect {
+        if (!root.shown || root.layoutPreset !== "free")
+            return Qt.rect(0, 0, 0, 0)
+        const def = RaohaneDesktopWidgetRegistry.definition(id)
+        if (!def || !RaohaneConfig[def.key])
+            return Qt.rect(0, 0, 0, 0)
+        const place = RaohaneConfig.desktopWidgetPlacement(root.monitorName, id)
+        const s = (place?.size ?? 1) * RaohaneConfig.desktopWidgetsScale
+        const faceWidth = Math.max(1, Math.min((root.width - 32) / Math.max(0.01, s),
+            def.freeWidth ?? 280))
+        const compactHeights = { clock: 154, context: 146, system: 122, motto: 40 }
+        const faceHeight = root.compact ? compactHeights[id] : def.freeHeight
+        const w = faceWidth * s
+        const h = faceHeight * s
+        return Qt.rect(
+            Math.max(0, root.width - w) * (place?.x ?? 0),
+            Math.max(0, root.height - h) * (place?.y ?? 0),
+            w, h)
+    }
+
+    function openWidgetContext(widgetId: string, x: real, y: real): void {
+        if (!root.shown || !root.screen || RaohaneState.screenLocked)
+            return
+        RaohaneState.desktopMenuScreen = root.screen
+        RaohaneState.desktopMenuX = x
+        RaohaneState.desktopMenuY = y
+        RaohaneState.desktopMenuWidgetId = widgetId
+        RaohaneState.desktopMenuWidgetMonitor = root.monitorName
+        RaohaneState.setPrimaryOpen("desktopMenu", true)
+    }
+
     opacity: shown ? RaohaneConfig.desktopWidgetsOpacity : 0
     // In free mode the global scale is applied per widget, so coordinate
     // clamping still uses the physical monitor bounds, not a scaled canvas.
@@ -71,6 +111,7 @@ Item {
                     widgetId: placedWidget.widgetId
                     compact: root.compact
                     shown: root.shown && root.layoutPreset === "free"
+                    onWidgetMenuRequested: (id, x, y) => root.openWidgetContext(id, x, y)
                 }
             }
         }
@@ -94,6 +135,7 @@ Item {
                 widgetId: String(modelData)
                 compact: root.compact
                 shown: root.shown && root.layoutPreset !== "free"
+                onWidgetMenuRequested: (id, x, y) => root.openWidgetContext(id, x, y)
             }
         }
     }
@@ -118,6 +160,7 @@ Item {
                 widgetId: String(modelData)
                 compact: root.compact
                 shown: root.shown && root.layoutPreset !== "free"
+                onWidgetMenuRequested: (id, x, y) => root.openWidgetContext(id, x, y)
             }
         }
     }
