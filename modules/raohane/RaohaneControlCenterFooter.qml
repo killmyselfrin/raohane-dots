@@ -12,6 +12,8 @@ Item {
     signal reloadRequested()
     signal closeRequested()
 
+    readonly property bool compactFooter: root.width < 520
+
     implicitHeight: 32
 
     RowLayout {
@@ -19,26 +21,29 @@ Item {
         spacing: RaohaneTheme.spacingSmall
 
         Rectangle {
-            width: 6
-            height: 6
-            radius: 3
+            Layout.preferredWidth: 8
+            Layout.preferredHeight: 8
+            radius: 4
             color: root.privacyActive ? RaohaneTheme.critical : RaohaneTheme.success
         }
 
         Text {
             Layout.fillWidth: true
+            Layout.minimumWidth: 0
             text: root.privacyActive ? qsTr("Privacy activity") : qsTr("System ready")
             color: RaohaneTheme.textFaint
-            font.pixelSize: 8
+            font.pixelSize: 9
             font.weight: Font.Medium
             elide: Text.ElideRight
         }
 
         Text {
-            visible: root.systemIdentity.length > 0
+            visible: !root.compactFooter && root.systemIdentity.length > 0
+            Layout.minimumWidth: 0
+            Layout.maximumWidth: root.width * 0.36
             text: root.systemIdentity
             color: RaohaneTheme.textFaint
-            font.pixelSize: 7
+            font.pixelSize: 8
             elide: Text.ElideRight
         }
 

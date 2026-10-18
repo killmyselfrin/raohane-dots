@@ -117,6 +117,29 @@ if rg -n 'component (HeaderButton|MediaCard):' "$control"; then
   fail 'Control Center regained inline header/media presentation'
 fi
 
+# A fixed-width header search box can squeeze the profile/time/actions off
+# smaller logical outputs. Search stays actionable when its text is hidden.
+for contract in \
+  'readonly property bool compactHeader: root.width < 780' \
+  'Layout.preferredWidth: root.compactHeader ? 36 : 210' \
+  'idleBorderColor: RaohaneTheme.borderFaint' \
+  'hoverBorderColor: RaohaneTheme.borderStrong' \
+  'Layout.minimumWidth: 0'; do
+  rg -Fq "$contract" "$control_header" \
+    || fail "Control Center header lost compact glass layout: $contract"
+done
+[[ "$(rg -Fc 'visible: !root.compactHeader' "$control_header")" == 3 ]] \
+  || fail 'Control Center header is missing compact label/date suppression'
+for contract in \
+  'readonly property bool compactFooter: root.width < 520' \
+  'visible: !root.compactFooter && root.systemIdentity.length > 0' \
+  'Layout.maximumWidth: root.width * 0.36' \
+  'Layout.minimumWidth: 0' \
+  'font.pixelSize: 9'; do
+  rg -Fq "$contract" "$control_footer" \
+    || fail "Control Center footer lost bounded compact layout: $contract"
+done
+
 # Header/footer are presentation-only and emit intents back to the coordinator.
 for contract in \
   'required property string identityText' \
