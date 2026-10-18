@@ -188,17 +188,19 @@ Variants {
                                 Qt.callLater(() => videoPlayer.pause())
                         }
                         onSourceChanged: play()
+                    }
 
-                        Connections {
-                            target: RaohaneWallpapers
-                            function onVideoPreviewPausedChanged(): void {
-                                if (!backgroundWindow.previewingVideo)
-                                    return
-                                if (RaohaneWallpapers.videoPreviewPaused)
-                                    videoPlayer.pause()
-                                else
-                                    videoPlayer.play()
-                            }
+                    // MediaPlayer has no default child-object property. Keep
+                    // this signal subscription alongside the player under Item.
+                    Connections {
+                        target: RaohaneWallpapers
+                        function onVideoPreviewPausedChanged(): void {
+                            if (!backgroundWindow.previewingVideo)
+                                return
+                            if (RaohaneWallpapers.videoPreviewPaused)
+                                videoPlayer.pause()
+                            else
+                                videoPlayer.play()
                         }
                     }
                 }
