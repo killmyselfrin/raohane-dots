@@ -32,6 +32,9 @@ Singleton {
     property string wallpaperAutoSource: "folder"
     property bool wallpaperAdaptiveAccent: false
     property string wallpaperAdaptiveColor: "#94b5e5"
+    // Cached output of the one-shot wallpaper palette probe.
+    property string wallpaperFlowColorA: "#9067b3"
+    property string wallpaperFlowColorB: "#ca7e67"
     property bool wallpaperHideWhenFullscreen: true
     property int wallpaperTransitionDuration: 650
     property real wallpaperDim: 0.06
@@ -65,6 +68,10 @@ Singleton {
     property string barGroupStyle: "pills"
     property bool barShowBackground: true
     property bool barShadow: true
+    // Chromatic Flow is independent from the optional adaptive accent theme.
+    property bool barChromaticFlow: false
+    property real barChromaticIntensity: 0.20
+    property int barChromaticSeconds: 28
     property string barDividerStyle: "line"
     property int barDividerSpacing: 20
     property int barHeight: 44
@@ -606,6 +613,8 @@ Singleton {
                 autoSource: root.wallpaperAutoSource,
                 adaptiveAccent: root.wallpaperAdaptiveAccent,
                 adaptiveColor: root.wallpaperAdaptiveColor,
+                flowColorA: root.wallpaperFlowColorA,
+                flowColorB: root.wallpaperFlowColorB,
                 hideWhenFullscreen: root.wallpaperHideWhenFullscreen,
                 transitionDuration: root.wallpaperTransitionDuration,
                 dim: root.wallpaperDim,
@@ -642,6 +651,9 @@ Singleton {
                 groupStyle: root.barGroupStyle,
                 showBackground: root.barShowBackground,
                 shadow: root.barShadow,
+                chromaticFlow: root.barChromaticFlow,
+                chromaticIntensity: root.barChromaticIntensity,
+                chromaticSeconds: root.barChromaticSeconds,
                 dividerStyle: root.barDividerStyle,
                 dividerSpacing: root.barDividerSpacing,
                 height: root.barHeight,
@@ -777,6 +789,14 @@ Singleton {
             const hex = String(value ?? "")
             root.wallpaperAdaptiveColor = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : "#94b5e5"
         })
+        root.assignIfPresent(wallpaper, "flowColorA", value => {
+            const color = String(value ?? "")
+            root.wallpaperFlowColorA = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#9067b3"
+        })
+        root.assignIfPresent(wallpaper, "flowColorB", value => {
+            const color = String(value ?? "")
+            root.wallpaperFlowColorB = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#ca7e67"
+        })
         root.assignIfPresent(wallpaper, "hideWhenFullscreen", value => root.wallpaperHideWhenFullscreen = Boolean(value))
         root.assignIfPresent(wallpaper, "transitionDuration", value => root.wallpaperTransitionDuration = Math.max(0, Math.min(3000, Number(value) || 650)))
         root.assignIfPresent(wallpaper, "dim", value => root.wallpaperDim = Math.max(0, Math.min(0.8, Number(value) || 0)))
@@ -819,6 +839,11 @@ Singleton {
         })
         root.assignIfPresent(bar, "showBackground", value => root.barShowBackground = Boolean(value))
         root.assignIfPresent(bar, "shadow", value => root.barShadow = Boolean(value))
+        root.assignIfPresent(bar, "chromaticFlow", value => root.barChromaticFlow = Boolean(value))
+        root.assignIfPresent(bar, "chromaticIntensity", value =>
+            root.barChromaticIntensity = root.clampNumber(value, 0.05, 0.45, 0.20))
+        root.assignIfPresent(bar, "chromaticSeconds", value =>
+            root.barChromaticSeconds = Math.max(12, Math.min(60, Math.round(Number(value) || 28))))
         root.assignIfPresent(bar, "dividerStyle", value => {
             const requested = String(value ?? "line")
             root.barDividerStyle = ["line", "dot", "space"].includes(requested) ? requested : "line"
@@ -956,6 +981,8 @@ Singleton {
     onWallpaperAutoSourceChanged: scheduleSave()
     onWallpaperAdaptiveAccentChanged: scheduleSave()
     onWallpaperAdaptiveColorChanged: scheduleSave()
+    onWallpaperFlowColorAChanged: scheduleSave()
+    onWallpaperFlowColorBChanged: scheduleSave()
     onWallpaperHideWhenFullscreenChanged: scheduleSave()
     onWallpaperTransitionDurationChanged: scheduleSave()
     onWallpaperDimChanged: scheduleSave()
@@ -986,6 +1013,9 @@ Singleton {
     onBarGroupStyleChanged: scheduleSave()
     onBarShowBackgroundChanged: scheduleSave()
     onBarShadowChanged: scheduleSave()
+    onBarChromaticFlowChanged: scheduleSave()
+    onBarChromaticIntensityChanged: scheduleSave()
+    onBarChromaticSecondsChanged: scheduleSave()
     onBarDividerStyleChanged: scheduleSave()
     onBarDividerSpacingChanged: scheduleSave()
     onBarHeightChanged: scheduleSave()
