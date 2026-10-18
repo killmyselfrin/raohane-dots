@@ -127,6 +127,61 @@ rg -Fq 'border.color: barWindow.haloPreset' "$bar" \
   || fail 'Halo border no longer follows the wallpaper-tinted shared theme'
 rg -Fq 'barWindow.haloPreset && barContent.width >= 1100' "$bar" \
   || fail 'Halo zone dividers are not responsive'
+# Chromatic Flow is optional and samples two genuine wallpaper colors
+# through the *existing* wallpaper palette worker, rather than polling the
+# wallpaper or starting another timer for every pill.
+wash='modules/raohane/RaohaneBarChromaticWash.qml'
+[[ -f "$wash" ]] || fail 'Chromatic Flow QML is not shipped'
+rg -Fq 'RaohaneBarChromaticWash 1.0 RaohaneBarChromaticWash.qml' modules/raohane/qmldir \
+  || fail 'Chromatic Flow QML is not registered'
+[[ "$(rg -Fc 'RaohaneBarChromaticWash {' "$bar")" == 4 ]] \
+  || fail 'Chromatic Flow must cover the Panel/Halo backing and all three isolated zones'
+for contract in \
+  'readonly property bool chromaticFlowEnabled: RaohaneConfig.barChromaticFlow' \
+  'readonly property bool chromaticFlowAnimating: chromaticFlowEnabled' \
+  '&& contentShown && visible && RaohaneMotion.panelTransformEnabled' \
+  'SequentialAnimation on chromaticPhase {' \
+  'loops: Animation.Infinite' \
+  'duration: RaohaneConfig.barChromaticSeconds * 500' \
+  'phase: barWindow.chromaticPhase' \
+  'firstColor: RaohaneConfig.wallpaperFlowColorA' \
+  'secondColor: RaohaneConfig.wallpaperFlowColorB' \
+  'strength: RaohaneConfig.barChromaticIntensity'; do
+  rg -Fq "$contract" "$bar" || fail "Chromatic Flow contract missing: $contract"
+done
+for contract in \
+  'GradientStop {' \
+  'orientation: Gradient.Horizontal' \
+  'return Qt.rgba(' \
+  'root.blend(root.firstColor, root.secondColor, root.phase)' \
+  'root.blend(root.secondColor, root.firstColor, root.phase)'; do
+  rg -Fq "$contract" "$wash" || fail "Chromatic Flow material missing: $contract"
+done
+for setting in barChromaticFlow barChromaticIntensity barChromaticSeconds; do
+  rg -Fq "property " "$config" || fail "config properties missing"
+  rg -Fq "root.$setting" "$config" || fail "missing persisted Bar value $setting"
+done
+rg -Fq 'checked: RaohaneConfig.barChromaticFlow' "$bar_appearance" \
+  || fail 'no opt-out toggle in Bar Studio'
+rg -Fq 'RaohaneConfig.barChromaticFlow = value' "$bar_appearance" \
+  || fail 'Chromatic Flow toggle is not wired'
+rg -Fq 'RaohaneConfig.barChromaticIntensity = value' "$bar_appearance" \
+  || fail 'Chromatic Flow intensity is not user adjustable'
+rg -Fq 'RaohaneConfig.barChromaticSeconds = Math.round(value)' "$bar_appearance" \
+  || fail 'Chromatic Flow cycle time is not user adjustable'
+python3 - defaults/native.json <<'PY'
+import json
+import sys
+config = json.load(open(sys.argv[1], encoding="utf-8"))
+bar = config["bar"]
+assert bar["chromaticFlow"] is False, "Bar gradient must be opt-in"
+assert 0.05 <= bar["chromaticIntensity"] <= 0.45
+assert 12 <= bar["chromaticSeconds"] <= 60
+for key in ("flowColorA", "flowColorB"):
+    assert len(config["wallpaper"][key]) == 7
+    assert config["wallpaper"][key].startswith("#")
+PY
+
 # Existing saved layouts and service calls remain authoritative: no fresh
 # timers/Hyprland probes or separate Wayland layer are added for this preset.
 if rg -Fq 'Timer {' modules/raohane/RaohaneBarAppearanceSettings.qml; then
