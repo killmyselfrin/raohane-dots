@@ -86,8 +86,11 @@ Scope {
         root.query = ""
         root.pendingAction = ""
         root.pendingCommand = ""
-        RaohaneProcesses.refresh()
-        Qt.callLater(searchInput.forceActiveFocus)
+        RaohaneProcesses.beginSession()
+        Qt.callLater(() => {
+            if (RaohaneState.taskManagerOpen)
+                searchInput.forceActiveFocus()
+        })
     }
 
     function formatMemory(value: real): string {
@@ -139,6 +142,8 @@ Scope {
         function onTaskManagerOpenChanged(): void {
             if (RaohaneState.taskManagerOpen)
                 root.prepareOpen()
+            else
+                RaohaneProcesses.endSession()
         }
     }
 
@@ -150,8 +155,10 @@ Scope {
         }
     }
 
+    // Match the procfs backend's minimum 2.8-second interval: no redundant
+    // wakeups while the view is open, and none when the view is closed.
     Timer {
-        interval: 1500
+        interval: 3000
         repeat: true
         running: RaohaneState.taskManagerOpen
         onTriggered: RaohaneProcesses.refresh()
@@ -687,7 +694,7 @@ Scope {
                         font.pixelSize: 7
                     }
                     Text {
-                        text: RaohaneProcesses.busy ? qsTr("Refreshing…") : qsTr("Live · 1.5 s")
+                        text: RaohaneProcesses.busy ? qsTr("Refreshing…") : qsTr("Live · 3 s")
                         color: RaohaneProcesses.busy ? RaohaneTheme.accent : RaohaneTheme.textFaint
                         font.pixelSize: 7
                     }

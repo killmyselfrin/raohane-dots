@@ -18,6 +18,8 @@ Singleton {
     property int generation: 0
     property double lastRefreshMs: 0
     property bool forceNextRefresh: false
+    property bool sessionActive: false
+    property bool snapshotReceived: false
 
     readonly property int minimumRefreshInterval: 2800
     readonly property real memoryUsage: memoryTotalMiB > 0 ? memoryUsedMiB / memoryTotalMiB : 0
@@ -27,8 +29,40 @@ Singleton {
     // read there as well so Task Manager can diagnose Raohane itself and
     // distinguish browser/helper process roles without spawning procps tools.
 
+    // The process list includes full command lines and is only useful while
+    // Task Manager is visible. Release it on any primary-surface transition;
+    // do not leave the last procfs snapshot resident for the whole session.
+    function beginSession(): void {
+        if (root.sessionActive)
+            return
+
+        root.sessionActive = true
+        root.lastRefreshMs = 0
+        root.refresh()
+    }
+
+    function endSession(): void {
+        if (!root.sessionActive)
+            return
+
+        root.sessionActive = false
+        refreshDelay.stop()
+        root.forceNextRefresh = false
+        root.lastRefreshMs = 0
+        root.processes = []
+        root.generation += 1
+        root.memoryUsedMiB = 0
+        root.memoryTotalMiB = 0
+        root.loadOne = 0
+        root.cpuCount = 1
+        root.busy = false
+        root.errorText = ""
+        // An already-running snapshot may finish shortly after dismissal.
+        // applySnapshot() checks sessionActive so that late output is ignored.
+    }
+
     function refresh(): void {
-        if (snapshotProbe.running)
+        if (!root.sessionActive || snapshotProbe.running)
             return
 
         const now = Date.now()
@@ -41,12 +75,17 @@ Singleton {
         root.lastRefreshMs = now
         root.busy = true
         root.errorText = ""
+        root.snapshotReceived = false
         snapshotProbe.running = true
     }
 
     function applySnapshot(payload: string): void {
+        if (!root.sessionActive)
+            return
+
         const rows = []
         const lines = String(payload ?? "").split("\n")
+        let hasStatistics = false
 
         for (const rawLine of lines) {
             const line = rawLine.trim()
@@ -55,6 +94,9 @@ Singleton {
 
             const fields = line.split("\t")
             if (fields[0] === "@STAT") {
+                if (fields.length < 5)
+                    continue
+                hasStatistics = true
                 root.memoryUsedMiB = Math.max(0, Number(fields[1] ?? 0))
                 root.memoryTotalMiB = Math.max(0, Number(fields[2] ?? 0))
                 root.loadOne = Math.max(0, Number(fields[3] ?? 0))
@@ -82,8 +124,14 @@ Singleton {
             })
         }
 
+        // A successful exit without the @STAT header is not a valid snapshot.
+        // Keep the last good data until a complete replacement arrives.
+        if (!hasStatistics)
+            return
+
         root.processes = rows
         root.generation += 1
+        root.snapshotReceived = true
         root.busy = false
     }
 
@@ -129,10 +177,13 @@ Singleton {
         }
 
         onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0) {
-                root.busy = false
+            // Quickshell may finish a process without emitting a usable
+            // stdout snapshot. Clear busy for both success and failure.
+            root.busy = false
+            if (!root.sessionActive)
+                return
+            if (exitCode !== 0 || !root.snapshotReceived)
                 root.errorText = qsTr("Unable to read the process table.")
-            }
         }
     }
 }

@@ -33,6 +33,29 @@ rg -q 'lastRefreshMs' "$service" \
 rg -q 'running:[[:space:]]*RaohaneState\.taskManagerOpen' "$task_manager" \
   || fail 'Task Manager refresh is no longer limited to the visible surface'
 
+# A resident singleton must not retain the full process/command-line snapshot
+# after the on-demand Task Manager has been dismissed.
+for contract in \
+  'property bool sessionActive: false' \
+  'function beginSession\(\): void' \
+  'function endSession\(\): void' \
+  'if \(!root\.sessionActive \|\| snapshotProbe\.running\)' \
+  'if \(!root\.sessionActive\)' \
+  'root\.processes = \[\]' \
+  'refreshDelay\.stop\(\)' \
+  'root\.snapshotReceived = false' \
+  'if \(exitCode !== 0 \|\| !root\.snapshotReceived\)'; do
+  rg -q "$contract" "$service" || fail "process lifecycle lost contract: $contract"
+done
+rg -q 'RaohaneProcesses\.beginSession\(\)' "$task_manager" \
+  || fail 'Task Manager no longer starts its procfs session on open'
+rg -q 'RaohaneProcesses\.endSession\(\)' "$task_manager" \
+  || fail 'Task Manager no longer releases its procfs snapshot on close'
+rg -q 'interval:[[:space:]]*3000' "$task_manager" \
+  || fail 'Task Manager started waking faster than its procfs throttle again'
+rg -q 'Live · 3 s' "$task_manager" \
+  || fail 'Task Manager refresh period label is out of sync'
+
 # The old implementation spawned `ps --sort` on every refresh. Besides the
 # repeated process-table scan, the short-lived ps process could report a very
 # high lifetime CPU percentage and appear as the hottest process in its own
