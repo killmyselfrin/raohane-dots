@@ -254,6 +254,11 @@ Item {
                 visible: RaohaneConfig.desktopWidgetsLayout === "free"
             }
 
+            RaohaneDesktopWidgetStyleStudio {
+                width: parent.width
+                height: implicitHeight
+            }
+
             RowLayout {
                 width: parent.width
                 spacing: 10
