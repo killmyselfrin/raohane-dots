@@ -122,6 +122,29 @@ rg -Fq 'Layout.preferredWidth: hardwareRow.width < 600' "$settings_graphics" \
   || fail 'Graphics hardware values can crowd their labels'
 
 
+# Multiline diagnostics and graphics update descriptions must not be
+# cropped or compete with update buttons at compact Settings widths.
+for contract in \
+  'Layout.preferredHeight: Math.max(secondary.length > 0 ? 82 : 70,' \
+  'railContents.implicitHeight + RaohaneTheme.spacingSmall * 2)' \
+  'id: railContents' \
+  'showInnerRim: true' \
+  'Layout.minimumWidth: 0' \
+  'font.pixelSize: 9'; do
+  rg -Fq "$contract" "$settings_about" \
+    || fail "About information rail lost adaptive content height: $contract"
+done
+for contract in \
+  'columns: root.compactLayout ? 2 : 3' \
+  'Layout.row: root.compactLayout ? 1 : 0' \
+  'Layout.column: root.compactLayout ? 0 : 2' \
+  'Layout.columnSpan: root.compactLayout ? 2 : 1' \
+  'Layout.minimumWidth: 0'; do
+  rg -Fq "$contract" "$settings_graphics" \
+    || fail "Graphics update controls lost compact row layout: $contract"
+done
+
+
 # Control Center is a wide glass dashboard with one Quick Controls path,
 # dedicated media/activity panes and one action dock/device-picker owner.
 rg -q 'readonly property int panelHeight:' "$control" \

@@ -551,16 +551,20 @@ Item {
         default property alias actions: actionSlot.data
 
         Layout.fillWidth: true
-        Layout.preferredHeight: secondary.length > 0 ? 82 : 70
-        surfaceRadius: RaohaneTheme.radiusSmall
+        // The diagnostic/updates text can wrap. Size from the actual
+        // content instead of clipping it inside the old 70/82px rail.
+        Layout.preferredHeight: Math.max(secondary.length > 0 ? 82 : 70,
+            railContents.implicitHeight + RaohaneTheme.spacingSmall * 2)
+        surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
-        showSheen: false
-        showInnerRim: false
-        transparentIdle: true
-        border.color: "transparent"
+        showSheen: true
+        showInnerRim: true
+        idleColor: RaohaneTheme.surfaceSubtle
+        idleBorderColor: RaohaneTheme.borderFaint
         showStateRail: false
 
         RowLayout {
+            id: railContents
             anchors.fill: parent
             anchors.leftMargin: RaohaneTheme.panelPadding
             anchors.rightMargin: RaohaneTheme.panelPadding
@@ -587,20 +591,27 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 spacing: RaohaneTheme.spacingTiny
 
                 Text {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
                     text: rail.title
                     color: RaohaneTheme.text
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
+                    maximumLineCount: 2
+                    wrapMode: Text.WordWrap
+                    elide: Text.ElideRight
                 }
 
                 Text {
                     Layout.fillWidth: true
+                    Layout.minimumWidth: 0
                     text: rail.detail
                     color: RaohaneTheme.textMuted
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     lineHeight: 1.15
                     maximumLineCount: 3
                     elide: Text.ElideRight
@@ -610,9 +621,10 @@ Item {
                 Text {
                     visible: rail.secondary.length > 0
                     Layout.fillWidth: true
+                    Layout.minimumWidth: 0
                     text: rail.secondary
                     color: rail.railColor
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     lineHeight: 1.15
                     maximumLineCount: 2
                     elide: Text.ElideRight
@@ -622,6 +634,7 @@ Item {
 
             RowLayout {
                 id: actionSlot
+                Layout.alignment: Qt.AlignVCenter
                 spacing: RaohaneTheme.spacingSmall
             }
         }

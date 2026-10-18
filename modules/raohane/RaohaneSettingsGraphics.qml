@@ -292,11 +292,15 @@ Item {
                     anchors.margins: RaohaneTheme.panelPadding
                     spacing: RaohaneTheme.spacing
 
-                    RowLayout {
+                    GridLayout {
                         Layout.fillWidth: true
-                        spacing: RaohaneTheme.spacingLarge
+                        columns: root.compactLayout ? 2 : 3
+                        columnSpacing: RaohaneTheme.spacingLarge
+                        rowSpacing: RaohaneTheme.spacingSmall
 
                         RaohaneSurface {
+                            Layout.row: 0
+                            Layout.column: 0
                             Layout.preferredWidth: 40
                             Layout.preferredHeight: 40
                             surfaceRadius: RaohaneTheme.radiusSmall
@@ -314,20 +318,27 @@ Item {
                         }
 
                         ColumnLayout {
+                            Layout.row: 0
+                            Layout.column: 1
                             Layout.fillWidth: true
+                            Layout.minimumWidth: 0
                             spacing: RaohaneTheme.spacingTiny
 
                             Text {
+                                Layout.fillWidth: true
+                                Layout.minimumWidth: 0
                                 text: RaohaneGraphics.updateAvailable
                                     ? qsTr("Update drivers safely")
                                     : qsTr("Driver families stay under your control")
                                 color: RaohaneTheme.text
                                 font.pixelSize: 12
                                 font.weight: Font.DemiBold
+                                wrapMode: Text.WordWrap
                             }
 
                             Text {
                                 Layout.fillWidth: true
+                                Layout.minimumWidth: 0
                                 text: RaohaneGraphics.updateAvailable
                                     ? qsTr("Arch-family systems require a full system upgrade. Raohane will update the installed graphics stack through Polkit without switching to another driver family.")
                                     : qsTr("Raohane detects NVIDIA, nouveau, AMD and Intel stacks, but never converts one driver family into another.")
@@ -339,6 +350,9 @@ Item {
                         }
 
                         RowLayout {
+                            Layout.row: root.compactLayout ? 1 : 0
+                            Layout.column: root.compactLayout ? 0 : 2
+                            Layout.columnSpan: root.compactLayout ? 2 : 1
                             spacing: RaohaneTheme.spacingSmall
 
                             ActionButton {
