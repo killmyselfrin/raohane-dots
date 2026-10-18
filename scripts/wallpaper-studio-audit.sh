@@ -17,9 +17,7 @@ for path in "$config" "$wallpapers" "$selector" "$background" "$theme" "$palette
 done
 
 for key in wallpaperFavorites wallpaperCollections wallpaperMonitors wallpaperAutoSource wallpaperAdaptiveAccent wallpaperAdaptiveColor; do
-  rg -Fq "property " "$config" || fail 'native wallpaper schema missing'
   rg -q "property (var|string|bool) $key:" "$config" || fail "missing native property $key"
-  rg -Fq "on${key:0:1}" "$config" >/dev/null 2>&1 || true
 done
 for fn in sanitizeWallpaperPaths sanitizeWallpaperCollections sanitizeWallpaperMonitors wallpaperPathForScreen setWallpaperForScreen; do
   rg -Fq "function $fn(" "$config" || fail "missing sanitizer/API $fn"
