@@ -77,7 +77,7 @@ RaohaneSurface {
                 id: coverFrame
 
                 Layout.preferredWidth: root.compact ? 62 : 80
-                Layout.preferredHeight: Layout.preferredWidth
+                Layout.preferredHeight: root.compact ? 62 : 80
                 surfaceRadius: RaohaneTheme.radiusLarge
                 showSheen: false
                 showInnerRim: true
