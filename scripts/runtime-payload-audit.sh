@@ -90,6 +90,20 @@ done
 [[ -d "$runtime/translations" ]] || fail 'translations were lost from staged runtime'
 [[ -f "$runtime/install/arch/required.txt" ]] || fail 'required package manifest was lost'
 [[ -f "$runtime/install/arch/features.txt" ]] || fail 'feature package manifest was lost'
+[[ -f "$runtime/modules/raohane/RaohaneWallpaperCinema.qml" ]] \
+  || fail 'cinematic wallpaper picker was lost during staging'
+
+# A partial wallpaper picker update must fail staging, rather than causing a
+# missing-type crash the first time Cinematic is opened.
+mv "$runtime/modules/raohane/RaohaneWallpaperCinema.qml" "$tmp_root/RaohaneWallpaperCinema.qml"
+if bash scripts/validate-runtime-payload.sh "$runtime" >"$tmp_root/missing-cinema.log" 2>&1; then
+  fail 'staged validator accepted a runtime without cinematic wallpaper QML'
+fi
+grep -Fq 'missing modules/raohane/RaohaneWallpaperCinema.qml' "$tmp_root/missing-cinema.log" \
+  || fail 'staged validator did not identify missing cinematic wallpaper component'
+mv "$tmp_root/RaohaneWallpaperCinema.qml" "$runtime/modules/raohane/RaohaneWallpaperCinema.qml"
+bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
+
 [[ -f "$runtime/modules/raohane/RaohaneDesktopEditGrid.qml" ]] || fail 'desktop editing grid was lost during staging'
 for face in RaohaneDesktopClockStyles RaohaneDesktopMediaStyles RaohaneDesktopSystemStyles RaohaneDesktopWidgetStyleStudio; do
   [[ -f "$runtime/modules/raohane/$face.qml" ]] || fail "widget face library lost $face during staging"
