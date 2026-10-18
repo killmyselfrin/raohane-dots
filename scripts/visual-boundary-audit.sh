@@ -84,7 +84,7 @@ done
 rg -q 'property string themePreset:[[:space:]]*"raohane-dark"' "$config" || fail 'native config does not default to Raohane'
 rg -q '"themePreset"[[:space:]]*:[[:space:]]*"raohane-dark"' "$defaults" || fail 'native defaults do not select Raohane'
 # Raohane's primary material is intentionally implemented with existing QML
-# color/shape tokens: no costly shader dependency or copied upstream QML.
+# color/shape tokens without expensive shader dependencies.
 rg -Fq 'background: "#151420", backgroundElevated: "#1d1b2d"' "$theme" \
   || fail 'Raohane Flow lost its layered charcoal palette'
 rg -Fq 'accent: "#c2a4ee"' "$theme" \
