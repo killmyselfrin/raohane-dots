@@ -57,5 +57,6 @@ Item {
         property: "faceStyle"
         value: root.faceStyle
         when: contentLoader.item !== null && root.faceStyle !== "classic"
+            && contentLoader.item.hasOwnProperty("faceStyle")
     }
 }
