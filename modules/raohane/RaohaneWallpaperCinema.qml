@@ -27,8 +27,10 @@ Item {
     property real incomingPreviewOpacity: 0
     property bool thumbnailsReady: false
     property string thumbnailRequestFolder: ""
-    readonly property int previewDelay: animateMotion ? 165 : 50
-    readonly property int previewFadeDuration: animateMotion ? 210 : 0
+    // Carousel gestures should feel immediate, even on slow wallpaper disks.
+    readonly property int previewDelay: animateMotion ? 70 : 0
+    readonly property int previewFadeDuration: animateMotion ? 120 : 0
+    readonly property int cardTransitionDuration: animateMotion ? 145 : 0
 
     signal entryChosen(string path, bool directory)
     signal entryHighlighted(string path)
@@ -52,6 +54,16 @@ Item {
             .replace(/[\x21\x27\x28\x29\x2a]/g, character => "%" + character.charCodeAt(0).toString(16).toUpperCase())
         const digest = Qt.md5("file://" + encodedPath)
         return "file://" + RaohanePaths.cacheRoot + "/thumbnails/x-large/" + digest + ".png"
+    }
+
+    // A video is not an Image source: its real preview is the cached frame
+    // extracted by the existing video thumbnail generator.
+    function previewSource(path: string): string {
+        if (!path)
+            return ""
+        if (RaohaneWallpapers.isVideo(path))
+            return root.thumbnailsReady ? root.thumbnailUrl(path) : ""
+        return "file://" + path
     }
 
     function queueVideoThumbnails(): void {
@@ -89,10 +101,16 @@ Item {
         target: RaohaneWallpapers
         function onThumbnailGenerated(directory: string): void {
             if (directory === RaohaneWallpapers.effectiveDirectory
-                    && directory === root.thumbnailRequestFolder)
+                    && directory === root.thumbnailRequestFolder) {
                 root.thumbnailsReady = true
-            else if (root.visible && !RaohaneWallpapers.thumbnailGenerationRunning)
+                // The selected video can now display its generated image
+                // in the card and behind the carousel.
+                if (root.selectedPath.length > 0
+                        && RaohaneWallpapers.isVideo(root.selectedPath))
+                    root.highlightPath(root.selectedPath, true)
+            } else if (root.visible && !RaohaneWallpapers.thumbnailGenerationRunning) {
                 thumbnailQueue.restart()
+            }
         }
     }
 
@@ -103,7 +121,7 @@ Item {
     }
 
     function highlightPath(path: string, previewImmediately): void {
-        if (!path || RaohaneWallpapers.isVideo(path)) {
+        if (!path) {
             previewTimer.stop()
             queuedPreviewPath = ""
             return
@@ -119,7 +137,9 @@ Item {
 
     function commitPreview(): void {
         const path = queuedPreviewPath
-        if (!path.length || RaohaneWallpapers.isVideo(path))
+        if (!path.length)
+            return
+        if (RaohaneWallpapers.isVideo(path) && !root.thumbnailsReady)
             return
         if (path === displayedPreviewPath && incomingPreviewPath.length === 0) {
             // Already decoded in this view; no new thumbnail load required.
@@ -221,7 +241,7 @@ Item {
         // when the user flicks across several wallpapers.
         Image {
             anchors.fill: parent
-            source: root.displayedPreviewPath.length > 0 ? "file://" + root.displayedPreviewPath : ""
+            source: root.previewSource(root.displayedPreviewPath)
             sourceSize.width: 1024
             sourceSize.height: 640
             asynchronous: true
@@ -232,7 +252,7 @@ Item {
         Image {
             id: incomingPreview
             anchors.fill: parent
-            source: root.incomingPreviewPath.length > 0 ? "file://" + root.incomingPreviewPath : ""
+            source: root.previewSource(root.incomingPreviewPath)
             sourceSize.width: 1024
             sourceSize.height: 640
             asynchronous: true
@@ -401,11 +421,11 @@ Item {
 
                         Behavior on scale {
                             enabled: root.animateMotion
-                            NumberAnimation { duration: RaohaneMotion.selectionTravel; easing.type: RaohaneMotion.easeEmphasized }
+                            NumberAnimation { duration: root.cardTransitionDuration; easing.type: RaohaneMotion.easeEmphasized }
                         }
                         Behavior on opacity {
                             enabled: root.animateMotion
-                            NumberAnimation { duration: RaohaneMotion.micro }
+                            NumberAnimation { duration: root.cardTransitionDuration; easing.type: RaohaneMotion.easeStandard }
                         }
 
                         transform: Rotation {
@@ -415,7 +435,7 @@ Item {
                             angle: tile.focused ? 0 : (tile.index < carousel.currentIndex ? 10 : -10)
                             Behavior on angle {
                                 enabled: root.animateMotion
-                                NumberAnimation { duration: RaohaneMotion.selectionTravel; easing.type: RaohaneMotion.easeEmphasized }
+                                NumberAnimation { duration: root.cardTransitionDuration; easing.type: RaohaneMotion.easeEmphasized }
                             }
                         }
 
