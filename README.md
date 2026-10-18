@@ -48,7 +48,7 @@ Built with **Quickshell + Qt/QML**. Made to feel fast, consistent, and personal.
 | **Bar &amp; Dock** | Horizontal/vertical bars, configurable modules, workspaces, system tray, Context Island, and a dock. |
 | **Launcher &amp; Overview** | Search for apps and actions, navigate workspaces and switch between windows. |
 | **Control Center** | Wi-Fi, Bluetooth, audio, microphone, display brightness, notifications, and Scenes. |
-| **Settings &amp; Themes** | Central settings, theme presets, JSON theme import/export, live appearance controls, and desktop widgets (including an experimental per-monitor free layout editor). |
+| **Settings &amp; Themes** | Central settings, theme presets, JSON theme import/export, live appearance controls, and desktop widgets with an on-wallpaper grid editor and nine selectable Clock/Music/System faces (Classic, Minimal, Aurora). |
 | **Scenes** | Balanced, Gaming, Focus, and Work modes with application rules and contextual runtime policies. |
 | **Media** | MPRIS controls, synced/plain lyrics, a music surface, and a fullscreen media overlay. |
 | **Utilities** | Screenshots, recording, OCR, translation, clipboard tools, on-screen keyboard, task manager, and power/session controls. |
@@ -149,6 +149,7 @@ If Shelly or another package manager reports that polkit is missing on the syste
 - [Release validation](docs/RELEASE-VALIDATION.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Widget Studio 2.0 testing and rollback](docs/WIDGET-STUDIO-2-VALIDATION.md)
+- [Widget face library — styles, controls and runtime checks](docs/WIDGET-FACE-LIBRARY.md)
 - [Theme format](docs/THEMES.md)
 - [NixOS / Home Manager](docs/NIX.md)
 - [Contributing](CONTRIBUTING.md)
