@@ -181,7 +181,7 @@ Singleton {
         const pool = source.filter(path => path && path !== previous)
         if (pool.length === 0)
             return
-        root.apply(pool[Math.floor(Math.random() * pool.length)])
+        root.select(pool[Math.floor(Math.random() * pool.length)])
     }
 
     function randomFromCurrentFolder(darkMode = true): void {
