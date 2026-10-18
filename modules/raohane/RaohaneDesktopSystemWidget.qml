@@ -67,7 +67,7 @@ RaohaneSurface {
                 label: qsTr("Network")
                 value: RaohaneNetwork.networkName
                     || (RaohaneNetwork.ethernet ? qsTr("Ethernet") : qsTr("Offline"))
-                active: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
+                statusActive: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
             }
 
             StatusTile {
@@ -77,7 +77,7 @@ RaohaneSurface {
                 label: qsTr("Audio")
                 value: RaohaneAudio.muted
                     ? qsTr("Muted") : Math.round(RaohaneAudio.volume * 100) + "%"
-                active: !RaohaneAudio.muted
+                statusActive: !RaohaneAudio.muted
             }
         }
     }
@@ -88,7 +88,7 @@ RaohaneSurface {
         required property string icon
         required property string label
         required property string value
-        required property bool active
+        required property bool statusActive
 
         Layout.fillHeight: true
         surfaceRadius: RaohaneTheme.radiusLarge
@@ -110,8 +110,8 @@ RaohaneSurface {
                 RaohaneIcon {
                     text: tile.icon
                     iconSize: 14
-                    fill: tile.active ? 1 : 0
-                    color: tile.active ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                    fill: tile.statusActive ? 1 : 0
+                    color: tile.statusActive ? RaohaneTheme.accent : RaohaneTheme.textFaint
                 }
 
                 Text {
