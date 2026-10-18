@@ -12,6 +12,8 @@ Item {
     property bool compact: false
     property bool shown: true
 
+    signal widgetMenuRequested(string widgetId, real screenX, real screenY)
+
     readonly property var definition: RaohaneDesktopWidgetRegistry.definition(root.widgetId)
     readonly property string configKey: String(root.definition?.key ?? "")
     readonly property bool widgetEnabled: root.configKey.length > 0 && Boolean(RaohaneConfig[root.configKey])
@@ -28,6 +30,19 @@ Item {
         height: item?.implicitHeight ?? 0
         active: root.widgetEnabled && root.shown && root.definition !== null
         source: root.definition?.source ?? ""
+    }
+
+    // Only right-clicks are intercepted. Media and other widget controls
+    // continue receiving their normal left-button/touch interactions.
+    MouseArea {
+        anchors.fill: parent
+        z: 50
+        acceptedButtons: Qt.RightButton
+        enabled: root.widgetEnabled && root.shown
+        onClicked: mouse => {
+            const p = mapToItem(null, mouse.x, mouse.y)
+            root.widgetMenuRequested(root.widgetId, p.x, p.y)
+        }
     }
 
     Binding {
