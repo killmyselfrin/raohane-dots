@@ -18,6 +18,10 @@ Item {
     property var parentWindow: null
     property bool hostActive: true
     property bool showDate: RaohaneConfig.barShowDate
+    property string densityMode: "full"
+    property bool compactClock: false
+    property bool compactWorkspaces: false
+    property bool canShow: true
     property string groupStyle: RaohaneConfig.barGroupStyle
     property bool showBackground: RaohaneConfig.barShowBackground
     property var primaryAction: null
@@ -43,11 +47,13 @@ Item {
             return 36
         switch (id) {
         case "launcher": return 30
-        case "workspaces": return Math.max(28, Math.min(260, RaohaneConfig.overviewWorkspaceCount * 23 + 4))
-        case "context": return 188
+        case "workspaces": return root.compactWorkspaces ? 85
+            : Math.max(28, Math.min(260, RaohaneConfig.overviewWorkspaceCount * 23 + 4))
+        case "context": return root.densityMode === "icon" ? 42
+            : root.densityMode === "compact" ? 154 : 188
         case "tray": return 0
         case "system": return 54
-        case "clock": return root.showDate ? 98 : 44
+        case "clock": return root.compactClock || !root.showDate ? 48 : 98
         case "control": return 30
         case "separator": return 1
         default: return 0
@@ -74,7 +80,7 @@ Item {
     // Keep the host present while a component is loading so RowLayout does not
     // collapse it to zero. Once ready, honour components such as an unavailable
     // Bluetooth slot that intentionally hide themselves.
-    visible: root.known
+    visible: root.canShow && root.known
         && contentLoader.status !== Loader.Error
         && (contentLoader.status !== Loader.Ready || (contentLoader.item?.visible ?? true))
 
@@ -184,6 +190,7 @@ Item {
         RaohaneWorkspaces {
             screen: root.screen
             orientation: "horizontal"
+            compactMode: root.compactWorkspaces
         }
     }
 
@@ -191,6 +198,7 @@ Item {
         id: contextComponent
 
         RaohaneContextIsland {
+            densityMode: root.densityMode
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
@@ -244,6 +252,7 @@ Item {
 
         RaohaneClock {
             showDate: root.showDate
+            compactMode: root.compactClock
             active: root.hostActive
         }
     }
