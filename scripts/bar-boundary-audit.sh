@@ -87,8 +87,8 @@ rg -Fq 'id: "cinematic", label: qsTr("Cinematic")' "$bar_appearance" \
   || fail 'Cinematic preset missing from Bar Studio'
 rg -Fq 'RaohaneConfig.barStylePreset === "cinematic"' "$bar" \
   || fail 'Cinematic visual treatment is not active in native bar'
-rg -Fq '"cinematic", "islands"' "$config" \
-  || fail 'Cinematic preset cannot be loaded from saved settings'
+rg -Fq '"cinematic", "halo", "islands"' "$config" \
+  || fail 'Cinematic and Halo presets cannot be loaded from saved settings'
 rg -Fq 'RaohaneTheme.accentBorder' "$bar" \
   || fail 'Cinematic center island lost accent treatment'
 
@@ -308,8 +308,7 @@ rg -Fq 'if (root.iconOnly)' modules/raohane/RaohaneContextIsland.qml \
   || fail 'Bar context has no minimal fallback'
 rg -Fq 'if (root.minimalMode)' "$workspaces" \
   || fail 'ultra-narrow bar does not reserve a visible active workspace'
-rg -Fq 'if (!root.compactMode && !root.minimalMode)' "$workspaces" \
-  || rg -Fq '(!root.compactMode && !root.minimalMode)' "$workspaces" \
+rg -Fq '(!root.compactMode && !root.minimalMode)' "$workspaces" \
   || fail 'normal Bar lost full workspace switcher'
 python3 - "$bar" <<'PY'
 import re
