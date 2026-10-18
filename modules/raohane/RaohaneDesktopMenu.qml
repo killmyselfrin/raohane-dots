@@ -13,6 +13,9 @@ import qs.modules.raohane.services
 Scope {
     id: root
 
+    readonly property bool widgetContext: RaohaneState.desktopMenuWidgetId.length > 0
+        && RaohaneDesktopWidgetRegistry.definition(RaohaneState.desktopMenuWidgetId) !== null
+
     function openCentered(shouldOpen: bool): void {
         if (!shouldOpen) {
             RaohaneState.setPrimaryOpen("desktopMenu", false)
@@ -24,6 +27,8 @@ Scope {
         if (!screen)
             return
 
+        RaohaneState.desktopMenuWidgetId = ""
+        RaohaneState.desktopMenuWidgetMonitor = ""
         RaohaneState.desktopMenuScreen = screen
         RaohaneState.desktopMenuX = screen.width / 2
         RaohaneState.desktopMenuY = screen.height / 2
@@ -113,200 +118,225 @@ Scope {
                     }
                     spacing: 5
 
-                    RaohaneSurface {
+                    // The normal desktop actions remain unchanged on blank wallpaper.
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 80
-                        surfaceRadius: 11
-                        raised: false
-                        showSheen: false
-                        clip: true
-                        color: RaohaneTheme.surfaceDeep
-                        border.color: RaohaneTheme.borderFaint
+                        visible: !root.widgetContext
+                        spacing: 5
 
-                        Image {
-                            anchors.fill: parent
-                            source: RaohaneConfig.wallpaperPath.length > 0 ? "file://" + RaohaneConfig.wallpaperPath : ""
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            cache: false
-                            opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.46 : 0.34) : 0
+                        RaohaneSurface {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 80
+                            surfaceRadius: 11
+                            raised: false
+                            showSheen: false
+                            clip: true
+                            color: RaohaneTheme.surfaceDeep
+                            border.color: RaohaneTheme.borderFaint
+
+                            Image {
+                                anchors.fill: parent
+                                source: RaohaneConfig.wallpaperPath.length > 0 ? "file://" + RaohaneConfig.wallpaperPath : ""
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                cache: false
+                                opacity: status === Image.Ready ? (RaohaneTheme.dark ? 0.46 : 0.34) : 0
+                            }
+
+                            Rectangle {
+                                anchors.fill: parent
+                                gradient: Gradient {
+                                    GradientStop { position: 0.16; color: "#22000000" }
+                                    GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#dc0a0d14" : "#d8f5f2ec" }
+                                }
+                            }
+
+                            RowLayout {
+                                anchors {
+                                    left: parent.left
+                                    right: parent.right
+                                    top: parent.top
+                                    bottom: parent.bottom
+                                    margins: 11
+                                }
+                                spacing: 9
+
+                                Rectangle {
+                                    Layout.preferredWidth: 2
+                                    Layout.preferredHeight: 34
+                                    radius: 1
+                                    color: RaohaneTheme.accent
+                                }
+
+                                RaohaneSurface {
+                                    Layout.preferredWidth: 34
+                                    Layout.preferredHeight: 34
+                                    surfaceRadius: 10
+                                    active: true
+                                    showSheen: false
+
+                                    RaohaneIcon {
+                                        anchors.centerIn: parent
+                                        text: "desktop_windows"
+                                        iconSize: 18
+                                        fill: 1
+                                        symbolWeight: 540
+                                        color: RaohaneTheme.accent
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 1
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: qsTr("Desktop")
+                                        color: RaohaneTheme.text
+                                        font.pixelSize: 10
+                                        font.weight: Font.DemiBold
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: RaohaneConfig.wallpaperPath.split("/").pop() || qsTr("Wallpaper")
+                                        color: RaohaneTheme.textFaint
+                                        font.pixelSize: 8
+                                        elide: Text.ElideMiddle
+                                    }
+                                }
+                            }
                         }
 
-                        Rectangle {
-                            anchors.fill: parent
-                            gradient: Gradient {
-                                GradientStop { position: 0.16; color: "#22000000" }
-                                GradientStop { position: 1.0; color: RaohaneTheme.dark ? "#dc0a0d14" : "#d8f5f2ec" }
+                        MenuAction {
+                            icon: "wallpaper"
+                            title: qsTr("Wallpaper")
+                            detail: qsTr("Browse and preview backgrounds")
+                            onTriggered: {
+                                RaohaneState.wallpaperSelectorTarget = "wallpaper"
+                                RaohaneState.setPrimaryOpen("wallpaper", true)
                             }
                         }
 
                         RowLayout {
-                            anchors {
-                                left: parent.left
-                                right: parent.right
-                                top: parent.top
-                                bottom: parent.bottom
-                                margins: 11
-                            }
-                            spacing: 9
+                            Layout.fillWidth: true
+                            spacing: 5
 
-                            Rectangle {
-                                Layout.preferredWidth: 2
-                                Layout.preferredHeight: 34
-                                radius: 1
-                                color: RaohaneTheme.accent
-                            }
-
-                            RaohaneSurface {
-                                Layout.preferredWidth: 34
-                                Layout.preferredHeight: 34
-                                surfaceRadius: 10
-                                active: true
-                                showSheen: false
-
-                                RaohaneIcon {
-                                    anchors.centerIn: parent
-                                    text: "desktop_windows"
-                                    iconSize: 18
-                                    fill: 1
-                                    symbolWeight: 540
-                                    color: RaohaneTheme.accent
-                                }
-                            }
-
-                            ColumnLayout {
+                            CompactAction {
                                 Layout.fillWidth: true
-                                spacing: 1
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: qsTr("Desktop")
-                                    color: RaohaneTheme.text
-                                    font.pixelSize: 10
-                                    font.weight: Font.DemiBold
-                                    elide: Text.ElideRight
+                                icon: "casino"
+                                title: qsTr("Random")
+                                onTriggered: {
+                                    RaohaneWallpapers.randomFromCurrentFolder()
+                                    root.close()
                                 }
+                            }
 
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: RaohaneConfig.wallpaperPath.split("/").pop() || qsTr("Wallpaper")
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 8
-                                    elide: Text.ElideMiddle
+                            CompactAction {
+                                Layout.fillWidth: true
+                                icon: "folder_open"
+                                title: qsTr("Choose file")
+                                onTriggered: {
+                                    RaohaneWallpapers.openFallbackPicker(true, RaohaneConfig.wallpaperDirectory)
+                                    root.close()
                                 }
                             }
                         }
-                    }
 
-                    MenuAction {
-                        icon: "wallpaper"
-                        title: qsTr("Wallpaper")
-                        detail: qsTr("Browse and preview backgrounds")
-                        onTriggered: {
-                            RaohaneState.wallpaperSelectorTarget = "wallpaper"
-                            RaohaneState.setPrimaryOpen("wallpaper", true)
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 5
-
-                        CompactAction {
+                        Rectangle {
                             Layout.fillWidth: true
-                            icon: "casino"
-                            title: qsTr("Random")
+                            Layout.preferredHeight: 1
+                            Layout.topMargin: 2
+                            Layout.bottomMargin: 2
+                            color: RaohaneTheme.borderFaint
+                        }
+
+                        MenuAction {
+                            icon: "widgets"
+                            title: qsTr("Desktop widgets")
+                            detail: qsTr("Position, size and visibility")
+                            onTriggered: RaohaneSettingsRouter.request("widgets", "")
+                        }
+
+                        MenuAction {
+                            icon: "stacks"
+                            title: qsTr("DropShelf")
+                            detail: RaohaneDropShelf.items.length > 0
+                                ? qsTr("%1 items ready").arg(RaohaneDropShelf.items.length)
+                                : qsTr("Temporary files and drops")
                             onTriggered: {
-                                RaohaneWallpapers.randomFromCurrentFolder()
+                                const pointX = RaohaneState.desktopMenuX
+                                const pointY = RaohaneState.desktopMenuY
                                 root.close()
+                                RaohaneDropShelf.show([], pointX, pointY)
                             }
                         }
 
-                        CompactAction {
+                        MenuAction {
+                            icon: "space_dashboard"
+                            title: qsTr("Desktop & Spaces")
+                            detail: qsTr("Wallpaper and workspace configuration")
+                            onTriggered: RaohaneSettingsRouter.request("Desktop & Spaces", "")
+                        }
+
+                        MenuAction {
+                            icon: "tune"
+                            title: qsTr("Control Center")
+                            detail: qsTr("Network, audio, privacy and notifications")
+                            onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
+                        }
+
+                        MenuAction {
+                            icon: "settings"
+                            title: qsTr("Settings")
+                            detail: qsTr("Configure Raohane")
+                            onTriggered: RaohaneSettingsRouter.request("home", "")
+                        }
+
+                        Rectangle {
                             Layout.fillWidth: true
-                            icon: "folder_open"
-                            title: qsTr("Choose file")
-                            onTriggered: {
-                                RaohaneWallpapers.openFallbackPicker(true, RaohaneConfig.wallpaperDirectory)
-                                root.close()
+                            Layout.preferredHeight: 1
+                            Layout.topMargin: 2
+                            Layout.bottomMargin: 2
+                            color: RaohaneTheme.borderFaint
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 5
+
+                            CompactAction {
+                                Layout.fillWidth: true
+                                icon: "refresh"
+                                title: qsTr("Reload")
+                                onTriggered: {
+                                    root.close()
+                                    Quickshell.execDetached(["hyprctl", "reload"])
+                                    Quickshell.reload(true)
+                                }
+                            }
+
+                            CompactAction {
+                                Layout.fillWidth: true
+                                icon: "power_settings_new"
+                                title: qsTr("Session")
+                                accent: true
+                                onTriggered: RaohaneState.setPrimaryOpen("session", true)
                             }
                         }
                     }
 
-                    Rectangle {
+                    // Target-specific controls appear only when right-clicking a
+                    // widget. Geometry and visibility are persisted by RaohaneConfig.
+                    RaohaneDesktopWidgetContextActions {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                        Layout.topMargin: 2
-                        Layout.bottomMargin: 2
-                        color: RaohaneTheme.borderFaint
+                        visible: root.widgetContext
+                        widgetId: RaohaneState.desktopMenuWidgetId
+                        monitorName: RaohaneState.desktopMenuWidgetMonitor
+                        onDismissRequested: root.close()
                     }
 
-                    MenuAction {
-                        icon: "stacks"
-                        title: qsTr("DropShelf")
-                        detail: RaohaneDropShelf.items.length > 0
-                            ? qsTr("%1 items ready").arg(RaohaneDropShelf.items.length)
-                            : qsTr("Temporary files and drops")
-                        onTriggered: {
-                            const pointX = RaohaneState.desktopMenuX
-                            const pointY = RaohaneState.desktopMenuY
-                            root.close()
-                            RaohaneDropShelf.show([], pointX, pointY)
-                        }
-                    }
-
-                    MenuAction {
-                        icon: "space_dashboard"
-                        title: qsTr("Desktop & Spaces")
-                        detail: qsTr("Wallpaper and workspace configuration")
-                        onTriggered: RaohaneSettingsRouter.request("Desktop & Spaces", "")
-                    }
-
-                    MenuAction {
-                        icon: "tune"
-                        title: qsTr("Control Center")
-                        detail: qsTr("Network, audio, privacy and notifications")
-                        onTriggered: RaohaneState.setPrimaryOpen("controlCenter", true)
-                    }
-
-                    MenuAction {
-                        icon: "settings"
-                        title: qsTr("Settings")
-                        detail: qsTr("Configure Raohane")
-                        onTriggered: RaohaneSettingsRouter.request("home", "")
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                        Layout.topMargin: 2
-                        Layout.bottomMargin: 2
-                        color: RaohaneTheme.borderFaint
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 5
-
-                        CompactAction {
-                            Layout.fillWidth: true
-                            icon: "refresh"
-                            title: qsTr("Reload")
-                            onTriggered: {
-                                root.close()
-                                Quickshell.execDetached(["hyprctl", "reload"])
-                                Quickshell.reload(true)
-                            }
-                        }
-
-                        CompactAction {
-                            Layout.fillWidth: true
-                            icon: "power_settings_new"
-                            title: qsTr("Session")
-                            accent: true
-                            onTriggered: RaohaneState.setPrimaryOpen("session", true)
-                        }
-                    }
                 }
 
                 Keys.onPressed: event => {
