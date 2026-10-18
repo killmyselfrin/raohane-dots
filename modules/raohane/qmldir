@@ -51,6 +51,7 @@ RaohaneOverviewWorkspaceCard 1.0 RaohaneOverviewWorkspaceCard.qml
 RaohaneOverviewWindowRow 1.0 RaohaneOverviewWindowRow.qml
 RaohaneDock 1.0 RaohaneDock.qml
 RaohaneBar 1.0 RaohaneBar.qml
+RaohaneBarChromaticWash 1.0 RaohaneBarChromaticWash.qml
 RaohaneVerticalBar 1.0 RaohaneVerticalBar.qml
 RaohaneWorkspaces 1.0 RaohaneWorkspaces.qml
 RaohaneSystemIcons 1.0 RaohaneSystemIcons.qml
