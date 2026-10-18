@@ -37,6 +37,10 @@ RaohaneDesktopWidgets 1.0 RaohaneDesktopWidgets.qml
 RaohaneDesktopWidgetHost 1.0 RaohaneDesktopWidgetHost.qml
 RaohaneDesktopEditGrid 1.0 RaohaneDesktopEditGrid.qml
 RaohaneDesktopClockWidget 1.0 RaohaneDesktopClockWidget.qml
+RaohaneDesktopClockStyles 1.0 RaohaneDesktopClockStyles.qml
+RaohaneDesktopMediaStyles 1.0 RaohaneDesktopMediaStyles.qml
+RaohaneDesktopSystemStyles 1.0 RaohaneDesktopSystemStyles.qml
+RaohaneDesktopWidgetStyleStudio 1.0 RaohaneDesktopWidgetStyleStudio.qml
 RaohaneDesktopContextWidget 1.0 RaohaneDesktopContextWidget.qml
 RaohaneDesktopSystemWidget 1.0 RaohaneDesktopSystemWidget.qml
 RaohaneDesktopMottoWidget 1.0 RaohaneDesktopMottoWidget.qml
