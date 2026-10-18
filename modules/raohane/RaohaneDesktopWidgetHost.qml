@@ -17,6 +17,7 @@ Item {
     readonly property var definition: RaohaneDesktopWidgetRegistry.definition(root.widgetId)
     readonly property string configKey: String(root.definition?.key ?? "")
     readonly property bool widgetEnabled: root.configKey.length > 0 && Boolean(RaohaneConfig[root.configKey])
+    readonly property string faceStyle: RaohaneConfig.desktopWidgetStyle(root.widgetId)
 
     Layout.fillWidth: true
     Layout.preferredHeight: root.widgetEnabled && root.shown ? contentLoader.height : 0
@@ -29,7 +30,7 @@ Item {
         width: parent.width
         height: item?.implicitHeight ?? 0
         active: root.widgetEnabled && root.shown && root.definition !== null
-        source: root.definition?.source ?? ""
+        source: RaohaneDesktopWidgetRegistry.sourceFor(root.widgetId, root.faceStyle)
     }
 
     // Only right-clicks are intercepted. Media and other widget controls
@@ -50,5 +51,11 @@ Item {
         property: "compact"
         value: root.compact
         when: contentLoader.item !== null
+    }
+    Binding {
+        target: contentLoader.item
+        property: "faceStyle"
+        value: root.faceStyle
+        when: contentLoader.item !== null && root.faceStyle !== "classic"
     }
 }
