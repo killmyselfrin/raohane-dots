@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Extract a stable, readable accent from a single local wallpaper.
 
-Runs only on an explicit wallpaper change (never a frame loop). A video must
-already have an extracted still image; this script never starts video playback.
+Runs only on an explicit wallpaper change (never a frame loop). Videos are
+sampled from one bounded FFmpeg still frame; no looping player is started.
 """
 from __future__ import annotations
 
