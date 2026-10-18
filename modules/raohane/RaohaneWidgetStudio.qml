@@ -78,7 +78,7 @@ Item {
                     spacing: 2
 
                     Text {
-                        text: "ラオハネ  ·  18:42"
+                        text: "RAOHANE  ·  WIDGET STUDIO"
                         color: RaohaneTheme.textMuted
                         font.pixelSize: 9
                         font.letterSpacing: 1.05
