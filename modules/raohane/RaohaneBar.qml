@@ -43,13 +43,11 @@ Scope {
     }
 
     Variants {
-        model: {
-            const screens = Quickshell.screens
-            const configured = RaohaneConfig.barScreenList
-            if (!configured || configured.length === 0)
-                return screens
-            return screens.filter(screen => configured.includes(screen.name))
-        }
+        model: RaohaneBarModuleRegistry.selectBarScreens(
+            Quickshell.screens,
+            RaohaneConfig.barScreenList,
+            Hyprland.focusedMonitor?.name ?? ""
+        )
 
         PanelWindow {
             id: barWindow

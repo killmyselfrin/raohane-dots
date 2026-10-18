@@ -193,6 +193,28 @@ QtObject {
         }
     }
 
+    // A saved monitor list is a preference, not a reason to lose every Bar.
+    // An unplugged or renamed output must never leave an otherwise running
+    // desktop without its only launcher, system tray and recovery controls.
+    function selectBarScreens(screens, configured, focusedName: string): var {
+        const available = screens ?? []
+        if (available.length === 0)
+            return []
+
+        if (!Array.isArray(configured) || configured.length === 0)
+            return available
+
+        const matching = available.filter(screen => configured.includes(screen.name))
+        if (matching.length > 0)
+            return matching
+
+        // Preserve the user's saved list, but show one emergency bar on an
+        // existing output until any selected output returns. Avoid placing
+        // duplicate bars on all remaining monitors during temporary hotplug.
+        const focused = available.find(screen => screen.name === focusedName)
+        return [focused ?? available[0]]
+    }
+
     function defaultLayoutFor(orientation: string): var {
         return orientation === "vertical" ? root.defaultVerticalLayout : root.defaultLayout
     }
