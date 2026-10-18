@@ -21,6 +21,7 @@ Item {
     property string densityMode: "full"
     property bool compactClock: false
     property bool compactWorkspaces: false
+    property bool minimalWorkspaces: false
     property bool canShow: true
     property string groupStyle: RaohaneConfig.barGroupStyle
     property bool showBackground: RaohaneConfig.barShowBackground
@@ -191,6 +192,7 @@ Item {
             screen: root.screen
             orientation: "horizontal"
             compactMode: root.compactWorkspaces
+            minimalMode: root.minimalWorkspaces
         }
     }
 
