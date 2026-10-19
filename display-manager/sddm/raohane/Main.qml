@@ -404,7 +404,7 @@ Item {
                     font.letterSpacing: 1.2
                 }
 
-                TextField {
+                Controls.TextField {
                     id: usernameField
                     Layout.fillWidth: true
                     Layout.preferredHeight: 50
@@ -438,7 +438,7 @@ Item {
                     font.letterSpacing: 1.2
                 }
 
-                TextField {
+                Controls.TextField {
                     id: passwordField
                     Layout.fillWidth: true
                     Layout.preferredHeight: 50
@@ -465,7 +465,7 @@ Item {
                     Keys.onEnterPressed: root.beginLogin()
                     Keys.onEscapePressed: passwordField.text = ""
 
-                    ToolButton {
+                    Controls.ToolButton {
                         id: revealButton
                         width: 38
                         height: 38
@@ -497,7 +497,7 @@ Item {
                     font.letterSpacing: 1.2
                 }
 
-                ComboBox {
+                Controls.ComboBox {
                     id: sessionBox
                     Layout.fillWidth: true
                     Layout.preferredHeight: 50
@@ -532,7 +532,7 @@ Item {
                         border.color: sessionBox.activeFocus ? root.accent : root.line
                     }
 
-                    delegate: ItemDelegate {
+                    delegate: Controls.ItemDelegate {
                         required property int index
                         width: sessionBox.width - 12
                         height: 42
@@ -551,7 +551,7 @@ Item {
                         }
                     }
 
-                    popup: Popup {
+                    popup: Controls.Popup {
                         y: sessionBox.height + 7
                         width: sessionBox.width
                         implicitHeight: Math.min(contentItem.implicitHeight + 12, 270)
@@ -562,7 +562,7 @@ Item {
                             implicitHeight: contentHeight
                             model: sessionBox.popup.visible ? sessionBox.delegateModel : null
                             currentIndex: sessionBox.highlightedIndex
-                            ScrollIndicator.vertical: ScrollIndicator { }
+                            Controls.ScrollIndicator.vertical: Controls.ScrollIndicator { }
                         }
 
                         background: Rectangle {
@@ -588,7 +588,7 @@ Item {
                     Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
 
-                Button {
+                Controls.Button {
                     id: loginButton
                     Layout.fillWidth: true
                     Layout.preferredHeight: 52
