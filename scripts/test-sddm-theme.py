@@ -6,7 +6,7 @@ os.environ.setdefault("QT_QUICK_BACKEND", "software")
 import sys
 from pathlib import Path
 from PySide6.QtCore import (QObject, Signal, Slot, Property, QAbstractListModel,
-                           QModelIndex, Qt, QUrl, QMetaObject, qInstallMessageHandler)
+                           QModelIndex, Qt, QUrl, QMetaObject, QPointF, qInstallMessageHandler)
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlPropertyMap
 from PySide6.QtQuick import QQuickView
@@ -81,7 +81,8 @@ QMetaObject.invokeMethod(root, "authenticate")
 assert not proxy.calls
 username.setProperty("text", " raohane ")
 password.setProperty("text", "test-only")
-QMetaObject.invokeMethod(root, "authenticate")
+password.forceActiveFocus()
+QTest.keyClick(view, Qt.Key_Return)
 QMetaObject.invokeMethod(root, "authenticate")
 assert proxy.calls == [("raohane", "test-only", 1)]
 assert root.property("pending")
@@ -95,11 +96,13 @@ QMetaObject.invokeMethod(root, "authenticate")
 assert len(proxy.calls) == 1
 session.setProperty("currentIndex", 0)
 password.setProperty("text", "second-test")
-QMetaObject.invokeMethod(root, "authenticate")
+button = root.findChild(QObject, "signIn")
+point = button.mapToScene(QPointF(button.width() / 2, button.height() / 2))
+QTest.mouseClick(view, Qt.LeftButton, Qt.NoModifier, point.toPoint())
 assert proxy.calls[-1] == ("raohane", "second-test", 0)
 proxy.loginSucceeded.emit()
 assert root.property("leaving")
 assert password.property("text") == ""
 QTest.qWait(30)
 assert not warnings, "\n".join(warnings)
-print("PASS: QML creation, three viewport sizes, account/session validation, duplicate-submit guard, failure recovery and success cleanup")
+print("PASS: QML creation, three viewport sizes, account/session validation, keyboard/button submission, duplicate-submit guard, failure recovery and success cleanup")

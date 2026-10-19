@@ -48,3 +48,16 @@ or installed shell if available, otherwise the bundled SVG character remains.
 It copies the login owner's `~/.face.icon` when available; otherwise a neutral
 avatar is used. `Avatar` and `Mascot` in the theme configuration select these
 assets. These are local images, not fabricated weather, telemetry or notifications.
+
+
+### Visual refinement
+
+The login area uses a single password capsule with an integrated arrow action,
+a quiet editable account label and a smaller circular avatar. Side cards share
+one radius, subtle borders and consistent line icons. Translucency is static;
+there are no blur passes or decorative background animation loops.
+
+![Offscreen Qt preview](../../docs/previews/sddm-nocturne.png)
+
+This preview is rendered from the actual QML with mock SDDM models and the
+bundled fallback images; it is not a screenshot from a live SDDM/PAM session.
