@@ -14,14 +14,17 @@ Item {
     property string statusMessage: ""
     property bool loginPending: false
     property bool entered: false
+    property bool leaving: false
+    readonly property bool reduceMotion: config.ReduceMotion === "true"
+    readonly property string wallpaper: config.Background && String(config.Background).length > 0 ? String(config.Background) : "background.png"
 
     readonly property bool compact: width < 980 || height < 680
-    readonly property color accent: "#a9b7a4"
-    readonly property color accentStrong: "#c1cfbc"
-    readonly property color ink: "#f1efe9"
-    readonly property color muted: "#b4b1aa"
-    readonly property color panel: "#d91a1e20"
-    readonly property color panelRaised: "#ee202426"
+    readonly property color accent: "#9e8bf1"
+    readonly property color accentStrong: "#c0b1ff"
+    readonly property color ink: "#f1effa"
+    readonly property color muted: "#aeb4cf"
+    readonly property color panel: "#dc101522"
+    readonly property color panelRaised: "#f0182032"
     readonly property color line: "#28ffffff"
     readonly property color lineStrong: "#45ffffff"
     readonly property color danger: "#e3a5a0"
@@ -61,7 +64,8 @@ Item {
         target: sddm
 
         function onLoginSucceeded() {
-            root.statusMessage = "Welcome"
+            root.statusMessage = "Welcome back ♡"
+            root.leaving = true
         }
 
         function onLoginFailed() {
@@ -85,7 +89,7 @@ Item {
 
     Image {
         anchors.fill: parent
-        source: "background.png"
+        source: root.wallpaper
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         cache: true
@@ -94,9 +98,9 @@ Item {
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.0; color: "#a80b0e10" }
-            GradientStop { position: 0.52; color: "#8d111416" }
-            GradientStop { position: 1.0; color: "#c70a0c0d" }
+            GradientStop { position: 0.0; color: "#a4080b19" }
+            GradientStop { position: 0.52; color: "#a00d1322" }
+            GradientStop { position: 1.0; color: "#cb070a14" }
         }
     }
 
@@ -131,11 +135,11 @@ Item {
         width: Math.min(parent.width - (root.compact ? 36 : 96), 1180)
         height: Math.min(parent.height - (root.compact ? 42 : 92), 720)
         anchors.centerIn: parent
-        opacity: root.entered ? 1 : 0
-        scale: root.entered ? 1 : 0.988
+        opacity: root.entered && !root.leaving ? 1 : 0
+        scale: root.entered && !root.leaving ? 1 : 0.965
 
-        Behavior on opacity { NumberAnimation { duration: 260 } }
-        Behavior on scale { NumberAnimation { duration: 360; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: root.reduceMotion ? 0 : (root.leaving ? 420 : 540); easing.type: Easing.InOutCubic } }
+        Behavior on scale { NumberAnimation { duration: root.reduceMotion ? 0 : 650; easing.type: Easing.OutCubic } }
 
         Item {
             id: atmospherePane
@@ -166,7 +170,7 @@ Item {
                     }
 
                     Text {
-                        text: "RAOHANE · WELCOME HOME"
+                        text: "RAOHANE  /  NOCTURNE"
                         color: root.muted
                         font.pixelSize: 10
                         font.weight: Font.DemiBold
@@ -193,7 +197,7 @@ Item {
                 Text {
                     width: Math.min(500, atmospherePane.width)
                     topPadding: 14
-                    text: "Choose your session, sign in, and continue into your workspace."
+                    text: "Your space. Your colors. Welcome home."
                     color: root.muted
                     font.pixelSize: 10
                     lineHeight: 1.4
@@ -222,6 +226,58 @@ Item {
                     color: root.muted
                     font.pixelSize: 9
                     font.letterSpacing: 0.9
+                }
+            }
+        }
+
+        // Mascot stays decorative and never intercepts keyboard or pointer input.
+        Item {
+            id: mascotStage
+            visible: !root.compact
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 76
+            width: Math.min(390, Math.max(180, atmospherePane.width * 0.74))
+            height: Math.min(380, stage.height * 0.55)
+            z: -1
+            opacity: root.entered && !root.leaving ? 0.62 : 0
+
+            Behavior on opacity { NumberAnimation { duration: root.reduceMotion ? 0 : 650 } }
+
+            Image {
+                id: mascotImage
+                anchors.fill: parent
+                source: "mascot.svg"
+                fillMode: Image.PreserveAspectFit
+                asynchronous: true
+                transform: Translate {
+                    y: mascotFloat.running ? mascotFloat.offset : 0
+                }
+            }
+            SequentialAnimation {
+                id: mascotFloat
+                running: mascotStage.visible && !root.reduceMotion
+                loops: Animation.Infinite
+                property real offset: 0
+                NumberAnimation { target: mascotFloat; property: "offset"; from: 0; to: -8; duration: 3200; easing.type: Easing.InOutSine }
+                NumberAnimation { target: mascotFloat; property: "offset"; from: -8; to: 0; duration: 3200; easing.type: Easing.InOutSine }
+            }
+            Rectangle {
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.topMargin: 48
+                width: 150
+                height: 52
+                radius: 15
+                color: "#d9161b2d"
+                border.color: root.lineStrong
+                border.width: 1
+                Text {
+                    anchors.centerIn: parent
+                    text: root.leaving ? "Welcome home ♡" : "Locked...\\nSee you soon ♡"
+                    horizontalAlignment: Text.AlignHCenter
+                    color: root.ink
+                    font.pixelSize: 11
                 }
             }
         }
@@ -329,7 +385,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "ろ"
+                            text: "✦"
                             color: root.accentStrong
                             font.pixelSize: 15
                             font.weight: Font.DemiBold
@@ -562,7 +618,7 @@ Item {
 
                     background: Rectangle {
                         radius: 16
-                        color: loginButton.pressed ? "#92a18e" : (loginButton.hovered ? "#b6c5b1" : root.accentStrong)
+                        color: loginButton.pressed ? "#8e7ae5" : (loginButton.hovered ? "#d0c5ff" : root.accentStrong)
                         opacity: loginButton.enabled ? 1 : 0.58
                     }
                 }
