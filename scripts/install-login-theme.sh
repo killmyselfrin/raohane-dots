@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-THEME_SOURCE="$ROOT/login/sddm/raohane"
+THEME_SOURCE="$ROOT/display-manager/sddm/raohane"
 THEME_TARGET="/usr/share/sddm/themes/raohane"
 CONFIG_TARGET="/etc/sddm.conf.d/99-raohane-theme.conf"
 OLD_CONFIG_TARGET="/etc/sddm.conf.d/20-raohane-theme.conf"
@@ -25,6 +25,8 @@ STAGE_DIR="$USER_CACHE_HOME/raohane/sddm-theme-stage"
 
 PREVIEW=0
 SYNC_ONLY=0
+ENABLE_SDDM=0
+BACKGROUND_SOURCE=""
 
 usage() {
   cat <<'EOF'
@@ -34,16 +36,19 @@ Usage:
   bash ./scripts/install-login-theme.sh
   bash ./scripts/install-login-theme.sh --preview
   bash ./scripts/install-login-theme.sh --sync-wallpaper
+  bash ./scripts/install-login-theme.sh --background /path/to/image.png
+  bash ./scripts/install-login-theme.sh --enable
 
 The installer themes SDDM and mirrors the currently selected Raohane desktop
-wallpaper into a small world-readable cache that SDDM can access. It does not
-enable, disable, or replace your current display-manager service.
+wallpaper into a small world-readable cache that SDDM can access. It switches your display-manager service only with explicit --enable.
 EOF
 }
 
 while (($#)); do
   case "$1" in
     --preview) PREVIEW=1 ;;
+    --enable) ENABLE_SDDM=1 ;;
+    --background) [[ $# -ge 2 ]] || { echo "Missing wallpaper path" >&2; exit 2; }; BACKGROUND_SOURCE="$2"; shift ;;
     --sync-wallpaper) SYNC_ONLY=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -90,6 +95,11 @@ prepare_stage() {
   rm -rf -- "$STAGE_DIR"
   mkdir -p -- "$STAGE_DIR"
   cp -a "$THEME_SOURCE/." "$STAGE_DIR/"
+  # Copy the login owner's face so the greeter need not read a private home.
+  if [[ -r "$LOGIN_HOME/.face.icon" && -f "$LOGIN_HOME/.face.icon" ]]; then
+    cp -- "$LOGIN_HOME/.face.icon" "$STAGE_DIR/avatar-user"
+    sed -i 's/^Avatar=.*/Avatar=avatar-user/' "$STAGE_DIR/theme.conf"
+  fi
 }
 
 set_stage_wallpaper() {
@@ -116,7 +126,7 @@ select_raohane_theme() {
 [Theme]
 Current=raohane
 EOF
-  sudo rm -f -- "$OLD_CONFIG_TARGET"
+  sudo rm -f -- "$OLD_CONFIG_TARGET" /etc/sddm.conf.d/raohane-theme.conf
 
   # SDDM reads /etc/sddm.conf after the config directories, so an existing
   # Current= value there overrides every drop-in. Preserve the file, back it up
@@ -177,7 +187,11 @@ path.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
 PY
 }
 
-wallpaper="$(resolve_wallpaper || true)"
+wallpaper="${BACKGROUND_SOURCE:-$(resolve_wallpaper || true)}"
+if [[ -n "$BACKGROUND_SOURCE" && ! -r "$BACKGROUND_SOURCE" ]]; then
+  echo '[Raohane] Wallpaper must be readable.' >&2
+  exit 2
+fi
 
 if ((SYNC_ONLY)); then
   if [[ ! -d "$LOGIN_CACHE_DIR" || ! -w "$LOGIN_CACHE_DIR" ]]; then
@@ -252,8 +266,16 @@ sudo chmod -R a+rX "$THEME_TARGET"
 
 select_raohane_theme
 
+if ((ENABLE_SDDM)); then
+  sudo systemctl enable sddm.service --force
+fi
+
 printf '[Raohane] Raohane SDDM theme selected.\n'
 printf '[Raohane] Authoritative SDDM config: %s\n' "$MAIN_CONFIG"
 printf '[Raohane] Desktop wallpaper mirror lives at %s/wallpaper.\n' "$LOGIN_CACHE_DIR"
-printf '[Raohane] Existing display-manager services were left untouched.\n'
+if ((ENABLE_SDDM)); then
+  printf '[Raohane] SDDM enabled for the next graphical login.\n'
+else
+  printf '[Raohane] Existing display-manager services were left untouched.\n'
+fi
 printf '[Raohane] Preview without logging out: bash %s --preview\n' "$0"

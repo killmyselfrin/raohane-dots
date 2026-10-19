@@ -44,17 +44,21 @@ for marker in \
     || fail "theme lost SDDM integration marker: $marker"
 done
 
-rg -q 'THEME_TARGET="/usr/share/sddm/themes/raohane"' scripts/install-sddm-theme.sh \
+rg -q 'THEME_TARGET="/usr/share/sddm/themes/raohane"' scripts/install-login-theme.sh \
   || fail 'theme installer target changed unexpectedly'
-rg -q 'CONFIG_TARGET="/etc/sddm\.conf\.d/raohane-theme\.conf"' scripts/install-sddm-theme.sh \
+rg -q 'CONFIG_TARGET="/etc/sddm\.conf\.d/99-raohane-theme\.conf"' scripts/install-login-theme.sh \
   || fail 'theme installer config target changed unexpectedly'
-rg -q -- '--enable' scripts/install-sddm-theme.sh \
+rg -q -- '--enable' scripts/install-login-theme.sh \
   || fail 'theme installer lost explicit display-manager enable boundary'
-rg -q -- '--preview' scripts/install-sddm-theme.sh \
+rg -q -- '--preview' scripts/install-login-theme.sh \
   || fail 'theme installer lost preview mode'
 rg -q 'pw-play' scripts/play-ui-sound.sh \
   || fail 'UI feedback helper no longer prefers PipeWire playback'
 
+[[ ! -e login/sddm/raohane/Main.qml ]] || fail 'duplicate legacy greeter returned'
+rg -q -F '$ROOT/display-manager/sddm/raohane' scripts/install-login-theme.sh || fail 'installer uses wrong theme'
+rg -q -F 'exec bash "$ROOT/scripts/install-login-theme.sh" "$@"' scripts/install-sddm-theme.sh || fail 'legacy entry point diverged'
+bash -n scripts/install-login-theme.sh
 bash -n scripts/install-sddm-theme.sh
 bash -n scripts/play-ui-sound.sh
 

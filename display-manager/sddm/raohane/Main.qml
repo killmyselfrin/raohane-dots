@@ -2,420 +2,559 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Controls as Controls
 import QtQuick.Layouts
-import SddmComponents 2.0
 
-Item {
+Rectangle {
     id: root
     width: Screen.width
     height: Screen.height
-
+    color: "#0c0e18"
     property date now: new Date()
     property bool appeared: false
     property bool leaving: false
     property bool pending: false
-    property bool switchUser: false
-    property bool expandedOptions: false
-    property string account: String(userModel.lastUser || "")
+    property bool failed: false
     property string message: ""
-    readonly property bool compact: width < 1080 || height < 720
-    readonly property bool shortScreen: height < 760
     readonly property bool reducedMotion: String(config.ReduceMotion || "") === "true"
-    readonly property string backgroundImage: String(config.Background || "").length ? String(config.Background) : "background.png"
-    readonly property color foreground: "#f5f2ff"
-    readonly property color secondary: "#b1b7d4"
-    readonly property color lavender: "#b9a7ff"
-    readonly property color borderColor: "#647e95c8"
+    readonly property string backgroundImage: String(config.wallpaper || config.Background
+                                                     || "background.png")
+    readonly property color foreground: "#eeeef5"
+    readonly property color secondary: "#a3a7b9"
+    readonly property color lavender: "#c1b2ea"
+    readonly property color borderColor: "#24c0c8e0"
+    readonly property real uiScale: Math.min(1.12, (width - 48) / 820, (height - 100) / 500)
+
+    // Keep account resolution outside the visual hierarchy. Some greeters,
+    // including SDDM test mode, have users but no remembered lastUser.
+    Instantiator {
+        id: accounts
+        model: userModel
+        delegate: QtObject {
+            property string loginName: String(model.name || "")
+        }
+    }
+    readonly property string loginAccount: {
+        const remembered = String(userModel.lastUser || "").trim();
+        if (remembered.length)
+            return remembered;
+        if (!accounts.count)
+            return "";
+        const index = userModel.lastIndex >= 0 && userModel.lastIndex < accounts.count ? userModel.lastIndex :
+                                                                                         0;
+        const account = accounts.objectAt(index);
+        return account ? account.loginName : "";
+    }
 
     function authenticate() {
-        if (pending) return
-        const selected = switchUser || !account.length ? userField.text.trim() : account
-        if (!selected.length) {
-            message = "Enter a user name"
-            userField.forceActiveFocus()
-            return
+        if (pending || leaving)
+            return;
+        if (!root.loginAccount.length) {
+            message = qsTr("No user account is available");
+            return;
         }
-        pending = true
-        message = "Authenticating..."
-        sddm.login(selected, password.text, sessionBox.currentIndex)
+        if (sessionBox.currentIndex < 0) {
+            message = qsTr("No desktop session is installed");
+            return;
+        }
+        failed = false;
+        pending = true;
+        message = qsTr("Signing in…");
+        sddm.login(root.loginAccount, password.text, sessionBox.currentIndex);
     }
-
-    function rejected() {
-        pending = false
-        password.text = ""
-        message = "Incorrect password. Try again."
-        shake.restart()
-        password.forceActiveFocus()
-    }
-
     Connections {
         target: sddm
-        function onLoginSucceeded() {
-            root.leaving = true
-            root.message = "Welcome home ♡"
+        function onLoginFailed() {
+            root.pending = false;
+            root.failed = true;
+            password.clear();
+            root.message = qsTr("Could not sign in. Check your password and try again.");
+            if (!root.reducedMotion)
+                shake.restart();
+            password.forceActiveFocus();
         }
-        function onLoginFailed() { root.rejected() }
+        function onLoginSucceeded() {
+            password.clear();
+            root.leaving = true;
+            root.message = qsTr("Welcome home");
+        }
         function onInformationMessage(value) {
-            if (value) root.message = String(value)
+            root.message = String(value || "");
         }
     }
-
     Timer {
         interval: 1000
-        repeat: true
         running: true
-        triggeredOnStart: true
+        repeat: true
         onTriggered: root.now = new Date()
     }
-
     Component.onCompleted: {
-        appeared = true
-        if (account.length) password.forceActiveFocus()
-        else userField.forceActiveFocus()
+        appeared = true;
+        password.forceActiveFocus();
     }
-
     Image {
-        id: wallpaper
         anchors.fill: parent
         source: root.backgroundImage
         fillMode: Image.PreserveAspectCrop
+        sourceSize.width: Math.min(root.width, 2560)
         asynchronous: true
-    }
-    // A cached system image keeps SDDM independent of the unlocked user session.
-    // De-emphasize bright wallpapers without altering their source.
-    Rectangle {
-        anchors.fill: parent
-        color: "#97070a18"
     }
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0; color: "#50192842" }
-            GradientStop { position: 0.54; color: "#6011132d" }
-            GradientStop { position: 1; color: "#b4080c1b" }
+            orientation: Gradient.Horizontal
+            GradientStop {
+                position: 0
+                color: "#910c101b"
+            }
+            GradientStop {
+                position: 1
+                color: "#750c101b"
+            }
         }
     }
-    Rectangle {
-        width: Math.max(root.width * 0.46, 300)
-        height: width
-        radius: width / 2
-        x: -width * 0.28
-        y: -height * 0.32
-        color: "#6e65cf"
-        opacity: 0.075
-    }
-
     Text {
-        anchors.left: parent.left
-        anchors.leftMargin: 40
-        anchors.top: parent.top
-        anchors.topMargin: 27
-        text: "✦   R A O H A N E"
-        color: foreground
-        font.pixelSize: 13
-        font.weight: Font.DemiBold
-        font.letterSpacing: 2
+        anchors {
+            left: parent.left
+            top: parent.top
+            margins: 36
+        }
+        text: "raohane"
+        color: root.foreground
+        font {
+            pixelSize: 15
+            letterSpacing: 1.4
+            weight: Font.Medium
+        }
     }
 
+    component Pill: Controls.Button {
+        id: pill
+        property string symbol: ""
+        property bool primary: false
+        hoverEnabled: true
+        implicitHeight: 52
+        opacity: enabled ? 1 : 0.4
+        scale: down ? 0.97 : 1
+        Accessible.name: text
+        Behavior on scale {
+            NumberAnimation {
+                duration: root.reducedMotion ? 0 : 130
+            }
+        }
+        contentItem: RowLayout {
+            spacing: 13
+            Image {
+                source: pill.symbol === "⏻" ? "power.svg" : pill.symbol === "↻" ? "restart.svg" : pill.symbol
+                                                                                  === "☾" ? "sleep.svg" :
+                                                                                            "arrow.svg"
+                Layout.preferredWidth: 18
+                Layout.preferredHeight: 18
+                Layout.alignment: Qt.AlignVCenter
+                sourceSize.width: 36
+                sourceSize.height: 36
+            }
+            Text {
+                visible: !pill.primary
+                text: pill.text
+                color: root.foreground
+                font {
+                    pixelSize: 13
+                    weight: Font.Normal
+                }
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+            }
+        }
+        leftPadding: primary ? 13 : 17
+        rightPadding: primary ? 13 : 17
+        background: Rectangle {
+            radius: pill.primary ? 15 : 16
+            color: pill.primary ? (pill.hovered ? "#dfd3f7" : root.lavender) : pill.hovered ? "#44323a4c" :
+                                                                                              "transparent"
+            border.width: 1
+            border.color: pill.activeFocus ? root.lavender : "transparent"
+            Behavior on color {
+                ColorAnimation {
+                    duration: root.reducedMotion ? 0 : 160
+                }
+            }
+        }
+    }
+    component Card: Rectangle {
+        color: "#bd141924"
+        radius: 26
+        border.color: root.borderColor
+        // A cheap, static upper rim replaces blur and animated bloom.
+        Rectangle {
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                leftMargin: 26
+                rightMargin: 26
+            }
+            height: 1
+            color: "#15ffffff"
+        }
+    }
     Item {
         id: scene
-        width: Math.min(root.width - 44, 1180)
-        height: Math.min(root.height - 44, 680)
+        objectName: "scene"
+        width: 820
+        height: 500
         anchors.centerIn: parent
-        opacity: appeared && !leaving ? 1 : 0
-        scale: appeared && !leaving ? 1 : 0.965
-        Behavior on opacity { NumberAnimation { duration: root.reducedMotion ? 0 : 550; easing.type: Easing.OutCubic } }
-        Behavior on scale { NumberAnimation { duration: root.reducedMotion ? 0 : 720; easing.type: Easing.OutCubic } }
+        scale: root.uiScale * (root.appeared && !root.leaving ? 1 : 0.97)
+        opacity: root.appeared && !root.leaving ? 1 : 0
+        enabled: !root.leaving
+        Behavior on opacity {
+            NumberAnimation {
+                duration: root.reducedMotion ? 0 : 400
+                easing.type: Easing.OutCubic
+            }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: root.reducedMotion ? 0 : 500
+                easing.type: Easing.OutCubic
+            }
+        }
 
-        // Atmospheric mascot is separate from the password surface.
-        Item {
-            id: character
-            visible: !root.compact
-            width: 340
-            height: 425
-            anchors.right: parent.right
-            anchors.rightMargin: -18
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 14
-            opacity: 0.85
-            Image {
-                anchors.fill: parent
-                source: "mascot.svg"
-                fillMode: Image.PreserveAspectFit
-                transform: Translate { y: characterDrift.value }
+        Column {
+            width: 270
+            spacing: 16
+            Card {
+                width: parent.width
+                height: 264
+                Column {
+                    anchors {
+                        fill: parent
+                        margins: 26
+                    }
+                    spacing: 16
+                    Text {
+                        text: Qt.formatDate(root.now, "dddd").toUpperCase()
+                        color: root.secondary
+                        font {
+                            pixelSize: 10
+                            letterSpacing: 1.5
+                            weight: Font.Medium
+                        }
+                    }
+                    Text {
+                        text: Qt.formatTime(root.now, "HH:mm")
+                        color: root.foreground
+                        font {
+                            pixelSize: 62
+                            weight: Font.Light
+                            letterSpacing: -3
+                        }
+                    }
+                    Text {
+                        width: parent.width
+                        text: Qt.formatDate(root.now, "d MMMM yyyy")
+                        color: root.secondary
+                        font.pixelSize: 13
+                        elide: Text.ElideRight
+                    }
+                    Item {
+                        width: 1
+                        height: 6
+                    }
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: root.borderColor
+                    }
+                    Row {
+                        width: parent.width
+                        spacing: 9
+                        Rectangle {
+                            width: 5
+                            height: 5
+                            radius: 3
+                            color: root.lavender
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Text {
+                            width: parent.width - 14
+                            text: String(sddm.hostName || "Raohane")
+                            color: root.secondary
+                            font.pixelSize: 11
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
             }
-            QtObject { id: characterDrift; property real value: 0 }
-            SequentialAnimation {
-                running: character.visible && !root.reducedMotion
-                loops: Animation.Infinite
-                NumberAnimation { target: characterDrift; property: "value"; from: 0; to: -7; duration: 3700; easing.type: Easing.InOutSine }
-                NumberAnimation { target: characterDrift; property: "value"; from: -7; to: 0; duration: 3700; easing.type: Easing.InOutSine }
-            }
-            Rectangle {
-                width: 168
-                height: 54
-                radius: 15
-                x: 140
-                y: 55
-                color: "#d3182039"
-                border.width: 1
-                border.color: borderColor
-                Text {
-                    anchors.centerIn: parent
-                    text: root.leaving ? "Welcome home ♡" : "Locked...\nSee you soon ♡"
-                    font.pixelSize: 12
-                    color: foreground
-                    horizontalAlignment: Text.AlignHCenter
+            Card {
+                width: parent.width
+                height: 220
+                ColumnLayout {
+                    anchors {
+                        fill: parent
+                        margins: 18
+                    }
+                    spacing: 4
+                    Text {
+                        text: qsTr("TAKE A BREAK")
+                        color: root.secondary
+                        font {
+                            pixelSize: 10
+                            letterSpacing: 1.4
+                        }
+                        Layout.leftMargin: 10
+                        Layout.bottomMargin: 6
+                    }
+                    Pill {
+                        text: qsTr("Suspend")
+                        symbol: "☾"
+                        Layout.fillWidth: true
+                        enabled: sddm.canSuspend && !root.pending
+                        onClicked: sddm.suspend()
+                    }
+                    Pill {
+                        text: qsTr("Restart")
+                        symbol: "↻"
+                        Layout.fillWidth: true
+                        enabled: sddm.canReboot && !root.pending
+                        onClicked: sddm.reboot()
+                    }
+                    Pill {
+                        text: qsTr("Power off")
+                        symbol: "⏻"
+                        Layout.fillWidth: true
+                        enabled: sddm.canPowerOff && !root.pending
+                        onClicked: sddm.powerOff()
+                    }
                 }
             }
         }
 
         Column {
-            id: core
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: parent.top
-            anchors.topMargin: root.shortScreen ? 0 : 22
-            width: Math.min(610, scene.width)
-            spacing: root.shortScreen ? 8 : 13
-            z: 3
-
+            width: 420
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 20
             Rectangle {
-                id: clock
+                width: 120
+                height: 120
+                radius: 60
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: "#661f2432"
+                border.color: root.borderColor
+                Canvas {
+                    id: avatarImage
+                    anchors {
+                        fill: parent
+                        margins: 4
+                    }
+                    property url source: Qt.resolvedUrl(String(config.Avatar || "avatar.svg"))
+                    onSourceChanged: loadImage(source)
+                    Component.onCompleted: loadImage(source)
+                    onImageLoaded: requestPaint()
+                    onPaint: {
+                        const ctx = getContext("2d");
+                        ctx.reset();
+                        if (!isImageLoaded(source))
+                            return;
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2);
+                        ctx.clip();
+                        ctx.drawImage(source, 0, 0, width, height);
+                        ctx.restore();
+                    }
+                }
+            }
+
+            Column {
                 width: parent.width
-                height: root.shortScreen ? 150 : 215
-                radius: 28
-                color: "#c20d1429"
-                border.width: 1
-                border.color: borderColor
+                spacing: 3
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: root.leaving ? qsTr("Welcome home") : qsTr("Welcome back")
+                    color: root.secondary
+                    font.pixelSize: 13
+                }
+            }
+            Column {
+                width: parent.width
+                spacing: 14
+                transform: Translate {
+                    id: shakeTransform
+                }
                 Rectangle {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.leftMargin: 28
-                    anchors.rightMargin: 28
-                    height: 1
-                    color: "#617bb4ff"
-                    opacity: 0.6
-                }
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 7
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "L O C K E D"
-                        font.pixelSize: 11
-                        color: secondary
-                        font.letterSpacing: 3
-                    }
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: Qt.formatTime(root.now, "HH:mm")
-                        font.pixelSize: root.shortScreen ? 70 : 108
-                        font.weight: Font.Light
-                        font.letterSpacing: -3
-                        color: foreground
-                    }
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: Qt.formatDate(root.now, "dddd, d MMMM")
-                        font.pixelSize: 14
-                        color: secondary
-                    }
-                }
-            }
-
-            Rectangle {
-                width: parent.width
-                height: root.shortScreen ? 60 : 88
-                radius: 21
-                color: "#bd10182b"
-                border.width: 1
-                border.color: "#497e95c8"
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 14
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 5
-                        Text { text: "RAOHANE  /  NOCTURNE"; color: foreground; font.pixelSize: 12; font.weight: Font.DemiBold }
-                        Text { text: "Your space. Your colors."; color: secondary; font.pixelSize: 11 }
-                    }
-                    Rectangle { Layout.preferredWidth: 1; Layout.fillHeight: true; color: borderColor }
-                    ColumnLayout {
-                        spacing: 3
-                        Text { text: root.account.length ? root.account : "Choose account"; color: foreground; font.pixelSize: 13; font.weight: Font.DemiBold }
-                        Text { text: sessionBox.displayText; color: secondary; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 150 }
-                    }
-                }
-            }
-
-            Item {
-                width: parent.width
-                height: 20
-                Row {
-                    anchors.centerIn: parent
-                    spacing: 4
-                    Repeater {
-                        model: 55
-                        Rectangle {
-                            required property int index
-                            width: 3
-                            height: 4 + Math.abs(Math.sin(index * 0.36) * Math.cos(index * 0.13)) * 15
-                            radius: 2
-                            anchors.verticalCenter: parent.verticalCenter
-                            color: index < 28 ? "#81cafa" : lavender
-                            opacity: 0.35 + (height / 20) * 0.55
+                    width: parent.width
+                    height: 60
+                    radius: 21
+                    color: "#ce1c2230"
+                    border.color: root.failed ? "#d8c18f9d" : password.activeFocus ? "#8cc1b2ea" :
+                                                                                     root.borderColor
+                    Behavior on border.color {
+                        ColorAnimation {
+                            duration: root.reducedMotion ? 0 : 140
                         }
                     }
-                }
-            }
-
-            Rectangle {
-                id: loginPanel
-                width: parent.width
-                height: (root.switchUser || root.account.length === 0 ? 190 : 140) + (root.expandedOptions ? 160 : 0)
-                radius: 24
-                color: "#dc0c1326"
-                border.width: 1
-                border.color: borderColor
-                Behavior on height { NumberAnimation { duration: root.reducedMotion ? 0 : 240; easing.type: Easing.OutCubic } }
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 9
-
                     Controls.TextField {
-                        id: userField
-                        visible: root.switchUser || root.account.length === 0
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: visible ? 39 : 0
-                        placeholderText: "User name"
-                        text: root.account
-                        color: foreground
-                        placeholderTextColor: secondary
-                        background: Rectangle { radius: 11; color: "#292c3d"; border.color: borderColor }
-                        Keys.onReturnPressed: password.forceActiveFocus()
+                        id: password
+                        objectName: "password"
+                        anchors {
+                            left: parent.left
+                            right: submitButton.left
+                            top: parent.top
+                            bottom: parent.bottom
+                            leftMargin: 4
+                            rightMargin: 6
+                        }
+                        enabled: !root.pending
+                        echoMode: TextInput.Password
+                        passwordCharacter: "●"
+                        passwordMaskDelay: 0
+                        inputMethodHints: Qt.ImhHiddenText | Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
+                        placeholderText: qsTr("Enter your password")
+                        Accessible.name: qsTr("Password")
+                        placeholderTextColor: root.secondary
+                        color: root.foreground
+                        font.pixelSize: 14
+                        leftPadding: 18
+                        background: Item {}
+                        onAccepted: root.authenticate()
                     }
-
-                    RowLayout {
-                        id: passwordRow
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 50
-                        spacing: 8
-                        transform: Translate { id: shakeTransform; x: 0 }
-                        Controls.TextField {
-                            id: password
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            enabled: !root.pending
-                            echoMode: TextInput.Password
-                            placeholderText: "Enter your password"
-                            placeholderTextColor: secondary
-                            color: foreground
-                            leftPadding: 17
-                            background: Rectangle {
-                                radius: 13
-                                color: "#23283b"
-                                border.width: 1
-                                border.color: password.activeFocus ? lavender : borderColor
-                            }
-                            Keys.onReturnPressed: root.authenticate()
-                            Keys.onEnterPressed: root.authenticate()
+                    Pill {
+                        id: submitButton
+                        objectName: "signIn"
+                        width: 44
+                        height: 44
+                        anchors {
+                            right: parent.right
+                            verticalCenter: parent.verticalCenter
+                            rightMargin: 8
                         }
-                        Controls.Button {
-                            Layout.preferredWidth: 51
-                            Layout.fillHeight: true
-                            enabled: !root.pending
-                            onClicked: root.authenticate()
-                            contentItem: Text {
-                                text: root.pending ? "···" : "→"
-                                font.pixelSize: 24
-                                color: "#141526"
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                            background: Rectangle { radius: 13; color: lavender }
-                        }
+                        primary: true
+                        text: root.pending ? qsTr("Signing in…") : qsTr("Sign in")
+                        symbol: "→"
+                        enabled: !root.pending && sessionBox.currentIndex >= 0
+                        onClicked: root.authenticate()
                     }
+                }
+                Text {
+                    width: parent.width - 16
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    height: 36
+                    text: root.message.length ? root.message : keyboard.capsLock ? qsTr("Caps Lock is on") :
+                                                                                   qsTr("Press Enter to sign in")
+                    color: root.failed ? "#e0b2bd" : root.secondary
+                    opacity: root.message.length || keyboard.capsLock ? 1 : 0.65
+                    font.pixelSize: 11
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                }
+            }
 
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Controls.Button {
-                            text: root.switchUser ? "Use previous account" : "Switch user"
-                            visible: root.account.length > 0
-                            onClicked: {
-                                root.switchUser = !root.switchUser
-                                password.text = ""
-                                if (root.switchUser) {
-                                    userField.text = ""
-                                    userField.forceActiveFocus()
-                                } else password.forceActiveFocus()
-                            }
-                            contentItem: Text { text: parent.text; color: secondary; font.pixelSize: 11 }
-                            background: Item {}
-                        }
-                        Item { Layout.fillWidth: true }
-                        Controls.Button {
-                            text: root.expandedOptions ? "Hide options" : "Session / Power"
-                            onClicked: root.expandedOptions = !root.expandedOptions
-                            contentItem: Text { text: parent.text; color: secondary; font.pixelSize: 11 }
-                            background: Item {}
-                        }
+            Card {
+                width: parent.width
+                height: 96
+                ColumnLayout {
+                    anchors {
+                        fill: parent
+                        margins: 16
                     }
-
                     Text {
-                        Layout.fillWidth: true
-                        text: root.message
-                        color: root.message.indexOf("Incorrect") >= 0 ? "#f2a0b6" : secondary
-                        horizontalAlignment: Text.AlignHCenter
-                        font.pixelSize: 11
-                        elide: Text.ElideRight
-                    }
-
-                    ColumnLayout {
-                        visible: root.expandedOptions
-                        Layout.fillWidth: true
-                        spacing: 8
-                        Controls.ComboBox {
-                            id: sessionBox
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 42
-                            model: sessionModel
-                            textRole: "name"
-                            currentIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
-                            enabled: !root.pending
+                        text: qsTr("DESKTOP SESSION")
+                        color: root.secondary
+                        font {
+                            pixelSize: 10
+                            letterSpacing: 1
                         }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 8
-                            Controls.Button { text: "Suspend"; enabled: sddm.canSuspend; onClicked: sddm.suspend(); Layout.fillWidth: true }
-                            Controls.Button { text: "Restart"; enabled: sddm.canReboot; onClicked: sddm.reboot(); Layout.fillWidth: true }
-                            Controls.Button { text: "Power off"; enabled: sddm.canPowerOff; onClicked: sddm.powerOff(); Layout.fillWidth: true }
+                    }
+                    Controls.ComboBox {
+                        id: sessionBox
+                        objectName: "sessionBox"
+                        Layout.preferredWidth: 240
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 42
+                        model: sessionModel
+                        textRole: "name"
+                        currentIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
+                        enabled: !root.pending
+                        leftPadding: 22
+                        rightPadding: 28
+                        Accessible.name: qsTr("Desktop session")
+                        contentItem: Text {
+                            text: sessionBox.displayText
+                            color: root.foreground
+                            font.pixelSize: 13
+                            elide: Text.ElideRight
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: 14
+                            color: "#661f2735"
+                            border.color: sessionBox.activeFocus ? root.lavender : root.borderColor
+                        }
+                        indicator: Text {
+                            anchors {
+                                right: parent.right
+                                verticalCenter: parent.verticalCenter
+                                rightMargin: 15
+                            }
+                            text: "⌄"
+                            color: root.secondary
+                            font.pixelSize: 17
+                        }
+                        delegate: Controls.ItemDelegate {
+                            width: sessionBox.width
+                            contentItem: Text {
+                                text: model.name
+                                color: root.foreground
+                                elide: Text.ElideRight
+                                font.pixelSize: 13
+                            }
+                            background: Rectangle {
+                                color: highlighted ? "#39334f" : "#1b1e2c"
+                            }
+                            highlighted: sessionBox.highlightedIndex === index
+                        }
+                        popup: Controls.Popup {
+                            y: sessionBox.height + 6
+                            width: sessionBox.width
+                            padding: 6
+                            implicitHeight: Math.min(contentItem.implicitHeight + 12, 240)
+                            contentItem: ListView {
+                                clip: true
+                                implicitHeight: contentHeight
+                                model: sessionBox.popup.visible ? sessionBox.delegateModel : null
+                                currentIndex: sessionBox.highlightedIndex
+                                Controls.ScrollIndicator.vertical: Controls.ScrollIndicator {}
+                            }
+                            background: Rectangle {
+                                color: "#1b1e2c"
+                                radius: 16
+                                border.color: root.borderColor
+                            }
                         }
                     }
                 }
             }
         }
     }
-
     SequentialAnimation {
         id: shake
-        NumberAnimation { target: shakeTransform; property: "x"; to: 10; duration: 45 }
-        NumberAnimation { target: shakeTransform; property: "x"; to: -10; duration: 70 }
-        NumberAnimation { target: shakeTransform; property: "x"; to: 7; duration: 65 }
-        NumberAnimation { target: shakeTransform; property: "x"; to: 0; duration: 75 }
-    }
-
-    Text {
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 26
-        anchors.left: parent.left
-        anchors.leftMargin: 40
-        text: "GOOD SOFTWARE  /  BRIGHTER DAYS"
-        color: secondary
-        opacity: 0.65
-        font.pixelSize: 10
-        font.letterSpacing: 2
+        NumberAnimation {
+            target: shakeTransform
+            property: "x"
+            to: -8
+            duration: 45
+        }
+        NumberAnimation {
+            target: shakeTransform
+            property: "x"
+            to: 8
+            duration: 65
+        }
+        NumberAnimation {
+            target: shakeTransform
+            property: "x"
+            to: 0
+            duration: 80
+        }
     }
 }
