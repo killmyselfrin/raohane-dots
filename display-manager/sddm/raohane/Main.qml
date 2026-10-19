@@ -145,91 +145,41 @@ Item {
         Behavior on opacity { NumberAnimation { duration: root.reduceMotion ? 0 : (root.leaving ? 420 : 540); easing.type: Easing.InOutCubic } }
         Behavior on scale { NumberAnimation { duration: root.reduceMotion ? 0 : 650; easing.type: Easing.OutCubic } }
 
-        Item {
-            id: atmospherePane
-            visible: !root.compact
-            anchors {
-                left: parent.left
-                top: parent.top
-                bottom: parent.bottom
-                right: authCard.left
-                rightMargin: 72
-            }
+        // Central clock takes priority; the account controls live below it.
+        Rectangle {
+            id: clockGlass
+            width: Math.min(stage.width, root.compact ? 490 : 590)
+            height: root.compact ? 142 : 170
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            radius: 27
+            color: "#c5121828"
+            border.color: root.lineStrong
+            border.width: 1
 
             Column {
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.centerIn: parent
                 spacing: 5
-
-                Row {
-                    spacing: 10
-
-                    Rectangle {
-                        width: 30
-                        height: 2
-                        radius: 1
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: root.accentStrong
-                        opacity: 0.88
-                    }
-
-                    Text {
-                        text: "RAOHANE  /  NOCTURNE"
-                        color: root.muted
-                        font.pixelSize: 10
-                        font.weight: Font.DemiBold
-                        font.letterSpacing: 1.35
-                    }
-                }
-
                 Text {
-                    text: Qt.formatTime(root.now, "HH:mm")
-                    color: root.ink
-                    font.pixelSize: Math.min(112, Math.max(78, root.height * 0.115))
-                    font.weight: Font.ExtraLight
-                    font.letterSpacing: -2.8
-                }
-
-                Text {
-                    text: Qt.formatDate(root.now, "dddd, d MMMM")
-                    color: root.ink
-                    opacity: 0.84
-                    font.pixelSize: 16
-                    font.weight: Font.Medium
-                }
-
-                Text {
-                    width: Math.min(500, atmospherePane.width)
-                    topPadding: 14
-                    text: "Your space. Your colors. Welcome home."
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "RAOHANE  /  LOCKED"
                     color: root.muted
                     font.pixelSize: 10
-                    lineHeight: 1.4
-                    wrapMode: Text.WordWrap
+                    font.letterSpacing: 3
                 }
-            }
-
-            Row {
-                anchors.left: parent.left
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 8
-                spacing: 9
-
-                Rectangle {
-                    width: 8
-                    height: 8
-                    radius: 4
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: root.accentStrong
-                    opacity: 0.85
-                }
-
                 Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "DISPLAY MANAGER  /  " + String(sddm.hostName).toUpperCase()
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Qt.formatTime(root.now, "HH:mm")
+                    color: root.ink
+                    font.pixelSize: root.compact ? 64 : 82
+                    font.weight: Font.Light
+                    font.letterSpacing: -2
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Qt.formatDate(root.now, "dddd, d MMMM")
                     color: root.muted
-                    font.pixelSize: 9
-                    font.letterSpacing: 0.9
+                    font.pixelSize: 13
                 }
             }
         }
@@ -238,13 +188,13 @@ Item {
         Item {
             id: mascotStage
             visible: !root.compact
-            anchors.left: parent.left
+            anchors.right: parent.right
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 76
-            width: Math.min(390, Math.max(180, atmospherePane.width * 0.74))
+            anchors.bottomMargin: 25
+            width: Math.min(320, stage.width * 0.29)
             height: Math.min(380, stage.height * 0.55)
-            z: -1
-            opacity: root.entered && !root.leaving ? 0.62 : 0
+            z: 2
+            opacity: root.entered && !root.leaving ? 0.85 : 0
 
             Behavior on opacity { NumberAnimation { duration: root.reduceMotion ? 0 : 650 } }
 
@@ -288,10 +238,11 @@ Item {
 
         Rectangle {
             id: authCard
-            width: root.compact ? Math.min(stage.width, 500) : 446
-            height: root.compact ? Math.min(stage.height, 636) : 628
-            x: root.compact ? (stage.width - width) / 2 : stage.width - width
-            anchors.verticalCenter: parent.verticalCenter
+            width: Math.min(stage.width, root.compact ? 490 : 590)
+            height: Math.min(stage.height - clockGlass.height - 16, 490)
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: clockGlass.bottom
+            anchors.topMargin: 16
             radius: 30
             color: root.panel
             border.width: 1
@@ -332,16 +283,16 @@ Item {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: root.compact ? 24 : 30
-                spacing: 13
+                anchors.margins: root.compact ? 15 : 22
+                spacing: 6
 
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 13
 
                     Rectangle {
-                        Layout.preferredWidth: 64
-                        Layout.preferredHeight: 64
+                        Layout.preferredWidth: 42
+                        Layout.preferredHeight: 42
                         radius: 21
                         color: "#18ffffff"
                         border.width: 1
@@ -472,6 +423,7 @@ Item {
 
                 Text {
                     text: "PASSWORD"
+                    visible: false
                     color: root.muted
                     font.pixelSize: 9
                     font.weight: Font.DemiBold
@@ -481,7 +433,7 @@ Item {
                 Controls.TextField {
                     id: passwordField
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 50
+                    Layout.preferredHeight: 43
                     color: root.ink
                     selectionColor: root.accent
                     selectedTextColor: "#151817"
@@ -531,6 +483,7 @@ Item {
 
                 Text {
                     text: "SESSION"
+                    visible: false
                     color: root.muted
                     font.pixelSize: 9
                     font.weight: Font.DemiBold
@@ -631,7 +584,7 @@ Item {
                 Controls.Button {
                     id: loginButton
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 52
+                    Layout.preferredHeight: 45
                     enabled: !root.loginPending
                     onClicked: root.beginLogin()
 
