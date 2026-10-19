@@ -99,6 +99,8 @@ for width, height in [(1920, 1080), (1366, 768), (800, 600)]:
     assert scene.width() * scene.scale() <= width - 40
     assert scene.height() * scene.scale() <= height - 80
     if os.environ.get("RAOHANE_TEST_RENDER"):
+        # Let asynchronous image decoding finish before exporting a preview.
+        QTest.qWait(600)
         view.grabWindow().save(f"/tmp/raohane-sddm-{width}.png")
 
 # An empty remembered name still resolves the actual model's selected user.

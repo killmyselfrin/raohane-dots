@@ -3,8 +3,9 @@
 The canonical theme is `display-manager/sddm/raohane`. Both installer names
 now use this source; the retired `login/sddm/raohane` copy must not return.
 
-The three-column layout pairs clock/power cards with a centered circular avatar
-and login form, and a session picker on the right.
+The compact two-column layout pairs clock/power cards with a circular avatar
+and login form. The session picker sits directly below the password, aligned
+to the same width, rather than occupying a detached third column.
 Raohane supplies the graphite/lavender palette, keyboard-accessible controls,
 masked password, pending/error states and reduced-motion option.
 

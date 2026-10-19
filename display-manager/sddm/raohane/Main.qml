@@ -21,7 +21,7 @@ Rectangle {
     readonly property color secondary: "#a3a7b9"
     readonly property color lavender: "#c1b2ea"
     readonly property color borderColor: "#24c0c8e0"
-    readonly property real uiScale: Math.min(1.12, (width - 48) / 1100, (height - 100) / 500)
+    readonly property real uiScale: Math.min(1.12, (width - 48) / 820, (height - 100) / 500)
 
     // Keep account resolution outside the visual hierarchy. Some greeters,
     // including SDDM test mode, have users but no remembered lastUser.
@@ -199,7 +199,7 @@ Rectangle {
     Item {
         id: scene
         objectName: "scene"
-        width: 1100
+        width: 820
         height: 500
         anchors.centerIn: parent
         scale: root.uiScale * (root.appeared && !root.leaving ? 1 : 0.97)
@@ -329,14 +329,14 @@ Rectangle {
         }
 
         Column {
-            width: 440
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: 420
+            anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             spacing: 20
             Rectangle {
-                width: 136
-                height: 136
-                radius: 68
+                width: 120
+                height: 120
+                radius: 60
                 anchors.horizontalCenter: parent.horizontalCenter
                 color: "#661f2432"
                 border.color: root.borderColor
@@ -448,17 +448,10 @@ Rectangle {
                     wrapMode: Text.WordWrap
                 }
             }
-        }
-
-        Column {
-            width: 270
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            spacing: 16
 
             Card {
                 width: parent.width
-                height: 124
+                height: 96
                 ColumnLayout {
                     anchors {
                         fill: parent
@@ -477,7 +470,7 @@ Rectangle {
                         objectName: "sessionBox"
                         Layout.preferredWidth: 240
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 48
+                        Layout.preferredHeight: 42
                         model: sessionModel
                         textRole: "name"
                         currentIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
@@ -493,7 +486,7 @@ Rectangle {
                             verticalAlignment: Text.AlignVCenter
                         }
                         background: Rectangle {
-                            radius: 34
+                            radius: 14
                             color: "#661f2735"
                             border.color: sessionBox.activeFocus ? root.lavender : root.borderColor
                         }
