@@ -7,18 +7,21 @@ THEME_TARGET="/usr/share/sddm/themes/raohane"
 CONFIG_TARGET="/etc/sddm.conf.d/raohane-theme.conf"
 ENABLE_SDDM=0
 PREVIEW_ONLY=0
+BACKGROUND_SOURCE=""
 
 usage() {
   cat <<'EOF'
 Raohane SDDM greeter installer
 
 Usage:
-  scripts/install-sddm-theme.sh [--enable|--preview]
+  scripts/install-sddm-theme.sh [--enable] [--background /path/to/wallpaper.png]
+  scripts/install-sddm-theme.sh --preview
 
 Options:
   --enable   Install the theme and explicitly enable SDDM as display manager.
              This can replace another display-manager.service symlink.
   --preview  Launch the source theme in SDDM test mode; make no system changes.
+  --background PATH  Copy this wallpaper into the system theme for the login screen.
   -h, --help Show this help.
 
 Without --enable the theme is installed and selected in SDDM configuration,
@@ -30,6 +33,7 @@ while (($#)); do
   case "$1" in
     --enable) ENABLE_SDDM=1 ;;
     --preview) PREVIEW_ONLY=1 ;;
+    --background) [[ $# -ge 2 ]] || { echo "Missing wallpaper path" >&2; exit 2; }; BACKGROUND_SOURCE="$2"; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "[Raohane] Unknown SDDM option: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -48,6 +52,17 @@ done
   echo "[Raohane] Missing SDDM background asset." >&2
   exit 1
 }
+
+if [[ -n "$BACKGROUND_SOURCE" ]]; then
+  [[ -f "$BACKGROUND_SOURCE" && -r "$BACKGROUND_SOURCE" ]] || {
+    echo "[Raohane] Wallpaper must be a readable regular file." >&2
+    exit 2
+  }
+  case "${BACKGROUND_SOURCE,,}" in
+    *.png|*.jpg|*.jpeg|*.webp) ;;
+    *) echo "[Raohane] Supported wallpapers: PNG, JPEG, WebP." >&2; exit 2 ;;
+  esac
+fi
 
 if ((PREVIEW_ONLY)); then
   greeter=""
@@ -85,6 +100,18 @@ command -v rsync >/dev/null 2>&1 || {
 printf '[Raohane] Installing SDDM theme...\n'
 sudo install -d -m 0755 "$THEME_TARGET" /etc/sddm.conf.d
 sudo rsync -a --delete --chown=root:root "$THEME_SOURCE/" "$THEME_TARGET/"
+
+# SDDM runs as a system greeter. Copy user wallpaper into a readable system path.
+# Never configure it to use an inaccessible file in the user's home directory.
+if [[ -n "$BACKGROUND_SOURCE" ]]; then
+  suffix="${BACKGROUND_SOURCE##*.}"
+  suffix="${suffix,,}"
+  [[ "$suffix" == "jpeg" ]] && suffix="jpg"
+  installed_wallpaper="$THEME_TARGET/wallpaper-user.$suffix"
+  sudo install -m 0644 "$BACKGROUND_SOURCE" "$installed_wallpaper"
+  printf '[General]\\nBackground=%s\\n' "$installed_wallpaper" | sudo tee "$THEME_TARGET/theme.conf.user" >/dev/null
+  printf '[Raohane] SDDM wallpaper copied to %s\\n' "$installed_wallpaper"
+fi
 
 config_tmp="$(mktemp)"
 cleanup() { rm -f -- "$config_tmp"; }
