@@ -13,6 +13,7 @@ Rectangle {
     property bool leaving: false
     property bool pending: false
     property bool failed: false
+    property bool accountRequired: !String(userModel.lastUser || "").trim().length
     property string message: ""
     readonly property bool reducedMotion: String(config.ReduceMotion || "") === "true"
     readonly property string backgroundImage: String(config.wallpaper || config.Background
@@ -28,6 +29,7 @@ Rectangle {
             return;
         if (!userField.text.trim().length) {
             message = qsTr("Enter your user name");
+            root.accountRequired = true;
             userField.forceActiveFocus();
             return;
         }
@@ -360,8 +362,10 @@ Rectangle {
                 Controls.TextField {
                     id: userField
                     objectName: "userField"
+                    // Only ask for an account if SDDM has no remembered user.
+                    visible: root.accountRequired
                     width: parent.width - 48
-                    height: 44
+                    height: visible ? 44 : 0
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: String(userModel.lastUser || "")
                     placeholderText: qsTr("User name")
@@ -483,29 +487,16 @@ Rectangle {
                         letterSpacing: 1.4
                     }
                 }
-                Image {
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        top: parent.top
-                        bottom: dialogue.top
-                        margins: 24
-                        topMargin: 52
-                    }
-                    source: String(config.Mascot || "mascot.svg")
-                    fillMode: Image.PreserveAspectFit
-                    sourceSize.width: 480
-                    asynchronous: true
-                }
                 Rectangle {
                     id: dialogue
                     anchors {
                         left: parent.left
                         right: parent.right
+                        top: parent.top
                         bottom: parent.bottom
                         margins: 20
+                        topMargin: 52
                     }
-                    height: 62
                     radius: 18
                     color: "transparent"
                     Text {

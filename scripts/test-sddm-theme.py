@@ -50,7 +50,6 @@ config.insert("ReduceMotion", "true")
 config.insert("wallpaper", "")
 config.insert("Background", "background.png")
 config.insert("Avatar", "avatar.svg")
-config.insert("Mascot", "mascot.svg")
 user.insert("lastUser", "raohane")
 keyboard.insert("capsLock", False)
 view = QQuickView()
@@ -68,6 +67,7 @@ username = root.findChild(QObject, "userField")
 session = root.findChild(QObject, "sessionBox")
 scene = root.findChild(QObject, "scene")
 assert session.property("currentIndex") == 1
+assert not username.property("visible"), "remembered account name must stay hidden"
 for width, height in [(1920, 1080), (1366, 768), (800, 600)]:
     view.resize(width, height)
     QTest.qWait(300)
@@ -79,6 +79,7 @@ for width, height in [(1920, 1080), (1366, 768), (800, 600)]:
 username.setProperty("text", "")
 QMetaObject.invokeMethod(root, "authenticate")
 assert not proxy.calls
+assert username.property("visible"), "missing account must remain recoverable"
 username.setProperty("text", " raohane ")
 password.setProperty("text", "test-only")
 password.forceActiveFocus()
