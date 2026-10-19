@@ -63,3 +63,14 @@ This file records known repository provenance and the current technical boundary
 ## Raohane-owned direction
 
 Raohane-specific work includes the product identity, Japanese/minimal dark-glass design direction, Context Island, native bar/launcher/control/settings/media/OSD/notification/desktop/session surfaces, Raohane-owned services/configuration framework, hardware/bootstrap diagnostics, graphics/display planning and the standalone release/runtime architecture.
+
+
+### SDDM composition reference
+
+The Raohane greeter composition (stacked clock, rounded action grid and separate
+authentication card) was informed by ilyamiro/serpantinum,
+`config/sddm/themes/material-you/Main.qml` at blob
+`37a0cc48804349c8bfa362565ae57923698ec42e`.
+The Raohane implementation uses its own Nocturne palette and native Qt Quick
+Controls; no upstream font binaries or background assets were imported.
+Reference: https://github.com/ilyamiro/serpantinum/tree/master/config/sddm/themes/material-you

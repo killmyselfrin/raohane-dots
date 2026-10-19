@@ -8,7 +8,11 @@ on:
       - 'modules/raohane/services/RaohaneUiFeedback.qml'
       - 'scripts/play-ui-sound.sh'
       - 'scripts/install-sddm-theme.sh'
+      - 'scripts/install-login-theme.sh'
+      - 'scripts/sync-login-wallpaper.sh'
+      - 'install-raohane.sh'
       - 'scripts/sddm-theme-audit.sh'
+      - 'scripts/test-sddm-theme.py'
       - 'install/arch/**'
       - '.github/workflows/sddm-theme-audit.yml'
   pull_request:
@@ -17,7 +21,11 @@ on:
       - 'modules/raohane/services/RaohaneUiFeedback.qml'
       - 'scripts/play-ui-sound.sh'
       - 'scripts/install-sddm-theme.sh'
+      - 'scripts/install-login-theme.sh'
+      - 'scripts/sync-login-wallpaper.sh'
+      - 'install-raohane.sh'
       - 'scripts/sddm-theme-audit.sh'
+      - 'scripts/test-sddm-theme.py'
       - 'install/arch/**'
       - '.github/workflows/sddm-theme-audit.yml'
   workflow_dispatch:
@@ -38,3 +46,10 @@ jobs:
       - name: Validate Raohane SDDM theme and UI audio fallback
         shell: bash
         run: bash scripts/sddm-theme-audit.sh
+
+
+      - name: Exercise greeter with isolated SDDM models
+        run: |
+          python3 -m venv /tmp/sddm-test-env
+          /tmp/sddm-test-env/bin/pip install PySide6-Essentials==6.8.3
+          /tmp/sddm-test-env/bin/python scripts/test-sddm-theme.py

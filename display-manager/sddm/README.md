@@ -1,51 +1,43 @@
-# Raohane SDDM greeter
+# Raohane SDDM
 
-This theme is the pre-session companion to the Raohane lock screen. It uses SDDM's native `userModel`, `sessionModel` and authentication proxy, so every session installed in the system session directories is exposed by the session picker without hard-coding Hyprland, Niri or another compositor.
+The canonical theme is `display-manager/sddm/raohane`. Both installer names
+now use this source; the retired `login/sddm/raohane` copy must not return.
 
-Install it from the repository root:
+The layout pairs a stacked clock/date with rounded power/session tiles and a
+separate login card, inspired by the serpantinum material-you composition.
+Raohane supplies the graphite/lavender palette, keyboard-accessible controls,
+masked password, pending/error states and reduced-motion option.
 
-```bash
-scripts/install-sddm-theme.sh
-```
+## Preview and install
 
-Install it and explicitly make SDDM the enabled display manager:
-
-```bash
-scripts/install-sddm-theme.sh --enable
-```
-
-Preview without changing the active theme when the SDDM greeter binary is available:
+Run as your normal desktop user:
 
 ```bash
-scripts/install-sddm-theme.sh --preview
+bash scripts/install-login-theme.sh --preview
+bash scripts/install-login-theme.sh
 ```
 
-The installer writes only `/usr/share/sddm/themes/raohane` and `/etc/sddm.conf.d/raohane-theme.conf`. `--enable` is intentionally separate because changing display managers is a system-level choice.
+`scripts/install-sddm-theme.sh` remains an alias with the same options.
+`--background /path/to/image.png` overrides automatic desktop wallpaper detection.
+`--enable` explicitly enables SDDM; normal installation does not change services.
 
-## Nocturne greeter (development)
+Installation selects Raohane in `/etc/sddm.conf.d/99-raohane-theme.conf` and
+`/etc/sddm.conf` (backed up once to `/etc/sddm.conf.raohane.bak` if present).
+It removes older Raohane drop-ins. The selected desktop wallpaper is copied
+to `/var/cache/raohane-login/wallpaper`, readable before user login. Existing
+shell wallpaper synchronization keeps this cache updated. Video wallpapers use
+a still frame when ffmpeg is available. Preview uses a separate user cache.
 
-The theme now uses Raohane's graphite/lavender glass palette, a locally bundled
-mascot illustration, a gentle entrance transition and a fade on successful
-authentication. The existing native SDDM username, password, session selector,
-error handling, and power actions remain in place.
+Set `ReduceMotion=true` in the installed theme's `theme.conf.user` under
+`[General]` to disable transitions. The greeter uses system fonts.
 
-To show a selected desktop wallpaper on the login screen, reinstall the theme
-with a readable image path:
+## Verification
 
-```bash
-scripts/install-sddm-theme.sh --background "$HOME/Pictures/wallpaper.png"
-```
+`bash scripts/sddm-theme-audit.sh` checks install/authentication contracts.
+`python3 scripts/test-sddm-theme.py` additionally exercises the actual QML with
+mock SDDM models using PySide6 (test dependency only). This does not test PAM.
 
-This **copies** the image into the system theme directory, because SDDM runs
-before the desktop session and cannot reliably read files inside a user's home.
-Whenever wallpaper changes, rerun the command to resync it. Without the option,
-the theme uses its bundled background. For testing:
-
-```bash
-scripts/install-sddm-theme.sh --preview
-```
-
-**SDDM is a login greeter, not a session lock screen.** The same motion style can
-be shared with Raohane's in-session lock surface, but unlock animation and
-session-lock security require a separate implementation. Do not test greeter
-changes by forcibly restarting SDDM from an active graphical session.
+Before merging: test the Qt 6 SDDM greeter on the target machine, wrong/correct
+passwords, account/session selection, keyboard focus and actual wallpaper.
+SDDM is the pre-session login screen; it does not replace the shell lock screen.
+Do not restart SDDM from an active desktop to preview a theme.
