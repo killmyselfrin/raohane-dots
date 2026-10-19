@@ -16,6 +16,9 @@ Item {
     property bool loginPending: false
     property bool entered: false
     property bool leaving: false
+    property bool changeUser: false
+    property string selectedUser: String(userModel.lastUser || "")
+    readonly property bool showUserEntry: changeUser || selectedUser.length === 0
     readonly property bool reduceMotion: config.ReduceMotion === "true"
     readonly property string wallpaper: config.Background && String(config.Background).length > 0 ? String(config.Background) : "background.png"
 
@@ -31,7 +34,7 @@ Item {
     readonly property color danger: "#e3a5a0"
 
     function beginLogin(): void {
-        const user = usernameField.text.trim()
+        const user = (root.showUserEntry ? usernameField.text : root.selectedUser).trim()
         if (user.length === 0) {
             root.statusMessage = "Enter a user name"
             usernameField.forceActiveFocus()
@@ -51,10 +54,10 @@ Item {
 
     Component.onCompleted: {
         root.entered = true
-        if (usernameField.text.length > 0)
-            passwordField.forceActiveFocus()
-        else
+        if (root.showUserEntry)
             usernameField.forceActiveFocus()
+        else
+            passwordField.forceActiveFocus()
     }
 
     TextConstants {
@@ -360,7 +363,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: usernameField.text.length > 0 ? usernameField.text : "User"
+                            text: root.showUserEntry ? (usernameField.text.length > 0 ? usernameField.text : "User") : root.selectedUser
                             color: root.ink
                             font.pixelSize: 17
                             font.weight: Font.DemiBold
@@ -396,19 +399,56 @@ Item {
 
                 Item { Layout.preferredHeight: 3 }
 
-                Text {
-                    text: "ACCOUNT"
-                    color: root.muted
-                    font.pixelSize: 9
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: 1.2
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.showUserEntry ? "USER NAME" : "SIGNED IN AS  " + root.selectedUser
+                        color: root.muted
+                        font.pixelSize: 9
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.1
+                        elide: Text.ElideRight
+                    }
+
+                    Controls.Button {
+                        visible: !root.loginPending && root.selectedUser.length > 0
+                        text: root.changeUser ? "Back" : "Switch user"
+                        onClicked: {
+                            root.changeUser = !root.changeUser
+                            passwordField.text = ""
+                            if (root.changeUser) {
+                                usernameField.text = ""
+                                usernameField.forceActiveFocus()
+                            } else {
+                                usernameField.text = root.selectedUser
+                                passwordField.forceActiveFocus()
+                            }
+                        }
+                        contentItem: Text {
+                            text: parent.text
+                            color: root.accentStrong
+                            font.pixelSize: 10
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: 10
+                            color: parent.hovered ? "#20ffffff" : "#0effffff"
+                            border.color: root.line
+                            border.width: 1
+                        }
+                    }
                 }
 
                 Controls.TextField {
                     id: usernameField
+                    visible: root.showUserEntry
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 50
-                    text: userModel.lastUser
+                    Layout.preferredHeight: visible ? 50 : 0
+                    text: root.selectedUser
                     color: root.ink
                     selectionColor: root.accent
                     selectedTextColor: "#151817"
