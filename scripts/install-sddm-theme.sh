@@ -21,7 +21,7 @@ Options:
   --enable   Install the theme and explicitly enable SDDM as display manager.
              This can replace another display-manager.service symlink.
   --preview  Launch the source theme in SDDM test mode; make no system changes.
-  --background PATH  Copy this wallpaper into the system theme for the login screen.
+  --background PATH  Override automatic wallpaper detection from Raohane native.json.
   -h, --help Show this help.
 
 Without --enable the theme is installed and selected in SDDM configuration,
@@ -52,6 +52,26 @@ done
   echo "[Raohane] Missing SDDM background asset." >&2
   exit 1
 }
+
+# Read Raohane's actual applied wallpaper rather than choosing a default image.
+# This is intentionally one-shot: SDDM runs outside the user's session.
+if [[ -z "$BACKGROUND_SOURCE" && -f "${XDG_CONFIG_HOME:-$HOME/.config}/raohane/native.json" ]] && command -v python3 >/dev/null 2>&1; then
+  BACKGROUND_SOURCE="$(python3 - "${XDG_CONFIG_HOME:-$HOME/.config}/raohane/native.json" <<'PY'
+import json, pathlib, sys
+try:
+    data = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+    wallpaper = data.get("wallpaper") or {}
+    candidate = wallpaper.get("path", "")
+    if isinstance(candidate, str) and candidate.startswith("file://"):
+        from urllib.parse import unquote, urlparse
+        candidate = unquote(urlparse(candidate).path)
+    if isinstance(candidate, str) and pathlib.Path(candidate).is_file() and pathlib.Path(candidate).suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
+        print(candidate)
+except (OSError, ValueError, TypeError, AttributeError):
+    pass
+PY
+)"
+fi
 
 if [[ -n "$BACKGROUND_SOURCE" ]]; then
   [[ -f "$BACKGROUND_SOURCE" && -r "$BACKGROUND_SOURCE" ]] || {
