@@ -18,6 +18,7 @@ Item {
     property string account: String(userModel.lastUser || "")
     property string message: ""
     readonly property bool compact: width < 1080 || height < 720
+    readonly property bool shortScreen: height < 760
     readonly property bool reducedMotion: String(config.ReduceMotion || "") === "true"
     readonly property string backgroundImage: String(config.Background || "").length ? String(config.Background) : "background.png"
     readonly property color foreground: "#f5f2ff"
@@ -79,9 +80,11 @@ Item {
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
     }
+    // A cached system image keeps SDDM independent of the unlocked user session.
+    // De-emphasize bright wallpapers without altering their source.
     Rectangle {
         anchors.fill: parent
-        color: "#9d070a19"
+        color: "#97070a18"
     }
     Rectangle {
         anchors.fill: parent
@@ -116,7 +119,7 @@ Item {
     Item {
         id: scene
         width: Math.min(root.width - 44, 1180)
-        height: Math.min(root.height - 84, 680)
+        height: Math.min(root.height - 44, 680)
         anchors.centerIn: parent
         opacity: appeared && !leaving ? 1 : 0
         scale: appeared && !leaving ? 1 : 0.965
@@ -170,19 +173,29 @@ Item {
             id: core
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: root.compact ? 3 : 22
+            anchors.topMargin: root.shortScreen ? 0 : 22
             width: Math.min(610, scene.width)
-            spacing: 13
+            spacing: root.shortScreen ? 8 : 13
             z: 3
 
             Rectangle {
                 id: clock
                 width: parent.width
-                height: root.compact ? 170 : 215
+                height: root.shortScreen ? 150 : 215
                 radius: 28
                 color: "#c20d1429"
                 border.width: 1
                 border.color: borderColor
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.leftMargin: 28
+                    anchors.rightMargin: 28
+                    height: 1
+                    color: "#617bb4ff"
+                    opacity: 0.6
+                }
                 Column {
                     anchors.centerIn: parent
                     spacing: 7
@@ -196,7 +209,7 @@ Item {
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: Qt.formatTime(root.now, "HH:mm")
-                        font.pixelSize: root.compact ? 78 : 108
+                        font.pixelSize: root.shortScreen ? 70 : 108
                         font.weight: Font.Light
                         font.letterSpacing: -3
                         color: foreground
@@ -212,7 +225,7 @@ Item {
 
             Rectangle {
                 width: parent.width
-                height: root.compact ? 68 : 88
+                height: root.shortScreen ? 60 : 88
                 radius: 21
                 color: "#bd10182b"
                 border.width: 1
@@ -230,7 +243,7 @@ Item {
                     Rectangle { Layout.preferredWidth: 1; Layout.fillHeight: true; color: borderColor }
                     ColumnLayout {
                         spacing: 3
-                        Text { text: root.account.length ? root.account : "Guest"; color: foreground; font.pixelSize: 13; font.weight: Font.DemiBold }
+                        Text { text: root.account.length ? root.account : "Choose account"; color: foreground; font.pixelSize: 13; font.weight: Font.DemiBold }
                         Text { text: sessionBox.displayText; color: secondary; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 150 }
                     }
                 }
@@ -260,7 +273,7 @@ Item {
             Rectangle {
                 id: loginPanel
                 width: parent.width
-                height: (root.switchUser || root.account.length === 0 ? 190 : 140) + (root.expandedOptions ? 115 : 0)
+                height: (root.switchUser || root.account.length === 0 ? 190 : 140) + (root.expandedOptions ? 160 : 0)
                 radius: 24
                 color: "#dc0c1326"
                 border.width: 1
@@ -316,7 +329,7 @@ Item {
                             enabled: !root.pending
                             onClicked: root.authenticate()
                             contentItem: Text {
-                                text: "→"
+                                text: root.pending ? "···" : "→"
                                 font.pixelSize: 24
                                 color: "#141526"
                                 horizontalAlignment: Text.AlignHCenter
@@ -370,7 +383,8 @@ Item {
                             Layout.preferredHeight: 42
                             model: sessionModel
                             textRole: "name"
-                            currentIndex: sessionModel.lastIndex
+                            currentIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
+                            enabled: !root.pending
                         }
                         RowLayout {
                             Layout.fillWidth: true
