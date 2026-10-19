@@ -68,19 +68,22 @@ Wallpaper Studio's **Adaptive Colors** toggle.
 - The 2-color glass material works in **Classic, Float, Cinematic,
   Halo, Islands, Compact and Panel**. Separate islands share one animation
   phase per display; in Halo and Panel only the continuous backing receives
-  the material, so three additional washes cannot muddy it.
+  the material, so three additional washes cannot muddy it. The wave only
+  runs when the bar is visible, game mode is off and the user allows motion.
 - **Color richness:** 5–45% control range (default 20%). This controls
   the **color depth of the two primary glass tones**, not overlay opacity.
   The old approach stacked a low-opacity colored filter over an existing
   tinted surface and produced a muddy grey/purple mix. Chromatic Flow now
   replaces that surface with two visibly distinct wallpaper-derived tones.
   They are luminance-capped for readable text and system icons.
-- **Flow duration:** 12–60 seconds for a complete transition
-  round trip (default 28 s). Two static, fully rounded gradients share
-  the same left/right colors but have slightly different transitions.
-  One inexpensive opacity crossfade moves the transition visually.
-  The two endpoints stay distinct throughout the cycle, and no dynamic
-  gradient stops, shader masks or background sampler are needed.
+- **Flow duration:** 12–60 seconds for one continuous color-wave
+  cycle (default 28 s). Nine evenly spaced stops form a moving two-hue
+  wave. The two regions **visibly exchange positions** halfway through
+  the cycle and return smoothly to the first frame at the end. Color
+  strength stays independent of phase; unlike the older crossfade,
+  the whole capsule never turns into a uniform muddy midpoint.
+  Gradient colors update while motion is enabled; no additional
+  process, shader mask or background sampler is needed.
 - Animation pauses when the Bar is hidden, during fullscreen Game Mode, or
   if the shell's reduced-motion preference disables transform motion. The
   tint remains static if motion is disabled.
