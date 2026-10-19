@@ -4,7 +4,7 @@ The canonical theme is `display-manager/sddm/raohane`. Both installer names
 now use this source; the retired `login/sddm/raohane` copy must not return.
 
 The three-column layout pairs clock/power cards with a centered circular avatar
-and login form, plus a quiet text card and session picker on the right.
+and login form, and a session picker on the right.
 Raohane supplies the graphite/lavender palette, keyboard-accessible controls,
 masked password, pending/error states and reduced-motion option.
 
@@ -46,8 +46,8 @@ Do not restart SDDM from an active desktop to preview a theme.
 The installer copies the login owner's `~/.face.icon` when available; otherwise
 a neutral avatar is used. `Avatar` in the theme configuration selects this image.
 The decorative character has been removed. The remembered account is used for
-authentication without displaying its name; a name field appears only when SDDM
-has no remembered account, so first login remains possible.
+authentication without displaying its name; when no account is remembered, it resolves the selected or first user from
+SDDM’s user model. No username input or decorative text card is displayed.
 
 ### Visual refinement
 

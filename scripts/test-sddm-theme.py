@@ -22,6 +22,31 @@ class Sessions(QAbstractListModel):
         if index.isValid() and role == Qt.UserRole + 1:
             return ["Hyprland", "Hyprland (uwsm-managed)"][index.row()]
 
+class Users(QAbstractListModel):
+    rememberedChanged = Signal()
+    def __init__(self):
+        super().__init__()
+        self.remembered = "raohane"
+        self.names = ["other-user", "raohane"]
+    def getRemembered(self):
+        return self.remembered
+    def setRemembered(self, value):
+        self.remembered = value
+        self.rememberedChanged.emit()
+    lastUser = Property(str, getRemembered, setRemembered, notify=rememberedChanged)
+    lastIndex = Property(int, lambda self: 1, constant=True)
+    def rowCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self.names)
+    def roleNames(self):
+        return {Qt.UserRole + 1: b"name"}
+    def data(self, index, role):
+        if index.isValid() and role == Qt.UserRole + 1:
+            return self.names[index.row()]
+    def setNames(self, names):
+        self.beginResetModel()
+        self.names = names
+        self.endResetModel()
+
 class Proxy(QObject):
     loginFailed = Signal()
     loginSucceeded = Signal()
@@ -45,12 +70,11 @@ app = QGuiApplication(sys.argv)
 warnings = []
 qInstallMessageHandler(lambda kind, context, text: warnings.append(text))
 proxy, sessions = Proxy(), Sessions()
-config, user, keyboard = QQmlPropertyMap(), QQmlPropertyMap(), QQmlPropertyMap()
+config, user, keyboard = QQmlPropertyMap(), Users(), QQmlPropertyMap()
 config.insert("ReduceMotion", "true")
 config.insert("wallpaper", "")
 config.insert("Background", "background.png")
 config.insert("Avatar", "avatar.svg")
-user.insert("lastUser", "raohane")
 keyboard.insert("capsLock", False)
 view = QQuickView()
 view.setResizeMode(QQuickView.SizeRootObjectToView)
@@ -67,7 +91,8 @@ username = root.findChild(QObject, "userField")
 session = root.findChild(QObject, "sessionBox")
 scene = root.findChild(QObject, "scene")
 assert session.property("currentIndex") == 1
-assert not username.property("visible"), "remembered account name must stay hidden"
+assert username is None, "username input must not exist"
+assert root.property("loginAccount") == "raohane"
 for width, height in [(1920, 1080), (1366, 768), (800, 600)]:
     view.resize(width, height)
     QTest.qWait(300)
@@ -76,11 +101,19 @@ for width, height in [(1920, 1080), (1366, 768), (800, 600)]:
     if os.environ.get("RAOHANE_TEST_RENDER"):
         view.grabWindow().save(f"/tmp/raohane-sddm-{width}.png")
 
-username.setProperty("text", "")
+# An empty remembered name still resolves the actual model's selected user.
+user.setRemembered("")
+QTest.qWait(20)
+assert root.property("loginAccount") == "raohane"
+user.setNames([])
+QTest.qWait(20)
+assert root.property("loginAccount") == ""
 QMetaObject.invokeMethod(root, "authenticate")
 assert not proxy.calls
-assert username.property("visible"), "missing account must remain recoverable"
-username.setProperty("text", " raohane ")
+assert "No user account" in root.property("message")
+user.setNames(["other-user", "raohane"])
+QTest.qWait(20)
+assert root.property("loginAccount") == "raohane"
 password.setProperty("text", "test-only")
 password.forceActiveFocus()
 QTest.keyClick(view, Qt.Key_Return)
@@ -106,4 +139,4 @@ assert root.property("leaving")
 assert password.property("text") == ""
 QTest.qWait(30)
 assert not warnings, "\n".join(warnings)
-print("PASS: QML creation, three viewport sizes, account/session validation, keyboard/button submission, duplicate-submit guard, failure recovery and success cleanup")
+print("PASS: QML creation, three viewport sizes, hidden account resolution/session validation, keyboard/button submission, duplicate-submit guard, failure recovery and success cleanup")

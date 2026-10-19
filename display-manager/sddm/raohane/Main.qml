@@ -13,7 +13,6 @@ Rectangle {
     property bool leaving: false
     property bool pending: false
     property bool failed: false
-    property bool accountRequired: !String(userModel.lastUser || "").trim().length
     property string message: ""
     readonly property bool reducedMotion: String(config.ReduceMotion || "") === "true"
     readonly property string backgroundImage: String(config.wallpaper || config.Background
@@ -24,13 +23,32 @@ Rectangle {
     readonly property color borderColor: "#24c0c8e0"
     readonly property real uiScale: Math.min(1.12, (width - 48) / 1100, (height - 100) / 500)
 
+    // Keep account resolution outside the visual hierarchy. Some greeters,
+    // including SDDM test mode, have users but no remembered lastUser.
+    Instantiator {
+        id: accounts
+        model: userModel
+        delegate: QtObject {
+            property string loginName: String(model.name || "")
+        }
+    }
+    readonly property string loginAccount: {
+        const remembered = String(userModel.lastUser || "").trim();
+        if (remembered.length)
+            return remembered;
+        if (!accounts.count)
+            return "";
+        const index = userModel.lastIndex >= 0 && userModel.lastIndex < accounts.count ? userModel.lastIndex :
+                                                                                         0;
+        const account = accounts.objectAt(index);
+        return account ? account.loginName : "";
+    }
+
     function authenticate() {
         if (pending || leaving)
             return;
-        if (!userField.text.trim().length) {
-            message = qsTr("Enter your user name");
-            root.accountRequired = true;
-            userField.forceActiveFocus();
+        if (!root.loginAccount.length) {
+            message = qsTr("No user account is available");
             return;
         }
         if (sessionBox.currentIndex < 0) {
@@ -40,7 +58,7 @@ Rectangle {
         failed = false;
         pending = true;
         message = qsTr("Signing in…");
-        sddm.login(userField.text.trim(), password.text, sessionBox.currentIndex);
+        sddm.login(root.loginAccount, password.text, sessionBox.currentIndex);
     }
     Connections {
         target: sddm
@@ -70,10 +88,7 @@ Rectangle {
     }
     Component.onCompleted: {
         appeared = true;
-        if (userField.text.length)
-            password.forceActiveFocus();
-        else
-            userField.forceActiveFocus();
+        password.forceActiveFocus();
     }
     Image {
         anchors.fill: parent
@@ -359,38 +374,6 @@ Rectangle {
                     color: root.secondary
                     font.pixelSize: 13
                 }
-                Controls.TextField {
-                    id: userField
-                    objectName: "userField"
-                    // Only ask for an account if SDDM has no remembered user.
-                    visible: root.accountRequired
-                    width: parent.width - 48
-                    height: visible ? 44 : 0
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: String(userModel.lastUser || "")
-                    placeholderText: qsTr("User name")
-                    Accessible.name: qsTr("User name")
-                    color: root.foreground
-                    placeholderTextColor: root.secondary
-                    font {
-                        pixelSize: 25
-                        weight: Font.Medium
-                    }
-                    horizontalAlignment: TextInput.AlignHCenter
-                    enabled: !root.pending
-                    selectByMouse: true
-                    background: Rectangle {
-                        radius: 12
-                        color: userField.activeFocus ? "#68191f2b" : "transparent"
-                        border.color: userField.activeFocus ? root.borderColor : "transparent"
-                    }
-                    onAccepted: password.forceActiveFocus()
-                    onTextEdited: {
-                        password.clear();
-                        root.message = "";
-                        root.failed = false;
-                    }
-                }
             }
             Column {
                 width: parent.width
@@ -470,51 +453,9 @@ Rectangle {
         Column {
             width: 270
             anchors.right: parent.right
+            anchors.bottom: parent.bottom
             spacing: 16
-            Card {
-                width: parent.width
-                height: 360
-                Text {
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        margins: 22
-                    }
-                    text: qsTr("A MOMENT OF QUIET")
-                    color: root.secondary
-                    font {
-                        pixelSize: 10
-                        letterSpacing: 1.4
-                    }
-                }
-                Rectangle {
-                    id: dialogue
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        top: parent.top
-                        bottom: parent.bottom
-                        margins: 20
-                        topMargin: 52
-                    }
-                    radius: 18
-                    color: "transparent"
-                    Text {
-                        anchors {
-                            fill: parent
-                            margins: 12
-                        }
-                        text: root.leaving ? qsTr("Welcome home.\nI missed you.") : qsTr(
-                                                 "A little pause.\nYour space is waiting.")
-                        color: root.foreground
-                        font.pixelSize: 12
-                        lineHeight: 1.3
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        wrapMode: Text.WordWrap
-                    }
-                }
-            }
+
             Card {
                 width: parent.width
                 height: 124
