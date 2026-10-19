@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls as Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import SddmComponents 2.0
@@ -656,7 +657,7 @@ Item {
         }
     }
 
-    component PowerButton: Button {
+    component PowerButton: Controls.Button {
         id: powerButton
         required property string glyph
         required property string label
