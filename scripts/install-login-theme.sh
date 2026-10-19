@@ -95,6 +95,20 @@ prepare_stage() {
   rm -rf -- "$STAGE_DIR"
   mkdir -p -- "$STAGE_DIR"
   cp -a "$THEME_SOURCE/." "$STAGE_DIR/"
+  # Prefer the user's existing Welcome character when it is available locally.
+  local mascot
+  for mascot in "$ROOT/assets/images/raohane-welcome-girl.png" "$USER_CONFIG_HOME/quickshell/raohane/assets/images/raohane-welcome-girl.png"; do
+    if [[ -r "$mascot" && -f "$mascot" ]]; then
+      cp -- "$mascot" "$STAGE_DIR/mascot.png"
+      sed -i 's/^Mascot=.*/Mascot=mascot.png/' "$STAGE_DIR/theme.conf"
+      break
+    fi
+  done
+  # Copy the login owner's face so the greeter need not read a private home.
+  if [[ -r "$LOGIN_HOME/.face.icon" && -f "$LOGIN_HOME/.face.icon" ]]; then
+    cp -- "$LOGIN_HOME/.face.icon" "$STAGE_DIR/avatar-user"
+    sed -i 's/^Avatar=.*/Avatar=avatar-user/' "$STAGE_DIR/theme.conf"
+  fi
 }
 
 set_stage_wallpaper() {

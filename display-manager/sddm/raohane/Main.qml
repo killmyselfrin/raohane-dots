@@ -20,7 +20,7 @@ Rectangle {
     readonly property color secondary: "#a9adc4"
     readonly property color lavender: "#b9a7ff"
     readonly property color borderColor: "#404b506b"
-    readonly property real uiScale: Math.min(1.35, (width - 48) / 860, (height - 100) / 560)
+    readonly property real uiScale: Math.min(1.35, (width - 48) / 1100, (height - 100) / 560)
 
     function authenticate() {
         if (pending || leaving) return
@@ -125,10 +125,15 @@ Rectangle {
             Behavior on color { ColorAnimation { duration: root.reducedMotion ? 0 : 160 } }
         }
     }
+    component Card: Rectangle {
+        color: "#d9191d2a"
+        radius: 22
+        border.color: root.borderColor
+    }
     Item {
         id: scene
         objectName: "scene"
-        width: 860
+        width: 1100
         height: 560
         anchors.centerIn: parent
         scale: root.uiScale * (root.appeared && !root.leaving ? 1 : 0.97)
@@ -136,97 +141,84 @@ Rectangle {
         enabled: !root.leaving
         Behavior on opacity { NumberAnimation { duration: root.reducedMotion ? 0 : 400; easing.type: Easing.OutCubic } }
         Behavior on scale { NumberAnimation { duration: root.reducedMotion ? 0 : 500; easing.type: Easing.OutCubic } }
+
         Column {
-            width: 300
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 22
-            Text { text: qsTr("MAKE YOURSELF AT HOME"); color: root.secondary; font { pixelSize: 10; letterSpacing: 2 } }
-            Column {
-                spacing: -32
-                Text { text: Qt.formatTime(root.now, "HH"); color: root.foreground; font { pixelSize: 156; weight: Font.Bold; letterSpacing: -9 } }
-                Text { text: Qt.formatTime(root.now, "mm"); color: root.lavender; font { pixelSize: 156; weight: Font.Bold; letterSpacing: -9 } }
+            width: 270
+            spacing: 14
+            Card {
+                width: parent.width
+                height: 240
+                Column {
+                    anchors { fill: parent; margins: 24 }
+                    spacing: 16
+                    Text { text: qsTr("YOUR SPACE"); color: root.secondary; font { pixelSize: 10; letterSpacing: 2 } }
+                    Text { text: Qt.formatTime(root.now, "HH:mm"); color: root.foreground; font { pixelSize: 60; weight: Font.Light; letterSpacing: -3 } }
+                    Text { width: parent.width; text: Qt.formatDate(root.now, "dddd, d MMMM"); color: root.secondary; font.pixelSize: 13; wrapMode: Text.WordWrap }
+                    Rectangle { width: parent.width; height: 1; color: root.borderColor }
+                    Text { width: parent.width; text: String(sddm.hostName || "Raohane"); color: root.lavender; font.pixelSize: 13; elide: Text.ElideRight }
+                }
             }
-            Rectangle {
-                width: Math.min(300, dateLabel.implicitWidth + 36)
-                height: 44
-                radius: 22
-                color: "#e51b1e2c"
-                border.color: root.borderColor
-                Text {
-                    id: dateLabel
-                    anchors { fill: parent; margins: 12 }
-                    text: Qt.formatDate(root.now, "dddd, d MMMM")
-                    color: root.foreground
-                    font.pixelSize: 12
-                    elide: Text.ElideRight
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+            Card {
+                width: parent.width
+                height: 306
+                ColumnLayout {
+                    anchors { fill: parent; margins: 16 }
+                    spacing: 10
+                    Text { text: qsTr("POWER"); color: root.secondary; font { pixelSize: 10; letterSpacing: 2 } Layout.leftMargin: 8 }
+                    Pill { text: qsTr("Suspend"); symbol: "☾"; Layout.fillWidth: true; enabled: sddm.canSuspend && !root.pending; onClicked: sddm.suspend() }
+                    Pill { text: qsTr("Restart"); symbol: "↻"; Layout.fillWidth: true; enabled: sddm.canReboot && !root.pending; onClicked: sddm.reboot() }
+                    Pill { text: qsTr("Power off"); symbol: "⏻"; Layout.fillWidth: true; enabled: sddm.canPowerOff && !root.pending; onClicked: sddm.powerOff() }
                 }
             }
         }
+
         Column {
-            width: 500
-            anchors.right: parent.right
+            width: 440
+            anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 18
-            Text { text: qsTr("QUICK SETTINGS"); color: root.secondary; font { pixelSize: 11; letterSpacing: 2 } }
-            GridLayout {
-                width: parent.width
-                columns: 2
-                columnSpacing: 12
-                rowSpacing: 12
-                Pill { text: qsTr("Power off"); symbol: "⏻"; Layout.fillWidth: true; Layout.preferredWidth: 244; enabled: sddm.canPowerOff && !root.pending; onClicked: sddm.powerOff() }
-                Pill { text: qsTr("Restart"); symbol: "↻"; Layout.fillWidth: true; Layout.preferredWidth: 244; enabled: sddm.canReboot && !root.pending; onClicked: sddm.reboot() }
-                Pill { text: qsTr("Suspend"); symbol: "☾"; Layout.fillWidth: true; Layout.preferredWidth: 244; enabled: sddm.canSuspend && !root.pending; onClicked: sddm.suspend() }
-                Controls.ComboBox {
-                    id: sessionBox
-                    objectName: "sessionBox"
-                    Layout.preferredWidth: 244
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 68
-                    model: sessionModel
-                    textRole: "name"
-                    currentIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
-                    enabled: !root.pending
-                    leftPadding: 22
-                    rightPadding: 28
-                    Accessible.name: qsTr("Desktop session")
-                    contentItem: Text { text: sessionBox.displayText; color: root.foreground; font.pixelSize: 13; elide: Text.ElideRight; verticalAlignment: Text.AlignVCenter }
-                    background: Rectangle { radius: 34; color: "#e51b1e2c"; border.color: sessionBox.activeFocus ? root.lavender : root.borderColor }
-                    delegate: Controls.ItemDelegate {
-                        width: sessionBox.width
-                        contentItem: Text { text: model.name; color: root.foreground; elide: Text.ElideRight; font.pixelSize: 13 }
-                        background: Rectangle { color: highlighted ? "#39334f" : "#1b1e2c" }
-                        highlighted: sessionBox.highlightedIndex === index
-                    }
-                    popup: Controls.Popup {
-                        y: sessionBox.height + 6
-                        width: sessionBox.width
-                        padding: 6
-                        implicitHeight: Math.min(contentItem.implicitHeight + 12, 240)
-                        contentItem: ListView {
-                            clip: true
-                            implicitHeight: contentHeight
-                            model: sessionBox.popup.visible ? sessionBox.delegateModel : null
-                            currentIndex: sessionBox.highlightedIndex
-                            Controls.ScrollIndicator.vertical: Controls.ScrollIndicator {}
-                        }
-                        background: Rectangle { color: "#1b1e2c"; radius: 16; border.color: root.borderColor }
+            spacing: 22
+            Rectangle {
+                width: 158
+                height: 158
+                radius: 79
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: "#272a3b"
+                border.color: root.borderColor
+                Canvas {
+                    id: avatarImage
+                    anchors { fill: parent; margins: 5 }
+                    property url source: Qt.resolvedUrl(String(config.Avatar || "avatar.svg"))
+                    onSourceChanged: loadImage(source)
+                    Component.onCompleted: loadImage(source)
+                    onImageLoaded: requestPaint()
+                    onPaint: {
+                        const ctx = getContext("2d")
+                        ctx.reset()
+                        if (!isImageLoaded(source)) return
+                        ctx.save()
+                        ctx.beginPath()
+                        ctx.arc(width / 2, height / 2, width / 2, 0, Math.PI * 2)
+                        ctx.clip()
+                        ctx.drawImage(source, 0, 0, width, height)
+                        ctx.restore()
                     }
                 }
             }
-            Rectangle {
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root.leaving ? qsTr("Welcome home") : qsTr("Welcome back")
+                color: root.foreground
+                font { pixelSize: 22; weight: Font.Medium }
+            }
+            Card {
                 id: loginPanel
                 width: parent.width
-                height: 304
-                radius: 32
-                color: "#eb171a28"
-                border.color: root.borderColor
+                height: 270
+                color: "#a9151926"
                 transform: Translate { id: shakeTransform }
                 ColumnLayout {
-                    anchors { fill: parent; margins: 24 }
+                    anchors { fill: parent; margins: 22 }
                     spacing: 12
-                    Text { text: qsTr("Welcome back"); color: root.foreground; font { pixelSize: 22; weight: Font.DemiBold } }
                     Controls.TextField {
                         id: userField
                         objectName: "userField"
@@ -248,7 +240,7 @@ Rectangle {
                         id: password
                         objectName: "password"
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 54
+                        Layout.preferredHeight: 48
                         enabled: !root.pending
                         echoMode: TextInput.Password
                         passwordCharacter: "●"
@@ -286,6 +278,89 @@ Rectangle {
                         enabled: !root.pending && sessionBox.currentIndex >= 0
                         onClicked: root.authenticate()
                     }
+                }
+            }
+        }
+
+        Column {
+            width: 270
+            anchors.right: parent.right
+            spacing: 14
+            Card {
+                width: parent.width
+                height: 420
+                Text {
+                    anchors { left: parent.left; top: parent.top; margins: 22 }
+                    text: "RAOHANE"
+                    color: root.secondary
+                    font { pixelSize: 10; letterSpacing: 2 }
+                }
+                Image {
+                    anchors { left: parent.left; right: parent.right; top: parent.top; bottom: dialogue.top; margins: 18; topMargin: 52 }
+                    source: String(config.Mascot || "mascot.svg")
+                    fillMode: Image.PreserveAspectFit
+                    sourceSize.width: 480
+                    asynchronous: true
+                }
+                Rectangle {
+                    id: dialogue
+                    anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 20 }
+                    height: 64
+                    radius: 18
+                    color: "#302c43"
+                    Text {
+                        anchors { fill: parent; margins: 12 }
+                        text: root.leaving ? qsTr("Welcome home.\nI missed you.") : qsTr("A little pause.\nYour space is waiting.")
+                        color: root.foreground
+                        font.pixelSize: 13
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
+            Card {
+                width: parent.width
+                height: 126
+                ColumnLayout {
+                    anchors { fill: parent; margins: 16 }
+                    Text { text: qsTr("DESKTOP SESSION"); color: root.secondary; font { pixelSize: 10; letterSpacing: 1 } }
+                Controls.ComboBox {
+                    id: sessionBox
+                    objectName: "sessionBox"
+                    Layout.preferredWidth: 240
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 48
+                    model: sessionModel
+                    textRole: "name"
+                    currentIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
+                    enabled: !root.pending
+                    leftPadding: 22
+                    rightPadding: 28
+                    Accessible.name: qsTr("Desktop session")
+                    contentItem: Text { text: sessionBox.displayText; color: root.foreground; font.pixelSize: 13; elide: Text.ElideRight; verticalAlignment: Text.AlignVCenter }
+                    background: Rectangle { radius: 34; color: "#e51b1e2c"; border.color: sessionBox.activeFocus ? root.lavender : root.borderColor }
+                    delegate: Controls.ItemDelegate {
+                        width: sessionBox.width
+                        contentItem: Text { text: model.name; color: root.foreground; elide: Text.ElideRight; font.pixelSize: 13 }
+                        background: Rectangle { color: highlighted ? "#39334f" : "#1b1e2c" }
+                        highlighted: sessionBox.highlightedIndex === index
+                    }
+                    popup: Controls.Popup {
+                        y: sessionBox.height + 6
+                        width: sessionBox.width
+                        padding: 6
+                        implicitHeight: Math.min(contentItem.implicitHeight + 12, 240)
+                        contentItem: ListView {
+                            clip: true
+                            implicitHeight: contentHeight
+                            model: sessionBox.popup.visible ? sessionBox.delegateModel : null
+                            currentIndex: sessionBox.highlightedIndex
+                            Controls.ScrollIndicator.vertical: Controls.ScrollIndicator {}
+                        }
+                        background: Rectangle { color: "#1b1e2c"; radius: 16; border.color: root.borderColor }
+                    }
+                }
                 }
             }
         }

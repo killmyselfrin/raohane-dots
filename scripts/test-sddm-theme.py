@@ -29,6 +29,7 @@ class Proxy(QObject):
     canPowerOff = Property(bool, lambda self: False, constant=True)
     canReboot = Property(bool, lambda self: False, constant=True)
     canSuspend = Property(bool, lambda self: False, constant=True)
+    hostName = Property(str, lambda self: "raohane-desktop", constant=True)
     calls = []
     @Slot(str, str, int)
     def login(self, user, password, session):
@@ -48,6 +49,8 @@ config, user, keyboard = QQmlPropertyMap(), QQmlPropertyMap(), QQmlPropertyMap()
 config.insert("ReduceMotion", "true")
 config.insert("wallpaper", "")
 config.insert("Background", "background.png")
+config.insert("Avatar", "avatar.svg")
+config.insert("Mascot", "mascot.svg")
 user.insert("lastUser", "raohane")
 keyboard.insert("capsLock", False)
 view = QQuickView()

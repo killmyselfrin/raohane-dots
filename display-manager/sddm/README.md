@@ -3,8 +3,8 @@
 The canonical theme is `display-manager/sddm/raohane`. Both installer names
 now use this source; the retired `login/sddm/raohane` copy must not return.
 
-The layout pairs a stacked clock/date with rounded power/session tiles and a
-separate login card, inspired by the serpantinum material-you composition.
+The three-column layout pairs clock/power cards with a centered circular avatar
+and login form, plus a character/dialogue card and session picker on the right.
 Raohane supplies the graphite/lavender palette, keyboard-accessible controls,
 masked password, pending/error states and reduced-motion option.
 
@@ -41,3 +41,10 @@ Before merging: test the Qt 6 SDDM greeter on the target machine, wrong/correct
 passwords, account/session selection, keyboard focus and actual wallpaper.
 SDDM is the pre-session login screen; it does not replace the shell lock screen.
 Do not restart SDDM from an active desktop to preview a theme.
+
+
+The installer reuses `assets/images/raohane-welcome-girl.png` from the checkout
+or installed shell if available, otherwise the bundled SVG character remains.
+It copies the login owner's `~/.face.icon` when available; otherwise a neutral
+avatar is used. `Avatar` and `Mascot` in the theme configuration select these
+assets. These are local images, not fabricated weather, telemetry or notifications.
