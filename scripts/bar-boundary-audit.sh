@@ -139,10 +139,13 @@ rg -Fq 'RaohaneBarChromaticWash 1.0 RaohaneBarChromaticWash.qml' modules/raohane
 for contract in \
   'readonly property bool chromaticFlowEnabled: RaohaneConfig.barChromaticFlow' \
   'readonly property bool chromaticFlowAnimating: chromaticFlowEnabled' \
-  '&& contentShown && visible && RaohaneMotion.panelTransformEnabled' \
-  'SequentialAnimation on chromaticPhase {' \
+  '&& contentShown && visible' \
+  '&& RaohaneMotion.enabled' \
+  '&& !RaohanePerformance.gameModeActive' \
+  'NumberAnimation on chromaticPhase {' \
   'loops: Animation.Infinite' \
-  'duration: RaohaneConfig.barChromaticSeconds * 500' \
+  'duration: RaohaneConfig.barChromaticSeconds * 1000' \
+  'easing.type: Easing.Linear' \
   'phase: barWindow.chromaticPhase' \
   'firstColor: RaohaneConfig.wallpaperFlowColorA' \
   'secondColor: RaohaneConfig.wallpaperFlowColorB' \
@@ -156,16 +159,17 @@ done
 for contract in \
   'gradient: Gradient {' \
   'orientation: Gradient.Horizontal' \
-  'readonly property color leftTone:' \
-  'readonly property color rightTone:' \
+  'readonly property color firstTone:' \
+  'readonly property color secondTone:' \
   'readonly property real colorStrength:' \
   'opacity: 1' \
   'anchors.fill: parent' \
-  'GradientStop { position: 0.26; color: root.leftTone }' \
-  'GradientStop { position: 0.54; color: root.rightTone }' \
-  'GradientStop { position: 0.46; color: root.leftTone }' \
-  'GradientStop { position: 0.74; color: root.rightTone }' \
-  'opacity: Math.max(0, Math.min(1, root.phase))' \
+  'function flowingColor(position) {' \
+  'Math.sin(radians)' \
+  'position - root.phase' \
+  'GradientStop { position: 0.000; color: root.flowingColor(0.000) }' \
+  'GradientStop { position: 0.500; color: root.flowingColor(0.500) }' \
+  'GradientStop { position: 1.000; color: root.flowingColor(1.000) }' \
   'root.tint(root.materialBase, root.firstColor, root.colorStrength)' \
   'root.tint(root.materialBase, root.secondColor, root.colorStrength)'; do
   rg -Fq "$contract" "$wash" || fail "primary chromatic fill lost contract: $contract"
@@ -178,10 +182,10 @@ for contract in \
   '!barWindow.haloPreset || parent === panelSurface'; do
   rg -Fq "$contract" "$bar" || fail "double-layer prevention missing: $contract"
 done
-if rg -Fq 'root.blend(' "$wash" \
-   || rg -Fq 'position: 0.26 + root.phase' "$wash" \
+if rg -Fq 'id: shiftedTransition' "$wash" \
+   || rg -Fq 'SequentialAnimation on chromaticPhase {' "$bar" \
    || rg -Fq 'opacity: Math.max(0, Math.min(0.45, strength))' "$wash"; then
-  fail 'Chromatic Flow reverted to tinted overlay or per-frame gradient rebuilding'
+  fail 'Chromatic Flow reverted to visually static gradient crossfade'
 fi
 rg -Fq 'root.moduleId !== "separator" && root.moduleId !== "context"' "$module_host" \
   || fail 'module backgrounds were stacked under the gradient'
@@ -192,16 +196,23 @@ rg -Fq 'chromaticBackground: root.chromaticBackground' "$module_host" \
 rg -Fq 'transparentIdle: (root.haloStyle || root.chromaticBackground)' modules/raohane/RaohaneContextIsland.qml \
   || fail 'chromatic context island still masks the two-tone material'
 
-# Both static gradients have the same solid endpoint colors at every
-# phase. Only their *transition positions* crossfade, so the entire bar
-# never becomes one flat blend in the middle of the animation.
+# The color field must actually travel: opposite hues swap their
+# positions halfway through the cycle; phase=1 returns to the identical
+# first frame for a seamless repeat. At no sampled point is the complete
+# gradient uniformly muddy/grey (the previous crossfade regression).
 python3 - <<'PY'
-for phase in (0, .1, .25, .5, .75, .9, 1):
-    for x in (0, .20, .25):
-        assert x <= .26
-    for x in (.75, .80, 1):
-        assert x >= .74
-    assert 0 <= phase <= 1
+import math
+positions = [x / 8 for x in range(9)]
+def wave(x, phase):
+    v = 0.5 + 0.5 * math.sin(2 * math.pi * (x - phase))
+    return v * v * (3 - 2 * v)
+for phase in [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1]:
+    values = [wave(x, phase) for x in positions]
+    assert max(values) - min(values) > 0.85, (phase, values)
+for x in positions:
+    assert abs(wave(x, 0) - wave(x, 1)) < 1e-8
+assert wave(0.25, 0) > 0.95 and wave(0.25, 0.5) < 0.05
+assert wave(0.75, 0) < 0.05 and wave(0.75, 0.5) > 0.95
 PY
 for setting in barChromaticFlow barChromaticIntensity barChromaticSeconds; do
   rg -Fq "property " "$config" || fail "config properties missing"
