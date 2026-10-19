@@ -109,8 +109,8 @@ if [[ -n "$BACKGROUND_SOURCE" ]]; then
   [[ "$suffix" == "jpeg" ]] && suffix="jpg"
   installed_wallpaper="$THEME_TARGET/wallpaper-user.$suffix"
   sudo install -m 0644 "$BACKGROUND_SOURCE" "$installed_wallpaper"
-  printf '[General]\\nBackground=%s\\n' "$installed_wallpaper" | sudo tee "$THEME_TARGET/theme.conf.user" >/dev/null
-  printf '[Raohane] SDDM wallpaper copied to %s\\n' "$installed_wallpaper"
+  printf '[General]\nBackground=%s\n' "$installed_wallpaper" | sudo tee "$THEME_TARGET/theme.conf.user" >/dev/null
+  printf '[Raohane] SDDM wallpaper copied to %s\n' "$installed_wallpaper"
 fi
 
 config_tmp="$(mktemp)"
