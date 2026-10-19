@@ -118,27 +118,22 @@ Scope {
             readonly property bool chromaticFlowEnabled: RaohaneConfig.barChromaticFlow
                 && RaohaneConfig.barShowBackground
             readonly property bool chromaticFlowAnimating: chromaticFlowEnabled
-                && contentShown && visible && RaohaneMotion.panelTransformEnabled
+                && contentShown && visible
+                && RaohaneMotion.enabled
+                && !RaohanePerformance.gameModeActive
             property real chromaticPhase: 0
 
-            // One slow oscillator per output, shared by all existing pod
-            // surfaces. It stops entirely in fullscreen/Game Mode and for
-            // reduced-motion preferences. Static gradient remains opt-in.
-            SequentialAnimation on chromaticPhase {
+            // The moving wave completes one full spatial period, then loops
+            // seamlessly. A ping-pong between two nearby static gradients
+            // looked motionless even when the animation was actually running.
+            // Keep one clock per output; reduced motion and Game Mode stop it.
+            NumberAnimation on chromaticPhase {
                 running: barWindow.chromaticFlowAnimating
                 loops: Animation.Infinite
-                NumberAnimation {
-                    from: 0
-                    to: 1
-                    duration: RaohaneConfig.barChromaticSeconds * 500
-                    easing.type: Easing.InOutSine
-                }
-                NumberAnimation {
-                    from: 1
-                    to: 0
-                    duration: RaohaneConfig.barChromaticSeconds * 500
-                    easing.type: Easing.InOutSine
-                }
+                from: 0
+                to: 1
+                duration: RaohaneConfig.barChromaticSeconds * 1000
+                easing.type: Easing.Linear
             }
 
             // Keep the layer-shell surface alive across fullscreen transitions.
