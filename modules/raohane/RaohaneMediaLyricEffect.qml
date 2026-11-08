@@ -26,7 +26,8 @@ Item {
         : root.accent
 
     visible: root.active && root.mode !== "off" && root.wordBounds !== null
-    clip: true
+    // Feathers extend into the lyric row's padding, not over the word.
+    clip: root.match?.motif !== "wing"
 
     function measureWord(): var {
         if (!root.match || root.width < 1 || layoutProbe.contentHeight < 1)
@@ -90,7 +91,7 @@ Item {
         }
 
         Repeater {
-            model: root.expressive ? 3 : 2
+            model: root.match?.motif === "wing" ? 0 : root.expressive ? 3 : 2
 
             delegate: Text {
                 id: ornament
@@ -101,7 +102,7 @@ Item {
                     : motif === "flame" ? "◦"
                     : motif === "heart" ? "♡"
                     : motif === "petal" || motif === "leaf" ? "❊"
-                    : motif === "wing" || motif === "wind" ? "⌁"
+                    : motif === "wind" ? "⌁"
                     : motif === "wave" ? "∿"
                     : motif === "shadow" ? "∙"
                     : motif === "ring" ? "◌" : "✧"
@@ -119,5 +120,15 @@ Item {
                 }
             }
         }
+    }
+
+    RaohaneMediaLyricWings {
+        visible: root.match?.motif === "wing" && root.wordBounds !== null
+        wordWidth: root.wordBounds?.width ?? 0
+        focusMode: root.focusMode
+        expressive: root.expressive
+        tint: root.tint
+        x: (root.wordBounds?.x ?? 0) - width / 2
+        y: (root.wordBounds?.y ?? 0) - height / 2
     }
 }

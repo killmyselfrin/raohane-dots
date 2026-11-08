@@ -105,6 +105,7 @@ RaohaneMediaStudio 1.0 RaohaneMediaStudio.qml
 RaohaneMediaPlayerHud 1.0 RaohaneMediaPlayerHud.qml
 RaohaneMediaLyricLine 1.0 RaohaneMediaLyricLine.qml
 RaohaneMediaLyricEffect 1.0 RaohaneMediaLyricEffect.qml
+RaohaneMediaLyricWings 1.0 RaohaneMediaLyricWings.qml
 RaohaneMediaLyricsHeader 1.0 RaohaneMediaLyricsHeader.qml
 RaohaneMediaLyricsStatus 1.0 RaohaneMediaLyricsStatus.qml
 RaohaneMediaLyricsViewport 1.0 RaohaneMediaLyricsViewport.qml

@@ -14,20 +14,25 @@ STAGE='modules/raohane/RaohaneMediaLyricsStage.qml'
 VIEWPORT='modules/raohane/RaohaneMediaLyricsViewport.qml'
 LINE='modules/raohane/RaohaneMediaLyricLine.qml'
 EFFECT='modules/raohane/RaohaneMediaLyricEffect.qml'
+WINGS='modules/raohane/RaohaneMediaLyricWings.qml'
 VOCABULARY='modules/raohane/RaohaneLyricEffects.js'
 
 for path in "$MEDIA" "$STAGE" "$VIEWPORT" "$LINE"; do
   [[ -f "$path" ]] || fail "missing lyric boundary path: $path"
 done
 
-[[ -f "$EFFECT" && -f "$VOCABULARY" ]] \
-  || fail 'missing native word-effect component or vocabulary'
+[[ -f "$EFFECT" && -f "$VOCABULARY" && -f "$WINGS" ]] \
+  || fail 'missing native word-effect component, wings or vocabulary'
 rg -q 'RaohaneMediaLyricEffect[[:space:]]*\{' "$LINE" \
   || fail 'lyric line lost bounded word-effect composition'
 rg -q 'active: root\.current && root\.lyricEffectActive && root\.lyricEffectMode !== "off"' "$LINE" \
   || fail 'lyric line instantiates expensive effect probes outside the active row'
 rg -q 'LyricEffects\.detect' "$EFFECT" \
   || fail 'lyric effect lost semantic vocabulary matching'
+rg -q 'RaohaneMediaLyricWings[[:space:]]*\{' "$EFFECT" \
+  || fail 'wing semantics lost native feather geometry'
+rg -q 'ctx\.bezierCurveTo' "$WINGS" \
+  || fail 'wing motif regressed to a typographic placeholder'
 if rg -n 'const expression.*\\p\{' "$VOCABULARY"; then
   fail 'Qt QML JS cannot tokenize with Unicode property escape regexes'
 fi
@@ -41,7 +46,7 @@ rg -q 'RaohaneMedia\.isPlaying' "$MEDIA" \
   || fail 'lyric effects are not disabled on pause'
 rg -q 'onLyricEffectModeChanged: scheduleSave\(\)' modules/raohane/config/RaohaneConfig.qml \
   || fail 'lyric effect choice is not persisted'
-for file in "$EFFECT" "$VOCABULARY"; do
+for file in "$EFFECT" "$VOCABULARY" "$WINGS"; do
   if rg -n '(^import qs\.modules\.raohane\.(services|config)|Quickshell\.execDetached|\bProcess[[:space:]]*\{)' "$file"; then
     fail "$file crossed the native lyric presentation boundary"
   fi

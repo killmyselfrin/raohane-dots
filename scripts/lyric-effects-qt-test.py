@@ -40,14 +40,14 @@ def main() -> int:
 
     temporary = tempfile.TemporaryDirectory(prefix="raohane-lyric-qt-")
     temporary_dir = Path(temporary.name)
-    for name in ("RaohaneMediaLyricEffect.qml", "RaohaneLyricEffects.js"):
+    for name in ("RaohaneMediaLyricEffect.qml", "RaohaneMediaLyricWings.qml", "RaohaneLyricEffects.js"):
         shutil.copy2(source_dir / name, temporary_dir / name)
     component = QQmlComponent(engine, QUrl.fromLocalFile(str(temporary_dir / "RaohaneMediaLyricEffect.qml")))
     if component.isError():
         raise AssertionError("\n".join(str(error) for error in component.errors()))
 
     effect = component.createWithInitialProperties({
-        "lineText": "Крыльями под дождём",
+        "lineText": "Крыльями",
         "lyricFont": QFont("DejaVu Sans", 12),
         "accent": QColor("#9c94d7"),
     })
@@ -56,6 +56,7 @@ def main() -> int:
     item = shiboken6.wrapInstance(shiboken6.getCppPointer(effect)[0], QQuickItem)
     window = QQuickWindow()
     window.resize(480, 60)
+    window.setColor(QColor("#121526"))
     item.setParentItem(window.contentItem())
     item.setWidth(460)
     item.setHeight(34)
@@ -73,12 +74,22 @@ def main() -> int:
         raise AssertionError(f"active effect did not render: match={match}, bounds={bounds}, visible={item.isVisible()}")
     if not 0 <= bounds["x"] <= item.width():
         raise AssertionError(f"word anchor escaped the text: {bounds}")
+    wings = effect.findChild(QQuickItem, "raohaneLyricWings")
+    if wings is None or not wings.isVisible() or wings.width() < bounds["width"] + 100:
+        raise AssertionError("wing motif did not render its pair of native feather shapes")
+
+    preview_path = os.environ.get("RAOHANE_LYRIC_PREVIEW_PATH")
+    if preview_path:
+        for _ in range(5):
+            app.processEvents()
+        if not window.grabWindow().save(preview_path):
+            raise AssertionError("could not save wing render preview")
 
     effect.setProperty("mode", "off")
     app.processEvents()
     if item.isVisible():
         raise AssertionError("disabled effect stayed visible")
-    print("lyric-effects-qt-test: Qt JS words, active word geometry and disabled mode pass")
+    print("lyric-effects-qt-test: Qt JS words, paired wings, word geometry and disabled mode pass")
     window.close()
     effect.deleteLater()
     temporary.cleanup()
