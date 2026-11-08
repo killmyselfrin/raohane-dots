@@ -97,7 +97,10 @@ function wordMatches(token, word) {
 
 function tokenize(text) {
     const result = []
-    const expression = /[\p{L}\p{N}]+/gu
+    // Qt QML's JavaScript engine still does not recognize Unicode property
+    // escapes (\p{L}), even where Node does. Explicit ranges keep Russian,
+    // English and the common Latin/Cyrillic extensions functional in Qt.
+    const expression = /[0-9A-Za-z\u00C0-\u024F\u0400-\u052F\u1E00-\u1EFF]+/g
     let token
     while ((token = expression.exec(text)) !== null)
         result.push({ value: normalize(token[0]), start: token.index, end: token.index + token[0].length })

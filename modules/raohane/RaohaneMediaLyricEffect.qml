@@ -13,7 +13,7 @@ Item {
     property bool active: false
     property bool focusMode: false
     property string mode: "off"
-    property color accent: RaohaneTheme.accent
+    required property color accent
 
     readonly property var match: root.active ? LyricEffects.detect(root.lineText) : null
     readonly property var wordBounds: root.measureWord()

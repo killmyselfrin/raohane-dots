@@ -28,6 +28,9 @@ rg -q 'active: root\.current && root\.lyricEffectActive && root\.lyricEffectMode
   || fail 'lyric line instantiates expensive effect probes outside the active row'
 rg -q 'LyricEffects\.detect' "$EFFECT" \
   || fail 'lyric effect lost semantic vocabulary matching'
+if rg -n 'const expression.*\\p\{' "$VOCABULARY"; then
+  fail 'Qt QML JS cannot tokenize with Unicode property escape regexes'
+fi
 rg -q 'positionToRectangle' "$EFFECT" \
   || fail 'lyric effect lost wrap-aware word positioning'
 rg -q 'RaohaneConfig\.lyricEffectMode' "$MEDIA" \
