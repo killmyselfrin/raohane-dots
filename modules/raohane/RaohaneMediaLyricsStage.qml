@@ -20,6 +20,8 @@ Item {
     property bool syncedAvailable: false
     property int syncedIndex: -1
     property bool canSeek: false
+    property bool lyricEffectActive: false
+    property string lyricEffectMode: "off"
     property color focusActive: RaohaneTheme.text
     property color focusSecondary: RaohaneTheme.textMuted
     property color focusHalo: "transparent"
@@ -29,6 +31,7 @@ Item {
     signal focusRequested()
     signal closeRequested()
     signal seekRequested(real time)
+    signal effectModeRequested()
 
     function centerCurrentLine(animated: bool): void {
         lyricsViewport.centerCurrentLine(animated)
@@ -50,11 +53,13 @@ Item {
             mediaAvailable: root.mediaAvailable
             lyricsLoading: root.lyricsLoading
             lyricsAvailable: root.lyricsAvailable
+            lyricEffectMode: root.lyricEffectMode
 
             onBackRequested: root.backRequested()
             onRefreshRequested: root.refreshRequested()
             onFocusRequested: root.focusRequested()
             onCloseRequested: root.closeRequested()
+            onEffectModeRequested: root.effectModeRequested()
         }
 
         Rectangle {
@@ -93,6 +98,8 @@ Item {
                 focusActive: root.focusActive
                 focusSecondary: root.focusSecondary
                 focusHalo: root.focusHalo
+                lyricEffectActive: root.lyricEffectActive
+                lyricEffectMode: root.lyricEffectMode
                 onSeekRequested: time => root.seekRequested(time)
             }
         }

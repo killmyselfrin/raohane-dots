@@ -26,5 +26,11 @@
   "saved": "сохранено",
   "Gaming auto-hide": "Автоскрытие в играх",
   "Close the compact player automatically after interaction": "Автоматически закрывать компактный плеер после взаимодействия",
-  "Hover pauses the timer. Lyrics stay open until you close them.": "Наведение приостанавливает таймер. Текст песни остаётся открыт, пока вы не закроете его."
+  "Hover pauses the timer. Lyrics stay open until you close them.": "Наведение приостанавливает таймер. Текст песни остаётся открыт, пока вы не закроете его.",
+  "Lyric effects": "Эффекты текста песни",
+  "One quiet effect near a meaningful word. Disabled while paused or gaming.": "Один мягкий эффект возле смыслового слова. Отключается на паузе и во время игры.",
+  "Gentle": "Нежно",
+  "Lyric effects: Off": "Эффекты текста: выключены",
+  "Lyric effects: Gentle": "Эффекты текста: нежно",
+  "Lyric effects: Expressive": "Эффекты текста: выразительно"
 }

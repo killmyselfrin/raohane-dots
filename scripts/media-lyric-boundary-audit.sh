@@ -13,10 +13,49 @@ MEDIA='modules/raohane/RaohaneMediaOverlay.qml'
 STAGE='modules/raohane/RaohaneMediaLyricsStage.qml'
 VIEWPORT='modules/raohane/RaohaneMediaLyricsViewport.qml'
 LINE='modules/raohane/RaohaneMediaLyricLine.qml'
+EFFECT='modules/raohane/RaohaneMediaLyricEffect.qml'
+VOCABULARY='modules/raohane/RaohaneLyricEffects.js'
 
 for path in "$MEDIA" "$STAGE" "$VIEWPORT" "$LINE"; do
   [[ -f "$path" ]] || fail "missing lyric boundary path: $path"
 done
+
+[[ -f "$EFFECT" && -f "$VOCABULARY" ]] \
+  || fail 'missing native word-effect component or vocabulary'
+rg -q 'RaohaneMediaLyricEffect[[:space:]]*\{' "$LINE" \
+  || fail 'lyric line lost bounded word-effect composition'
+rg -q 'active: root\.current && root\.lyricEffectActive && root\.lyricEffectMode !== "off"' "$LINE" \
+  || fail 'lyric line instantiates expensive effect probes outside the active row'
+rg -q 'LyricEffects\.detect' "$EFFECT" \
+  || fail 'lyric effect lost semantic vocabulary matching'
+rg -q 'positionToRectangle' "$EFFECT" \
+  || fail 'lyric effect lost wrap-aware word positioning'
+rg -q 'RaohaneConfig\.lyricEffectMode' "$MEDIA" \
+  || fail 'media overlay lost persisted lyric mode'
+rg -q '!root\.gamingScene' "$MEDIA" \
+  || fail 'lyric effects are not disabled in Gaming Scene'
+rg -q 'RaohaneMedia\.isPlaying' "$MEDIA" \
+  || fail 'lyric effects are not disabled on pause'
+rg -q 'onLyricEffectModeChanged: scheduleSave\(\)' modules/raohane/config/RaohaneConfig.qml \
+  || fail 'lyric effect choice is not persisted'
+for file in "$EFFECT" "$VOCABULARY"; do
+  if rg -n '(^import qs\.modules\.raohane\.(services|config)|Quickshell\.execDetached|\bProcess[[:space:]]*\{)' "$file"; then
+    fail "$file crossed the native lyric presentation boundary"
+  fi
+done
+if command -v node >/dev/null 2>&1; then
+  node scripts/lyric-effects-test.cjs
+else
+  python3 - "$VOCABULARY" <<'PY'
+import re
+import sys
+
+text = open(sys.argv[1], encoding="utf-8").read()
+records = re.findall(r'^\s*\["[a-z]+", "[a-z]+", ', text, re.M)
+if len(records) != 40:
+    raise SystemExit(f"expected 40 lyric vocabulary families, got {len(records)}")
+PY
+fi
 
 for contract in \
   'RaohaneMediaLyricsStage[[:space:]]*\{' \
@@ -75,4 +114,4 @@ if rg -n 'RaohaneMediaLyrics(Viewport|Header|Status)[[:space:]]*\{' "$MEDIA"; th
   fail 'Overlay regained direct lyrics leaf composition'
 fi
 
-printf 'media-lyric-boundary-audit: lyric lines remain stable presentation leaves behind Stage/Viewport with overlay-owned seek ratio\n'
+printf 'media-lyric-boundary-audit: stable lyric glyphs, bounded semantic effects and overlay-owned seek ratio are valid\n'

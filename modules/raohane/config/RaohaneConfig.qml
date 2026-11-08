@@ -141,6 +141,7 @@ Singleton {
     property string mediaOverlayPosition: "bottom-right"
     property string mediaOverlayGamingPosition: "bottom-right"
     property int mediaOverlayGamingAutoHideSeconds: 8
+    property string lyricEffectMode: "gentle"
     property bool integrationMode: true
     property string themePreset: "raohane-dark"
 
@@ -504,6 +505,11 @@ Singleton {
         return allowed.includes(requested) ? requested : 8
     }
 
+    function sanitizeLyricEffectMode(value): string {
+        const requested = String(value ?? "").toLowerCase()
+        return ["off", "gentle", "expressive"].includes(requested) ? requested : "gentle"
+    }
+
     function sanitizeStyle(value): var {
         const input = value && typeof value === "object" ? value : {}
         const allowedModes = ["theme", "ink", "rose", "sage", "slate", "sand", "custom"]
@@ -732,6 +738,7 @@ Singleton {
                 mediaOverlayPosition: root.sanitizeMediaOverlayPosition(root.mediaOverlayPosition),
                 mediaOverlayGamingPosition: root.sanitizeMediaOverlayPosition(root.mediaOverlayGamingPosition),
                 mediaOverlayGamingAutoHideSeconds: root.sanitizeMediaOverlayGamingAutoHideSeconds(root.mediaOverlayGamingAutoHideSeconds),
+                lyricEffectMode: root.sanitizeLyricEffectMode(root.lyricEffectMode),
                 integrationMode: root.integrationMode,
                 themePreset: root.themePreset
             },
@@ -918,6 +925,7 @@ Singleton {
         root.assignIfPresent(features, "mediaOverlayPosition", value => root.mediaOverlayPosition = root.sanitizeMediaOverlayPosition(value))
         root.assignIfPresent(features, "mediaOverlayGamingPosition", value => root.mediaOverlayGamingPosition = root.sanitizeMediaOverlayPosition(value))
         root.assignIfPresent(features, "mediaOverlayGamingAutoHideSeconds", value => root.mediaOverlayGamingAutoHideSeconds = root.sanitizeMediaOverlayGamingAutoHideSeconds(value))
+        root.assignIfPresent(features, "lyricEffectMode", value => root.lyricEffectMode = root.sanitizeLyricEffectMode(value))
         root.assignIfPresent(features, "integrationMode", value => root.integrationMode = Boolean(value))
         root.assignIfPresent(features, "themePreset", value => root.themePreset = String(value || "raohane-dark"))
 
@@ -1074,6 +1082,7 @@ Singleton {
     onMediaOverlayPositionChanged: scheduleSave()
     onMediaOverlayGamingPositionChanged: scheduleSave()
     onMediaOverlayGamingAutoHideSecondsChanged: scheduleSave()
+    onLyricEffectModeChanged: scheduleSave()
     onIntegrationModeChanged: scheduleSave()
     onThemePresetChanged: scheduleSave()
     onKeybindsChanged: {

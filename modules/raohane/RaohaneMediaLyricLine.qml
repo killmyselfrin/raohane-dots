@@ -9,6 +9,8 @@ RaohaneSurface {
     property bool current: false
     property bool focusMode: false
     property bool seekEnabled: false
+    property bool lyricEffectActive: false
+    property string lyricEffectMode: "off"
     property color accent: RaohaneTheme.accent
     property color focusActive: RaohaneTheme.text
     property color focusSecondary: RaohaneTheme.textMuted
@@ -30,6 +32,28 @@ RaohaneSurface {
     idleBorderColor: "transparent"
     activeBorderColor: "transparent"
 
+    // Only the current, playing line instantiates the text-layout probe and
+    // decorations. Offscreen ListView delegates stay as cheap static Text.
+    Loader {
+        anchors.fill: lyricText
+        active: root.current && root.lyricEffectActive && root.lyricEffectMode !== "off"
+        sourceComponent: lyricEffectComponent
+    }
+
+    Component {
+        id: lyricEffectComponent
+
+        RaohaneMediaLyricEffect {
+            anchors.fill: parent
+            lineText: lyricText.text
+            lyricFont: lyricText.font
+            active: root.current && root.lyricEffectActive
+            focusMode: root.focusMode
+            mode: root.lyricEffectMode
+            accent: root.accent
+        }
+    }
+
     Text {
         id: lyricText
         anchors {
@@ -49,6 +73,7 @@ RaohaneSurface {
         horizontalAlignment: Text.AlignHCenter
         style: root.focusMode ? Text.Outline : Text.Normal
         styleColor: root.focusMode ? root.focusHalo : "transparent"
+        z: 1
     }
 
     MouseArea {

@@ -10,6 +10,8 @@ ListView {
     property bool syncedAvailable: false
     property int syncedIndex: -1
     property bool canSeek: false
+    property bool lyricEffectActive: false
+    property string lyricEffectMode: "off"
     property color accent: RaohaneTheme.accent
     property color focusActive: RaohaneTheme.text
     property color focusSecondary: RaohaneTheme.textMuted
@@ -72,6 +74,8 @@ ListView {
         focusActive: root.focusActive
         focusSecondary: root.focusSecondary
         focusHalo: root.focusHalo
+        lyricEffectActive: root.lyricEffectActive
+        lyricEffectMode: root.lyricEffectMode
         onSeekRequested: time => root.seekRequested(time)
     }
 }

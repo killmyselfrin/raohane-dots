@@ -24,6 +24,11 @@ Item {
         { value: 8, label: "8s" },
         { value: 15, label: "15s" }
     ]
+    readonly property var lyricEffectOptions: [
+        { value: "off", label: qsTr("Off") },
+        { value: "gentle", label: qsTr("Gentle") },
+        { value: "expressive", label: qsTr("Expressive") }
+    ]
 
     function previewPlayer(): void {
         RaohaneState.mediaOverlayOpen = true
@@ -215,6 +220,103 @@ Item {
                                             event.accepted = true
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        RaohaneSurface {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 72
+            surfaceRadius: RaohaneTheme.radiusLarge
+            raised: false
+            showSheen: false
+            showInnerRim: false
+            idleColor: RaohaneTheme.surfaceSubtle
+            idleBorderColor: RaohaneTheme.borderFaint
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: RaohaneTheme.panelPadding
+                anchors.rightMargin: RaohaneTheme.panelPadding
+                spacing: RaohaneTheme.spacing
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    Text {
+                        text: qsTr("Lyric effects")
+                        color: RaohaneTheme.text
+                        font.pixelSize: 10
+                        font.weight: Font.DemiBold
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("One quiet effect near a meaningful word. Disabled while paused or gaming.")
+                        color: RaohaneTheme.textMuted
+                        font.pixelSize: 8
+                        wrapMode: Text.WordWrap
+                    }
+                }
+
+                RowLayout {
+                    spacing: 4
+
+                    Repeater {
+                        model: root.lyricEffectOptions
+
+                        delegate: RaohaneSurface {
+                            id: effectChoice
+                            required property var modelData
+                            readonly property string optionValue: String(modelData.value)
+                            readonly property bool selected: RaohaneConfig.lyricEffectMode === optionValue
+
+                            Layout.preferredWidth: optionValue === "expressive" ? 80 : 58
+                            Layout.preferredHeight: 30
+                            surfaceRadius: RaohaneTheme.radiusSmall
+                            raised: false
+                            active: selected
+                            interactive: true
+                            transparentIdle: !selected
+                            activeFocusOnTab: true
+                            hoverScale: 1
+                            pressedScale: 1
+                            showSheen: false
+                            showInnerRim: false
+                            hovered: effectMouse.containsMouse || activeFocus
+                            pressed: effectMouse.pressed
+                            hoverColor: RaohaneTheme.surfaceHover
+                            activeColor: RaohaneTheme.accentSoft
+                            idleBorderColor: "transparent"
+                            hoverBorderColor: "transparent"
+                            activeBorderColor: "transparent"
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: String(effectChoice.modelData.label)
+                                color: effectChoice.selected ? RaohaneTheme.accent : RaohaneTheme.textMuted
+                                font.pixelSize: 8
+                                font.weight: effectChoice.selected ? Font.DemiBold : Font.Medium
+                            }
+
+                            MouseArea {
+                                id: effectMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onPressed: effectChoice.forceActiveFocus()
+                                onClicked: RaohaneConfig.lyricEffectMode = effectChoice.optionValue
+                            }
+
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    RaohaneConfig.lyricEffectMode = effectChoice.optionValue
+                                    event.accepted = true
                                 }
                             }
                         }

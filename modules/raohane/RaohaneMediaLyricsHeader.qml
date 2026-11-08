@@ -13,11 +13,13 @@ Item {
     property bool mediaAvailable: false
     property bool lyricsLoading: false
     property bool lyricsAvailable: false
+    property string lyricEffectMode: "off"
 
     signal backRequested()
     signal refreshRequested()
     signal focusRequested()
     signal closeRequested()
+    signal effectModeRequested()
 
     implicitHeight: 46
 
@@ -85,6 +87,15 @@ Item {
                 font.pixelSize: 8
                 elide: Text.ElideRight
             }
+        }
+
+        MiniButton {
+            icon: "auto_awesome"
+            tooltip: root.lyricEffectMode === "off" ? qsTr("Lyric effects: Off")
+                : root.lyricEffectMode === "gentle" ? qsTr("Lyric effects: Gentle")
+                : qsTr("Lyric effects: Expressive")
+            enabled: root.lyricsAvailable
+            onClicked: root.effectModeRequested()
         }
 
         MiniButton {

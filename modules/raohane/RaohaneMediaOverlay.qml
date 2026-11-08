@@ -216,7 +216,17 @@ Scope {
                     focusActive: root.lyricsFocusActive
                     focusSecondary: root.lyricsFocusSecondary
                     focusHalo: root.lyricsFocusHalo
+                    lyricEffectMode: RaohaneConfig.lyricEffectMode
+                    lyricEffectActive: root.lyricsOpen
+                        && RaohaneMedia.isPlaying
+                        && !root.gamingScene
+                        && RaohaneMotion.panelMotionEnabled
 
+                    onEffectModeRequested: {
+                        const choices = ["off", "gentle", "expressive"]
+                        const index = choices.indexOf(RaohaneConfig.lyricEffectMode)
+                        RaohaneConfig.lyricEffectMode = choices[(index + 1) % choices.length]
+                    }
                     onBackRequested: {
                         root.lyricsOpen = false
                         Qt.callLater(root.armGamingAutoHide)
