@@ -186,10 +186,20 @@ for contract in \
   rg -q "$contract" "$STUDIO" || fail "Media Position Studio lost interaction contract: $contract"
 done
 
-jq -e '.schemaVersion == 13' "$DEFAULTS" >/dev/null \
-  || fail 'native defaults schema unexpectedly changed'
+# Keep the test aligned to the one authoritative native schema rather than
+# pinning a retired version number. The installer validates this same pair.
+declared_schema="$(sed -n 's/^[[:space:]]*readonly property int schemaVersion: \([0-9][0-9]*\).*/\1/p' "$CONFIG")"
+[[ -n "$declared_schema" ]] || fail 'native runtime schema is missing'
+jq -e --argjson schema "$declared_schema" '.schemaVersion == $schema' "$DEFAULTS" >/dev/null \
+  || fail 'native defaults schema does not match RaohaneConfig'
 jq -e '.features.mediaOverlayPosition == "bottom-right" and .features.mediaOverlayGamingPosition == "bottom-right" and .features.mediaOverlayGamingAutoHideSeconds == 8' "$DEFAULTS" >/dev/null \
   || fail 'native defaults lost media placement or Gaming auto-hide defaults'
+jq -e '.features.lyricEffectMode == "gentle"' "$DEFAULTS" >/dev/null \
+  || fail 'native defaults lost gentle lyric effect mode'
+rg -q 'property string lyricEffectMode: "gentle"' "$CONFIG" \
+  || fail 'native config lost the lyric effect default'
+rg -q 'RaohaneConfig\.lyricEffectMode' "$STUDIO" \
+  || fail 'Media Studio lost the lyric effect mode control'
 
 # The player must stay at a corner. Do not bring back screen-width centering
 # math or the old split/deck presentation that occupied the visual focus area.
