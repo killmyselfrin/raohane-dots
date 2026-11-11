@@ -188,7 +188,14 @@ Item {
             implicitHeight: 30
             buttonSize: 30
             iconSize: 17
-            icon: "apps"
+            icon: ""
+            Accessible.name: qsTr("Open launcher")
+            Image {
+                anchors.centerIn: parent
+                width: 22; height: 22
+                source: RaohanePaths.fileUrl(RaohanePaths.join(RaohanePaths.assetsPath, "icons/raohane-logo.svg"))
+                sourceSize: Qt.size(44, 44)
+            }
             transparentIdle: true
             emphasized: RaohaneState.launcherOpen
             onClicked: root.requestPrimary("launcher")
@@ -212,6 +219,8 @@ Item {
         RaohaneContextIsland {
             densityMode: root.densityMode
             chromaticBackground: root.chromaticBackground
+            integratedBackground: !root.showBackground || RaohaneConfig.barSurfaceStyle === "panel"
+                || RaohaneConfig.barStylePreset === "orbit"
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true

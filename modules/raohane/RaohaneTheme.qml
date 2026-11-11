@@ -10,13 +10,12 @@ QtObject {
     // overrides on top without changing Raohane's information architecture.
     readonly property var builtInPresets: [
         {
-            // Raohane Flow: softly layered charcoal/mauve material, translucent
-            // modular islands and legible raised surfaces. The palette is
-            // built from Raohane's existing shared material tokens.
+            // Cool graphite surfaces keep the lavender accent reserved for
+            // selection and focus across the shell and desktop widgets.
             id: "raohane-dark", name: qsTr("Raohane"), description: qsTr("Cool charcoal glass for low-light sessions"), tone: qsTr("Dark"), dark: true,
-            background: "#151420", backgroundElevated: "#1d1b2d", surface: "#c5201e31", surfaceRaised: "#da29263d", surfaceDeep: "#ed13121f", surfaceSubtle: "#94342e4a", surfaceHover: "#d9363150", surfacePressed: "#e2413b5e",
-            border: "#4a817999", borderStrong: "#7b958dab", borderFaint: "#287f7996", highlight: "#52ffffff",
-            text: "#f2effa", textMuted: "#bcb5ce", textFaint: "#928ca9", accent: "#c2a4ee", accentSecondary: "#a792da", accentBlue: "#94b5e5",
+            background: "#10131a", backgroundElevated: "#191d27", surface: "#d2191d28", surfaceRaised: "#e0222734", surfaceDeep: "#f012151e", surfaceSubtle: "#94272d3a", surfaceHover: "#e02c3343", surfacePressed: "#eb363e50",
+            border: "#405d687e", borderStrong: "#706f7d96", borderFaint: "#285e6a81", highlight: "#42ffffff",
+            text: "#eef1f8", textMuted: "#b2bacc", textFaint: "#8b96ad", accent: "#b9b3f3", accentSecondary: "#a29bd7", accentBlue: "#94b5e5",
             success: "#97daba", warning: "#ebc48d", critical: "#e59aaf", info: "#a0c6f1"
         },
         {

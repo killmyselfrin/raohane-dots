@@ -76,7 +76,9 @@ Singleton {
     readonly property string recordingsDirectory: root.join(root.videos.length > 0 ? root.videos : root.home, "Raohane")
 
     readonly property string defaultAvatarUrl: Quickshell.shellPath("assets/images/default_avatar.svg")
-    readonly property string defaultWallpaperUrl: Quickshell.shellPath("assets/images/default_wallpaper.png")
+    readonly property string bundledWallpaperDirectory: root.join(root.assetsPath, "wallpapers")
+    readonly property string defaultWallpaperPath: root.join(root.bundledWallpaperDirectory, "nature/08-path.jpg")
+    readonly property string defaultWallpaperUrl: root.fileUrl(root.defaultWallpaperPath)
     readonly property string iconsUrl: Quickshell.shellPath("assets/icons")
 
     readonly property string accountsServiceAvatarPath: root.username.length > 0

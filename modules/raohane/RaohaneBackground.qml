@@ -51,7 +51,8 @@ Variants {
             // Monitor overrides are optional and fall back to the existing
             // global wallpaper. A configured monitor keeps its own background
             // even when other outputs change or the global slideshow runs.
-            return RaohaneConfig.wallpaperPathForScreen(String(modelData.name))
+            const configured = RaohaneConfig.wallpaperPathForScreen(String(modelData.name))
+            return configured.length > 0 ? configured : RaohanePaths.defaultWallpaperPath
         }
 
         property string currentPath: requestedPath

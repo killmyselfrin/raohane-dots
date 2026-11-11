@@ -76,14 +76,14 @@ Scope {
             readonly property string surfaceStyle: RaohaneConfig.barSurfaceStyle
             readonly property string groupStyle: RaohaneConfig.barGroupStyle
             readonly property bool cinematicPreset: RaohaneConfig.barStylePreset === "cinematic"
-            readonly property bool haloPreset: RaohaneConfig.barStylePreset === "halo"
+            readonly property bool haloPreset: RaohaneConfig.barStylePreset === "halo" || RaohaneConfig.barStylePreset === "orbit"
             readonly property bool compactPreset: RaohaneConfig.barStylePreset === "compact"
             readonly property bool islandsPreset: RaohaneConfig.barStylePreset === "islands"
             readonly property bool panelPreset: surfaceStyle === "panel"
             // Geometry is independent of the look: all presets use the same
             // collision-proof zones, while Halo/Cinematic/Float have their
             // own maximum content widths for an intentional silhouette.
-            readonly property real contentWidthLimit: haloPreset ? 1240
+            readonly property real contentWidthLimit: RaohaneConfig.barStylePreset === "orbit" ? 1040 : haloPreset ? 1240
                 : cinematicPreset ? 1360
                 : compactPreset ? 1200
                 : islandsPreset ? 1320

@@ -10,16 +10,16 @@ welcome='modules/raohane/RaohaneWelcome.qml'
 state='modules/raohane/RaohaneOnboardingState.qml'
 mascot='assets/images/welcome-mascot.svg'
 credit='assets/images/WELCOME-MASCOT.md'
-translations='translations/raohane/ru_RU_welcome_mascot.json'
+translations='translations/raohane/ru_RU_ui.json'
 
 for path in "$welcome" "$state" "$mascot" "$credit" "$translations"; do
   [[ -s "$path" ]] || fail "missing Welcome file: $path"
 done
 
 for expected in \
-  'RaohanePaths.join(RaohanePaths.assetsPath, "images/welcome-mascot.svg")' \
-  'source: root.mascotUrl' \
-  'visible: root.compactLayout' \
+  'RaohanePaths.join(RaohanePaths.assetsPath, "icons/raohane-emblem.png")' \
+  'source: root.logoUrl' \
+  'visible: !root.compactLayout' \
   'function startTour(): void' \
   'RaohaneOnboardingState.skip()' \
   'z: 150' \
@@ -28,12 +28,17 @@ for expected in \
   'if (!panelWindow.visible || !RaohaneState.welcomeOpen || RaohaneOnboardingState.active)' \
   'if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)' \
   'RaohaneOnboardingState.start()' \
-  'onTriggered: root.skipWelcome()' \
+  'if (setupStep !== 4 || panelWindow.introActive) return' \
   'root.compactLayout' \
   'RaohaneI18n.languageChosen' \
   '!RaohaneI18n.pickerOpen'; do
   rg -Fq "$expected" "$welcome" || fail "Welcome lost contract: $expected"
 done
+# Welcome must use an installed local mark and preserve working Settings routes.
+[[ -s assets/icons/raohane-emblem.png ]] || fail 'Welcome logo is missing'
+if rg -q 'raohane-welcome-girl\.png|Animation.Infinite|ShaderEffect' "$welcome"; then
+  fail 'Welcome probes an absent asset or runs an unbounded decorative effect'
+fi
 if rg -n 'id: shellPreview|component PreviewTile:|component PreviewPod:|Qt.formatTime\(new Date\(\)' "$welcome"; then
   fail 'Welcome still displays a fake dashboard or abandoned preview components'
 fi
@@ -100,4 +105,4 @@ for key in (
     assert d.get(key), f"Missing translation for {key}"
 PY
 
-printf 'welcome-boundary-audit: mascot, launch lifetime, compact layout, keyboard actions, provenance and translation contracts valid\n'
+printf 'welcome-boundary-audit: local mark, launch lifetime, compact layout, keyboard actions, provenance and translation contracts valid\n'

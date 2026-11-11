@@ -10,6 +10,7 @@ RaohaneSurface {
     // Only the Bar passes this flag. Other Context Island instances keep
     // their original material and urgent state emphasis.
     property bool chromaticBackground: false
+    property bool integratedBackground: false
     readonly property bool condensed: densityMode !== "full"
     readonly property bool iconOnly: densityMode === "icon"
     readonly property var styleConfig: RaohaneConfig.style ?? ({})
@@ -112,12 +113,12 @@ RaohaneSurface {
     surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)
     // Do not stack an opaque inner capsule on top of Halo's continuous
     // glass backing. Important media/privacy events keep their own emphasis.
-    raised: root.priorityMode || (!root.haloStyle && !root.chromaticBackground)
-    transparentIdle: (root.haloStyle || root.chromaticBackground) && !root.priorityMode
-    showSheen: root.priorityMode || (!root.haloStyle && !root.chromaticBackground)
-    showInnerRim: root.priorityMode || (!root.haloStyle && !root.chromaticBackground)
+    raised: root.priorityMode || (!root.haloStyle && !root.chromaticBackground && !root.integratedBackground)
+    transparentIdle: (root.haloStyle || root.chromaticBackground || root.integratedBackground) && !root.priorityMode
+    showSheen: root.priorityMode || (!root.haloStyle && !root.chromaticBackground && !root.integratedBackground)
+    showInnerRim: root.priorityMode || (!root.haloStyle && !root.chromaticBackground && !root.integratedBackground)
     clip: true
-    border.width: (root.haloStyle || root.chromaticBackground) && !root.priorityMode ? 0 : 1
+    border.width: (root.haloStyle || root.chromaticBackground || root.integratedBackground) && !root.priorityMode ? 0 : 1
     border.color: root.priorityMode
         ? Qt.rgba(root.modeColor.r, root.modeColor.g, root.modeColor.b, 0.72)
         : RaohaneContext.mode === "event"
