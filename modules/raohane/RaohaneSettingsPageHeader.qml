@@ -122,7 +122,7 @@ Item {
             NumberAnimation {
                 target: headerTranslate
                 property: "x"
-                to: -root.direction * 5
+                to: RaohaneMotion.transformMotionEnabled ? -root.direction * 5 : 0
                 duration: RaohaneMotion.micro
                 easing.type: RaohaneMotion.easeExit
             }
@@ -131,7 +131,7 @@ Item {
         ScriptAction {
             script: {
                 root.displayedPageInfo = root.pageInfo
-                headerTranslate.x = root.direction * 7
+                headerTranslate.x = RaohaneMotion.transformMotionEnabled ? root.direction * 7 : 0
             }
         }
 
