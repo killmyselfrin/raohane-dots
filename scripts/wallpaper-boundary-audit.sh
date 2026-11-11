@@ -58,7 +58,7 @@ rg -Fq 'Qt.resolvedUrl("RaohaneWallpaperCinema.qml")' "$selector" \
   || fail 'cinematic wallpaper must be loaded by URL for safe fallback'
 # Deployed Quickshell QML rejects typed default arguments. Any reintroduction
 # makes the loader fail, even while the rest of the shell is running.
-if rg -n 'function[[:space:]]+[A-Za-z0-9_]+\\([^)]*:[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=' \
+if rg -n 'function[[:space:]]+[A-Za-z0-9_]+\([^)]*:[[:space:]]*[A-Za-z0-9_]+[[:space:]]*=' \
   "$cinema" "$selector"; then
   fail 'wallpaper QML contains a typed default function parameter'
 fi
