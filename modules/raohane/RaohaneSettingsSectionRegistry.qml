@@ -37,7 +37,12 @@ QtObject {
                 "barModuleSpacing",
                 "barHorizontalPadding",
                 "barModuleLayout",
-                "barVerticalModuleLayout"
+                "barVerticalModuleLayout",
+                "barWorkspaceCount",
+                "barWorkspaceStyle",
+                "barClock24Hour",
+                "barClockShowSeconds",
+                "barClockDateFormat"
             ]
         },
         quick: {
