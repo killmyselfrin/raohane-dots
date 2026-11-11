@@ -9,7 +9,7 @@
 A thoughtfully customizable desktop shell for **Hyprland**, built with **Quickshell and Qt/QML**.
 Soft graphite. Lavender light. A quieter place to work, create and stay focused.
 
-[Explore the gallery](#gallery) · [Discover features](#features) · [Get started](#installation) · [Read the docs](#documentation)
+[Explore the gallery](#gallery) · [Discover features](#features) · [Get started](#installation) · [Read the docs](#documentation) · [Website source](https://github.com/killmyselfrin/raohane-site)
 
 **English** · [Русский](README.ru.md)
 
@@ -239,5 +239,7 @@ bash scripts/runtime-payload-audit.sh
 **Static validation does not replace running the shell.** Check behavior, QML logs, screenshots, session actions, and long-session resource usage on target Hyprland hardware before declaring release readiness.
 
 ## License
+
+Raohane is developed and maintained by [@killmyselfrin](https://github.com/killmyselfrin).
 
 Raohane is released under [GNU GPLv3](LICENSE). Retained/adapted code, translations, data, and assets preserve applicable attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md). Screenshot credits and capture details are listed in [assets/screenshots](assets/screenshots/README.md). Older concept artwork remains separately labeled in [assets/showcase](assets/showcase/README.md).
