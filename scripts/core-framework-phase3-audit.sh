@@ -73,7 +73,7 @@ done
 for section_name in wallpaper overview dock bar frame corners osk osd display apps profile quickControls desktopWidgets features; do
   rg -q "${section_name}:[[:space:]]*\{" "$config" || fail "snapshot lost product section: $section_name"
 done
-rg -q 'schemaVersion:[[:space:]]*13' "$config" || fail 'RaohaneConfig schema contract is not v13'
+rg -q 'readonly property int schemaVersion:[[:space:]]*15' "$config" || fail 'RaohaneConfig source schema contract is not v15'
 rg -q 'themePreset:[[:space:]]*root\.themePreset' "$config" || fail 'theme selection is not persisted in native config'
 rg -q 'RaohanePaths\.nativeConfigFile' "$config" || fail 'RaohaneConfig bypasses RaohanePaths'
 
