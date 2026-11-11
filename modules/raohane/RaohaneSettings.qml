@@ -165,13 +165,27 @@ Scope {
             RaohaneSettingsContentV3 {
                 id: settingsContent
                 anchors.fill: parent
+                anchors.topMargin: 52
+            }
+
+            Text {
+                x: 22
+                y: 18
+                width: Math.max(0, workspace.width - settingsSearch.width - 110)
+                height: 24
+                text: qsTr("Settings")
+                color: RaohaneTheme.text
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
             }
 
             RaohaneSettingsSearch {
                 id: settingsSearch
-                visible: !settingsContent.pageOwnsHeader
+                visible: true
                 z: 50
-                width: Math.min(340, Math.max(260, workspace.width * 0.28))
+                width: Math.min(420, Math.max(160, workspace.width - 128))
+                maximumResultsHeight: Math.max(120, workspace.height - 110)
                 height: 34
                 anchors {
                     top: parent.top
