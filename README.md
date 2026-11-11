@@ -204,10 +204,11 @@ The current `main` includes the following reconciled Codex Cloud contributions:
 - **Motion and visual contracts (#127):** Quick Controls busy indicators respect reduced-motion and Gaming policies; neutral Nocturne design guidance remains the product baseline.
 - **Desktop & Spaces preview (#39):** on-demand Settings wallpaper and workspace grid preview, native shortcuts to wallpaper/Overview/widgets, and geometry-aware navigation to controls.
 - **Settings navigation (#47):** ranked multiword search with Russian е/ё normalization, a scrollable result list, keyboard-accessible sidebar, and motion-aware page transitions across every Settings page.
+- **Bar Studio controls (#100; overlapping #99):** independent workspace count, numbers/dots/minimal indicators, 24-hour/12-hour time, optional seconds, date formatting and synchronized native previews. These settings persist through the v15 native configuration and are indexed by Settings search.
 
 These are code integrations, **not proof of live Hyprland acceptance**. Static checks and source review do not replace compositor testing. The original draft PRs may remain open as historical review records even when selected changes have been ported.
 
-Other cloud proposals still require reconciliation against newer `main`: the overlapping [Bar settings (#99)](https://github.com/killmyselfrin/raohane-dots/pull/99) / [single-source Bar Studio (#100)](https://github.com/killmyselfrin/raohane-dots/pull/100) work, and [1.3 release candidate (#48)](https://github.com/killmyselfrin/raohane-dots/pull/48). These are **not yet represented as completed features in `main`**.
+The former Bar proposals [#99](https://github.com/killmyselfrin/raohane-dots/pull/99) and [#100](https://github.com/killmyselfrin/raohane-dots/pull/100) overlap; current `main` uses the consolidated Bar Studio behavior rather than installing both competing Settings panels. The historical #99 alternative indicator and module-settings UI is **not merged wholesale**. The separate [1.3 release candidate (#48)](https://github.com/killmyselfrin/raohane-dots/pull/48) still needs live Hyprland acceptance and must not be promoted as a stable release just because source changes were reconciled.
 
 The active Quickshell implementation is under `modules/raohane/`. Verify source and runtime boundaries with:
 
