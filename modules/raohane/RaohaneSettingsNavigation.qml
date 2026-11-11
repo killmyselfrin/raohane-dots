@@ -18,6 +18,27 @@ Item {
 
     implicitWidth: compact ? 66 : 204
 
+    function revealPage(index: int): void {
+        const item = navRepeater.itemAt(index)
+        if (!item)
+            return
+        const top = item.y
+        const bottom = item.y + item.height
+        const nextY = top < navigation.contentY ? top
+            : bottom > navigation.contentY + navigation.height ? bottom - navigation.height
+            : navigation.contentY
+        navigation.contentY = Math.max(0, Math.min(Math.max(0, navigation.contentHeight - navigation.height), nextY))
+    }
+
+    function focusPage(index: int): void {
+        const item = navRepeater.itemAt(Math.max(0, Math.min(root.pages.length - 1, index)))
+        if (item)
+            item.focusControl()
+    }
+
+    onCurrentPageChanged: Qt.callLater(() => root.revealPage(root.currentPage))
+    onCompactChanged: Qt.callLater(() => root.revealPage(root.currentPage))
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: RaohaneTheme.spacingSmall
@@ -159,6 +180,8 @@ Item {
                             readonly property bool firstInGroup: RaohaneSettingsPageRegistry.isFirstInGroup(index)
                             readonly property bool selected: root.currentPage === navDelegate.index
 
+                            function focusControl(): void { navItem.forceActiveFocus(Qt.TabFocusReason) }
+
                             width: navColumn.width
                             height: root.compact ? 38 : (firstInGroup ? 54 : 38)
 
@@ -196,6 +219,13 @@ Item {
                                 hoverScale: 1
                                 pressedScale: 1
                                 activeFocusOnTab: true
+                                Accessible.role: Accessible.Button
+                                Accessible.name: navDelegate.modelData.name
+                                Accessible.onPressAction: root.pageRequested(navDelegate.index)
+                                onActiveFocusChanged: { if (activeFocus) root.revealPage(navDelegate.index) }
+                                ToolTip.visible: root.compact && navMouse.containsMouse
+                                ToolTip.text: navDelegate.modelData.name
+                                ToolTip.delay: 500
                                 hoverColor: RaohaneTheme.surfaceSubtle
                                 hoverBorderColor: "transparent"
 
@@ -257,7 +287,13 @@ Item {
                                 }
 
                                 Keys.onPressed: event => {
-                                    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                    if (event.key === Qt.Key_Home) {
+                                        root.focusPage(0)
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_End) {
+                                        root.focusPage(root.pages.length - 1)
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                         root.pageRequested(navDelegate.index)
                                         event.accepted = true
                                     }
