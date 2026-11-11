@@ -554,8 +554,8 @@ done
 # no text smaller than 9px. TextMetrics must match their visible text.
 rg -Fq 'surfaceRadius: Math.min(RaohaneTheme.radiusHero, height / 2)' "$context_island" \
   || fail 'Context Island lost the shared rounded material'
-rg -Fq 'showSheen: true' "$context_island" \
-  || fail 'Context Island lost its glass catch-light'
+rg -Fq 'showSheen: root.priorityMode || (!root.haloStyle && !root.chromaticBackground && !root.integratedBackground)' "$context_island" \
+  || fail 'Context Island lost its context-sensitive glass catch-light policy'
 [[ "$(rg -Fc 'font.pixelSize: 11' "$context_island")" == 2 ]] \
   || fail 'Context Island title font and metrics differ'
 [[ "$(rg -Fc 'font.pixelSize: 9' "$context_island")" == 2 ]] \
