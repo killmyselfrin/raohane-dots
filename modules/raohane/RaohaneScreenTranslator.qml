@@ -3,73 +3,30 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Wayland
 
+import qs.modules.raohane.services
+
+// On-demand presentation for the resident RaohaneScreenTranslation transaction
+// service. OCR/translation continues after this component is destroyed and the
+// resident surface router reopens the presentation when a result is ready.
 Scope {
     id: root
 
-    property string targetLanguage: "ru"
-    property string sourceText: ""
-    property string translatedText: ""
-    property string errorText: ""
     property bool copied: false
 
-    readonly property bool busy: translateProcess.running || captureDelay.running
     readonly property var focusedScreen: Quickshell.screens.find(candidate => candidate.name === Hyprland.focusedMonitor?.name)
         ?? Quickshell.screens[0]
 
-    function open(): void { RaohaneState.setPrimaryOpen("screenTranslator", true) }
-    function close(): void { RaohaneState.setPrimaryOpen("screenTranslator", false) }
+    function close(): void {
+        RaohaneState.setPrimaryOpen("screenTranslator", false)
+    }
 
     function startTranslation(): void {
-        if (root.busy)
+        if (!RaohaneScreenTranslation.start())
             return
-        root.errorText = ""
-        root.copied = false
         root.close()
-        captureDelay.restart()
-    }
-
-    function applyResult(payload: string): void {
-        let result
-        try {
-            result = JSON.parse(String(payload ?? ""))
-        } catch (error) {
-            root.sourceText = ""
-            root.translatedText = ""
-            root.errorText = qsTr("The translation backend returned invalid data.")
-            root.open()
-            return
-        }
-
-        root.targetLanguage = String(result?.target ?? root.targetLanguage)
-        root.sourceText = String(result?.source ?? "")
-        root.translatedText = String(result?.translation ?? "")
-        root.errorText = result?.ok ? "" : String(result?.error ?? qsTr("Translation failed."))
-        root.open()
-    }
-
-    Timer {
-        id: captureDelay
-        interval: 140
-        repeat: false
-        onTriggered: translateProcess.exec([
-            Quickshell.shellPath("scripts/screen-translate.sh"),
-            root.targetLanguage
-        ])
-    }
-
-    Process {
-        id: translateProcess
-        stdout: StdioCollector { onStreamFinished: root.applyResult(text) }
-        onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0 && !RaohaneState.screenTranslatorOpen) {
-                root.errorText = qsTr("The screen translation process exited unexpectedly.")
-                root.open()
-            }
-        }
     }
 
     Timer {
@@ -86,6 +43,7 @@ Scope {
         screen: root.focusedScreen
         color: "black"
         exclusionMode: ExclusionMode.Ignore
+        exclusiveZone: 0
 
         anchors {
             top: true
@@ -101,7 +59,10 @@ Scope {
         onVisibleChanged: {
             if (visible) {
                 translatorPanel.entered = false
-                Qt.callLater(() => translatorPanel.entered = true)
+                Qt.callLater(() => {
+                    translatorPanel.entered = true
+                    translatorPanel.forceActiveFocus()
+                })
             } else {
                 translatorPanel.entered = false
             }
@@ -127,12 +88,15 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 color: RaohaneTheme.dark
-                    ? Qt.rgba(0.005, 0.008, 0.018, 0.68)
-                    : Qt.rgba(0.18, 0.17, 0.15, 0.24)
+                    ? Qt.rgba(0.005, 0.008, 0.018, 0.72)
+                    : Qt.rgba(0.18, 0.17, 0.15, 0.26)
                 opacity: translatorPanel.entered ? 1 : 0
 
                 Behavior on opacity {
-                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+                    NumberAnimation {
+                        duration: RaohaneMotion.standard
+                        easing.type: translatorPanel.entered ? RaohaneMotion.easeStandard : RaohaneMotion.easeExit
+                    }
                 }
             }
 
@@ -141,17 +105,32 @@ Scope {
                 property bool entered: false
 
                 anchors.centerIn: parent
-                width: Math.min(parent.width - 80, 830)
-                height: Math.min(parent.height - 96, 530)
-                surfaceRadius: 17
+                width: Math.min(parent.width - 80, 840)
+                height: Math.min(parent.height - 96, 520)
+                surfaceRadius: RaohaneTheme.radiusHero
                 raised: true
                 showSheen: false
+                showInnerRim: false
                 border.color: RaohaneTheme.borderStrong
                 clip: true
                 opacity: entered ? 1 : 0
+                focus: translatorWindow.visible
+
+                transform: Translate {
+                    y: translatorPanel.entered || !RaohaneMotion.transformMotionEnabled ? 0 : 8
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: RaohaneMotion.relaxed
+                            easing.type: translatorPanel.entered ? RaohaneMotion.easeEmphasized : RaohaneMotion.easeExit
+                        }
+                    }
+                }
 
                 Behavior on opacity {
-                    NumberAnimation { duration: RaohaneMotion.standard; easing.type: RaohaneMotion.easeStandard }
+                    NumberAnimation {
+                        duration: RaohaneMotion.standard
+                        easing.type: translatorPanel.entered ? RaohaneMotion.easeStandard : RaohaneMotion.easeExit
+                    }
                 }
 
                 Rectangle {
@@ -159,44 +138,41 @@ Scope {
                         top: parent.top
                         left: parent.left
                         right: parent.right
-                        leftMargin: 19
-                        rightMargin: 19
+                        leftMargin: RaohaneTheme.panelPadding
+                        rightMargin: RaohaneTheme.panelPadding
                     }
-                    height: 1
+                    height: 2
                     color: RaohaneTheme.accent
-                    opacity: 0.44
+                    opacity: translatorPanel.entered ? 0.54 : 0
+
+                    Behavior on opacity { NumberAnimation { duration: RaohaneMotion.standard } }
                 }
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 17
-                    spacing: 10
+                    anchors.margins: RaohaneTheme.panelPadding
+                    spacing: RaohaneTheme.spacing + 1
 
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 48
-                        spacing: 10
-
-                        Rectangle {
-                            Layout.preferredWidth: 3
-                            Layout.preferredHeight: 32
-                            radius: 1.5
-                            color: RaohaneTheme.accent
-                        }
+                        spacing: RaohaneTheme.spacing + 1
 
                         RaohaneSurface {
-                            Layout.preferredWidth: 36
-                            Layout.preferredHeight: 36
-                            surfaceRadius: 11
+                            Layout.preferredWidth: 38
+                            Layout.preferredHeight: 38
+                            surfaceRadius: RaohaneTheme.radiusLarge
                             active: true
+                            raised: false
                             showSheen: false
+                            showInnerRim: false
 
                             RaohaneIcon {
                                 anchors.centerIn: parent
                                 text: "translate"
                                 iconSize: 19
                                 fill: 1
-                                symbolWeight: 550
+                                symbolWeight: 560
                                 color: RaohaneTheme.accent
                             }
                         }
@@ -208,45 +184,53 @@ Scope {
                             Text {
                                 text: qsTr("Screen Translator")
                                 color: RaohaneTheme.text
-                                font.pixelSize: 14
+                                font.pixelSize: 15
                                 font.weight: Font.DemiBold
-                                font.letterSpacing: -0.1
+                                font.letterSpacing: -0.2
                             }
 
                             Text {
                                 Layout.fillWidth: true
-                                text: root.errorText.length > 0
-                                    ? root.errorText
-                                    : qsTr("Capture an area and translate recognized text")
-                                color: root.errorText.length > 0 ? RaohaneTheme.critical : RaohaneTheme.textFaint
+                                text: RaohaneScreenTranslation.errorText.length > 0
+                                    ? RaohaneScreenTranslation.errorText
+                                    : RaohaneScreenTranslation.busy
+                                        ? qsTr("Capturing and translating…")
+                                        : qsTr("Capture a region and translate recognized text")
+                                color: RaohaneScreenTranslation.errorText.length > 0
+                                    ? RaohaneTheme.critical
+                                    : RaohaneScreenTranslation.busy
+                                        ? RaohaneTheme.accent
+                                        : RaohaneTheme.textFaint
                                 font.pixelSize: 8
                                 elide: Text.ElideRight
-
-                                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                             }
                         }
 
                         RaohaneSurface {
                             id: languageButton
-                            width: 72
-                            height: 34
-                            surfaceRadius: 9
+                            Layout.preferredWidth: 78
+                            Layout.preferredHeight: 32
+                            surfaceRadius: RaohaneTheme.radius
                             active: true
+                            raised: false
                             showSheen: false
+                            showInnerRim: false
                             interactive: true
+                            enabled: !RaohaneScreenTranslation.busy
                             hovered: languageMouse.containsMouse || activeFocus
                             pressed: languageMouse.pressed
+                            activeFocusOnTab: enabled
                             hoverScale: 1
                             pressedScale: 1
-                            activeFocusOnTab: true
-                            border.color: languageButton.hovered ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
+                            opacity: enabled ? 1 : RaohaneMotion.disabledOpacity
+                            border.color: hovered ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
                             Row {
                                 anchors.centerIn: parent
                                 spacing: 5
 
                                 Text {
-                                    text: root.targetLanguage === "ru" ? "EN" : "RU"
+                                    text: RaohaneScreenTranslation.targetLanguage === "ru" ? "EN" : "RU"
                                     color: RaohaneTheme.textFaint
                                     font.pixelSize: 8
                                     anchors.verticalCenter: parent.verticalCenter
@@ -260,7 +244,7 @@ Scope {
                                 }
 
                                 Text {
-                                    text: root.targetLanguage.toUpperCase()
+                                    text: RaohaneScreenTranslation.targetLanguage.toUpperCase()
                                     color: RaohaneTheme.text
                                     font.pixelSize: 8
                                     font.weight: Font.DemiBold
@@ -271,15 +255,18 @@ Scope {
                             MouseArea {
                                 id: languageMouse
                                 anchors.fill: parent
+                                enabled: languageButton.enabled
                                 hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
+                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 onPressed: languageButton.forceActiveFocus()
-                                onClicked: root.targetLanguage = root.targetLanguage === "ru" ? "en" : "ru"
+                                onClicked: RaohaneScreenTranslation.toggleTargetLanguage()
                             }
 
                             Keys.onPressed: event => {
+                                if (!languageButton.enabled)
+                                    return
                                 if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                    root.targetLanguage = root.targetLanguage === "ru" ? "en" : "ru"
+                                    RaohaneScreenTranslation.toggleTargetLanguage()
                                     event.accepted = true
                                 }
                             }
@@ -306,25 +293,31 @@ Scope {
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        spacing: 9
+                        spacing: RaohaneTheme.spacing
 
                         TextPanel {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             title: qsTr("Recognized text")
                             icon: "document_scanner"
-                            value: root.sourceText.length > 0 ? root.sourceText : qsTr("No capture yet. Press Capture area to begin.")
-                            empty: root.sourceText.length === 0
+                            value: RaohaneScreenTranslation.sourceText.length > 0
+                                ? RaohaneScreenTranslation.sourceText
+                                : qsTr("No capture yet. Press Capture area to begin.")
+                            empty: RaohaneScreenTranslation.sourceText.length === 0
                         }
 
                         TextPanel {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            title: root.targetLanguage === "ru" ? qsTr("Translation · Russian") : qsTr("Translation · English")
+                            title: RaohaneScreenTranslation.targetLanguage === "ru"
+                                ? qsTr("Translation · Russian")
+                                : qsTr("Translation · English")
                             icon: "translate"
-                            value: root.translatedText.length > 0 ? root.translatedText : qsTr("The translated text will appear here.")
-                            empty: root.translatedText.length === 0
-                            highlighted: root.translatedText.length > 0
+                            value: RaohaneScreenTranslation.translatedText.length > 0
+                                ? RaohaneScreenTranslation.translatedText
+                                : qsTr("The translated text will appear here.")
+                            empty: RaohaneScreenTranslation.translatedText.length === 0
+                            highlighted: RaohaneScreenTranslation.translatedText.length > 0
                         }
                     }
 
@@ -336,35 +329,37 @@ Scope {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 40
-                        spacing: 7
+                        Layout.preferredHeight: 38
+                        spacing: RaohaneTheme.spacingSmall + 1
 
                         Text {
                             Layout.fillWidth: true
-                            text: root.busy ? qsTr("Capturing and translating…") : qsTr("Select a region of the current screen")
-                            color: root.busy ? RaohaneTheme.accent : RaohaneTheme.textFaint
+                            text: RaohaneScreenTranslation.busy
+                                ? qsTr("Working in background…")
+                                : qsTr("Select a region of the current screen")
+                            color: RaohaneScreenTranslation.busy ? RaohaneTheme.accent : RaohaneTheme.textFaint
                             font.pixelSize: 8
                             elide: Text.ElideRight
                         }
 
-                        TranslateButton {
-                            Layout.preferredWidth: 154
+                        ActionButton {
+                            Layout.preferredWidth: 150
                             icon: root.copied ? "check_circle" : "content_copy"
                             title: root.copied ? qsTr("Copied") : qsTr("Copy translation")
-                            enabled: root.translatedText.length > 0
+                            enabled: RaohaneScreenTranslation.translatedText.length > 0
                             onTriggered: {
-                                Quickshell.clipboardText = root.translatedText
+                                Quickshell.clipboardText = RaohaneScreenTranslation.translatedText
                                 root.copied = true
                                 copiedTimer.restart()
                             }
                         }
 
-                        TranslateButton {
-                            Layout.preferredWidth: 154
+                        ActionButton {
+                            Layout.preferredWidth: 150
                             icon: "crop_free"
-                            title: root.busy ? qsTr("Working…") : qsTr("Capture area")
+                            title: RaohaneScreenTranslation.busy ? qsTr("Working…") : qsTr("Capture area")
                             primary: true
-                            enabled: !root.busy
+                            enabled: !RaohaneScreenTranslation.busy
                             onTriggered: root.startTranslation()
                         }
                     }
@@ -373,56 +368,30 @@ Scope {
         }
     }
 
-    IpcHandler {
-        target: "screenTranslator"
-        function translate(): void { root.startTranslation() }
-        function open(): void { root.open() }
-        function close(): void { root.close() }
-    }
-
-    CompositorGlobalShortcut {
-        name: "screenTranslate"
-        description: "Select a region and translate its text with Raohane"
-        onPressed: root.startTranslation()
-    }
-
     component TextPanel: RaohaneSurface {
         id: panel
+
         required property string title
         required property string icon
         required property string value
         property bool empty: false
         property bool highlighted: false
 
-        surfaceRadius: 11
+        surfaceRadius: RaohaneTheme.radiusLarge
         raised: false
         showSheen: false
+        showInnerRim: false
         color: RaohaneTheme.surfaceDeep
         border.color: highlighted ? RaohaneTheme.accentBorder : RaohaneTheme.borderFaint
 
-        Rectangle {
-            anchors {
-                left: parent.left
-                top: parent.top
-                bottom: parent.bottom
-                leftMargin: 2
-                topMargin: 11
-                bottomMargin: 11
-            }
-            width: 2
-            radius: 1
-            color: RaohaneTheme.accent
-            opacity: panel.highlighted ? 1 : 0.22
-        }
-
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 7
+            anchors.margins: RaohaneTheme.spacing + 2
+            spacing: RaohaneTheme.spacingSmall
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: RaohaneTheme.spacingSmall
 
                 RaohaneIcon {
                     text: panel.icon
@@ -438,8 +407,6 @@ Scope {
                     font.pixelSize: 8
                     font.weight: Font.DemiBold
                     elide: Text.ElideRight
-
-                    Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
                 }
             }
 
@@ -466,18 +433,21 @@ Scope {
         }
     }
 
-    component TranslateButton: RaohaneSurface {
+    component ActionButton: RaohaneSurface {
         id: button
+
         required property string icon
         required property string title
         property bool primary: false
         signal triggered()
 
-        Layout.preferredHeight: 36
-        surfaceRadius: 9
+        Layout.preferredHeight: 34
+        surfaceRadius: RaohaneTheme.radius
         active: primary
         transparentIdle: !primary && !hovered
+        raised: false
         showSheen: false
+        showInnerRim: false
         interactive: true
         hovered: pointer.containsMouse || activeFocus
         pressed: pointer.pressed
@@ -499,8 +469,6 @@ Scope {
                 symbolWeight: button.primary ? 550 : button.hovered ? 500 : 420
                 color: button.primary ? RaohaneTheme.accent
                     : button.hovered ? RaohaneTheme.text : RaohaneTheme.textMuted
-
-                Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             }
 
             Text {

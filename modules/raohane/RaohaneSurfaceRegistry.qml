@@ -79,7 +79,7 @@ QtObject {
             role: "tool",
             layer: "overlay",
             placement: "fill",
-            loadPolicy: "resident"
+            loadPolicy: "on-demand"
         },
         "settings": {
             stateProperty: "settingsOpen",

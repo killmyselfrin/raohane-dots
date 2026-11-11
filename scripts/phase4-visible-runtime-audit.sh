@@ -11,6 +11,7 @@ fail() {
 
 family='panelFamilies/RaohaneFamily.qml'
 qmldir='modules/raohane/qmldir'
+services_qmldir='modules/raohane/services/qmldir'
 config='modules/raohane/config/RaohaneConfig.qml'
 settings='modules/raohane/RaohaneSettings.qml'
 settings_content='modules/raohane/RaohaneSettingsContentV3.qml'
@@ -20,6 +21,7 @@ settings_registry='modules/raohane/RaohaneSettingsPageRegistry.qml'
 settings_router='modules/raohane/RaohaneSettingsRouter.qml'
 settings_search='modules/raohane/RaohaneSettingsSearch.qml'
 surface_router='modules/raohane/RaohaneSurfaceRouter.qml'
+translation_service='modules/raohane/services/RaohaneScreenTranslation.qml'
 runtime_probe='modules/raohane/RaohaneRuntimeProbe.qml'
 runtime_smoke='scripts/runtime-smoke-check.sh'
 live_check='scripts/phase4-live-check.sh'
@@ -55,7 +57,7 @@ phase4_surfaces=(
   "$runtime_probe"
 )
 
-for path in "$family" "$qmldir" "$config" "$runtime_smoke" "$live_check" "$cli" "${phase4_surfaces[@]}"; do
+for path in "$family" "$qmldir" "$services_qmldir" "$config" "$translation_service" "$runtime_smoke" "$live_check" "$cli" "${phase4_surfaces[@]}"; do
   [[ -f "$path" ]] || fail "missing Phase 4 path: $path"
 done
 
@@ -85,6 +87,8 @@ for type in RaohaneSettingsNavigation RaohaneSettingsPageHeader; do
 done
 rg -q '^singleton RaohaneSettingsRouter .*RaohaneSettingsRouter.qml$' "$qmldir" \
   || fail 'Settings router is not registered'
+rg -q '^singleton RaohaneScreenTranslation .*RaohaneScreenTranslation.qml$' "$services_qmldir" \
+  || fail 'screen translation service is not registered'
 rg -q 'RaohaneSettingsNavigation[[:space:]]*\{' "$settings_content" \
   || fail 'Settings coordinator lost extracted navigation'
 rg -q 'RaohaneSettingsPageHeader[[:space:]]*\{' "$settings_content" \
@@ -128,8 +132,10 @@ rg -q 'region-ocr\.sh' modules/raohane/RaohaneRegionSelector.qml \
   || fail 'region selector lost native OCR backend'
 rg -q 'region-search\.sh' modules/raohane/RaohaneRegionSelector.qml \
   || fail 'region selector lost native image-search backend'
-rg -q 'screen-translate\.sh' modules/raohane/RaohaneScreenTranslator.qml \
-  || fail 'screen translator lost native translation backend'
+rg -q 'screen-translate\.sh' "$translation_service" \
+  || fail 'screen translation service lost native translation backend'
+rg -q 'RaohaneScreenTranslation\.' modules/raohane/RaohaneScreenTranslator.qml \
+  || fail 'screen translator presentation no longer consumes the native translation service'
 if rg -n -i 'still being migrated|migration placeholder|temporary compatibility' \
   modules/raohane/RaohaneRegionSelector.qml modules/raohane/RaohaneScreenTranslator.qml \
   modules/raohane/RaohaneSidebarLeft.qml modules/raohane/RaohaneVerticalBar.qml; then
@@ -261,4 +267,4 @@ for symbol in \
   rg -q "$symbol" "$cli" || fail "Raohane CLI lost Phase 4 route: $symbol"
 done
 
-printf 'phase4-visible-runtime-audit: native visible surfaces, bar parity, runtime probe, runtime smoke diagnostics, extracted Settings navigation/header, resident Settings IPC, cold-route restore and full live validation workflow are valid\n'
+printf 'phase4-visible-runtime-audit: native visible surfaces, service-backed screen translation, bar parity, runtime probe, runtime smoke diagnostics, extracted Settings navigation/header, resident Settings IPC, cold-route restore and full live validation workflow are valid\n'
