@@ -202,7 +202,8 @@ rg -q 'RaohaneBackup\.(exportBackup|restoreBackup)' "$backup" || fail 'Backup pa
 if rg -n 'id:[[:space:]]*commandStrip|RaohaneSettingsRouter\.request\("(backup|keybinds|motion|language)", ""\)' "$settings"; then
   fail 'Settings reintroduced duplicated top-chrome quick actions'
 fi
-rg -q 'settingsContent\.pageOwnsHeader' "$settings" || fail 'Settings top chrome does not respect page-owned header'
+rg -Fq 'anchors.topMargin: 52' "$settings" || fail 'universal Settings search lacks its reserved header strip'
+rg -Fq 'maximumResultsHeight:' "$settings" || fail 'universal Settings results are not bounded to the window'
 rg -q 'Qt\.ControlModifier' "$settings" || fail 'Settings lost Ctrl+F search shortcut'
 rg -q 'settingsSearch\.focusSearch\(\)' "$settings" || fail 'Settings lost keyboard search focus'
 if rg -n 'preferencesOpen|backupOpen|openPreferences\(|openBackup\(|showMainSettings\(|onPreferencesRequested|onBackupRequested|onLanguageRequested' "$settings"; then
