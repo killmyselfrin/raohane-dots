@@ -174,6 +174,7 @@ RaohaneSurface {
             activeBorderColor: "transparent"
 
             RaohaneIcon {
+                id: busyIcon
                 anchors.centerIn: parent
                 text: root.currentIcon
                 iconSize: 16
@@ -186,11 +187,15 @@ RaohaneSurface {
                 Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
 
                 RotationAnimation on rotation {
-                    running: root.tileBusy
+                    // Busy feedback must respect reduced-motion, Gaming mode,
+                    // and tiles that have been hidden by a surface transition.
+                    running: root.tileBusy && RaohaneMotion.panelMotionEnabled && root.visible
                     loops: Animation.Infinite
                     from: 0
                     to: 360
                     duration: 850
+                    // A stopped spinner must not leave the next icon rotated.
+                    onStopped: busyIcon.rotation = 0
                 }
             }
         }
