@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 Item {
@@ -8,6 +9,7 @@ Item {
 
     property string query: ""
     property int currentIndex: 0
+    property real maximumResultsHeight: 340
     readonly property bool active: searchInput.activeFocus || root.query.length > 0
     readonly property var entries: RaohaneSettingsPageRegistry.searchEntries()
     readonly property var filteredEntries: root.filtered(root.query)
@@ -17,14 +19,18 @@ Item {
     z: 100
 
     function filtered(value: string): var {
-        const needle = String(value ?? "").trim().toLowerCase()
-        if (needle.length === 0)
-            return []
-        return root.entries.filter(entry => {
-            return entry.label.toLowerCase().includes(needle)
-                || entry.detail.toLowerCase().includes(needle)
-                || entry.key.toLowerCase().includes(needle)
-        }).slice(0, 7)
+        return RaohaneSettingsPageRegistry.rankedSearch(root.entries, value)
+    }
+
+    function selectResult(index: int): void {
+        root.currentIndex = Math.max(0, Math.min(root.filteredEntries.length - 1, index))
+        if (root.filteredEntries.length > 0)
+            resultsList.positionViewAtIndex(root.currentIndex, ListView.Contain)
+    }
+
+    onFilteredEntriesChanged: {
+        root.currentIndex = 0
+        Qt.callLater(() => resultsList.positionViewAtBeginning())
     }
 
     function focusSearch(): void {
@@ -87,8 +93,10 @@ Item {
                     color: RaohaneTheme.text
                     selectionColor: RaohaneTheme.accentSoft
                     selectedTextColor: RaohaneTheme.text
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     clip: true
+                    activeFocusOnTab: true
+                    Accessible.name: qsTr("Search settings")
                     text: root.query
 
                     onTextChanged: {
@@ -99,10 +107,10 @@ Item {
 
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Down && root.filteredEntries.length > 0) {
-                            root.currentIndex = Math.min(root.filteredEntries.length - 1, root.currentIndex + 1)
+                            root.selectResult(root.currentIndex + 1)
                             event.accepted = true
                         } else if (event.key === Qt.Key_Up && root.filteredEntries.length > 0) {
-                            root.currentIndex = Math.max(0, root.currentIndex - 1)
+                            root.selectResult(root.currentIndex - 1)
                             event.accepted = true
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                             root.activate(root.currentIndex)
@@ -169,7 +177,7 @@ Item {
             left: parent.left
             right: parent.right
         }
-        height: root.filteredEntries.length > 0 ? Math.min(310, resultsList.contentHeight + 14) : 50
+        height: Math.max(0, Math.min(root.maximumResultsHeight, root.filteredEntries.length > 0 ? resultsList.contentHeight + 14 : 50))
         surfaceRadius: RaohaneTheme.radius
         raised: true
         showSheen: false
@@ -204,6 +212,10 @@ Item {
             spacing: 3
             clip: true
             boundsBehavior: Flickable.StopAtBounds
+            currentIndex: root.currentIndex
+            keyNavigationEnabled: false
+
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
             delegate: FocusScope {
                 id: resultRow
@@ -212,6 +224,10 @@ Item {
                 width: resultsList.width
                 height: 38
                 activeFocusOnTab: true
+                Accessible.role: Accessible.Button
+                Accessible.name: modelData.label + ", " + modelData.detail
+                Accessible.onPressAction: root.activate(resultRow.index)
+                onActiveFocusChanged: { if (activeFocus) root.selectResult(index) }
 
                 RaohaneSurface {
                     anchors.fill: parent
@@ -229,7 +245,7 @@ Item {
                         spacing: 9
 
                         RaohaneIcon {
-                            text: "tune"
+                            text: resultRow.modelData.icon ?? "tune"
                             iconSize: 14
                             fill: resultRow.index === root.currentIndex ? 1 : 0
                             color: resultRow.index === root.currentIndex ? RaohaneTheme.accent : RaohaneTheme.textMuted
@@ -265,7 +281,7 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onEntered: root.currentIndex = resultRow.index
+                    onEntered: root.selectResult(resultRow.index)
                     onPressed: resultRow.forceActiveFocus()
                     onClicked: root.activate(resultRow.index)
                 }
