@@ -94,7 +94,7 @@ rg -Fq 'readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAda
   || fail 'adaptive material tint cannot be disabled independently'
 rg -Fq 'root.accentProbePath = root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
   || fail 'applied video cannot be sampled without a pre-existing gallery poster'
-rg -Fq 'accentProcess.sourcePath === root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
+rg -Fq 'accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
   || fail 'stale palette subprocess may recolor newer wallpaper'
 rg -Fq 'VIDEO_SUFFIXES' "$palette" \
   || fail 'wallpaper palette extractor lost video wallpaper support'
