@@ -65,7 +65,7 @@ Item {
 
     function preparePageEnter(): void {
         pageFrame.opacity = 0
-        pageFrame.x = root.transitionDirection * 14
+        pageTranslate.x = RaohaneMotion.transformMotionEnabled ? root.transitionDirection * 14 : 0
         pageEnter.restart()
     }
 
@@ -78,7 +78,7 @@ Item {
 
         if (!animated || !RaohaneMotion.enabled || String(pageLoader.source) === "") {
             pageFrame.opacity = 1
-            pageFrame.x = 0
+            pageTranslate.x = 0
             if (sameSource && pageLoader.item)
                 Qt.callLater(root.configureLoadedPage)
             else
@@ -183,6 +183,11 @@ Item {
                         id: pageFrame
                         anchors.fill: parent
                         opacity: 1
+                        enabled: !pageExit.running
+
+                        transform: Translate {
+                            id: pageTranslate
+                        }
 
                         Loader {
                             id: pageLoader
@@ -195,7 +200,7 @@ Item {
                                 Qt.callLater(root.configureLoadedPage)
                                 if (!root.initialPageLoaded || !RaohaneMotion.enabled) {
                                     pageFrame.opacity = 1
-                                    pageFrame.x = 0
+                                    pageTranslate.x = 0
                                     return
                                 }
                                 root.preparePageEnter()
@@ -209,17 +214,15 @@ Item {
                         NumberAnimation {
                             target: pageFrame
                             property: "opacity"
-                            from: 1
                             to: 0
                             duration: RaohaneMotion.micro
                             easing.type: RaohaneMotion.easeExit
                         }
 
                         NumberAnimation {
-                            target: pageFrame
+                            target: pageTranslate
                             property: "x"
-                            from: 0
-                            to: -root.transitionDirection * 8
+                            to: RaohaneMotion.transformMotionEnabled ? -root.transitionDirection * 8 : 0
                             duration: RaohaneMotion.micro
                             easing.type: RaohaneMotion.easeExit
                         }
@@ -228,7 +231,7 @@ Item {
                             const nextSource = String(root.currentPageInfo?.source ?? "")
                             if (nextSource === "") {
                                 pageLoader.source = ""
-                                pageFrame.x = 0
+                                pageTranslate.x = 0
                                 pageFrame.opacity = 1
                                 return
                             }
@@ -255,9 +258,9 @@ Item {
                         }
 
                         NumberAnimation {
-                            target: pageFrame
+                            target: pageTranslate
                             property: "x"
-                            from: root.transitionDirection * 14
+                            from: RaohaneMotion.transformMotionEnabled ? root.transitionDirection * 14 : 0
                             to: 0
                             duration: RaohaneMotion.relaxed
                             easing.type: RaohaneMotion.easeEmphasized
