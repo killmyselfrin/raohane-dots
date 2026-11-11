@@ -46,14 +46,19 @@ Item {
         if (needle === "")
             return
         if (RaohaneSettingsSectionRegistry.ownsControl(root.sectionKey, needle)) {
-            settingsFlick.contentY = Math.max(0, extensionLoader.y - RaohaneTheme.spacingLarge)
+            settingsFlick.contentY = Math.max(0, Math.min(Math.max(0, settingsFlick.contentHeight - settingsFlick.height),
+                sectionColumn.y + extensionHost.y - RaohaneTheme.spacingLarge))
             return
         }
         const normalized = needle.toLowerCase()
         const index = root.entries.findIndex(entry => String(entry.label).toLowerCase().includes(normalized) || entry.key.toLowerCase().includes(normalized))
         if (index >= 0) {
             root.highlightedControl = String(root.entries[index].key ?? "")
-            settingsFlick.contentY = Math.max(0, root.entryOffset(index) - RaohaneTheme.spacingLarge)
+            const row = settingsRows.itemAt(index)
+            const rowY = row ? row.y : root.entryOffset(index)
+            const offset = sectionColumn.y + settingsSurface.y + settingsList.y + rowY
+            settingsFlick.contentY = Math.max(0, Math.min(Math.max(0, settingsFlick.contentHeight - settingsFlick.height),
+                offset - RaohaneTheme.spacingLarge))
             highlightTimer.restart()
         }
     }
@@ -138,6 +143,15 @@ Item {
                 }
             }
 
+            Loader {
+                id: desktopPreviewLoader
+                width: parent.width
+                active: root.sectionKey === "desktop"
+                source: active ? Qt.resolvedUrl("RaohaneDesktopPreview.qml") : ""
+                visible: active
+                height: item ? item.implicitHeight : 0
+            }
+
             RaohaneSurface {
                 id: settingsSurface
                 width: parent.width
@@ -173,6 +187,7 @@ Item {
                     spacing: 0
 
                     Repeater {
+                        id: settingsRows
                         model: root.entries
 
                         delegate: RaohaneSettingsControlRow {
@@ -189,6 +204,7 @@ Item {
             }
 
             Item {
+                id: extensionHost
                 width: parent.width
                 height: extensionLoader.active ? extensionLoader.implicitHeight : 0
                 visible: extensionLoader.active

@@ -202,10 +202,11 @@ The current `main` includes the following reconciled Codex Cloud contributions:
 - **Screen translation (#93):** background OCR/translation transaction state is resident in `RaohaneScreenTranslation`; the full-screen presentation is on-demand, and IPC/shortcut entrypoints stay active while it is unloaded.
 - **Now Playing island (#145):** bounded album-art decoding, a separate play/pause action and an overlay shortcut, adapted for the current Halo/compact Bar layouts.
 - **Motion and visual contracts (#127):** Quick Controls busy indicators respect reduced-motion and Gaming policies; neutral Nocturne design guidance remains the product baseline.
+- **Desktop & Spaces preview (#39):** on-demand Settings wallpaper and workspace grid preview, native shortcuts to wallpaper/Overview/widgets, and geometry-aware navigation to controls.
 
 These are code integrations, **not proof of live Hyprland acceptance**. Static checks and source review do not replace compositor testing. The original draft PRs may remain open as historical review records even when selected changes have been ported.
 
-Other cloud proposals still require reconciliation against newer `main`: [desktop Settings preview (#39)](https://github.com/killmyselfrin/raohane-dots/pull/39), [Settings navigation (#47)](https://github.com/killmyselfrin/raohane-dots/pull/47), the overlapping [Bar settings (#99)](https://github.com/killmyselfrin/raohane-dots/pull/99) / [single-source Bar Studio (#100)](https://github.com/killmyselfrin/raohane-dots/pull/100) work, and [1.3 release candidate (#48)](https://github.com/killmyselfrin/raohane-dots/pull/48). These are **not yet represented as completed features in `main`**.
+Other cloud proposals still require reconciliation against newer `main`: [Settings navigation (#47)](https://github.com/killmyselfrin/raohane-dots/pull/47), the overlapping [Bar settings (#99)](https://github.com/killmyselfrin/raohane-dots/pull/99) / [single-source Bar Studio (#100)](https://github.com/killmyselfrin/raohane-dots/pull/100) work, and [1.3 release candidate (#48)](https://github.com/killmyselfrin/raohane-dots/pull/48). These are **not yet represented as completed features in `main`**.
 
 The active Quickshell implementation is under `modules/raohane/`. Verify source and runtime boundaries with:
 
