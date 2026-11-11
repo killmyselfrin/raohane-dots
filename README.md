@@ -1,45 +1,62 @@
 <div align="center">
 
+<img src="assets/icons/raohane-emblem.png" alt="Raohane feather-nova emblem" width="150">
+
 # Raohane
 
-**A customizable, atmospheric desktop shell for Hyprland.**  
-Built with **Quickshell + Qt/QML**. Made to feel fast, consistent, and personal.
+**Your desktop, your atmosphere.**
 
-[![Raohane audit](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](.github/workflows/raohane-audit.yml)
-[![Release boundary](https://github.com/killmyselfrin/raohane-dots/actions/workflows/release-boundary.yml/badge.svg?branch=main)](.github/workflows/release-boundary.yml)
-[![GPLv3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
-![Linux](https://img.shields.io/badge/platform-Linux-805bd6)
-![Hyprland](https://img.shields.io/badge/compositor-Hyprland-9068cf)
+A customizable desktop shell for **Hyprland**, built with **Quickshell + Qt/QML**.<br>
+Graphite surfaces. Lavender accents. A space that feels like yours.
 
-<img src="assets/showcase/nocturne-desktop.svg" alt="Illustrative Raohane Nocturne desktop concept with a floating bar, launcher, Context Island, and Control Center" width="100%">
+[![Raohane audit](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml)
+[![GPLv3](https://img.shields.io/badge/license-GPLv3-b9b3f3)](LICENSE)
+![Linux](https://img.shields.io/badge/platform-Linux-191d27)
+![Development](https://img.shields.io/badge/version-1.3.0--dev-b9b3f3)
 
-*Nocturne desktop — design concept, not a screenshot of a running build.*
+[Install](#installation) · [Gallery](#gallery) · [Features](#features) · [Configure](#configuration) · [Documentation](#documentation)
 
-[Installation](#installation) · [Features](#features) · [Gallery](#design-gallery) · [Configuration](#configuration) · [Documentation](#documentation)
+<img src="assets/screenshots/desktop.png" alt="Running Raohane desktop with Orbit bar, clock and idle record widget over a forest photograph" width="100%">
 
 </div>
 
-> [!IMPORTANT]
-> **The images in this README are illustrative UI concepts.** They are not captures from Hyprland. Exact geometry, controls, and interactions may differ from the currently released shell; some depicted ideas are still being developed. See [release validation](docs/RELEASE-VALIDATION.md) for the distinction between static checks and tested runtime behavior.
+## Gallery
 
-## Design gallery
+These are **real captures of the running Quickshell interface**, taken at
+1920 × 1080 in the cloud diagnostic session: Sway headless, pixman and Qt software
+rendering. The supported product target is **Hyprland**; these images do not
+validate Hyprland integration, GPU effects or hardware controls.
+[Capture details and credits](assets/screenshots/README.md).
 
 <table>
 <tr>
 <td width="50%">
-<img src="assets/showcase/nocturne-settings.svg" alt="Concept art of Raohane Settings, theme presets, and appearance controls" width="100%"><br>
-<strong>Settings &amp; personalization</strong><br>
-<sub>Shared design tokens, theme presets, surfaces, and compact navigation.</sub>
+<a href="assets/screenshots/welcome.png"><img src="assets/screenshots/welcome.png" alt="Welcome with feather-nova emblem and five-step initial setup" width="100%"></a><br>
+<strong>A proper first welcome</strong><br>
+<sub>Choose your theme, wallpaper and panel. Setup stays open until you finish.</sub>
 </td>
 <td width="50%">
-<img src="assets/showcase/nocturne-control-center.svg" alt="Concept art of Raohane Control Center with connectivity, audio, media, and scenes" width="100%"><br>
-<strong>Control Center &amp; Context Island</strong><br>
-<sub>Connected devices, media, audio/display controls, and contextual scenes.</sub>
+<a href="assets/screenshots/settings.png"><img src="assets/screenshots/settings.png" alt="Theme settings with wallpaper categories, palettes and appearance controls" width="100%"></a><br>
+<strong>Make it yours</strong><br>
+<sub>Wallpaper collections, live theme palettes and shared appearance controls.</sub>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<a href="assets/screenshots/control-center.png"><img src="assets/screenshots/control-center.png" alt="Running Raohane Control Center in the diagnostic session" width="100%"></a><br>
+<strong>Everyday controls, together</strong><br>
+<sub>Audio, connectivity and session controls. Hardware availability reflects the test container.</sub>
 </td>
 </tr>
 </table>
 
-**The direction:** deep graphite glass, cool blue-black backgrounds, restrained lavender highlights, floating Bar pods, and lightweight motion. Actual screenshots will replace or complement these concepts as visual validation on real hardware is completed. [Showcase assets](assets/showcase/README.md).
+## A desktop with your rhythm
+
+- **An unhurried start.** A finite animated introduction and five setup pages, with reduced-motion support.
+- **Ten bar styles.** From floating groups to the centered Orbit capsule, crisp Ribbon panel and transparent Ink layout.
+- **A ready-to-use wallpaper library.** 20 nature photographs, 20 abstractions and 20 original anime-inspired offline illustrations. An optional importer adds a separate online anime collection.
+- **Music with presence.** A record-style media card, real playback progress, transport controls and lyrics through the existing media service.
+- **One visual language.** Shared palettes, surfaces and motion across the shell.
 
 ## Features
 
@@ -57,7 +74,7 @@ Built with **Quickshell + Qt/QML**. Made to feel fast, consistent, and personal.
 
 Raohane maintains its own runtime and dependency manifests. It does not install another shell as a runtime dependency.
 
-**Current source version:** `1.2.1` (see [VERSION](VERSION) and [CHANGELOG](CHANGELOG.md)). The project remains under active development; static GitHub Actions checks do **not** certify long-session, multi-monitor, or GPU-specific stability. Review the [roadmap](docs/ROADMAP.md) and [release validation](docs/RELEASE-VALIDATION.md).
+**Current source version:** `1.3.0-dev` (see [VERSION](VERSION) and [CHANGELOG](CHANGELOG.md)). The project remains under active development; static GitHub Actions checks do **not** certify long-session, multi-monitor, or GPU-specific stability. Review the [roadmap](docs/ROADMAP.md) and [release validation](docs/RELEASE-VALIDATION.md).
 
 ## Installation
 
@@ -121,6 +138,20 @@ Settings are stored at `~/.config/raohane/native.json`. Scene state and applicat
 
 The default **Raohane** theme combines dark charcoal glass with lavender accents. Built-in alternatives include **Paper, Rose Glass, Sage Glass, Slate, Sand, Ink,** and **Midnight**. Use Settings or `raohane theme` to select, import, and export themes. See [theme format](docs/THEMES.md).
 
+### Wallpaper collections
+
+The bundled collection works offline. To download the optional mixed anime set:
+
+```bash
+python3 scripts/import-anime-wallpapers.py \
+  --output "$HOME/.local/share/raohane/wallpapers/anime" \
+  --register-config "$HOME/.config/raohane/native.json"
+```
+
+Run this from the checkout after the initial installation. The importer uses
+pinned URLs and checksums; Python Pillow is required for image validation.
+[Collection sources, licenses and usage](assets/wallpapers/README.md).
+
 ## Troubleshooting
 
 ```bash
@@ -146,6 +177,8 @@ If Shelly or another package manager reports that polkit is missing on the syste
 
 ## Documentation
 
+- [Initial setup validation](docs/WELCOME-SETUP-VALIDATION.md)
+- [Bar, Welcome and wallpaper validation](docs/BAR-WELCOME-PACK-VALIDATION.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Release validation](docs/RELEASE-VALIDATION.md)
 - [Roadmap](docs/ROADMAP.md)
@@ -173,4 +206,4 @@ bash scripts/runtime-payload-audit.sh
 
 ## License
 
-Raohane is released under [GNU GPLv3](LICENSE). Retained/adapted code, translations, data, and assets preserve applicable attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md). Original showcase illustrations in this README are presentation concepts, not runtime screenshots.
+Raohane is released under [GNU GPLv3](LICENSE). Retained/adapted code, translations, data, and assets preserve applicable attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md). Screenshot credits and capture details are listed in [assets/screenshots](assets/screenshots/README.md). Older concept artwork remains separately labeled in [assets/showcase](assets/showcase/README.md).
