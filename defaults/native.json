@@ -83,7 +83,12 @@
     },
     "chromaticFlow": false,
     "chromaticIntensity": 0.2,
-    "chromaticSeconds": 28
+    "chromaticSeconds": 28,
+    "workspaceCount": 6,
+    "workspaceStyle": "numbers",
+    "clock24Hour": true,
+    "clockShowSeconds": false,
+    "clockDateFormat": "short"
   },
   "frame": {
     "enabled": false,
