@@ -247,7 +247,7 @@ rg -q 'RaohaneDesktopWidgetRegistry\.definition\(root\.widgetId\)' "$host" \
   || fail 'desktop widget host lost registry metadata lookup'
 rg -q 'RaohaneConfig\[root\.configKey\]' "$host" \
   || fail 'desktop widget host lost native enable-state binding'
-rg -q 'source:[[:space:]]*root\.definition\?\.source' "$host" \
+rg -q 'source:[[:space:]]*RaohaneDesktopWidgetRegistry\.sourceFor\(root\.widgetId,[[:space:]]*root\.faceStyle\)' "$host" \
   || fail 'desktop widget host lost declarative source loading'
 
 rg -q 'RaohaneMedia\.' "$context" || fail 'context widget lost native media service ownership'
