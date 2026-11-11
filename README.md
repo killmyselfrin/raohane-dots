@@ -1,80 +1,92 @@
 <div align="center">
 
-<img src="assets/icons/raohane-emblem.png" alt="Raohane feather-nova emblem" width="150">
+<img src="assets/icons/raohane-emblem.png" alt="Raohane emblem" width="108">
 
 # Raohane
 
 **Your desktop, your atmosphere.**
 
-A customizable desktop shell for **Hyprland**, built with **Quickshell + Qt/QML**.<br>
-Graphite surfaces. Lavender accents. A space that feels like yours.
+A thoughtfully customizable desktop shell for **Hyprland**, built with **Quickshell and Qt/QML**.
+Soft graphite. Lavender light. A quieter place to work, create and stay focused.
+
+[Explore the gallery](#gallery) · [Discover features](#features) · [Get started](#installation) · [Read the docs](#documentation)
+
+**English** · [Русский](README.ru.md)
 
 [![Raohane audit](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml)
 [![GPLv3](https://img.shields.io/badge/license-GPLv3-b9b3f3)](LICENSE)
-![Linux](https://img.shields.io/badge/platform-Linux-191d27)
-![Development](https://img.shields.io/badge/version-1.3.0--dev-b9b3f3)
+![1.3.0 development](https://img.shields.io/badge/1.3.0-development-191d27)
 
-[Install](#installation) · [Gallery](#gallery) · [Features](#features) · [Configure](#configuration) · [Documentation](#documentation)
+<a href="assets/screenshots/desktop.png"><img src="assets/screenshots/desktop.png" alt="Raohane desktop with Orbit bar, desktop clock and record-style media widget" width="100%"></a>
 
-<img src="assets/screenshots/desktop.png" alt="Running Raohane desktop with Orbit bar, clock and idle record widget over a forest photograph" width="100%">
+<sub>Actual Quickshell render, captured with Sway headless and software rendering. Hyprland hardware behaviour is not represented in this screenshot. [Capture conditions & credits](assets/screenshots/README.md).</sub>
 
 </div>
 
-## Gallery
-
-These are **real captures of the running Quickshell interface**, taken at
-1920 × 1080 in the cloud diagnostic session: Sway headless, pixman and Qt software
-rendering. The supported product target is **Hyprland**; these images do not
-validate Hyprland integration, GPU effects or hardware controls.
-[Capture details and credits](assets/screenshots/README.md).
+## A desktop that feels like yours
 
 <table>
 <tr>
-<td width="50%">
-<a href="assets/screenshots/welcome.png"><img src="assets/screenshots/welcome.png" alt="Welcome with feather-nova emblem and five-step initial setup" width="100%"></a><br>
-<strong>A proper first welcome</strong><br>
-<sub>Choose your theme, wallpaper and panel. Setup stays open until you finish.</sub>
+<td width="33%" valign="top">
+<strong>01 / Make space</strong><br>
+<sub>Shape the Bar and Dock, arrange desktop widgets, and make the layout work across different screen sizes.</sub>
 </td>
-<td width="50%">
-<a href="assets/screenshots/settings.png"><img src="assets/screenshots/settings.png" alt="Theme settings with wallpaper categories, palettes and appearance controls" width="100%"></a><br>
-<strong>Make it yours</strong><br>
-<sub>Wallpaper collections, live theme palettes and shared appearance controls.</sub>
+<td width="33%" valign="top">
+<strong>02 / Set the atmosphere</strong><br>
+<sub>Choose wallpaper collections, optional adaptive accents and a consistent, restrained material system.</sub>
 </td>
-</tr>
-<tr>
-<td colspan="2">
-<a href="assets/screenshots/control-center.png"><img src="assets/screenshots/control-center.png" alt="Running Raohane Control Center in the diagnostic session" width="100%"></a><br>
-<strong>Everyday controls, together</strong><br>
-<sub>Audio, connectivity and session controls. Hardware availability reflects the test container.</sub>
+<td width="33%" valign="top">
+<strong>03 / Stay in flow</strong><br>
+<sub>Reach music, workspaces, quick controls and everyday tools when needed—without a permanently crowded desktop.</sub>
 </td>
 </tr>
 </table>
 
-## A desktop with your rhythm
+## Gallery
 
-- **An unhurried start.** A finite animated introduction and five setup pages, with reduced-motion support.
-- **Ten bar styles.** From floating groups to the centered Orbit capsule, crisp Ribbon panel and transparent Ink layout.
-- **A ready-to-use wallpaper library.** 20 nature photographs, 20 abstractions and 20 original anime-inspired offline illustrations. An optional importer adds a separate online anime collection.
-- **Music with presence.** A record-style media card, a Now Playing capsule with album art and playback control, real progress and lyrics through the existing media service.
-- **One visual language.** Shared palettes, surfaces and motion across the shell.
+These are **unedited captures of the running Quickshell interface**, not generated interface concepts.
+They were taken at **1920 × 1080** in a Sway headless diagnostic session using software rendering.
+Hyprland, compositor blur, GPU performance, hardware controls and long-session behaviour require separate validation.
+See [capture details, wallpaper licenses and credits](assets/screenshots/README.md).
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<a href="assets/screenshots/welcome.png"><img src="assets/screenshots/welcome.png" alt="Raohane welcome and first-run setup" width="100%"></a><br>
+<strong>A calmer first launch</strong><br>
+<sub>A five-step setup for appearance, wallpaper and the Bar.</sub>
+</td>
+<td width="50%" valign="top">
+<a href="assets/screenshots/settings.png"><img src="assets/screenshots/settings.png" alt="Raohane appearance settings" width="100%"></a><br>
+<strong>Everything in its place</strong><br>
+<sub>Theme choices, wallpaper browsing and coherent controls.</sub>
+</td>
+</tr>
+<tr>
+<td colspan="2">
+<a href="assets/screenshots/control-center.png"><img src="assets/screenshots/control-center.png" alt="Raohane Control Center" width="100%"></a><br>
+<strong>Everyday controls, together</strong><br>
+<sub>Audio, connectivity and session actions; hardware availability reflects the diagnostic environment.</sub>
+</td>
+</tr>
+</table>
 
 ## Features
 
-| Surface | What Raohane provides |
+| Area | What you can do |
 | --- | --- |
-| **Bar &amp; Dock** | Horizontal/vertical bars, configurable modules, workspaces, system tray, Context Island, and a dock. |
-| **Launcher &amp; Overview** | Search for apps and actions, navigate workspaces and switch between windows. |
-| **Control Center** | Wi-Fi, Bluetooth, audio, microphone, display brightness, notifications, and Scenes. |
-| **Settings &amp; Themes** | Central settings, theme presets, JSON theme import/export, live appearance controls, and desktop widgets with an on-wallpaper grid editor and nine selectable Clock/Music/System faces (Classic, Minimal, Aurora). |
-| **Wallpaper &amp; Bar** | Wallpaper Studio 2.0 adds favorites, saved folder collections, per-monitor wallpapers, optional adaptive accents, video preview controls and timed rotation; Bar Studio includes the original styles, the centered **Halo** glass capsule, and optional **Chromatic Flow** that slowly blends two colors detected in the applied wallpaper. |
-| **Scenes** | Balanced, Gaming, Focus, and Work modes with application rules and contextual runtime policies. |
-| **Media** | MPRIS controls, synced/plain lyrics, an artwork-aware Now Playing capsule in the Bar with play/pause, a music surface, and a fullscreen media overlay. |
-| **Utilities** | Screenshots, recording, OCR, on-demand screen translation with a resident transaction service, clipboard tools, on-screen keyboard, task manager, and power/session controls. |
-| **System integration** | Native service adapters for Hyprland, Wayland, PipeWire, NetworkManager, and Bluetooth. |
+| **Bar & Dock** | Compose horizontal or vertical bars with configurable module ordering, workspaces, Context Island, auto-hide, clock styles and Dock. Choose from ten Bar looks. |
+| **Wallpaper Studio 2.0** | Browse offline collections, save favorites and folders, assign wallpapers per monitor, preview video, opt into adaptive colors and schedule rotation. |
+| **Theme & motion** | Customize the graphite-and-lavender Raohane look or select alternative themes. Motion policies respect reduced-motion and Gaming scenarios. |
+| **Widget Studio** | Arrange desktop clock, media and system widgets, with Classic, Minimal and Aurora visual treatments. |
+| **Launcher & Overview** | Search apps and actions, switch workspaces, and find running windows. |
+| **Control Center & Scenes** | Access network, Bluetooth, audio, brightness, notifications and Balanced/Gaming/Focus/Work modes. |
+| **Media** | MPRIS playback, synchronized or plain lyrics, record-style media card, album-art Now Playing capsule and fullscreen overlay. |
+| **Utilities** | Screenshots, recording, OCR, on-demand screen translation, clipboard history, on-screen keyboard, Task Manager and session controls. |
+| **System integration** | Hyprland, Wayland, PipeWire and native system-service adapters, without a separate shell runtime dependency. |
 
-Raohane maintains its own runtime and dependency manifests. It does not install another shell as a runtime dependency.
-
-**Current source version:** `1.3.0-dev` (see [VERSION](VERSION) and [CHANGELOG](CHANGELOG.md)). The project remains under active development; static GitHub Actions checks do **not** certify long-session, multi-monitor, or GPU-specific stability. Review the [roadmap](docs/ROADMAP.md) and [release validation](docs/RELEASE-VALIDATION.md).
+**Current source version:** `1.3.0-dev` ([VERSION](VERSION) · [CHANGELOG](CHANGELOG.md)).
+Raohane is in **active development**, not a certified stable release. Passing CI validates source and integration boundaries, **not** long-session reliability, multi-monitor setups or GPU/compositor behaviour. Follow the [roadmap](docs/ROADMAP.md) and [release checklist](docs/RELEASE-VALIDATION.md).
 
 ## Installation
 
@@ -195,6 +207,11 @@ If Shelly or another package manager reports that polkit is missing on the syste
 
 ## Development
 
+Contributions, bug reports and feedback are welcome. Review [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](docs/ROADMAP.md), and [release validation](docs/RELEASE-VALIDATION.md) before proposing compositor-facing changes.
+
+<details>
+<summary><strong>Codex Cloud integration history and remaining release work</strong></summary>
+
 ### Codex Cloud changes in main
 
 The current `main` includes the following reconciled Codex Cloud contributions:
@@ -209,6 +226,8 @@ The current `main` includes the following reconciled Codex Cloud contributions:
 These are code integrations, **not proof of live Hyprland acceptance**. Static checks and source review do not replace compositor testing. The original draft PRs may remain open as historical review records even when selected changes have been ported.
 
 The former Bar proposals [#99](https://github.com/killmyselfrin/raohane-dots/pull/99) and [#100](https://github.com/killmyselfrin/raohane-dots/pull/100) overlap; current `main` uses the consolidated Bar Studio behavior rather than installing both competing Settings panels. The historical #99 alternative indicator and module-settings UI is **not merged wholesale**. The separate [1.3 release candidate (#48)](https://github.com/killmyselfrin/raohane-dots/pull/48) still needs live Hyprland acceptance and must not be promoted as a stable release just because source changes were reconciled.
+
+</details>
 
 The active Quickshell implementation is under `modules/raohane/`. Verify source and runtime boundaries with:
 
