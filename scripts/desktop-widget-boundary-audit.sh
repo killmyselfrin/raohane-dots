@@ -251,7 +251,9 @@ rg -q 'source:[[:space:]]*RaohaneDesktopWidgetRegistry\.sourceFor\(root\.widgetI
   || fail 'desktop widget host lost declarative source loading'
 
 rg -q 'RaohaneMedia\.' "$context" || fail 'context widget lost native media service ownership'
-rg -q 'RaohaneContext\.' "$context" || fail 'context widget lost live context ownership'
+# The desktop Context slot is media-focused; shared MPRIS ownership lives in the
+# original record face and its Minimal/Aurora alternatives.
+rg -q 'RaohaneMedia\.' "$music_faces" || fail 'alternate media widget faces lost MPRIS ownership'
 rg -q 'RaohaneNetwork\.' "$system" || fail 'system widget lost native network service ownership'
 rg -q 'RaohaneAudio\.' "$system" || fail 'system widget lost native audio service ownership'
 rg -q 'RaohaneSystemInfo\.' "$system" || fail 'system widget lost native host-status ownership'

@@ -55,7 +55,7 @@ validate Hyprland integration, GPU effects or hardware controls.
 - **An unhurried start.** A finite animated introduction and five setup pages, with reduced-motion support.
 - **Ten bar styles.** From floating groups to the centered Orbit capsule, crisp Ribbon panel and transparent Ink layout.
 - **A ready-to-use wallpaper library.** 20 nature photographs, 20 abstractions and 20 original anime-inspired offline illustrations. An optional importer adds a separate online anime collection.
-- **Music with presence.** A record-style media card, real playback progress, transport controls and lyrics through the existing media service.
+- **Music with presence.** A record-style media card, a Now Playing capsule with album art and playback control, real progress and lyrics through the existing media service.
 - **One visual language.** Shared palettes, surfaces and motion across the shell.
 
 ## Features
@@ -68,8 +68,8 @@ validate Hyprland integration, GPU effects or hardware controls.
 | **Settings &amp; Themes** | Central settings, theme presets, JSON theme import/export, live appearance controls, and desktop widgets with an on-wallpaper grid editor and nine selectable Clock/Music/System faces (Classic, Minimal, Aurora). |
 | **Wallpaper &amp; Bar** | Wallpaper Studio 2.0 adds favorites, saved folder collections, per-monitor wallpapers, optional adaptive accents, video preview controls and timed rotation; Bar Studio includes the original styles, the centered **Halo** glass capsule, and optional **Chromatic Flow** that slowly blends two colors detected in the applied wallpaper. |
 | **Scenes** | Balanced, Gaming, Focus, and Work modes with application rules and contextual runtime policies. |
-| **Media** | MPRIS controls, synced/plain lyrics, a music surface, and a fullscreen media overlay. |
-| **Utilities** | Screenshots, recording, OCR, translation, clipboard tools, on-screen keyboard, task manager, and power/session controls. |
+| **Media** | MPRIS controls, synced/plain lyrics, an artwork-aware Now Playing capsule in the Bar with play/pause, a music surface, and a fullscreen media overlay. |
+| **Utilities** | Screenshots, recording, OCR, on-demand screen translation with a resident transaction service, clipboard tools, on-screen keyboard, task manager, and power/session controls. |
 | **System integration** | Native service adapters for Hyprland, Wayland, PipeWire, NetworkManager, and Bluetooth. |
 
 Raohane maintains its own runtime and dependency manifests. It does not install another shell as a runtime dependency.
@@ -194,6 +194,18 @@ If Shelly or another package manager reports that polkit is missing on the syste
 - [Changelog](CHANGELOG.md)
 
 ## Development
+
+### Codex Cloud changes in main
+
+The current `main` includes the following reconciled Codex Cloud contributions:
+
+- **Screen translation (#93):** background OCR/translation transaction state is resident in `RaohaneScreenTranslation`; the full-screen presentation is on-demand, and IPC/shortcut entrypoints stay active while it is unloaded.
+- **Now Playing island (#145):** bounded album-art decoding, a separate play/pause action and an overlay shortcut, adapted for the current Halo/compact Bar layouts.
+- **Motion and visual contracts (#127):** Quick Controls busy indicators respect reduced-motion and Gaming policies; neutral Nocturne design guidance remains the product baseline.
+
+These are code integrations, **not proof of live Hyprland acceptance**. Static checks and source review do not replace compositor testing. The original draft PRs may remain open as historical review records even when selected changes have been ported.
+
+Other cloud proposals still require reconciliation against newer `main`: [desktop Settings preview (#39)](https://github.com/killmyselfrin/raohane-dots/pull/39), [Settings navigation (#47)](https://github.com/killmyselfrin/raohane-dots/pull/47), the overlapping [Bar settings (#99)](https://github.com/killmyselfrin/raohane-dots/pull/99) / [single-source Bar Studio (#100)](https://github.com/killmyselfrin/raohane-dots/pull/100) work, and [1.3 release candidate (#48)](https://github.com/killmyselfrin/raohane-dots/pull/48). These are **not yet represented as completed features in `main`**.
 
 The active Quickshell implementation is under `modules/raohane/`. Verify source and runtime boundaries with:
 
