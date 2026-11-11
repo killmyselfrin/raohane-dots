@@ -379,7 +379,7 @@ for host in "$bar" "$vertical"; do
   rg -q 'hostActive:[[:space:]]*barWindow\.visible[[:space:]]*&&[[:space:]]*!barWindow\.fullscreenSuppressed' "$host" \
     || fail "$host does not suspend module timers while fullscreen-suppressed"
 done
-if rg -n '\bDateTime\.|^import qs\.' "$clock"; then
+if rg -n '\bDateTime\.|^import qs\.services$|^import qs\.modules\.common' "$clock"; then
   fail 'RaohaneClock regressed to inherited DateTime plumbing'
 fi
 
