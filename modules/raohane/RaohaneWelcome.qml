@@ -18,25 +18,38 @@ Scope {
     // Use the actual layer-shell logical size (not monitor mode pixels);
     // monitor scale and output changes can make those differ considerably.
     readonly property bool compactLayout: panelWindow.width < 960 || panelWindow.height < 620
-    // Optional original PNG mascot. Fall back to the bundled SVG if it is
-    // not installed yet, so Welcome remains functional after an update.
-    readonly property string mascotUrl: RaohanePaths.fileUrl(
-        RaohanePaths.join(RaohanePaths.assetsPath, "images/raohane-welcome-girl.png"))
-    readonly property string fallbackMascotUrl: RaohanePaths.fileUrl(
-        RaohanePaths.join(RaohanePaths.assetsPath, "images/welcome-mascot.svg"))
+    // A bundled original mark: no optional asset probe or remote artwork.
+    readonly property string logoUrl: RaohanePaths.fileUrl(
+        RaohanePaths.join(RaohanePaths.assetsPath, "icons/raohane-emblem.png"))
 
-    function startTour(): void {
-        if (!RaohaneState.welcomeOpen || RaohaneOnboardingState.active)
-            return
-        console.info("[RaohaneWelcome] Start guided tour")
-        RaohaneOnboardingState.start()
+    function finishIntro(): void {
+        introAnimation.stop()
+        panelWindow.introActive = false
+        panelWindow.entered = panelWindow.visible
+        if (panelWindow.visible) stage.forceActiveFocus()
     }
 
+    property int setupStep: 0
+    readonly property var stepNames: [qsTr("Welcome"), qsTr("Appearance"), qsTr("Wallpaper"), qsTr("Bar"), qsTr("Ready when you are")]
+
+    function advance(): void {
+        if (panelWindow.introActive) { root.finishIntro(); return }
+        if (setupStep < 4) { setupStep++; stage.forceActiveFocus() }
+    }
+    function previous(): void {
+        if (panelWindow.introActive) root.finishIntro()
+        else if (setupStep > 0) setupStep--
+    }
+    function startTour(): void {
+        if (setupStep !== 4) return
+        RaohaneConfig.saveNow()
+        RaohaneOnboardingState.markCompleted()
+        RaohaneOnboardingState.start()
+    }
     function skipWelcome(): void {
-        if (!RaohaneState.welcomeOpen)
-            return
-        console.info("[RaohaneWelcome] Skip guided tour")
-        // Mark completion before the on-demand window is hidden/unloaded.
+        // Completion is explicit and available only after all setup pages.
+        if (setupStep !== 4 || panelWindow.introActive) return
+        RaohaneConfig.saveNow()
         RaohaneOnboardingState.skip()
     }
 
@@ -44,6 +57,11 @@ Scope {
         id: panelWindow
 
         property bool entered: false
+        property bool introActive: false
+        property real introLogo: 0
+        property real introName: 0
+        property real curtainOpacity: 1
+
 
         // The language picker is another full-screen Overlay layer. Do not
         // display a second clickable Welcome beneath it.
@@ -51,7 +69,7 @@ Scope {
             && RaohaneI18n.languageChosen && !RaohaneI18n.pickerOpen
         screen: root.focusedScreen
         color: "transparent"
-        exclusiveZone: 0
+        exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:raohane-welcome"
         WlrLayershell.layer: WlrLayer.Overlay
         // The first-run language picker owns focus until a language is
@@ -68,13 +86,23 @@ Scope {
 
         onVisibleChanged: {
             panelWindow.entered = false
+            introAnimation.stop()
+            panelWindow.introActive = false
             if (!visible)
                 return
             Qt.callLater(() => {
                 if (!panelWindow.visible || !RaohaneState.welcomeOpen || RaohaneOnboardingState.active)
                     return
-                panelWindow.entered = true
-                stage.forceActiveFocus()
+                if (!RaohaneMotion.enabled || !RaohaneMotion.transformMotionEnabled || RaohanePerformance.gameModeActive) {
+                    root.finishIntro()
+                    return
+                }
+                panelWindow.introLogo = 0
+                panelWindow.introName = 0
+                panelWindow.curtainOpacity = 1
+                panelWindow.introActive = true
+                introFocus.forceActiveFocus()
+                introAnimation.restart()
             })
         }
 
@@ -96,241 +124,167 @@ Scope {
 
         Rectangle {
             anchors.fill: parent
-            color: "#c9080a14"
+            color: RaohaneTheme.background
+            opacity: 0.88
         }
 
-        Rectangle {
+        // Finite fullscreen introduction. No shader, frame timer or loading gate.
+        FocusScope {
+            id: introFocus
             anchors.fill: parent
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: "#f0080a14" }
-                GradientStop { position: 0.55; color: "#bf0b0d1a" }
-                GradientStop { position: 1.0; color: "#df080a14" }
+            z: 200
+            visible: panelWindow.introActive
+            opacity: panelWindow.curtainOpacity
+            Rectangle { anchors.fill: parent; color: RaohaneTheme.background }
+            Rectangle {
+                anchors.centerIn: parent
+                width: Math.min(parent.width * 0.68, 600) * (0.65 + panelWindow.introLogo * 0.35)
+                height: width
+                radius: width / 2
+                color: "transparent"
+                border.width: 1
+                border.color: RaohaneTheme.accentBorder
+                opacity: panelWindow.introLogo * 0.45
             }
+            Column {
+                anchors.centerIn: parent
+                spacing: 24
+                Image {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: root.compactLayout ? 110 : 160
+                    height: width
+                    source: root.logoUrl
+                    sourceSize: Qt.size(320, 320)
+                    opacity: panelWindow.introLogo
+                    scale: 0.72 + panelWindow.introLogo * 0.28
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "RAOHANE"
+                    color: RaohaneTheme.text
+                    font.pixelSize: root.compactLayout ? 30 : 48
+                    font.weight: Font.Light
+                    font.letterSpacing: root.compactLayout ? 8 : 14
+                    opacity: panelWindow.introName
+                    transform: Translate { y: (1 - panelWindow.introName) * 14 }
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: qsTr("Your desktop, your atmosphere")
+                    color: RaohaneTheme.textMuted
+                    font.pixelSize: 13
+                    opacity: panelWindow.introName
+                }
+            }
+            Text {
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottomMargin: 32
+                text: qsTr("Click or press any key to continue")
+                color: RaohaneTheme.textFaint
+                font.pixelSize: 11
+                opacity: panelWindow.introName
+            }
+            MouseArea { anchors.fill: parent; onClicked: root.finishIntro() }
+            Keys.onPressed: event => { root.finishIntro(); event.accepted = true }
         }
-
-        Rectangle {
-            width: Math.min(panelWindow.width * 0.44, 620)
-            height: width
-            radius: width / 2
-            anchors {
-                right: parent.right
-                top: parent.top
-                rightMargin: -Math.round(width * 0.2)
-                topMargin: -Math.round(height * 0.28)
-            }
-            color: RaohaneTheme.accentSoft
-            opacity: 0.34
+        SequentialAnimation {
+            id: introAnimation
+            NumberAnimation { target: panelWindow; property: "introLogo"; from: 0; to: 1; duration: 600; easing.type: Easing.OutCubic }
+            NumberAnimation { target: panelWindow; property: "introName"; from: 0; to: 1; duration: 650; easing.type: Easing.OutCubic }
+            PauseAnimation { duration: 2400 }
+            NumberAnimation { target: panelWindow; property: "curtainOpacity"; from: 1; to: 0; duration: 350 }
+            onFinished: root.finishIntro()
+        }
+        Connections {
+            target: RaohaneMotion
+            function onEnabledChanged() { if (!RaohaneMotion.enabled && panelWindow.introActive) root.finishIntro() }
+            function onTransformMotionEnabledChanged() { if (!RaohaneMotion.transformMotionEnabled && panelWindow.introActive) root.finishIntro() }
+        }
+        Connections {
+            target: RaohanePerformance
+            function onGameModeActiveChanged() { if (RaohanePerformance.gameModeActive && panelWindow.introActive) root.finishIntro() }
         }
 
         Item {
             id: stage
-
             anchors.fill: parent
-            focus: panelWindow.visible
+            focus: panelWindow.visible && !panelWindow.introActive
             opacity: panelWindow.entered ? 1 : 0
 
             Behavior on opacity {
-                NumberAnimation { duration: RaohaneMotion.micro; easing.type: RaohaneMotion.easeStandard }
+                enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
+                NumberAnimation { duration: RaohaneMotion.enter; easing.type: RaohaneMotion.easeStandard }
             }
 
             RaohaneSurface {
                 id: welcomeCard
-
-                width: Math.max(0, Math.min(parent.width - (root.compactLayout ? 24 : 72), 1120))
-                height: Math.max(0, Math.min(parent.height - (root.compactLayout ? 24 : 86), 680))
+                width: Math.max(0, Math.min(parent.width - (root.compactLayout ? 24 : 80), 1060))
+                height: Math.max(0, Math.min(parent.height - (root.compactLayout ? 24 : 80), 680))
                 anchors.centerIn: parent
                 surfaceRadius: RaohaneTheme.radiusHero
-                raised: true
+                idleColor: RaohaneTheme.surfaceDeep
+                idleBorderColor: RaohaneTheme.borderStrong
                 showSheen: false
-                border.color: RaohaneTheme.borderStrong
-                clip: true
-
-                Rectangle {
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        leftMargin: 26
-                    }
-                    width: 58
-                    height: 2
-                    color: RaohaneTheme.accent
-                    opacity: 0.82
-                }
+                showInnerRim: false
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: Math.max(15, Math.min(32, welcomeCard.width * 0.033))
-                    spacing: Math.max(16, welcomeCard.width * 0.026)
+                    anchors.margins: root.compactLayout ? 16 : 30
+                    spacing: root.compactLayout ? 16 : 30
 
                     ColumnLayout {
-                        Layout.fillWidth: true
+                        visible: !root.compactLayout
+                        Layout.preferredWidth: 190
                         Layout.fillHeight: true
-                        Layout.maximumWidth: 540
-                        spacing: 0
+                        spacing: 12
 
                         RowLayout {
-                            Layout.fillWidth: true
                             spacing: 10
-
-                            Rectangle {
-                                Layout.preferredWidth: 38
-                                Layout.preferredHeight: 38
-                                radius: 12
-                                color: RaohaneTheme.accentSoft
-                                border.width: 1
-                                border.color: RaohaneTheme.accentBorder
-
-                                RaohaneIcon {
-                                    anchors.centerIn: parent
-                                    text: "spa"
-                                    iconSize: 20
-                                    fill: 1
-                                    symbolWeight: 560
-                                    color: RaohaneTheme.accent
-                                }
-                            }
-
-                            // Keep the mascot visible even on small laptop displays.
                             Image {
-                                visible: root.compactLayout
-                                Layout.preferredWidth: visible ? 56 : 0
-                                Layout.preferredHeight: visible ? 56 : 0
-                                source: root.mascotUrl
-                                onStatusChanged: {
-                                    if (status === Image.Error && source.toString() !== root.fallbackMascotUrl)
-                                        source = root.fallbackMascotUrl
-                                }
-                                fillMode: Image.PreserveAspectFit
-                                asynchronous: true
-                                sourceSize: Qt.size(224, 224)
+                                source: root.logoUrl
+                                sourceSize: Qt.size(64, 64)
+                                Layout.preferredWidth: 32
+                                Layout.preferredHeight: 32
                             }
-
-                            ColumnLayout {
-                                spacing: 0
-
-                                Text {
-                                    text: "RAOHANE"
-                                    color: RaohaneTheme.text
-                                    font.pixelSize: 11
-                                    font.weight: Font.DemiBold
-                                    font.letterSpacing: 2.6
-                                }
-
-                                Text {
-                                    text: qsTr("Hyprland · Quickshell")
-                                    color: RaohaneTheme.textFaint
-                                    font.pixelSize: 8
-                                }
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            StatusChip {
-                                icon: "dark_mode"
-                                label: RaohaneTheme.presetName
-                                active: true
+                            Text {
+                                text: "RAOHANE"
+                                color: RaohaneTheme.text
+                                font.pixelSize: 13
+                                font.weight: Font.Bold
+                                font.letterSpacing: 2
                             }
                         }
-
-                        Item { Layout.fillHeight: true }
-
                         Text {
-                            text: qsTr("A quieter place to create")
-                            color: RaohaneTheme.accent
-                            font.pixelSize: 11
-                            font.weight: Font.Medium
-                            font.letterSpacing: 1.2
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            Layout.topMargin: 8
-                            text: qsTr("Welcome to Raohane")
-                            color: RaohaneTheme.text
-                            font.pixelSize: Math.max(30, Math.min(51, welcomeCard.width * 0.052))
-                            font.weight: Font.DemiBold
-                            font.letterSpacing: -1.35
-                            wrapMode: Text.WordWrap
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            Layout.maximumWidth: 490
-                            Layout.topMargin: 13
-                            text: qsTr("Everything you need, beautifully within reach. Take a short tour or make Raohane your own.")
+                            Layout.topMargin: 28
+                            text: qsTr("Make yourself at home")
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 12
-                            lineHeight: 1.35
-                            wrapMode: Text.WordWrap
                         }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Layout.topMargin: 21
-                            spacing: 7
-
-                            StatusChip {
-                                icon: "route"
-                                label: qsTr("%1 guided stops").arg(RaohaneOnboardingState.totalSteps)
-                            }
-                            StatusChip {
-                                icon: "touch_app"
-                                label: qsTr("Live interface tour")
+                        Repeater {
+                            model: root.stepNames
+                            delegate: WelcomeButton {
+                                required property int index
+                                required property string modelData
+                                Layout.fillWidth: true
+                                label: (index + 1) + "  " + modelData
+                                icon: index < root.setupStep ? "check" : "circle"
+                                emphasized: index === root.setupStep
+                                enabled: index <= root.setupStep
+                                onTriggered: root.setupStep = index
                             }
                         }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Layout.topMargin: 25
-                            spacing: 9
-
-                            WelcomeButton {
-                                Layout.preferredWidth: Math.min(190, Math.max(144, welcomeCard.width * 0.19))
-                                emphasized: true
-                                label: qsTr("Show me around")
-                                icon: "arrow_forward"
-                                onTriggered: root.startTour()
-                            }
-
-                            WelcomeButton {
-                                Layout.preferredWidth: Math.min(155, Math.max(116, welcomeCard.width * 0.145))
-                                label: qsTr("Explore myself")
-                                icon: "explore"
-                                onTriggered: root.skipWelcome()
-                            }
-                        }
-
-                        Text {
-                            Layout.topMargin: 12
-                            text: qsTr("Enter starts the tour · Esc skips it")
-                            color: RaohaneTheme.textMuted
-                            font.pixelSize: 10
-                        }
-
                         Item { Layout.fillHeight: true }
-
-                        RowLayout {
+                        StatusChip {
+                            icon: "dark_mode"
+                            label: RaohaneTheme.presetName
+                            active: true
+                        }
+                        Text {
                             Layout.fillWidth: true
-                            spacing: 8
-
-                            Rectangle {
-                                width: 5
-                                height: 5
-                                radius: 3
-                                color: RaohaneTheme.success
-                            }
-                            Text {
-                                text: qsTr("Ready when you are")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
-                            }
-                            Item { Layout.fillWidth: true }
-                            Text {
-                                text: qsTr("Made for Hyprland")
-                                color: RaohaneTheme.textMuted
-                                font.pixelSize: 9
-                            }
+                            text: qsTr("Made for Hyprland")
+                            color: RaohaneTheme.textFaint
+                            font.pixelSize: 11
                         }
                     }
 
@@ -338,146 +292,152 @@ Scope {
                         visible: !root.compactLayout
                         Layout.preferredWidth: 1
                         Layout.fillHeight: true
-                        Layout.topMargin: 18
-                        Layout.bottomMargin: 18
                         color: RaohaneTheme.borderFaint
                     }
 
-                    // Static local artwork, with SVG fallback when the optional PNG
-                    // has not been installed. No background refreshes or timers.
-                    Item {
-                        id: mascotStage
-                        visible: !root.compactLayout
+                    ColumnLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.minimumWidth: 280
+                        spacing: root.compactLayout ? 12 : 18
 
-                        RaohaneSurface {
-                            id: mascotFrame
-                            anchors.centerIn: parent
-                            width: Math.min(parent.width, 432)
-                            height: Math.min(parent.height - 12, 538)
-                            surfaceRadius: 22
-                            color: RaohaneTheme.surfaceDeep
-                            raised: false
-                            showSheen: false
-                            showInnerRim: false
-                            border.color: RaohaneTheme.borderStrong
+                        Text {
+                            text: qsTr("Step %1 of 5").arg(root.setupStep + 1)
+                            color: RaohaneTheme.accent
+                            font.pixelSize: 12
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 3
+                            radius: 2
+                            color: RaohaneTheme.borderFaint
+                            Rectangle { width: parent.width * (root.setupStep + 1) / 5; height: 3; radius: 2; color: RaohaneTheme.accent }
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: root.setupStep === 0 ? qsTr("Welcome to Raohane") : root.stepNames[root.setupStep]
+                            color: RaohaneTheme.text
+                            font.pixelSize: root.compactLayout ? 28 : 38
+                            font.weight: Font.DemiBold
+                            wrapMode: Text.WordWrap
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Take your time. Your desktop will wait until you finish setup.")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 13
+                            wrapMode: Text.WordWrap
+                        }
+                        Flickable {
+                            id: setupScroll
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
                             clip: true
-
-                            Rectangle {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.top: parent.top
-                                anchors.topMargin: 22
-                                width: Math.min(parent.width * 0.84, 320)
-                                height: width
-                                radius: width / 2
-                                color: RaohaneTheme.accentSoft
-                                border.color: RaohaneTheme.accentBorder
-                                border.width: 1
-                                opacity: 0.55
-                            }
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                anchors.verticalCenterOffset: -14
-                                width: Math.min(parent.width * 0.72, 285)
-                                height: width
-                                radius: width / 2
-                                color: "transparent"
-                                border.width: 1
-                                border.color: RaohaneTheme.accent
-                                opacity: 0.21
-                            }
-
-                            Image {
-                                id: mascotImage
-                                anchors {
-                                    left: parent.left
-                                    right: parent.right
-                                    top: parent.top
-                                    bottom: parent.bottom
-                                    leftMargin: 14
-                                    rightMargin: 14
-                                    topMargin: 26
-                                    bottomMargin: 72
-                                }
-                                source: root.mascotUrl
-                                onStatusChanged: {
-                                    if (status === Image.Error && source.toString() !== root.fallbackMascotUrl)
-                                        source = root.fallbackMascotUrl
-                                }
-                                fillMode: Image.PreserveAspectFit
-                                asynchronous: true
-                                smooth: true
-                                sourceSize.width: 720
-                                sourceSize.height: 720
-                                opacity: status === Image.Ready ? 1 : 0
-
-                                Behavior on opacity {
-                                    enabled: RaohaneMotion.enabled && !RaohanePerformance.gameModeActive
-                                    NumberAnimation { duration: RaohaneMotion.enter }
-                                }
-                            }
-
-                            RaohaneIcon {
-                                anchors.centerIn: mascotImage
-                                visible: mascotImage.status === Image.Error
-                                text: "favorite"
-                                iconSize: 60
-                                color: RaohaneTheme.accent
-                            }
-
-                            RaohaneIcon {
-                                anchors {
-                                    right: parent.right
-                                    top: parent.top
-                                    rightMargin: 23
-                                    topMargin: 25
-                                }
-                                text: "auto_awesome"
-                                iconSize: 22
-                                color: RaohaneTheme.accent
-                                opacity: 0.8
-                            }
-
+                            contentHeight: setupContent.implicitHeight
+                            boundsBehavior: Flickable.StopAtBounds
                             ColumnLayout {
-                                anchors {
-                                    left: parent.left
-                                    right: parent.right
-                                    bottom: parent.bottom
-                                    leftMargin: 22
-                                    rightMargin: 22
-                                    bottomMargin: 23
-                                }
-                                spacing: 5
-
-                                Text {
+                                id: setupContent
+                                width: setupScroll.width
+                                spacing: 16
+                                Image {
+                                    visible: root.setupStep === 0 || root.setupStep === 4
                                     Layout.alignment: Qt.AlignHCenter
-                                    text: qsTr("Make yourself at home")
-                                    color: RaohaneTheme.text
-                                    font.pixelSize: 16
-                                    font.weight: Font.DemiBold
+                                    Layout.topMargin: 24
+                                    Layout.preferredWidth: 140
+                                    Layout.preferredHeight: 140
+                                    source: root.logoUrl
+                                    sourceSize: Qt.size(280, 280)
                                 }
-
                                 Text {
-                                    Layout.alignment: Qt.AlignHCenter
-                                    text: qsTr("Your desktop, your atmosphere")
+                                    visible: root.setupStep === 0 || root.setupStep === 4
+                                    Layout.fillWidth: true
+                                    text: root.setupStep === 0 ? qsTr("Your desktop, your atmosphere") : qsTr("Everything is ready. Make yourself at home.")
+                                    horizontalAlignment: Text.AlignHCenter
+                                    color: RaohaneTheme.accent
+                                    font.pixelSize: 20
+                                    wrapMode: Text.WordWrap
+                                }
+                                Text {
+                                    visible: root.setupStep === 0 || root.setupStep === 4
+                                    Layout.fillWidth: true
+                                    text: root.setupStep === 0 ? qsTr("Choose your colors, a wallpaper and a bar style. You can change everything later in Settings.") : RaohaneTheme.presetName + " · " + RaohaneConfig.barStylePreset
+                                    horizontalAlignment: Text.AlignHCenter
                                     color: RaohaneTheme.textMuted
-                                    font.pixelSize: 10
+                                    font.pixelSize: 14
+                                    wrapMode: Text.WordWrap
+                                }
+                                Repeater {
+                                    model: root.setupStep === 1 ? RaohaneTheme.builtInPresets : []
+                                    delegate: WelcomeButton {
+                                        required property var modelData
+                                        Layout.fillWidth: true
+                                        label: modelData.name
+                                        icon: RaohaneConfig.themePreset === modelData.id ? "check_circle" : "palette"
+                                        emphasized: RaohaneConfig.themePreset === modelData.id
+                                        onTriggered: RaohaneConfig.themePreset = modelData.id
+                                    }
+                                }
+                                GridLayout {
+                                    visible: root.setupStep === 2
+                                    Layout.fillWidth: true
+                                    columns: 2
+                                    columnSpacing: 12
+                                    rowSpacing: 12
+                                    Repeater {
+                                        model: ["nature/08-path.jpg", "nature/01-bythewater.jpg", "abstract/01-cascade.png", "abstract/04-flow.jpg", "anime/01-lantern-girl.svg", "anime/02-the-last-train.svg"]
+                                        delegate: WelcomeButton {
+                                            required property string modelData
+                                            readonly property string path: RaohanePaths.join(RaohanePaths.bundledWallpaperDirectory, modelData)
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: 120
+                                            label: ""
+                                            icon: ""
+                                            emphasized: RaohaneConfig.wallpaperPath === path
+                                            Image { anchors.fill: parent; anchors.margins: 6; source: RaohanePaths.fileUrl(parent.path); fillMode: Image.PreserveAspectCrop; clip: true; sourceSize: Qt.size(480, 240) }
+                                            onTriggered: RaohaneWallpapers.apply(path)
+                                            Accessible.name: modelData
+                                        }
+                                    }
+                                }
+                                Loader {
+                                    Layout.fillWidth: true
+                                    active: root.setupStep === 3
+                                    sourceComponent: RaohaneBarAppearanceSettings {}
                                 }
                             }
                         }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            WelcomeButton {
+                                visible: root.setupStep > 0
+                                label: qsTr("Back")
+                                icon: "arrow_back"
+                                onTriggered: root.previous()
+                            }
+                            Item { Layout.fillWidth: true }
+                            WelcomeButton {
+                                visible: root.setupStep === 4
+                                label: qsTr("Show me around")
+                                icon: "explore"
+                                onTriggered: root.startTour()
+                            }
+                            WelcomeButton {
+                                emphasized: true
+                                label: root.setupStep === 4 ? qsTr("Finish setup") : qsTr("Continue")
+                                icon: "arrow_forward"
+                                onTriggered: root.setupStep === 4 ? root.skipWelcome() : root.advance()
+                            }
+                        }
+
                     }
                 }
             }
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                    root.startTour()
+                    root.advance()
                     event.accepted = true
                 } else if (event.key === Qt.Key_Escape) {
-                    root.skipWelcome()
+                    root.previous()
                     event.accepted = true
                 }
             }
@@ -488,10 +448,14 @@ Scope {
         target: "welcome"
 
         function open(): void { RaohaneState.setPrimaryOpen("welcome", true) }
+        function next(): void { root.advance() }
+        function back(): void { root.previous() }
+        function step(): int { return root.setupStep }
         function close(): void { root.skipWelcome() }
         function reset(): void { RaohaneOnboardingState.reset() }
-        function tour(): void { RaohaneOnboardingState.replay() }
+        function tour(): void { root.startTour() }
         function status(): string { return RaohaneState.welcomeOpen ? "open" : "closed" }
+        function phase(): string { return panelWindow.introActive ? "intro" : RaohaneState.welcomeOpen ? "welcome" : "closed" }
         function completed(): bool { return RaohaneOnboardingState.completed }
     }
 
@@ -525,7 +489,8 @@ Scope {
         property bool emphasized: false
         signal triggered()
 
-        Layout.preferredHeight: 43
+        implicitWidth: Math.max(120, buttonContent.implicitWidth + 32)
+        Layout.preferredHeight: 46
         surfaceRadius: 12
         raised: false
         active: emphasized
@@ -542,9 +507,10 @@ Scope {
             : RaohaneTheme.borderFaint
 
         Row {
+            id: buttonContent
             anchors.centerIn: parent
             spacing: 8
-            Text { text: button.label; color: button.emphasized ? RaohaneTheme.text : RaohaneTheme.textMuted; font.pixelSize: 10; font.weight: Font.DemiBold }
+            Text { text: button.label; color: button.emphasized ? RaohaneTheme.text : RaohaneTheme.textMuted; font.pixelSize: 13; font.weight: Font.DemiBold }
             RaohaneIcon { text: button.icon; iconSize: 14; fill: button.emphasized ? 1 : 0; color: button.emphasized ? RaohaneTheme.accent : RaohaneTheme.textMuted }
         }
 

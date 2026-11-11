@@ -43,6 +43,21 @@ Item {
             opacity: 0.94, margin: 10, spacing: 3, padding: 5, background: true, shadow: false
         },
         {
+            id: "orbit", label: qsTr("Orbit"), detail: qsTr("A compact centered capsule for a focused desktop"),
+            surface: "float", group: "transparent", height: 44, radius: 22,
+            opacity: 0.94, margin: 18, spacing: 5, padding: 8, background: true, shadow: false
+        },
+        {
+            id: "ribbon", label: qsTr("Ribbon"), detail: qsTr("A slim continuous panel with crisp edges"),
+            surface: "panel", group: "transparent", height: 36, radius: 0,
+            opacity: 0.98, margin: 0, spacing: 5, padding: 8, background: true, shadow: false
+        },
+        {
+            id: "ink", label: qsTr("Ink"), detail: qsTr("Only the essential modules over your wallpaper"),
+            surface: "float", group: "transparent", height: 40, radius: 12,
+            opacity: 1, margin: 18, spacing: 6, padding: 8, background: false, shadow: false
+        },
+        {
             id: "panel", label: qsTr("Panel"), detail: qsTr("Simple continuous edge-to-edge system panel"),
             surface: "panel", group: "transparent", height: 42, radius: 0,
             opacity: 0.96, margin: 0, spacing: 6, padding: 8, background: true, shadow: false
@@ -107,7 +122,7 @@ Item {
         RaohaneConfig.barHorizontalPadding = Number(preset.padding)
         RaohaneConfig.barShowBackground = Boolean(preset.background)
         RaohaneConfig.barShadow = Boolean(preset.shadow)
-        if (preset.id === "halo") {
+        if (preset.id === "halo" || preset.id === "orbit") {
             // Preset composition uses the existing native modules and keeps
             // context/music accessible without introducing duplicate widgets.
             RaohaneConfig.barVertical = false

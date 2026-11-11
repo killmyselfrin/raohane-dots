@@ -26,6 +26,14 @@ required=(
   qmldir
   VERSION
   assets
+  assets/icons/raohane-logo.svg
+  assets/icons/raohane-emblem.png
+  assets/wallpapers/nature/08-path.jpg
+  assets/wallpapers/catalog.json
+  assets/wallpapers/licenses/CC-BY-SA-4.0.txt
+  assets/wallpapers/01-nocturne.svg
+  assets/wallpapers/02-cedar.svg
+  assets/wallpapers/03-solstice.svg
   translations
   defaults/native.json
   install/arch/required.txt

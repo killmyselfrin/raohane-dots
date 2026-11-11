@@ -74,3 +74,20 @@ authentication card) was informed by ilyamiro/serpantinum,
 The Raohane implementation uses its own Nocturne palette and native Qt Quick
 Controls; no upstream font binaries or background assets were imported.
 Reference: https://github.com/ilyamiro/serpantinum/tree/master/config/sddm/themes/material-you
+
+## Wallpaper collection
+
+The optional category collection under `assets/wallpapers` includes 21 unchanged
+wallpapers from KDE Plasma Workspace Wallpapers and 11 photographs by
+masterbutler from the Linux Mint Maya collection. Per-file authors, licenses,
+commit-pinned source links and SHA-256 hashes are in `assets/wallpapers/catalog.json`.
+These assets retain their individual CC-BY-SA-4.0, CC-BY-2.0 or LGPLv3 licenses, not a blanket
+relicensing as Raohane code. Full license texts are in `assets/wallpapers/licenses`.
+The 20 original anime-inspired vector illustrations, eight original abstractions,
+three legacy starter landscapes and feather-nova brand assets were created for Raohane
+and use the repository's GPL-3.0-or-later license. No third-party anime characters
+or franchise artwork are included.
+
+The textured `assets/icons/raohane-emblem.png` was AI-generated for Raohane
+from a new prompt informed by user-supplied visual references. The compact
+`assets/icons/raohane-logo.svg` is a separately drawn simplified companion mark.

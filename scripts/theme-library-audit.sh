@@ -111,7 +111,8 @@ rg -q 'themeQuery' modules/raohane/RaohaneThemeCatalog.qml \
   || fail 'theme catalog lost its search control'
 rg -q 'source: "RaohaneThemeStudio.qml"' modules/raohane/RaohaneSettingsPageRegistry.qml \
   || fail 'Settings Themes route does not load the native Theme Studio'
-rg -q 'RaohaneThemePresetManager' modules/raohane/RaohaneThemeStudio.qml \
+rg -q 'RaohaneThemeCatalog' modules/raohane/RaohaneThemeStudio.qml \
+  && rg -q 'RaohaneThemePresetManager' modules/raohane/RaohaneThemeCatalog.qml \
   || fail 'Theme Studio does not compose user preset management'
 rg -q 'RaohaneThemeCatalog' modules/raohane/RaohaneThemeStudio.qml \
   || fail 'Theme Studio lost the searchable theme catalog'

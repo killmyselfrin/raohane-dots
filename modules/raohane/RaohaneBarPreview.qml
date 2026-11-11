@@ -45,7 +45,7 @@ RaohaneSurface {
             opacity: RaohaneConfig.barOpacity
             raised: RaohaneConfig.barShadow
             transparentIdle: !RaohaneConfig.barShowBackground
-                || RaohaneConfig.barGroupStyle !== "pills"
+                || !(RaohaneConfig.barSurfaceStyle === "panel" || ["halo", "orbit"].includes(RaohaneConfig.barStylePreset))
             showSheen: false
             border.color: "transparent"
 
@@ -134,7 +134,18 @@ RaohaneSurface {
         required property var items
         property int alignment: Qt.AlignLeft
 
+        Rectangle {
+            anchors.fill: previewRow
+            anchors.margins: -5
+            radius: Math.min(RaohaneConfig.barRadius, height / 2)
+            color: RaohaneTheme.surface
+            visible: zone.items.length > 0 && RaohaneConfig.barShowBackground
+                && RaohaneConfig.barSurfaceStyle !== "panel"
+                && !["halo", "orbit"].includes(RaohaneConfig.barStylePreset)
+                && RaohaneConfig.barGroupStyle === "pills"
+        }
         Row {
+            id: previewRow
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: zone.alignment === Qt.AlignLeft ? parent.left : undefined
             anchors.right: zone.alignment === Qt.AlignRight ? parent.right : undefined
@@ -212,7 +223,7 @@ RaohaneSurface {
             anchors.fill: parent
             surfaceRadius: RaohaneConfig.barGroupStyle === "segmented" ? 6 : 10
             raised: RaohaneConfig.barGroupStyle === "separated" && RaohaneConfig.barShadow
-            transparentIdle: RaohaneConfig.barGroupStyle === "transparent"
+            transparentIdle: !RaohaneConfig.barShowBackground || ["transparent", "pills"].includes(RaohaneConfig.barGroupStyle)
             showSheen: false
             border.color: "transparent"
             color: glyph.moduleId === "context"

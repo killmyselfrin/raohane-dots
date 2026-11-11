@@ -87,7 +87,7 @@ rg -Fq 'id: "cinematic", label: qsTr("Cinematic")' "$bar_appearance" \
   || fail 'Cinematic preset missing from Bar Studio'
 rg -Fq 'RaohaneConfig.barStylePreset === "cinematic"' "$bar" \
   || fail 'Cinematic visual treatment is not active in native bar'
-rg -Fq '"cinematic", "halo", "islands"' "$config" \
+rg -Fq '"cinematic", "halo", "orbit", "ribbon", "ink", "islands"' "$config" \
   || fail 'Cinematic and Halo presets cannot be loaded from saved settings'
 rg -Fq 'RaohaneTheme.accentBorder' "$bar" \
   || fail 'Cinematic center island lost accent treatment'
@@ -99,7 +99,7 @@ rg -Fq 'id: "halo", label: qsTr("Halo")' "$bar_appearance" \
   || fail 'Halo capsule is missing from Bar Studio'
 rg -Fq 'RaohaneConfig.barStylePreset === "halo"' "$bar" \
   || fail 'Halo is not selectable on the real horizontal bar'
-rg -Fq '"cinematic", "halo", "islands"' "$config" \
+rg -Fq '"cinematic", "halo", "orbit", "ribbon", "ink", "islands"' "$config" \
   || fail 'Halo preset is not restorable from native preferences'
 rg -Fq 'surface: "float", group: "transparent", height: 44, radius: 22' "$bar_appearance" \
   || fail 'Halo lost its slender transparent capsule dimensions'
@@ -119,7 +119,7 @@ rg -Fq 'readonly property bool haloStyle:' "$workspaces" \
   || fail 'Halo workspace dots are not bound to actual compositor desktops'
 rg -Fq 'RaohaneConfig.barStylePreset === "halo"' "$workspaces" \
   || fail 'Halo workspace styling is not scoped to its preset'
-rg -Fq 'raised: !root.haloStyle || root.priorityMode' modules/raohane/RaohaneContextIsland.qml \
+rg -Fq 'raised: root.priorityMode || (!root.haloStyle && !root.chromaticBackground && !root.integratedBackground)' modules/raohane/RaohaneContextIsland.qml \
   || fail 'Halo context styling does not preserve privacy/recording emphasis'
 rg -Fq 'readonly property bool mediaMode:' modules/raohane/RaohaneContextIsland.qml \
   || fail 'Halo context styling removed media interaction'
@@ -150,7 +150,7 @@ for contract in \
   'firstColor: RaohaneConfig.wallpaperFlowColorA' \
   'secondColor: RaohaneConfig.wallpaperFlowColorB' \
   'strength: RaohaneConfig.barChromaticIntensity'; do
-  rg -Fq "$contract" "$bar" || fail "Chromatic Flow contract missing: $contract"
+  rg -Fq -- "$contract" "$bar" || fail "Chromatic Flow contract missing: $contract"
 done
 # The previous design layered a 5–45% opacity gradient *over* a tinted
 # glass material, washing both colors into a muddy middle. The gradient now
@@ -172,7 +172,7 @@ for contract in \
   'GradientStop { position: 1.000; color: root.flowingColor(1.000) }' \
   'root.tint(root.materialBase, root.firstColor, root.colorStrength)' \
   'root.tint(root.materialBase, root.secondColor, root.colorStrength)'; do
-  rg -Fq "$contract" "$wash" || fail "primary chromatic fill lost contract: $contract"
+  rg -Fq -- "$contract" "$wash" || fail "primary chromatic fill lost contract: $contract"
 done
 for contract in \
   'idleColor: barWindow.chromaticFlowEnabled' \
@@ -180,7 +180,7 @@ for contract in \
   '!barWindow.chromaticFlowEnabled' \
   '!barWindow.panelPreset || parent === panelSurface' \
   '!barWindow.haloPreset || parent === panelSurface'; do
-  rg -Fq "$contract" "$bar" || fail "double-layer prevention missing: $contract"
+  rg -Fq -- "$contract" "$bar" || fail "double-layer prevention missing: $contract"
 done
 if rg -Fq 'id: shiftedTransition' "$wash" \
    || rg -Fq 'SequentialAnimation on chromaticPhase {' "$bar" \
@@ -193,7 +193,7 @@ rg -Fq 'root.chromaticBackground ? "transparent"' "$module_host" \
   || fail 'individual module card still masks the chromatic surface'
 rg -Fq 'chromaticBackground: root.chromaticBackground' "$module_host" \
   || fail 'context island still paints its own opaque base'
-rg -Fq 'transparentIdle: (root.haloStyle || root.chromaticBackground)' modules/raohane/RaohaneContextIsland.qml \
+rg -Fq 'transparentIdle: (root.haloStyle || root.chromaticBackground || root.integratedBackground)' modules/raohane/RaohaneContextIsland.qml \
   || fail 'chromatic context island still masks the two-tone material'
 
 # The color field must actually travel: opposite hues swap their
@@ -406,7 +406,7 @@ for contract in \
   'compactClock: barWindow.clockCompact' \
   'compactWorkspaces: barWindow.compactWidth' \
   'minimalWorkspaces: barWindow.ultraNarrow'; do
-  rg -Fq "$contract" "$bar" || fail "horizontal Bar lost responsive geometry: $contract"
+  rg -Fq -- "$contract" "$bar" || fail "horizontal Bar lost responsive geometry: $contract"
 done
 for file in "$bar" modules/raohane/RaohaneClock.qml modules/raohane/RaohaneContextIsland.qml \
             modules/raohane/RaohaneBarModule.qml modules/raohane/RaohaneWorkspaces.qml; do
@@ -511,7 +511,7 @@ fi
 
 # Workspace app badges reuse Hyprland's live model; avoid polling.
 for contract in 'representativeWindow' 'wayland?.appId' 'RaohaneAdaptiveIcon' 'Accessible.name' 'workspaceButton.workspaceId'; do
-  rg -Fq "$contract" "$workspaces" || fail "native workspaces lost app identity/accessibility contract: $contract"
+  rg -Fq -- "$contract" "$workspaces" || fail "native workspaces lost app identity/accessibility contract: $contract"
 done
 # Commented guidance may mention hyprctl: reject executable paths, not prose.
 if rg -v '^[[:space:]]*//' "$workspaces" | rg -n 'hyprctl|Process[[:space:]]*\{|Timer[[:space:]]*\{'; then

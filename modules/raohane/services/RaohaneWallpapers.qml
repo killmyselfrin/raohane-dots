@@ -16,7 +16,7 @@ Singleton {
     readonly property string fallbackFolderPath: picturesPath.length > 0 ? `${picturesPath}/Wallpapers` : ""
     readonly property string defaultFolderPath: RaohaneConfig.wallpaperDirectory.length > 0
         ? RaohaneConfig.wallpaperDirectory
-        : root.fallbackFolderPath
+        : RaohanePaths.join(RaohanePaths.bundledWallpaperDirectory, "nature")
     property alias directory: folderModel.folder
     readonly property string effectiveDirectory: root.cleanPath(folderModel.folder.toString())
     property alias folderModel: folderModel

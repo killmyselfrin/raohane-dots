@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Raohane — feather nova, compact mark</title>
+  <desc>Four swept feathers surround a celestial diamond and a broken orbit.</desc>
+  <g fill="none" stroke="#eee9dc" stroke-width="5">
+    <path d="M150 39A92 92 0 0 1 218 119M106 217A92 92 0 0 1 36 137"/>
+  </g>
+  <path fill="#eee9dc" d="M128 5L137 106L251 128L137 139L128 251L117 139L5 128L117 117Z"/>
+  <g fill="#b9a1cf">
+    <path id="feather" d="M45 40C70 81 129 54 155 88C165 101 164 119 155 135C153 104 119 97 93 99L108 90C79 92 54 76 45 40Z"/>
+    <path d="M216 45C175 70 202 129 168 155C155 165 137 164 121 155C152 153 159 119 157 93L166 108C164 79 180 54 216 45Z"/>
+    <path d="M211 216C186 175 127 202 101 168C91 155 92 137 101 121C103 152 137 159 163 157L148 166C177 164 202 180 211 216Z"/>
+    <path d="M40 211C81 186 54 127 88 101C101 91 119 92 135 101C104 103 97 137 99 163L90 148C92 177 76 202 40 211Z"/>
+  </g>
+  <path fill="#10131a" d="M128 107L149 128L128 149L107 128Z"/>
+  <path fill="#eee9dc" d="M128 115L139 128L128 141L117 128Z"/>
+</svg>

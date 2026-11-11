@@ -3,6 +3,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Dialogs
+import qs.modules.raohane.services
 
 import qs.modules.raohane.config
 
@@ -10,6 +12,22 @@ Item {
     id: root
 
     property string themeQuery: ""
+    readonly property string animeCollectionPath: RaohaneConfig.wallpaperCollections.find(item => item.name === "Raohane Anime")?.path ?? ""
+    readonly property var starterWallpapers: [
+        {file: root.animeCollectionPath.length ? "01-girl-stars.png" : "anime/01-lantern-girl.svg", directory: root.animeCollectionPath, folder: "anime", title: qsTr("Anime · 20")},
+        {file: "nature/01-bythewater.jpg", folder: "nature", title: qsTr("Nature · 20")},
+        {file: "abstract/01-cascade.png", folder: "abstract", title: qsTr("Abstract · 20")}
+    ]
+    function openWallpaperCategory(item): void {
+        RaohaneWallpapers.setDirectory(item.directory?.length ? item.directory : RaohanePaths.join(RaohanePaths.bundledWallpaperDirectory, item.folder))
+        RaohaneState.setPrimaryOpen("wallpaper", true)
+    }
+    FolderDialog {
+        id: folderPicker
+        title: qsTr("Wallpaper directory")
+        onAccepted: RaohaneWallpapers.setDirectory(RaohanePaths.cleanPath(selectedFolder))
+    }
+
 
     readonly property var themes: {
         const query = root.themeQuery.trim().toLowerCase()
@@ -102,6 +120,75 @@ Item {
             width: parent.width
             spacing: 16
 
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
+                Layout.topMargin: 14
+                Layout.preferredHeight: root.width < 650 || root.height < 600 ? 140 : 190
+                radius: RaohaneTheme.radiusLarge
+                color: RaohaneTheme.surfaceDeep
+                clip: true
+                Image {
+                    anchors.fill: parent
+                    source: RaohaneConfig.wallpaperPath.length && !RaohaneWallpapers.isVideo(RaohaneConfig.wallpaperPath)
+                        ? RaohanePaths.fileUrl(RaohaneConfig.wallpaperPath) : RaohanePaths.defaultWallpaperUrl
+                    fillMode: Image.PreserveAspectCrop
+                    sourceSize.width: 1280
+                    asynchronous: true
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    gradient: Gradient {
+                        GradientStop { position: 0; color: "transparent" }
+                        GradientStop { position: 1; color: "#cc10131a" }
+                    }
+                }
+                RowLayout {
+                    anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+                    anchors.margins: 16
+                    RaohaneIconButton {
+                        icon: "wallpaper"; emphasized: true; buttonSize: 36
+                        Accessible.name: qsTr("Select wallpaper")
+                        onClicked: RaohaneState.setPrimaryOpen("wallpaper", true)
+                    }
+                    Text { text: qsTr("Your desktop, your atmosphere"); color: "white"; font.pixelSize: 16; font.weight: Font.DemiBold; Layout.fillWidth: true; elide: Text.ElideRight }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: 16; Layout.rightMargin: 16
+                spacing: 10
+                Repeater {
+                    model: root.starterWallpapers
+                    delegate: Rectangle {
+                        required property var modelData
+                        readonly property string path: RaohanePaths.join(modelData.directory?.length ? modelData.directory : RaohanePaths.bundledWallpaperDirectory, modelData.file)
+                        readonly property bool selected: RaohaneWallpapers.effectiveDirectory === (modelData.directory?.length ? modelData.directory : RaohanePaths.join(RaohanePaths.bundledWallpaperDirectory, modelData.folder))
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 74
+                        radius: 10
+                        clip: true
+                        color: RaohaneTheme.surfaceDeep
+                        Image { anchors.fill: parent; source: RaohanePaths.fileUrl(parent.path); sourceSize.width: 400; fillMode: Image.PreserveAspectCrop; asynchronous: true }
+                        Rectangle { anchors.fill: parent; color: "#4010131a"; border.width: parent.selected ? 2 : 0; border.color: RaohaneTheme.accent; radius: 10 }
+                        Text { anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.margins: 10; text: parent.modelData.title; color: "white"; font.pixelSize: 12; font.weight: Font.DemiBold }
+                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.openWallpaperCategory(parent.modelData) }
+                        activeFocusOnTab: true
+                        Accessible.role: Accessible.Button
+                        Accessible.name: modelData.title
+                        Keys.onReturnPressed: root.openWallpaperCategory(modelData)
+                        Keys.onSpacePressed: root.openWallpaperCategory(modelData)
+                    }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: 16; Layout.rightMargin: 16
+                Text { text: qsTr("Wallpaper directory"); color: RaohaneTheme.text; font.pixelSize: 13 }
+                Text { Layout.fillWidth: true; text: RaohaneWallpapers.defaultFolderPath; color: RaohaneTheme.textMuted; font.pixelSize: 11; elide: Text.ElideMiddle }
+                RaohaneIconButton { icon: "folder_open"; Accessible.name: qsTr("Choose folder"); onClicked: folderPicker.open() }
+            }
             RowLayout {
                 Layout.fillWidth: true
                 Layout.leftMargin: 16
@@ -243,7 +330,7 @@ Item {
                         readonly property bool hovered: themeMouse.containsMouse
 
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 128
+                        Layout.preferredHeight: 76
                         radius: 14
                         color: modelData.surfaceRaised
                         border.width: selected ? 2 : 1
@@ -274,84 +361,14 @@ Item {
                             anchors.margins: 11
                             spacing: 8
 
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 62
-                                radius: 10
-                                color: themeCard.modelData.background
-                                border.width: 1
-                                border.color: themeCard.modelData.border
-                                clip: true
-
-                                Rectangle {
-                                    anchors {
-                                        top: parent.top
-                                        left: parent.left
-                                        right: parent.right
-                                        margins: 7
-                                    }
-                                    height: 15
-                                    radius: 7
-                                    color: themeCard.modelData.surfaceRaised
-                                    border.width: 1
-                                    border.color: themeCard.modelData.border
-
-                                    Row {
-                                        anchors.centerIn: parent
-                                        spacing: 7
-
-                                        Repeater {
-                                            model: 4
-
-                                            Rectangle {
-                                                required property int index
-                                                width: index === 1 ? 15 : 5
-                                                height: 3
-                                                radius: 2
-                                                color: index === 1 ? themeCard.modelData.accent : themeCard.modelData.textMuted
-                                                opacity: index === 1 ? 1 : 0.46
-                                            }
-                                        }
-                                    }
-                                }
-
-                                Rectangle {
-                                    anchors {
-                                        horizontalCenter: parent.horizontalCenter
-                                        bottom: parent.bottom
-                                        bottomMargin: 7
-                                    }
-                                    width: parent.width * 0.60
-                                    height: 26
-                                    radius: 8
-                                    color: themeCard.modelData.surface
-                                    border.width: 1
-                                    border.color: themeCard.modelData.border
-
+                            Row {
+                                spacing: 5
+                                Repeater {
+                                    model: [themeCard.modelData.accent, themeCard.modelData.accentSecondary, themeCard.modelData.accentBlue, themeCard.modelData.text, themeCard.modelData.textMuted]
                                     Rectangle {
-                                        anchors {
-                                            left: parent.left
-                                            top: parent.top
-                                            margins: 6
-                                        }
-                                        width: parent.width * 0.46
-                                        height: 3
-                                        radius: 2
-                                        color: themeCard.modelData.text
-                                        opacity: 0.68
-                                    }
-
-                                    Rectangle {
-                                        anchors {
-                                            left: parent.left
-                                            bottom: parent.bottom
-                                            leftMargin: 6
-                                            bottomMargin: 6
-                                        }
-                                        width: parent.width * 0.30
-                                        height: 3
-                                        radius: 2
-                                        color: themeCard.modelData.accent
+                                        required property var modelData
+                                        width: 10; height: 10; radius: 5
+                                        color: modelData
                                     }
                                 }
                             }
@@ -368,7 +385,7 @@ Item {
                                         Layout.fillWidth: true
                                         text: themeCard.modelData.name
                                         color: themeCard.modelData.text
-                                        font.pixelSize: 10
+                                        font.pixelSize: 13
                                         font.weight: Font.DemiBold
                                         elide: Text.ElideRight
                                     }
@@ -686,6 +703,12 @@ Item {
                     StyleToggle { Layout.fillWidth: true; title: qsTr("Context indicators"); detail: qsTr("Show the three quiet state dots on the right"); checked: Boolean(root.styleValue("contextIslandIndicators", true)); onUserToggled: value => root.setStyle("contextIslandIndicators", value) }
                     StyleToggle { Layout.fillWidth: true; title: qsTr("Compact notifications"); detail: qsTr("Use tighter notification spacing and fewer actions"); checked: Boolean(root.styleValue("notificationCompact", false)); onUserToggled: value => root.setStyle("notificationCompact", value) }
                 }
+            }
+
+            RaohaneThemePresetManager {
+                Layout.fillWidth: true
+                Layout.leftMargin: 16
+                Layout.rightMargin: 16
             }
 
             Text {

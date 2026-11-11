@@ -46,6 +46,16 @@ cp -a defaults/native.json "$config_home/raohane/native.json"
 XDG_CONFIG_HOME="$config_home" bash scripts/prune-runtime.sh "$runtime" >/dev/null
 bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
 
+# A clean installation depends on the bundled fallback; reject partial packs.
+mv "$runtime/assets/wallpapers/nature/08-path.jpg" "$tmp_root/default-wallpaper.jpg"
+if bash scripts/validate-runtime-payload.sh "$runtime" >"$tmp_root/missing-wallpaper.log" 2>&1; then
+  fail 'staged payload validator accepted a missing default wallpaper'
+fi
+grep -Fq 'assets/wallpapers/nature/08-path.jpg' "$tmp_root/missing-wallpaper.log" \
+  || fail 'staged validator did not identify the missing default wallpaper'
+mv "$tmp_root/default-wallpaper.jpg" "$runtime/assets/wallpapers/nature/08-path.jpg"
+bash scripts/validate-runtime-payload.sh "$runtime" >/dev/null
+
 # An updater must reject a syntactically valid but mismatched schema.
 cp "$runtime/defaults/native.json" "$tmp_root/valid-native.json"
 python3 - "$runtime/defaults/native.json" <<'PY'

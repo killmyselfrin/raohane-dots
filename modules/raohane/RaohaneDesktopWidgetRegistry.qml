@@ -35,7 +35,7 @@ QtObject {
             key: "desktopWidgetContext",
             source: "RaohaneDesktopContextWidget.qml",
             freeWidth: 420,
-            freeHeight: 164,
+            freeHeight: 360,
             icon: "music_note",
             title: qsTr("Media and live context"),
             detail: qsTr("Album art, track progress, privacy and active-window state"),

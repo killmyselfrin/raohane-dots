@@ -1,0 +1,733 @@
+[
+  {
+    "category": "abstract",
+    "file": "abstract/01-cascade.png",
+    "title": "Cascade",
+    "authors": [
+      "Ken Vermette"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Cascade/contents/images/3840x2160.png",
+    "sha256": "ca176e561873f3f2c58857f7b0e61c6f6f79add28ad24a4622fa45129551856a",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/02-cluster.png",
+    "title": "Cluster",
+    "authors": [
+      "Ken Vermette"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Cluster/contents/images/3840x2160.png",
+    "sha256": "d0fddf66e7525117ba6f71a26875baa6ec4f68194c655f21726728620a92f274",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/03-elarun.png",
+    "title": "Elarun",
+    "authors": [
+      "Nuno Pinheiro"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Elarun/contents/images/2560x1600.png",
+    "sha256": "53d17a4af75286df12578fcb65f2dbf2e8f4dd4de4a0b988a3a70ef16a779f60",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/04-flow.jpg",
+    "title": "Flow",
+    "authors": [
+      "Sandra Smukaste"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Flow/contents/images/5120x2880.jpg",
+    "sha256": "b2f1fbe9ebf772fed224de83ee4159cc3735c633a88cc42f8f45d49ccd12efc3",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/05-honeywave.jpg",
+    "title": "Honeywave",
+    "authors": [
+      "Ken Vermette"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Honeywave/contents/images/5120x2880.jpg",
+    "sha256": "e75adbd953e9b7dc8946223e7f1f2c4a9378496e7597198f65b095356995c7ad",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/06-kay.png",
+    "title": "Kay",
+    "authors": [
+      "ruvkr"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Kay/contents/images/5120x2880.png",
+    "sha256": "a1548937191bc0c9b13c07a85d64988d1f391cbc16d02ad7709aff446a39ff5e",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/07-kite.jpg",
+    "title": "Kite",
+    "authors": [
+      "Risto Saukonpää"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Kite/contents/images/2560x1600.jpg",
+    "sha256": "bdca288ce296a981e80659c021cf707caddc702c0c8d4247e60bd618476d47f8",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/08-nexus.png",
+    "title": "Nexus",
+    "authors": [
+      "Krystian Zajdel"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Nexus/contents/images/5120x2880.png",
+    "sha256": "ec1bfef659d7e7e46ffc23b13fbf0105e577159aae6c6be6686eee785324c51a",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/09-opal.png",
+    "title": "Opal",
+    "authors": [
+      "Ken Vermette"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Opal/contents/images/3840x2160.png",
+    "sha256": "d5f9873fe6398260025c8a55e6a394ffa82258404dbd3c759fed815fc685edc7",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/10-patak.png",
+    "title": "Patak",
+    "authors": [
+      "Áron Kovács"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Patak/contents/images/5120x2880.png",
+    "sha256": "3486cb21a883ec2ea114d985d5814a8c47ca8b33be5d9b3b9bee38bdc983db8c",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/11-shell.jpg",
+    "title": "Shell",
+    "authors": [
+      "Lucas Andrade"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Shell/contents/images/5120x2880.jpg",
+    "sha256": "220d5fe725453dba2329b6733cb7094d8615f2e0bbbb8a150e9f113101c02213",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/12-volna.jpg",
+    "title": "Volna",
+    "authors": [
+      "Nikita Babin"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Volna/contents/images/5120x2880.jpg",
+    "sha256": "abc30b4fc6f6a83b6156e6b59ac283c067de40af820aafac8ac7c4fd83a9607c",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/01-lantern-girl.svg",
+    "title": "Lantern girl",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "6c2c0ddad2593ac11c7235543cb3a1410829e5a7f93c0e1f48b71ecc710631a7",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/02-the-last-train.svg",
+    "title": "The last train",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "3db942024b45062eee73d4d833f5c7e9e2e4a53d011a26deb4a4d5b760403e6f",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/03-skyline-observer.svg",
+    "title": "Skyline observer",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "e1d4dfea6513089ab3da1501977dc4d91f604b75450c141211cb73abdd27070f",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/04-sea-breeze.svg",
+    "title": "Sea breeze",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "ac1abdfc063bce94c69b02dea02426357b1ece2f3cd5fc37dab4570c8efe86c9",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/05-starlight-traveler.svg",
+    "title": "Starlight traveler",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "0e16104f0e2d33909665d1b906dd3fb3afe8a518189138f5c07cd82bf6aba1a0",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/06-rain-on-the-balcony.svg",
+    "title": "Rain on the balcony",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "281f225573042a42d7be73670e01a7a2a707a3321559a852e00a57832715ee27",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/07-cloud-messenger.svg",
+    "title": "Cloud messenger",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "2c5a645b8ac513c7a9c5eeb1abe7297245336cea526fb43053d638b8b76f5028",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/08-the-little-astronomer.svg",
+    "title": "The little astronomer",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "649c2a708859bcd99276e01c9e52901b671f79d2a8dc1f7f01575ec6a210d19d",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/09-after-school.svg",
+    "title": "After school",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "604b156c046d785dee87f64515dcb1ddaa0eb79b8514c4e1a7ad6c8267e70b9b",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/10-northern-wanderer.svg",
+    "title": "Northern wanderer",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "eb363876da8970cc398bb24b0ee8cb30762c548d2c67f6a98a4c2b2ced9aaa72",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/11-lantern-valley.svg",
+    "title": "Lantern valley",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "15e8f8a778da6be4baa44bdd63d6cfed51b6cfad3bc910f8b61f52169f986a14",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/12-summer-crossing.svg",
+    "title": "Summer crossing",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "9c2287b0108a6154c6710d6d489aa315ad42daa70e71e65082be006c637d3fcb",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/13-cloud-archipelago.svg",
+    "title": "Cloud archipelago",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "1a0b564398b63d7d4341edb33826bbaf9ce4a23a4e05896d2e6e236a7b0c1372",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/14-the-quiet-station.svg",
+    "title": "The quiet station",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "529a27e853788c62d54008a74c011d92d9e60c5260a60ad4de338238839f44a1",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/15-petal-river.svg",
+    "title": "Petal river",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "245f311cc7f7524d4327e9a136468f930f2cdd39a5a29bb69e24d91851be2444",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/16-rooftop-constellation.svg",
+    "title": "Rooftop constellation",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "8521b7ed1977634bca220e4dc24adbc968459212719af22dd2bba25fd13a8efb",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/17-floating-observatory.svg",
+    "title": "Floating observatory",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "dcb28078b840b7ffdeab8c12652f8aa609ce66dbbbaca07ad3dd8833f82bb8de",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/18-night-harbour.svg",
+    "title": "Night harbour",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "6a5d56e8018f49131041436373e7610203fabe96315f5a08187dc62bd25b64be",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/19-wisteria-passage.svg",
+    "title": "Wisteria passage",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "589e10d8c38a1248fd500ab479b60b2dc18f28a7ce272437ff4b6d8e630aa723",
+    "modified": false
+  },
+  {
+    "category": "anime",
+    "file": "anime/20-dawn-above-the-clouds.svg",
+    "title": "Dawn above the clouds",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "5bbe32fef7ef3fe0b5b66e89407e82abdc318d9a0abf48c0f970ccf84d955ede",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/13-silk-current.svg",
+    "title": "Silk current",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "5620cf550372d0bec63e08d51c481a319ae104d740f5f1bde187880413165801",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/14-orbital-glass.svg",
+    "title": "Orbital glass",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "5331a674df33f340da5e75d3b849647ecd4831f30e6935c8698a37be5f58dff7",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/15-prismatic-corridor.svg",
+    "title": "Prismatic corridor",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "59b499ccf362a89a128637ba7b8c46b6ff7b6924ac17df64bb006a52bfc2f70e",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/16-resonance.svg",
+    "title": "Resonance",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "2a66c2e8581a61bb7d85ff427403ea0792ddbb061c1970e217a42654fffe3d51",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/17-violet-tide.svg",
+    "title": "Violet tide",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "50f6bfbe0f9a03fc58274cf4b10431d5307ccf994842409dea3457d548f7ab32",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/18-glass-planets.svg",
+    "title": "Glass planets",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "54d1f9e46af30cdfc212421e164e0003e684c23e351a09a943fb14a9ad34340f",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/19-golden-prisms.svg",
+    "title": "Golden prisms",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "156604f5cd47135ea5ffa08d6f5d6bd4a8fed075e8abeb4bfa9fbbf115469647",
+    "modified": false
+  },
+  {
+    "category": "abstract",
+    "file": "abstract/20-quiet-orbit.svg",
+    "title": "Quiet orbit",
+    "authors": [
+      "Raohane contributors"
+    ],
+    "license": "GPL-3.0-or-later",
+    "source": "Raohane original vector artwork",
+    "sha256": "551128263e2c872090ee692c7b3445be5ec397514da7c4027658f2505f6c0cf0",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/01-bythewater.jpg",
+    "title": "By the water",
+    "authors": [
+      "Maciej Wiklo"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/BytheWater/contents/images/2560x1600.jpg",
+    "sha256": "cf8947583a16d80b83851420f14a15ebea080e7babb9c7cc4cc08b2bfd1e72b6",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/02-coldripple.jpg",
+    "title": "Cold Ripple",
+    "authors": [
+      "Risto Saukonpää"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/ColdRipple/contents/images/2560x1600.jpg",
+    "sha256": "05bef6722fc0ed81292cceb3ed026c38d17e510f3c84be7d68610c2b1a723c3f",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/03-darkesthour.jpg",
+    "title": "Darkest Hour",
+    "authors": [
+      "Risto Saukonpää"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/DarkestHour/contents/images/2560x1600.jpg",
+    "sha256": "8e3703fae3a3c217b1fc2b399b706cd3720584268d071ba153e4809daa55f1ce",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/04-eveningglow.jpg",
+    "title": "Evening Glow",
+    "authors": [
+      "Ian Hex"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/EveningGlow/contents/images/2560x1600.jpg",
+    "sha256": "586682dcb362b9f620068f10138f87d0d3649939aef238adc5807cb951976a7a",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/05-fallenleaf.jpg",
+    "title": "Fallen Leaf",
+    "authors": [
+      "Martin Klapetek"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/FallenLeaf/contents/images/2560x1600.jpg",
+    "sha256": "95603a6560c7e8d50e0e03b3f4adbe39c5258c72528e74e4ecaea1daf4e499de",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/06-mountain.png",
+    "title": "Mountain",
+    "authors": [
+      "Andy Betts"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Mountain/contents/images/5120x2880.png",
+    "sha256": "a80e07be9ac8c6e366eccdb68b16fb62dbee673a798e5d7721c791fbf3b146c3",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/07-onestandsout.jpg",
+    "title": "One Stands Out",
+    "authors": [
+      "Risto Saukonpää"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/OneStandsOut/contents/images/2560x1600.jpg",
+    "sha256": "cb507baf1dafdcae362264f3aba9483ed4be5f6c9fdd770f0ec0920c6d9e80fd",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/08-path.jpg",
+    "title": "Path",
+    "authors": [
+      "Risto Saukonpää"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/Path/contents/images/2560x1600.jpg",
+    "sha256": "7477457d7f17b736259f1b021864778ad4ba802cf3214e6728181ff29126bba8",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/09-summer_1am.jpg",
+    "title": "summer 1am",
+    "authors": [
+      "Risto Saukonpää"
+    ],
+    "license": "LGPLv3",
+    "source": "https://github.com/KDE/plasma-workspace-wallpapers/blob/2fc5ee39361e55f0a0ebf5ac92a06f3fbf990b63/summer_1am/contents/images/2560x1600.jpg",
+    "sha256": "c868b50789591dd42910153c768053f1ba0a98cb36bbfc2b7a96a1045d0477f8",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/10-fiji.jpg",
+    "title": "Fiji",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/fiji.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "fccf60861004881155e05de216ce4c7d54f4cc21bd91cc3c64684eacb1ff52c6",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/11-iguazu.jpg",
+    "title": "Iguazu",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/iguazu.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "aa90016fb1d2e62df0955455b503e89c784e724267afa77500887814d1a9cbd8",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/12-inch_beach.jpg",
+    "title": "Inch Beach",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/inch_beach.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "e9fd8f6fbc9207af28c0f3c376128946e005ec41bf83c1baa16d74e430152ee2",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/13-panama.jpg",
+    "title": "Panama",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/panama.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "05c0e7b9a72cd656baaa9413e6d8459e6e57715818988e2e5b8d589593e4b6a1",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/14-pebbles.jpg",
+    "title": "Pebbles",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/pebbles.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "9ae6ac53e610530accf39bf77f9f4e0b2d9cc03b8d46425dbc304d456990db16",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/15-road.jpg",
+    "title": "Road",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/road.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "c5d6eaab9e5109a71d1fc3783cc65d25d8c4151c0cde6e868fc45b923d288a64",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/16-road2.jpg",
+    "title": "Road2",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/road2.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "d99ae0fd0a96e38cee944f81d7e70d4a44d9a0d6408a7c5d82173f16fbbfe282",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/17-saltplains.jpg",
+    "title": "Saltplains",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/saltplains.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "1b26a57b045c189a475be66b692d13ac4bff173429bda259ff4e71c3358e2c92",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/18-storm.jpg",
+    "title": "Storm",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/storm.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "7b640fab2ccd6ef96f61a7aadb95782424faf57490c07daae44145d65986e275",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/19-stormcoming.jpg",
+    "title": "Stormcoming",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/stormcoming.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "92f5b55095d752eb2a9ed4d1489f46b21e49e7a72d635356a00f10522048c612",
+    "modified": false
+  },
+  {
+    "category": "nature",
+    "file": "nature/20-valley.jpg",
+    "title": "Valley",
+    "authors": [
+      "masterbutler (Al W. Butler)"
+    ],
+    "license": "CC-BY-2.0",
+    "source": "https://github.com/392781/mint-backgrounds/blob/6f6c0169071b2e1a32dad9c0e2b60094eec33d5e/mint-backgrounds/maya/valley.jpg",
+    "original_author_url": "https://www.flickr.com/photos/alwbutler/",
+    "sha256": "8f0023e196e85aaa374af9c7f133feb47956b8566c0e43daf66f2f5f05ae70a6",
+    "modified": false
+  }
+]
