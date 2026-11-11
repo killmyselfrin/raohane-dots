@@ -1,0 +1,17 @@
+{
+  "20 Sep": "20 сен",
+  "20.09": "20.09",
+  "24-hour time": "24-часовой формат",
+  "Control how workspace navigation is represented in the bar.": "Настройка отображения рабочих пространств на панели.",
+  "Date format": "Формат даты",
+  "Indicator style": "Стиль индикаторов",
+  "Mon 20 Sep": "Пн, 20 сен",
+  "Number of workspace buttons shown around the active workspace group": "Количество кнопок рабочих пространств в активной группе",
+  "Numeric": "Числовой",
+  "Show seconds": "Показывать секунды",
+  "Time and date formatting for the bar clock module.": "Настройка отображения времени и даты на панели.",
+  "Update the clock every second": "Обновлять часы каждую секунду",
+  "Use 24-hour time instead of AM/PM": "Использовать 24-часовой формат вместо AM/PM",
+  "Visible workspaces": "Видимые рабочие пространства",
+  "Weekday": "День недели"
+}
