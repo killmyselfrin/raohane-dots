@@ -55,7 +55,7 @@ Variants {
             return configured.length > 0 ? configured : RaohanePaths.defaultWallpaperPath
         }
 
-        property string currentPath: requestedPath
+        property string currentPath: ""
         property string previousPath: ""
         property real transitionProgress: 1.0
 
@@ -67,14 +67,28 @@ Variants {
                 || RaohaneWallpapers.previewScreenName === String(modelData.name))
         readonly property bool previousIsVideo: RaohaneWallpapers.isVideo(previousPath)
 
+        readonly property int transitionDuration: RaohaneMotion.panelMotionEnabled
+            ? Math.round(RaohaneConfig.wallpaperTransitionDuration * RaohaneTheme.motionScale) : 0
+
         function switchToRequestedPath(): void {
+            // Finish the current dissolve, then consume the latest request.
+            // Rapid selections do not promote a half-visible frame to the back layer.
+            if (transitionAnimation.running)
+                return
+            // Keep the visible image until the replacement is decoded.
+            if (!RaohaneWallpapers.isVideo(requestedPath)
+                    && requestedPath.length > 0
+                    && (pendingImage.source.toString() !== root.fileUrl(requestedPath)
+                        || pendingImage.status !== Image.Ready))
+                return
             if (requestedPath === currentPath)
                 return
 
+            transitionAnimation.stop()
             previousPath = currentPath
             currentPath = requestedPath
 
-            if (RaohaneConfig.wallpaperTransitionDuration <= 0 || currentPath.length === 0) {
+            if (transitionDuration <= 0 || previousPath.length === 0 || currentPath.length === 0) {
                 previousPath = ""
                 transitionProgress = 1.0
                 return
@@ -85,6 +99,7 @@ Variants {
         }
 
         onRequestedPathChanged: switchToRequestedPath()
+        Component.onCompleted: switchToRequestedPath()
 
         screen: modelData
         color: "#09080d"
@@ -122,6 +137,21 @@ Variants {
                 }
             }
 
+            // Preload only the requested still; stale loads cannot commit a path.
+            Image {
+                id: pendingImage
+                visible: false
+                source: backgroundWindow.requestedPath.length > 0
+                    && !RaohaneWallpapers.isVideo(backgroundWindow.requestedPath)
+                    ? root.fileUrl(backgroundWindow.requestedPath) : ""
+                asynchronous: true
+                cache: true
+                onStatusChanged: {
+                    if (status === Image.Ready)
+                        backgroundWindow.switchToRequestedPath()
+                }
+            }
+
             Image {
                 id: previousImage
                 anchors.fill: parent
@@ -133,7 +163,9 @@ Variants {
                 asynchronous: true
                 cache: true
                 smooth: true
-                opacity: 1.0 - backgroundWindow.transitionProgress
+                // Keep the old image opaque beneath the incoming image: fading
+                // both layers exposes the dark canvas halfway through.
+                opacity: 1.0
             }
 
             Image {
@@ -256,11 +288,12 @@ Variants {
             property: "transitionProgress"
             from: 0.0
             to: 1.0
-            duration: RaohaneConfig.wallpaperTransitionDuration
+            duration: backgroundWindow.transitionDuration
             easing.type: Easing.InOutCubic
             onFinished: {
                 backgroundWindow.previousPath = ""
                 backgroundWindow.transitionProgress = 1.0
+                backgroundWindow.switchToRequestedPath()
             }
         }
     }

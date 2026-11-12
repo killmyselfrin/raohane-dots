@@ -88,6 +88,24 @@ See [capture details, wallpaper licenses and credits](assets/screenshots/README.
 **Current source version:** `1.3.0-dev` ([VERSION](VERSION) · [CHANGELOG](CHANGELOG.md)).
 Raohane is in **active development**, not a certified stable release. Passing CI validates source and integration boundaries, **not** long-session reliability, multi-monitor setups or GPU/compositor behaviour. Follow the [roadmap](docs/ROADMAP.md) and [release checklist](docs/RELEASE-VALIDATION.md).
 
+## Wallpaper colors and transitions
+
+Open `raohane wallpaper` and turn **Adaptive on** to let the shared widget,
+Bar and panel surfaces follow the dominant wallpaper hue. Neutral wallpapers
+stay neutral; surfaces retain light/dark tonal depth and text remains readable.
+The selected theme is preserved when adaptive colors are turned off.
+
+Confirmed wallpaper changes smoothly interpolate the shared palette. Still-image
+transitions wait for decoding and dissolve over the previous image without a
+mid-transition dark flash. Style Studio's motion scale and Game Mode control
+these animations; a wallpaper transition duration of `0` disables them and
+survives restart. Video wallpapers use a one-frame palette sample, not continuous
+color extraction; seamless video-to-video blending is not provided.
+
+The palette is shared across the shell and follows the **global wallpaper**;
+per-monitor backgrounds do not create separate widget palettes. Live Hyprland
+GPU and multi-monitor validation of these transitions remains pending.
+
 ## Installation
 
 ### Arch Linux and derivatives

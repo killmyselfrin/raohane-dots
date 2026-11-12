@@ -117,18 +117,26 @@ QtObject {
     // and highlights. Keep preset text colors and light/dark contrast intact.
     // All Bar/desktop widget surfaces already consume these shared tokens.
     readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAdaptiveAccent
-    readonly property color wallpaperTint: RaohaneConfig.wallpaperAdaptiveColor
+    property color wallpaperTint: RaohaneConfig.wallpaperAdaptiveColor
+    Behavior on wallpaperTint {
+        enabled: RaohaneConfig.ready && RaohaneMotion.panelMotionEnabled
+        ColorAnimation {
+            duration: Math.round(RaohaneConfig.wallpaperTransitionDuration * root.motionScale)
+            easing.type: Easing.InOutCubic
+        }
+    }
 
     function tintedMaterial(base, mix) {
         if (!root.adaptivePaletteActive)
             return base
-        const amount = Math.max(0, Math.min(0.65, mix))
-        return Qt.rgba(
-            base.r * (1 - amount) + root.wallpaperTint.r * amount,
-            base.g * (1 - amount) + root.wallpaperTint.g * amount,
-            base.b * (1 - amount) + root.wallpaperTint.b * amount,
-            base.a
-        )
+        // Preserve the detected hue instead of mixing it with the preset's
+        // blue/violet RGB channels. Keep tonal depth and alpha for readability.
+        const tint = root.wallpaperTint
+        const lightness = dark
+            ? Math.min(0.28, base.hslLightness + mix * 0.12)
+            : Math.max(0.80, base.hslLightness - mix * 0.12)
+        return Qt.hsla(Math.max(0, tint.hslHue), tint.hslSaturation,
+                       lightness, base.a)
     }
 
     readonly property color background: root.tintedMaterial(presetBackground, dark ? 0.16 : 0.07)
@@ -159,7 +167,7 @@ QtObject {
 
     readonly property color presetAccent: activePreset.accent
     readonly property color accent: RaohaneConfig.wallpaperAdaptiveAccent
-        ? RaohaneConfig.wallpaperAdaptiveColor
+        ? root.wallpaperTint
         : accentMode === "ink" ? (dark ? "#eeeae2" : "#2b2a27")
         : accentMode === "rose" ? "#9a7077"
         : accentMode === "sage" ? "#667866"

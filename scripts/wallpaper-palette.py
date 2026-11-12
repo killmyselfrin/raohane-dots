@@ -80,20 +80,19 @@ def main() -> int:
             continue
         normalized = tuple(channel / 255.0 for channel in rgb)
         hue, saturation, value = colorsys.rgb_to_hsv(*normalized)
-        # Black and white dominate many dark wallpapers but do not produce
-        # pleasant flowing colors. Prefer genuine chromatic wallpaper regions.
-        if saturation < 0.20 or value < 0.17 or value > 0.96:
-            continue
-        score = (amount ** 0.5) * (0.35 + saturation) * (0.50 + value)
+        # Include neutral and very bright colors: gray/snow wallpapers must
+        # not inherit a blue fallback or a tiny saturated decoration.
+        # Area leads: a tiny bright detail must not recolor a whole desktop.
+        score = amount * (0.80 + 0.20 * saturation)
         candidates.append((score, hue, saturation, value, tuple(rgb)))
 
     candidates.sort(key=lambda entry: entry[0], reverse=True)
 
     def readable(entry):
         if entry is None:
-            return (148, 181, 229)
+            return (128, 128, 128)
         _, hue, saturation, value, _ = entry
-        saturation = min(0.70, max(0.35, saturation))
+        saturation = min(0.70, saturation)
         value = min(0.85, max(0.48, value))
         return tuple(round(channel * 255)
                      for channel in colorsys.hsv_to_rgb(hue, saturation, value))
