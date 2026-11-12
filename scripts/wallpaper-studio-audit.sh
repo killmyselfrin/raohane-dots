@@ -133,6 +133,7 @@ PY
 
 # Real one-shot palette fixture when Pillow is available.
 if python3 -c 'from PIL import Image' >/dev/null 2>&1; then
+  python3 "$ROOT/scripts/wallpaper-palette-test.py"
   temp_dir="$(mktemp -d)"
   trap 'rm -rf "$temp_dir"' EXIT
   python3 - "$temp_dir" <<'PY'
