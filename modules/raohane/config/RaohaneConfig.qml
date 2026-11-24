@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 16
+    readonly property int schemaVersion: 17
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -31,6 +31,7 @@ Singleton {
     property var wallpaperMonitors: ({})
     property string wallpaperAutoSource: "folder"
     property bool wallpaperAdaptiveAccent: false
+    property string wallpaperPaletteProvider: "builtin"
     property string wallpaperAdaptiveColor: "#94b5e5"
     // Cached output of the one-shot wallpaper palette probe.
     property string wallpaperFlowColorA: "#9067b3"
@@ -625,6 +626,7 @@ Singleton {
                 monitors: root.sanitizeWallpaperMonitors(root.wallpaperMonitors),
                 autoSource: root.wallpaperAutoSource,
                 adaptiveAccent: root.wallpaperAdaptiveAccent,
+                paletteProvider: root.wallpaperPaletteProvider,
                 adaptiveColor: root.wallpaperAdaptiveColor,
                 flowColorA: root.wallpaperFlowColorA,
                 flowColorB: root.wallpaperFlowColorB,
@@ -806,6 +808,7 @@ Singleton {
         root.assignIfPresent(wallpaper, "monitors", value => root.wallpaperMonitors = root.sanitizeWallpaperMonitors(value))
         root.assignIfPresent(wallpaper, "autoSource", value => root.wallpaperAutoSource = value === "favorites" ? "favorites" : "folder")
         root.assignIfPresent(wallpaper, "adaptiveAccent", value => root.wallpaperAdaptiveAccent = Boolean(value))
+        root.assignIfPresent(wallpaper, "paletteProvider", value => root.wallpaperPaletteProvider = value === "matugen" ? "matugen" : "builtin")
         root.assignIfPresent(wallpaper, "adaptiveColor", value => {
             const hex = String(value ?? "")
             root.wallpaperAdaptiveColor = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : "#94b5e5"
@@ -1018,6 +1021,7 @@ Singleton {
     onWallpaperMonitorsChanged: scheduleSave()
     onWallpaperAutoSourceChanged: scheduleSave()
     onWallpaperAdaptiveAccentChanged: scheduleSave()
+    onWallpaperPaletteProviderChanged: scheduleSave()
     onWallpaperAdaptiveColorChanged: scheduleSave()
     onWallpaperFlowColorAChanged: scheduleSave()
     onWallpaperFlowColorBChanged: scheduleSave()
