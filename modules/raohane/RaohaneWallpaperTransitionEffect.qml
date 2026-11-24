@@ -22,7 +22,7 @@ Item {
     Image {
         id: fadeImage
         anchors.fill: parent
-        source: root.source
+        source: root.effectType === "fade" ? root.source : ""
         sourceSize: Qt.size(Math.max(1, root.width), Math.max(1, root.height))
         asynchronous: true
         cache: true
@@ -44,7 +44,7 @@ Item {
             Image {
                 width: root.width
                 height: root.height
-                source: root.source
+                source: root.effectType === "wipe" ? root.source : ""
                 sourceSize: Qt.size(Math.max(1, root.width), Math.max(1, root.height))
                 asynchronous: true
                 cache: true
@@ -57,7 +57,7 @@ Item {
     Image {
         id: circleSource
         anchors.fill: parent
-        source: root.source
+        source: root.effectType === "circle" ? root.source : ""
         sourceSize: Qt.size(Math.max(1, root.width), Math.max(1, root.height))
         asynchronous: true
         cache: true
