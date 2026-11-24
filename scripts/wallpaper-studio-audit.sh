@@ -166,9 +166,12 @@ PY
 rg -Fq 'RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
   || fail 'adaptive accent is not wired to native theme'
 for token in background backgroundElevated surface surfaceRaised surfaceDeep surfaceSubtle surfaceHover surfacePressed border borderStrong borderFaint; do
-  rg -Fq "readonly property color $token: root.tintedMaterial(" "$theme" \
-    || fail "adaptive wallpaper palette does not reach shared $token material"
+  rg -Fq "readonly property color $token:" "$theme" \
+    || fail "shared wallpaper material token is missing: $token"
 done
+rg -Fq 'function tintedMaterial(' "$theme" || fail 'built-in adaptive accent material fallback is missing'
+rg -Fq 'function materialColor(' "$theme" || fail 'Material You role resolver is missing'
+rg -Fq 'function materialSurface(' "$theme" || fail 'Material You glass surface resolver is missing'
 rg -Fq 'readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
   || fail 'adaptive material tint cannot be disabled independently'
 rg -Fq 'root.accentProbePath = root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
@@ -181,8 +184,8 @@ rg -Fq 'RaohaneConfig.barChromaticFlow' "$wallpapers" \
   || fail 'two-color Bar glow cannot run with adaptive accent disabled'
 rg -Fq 'root.queueAdaptiveAccent()' "$wallpapers" \
   || fail 'native wallpaper color probe was disconnected'
-rg -Fq 'root.paletteScriptPath, "--dual", accentProcess.sourcePath' "$wallpapers" \
-  || fail 'one-shot wallpaper sampler does not request dual colors'
+rg -Fq 'root.matugenPaletteScriptPath, accentProcess.paletteProvider, accentProcess.sourcePath' "$wallpapers" \
+  || fail 'one-shot wallpaper sampler is not routed through the palette provider adapter'
 rg -Fq 'RaohaneConfig.wallpaperFlowColorA = pair[1]' "$wallpapers" \
   || fail 'first wallpaper chromatic color is not persisted'
 rg -Fq 'RaohaneConfig.wallpaperFlowColorB = pair[2]' "$wallpapers" \
@@ -204,7 +207,7 @@ ast.parse(script.read_text(encoding="utf-8"), filename=str(script))
 data = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
 wallpaper = data["wallpaper"]
 expected = dict(favorites=[], collections=[], monitors={}, autoSource="folder",
-                adaptiveAccent=False, adaptiveColor="#94b5e5", transitionMode="random", transitionEffect="fade")
+                adaptiveAccent=False, adaptiveTheme=False, adaptivePalette={"dark": {}, "light": {}}, paletteProvider="builtin", adaptiveColor="#94b5e5", transitionMode="random", transitionEffect="fade")
 for key, expected_value in expected.items():
     assert wallpaper.get(key) == expected_value, f"unsafe default: {key}"
 assert wallpaper["changeInterval"] == 0, "automatic changes must remain opt-in"
