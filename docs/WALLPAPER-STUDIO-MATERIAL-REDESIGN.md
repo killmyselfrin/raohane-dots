@@ -26,7 +26,7 @@ Wallpaper Studio includes an optional **Matugen · Material You** palette provid
 
 - Install Matugen separately; on Arch Linux / CachyOS the upstream README documents `sudo pacman -S matugen`.
 - Select **Matugen · Material You** in Settings → Wallpapers → Dynamic color engine.
-- The provider is used by the existing wallpaper adaptive-accent and Bar Chromatic Flow features. The built-in provider remains the default.
+- The provider supplies the color pair consumed by the existing wallpaper Adaptive Accent and Bar Chromatic Flow features; enable one of those features to see the generated colors applied. The built-in provider remains the default.
 - Raohane invokes `matugen image <wallpaper> --json hex --dry-run --mode dark` through an argument array (no shell interpolation). `--dry-run` prevents Matugen's own templates and wallpaper command from taking over Raohane's wallpaper pipeline.
 - If Matugen is missing, returns an unsupported JSON payload, or fails, the adapter logs a warning and falls back to the existing `wallpaper-palette.py` extractor.
 - The Matugen adapter currently supplies the primary/secondary accent pair to the existing Raohane color consumers. It does not replace the full Raohane theme-token system or overwrite user Matugen configuration/templates.
