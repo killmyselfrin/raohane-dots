@@ -186,9 +186,9 @@ rg -Fq 'root.queueAdaptiveAccent()' "$wallpapers" \
   || fail 'native wallpaper color probe was disconnected'
 rg -Fq 'root.matugenPaletteScriptPath, accentProcess.paletteProvider, accentProcess.sourcePath' "$wallpapers" \
   || fail 'one-shot wallpaper sampler is not routed through the palette provider adapter'
-rg -Fq 'RaohaneConfig.wallpaperFlowColorA = pair[1]' "$wallpapers" \
+rg -Fq 'RaohaneConfig.wallpaperFlowColorA = primary.toLowerCase()' "$wallpapers" \
   || fail 'first wallpaper chromatic color is not persisted'
-rg -Fq 'RaohaneConfig.wallpaperFlowColorB = pair[2]' "$wallpapers" \
+rg -Fq 'RaohaneConfig.wallpaperFlowColorB = secondary.toLowerCase()' "$wallpapers" \
   || fail 'second wallpaper chromatic color is not persisted'
 if rg -Fq 'Process {' "$theme"; then
   fail 'adaptive theme creates a rendering subprocess'
