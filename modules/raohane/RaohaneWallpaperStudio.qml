@@ -331,7 +331,7 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: root.selectEffect(effectCard.modelData.id)
-                            onEntered: effectCard.previewProgress = 0
+                            onEntered: effectCard.previewProgress = RaohaneMotion.transformMotionEnabled ? 0 : 1
                             onExited: effectCard.previewProgress = 1
                         }
 
