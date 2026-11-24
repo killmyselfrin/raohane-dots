@@ -249,7 +249,7 @@ Item {
                                 Text {
                                     anchors.centerIn: parent
                                     text: modelData.title
-                                    color: parent.active ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                    color: parent.active ? RaohaneTheme.onAccent : RaohaneTheme.textMuted
                                     font.pixelSize: 8
                                     font.weight: parent.active ? Font.DemiBold : Font.Normal
                                 }
@@ -421,7 +421,7 @@ Item {
                                 Text {
                                     anchors.centerIn: parent
                                     text: modelData.title
-                                    color: parent.active ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                    color: parent.active ? RaohaneTheme.onAccent : RaohaneTheme.textMuted
                                     font.pixelSize: 8
                                     font.weight: parent.active ? Font.DemiBold : Font.Normal
                                 }
