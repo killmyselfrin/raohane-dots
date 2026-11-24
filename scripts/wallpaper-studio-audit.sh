@@ -142,7 +142,23 @@ light = module.extract_scheme(fixture, "light")
 assert dark["primary"] == "#112233" and dark["surface_container"] == "#222222"
 assert light["primary"] == "#445566" and light["surface"] == "#fafafa"
 assert "unknown" not in light
-print("wallpaper-studio-audit: Matugen dark/light role parsing OK")
+
+# Verify video-to-still routing without invoking a real decoder.
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
+from unittest.mock import patch
+with TemporaryDirectory() as temporary:
+    root = Path(temporary)
+    video = root / "wallpaper.mp4"
+    video.write_bytes(b"video fixture")
+    def fake_ffmpeg(command, **kwargs):
+        Path(command[-1]).write_bytes(b"png fixture")
+        return SimpleNamespace(returncode=0)
+    with patch.object(module.shutil, "which", return_value="/usr/bin/ffmpeg"), patch.object(module.subprocess, "run", side_effect=fake_ffmpeg):
+        frame = module.matugen_source_image(video, root)
+    assert frame.name == "wallpaper-frame.png" and frame.stat().st_size > 0
+print("wallpaper-studio-audit: Matugen dark/light roles and video frame routing OK")
 PY
 
 
