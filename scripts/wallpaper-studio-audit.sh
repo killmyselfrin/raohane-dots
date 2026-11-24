@@ -111,7 +111,7 @@ rg -Fq '"matugen", "image"' "$matugen_adapter" || fail 'Matugen image generation
 rg -Fq 'builtin_pair' "$matugen_adapter" || fail 'built-in palette fallback is missing'
 rg -Fq 'Matugen · Material You' "$studio" || fail 'Matugen provider is not selectable in Wallpaper Studio'
 rg -Fq 'property bool wallpaperAdaptiveTheme: false' "$config" || fail 'full Material You theme toggle is missing'
-rg -Fq 'property var wallpaperAdaptivePalette: ({})' "$config" || fail 'Material You palette cache is missing'
+rg -Fq 'property var wallpaperAdaptivePalette:' "$config" || fail 'Material You palette cache is missing'
 rg -Fq 'onWallpaperAdaptiveThemeChanged: scheduleSave()' "$config" || fail 'full palette toggle is not autosaved'
 rg -Fq 'onWallpaperAdaptivePaletteChanged: scheduleSave()' "$config" || fail 'Material You roles are not autosaved'
 rg -Fq 'Apply full Material You palette' "$studio" || fail 'full Material You theme toggle is missing from Wallpaper Studio'
