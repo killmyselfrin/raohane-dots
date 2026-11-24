@@ -35,6 +35,12 @@
 </tr>
 </table>
 
+## Wallpaper Studio — визуальная концепция
+
+Ниже — **концепт интерфейса**, а не скриншот работающей оболочки. Он показывает предполагаемую Material-компоновку: крупный предпросмотр текущих обоев, коллекцию изображений, варианты переходов и необязательную палитру Matugen. Реализация и ограничения описаны в [документе редизайна Wallpaper Studio](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md).
+
+<p align="center"><img src="assets/showcase/wallpaper-studio-material-preview.svg" alt="Концепт Wallpaper Studio Raohane с коллекцией обоев, предпросмотром переходов и палитрой Matugen" width="100%"></p>
+
 ## Возможности
 
 | Раздел | Что доступно |
