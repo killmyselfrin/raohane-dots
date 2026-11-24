@@ -105,7 +105,7 @@ rg -Fq 'matugen-palette.py' "$wallpapers" || fail 'Matugen adapter is not wired 
 rg -Fq 'RaohaneConfig.wallpaperPaletteProvider' "$wallpapers" || fail 'wallpaper palette provider setting is not consumed'
 rg -Fq '"--dry-run"' "$matugen_adapter" || fail 'Matugen invocation must not run user templates or wallpaper commands'
 rg -Fq 'tempfile.TemporaryDirectory' "$matugen_adapter" || fail 'Matugen must use an isolated temporary config'
-rg -Fq '"-c"' "$matugen_adapter" || fail 'Matugen must not read the user's config.toml'
+rg -Fq '"-c"' "$matugen_adapter" || fail 'Matugen must not read user config.toml'
 rg -Fq '"--source-color-index", "0"' "$matugen_adapter" || fail 'Matugen must choose a source color without an interactive prompt'
 rg -Fq '"matugen", "image"' "$matugen_adapter" || fail 'Matugen image generation command is missing'
 rg -Fq 'builtin_pair' "$matugen_adapter" || fail 'built-in palette fallback is missing'
