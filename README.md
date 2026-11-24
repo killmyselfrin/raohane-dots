@@ -217,6 +217,7 @@ If Shelly or another package manager reports that polkit is missing on the syste
 - [Cinematic wallpaper + floating bar validation](docs/CINEMATIC-DESKTOP-VALIDATION.md)
 - [Wallpaper Studio 2.0 — features and live tests](docs/WALLPAPER-STUDIO-2-VALIDATION.md)
 - [Wallpaper Studio — Material layout and shared transitions](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md)
+- [Optional Matugen palette provider and safe fallback](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md#optional-matugen-palette-provider)
 - [Halo Bar — appearance, native modules and smoke tests](docs/HALO-BAR-VALIDATION.md)
 - [Theme format](docs/THEMES.md)
 - [NixOS / Home Manager](docs/NIX.md)
