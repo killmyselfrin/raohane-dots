@@ -44,6 +44,7 @@ Singleton {
     readonly property string thumbgenScriptPath: Quickshell.shellPath("scripts/thumbnails/thumbgen.sh")
     readonly property string magickThumbnailScriptPath: Quickshell.shellPath("scripts/thumbnails/generate-thumbnails-magick.sh")
     readonly property string paletteScriptPath: Quickshell.shellPath("scripts/wallpaper-palette.py")
+    readonly property string matugenPaletteScriptPath: Quickshell.shellPath("scripts/matugen-palette.py")
     property string accentProbePath: ""
     readonly property bool thumbnailGenerationRunning: thumbnailProcess.running
     property real thumbnailGenerationProgress: 0
@@ -404,7 +405,7 @@ Singleton {
             if (accentProcess.running || !root.accentProbePath.length)
                 return
             accentProcess.sourcePath = root.accentProbePath
-            accentProcess.command = ["python3", "-E", root.paletteScriptPath, "--dual", accentProcess.sourcePath]
+            accentProcess.command = ["python3", "-E", root.matugenPaletteScriptPath, RaohaneConfig.wallpaperPaletteProvider, accentProcess.sourcePath]
             accentProcess.running = true
         }
     }
