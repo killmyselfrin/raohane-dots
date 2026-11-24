@@ -87,7 +87,7 @@ rg -Fq 'id: "cinematic", label: qsTr("Cinematic")' "$bar_appearance" \
   || fail 'Cinematic preset missing from Bar Studio'
 rg -Fq 'RaohaneConfig.barStylePreset === "cinematic"' "$bar" \
   || fail 'Cinematic visual treatment is not active in native bar'
-rg -Fq '"cinematic", "halo", "orbit", "ribbon", "ink", "islands"' "$config" \
+rg -Fq '"cinematic", "halo", "capsule", "orbit", "ribbon", "ink", "islands"' "$config" \
   || fail 'Cinematic and Halo presets cannot be loaded from saved settings'
 rg -Fq 'RaohaneTheme.accentBorder' "$bar" \
   || fail 'Cinematic center island lost accent treatment'
@@ -112,10 +112,8 @@ for action in 'RaohaneMedia.previous()' 'RaohaneMedia.togglePlaying()' 'RaohaneM
   rg -Fq "$action" modules/raohane/RaohaneBarModule.qml \\
     || fail "Capsule MPRIS transport action missing: $action"
 done
-for tile in network bluetooth audio session; do
-  rg -Fq "capsuleTile: RaohaneConfig.barStylePreset === \\\"capsule\\\"" modules/raohane/RaohaneBarModule.qml \\
-    || fail "Capsule quick-tile styling missing: $tile"
-done
+rg -Fq 'capsuleTile: RaohaneConfig.barStylePreset === "capsule"' modules/raohane/RaohaneBarModule.qml \\
+  || fail 'Capsule quick-tile styling is missing'
 
 # Halo stays an opt-in, single-surface variant of the existing horizontal Bar.
 # It must not fork module rendering, change the vertical Bar, or erase the
@@ -124,7 +122,7 @@ rg -Fq 'id: "halo", label: qsTr("Halo")' "$bar_appearance" \
   || fail 'Halo capsule is missing from Bar Studio'
 rg -Fq 'RaohaneConfig.barStylePreset === "halo"' "$bar" \
   || fail 'Halo is not selectable on the real horizontal bar'
-rg -Fq '"cinematic", "halo", "orbit", "ribbon", "ink", "islands"' "$config" \
+rg -Fq '"cinematic", "halo", "capsule", "orbit", "ribbon", "ink", "islands"' "$config" \
   || fail 'Halo preset is not restorable from native preferences'
 rg -Fq 'surface: "float", group: "transparent", height: 44, radius: 22' "$bar_appearance" \
   || fail 'Halo lost its slender transparent capsule dimensions'
