@@ -113,7 +113,7 @@ rg -Fq 'onWallpaperAdaptiveThemeChanged: scheduleSave()' "$config" || fail 'full
 rg -Fq 'onWallpaperAdaptivePaletteChanged: scheduleSave()' "$config" || fail 'Material You roles are not autosaved'
 rg -Fq 'Apply full Material You palette' "$studio" || fail 'full Material You theme toggle is missing from Wallpaper Studio'
 rg -Fq 'wallpaperAdaptiveThemeActive' "$theme" || fail 'RaohaneTheme does not expose full dynamic palette mode'
-for role in background surface_container surface_container_low surface_container_high surface_container_highest on_surface on_surface_variant primary secondary tertiary outline outline_variant error; do
+for role in background surface_variant surface_container surface_container_low surface_container_high surface_container_highest on_surface on_surface_variant primary secondary tertiary outline outline_variant error; do
   rg -Fq "\"$role\"" "$theme" || fail "RaohaneTheme does not map Material role: $role"
 done
 
