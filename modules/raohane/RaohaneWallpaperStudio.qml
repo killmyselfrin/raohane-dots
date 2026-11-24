@@ -376,7 +376,7 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 148
+                Layout.preferredHeight: 166
                 surfaceRadius: 12
                 showSheen: false
                 idleColor: RaohaneTheme.surfaceSubtle
@@ -483,6 +483,30 @@ Item {
                             }
                         }
                     }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        Repeater {
+                            model: [
+                                RaohaneTheme.background,
+                                RaohaneTheme.surfaceRaised,
+                                RaohaneTheme.accent,
+                                RaohaneTheme.accentSecondary,
+                                RaohaneTheme.accentBlue,
+                                RaohaneTheme.text
+                            ]
+                            delegate: Rectangle {
+                                required property color modelData
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 11
+                                radius: 5
+                                color: modelData
+                                border.width: 1
+                                border.color: RaohaneTheme.borderFaint
+                            }
+                        }
+                    }
+
                     Text {
                         Layout.fillWidth: true
                         visible: RaohaneConfig.wallpaperAdaptiveTheme && !RaohaneTheme.wallpaperAdaptiveThemeActive
