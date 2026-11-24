@@ -88,9 +88,10 @@ for effect_name in fade wipe circle dissolve; do
 done
 for key in wallpaperTransitionMode wallpaperTransitionEffect; do
   rg -Fq "property string $key:" "$config" || fail "missing transition config property: $key"
-  rg -Fq "$key: root.$key" "$config" || fail "transition config not serialized: $key"
   rg -Fq "on${key^}Changed: scheduleSave()" "$config" || fail "transition config not autosaved: $key"
 done
+rg -Fq 'transitionMode: root.wallpaperTransitionMode' "$config" || fail 'transition mode is not serialized'
+rg -Fq 'transitionEffect: root.wallpaperTransitionEffect' "$config" || fail 'transition effect is not serialized'
 rg -Fq 'assignIfPresent(wallpaper, "transitionMode"' "$config" || fail 'transition mode is not restored'
 rg -Fq 'assignIfPresent(wallpaper, "transitionEffect"' "$config" || fail 'transition effect is not restored'
 
