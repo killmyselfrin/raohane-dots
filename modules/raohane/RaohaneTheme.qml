@@ -115,7 +115,7 @@ QtObject {
 
     // Full Material You roles are opt-in and layered over the selected
     // Raohane preset. Missing roles always fall back to the preset token.
-    readonly property var wallpaperPalette: RaohaneConfig.wallpaperAdaptivePalette?.[dark ? "dark" : "light"] ?? ({})
+    readonly property var wallpaperPalette: RaohaneConfig.wallpaperAdaptivePalette && RaohaneConfig.wallpaperAdaptivePalette[dark ? "dark" : "light"] ? RaohaneConfig.wallpaperAdaptivePalette[dark ? "dark" : "light"] : ({})
     readonly property bool wallpaperAdaptiveThemeActive: RaohaneConfig.wallpaperAdaptiveTheme
         && RaohaneConfig.wallpaperPaletteProvider === "matugen"
         && Boolean(wallpaperPalette.primary)
@@ -124,7 +124,7 @@ QtObject {
     function materialColor(role: string, fallback: color): color {
         if (!root.wallpaperAdaptiveThemeActive)
             return fallback
-        const value = String(root.wallpaperPalette?.[role] ?? "")
+        const value = root.wallpaperPalette && root.wallpaperPalette[role] !== undefined ? String(root.wallpaperPalette[role]) : ""
         return /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback
     }
 
