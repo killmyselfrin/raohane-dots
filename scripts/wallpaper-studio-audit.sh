@@ -12,12 +12,13 @@ background=modules/raohane/RaohaneBackground.qml
 theme=modules/raohane/RaohaneTheme.qml
 studio=modules/raohane/RaohaneWallpaperStudio.qml
 effect=modules/raohane/RaohaneWallpaperTransitionEffect.qml
+matugen_adapter=scripts/matugen-palette.py
 settings=modules/raohane/RaohaneSettingsPageRegistry.qml
 section_registry=modules/raohane/RaohaneSettingsSectionRegistry.qml
 qmldir=modules/raohane/qmldir
 palette=scripts/wallpaper-palette.py
 defaults=defaults/native.json
-for path in "$config" "$wallpapers" "$selector" "$background" "$theme" "$palette" "$defaults" "$studio" "$effect" "$settings" "$section_registry" "$qmldir"; do
+for path in "$config" "$wallpapers" "$selector" "$background" "$theme" "$palette" "$defaults" "$studio" "$effect" "$settings" "$section_registry" "$qmldir" "$matugen_adapter"; do
   [[ -f "$path" ]] || fail "missing $path"
 done
 
@@ -94,6 +95,18 @@ rg -Fq 'transitionMode: root.wallpaperTransitionMode' "$config" || fail 'transit
 rg -Fq 'transitionEffect: root.wallpaperTransitionEffect' "$config" || fail 'transition effect is not serialized'
 rg -Fq 'assignIfPresent(wallpaper, "transitionMode"' "$config" || fail 'transition mode is not restored'
 rg -Fq 'assignIfPresent(wallpaper, "transitionEffect"' "$config" || fail 'transition effect is not restored'
+
+# Optional Matugen palette provider; built-in extraction remains the default/fallback.
+rg -Fq 'property string wallpaperPaletteProvider: "builtin"' "$config" || fail 'palette provider default is missing'
+rg -Fq 'paletteProvider: root.wallpaperPaletteProvider' "$config" || fail 'palette provider is not serialized'
+rg -Fq 'assignIfPresent(wallpaper, "paletteProvider"' "$config" || fail 'palette provider is not restored'
+rg -Fq 'onWallpaperPaletteProviderChanged: scheduleSave()' "$config" || fail 'palette provider is not autosaved'
+rg -Fq 'matugen-palette.py' "$wallpapers" || fail 'Matugen adapter is not wired to wallpaper palette extraction'
+rg -Fq 'RaohaneConfig.wallpaperPaletteProvider' "$wallpapers" || fail 'wallpaper palette provider setting is not consumed'
+rg -Fq '"--dry-run"' "$matugen_adapter" || fail 'Matugen invocation must not run user templates or wallpaper commands'
+rg -Fq '"matugen", "image"' "$matugen_adapter" || fail 'Matugen image generation command is missing'
+rg -Fq 'builtin_pair' "$matugen_adapter" || fail 'built-in palette fallback is missing'
+rg -Fq 'Matugen · Material You' "$studio" || fail 'Matugen provider is not selectable in Wallpaper Studio'
 
 # QtMultimedia.MediaPlayer is not an Item and cannot contain QML objects.
 # The pause notification must be a sibling of MediaPlayer inside Item.
