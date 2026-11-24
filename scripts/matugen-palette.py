@@ -59,7 +59,7 @@ def extract_scheme(payload, scheme):
 def matugen_palette(image: Path):
     command = [
         "matugen", "image", str(image),
-        "--json", "hex", "--dry-run", "--mode", "dark",
+        "--json", "hex", "--dry-run",
     ]
     result = subprocess.run(command, capture_output=True, text=True, timeout=45, check=False)
     if result.returncode != 0:
