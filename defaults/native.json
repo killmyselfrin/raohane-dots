@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 17,
+  "schemaVersion": 18,
   "wallpaper": {
     "path": "",
     "lockPath": "",
@@ -19,6 +19,11 @@
     "autoSource": "folder",
     "adaptiveAccent": false,
     "paletteProvider": "builtin",
+    "adaptiveTheme": false,
+    "adaptivePalette": {
+      "dark": {},
+      "light": {}
+    },
     "adaptiveColor": "#94b5e5",
     "flowColorA": "#9067b3",
     "flowColorB": "#ca7e67"
