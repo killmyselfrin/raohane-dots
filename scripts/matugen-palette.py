@@ -62,7 +62,7 @@ def matugen_palette(image: Path):
     # templates/hooks/wallpaper commands from the user's personal config.
     with tempfile.TemporaryDirectory(prefix="raohane-matugen-") as temporary:
         config = Path(temporary) / "config.toml"
-        config.write_text("[config]\\n", encoding="utf-8")
+        config.write_text("[config]\n", encoding="utf-8")
         command = [
             "matugen", "image", str(image),
             "--json", "hex", "--dry-run", "-c", str(config),
