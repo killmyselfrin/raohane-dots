@@ -122,7 +122,7 @@ Item {
                                 anchors.centerIn: parent
                                 spacing: 7
                                 RaohaneIcon { text: "wallpaper"; iconSize: 14; color: RaohaneTheme.text }
-                                Text { text: qsTr("Select wallpaper"); color: RaohaneTheme.onAccent; font.pixelSize: 9; font.weight: Font.DemiBold }
+                                Text { text: qsTr("Select wallpaper"); color: RaohaneTheme.text; font.pixelSize: 9; font.weight: Font.DemiBold }
                             }
                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.chooseWallpaper() }
                         }
@@ -250,7 +250,7 @@ Item {
                                 Text {
                                     anchors.centerIn: parent
                                     text: modelData.title
-                                    color: parent.active ? RaohaneTheme.onAccent : RaohaneTheme.textMuted
+                                    color: parent.active ? RaohaneTheme.text : RaohaneTheme.textMuted
                                     font.pixelSize: 8
                                     font.weight: parent.active ? Font.DemiBold : Font.Normal
                                 }
