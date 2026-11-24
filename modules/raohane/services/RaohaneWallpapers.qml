@@ -405,7 +405,8 @@ Singleton {
             if (accentProcess.running || !root.accentProbePath.length)
                 return
             accentProcess.sourcePath = root.accentProbePath
-            accentProcess.command = ["python3", "-E", root.matugenPaletteScriptPath, RaohaneConfig.wallpaperPaletteProvider, accentProcess.sourcePath]
+            accentProcess.paletteProvider = RaohaneConfig.wallpaperPaletteProvider
+            accentProcess.command = ["python3", "-E", root.matugenPaletteScriptPath, accentProcess.paletteProvider, accentProcess.sourcePath]
             accentProcess.running = true
         }
     }
@@ -413,13 +414,15 @@ Singleton {
     Process {
         id: accentProcess
         property string sourcePath: ""
+        property string paletteProvider: "builtin"
         stdout: SplitParser {
             onRead: data => {
                 const value = String(data).trim()
                 const pair = value.match(/^(#[0-9a-fA-F]{6})\s+(#[0-9a-fA-F]{6})$/)
                 if (!pair || !RaohaneConfig.ready
                         || (!RaohaneConfig.wallpaperAdaptiveAccent && !RaohaneConfig.barChromaticFlow)
-                        || accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath))
+                        || accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath)
+                        || accentProcess.paletteProvider !== RaohaneConfig.wallpaperPaletteProvider)
                     return
                 if (RaohaneConfig.wallpaperAdaptiveAccent)
                     RaohaneConfig.wallpaperAdaptiveColor = pair[1]
@@ -434,7 +437,8 @@ Singleton {
             // An old sampling process may finish after the user applies a
             // new wallpaper. Ignore stale stdout and sample the new source.
             if ((RaohaneConfig.wallpaperAdaptiveAccent || RaohaneConfig.barChromaticFlow)
-                    && accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath))
+                    && (accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath)
+                        || accentProcess.paletteProvider !== RaohaneConfig.wallpaperPaletteProvider))
                 root.queueAdaptiveAccent()
         }
     }
