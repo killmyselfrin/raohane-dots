@@ -72,7 +72,7 @@ def matugen_source_image(image: Path, temporary: Path):
             ffmpeg, "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
             "-ss", second, "-i", str(image), "-map", "0:v:0",
             "-frames:v", "1", "-an", "-sn",
-            "-vf", "scale=min(1280\\\\,iw):-2", str(output),
+            "-vf", "scale=min(1280\\,iw):-2", str(output),
         ]
         try:
             result = subprocess.run(
