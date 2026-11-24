@@ -91,7 +91,7 @@ def matugen_palette(image: Path):
     with tempfile.TemporaryDirectory(prefix="raohane-matugen-") as temporary:
         temporary_path = Path(temporary)
         config = temporary_path / "config.toml"
-        config.write_text("[config]\\n", encoding="utf-8")
+        config.write_text("[config]\n", encoding="utf-8")
         source_image = matugen_source_image(image, temporary_path)
         command = [
             "matugen", "image", str(source_image),
