@@ -373,6 +373,68 @@ Item {
                     font.pixelSize: 8
                 }
             }
+
+            RaohaneSurface {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 88
+                surfaceRadius: 12
+                showSheen: false
+                idleColor: RaohaneTheme.surfaceSubtle
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 7
+
+                    ColumnLayout {
+                        spacing: 2
+                        Text {
+                            text: qsTr("Dynamic color engine")
+                            color: RaohaneTheme.text
+                            font.pixelSize: 9
+                            font.weight: Font.DemiBold
+                        }
+                        Text {
+                            text: qsTr("Generate a Material You palette from the active wallpaper")
+                            color: RaohaneTheme.textMuted
+                            font.pixelSize: 7
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        Repeater {
+                            model: [
+                                { id: "builtin", title: qsTr("Raohane") },
+                                { id: "matugen", title: qsTr("Matugen · Material You") }
+                            ]
+                            delegate: RaohaneSurface {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 28
+                                surfaceRadius: 9
+                                active: RaohaneConfig.wallpaperPaletteProvider === modelData.id
+                                showSheen: false
+                                activeColor: RaohaneTheme.accent
+                                activeBorderColor: "transparent"
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: modelData.title
+                                    color: parent.active ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                    font.pixelSize: 8
+                                    font.weight: parent.active ? Font.DemiBold : Font.Normal
+                                }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: RaohaneConfig.wallpaperPaletteProvider = modelData.id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
