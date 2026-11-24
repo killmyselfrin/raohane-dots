@@ -19,6 +19,9 @@ HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 VIDEO_SUFFIXES = {".mp4", ".webm", ".mkv", ".mov", ".avi", ".m4v"}
 ROLES = (
     "primary", "on_primary", "primary_container", "on_primary_container",
+    "primary_fixed", "primary_fixed_dim", "on_primary_fixed", "on_primary_fixed_variant",
+    "secondary_fixed", "secondary_fixed_dim", "on_secondary_fixed", "on_secondary_fixed_variant",
+    "tertiary_fixed", "tertiary_fixed_dim", "on_tertiary_fixed", "on_tertiary_fixed_variant",
     "secondary", "on_secondary", "secondary_container", "on_secondary_container",
     "tertiary", "on_tertiary", "tertiary_container", "on_tertiary_container",
     "error", "on_error", "error_container", "on_error_container",
