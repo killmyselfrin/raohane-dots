@@ -376,7 +376,7 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 132
+                Layout.preferredHeight: 148
                 surfaceRadius: 12
                 showSheen: false
                 idleColor: RaohaneTheme.surfaceSubtle
@@ -482,6 +482,14 @@ Item {
                                 }
                             }
                         }
+                    Text {
+                        Layout.fillWidth: true
+                        visible: RaohaneConfig.wallpaperAdaptiveTheme && !RaohaneTheme.wallpaperAdaptiveThemeActive
+                        text: qsTr("Waiting for Matugen palette · install Matugen or choose another wallpaper")
+                        color: RaohaneTheme.warning
+                        font.pixelSize: 7
+                        wrapMode: Text.WordWrap
+                    }
                     }
                 }
             }
