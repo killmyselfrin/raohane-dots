@@ -754,5 +754,17 @@
   "Matugen · Material You": "Matugen · Material You",
   "Apply full Material You palette": "Apply full Material You palette",
   "Recolor backgrounds, glass, borders and text": "Recolor backgrounds, glass, borders and text",
-  "Waiting for Matugen palette · install Matugen or choose another wallpaper": "Waiting for Matugen palette · install Matugen or choose another wallpaper"
+  "Waiting for Matugen palette · install Matugen or choose another wallpaper": "Waiting for Matugen palette · install Matugen or choose another wallpaper",
+  "%1 ms": "%1 ms",
+  "A quiet crossfade": "A quiet crossfade",
+  "Break into soft pixel blocks": "Break into soft pixel blocks",
+  "Choose how the next wallpaper is revealed": "Choose how the next wallpaper is revealed",
+  "Choose wallpaper directory": "Choose wallpaper directory",
+  "Current wallpaper, library and transition effects": "Current wallpaper, library and transition effects",
+  "Custom set": "Custom set",
+  "Dissolve": "Dissolve",
+  "Expand from the center": "Expand from the center",
+  "Reveal from left to right": "Reveal from left to right",
+  "Wallpaper preview unavailable": "Wallpaper preview unavailable",
+  "Wipe": "Wipe"
 }
