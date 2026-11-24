@@ -395,7 +395,7 @@ Item {
                             font.weight: Font.DemiBold
                         }
                         Text {
-                            text: qsTr("Generate a Material You palette from the active wallpaper")
+                            text: qsTr("Palette source for Adaptive Accent and Bar Chromatic Flow")
                             color: RaohaneTheme.textMuted
                             font.pixelSize: 7
                         }
