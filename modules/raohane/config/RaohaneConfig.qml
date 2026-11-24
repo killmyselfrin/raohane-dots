@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 15
+    readonly property int schemaVersion: 16
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -37,6 +37,8 @@ Singleton {
     property string wallpaperFlowColorB: "#ca7e67"
     property bool wallpaperHideWhenFullscreen: true
     property int wallpaperTransitionDuration: 650
+    property string wallpaperTransitionMode: "random"
+    property string wallpaperTransitionEffect: "fade"
     property real wallpaperDim: 0.06
     property real lockWallpaperDim: 0.28
 
@@ -628,6 +630,8 @@ Singleton {
                 flowColorB: root.wallpaperFlowColorB,
                 hideWhenFullscreen: root.wallpaperHideWhenFullscreen,
                 transitionDuration: root.wallpaperTransitionDuration,
+                transitionMode: root.wallpaperTransitionMode,
+                transitionEffect: root.wallpaperTransitionEffect,
                 dim: root.wallpaperDim,
                 lockDim: root.lockWallpaperDim
             },
@@ -816,6 +820,11 @@ Singleton {
         })
         root.assignIfPresent(wallpaper, "hideWhenFullscreen", value => root.wallpaperHideWhenFullscreen = Boolean(value))
         root.assignIfPresent(wallpaper, "transitionDuration", value => root.wallpaperTransitionDuration = Math.max(0, Math.min(3000, Number.isFinite(Number(value)) ? Number(value) : 650)))
+        root.assignIfPresent(wallpaper, "transitionMode", value => root.wallpaperTransitionMode = value === "custom" ? "custom" : "random")
+        root.assignIfPresent(wallpaper, "transitionEffect", value => {
+            const effect = String(value ?? "fade")
+            root.wallpaperTransitionEffect = ["fade", "wipe", "circle", "dissolve"].includes(effect) ? effect : "fade"
+        })
         root.assignIfPresent(wallpaper, "dim", value => root.wallpaperDim = Math.max(0, Math.min(0.8, Number(value) || 0)))
         root.assignIfPresent(wallpaper, "lockDim", value => root.lockWallpaperDim = Math.max(0, Math.min(0.9, Number(value) || 0)))
 
@@ -1014,6 +1023,8 @@ Singleton {
     onWallpaperFlowColorBChanged: scheduleSave()
     onWallpaperHideWhenFullscreenChanged: scheduleSave()
     onWallpaperTransitionDurationChanged: scheduleSave()
+    onWallpaperTransitionModeChanged: scheduleSave()
+    onWallpaperTransitionEffectChanged: scheduleSave()
     onWallpaperDimChanged: scheduleSave()
     onLockWallpaperDimChanged: scheduleSave()
     onOverviewWorkspaceCountChanged: scheduleSave()
