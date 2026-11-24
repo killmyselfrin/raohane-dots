@@ -106,6 +106,7 @@ rg -Fq 'RaohaneConfig.wallpaperPaletteProvider' "$wallpapers" || fail 'wallpaper
 rg -Fq '"--dry-run"' "$matugen_adapter" || fail 'Matugen invocation must not run user templates or wallpaper commands'
 rg -Fq 'tempfile.TemporaryDirectory' "$matugen_adapter" || fail 'Matugen must use an isolated temporary config'
 rg -Fq '"-c", str(config)' "$matugen_adapter" || fail 'Matugen must not read the user's config.toml'
+rg -Fq '"--source-color-index", "0"' "$matugen_adapter" || fail 'Matugen must choose a source color without an interactive prompt'
 rg -Fq '"matugen", "image"' "$matugen_adapter" || fail 'Matugen image generation command is missing'
 rg -Fq 'builtin_pair' "$matugen_adapter" || fail 'built-in palette fallback is missing'
 rg -Fq 'Matugen · Material You' "$studio" || fail 'Matugen provider is not selectable in Wallpaper Studio'
