@@ -5,7 +5,6 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Layouts
 
-import qs.modules.raohane
 import qs.modules.raohane.config
 import qs.modules.raohane.services
 
