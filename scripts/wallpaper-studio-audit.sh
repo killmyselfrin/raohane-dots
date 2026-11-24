@@ -10,9 +10,14 @@ wallpapers=modules/raohane/services/RaohaneWallpapers.qml
 selector=modules/raohane/RaohaneWallpaperSelector.qml
 background=modules/raohane/RaohaneBackground.qml
 theme=modules/raohane/RaohaneTheme.qml
+studio=modules/raohane/RaohaneWallpaperStudio.qml
+effect=modules/raohane/RaohaneWallpaperTransitionEffect.qml
+settings=modules/raohane/RaohaneSettingsPageRegistry.qml
+section_registry=modules/raohane/RaohaneSettingsSectionRegistry.qml
+qmldir=modules/raohane/qmldir
 palette=scripts/wallpaper-palette.py
 defaults=defaults/native.json
-for path in "$config" "$wallpapers" "$selector" "$background" "$theme" "$palette" "$defaults"; do
+for path in "$config" "$wallpapers" "$selector" "$background" "$theme" "$palette" "$defaults" "$studio" "$effect" "$settings" "$section_registry" "$qmldir"; do
   [[ -f "$path" ]] || fail "missing $path"
 done
 
@@ -63,6 +68,31 @@ rg -Fq 'RaohaneWallpapers.autoAdvance()' "$background" \
   || fail 'background lost native scheduler source selection'
 rg -Fq 'onVideoPreviewPausedChanged' "$background" \
   || fail 'wallpaper video preview cannot be paused'
+
+
+# Material Wallpaper Studio and the shared desktop/preview transition renderer.
+rg -Fq 'key: "wallpapers"' "$settings" || fail 'dedicated Wallpapers Settings route is missing'
+rg -Fq 'source: "RaohaneWallpaperStudio.qml"' "$settings" || fail 'Wallpaper Studio page source is not registered'
+rg -Fq '"wallpaper": "wallpapers"' "$settings" || fail 'wallpaper route alias is missing'
+rg -Fq 'RaohaneWallpaperStudio 1.0 RaohaneWallpaperStudio.qml' "$qmldir" || fail 'Wallpaper Studio QML type is not registered'
+rg -Fq 'RaohaneWallpaperTransitionEffect 1.0 RaohaneWallpaperTransitionEffect.qml' "$qmldir" || fail 'shared transition QML type is not registered'
+rg -Fq 'FolderDialog {' "$studio" || fail 'native directory picker is missing'
+rg -Fq 'RaohaneWallpapers.setDirectory' "$studio" || fail 'directory selection bypasses the existing wallpaper service'
+rg -Fq 'RaohaneState.setPrimaryOpen("wallpaper", true)' "$studio" || fail 'Select wallpaper does not open the existing selector'
+rg -Fq 'RaohaneWallpaperTransitionEffect {' "$background" || fail 'desktop renderer does not use the shared transition component'
+rg -Fq 'MultiEffect {' "$effect" || fail 'circle reveal effect is missing'
+rg -Fq 'sourceClipRect:' "$effect" || fail 'dissolve tile reveal is missing'
+rg -Fq 'chooseTransitionType()' "$background" || fail 'random/custom mode is not consumed by the desktop renderer'
+for effect_name in fade wipe circle dissolve; do
+  rg -Fq "id: \"$effect_name\"" "$studio" || fail "transition preview missing: $effect_name"
+done
+for key in wallpaperTransitionMode wallpaperTransitionEffect; do
+  rg -Fq "property string $key:" "$config" || fail "missing transition config property: $key"
+  rg -Fq "$key: root.$key" "$config" || fail "transition config not serialized: $key"
+  rg -Fq "on${key^}Changed: scheduleSave()" "$config" || fail "transition config not autosaved: $key"
+done
+rg -Fq 'assignIfPresent(wallpaper, "transitionMode"' "$config" || fail 'transition mode is not restored'
+rg -Fq 'assignIfPresent(wallpaper, "transitionEffect"' "$config" || fail 'transition effect is not restored'
 
 # QtMultimedia.MediaPlayer is not an Item and cannot contain QML objects.
 # The pause notification must be a sibling of MediaPlayer inside Item.
@@ -125,7 +155,7 @@ ast.parse(script.read_text(encoding="utf-8"), filename=str(script))
 data = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
 wallpaper = data["wallpaper"]
 expected = dict(favorites=[], collections=[], monitors={}, autoSource="folder",
-                adaptiveAccent=False, adaptiveColor="#94b5e5")
+                adaptiveAccent=False, adaptiveColor="#94b5e5", transitionMode="random", transitionEffect="fade")
 for key, expected_value in expected.items():
     assert wallpaper.get(key) == expected_value, f"unsafe default: {key}"
 assert wallpaper["changeInterval"] == 0, "automatic changes must remain opt-in"
