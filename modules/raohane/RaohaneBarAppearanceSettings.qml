@@ -34,7 +34,7 @@ Item {
         },
         {
             id: "capsule", label: qsTr("Capsule"), detail: qsTr("A vertical glass rail with workspace morphing, media controls and quick tiles"),
-            surface: "float", group: "transparent", height: 48, radius: 24,
+            surface: "float", group: "pills", height: 48, radius: 24,
             opacity: 0.94, margin: 12, spacing: 5, padding: 7, background: true, shadow: true
         },
         {
