@@ -12,7 +12,7 @@ Item {
     readonly property bool vertical: orientation === "vertical"
 
     visible: SystemTray.items.values.length > 0
-    implicitWidth: trayRow.implicitWidth
+    implicitWidth: trayGrid.implicitWidth
     implicitHeight: root.vertical ? trayGrid.implicitHeight : 30
 
     GridLayout {
