@@ -178,7 +178,7 @@ QtObject {
     readonly property color border: root.wallpaperAdaptiveThemeActive ? root.materialSurface("outline_variant", presetBorder, presetBorder.a * borderStrength) : root.tintedMaterial(Qt.rgba(presetBorder.r, presetBorder.g, presetBorder.b, Math.min(1, presetBorder.a * borderStrength)), dark ? 0.56 : 0.24)
     readonly property color borderStrong: root.wallpaperAdaptiveThemeActive ? root.materialSurface("outline", presetBorderStrong, presetBorderStrong.a * borderStrength) : root.tintedMaterial(Qt.rgba(presetBorderStrong.r, presetBorderStrong.g, presetBorderStrong.b, Math.min(1, presetBorderStrong.a * borderStrength)), dark ? 0.55 : 0.22)
     readonly property color borderFaint: root.wallpaperAdaptiveThemeActive ? root.materialSurface("outline_variant", presetBorderFaint, presetBorderFaint.a * borderStrength * 0.65) : root.tintedMaterial(Qt.rgba(presetBorderFaint.r, presetBorderFaint.g, presetBorderFaint.b, Math.min(1, presetBorderFaint.a * borderStrength)), dark ? 0.54 : 0.20)
-    readonly property color highlight: presetHighlight
+    readonly property color highlight: root.wallpaperAdaptiveThemeActive ? Qt.rgba(root.materialColor("surface_tint", presetAccent).r, root.materialColor("surface_tint", presetAccent).g, root.materialColor("surface_tint", presetAccent).b, 0.12) : presetHighlight
     readonly property color divider: borderFaint
 
     readonly property color text: root.materialColor("on_surface", activePreset.text)
