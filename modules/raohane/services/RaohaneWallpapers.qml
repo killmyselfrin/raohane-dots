@@ -439,6 +439,14 @@ Singleton {
         }
     }
 
+    Connections {
+        target: RaohaneConfig
+        function onWallpaperPaletteProviderChanged(): void {
+            if (RaohaneConfig.ready)
+                root.queueAdaptiveAccent()
+        }
+    }
+
     Process {
         id: thumbnailProcess
         property string directory: ""
