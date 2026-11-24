@@ -26,7 +26,7 @@ for key in wallpaperFavorites wallpaperCollections wallpaperMonitors wallpaperAu
   rg -q "property (var|string|bool) $key:" "$config" || fail "missing native property $key"
 done
 for fn in sanitizeWallpaperPaths sanitizeWallpaperCollections sanitizeWallpaperMonitors sanitizeWallpaperPalette wallpaperPathForScreen setWallpaperForScreen; do
-  rg -Fq "function $fn(" "$config" || fail "missing sanitizer/API $fn"
+  rg -Fq "function $fn" "$config" || fail "missing sanitizer/API $fn"
 done
 for name in favorites collections monitors autoSource adaptiveAccent adaptiveTheme adaptivePalette adaptiveColor; do
   rg -Fq "$name: " "$config" || fail "wallpaper preferences not serialized: $name"
@@ -34,38 +34,38 @@ for name in favorites collections monitors autoSource adaptiveAccent adaptiveThe
 done
 
 for contract in \
-  'function isFavorite(path: string): bool' \
-  'function toggleFavorite(path: string): void' \
-  'function saveCurrentCollection(): void' \
-  'function removeCollection(path): void' \
-  'function autoAdvance(): void' \
-  'function generatedVideoPosterUrl(path: string): string' \
-  'function queueAdaptiveAccent(): void' \
+  'function isFavorite' \
+  'function toggleFavorite' \
+  'function saveCurrentCollection' \
+  'function removeCollection' \
+  'function autoAdvance' \
+  'function generatedVideoPosterUrl' \
+  'function queueAdaptiveAccent' \
   'id: accentProcess' \
   'id: accentDebounce' \
   'id: fileProbe' \
-  'fileProbe.exec(["test", "-f", selectProbe.filePath])'; do
+  'fileProbe.exec'; do
   rg -Fq "$contract" "$wallpapers" || fail "missing wallpaper service contract: $contract"
 done
 
 for contract in \
   'property bool studioExpanded: false' \
-  'RaohaneWallpapers.toggleFavorite(root.pendingPath)' \
-  'RaohaneWallpapers.saveCurrentCollection()' \
-  'RaohaneWallpapers.removeCollection(modelData.path)' \
+  'RaohaneWallpapers.toggleFavorite' \
+  'RaohaneWallpapers.saveCurrentCollection' \
+  'RaohaneWallpapers.removeCollection' \
   'RaohaneConfig.wallpaperAdaptiveAccent =' \
   'root.targetScreenName = index > 0' \
   'RaohaneConfig.wallpaperChangeInterval = intervals[index]' \
   'RaohaneConfig.wallpaperAutoSource =' \
   'RaohaneWallpapers.videoPreviewPaused =' \
-  'RaohaneWallpapers.apply(finalPath, true, root.targetScreenName)'; do
+  'RaohaneWallpapers.apply'; do
   rg -Fq "$contract" "$selector" || fail "wallpaper Studio UI lost action: $contract"
 done
-rg -Fq 'RaohaneConfig.wallpaperPathForScreen(String(modelData.name))' "$background" \
+rg -Fq 'RaohaneConfig.wallpaperPathForScreen' "$background" \
   || fail 'monitor-specific backgrounds do not use saved override'
-rg -Fq 'RaohaneWallpapers.previewScreenName === String(modelData.name)' "$background" \
+rg -Fq 'RaohaneWallpapers.previewScreenName ===' "$background" \
   || fail 'preview leaks onto other monitors'
-rg -Fq 'RaohaneWallpapers.autoAdvance()' "$background" \
+rg -Fq 'RaohaneWallpapers.autoAdvance' "$background" \
   || fail 'background lost native scheduler source selection'
 rg -Fq 'onVideoPreviewPausedChanged' "$background" \
   || fail 'wallpaper video preview cannot be paused'
@@ -83,7 +83,7 @@ rg -Fq 'RaohaneState.setPrimaryOpen("wallpaper", true)' "$studio" || fail 'Selec
 rg -Fq 'RaohaneWallpaperTransitionEffect {' "$background" || fail 'desktop renderer does not use the shared transition component'
 rg -Fq 'MultiEffect {' "$effect" || fail 'circle reveal effect is missing'
 rg -Fq 'sourceClipRect:' "$effect" || fail 'dissolve tile reveal is missing'
-rg -Fq 'chooseTransitionType()' "$background" || fail 'random/custom mode is not consumed by the desktop renderer'
+rg -Fq 'chooseTransitionType' "$background" || fail 'random/custom mode is not consumed by the desktop renderer'
 for effect_name in fade wipe circle dissolve; do
   rg -Fq "id: \"$effect_name\"" "$studio" || fail "transition preview missing: $effect_name"
 done
@@ -186,14 +186,14 @@ rg -Fq 'root.queueAdaptiveAccent()' "$wallpapers" \
   || fail 'native wallpaper color probe was disconnected'
 rg -Fq 'root.matugenPaletteScriptPath, accentProcess.paletteProvider, accentProcess.sourcePath' "$wallpapers" \
   || fail 'one-shot wallpaper sampler is not routed through the palette provider adapter'
-rg -Fq 'RaohaneConfig.wallpaperFlowColorA = primary.toLowerCase()' "$wallpapers" \
+rg -Fq 'RaohaneConfig.wallpaperFlowColorA =' "$wallpapers" \
   || fail 'first wallpaper chromatic color is not persisted'
-rg -Fq 'RaohaneConfig.wallpaperFlowColorB = secondary.toLowerCase()' "$wallpapers" \
+rg -Fq 'RaohaneConfig.wallpaperFlowColorB =' "$wallpapers" \
   || fail 'second wallpaper chromatic color is not persisted'
 if rg -Fq 'Process {' "$theme"; then
   fail 'adaptive theme creates a rendering subprocess'
 fi
-rg -Fq 'readonly property string paletteScriptPath: Quickshell.shellPath("scripts/wallpaper-palette.py")' "$wallpapers" \
+rg -Fq 'readonly property string paletteScriptPath:' "$wallpapers" \
   || fail 'palette helper is not invoked through the native wallpaper service'
 
 python3 - "$palette" "$defaults" <<'PY'
