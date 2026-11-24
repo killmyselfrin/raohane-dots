@@ -65,7 +65,7 @@ def matugen_palette(image: Path):
         config.write_text("[config]\n", encoding="utf-8")
         command = [
             "matugen", "image", str(image),
-            "--json", "hex", "--dry-run", "-c", str(config),
+            "--json", "hex", "--dry-run", "--source-color-index", "0", "-c", str(config),
         ]
         result = subprocess.run(command, capture_output=True, text=True, timeout=45, check=False)
     if result.returncode != 0:
