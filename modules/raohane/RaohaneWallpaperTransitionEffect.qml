@@ -106,7 +106,7 @@ Item {
                 }
                 width: root.width / Math.max(1, root.dissolveColumns)
                 height: root.height / Math.max(1, root.dissolveRows)
-                source: root.source
+                source: root.effectType === "dissolve" ? root.source : ""
                 sourceSize: Qt.size(Math.max(1, root.width), Math.max(1, root.height))
                 sourceClipRect: Qt.rect(
                     columnIndex / Math.max(1, root.dissolveColumns),
