@@ -32,6 +32,7 @@ Wallpaper Studio includes an optional **Matugen · Material You** palette provid
 - The Matugen adapter exports the Material You dark and light schemes as validated role maps. Enable **Apply full Material You palette** to map primary/secondary/tertiary, backgrounds, surface containers, outlines, text contrast and error roles into RaohaneTheme. Existing Raohane presets remain the fallback for any role not emitted by Matugen.
 - The full-palette toggle is independent of Adaptive Accent: the former recolors the full shell, while the latter remains available as an accent-only mode. The Bar Chromatic Flow colors continue to use the extracted primary/secondary pair.
 - Matugen v4 JSON is read from `colors.dark` and `colors.light`; only known Material roles and six-digit hex colors are accepted into native.json. Invalid or missing roles are ignored, not blindly applied.
+- Video wallpapers are sampled through one bounded FFmpeg still frame before Matugen runs; no looping decoder or additional background service is started.
 - The adapter does not replace the full Raohane theme-token system or overwrite user Matugen configuration/templates.
 
 ## Validation
