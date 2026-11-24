@@ -199,6 +199,9 @@ QtObject {
         : presetAccent
     readonly property color accentSecondary: root.wallpaperAdaptiveThemeActive ? root.materialColor("secondary", activePreset.accentSecondary) : root.adaptivePaletteActive ? accent : accentMode === "theme" ? activePreset.accentSecondary : accent
     readonly property color accentBlue: root.wallpaperAdaptiveThemeActive ? root.materialColor("tertiary", activePreset.accentBlue) : root.adaptivePaletteActive ? accent : accentMode === "theme" ? activePreset.accentBlue : accent
+    readonly property color onAccent: root.materialColor("on_primary", accent.hslLightness > 0.58 ? "#171717" : "#ffffff")
+    readonly property color onAccentSecondary: root.materialColor("on_secondary", accentSecondary.hslLightness > 0.58 ? "#171717" : "#ffffff")
+    readonly property color onAccentBlue: root.materialColor("on_tertiary", accentBlue.hslLightness > 0.58 ? "#171717" : "#ffffff")
     readonly property color accentSoft: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.46, (dark ? 0.15 : 0.10) * accentStrength))
     readonly property color accentHover: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.56, (dark ? 0.22 : 0.15) * accentStrength))
     readonly property color accentPressed: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.66, (dark ? 0.30 : 0.21) * accentStrength))
