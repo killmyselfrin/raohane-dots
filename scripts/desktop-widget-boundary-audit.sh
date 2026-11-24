@@ -156,7 +156,7 @@ rg -q 'onDesktopWidgetCompositionChanged:[[:space:]]*scheduleSave\(\)' "$config"
   || fail 'desktop widget composition changes are not persisted'
 
 jq -e '
-  .schemaVersion == 15 and
+  .schemaVersion == 18 and
   (.desktopWidgets | type == "object") and
   (.desktopWidgets.enabled | type == "boolean") and
   (.desktopWidgets.showClock | type == "boolean") and

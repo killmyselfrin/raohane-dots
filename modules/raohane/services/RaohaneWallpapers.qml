@@ -44,6 +44,7 @@ Singleton {
     readonly property string thumbgenScriptPath: Quickshell.shellPath("scripts/thumbnails/thumbgen.sh")
     readonly property string magickThumbnailScriptPath: Quickshell.shellPath("scripts/thumbnails/generate-thumbnails-magick.sh")
     readonly property string paletteScriptPath: Quickshell.shellPath("scripts/wallpaper-palette.py")
+    readonly property string matugenPaletteScriptPath: Quickshell.shellPath("scripts/matugen-palette.py")
     property string accentProbePath: ""
     readonly property bool thumbnailGenerationRunning: thumbnailProcess.running
     property real thumbnailGenerationProgress: 0
@@ -384,7 +385,7 @@ Singleton {
     // when hovering a carousel item or during video playback.
     function queueAdaptiveAccent(): void {
         if (!RaohaneConfig.ready
-                || (!RaohaneConfig.wallpaperAdaptiveAccent && !RaohaneConfig.barChromaticFlow)) {
+                || (!RaohaneConfig.wallpaperAdaptiveAccent && !RaohaneConfig.barChromaticFlow && !RaohaneConfig.wallpaperAdaptiveTheme)) {
             accentDebounce.stop()
             return
         }
@@ -404,7 +405,8 @@ Singleton {
             if (accentProcess.running || !root.accentProbePath.length)
                 return
             accentProcess.sourcePath = root.accentProbePath
-            accentProcess.command = ["python3", "-E", root.paletteScriptPath, "--dual", accentProcess.sourcePath]
+            accentProcess.paletteProvider = RaohaneConfig.wallpaperPaletteProvider
+            accentProcess.command = ["python3", "-E", root.matugenPaletteScriptPath, accentProcess.paletteProvider, accentProcess.sourcePath]
             accentProcess.running = true
         }
     }
@@ -412,28 +414,51 @@ Singleton {
     Process {
         id: accentProcess
         property string sourcePath: ""
+        property string paletteProvider: "builtin"
         stdout: SplitParser {
             onRead: data => {
                 const value = String(data).trim()
-                const pair = value.match(/^(#[0-9a-fA-F]{6})\s+(#[0-9a-fA-F]{6})$/)
-                if (!pair || !RaohaneConfig.ready
-                        || (!RaohaneConfig.wallpaperAdaptiveAccent && !RaohaneConfig.barChromaticFlow)
-                        || accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath))
+                let result
+                try {
+                    result = JSON.parse(value)
+                } catch (error) {
+                    return
+                }
+                const primary = String(result?.primary ?? "")
+                const secondary = String(result?.secondary ?? "")
+                if (!/^#[0-9a-fA-F]{6}$/.test(primary) || !/^#[0-9a-fA-F]{6}$/.test(secondary)
+                        || !RaohaneConfig.ready
+                        || (!RaohaneConfig.wallpaperAdaptiveAccent && !RaohaneConfig.barChromaticFlow && !RaohaneConfig.wallpaperAdaptiveTheme)
+                        || accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath)
+                        || accentProcess.paletteProvider !== RaohaneConfig.wallpaperPaletteProvider)
                     return
                 if (RaohaneConfig.wallpaperAdaptiveAccent)
-                    RaohaneConfig.wallpaperAdaptiveColor = pair[1]
-                // Persist the detected pair for restart and the moment the
-                // Bar opt-in is toggled. This does not override the manual
-                // theme's accent setting.
-                RaohaneConfig.wallpaperFlowColorA = pair[1]
-                RaohaneConfig.wallpaperFlowColorB = pair[2]
+                    RaohaneConfig.wallpaperAdaptiveColor = primary.toLowerCase()
+                // Persist the accent pair for Bar Chromatic Flow and the
+                // complete Material You role maps for the opt-in dynamic theme.
+                RaohaneConfig.wallpaperFlowColorA = primary.toLowerCase()
+                RaohaneConfig.wallpaperFlowColorB = secondary.toLowerCase()
+                RaohaneConfig.wallpaperAdaptivePalette = RaohaneConfig.sanitizeWallpaperPalette(result?.palettes ?? {})
             }
         }
         onExited: (code, status) => {
             // An old sampling process may finish after the user applies a
             // new wallpaper. Ignore stale stdout and sample the new source.
-            if ((RaohaneConfig.wallpaperAdaptiveAccent || RaohaneConfig.barChromaticFlow)
-                    && accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath))
+            if ((RaohaneConfig.wallpaperAdaptiveAccent || RaohaneConfig.barChromaticFlow || RaohaneConfig.wallpaperAdaptiveTheme)
+                    && (accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath)
+                        || accentProcess.paletteProvider !== RaohaneConfig.wallpaperPaletteProvider))
+                root.queueAdaptiveAccent()
+        }
+    }
+
+    Connections {
+        target: RaohaneConfig
+        function onWallpaperPaletteProviderChanged(): void {
+            if (RaohaneConfig.ready)
+                root.queueAdaptiveAccent()
+        }
+        function onWallpaperAdaptiveThemeChanged(): void {
+            if (RaohaneConfig.ready)
                 root.queueAdaptiveAccent()
         }
     }

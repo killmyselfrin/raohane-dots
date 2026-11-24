@@ -10,6 +10,7 @@ QtObject {
     readonly property var pages: [
         { key: "home", name: qsTr("Home"), icon: "home", group: qsTr("PERSONALIZE"), subtitle: qsTr("Raohane at a glance"), source: "RaohaneSettingsHome.qml" },
         { key: "themes", name: qsTr("Themes"), icon: "palette", group: qsTr("PERSONALIZE"), subtitle: qsTr("Theme library and Style Studio"), source: "RaohaneThemeStudio.qml" },
+        { key: "wallpapers", name: qsTr("Wallpapers"), icon: "wallpaper", group: qsTr("PERSONALIZE"), subtitle: qsTr("Current wallpaper, library and transition effects"), source: "RaohaneWallpaperStudio.qml", hideHeader: true },
         { key: "widgets", name: qsTr("Desktop Widgets"), icon: "widgets", group: qsTr("PERSONALIZE"), subtitle: qsTr("Choose the quiet information shown on your wallpaper"), source: "RaohaneWidgetStudio.qml" },
         { key: "interface", name: qsTr("Appearance"), icon: "wand_stars", group: qsTr("PERSONALIZE"), subtitle: qsTr("Screen chrome, corners and visual framing"), source: "RaohaneSettingsSectionPage.qml" },
         { key: "bar", name: qsTr("Bar & Dock"), icon: "dock_to_bottom", group: qsTr("SHELL"), subtitle: qsTr("Placement, reveal behavior, modules and dock sizing"), source: "RaohaneSettingsSectionPage.qml" },
@@ -30,6 +31,8 @@ QtObject {
 
     readonly property var aliases: ({
         "appearance": "interface",
+        "wallpaper": "wallpapers",
+        "wallpaper studio": "wallpapers",
         "display": "displays",
         "monitor": "displays",
         "monitors": "displays",
@@ -107,7 +110,6 @@ QtObject {
                 { type: "toggle", key: "wallpaperPreview", label: qsTr("Wallpaper preview"), detail: qsTr("Preview wallpapers before applying them") },
                 { type: "toggle", key: "wallpaperHideWhenFullscreen", label: qsTr("Hide wallpaper on fullscreen"), detail: qsTr("Reduce background rendering behind fullscreen clients") },
                 { type: "number", key: "wallpaperColumns", label: qsTr("Wallpaper columns"), detail: qsTr("Columns in the wallpaper selector"), min: 2, max: 8, step: 1 },
-                { type: "number", key: "wallpaperTransitionDuration", label: qsTr("Transition duration"), detail: qsTr("Wallpaper transition duration in milliseconds"), min: 0, max: 3000, step: 100 },
                 { type: "number", key: "overviewWorkspaceCount", label: qsTr("Overview workspaces"), detail: qsTr("Workspace count represented in Overview"), min: 2, max: 12, step: 1 },
                 { type: "number", key: "overviewColumns", label: qsTr("Overview columns"), detail: qsTr("Workspace grid columns"), min: 1, max: 4, step: 1 }
             ]

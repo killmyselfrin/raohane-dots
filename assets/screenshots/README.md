@@ -1,35 +1,52 @@
 # Running-interface captures
 
-Captured 2026-11-11 from source commit `a038d025024a5aeee9a70a55de183ed469478ac5`.
-These are direct, unretouched `grim` captures, not generated UI concepts.
+This folder contains direct, unretouched captures of the Raohane Quickshell
+interface. They are **real application renders**, not generated mockups.
 
-- Output: 1920 × 1080 logical pixels, scale 1, no fullscreen application.
-- Runtime: Quickshell 0.3.2 / Qt 6.11.2, Sway headless with pixman,
-  `QT_QUICK_BACKEND=software`, in the isolated Debian diagnostic container.
-- GPU: none exposed. Hyprland could not initialize its rendering backend.
-- Theme: Raohane; panel: Orbit. Russian interface; desktop clock uses lab time.
-- No mock media player or synthetic lyrics were used in these captures.
-- CPU/RSS and frame timing were not measured for this capture set.
+## Capture environment
 
-| File | Surface |
+- Captured: 2026-11-11
+- Source revision: `a038d025024a5aeee9a70a55de183ed469478ac5`
+- Output: 1920 × 1080 logical pixels, scale 1, no fullscreen application
+- Runtime: Quickshell 0.3.2 / Qt 6.11.2
+- Compositor: Sway headless with pixman
+- Qt rendering: `QT_QUICK_BACKEND=software`
+- Environment: isolated Debian diagnostic container; no GPU was exposed
+- Theme: Raohane; panel preset: Orbit; Russian interface
+- No mock media player or synthetic lyrics were used
+
+| File | Captured surface |
 | --- | --- |
-| desktop.png | Bar, clock, idle media card and desktop system widget |
-| welcome.png | First page of the persistent setup wizard |
-| settings.png | Theme library and wallpaper category cards |
-| control-center.png | Control Center with actual container device availability |
+| `desktop.png` | Bar, clock, idle media card and desktop system widget |
+| `welcome.png` | First page of the persistent setup wizard |
+| `settings.png` | Theme library and wallpaper category cards |
+| `control-center.png` | Control Center with the device availability of the diagnostic container |
 
-These demonstrate the rendered UI only. Hyprland focus/shortcuts, compositor
-blur, hardware controls, multi-monitor behavior and GPU costs remain separate
-validation gates. Known baseline Privacy warnings and the umbrella desktop
-widget audit failure are recorded in the linked validation notes.
+## Important limitations
+
+These images document the UI as it rendered in that specific diagnostic
+environment and source revision. They do **not** establish current visual
+parity with later source changes, nor do they validate:
+
+- Hyprland rendering on physical GPU hardware;
+- compositor blur, frame pacing or GPU performance;
+- real Wi-Fi, Bluetooth, audio, brightness and other hardware controls;
+- multi-monitor placement, mixed scaling or fullscreen/game behavior;
+- long-session resource usage or release stability.
+
+A real target-system capture should be added after validating the same surface
+on a live Hyprland session. Do not present concept artwork as a runtime capture.
 
 ## Artwork credits
 
 The forest background is **Path**, by **Risto Saukonpää**, from KDE Plasma
 Workspace Wallpapers, licensed LGPLv3. Source, original file and license are
-included in [the bundled collection](../wallpapers/README.md) and its catalog.
-Other wallpaper thumbnails retain their individual source credits in that catalog.
-The Settings anime thumbnail comes from the optional personal collection listed
-in [online-anime.json](../wallpapers/online-anime.json); original artwork rights
-remain with its creators. The feather-nova emblem is AI-generated Raohane artwork;
-its simplified SVG companion and provenance are described in [NOTICE-UPSTREAM](../../NOTICE-UPSTREAM.md).
+included in [the bundled collection](../wallpapers/README.md).
+
+Other wallpaper thumbnails retain their individual source credits in that
+catalog. The Settings anime thumbnail comes from the optional personal
+collection listed in [online-anime.json](../wallpapers/online-anime.json);
+original artwork rights remain with their creators.
+
+The feather-nova emblem is AI-generated Raohane artwork. Its simplified SVG
+companion and provenance are described in [NOTICE-UPSTREAM](../../NOTICE-UPSTREAM.md).

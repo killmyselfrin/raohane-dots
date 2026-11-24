@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 15,
+  "schemaVersion": 18,
   "wallpaper": {
     "path": "",
     "lockPath": "",
@@ -9,6 +9,8 @@
     "changeInterval": 0,
     "hideWhenFullscreen": true,
     "transitionDuration": 650,
+    "transitionMode": "random",
+    "transitionEffect": "fade",
     "dim": 0.06,
     "lockDim": 0.28,
     "favorites": [],
@@ -16,6 +18,12 @@
     "monitors": {},
     "autoSource": "folder",
     "adaptiveAccent": false,
+    "paletteProvider": "builtin",
+    "adaptiveTheme": false,
+    "adaptivePalette": {
+      "dark": {},
+      "light": {}
+    },
     "adaptiveColor": "#94b5e5",
     "flowColorA": "#9067b3",
     "flowColorB": "#ca7e67"

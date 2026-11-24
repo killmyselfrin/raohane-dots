@@ -113,6 +113,26 @@ QtObject {
     readonly property color presetBorderFaint: activePreset.borderFaint
     readonly property color presetHighlight: activePreset.highlight
 
+    // Full Material You roles are opt-in and layered over the selected
+    // Raohane preset. Missing roles always fall back to the preset token.
+    readonly property var wallpaperPalette: RaohaneConfig.wallpaperAdaptivePalette && RaohaneConfig.wallpaperAdaptivePalette[dark ? "dark" : "light"] ? RaohaneConfig.wallpaperAdaptivePalette[dark ? "dark" : "light"] : ({})
+    readonly property bool wallpaperAdaptiveThemeActive: RaohaneConfig.wallpaperAdaptiveTheme
+        && RaohaneConfig.wallpaperPaletteProvider === "matugen"
+        && Boolean(wallpaperPalette.primary)
+        && Boolean(wallpaperPalette.surface)
+
+    function materialColor(role: string, fallback: color): color {
+        if (!root.wallpaperAdaptiveThemeActive)
+            return fallback
+        const value = root.wallpaperPalette && root.wallpaperPalette[role] !== undefined ? String(root.wallpaperPalette[role]) : ""
+        return /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback
+    }
+
+    function materialSurface(role: string, fallback: color, alpha: real): color {
+        const value = root.materialColor(role, fallback)
+        return Qt.rgba(value.r, value.g, value.b, Math.max(0, Math.min(1, alpha * root.glassOpacity)))
+    }
+
     // A wallpaper accent used to recolor only the glass material, borders
     // and highlights. Keep preset text colors and light/dark contrast intact.
     // All Bar/desktop widget surfaces already consume these shared tokens.
@@ -139,14 +159,14 @@ QtObject {
                        lightness, base.a)
     }
 
-    readonly property color background: root.tintedMaterial(presetBackground, dark ? 0.16 : 0.07)
-    readonly property color backgroundElevated: root.tintedMaterial(presetBackgroundElevated, dark ? 0.27 : 0.10)
-    readonly property color surface: root.tintedMaterial(Qt.rgba(presetSurface.r, presetSurface.g, presetSurface.b, Math.min(1, presetSurface.a * glassOpacity)), dark ? 0.42 : 0.15)
-    readonly property color surfaceRaised: root.tintedMaterial(Qt.rgba(presetSurfaceRaised.r, presetSurfaceRaised.g, presetSurfaceRaised.b, Math.min(1, presetSurfaceRaised.a * glassOpacity)), dark ? 0.45 : 0.18)
-    readonly property color surfaceDeep: root.tintedMaterial(Qt.rgba(presetSurfaceDeep.r, presetSurfaceDeep.g, presetSurfaceDeep.b, Math.min(1, presetSurfaceDeep.a * glassOpacity)), dark ? 0.32 : 0.13)
-    readonly property color surfaceSubtle: root.tintedMaterial(Qt.rgba(presetSurfaceSubtle.r, presetSurfaceSubtle.g, presetSurfaceSubtle.b, Math.min(1, presetSurfaceSubtle.a * glassOpacity)), dark ? 0.40 : 0.14)
-    readonly property color surfaceHover: root.tintedMaterial(Qt.rgba(presetSurfaceHover.r, presetSurfaceHover.g, presetSurfaceHover.b, Math.min(1, presetSurfaceHover.a * glassOpacity)), dark ? 0.48 : 0.18)
-    readonly property color surfacePressed: root.tintedMaterial(Qt.rgba(presetSurfacePressed.r, presetSurfacePressed.g, presetSurfacePressed.b, Math.min(1, presetSurfacePressed.a * glassOpacity)), dark ? 0.52 : 0.22)
+    readonly property color background: root.materialColor("background", root.tintedMaterial(presetBackground, dark ? 0.16 : 0.07))
+    readonly property color backgroundElevated: root.materialColor("surface_container", root.tintedMaterial(presetBackgroundElevated, dark ? 0.27 : 0.10))
+    readonly property color surface: root.wallpaperAdaptiveThemeActive ? root.materialSurface("surface", presetSurface, presetSurface.a) : root.tintedMaterial(Qt.rgba(presetSurface.r, presetSurface.g, presetSurface.b, Math.min(1, presetSurface.a * glassOpacity)), dark ? 0.42 : 0.15)
+    readonly property color surfaceRaised: root.wallpaperAdaptiveThemeActive ? root.materialSurface("surface_container", presetSurfaceRaised, presetSurfaceRaised.a) : root.tintedMaterial(Qt.rgba(presetSurfaceRaised.r, presetSurfaceRaised.g, presetSurfaceRaised.b, Math.min(1, presetSurfaceRaised.a * glassOpacity)), dark ? 0.45 : 0.18)
+    readonly property color surfaceDeep: root.wallpaperAdaptiveThemeActive ? root.materialSurface("surface_container_lowest", presetSurfaceDeep, presetSurfaceDeep.a) : root.tintedMaterial(Qt.rgba(presetSurfaceDeep.r, presetSurfaceDeep.g, presetSurfaceDeep.b, Math.min(1, presetSurfaceDeep.a * glassOpacity)), dark ? 0.32 : 0.13)
+    readonly property color surfaceSubtle: root.wallpaperAdaptiveThemeActive ? root.materialSurface("surface_variant", presetSurfaceSubtle, presetSurfaceSubtle.a) : root.tintedMaterial(Qt.rgba(presetSurfaceSubtle.r, presetSurfaceSubtle.g, presetSurfaceSubtle.b, Math.min(1, presetSurfaceSubtle.a * glassOpacity)), dark ? 0.40 : 0.14)
+    readonly property color surfaceHover: root.wallpaperAdaptiveThemeActive ? root.materialSurface("surface_container_high", presetSurfaceHover, presetSurfaceHover.a) : root.tintedMaterial(Qt.rgba(presetSurfaceHover.r, presetSurfaceHover.g, presetSurfaceHover.b, Math.min(1, presetSurfaceHover.a * glassOpacity)), dark ? 0.48 : 0.18)
+    readonly property color surfacePressed: root.wallpaperAdaptiveThemeActive ? root.materialSurface("surface_container_highest", presetSurfacePressed, presetSurfacePressed.a) : root.tintedMaterial(Qt.rgba(presetSurfacePressed.r, presetSurfacePressed.g, presetSurfacePressed.b, Math.min(1, presetSurfacePressed.a * glassOpacity)), dark ? 0.52 : 0.22)
 
     readonly property color glass: surface
     readonly property color glassStrong: surfaceRaised
@@ -155,18 +175,56 @@ QtObject {
     readonly property color surfaceCard: surface
     readonly property color surfaceMuted: surfaceSubtle
 
-    readonly property color border: root.tintedMaterial(Qt.rgba(presetBorder.r, presetBorder.g, presetBorder.b, Math.min(1, presetBorder.a * borderStrength)), dark ? 0.56 : 0.24)
-    readonly property color borderStrong: root.tintedMaterial(Qt.rgba(presetBorderStrong.r, presetBorderStrong.g, presetBorderStrong.b, Math.min(1, presetBorderStrong.a * borderStrength)), dark ? 0.55 : 0.22)
-    readonly property color borderFaint: root.tintedMaterial(Qt.rgba(presetBorderFaint.r, presetBorderFaint.g, presetBorderFaint.b, Math.min(1, presetBorderFaint.a * borderStrength)), dark ? 0.54 : 0.20)
-    readonly property color highlight: presetHighlight
+    readonly property color border: root.wallpaperAdaptiveThemeActive ? root.materialSurface("outline_variant", presetBorder, presetBorder.a * borderStrength) : root.tintedMaterial(Qt.rgba(presetBorder.r, presetBorder.g, presetBorder.b, Math.min(1, presetBorder.a * borderStrength)), dark ? 0.56 : 0.24)
+    readonly property color borderStrong: root.wallpaperAdaptiveThemeActive ? root.materialSurface("outline", presetBorderStrong, presetBorderStrong.a * borderStrength) : root.tintedMaterial(Qt.rgba(presetBorderStrong.r, presetBorderStrong.g, presetBorderStrong.b, Math.min(1, presetBorderStrong.a * borderStrength)), dark ? 0.55 : 0.22)
+    readonly property color borderFaint: root.wallpaperAdaptiveThemeActive ? root.materialSurface("outline_variant", presetBorderFaint, presetBorderFaint.a * borderStrength * 0.65) : root.tintedMaterial(Qt.rgba(presetBorderFaint.r, presetBorderFaint.g, presetBorderFaint.b, Math.min(1, presetBorderFaint.a * borderStrength)), dark ? 0.54 : 0.20)
+    readonly property color highlight: root.wallpaperAdaptiveThemeActive ? Qt.rgba(root.materialColor("surface_tint", presetAccent).r, root.materialColor("surface_tint", presetAccent).g, root.materialColor("surface_tint", presetAccent).b, 0.12) : presetHighlight
     readonly property color divider: borderFaint
 
-    readonly property color text: activePreset.text
-    readonly property color textMuted: activePreset.textMuted
-    readonly property color textFaint: activePreset.textFaint
+    readonly property color text: root.materialColor("on_surface", activePreset.text)
+    readonly property color textMuted: root.materialColor("on_surface_variant", activePreset.textMuted)
+    readonly property color textFaint: root.materialColor("outline", activePreset.textFaint)
+
+    // Complete Material You semantic roles. Components can opt into
+    // container/fixed/inverse roles without bypassing the theme abstraction.
+    readonly property color onBackground: root.materialColor("on_background", activePreset.text)
+    readonly property color primaryContainer: root.materialColor("primary_container", accentSoft)
+    readonly property color onPrimaryContainer: root.materialColor("on_primary_container", onAccent)
+    readonly property color secondaryContainer: root.materialColor("secondary_container", accentSoft)
+    readonly property color onSecondaryContainer: root.materialColor("on_secondary_container", onAccentSecondary)
+    readonly property color tertiaryContainer: root.materialColor("tertiary_container", accentSoft)
+    readonly property color onTertiaryContainer: root.materialColor("on_tertiary_container", onAccentBlue)
+    readonly property color error: root.materialColor("error", activePreset.critical)
+    readonly property color onError: root.materialColor("on_error", "#ffffff")
+    readonly property color errorContainer: root.materialColor("error_container", accentSoft)
+    readonly property color onErrorContainer: root.materialColor("on_error_container", text)
+    readonly property color surfaceDim: root.materialColor("surface_dim", surfaceDeep)
+    readonly property color surfaceBright: root.materialColor("surface_bright", surfaceRaised)
+    readonly property color surfaceContainerLowest: root.materialColor("surface_container_lowest", surfaceDeep)
+    readonly property color surfaceContainerLow: root.materialColor("surface_container_low", surface)
+    readonly property color surfaceContainer: root.materialColor("surface_container", surfaceRaised)
+    readonly property color surfaceContainerHigh: root.materialColor("surface_container_high", surfaceHover)
+    readonly property color surfaceContainerHighest: root.materialColor("surface_container_highest", surfacePressed)
+    readonly property color inverseSurface: root.materialColor("inverse_surface", activePreset.text)
+    readonly property color inverseOnSurface: root.materialColor("inverse_on_surface", activePreset.background)
+    readonly property color inversePrimary: root.materialColor("inverse_primary", accentSecondary)
+    readonly property color primaryFixed: root.materialColor("primary_fixed", primaryContainer)
+    readonly property color primaryFixedDim: root.materialColor("primary_fixed_dim", accent)
+    readonly property color onPrimaryFixed: root.materialColor("on_primary_fixed", onPrimaryContainer)
+    readonly property color onPrimaryFixedVariant: root.materialColor("on_primary_fixed_variant", onPrimaryContainer)
+    readonly property color secondaryFixed: root.materialColor("secondary_fixed", secondaryContainer)
+    readonly property color secondaryFixedDim: root.materialColor("secondary_fixed_dim", accentSecondary)
+    readonly property color onSecondaryFixed: root.materialColor("on_secondary_fixed", onSecondaryContainer)
+    readonly property color onSecondaryFixedVariant: root.materialColor("on_secondary_fixed_variant", onSecondaryContainer)
+    readonly property color tertiaryFixed: root.materialColor("tertiary_fixed", tertiaryContainer)
+    readonly property color tertiaryFixedDim: root.materialColor("tertiary_fixed_dim", accentBlue)
+    readonly property color onTertiaryFixed: root.materialColor("on_tertiary_fixed", onTertiaryContainer)
+    readonly property color onTertiaryFixedVariant: root.materialColor("on_tertiary_fixed_variant", onTertiaryContainer)
 
     readonly property color presetAccent: activePreset.accent
-    readonly property color accent: RaohaneConfig.wallpaperAdaptiveAccent
+    readonly property color accent: root.wallpaperAdaptiveThemeActive
+        ? root.materialColor("primary", presetAccent)
+        : RaohaneConfig.wallpaperAdaptiveAccent
         ? root.wallpaperTint
         : accentMode === "ink" ? (dark ? "#eeeae2" : "#2b2a27")
         : accentMode === "rose" ? "#9a7077"
@@ -175,8 +233,11 @@ QtObject {
         : accentMode === "sand" ? "#806f59"
         : accentMode === "custom" ? customAccent
         : presetAccent
-    readonly property color accentSecondary: root.adaptivePaletteActive ? accent : accentMode === "theme" ? activePreset.accentSecondary : accent
-    readonly property color accentBlue: root.adaptivePaletteActive ? accent : accentMode === "theme" ? activePreset.accentBlue : accent
+    readonly property color accentSecondary: root.wallpaperAdaptiveThemeActive ? root.materialColor("secondary", activePreset.accentSecondary) : root.adaptivePaletteActive ? accent : accentMode === "theme" ? activePreset.accentSecondary : accent
+    readonly property color accentBlue: root.wallpaperAdaptiveThemeActive ? root.materialColor("tertiary", activePreset.accentBlue) : root.adaptivePaletteActive ? accent : accentMode === "theme" ? activePreset.accentBlue : accent
+    readonly property color onAccent: root.materialColor("on_primary", accent.hslLightness > 0.58 ? "#171717" : "#ffffff")
+    readonly property color onAccentSecondary: root.materialColor("on_secondary", accentSecondary.hslLightness > 0.58 ? "#171717" : "#ffffff")
+    readonly property color onAccentBlue: root.materialColor("on_tertiary", accentBlue.hslLightness > 0.58 ? "#171717" : "#ffffff")
     readonly property color accentSoft: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.46, (dark ? 0.15 : 0.10) * accentStrength))
     readonly property color accentHover: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.56, (dark ? 0.22 : 0.15) * accentStrength))
     readonly property color accentPressed: Qt.rgba(accent.r, accent.g, accent.b, Math.min(0.66, (dark ? 0.30 : 0.21) * accentStrength))
@@ -185,9 +246,9 @@ QtObject {
 
     readonly property color success: activePreset.success
     readonly property color positive: success
-    readonly property color warning: activePreset.warning
-    readonly property color critical: activePreset.critical
-    readonly property color info: activePreset.info
+    readonly property color warning: root.materialColor("tertiary", activePreset.warning)
+    readonly property color critical: root.materialColor("error", activePreset.critical)
+    readonly property color info: root.materialColor("secondary", activePreset.info)
 
     // Modular geometry with soft corners; user-configured Style Studio scales
     // remain authoritative and no new persisted fields are required.

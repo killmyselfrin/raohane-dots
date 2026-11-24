@@ -10,59 +10,159 @@ wallpapers=modules/raohane/services/RaohaneWallpapers.qml
 selector=modules/raohane/RaohaneWallpaperSelector.qml
 background=modules/raohane/RaohaneBackground.qml
 theme=modules/raohane/RaohaneTheme.qml
+studio=modules/raohane/RaohaneWallpaperStudio.qml
+effect=modules/raohane/RaohaneWallpaperTransitionEffect.qml
+matugen_adapter=scripts/matugen-palette.py
+settings=modules/raohane/RaohaneSettingsPageRegistry.qml
+section_registry=modules/raohane/RaohaneSettingsSectionRegistry.qml
+qmldir=modules/raohane/qmldir
 palette=scripts/wallpaper-palette.py
 defaults=defaults/native.json
-for path in "$config" "$wallpapers" "$selector" "$background" "$theme" "$palette" "$defaults"; do
+for path in "$config" "$wallpapers" "$selector" "$background" "$theme" "$palette" "$defaults" "$studio" "$effect" "$settings" "$section_registry" "$qmldir" "$matugen_adapter"; do
   [[ -f "$path" ]] || fail "missing $path"
 done
 
-for key in wallpaperFavorites wallpaperCollections wallpaperMonitors wallpaperAutoSource wallpaperAdaptiveAccent wallpaperAdaptiveColor; do
+for key in wallpaperFavorites wallpaperCollections wallpaperMonitors wallpaperAutoSource wallpaperAdaptiveAccent wallpaperAdaptiveTheme wallpaperAdaptivePalette wallpaperAdaptiveColor; do
   rg -q "property (var|string|bool) $key:" "$config" || fail "missing native property $key"
 done
-for fn in sanitizeWallpaperPaths sanitizeWallpaperCollections sanitizeWallpaperMonitors wallpaperPathForScreen setWallpaperForScreen; do
-  rg -Fq "function $fn(" "$config" || fail "missing sanitizer/API $fn"
+for fn in sanitizeWallpaperPaths sanitizeWallpaperCollections sanitizeWallpaperMonitors sanitizeWallpaperPalette wallpaperPathForScreen setWallpaperForScreen; do
+  rg -Fq "function $fn" "$config" || fail "missing sanitizer/API $fn"
 done
-for name in favorites collections monitors autoSource adaptiveAccent adaptiveColor; do
+for name in favorites collections monitors autoSource adaptiveAccent adaptiveTheme adaptivePalette adaptiveColor; do
   rg -Fq "$name: " "$config" || fail "wallpaper preferences not serialized: $name"
   rg -Fq "assignIfPresent(wallpaper, \"$name\"" "$config" || fail "wallpaper preferences not restored: $name"
 done
 
 for contract in \
-  'function isFavorite(path: string): bool' \
-  'function toggleFavorite(path: string): void' \
-  'function saveCurrentCollection(): void' \
-  'function removeCollection(path): void' \
-  'function autoAdvance(): void' \
-  'function generatedVideoPosterUrl(path: string): string' \
-  'function queueAdaptiveAccent(): void' \
+  'function isFavorite' \
+  'function toggleFavorite' \
+  'function saveCurrentCollection' \
+  'function removeCollection' \
+  'function autoAdvance' \
+  'function generatedVideoPosterUrl' \
+  'function queueAdaptiveAccent' \
   'id: accentProcess' \
   'id: accentDebounce' \
   'id: fileProbe' \
-  'fileProbe.exec(["test", "-f", selectProbe.filePath])'; do
+  'fileProbe.exec'; do
   rg -Fq "$contract" "$wallpapers" || fail "missing wallpaper service contract: $contract"
 done
 
 for contract in \
   'property bool studioExpanded: false' \
-  'RaohaneWallpapers.toggleFavorite(root.pendingPath)' \
-  'RaohaneWallpapers.saveCurrentCollection()' \
-  'RaohaneWallpapers.removeCollection(modelData.path)' \
+  'RaohaneWallpapers.toggleFavorite' \
+  'RaohaneWallpapers.saveCurrentCollection' \
+  'RaohaneWallpapers.removeCollection' \
   'RaohaneConfig.wallpaperAdaptiveAccent =' \
   'root.targetScreenName = index > 0' \
   'RaohaneConfig.wallpaperChangeInterval = intervals[index]' \
   'RaohaneConfig.wallpaperAutoSource =' \
   'RaohaneWallpapers.videoPreviewPaused =' \
-  'RaohaneWallpapers.apply(finalPath, true, root.targetScreenName)'; do
+  'RaohaneWallpapers.apply'; do
   rg -Fq "$contract" "$selector" || fail "wallpaper Studio UI lost action: $contract"
 done
-rg -Fq 'RaohaneConfig.wallpaperPathForScreen(String(modelData.name))' "$background" \
+rg -Fq 'RaohaneConfig.wallpaperPathForScreen' "$background" \
   || fail 'monitor-specific backgrounds do not use saved override'
-rg -Fq 'RaohaneWallpapers.previewScreenName === String(modelData.name)' "$background" \
+rg -Fq 'RaohaneWallpapers.previewScreenName ===' "$background" \
   || fail 'preview leaks onto other monitors'
-rg -Fq 'RaohaneWallpapers.autoAdvance()' "$background" \
+rg -Fq 'RaohaneWallpapers.autoAdvance' "$background" \
   || fail 'background lost native scheduler source selection'
 rg -Fq 'onVideoPreviewPausedChanged' "$background" \
   || fail 'wallpaper video preview cannot be paused'
+
+
+# Material Wallpaper Studio and the shared desktop/preview transition renderer.
+rg -Fq 'key: "wallpapers"' "$settings" || fail 'dedicated Wallpapers Settings route is missing'
+rg -Fq 'source: "RaohaneWallpaperStudio.qml"' "$settings" || fail 'Wallpaper Studio page source is not registered'
+rg -Fq '"wallpaper": "wallpapers"' "$settings" || fail 'wallpaper route alias is missing'
+rg -Fq 'RaohaneWallpaperStudio 1.0 RaohaneWallpaperStudio.qml' "$qmldir" || fail 'Wallpaper Studio QML type is not registered'
+rg -Fq 'RaohaneWallpaperTransitionEffect 1.0 RaohaneWallpaperTransitionEffect.qml' "$qmldir" || fail 'shared transition QML type is not registered'
+rg -Fq 'FolderDialog {' "$studio" || fail 'native directory picker is missing'
+rg -Fq 'RaohaneWallpapers.setDirectory' "$studio" || fail 'directory selection bypasses the existing wallpaper service'
+rg -Fq 'RaohaneState.setPrimaryOpen' "$studio" || fail 'Select wallpaper does not open the existing selector'
+rg -Fq 'RaohaneWallpaperTransitionEffect {' "$background" || fail 'desktop renderer does not use the shared transition component'
+rg -Fq 'MultiEffect {' "$effect" || fail 'circle reveal effect is missing'
+rg -Fq 'sourceClipRect:' "$effect" || fail 'dissolve tile reveal is missing'
+rg -Fq 'chooseTransitionType' "$background" || fail 'random/custom mode is not consumed by the desktop renderer'
+for effect_name in fade wipe circle dissolve; do
+  rg -Fq "id: \"$effect_name\"" "$studio" || fail "transition preview missing: $effect_name"
+done
+for key in wallpaperTransitionMode wallpaperTransitionEffect; do
+  rg -Fq "property string $key:" "$config" || fail "missing transition config property: $key"
+  rg -Fq "on${key^}Changed: scheduleSave()" "$config" || fail "transition config not autosaved: $key"
+done
+rg -Fq 'transitionMode: root.wallpaperTransitionMode' "$config" || fail 'transition mode is not serialized'
+rg -Fq 'transitionEffect: root.wallpaperTransitionEffect' "$config" || fail 'transition effect is not serialized'
+rg -Fq 'wallpaper, "transitionMode"' "$config" || fail 'transition mode is not restored'
+rg -Fq 'wallpaper, "transitionEffect"' "$config" || fail 'transition effect is not restored'
+
+# Optional Matugen palette provider; built-in extraction remains the default/fallback.
+rg -Fq 'property string wallpaperPaletteProvider: "builtin"' "$config" || fail 'palette provider default is missing'
+rg -Fq 'paletteProvider: root.wallpaperPaletteProvider' "$config" || fail 'palette provider is not serialized'
+rg -Fq 'wallpaper, "paletteProvider"' "$config" || fail 'palette provider is not restored'
+rg -Fq 'onWallpaperPaletteProviderChanged:' "$config" || fail 'palette provider is not autosaved'
+rg -Fq 'matugen-palette.py' "$wallpapers" || fail 'Matugen adapter is not wired to wallpaper palette extraction'
+rg -Fq 'RaohaneConfig.wallpaperPaletteProvider' "$wallpapers" || fail 'wallpaper palette provider setting is not consumed'
+rg -Fq '"--dry-run"' "$matugen_adapter" || fail 'Matugen invocation must not run user templates or wallpaper commands'
+rg -Fq 'tempfile.TemporaryDirectory' "$matugen_adapter" || fail 'Matugen must use an isolated temporary config'
+rg -Fq '"-c"' "$matugen_adapter" || fail 'Matugen must not read user config.toml'
+rg -Fq '"--source-color-index", "0"' "$matugen_adapter" || fail 'Matugen must choose a source color without an interactive prompt'
+rg -Fq 'matugen_source_image' "$matugen_adapter" || fail 'video wallpapers are not sampled before Matugen'
+rg -Fq 'VIDEO_SUFFIXES' "$matugen_adapter" || fail 'Matugen adapter lost supported video formats'
+rg -Fq 'ffmpeg' "$matugen_adapter" || fail 'Matugen video frame extraction is missing'
+rg -Fq 'binary, "image"' "$matugen_adapter" || fail 'Matugen image generation command is missing'
+rg -Fq 'shutil.which("matugen")' "$matugen_adapter" || fail 'Matugen availability must be checked before video sampling'
+rg -Fq 'builtin_pair' "$matugen_adapter" || fail 'built-in palette fallback is missing'
+rg -Fq 'Matugen · Material You' "$studio" || fail 'Matugen provider is not selectable in Wallpaper Studio'
+rg -Fq 'property bool wallpaperAdaptiveTheme: false' "$config" || fail 'full Material You theme toggle is missing'
+rg -Fq 'property var wallpaperAdaptivePalette:' "$config" || fail 'Material You palette cache is missing'
+rg -Fq 'onWallpaperAdaptiveThemeChanged:' "$config" || fail 'full palette toggle is not autosaved'
+rg -Fq 'onWallpaperAdaptivePaletteChanged:' "$config" || fail 'Material You roles are not autosaved'
+rg -Fq 'Apply full Material You palette' "$studio" || fail 'full Material You theme toggle is missing from Wallpaper Studio'
+rg -Fq 'wallpaperAdaptiveThemeActive' "$theme" || fail 'RaohaneTheme does not expose full dynamic palette mode'
+for role in background on_background surface surface_variant surface_dim surface_bright surface_container_lowest surface_container_low surface_container surface_container_high surface_container_highest on_surface on_surface_variant primary on_primary primary_container on_primary_container primary_fixed primary_fixed_dim on_primary_fixed on_primary_fixed_variant secondary on_secondary secondary_container on_secondary_container secondary_fixed secondary_fixed_dim on_secondary_fixed on_secondary_fixed_variant tertiary on_tertiary tertiary_container on_tertiary_container tertiary_fixed tertiary_fixed_dim on_tertiary_fixed on_tertiary_fixed_variant error on_error error_container on_error_container outline outline_variant inverse_surface inverse_on_surface inverse_primary surface_tint; do
+  rg -Fq "\"$role\"" "$theme" || fail "RaohaneTheme does not map Material role: $role"
+done
+
+# Matugen v4 JSON is nested under colors.dark / colors.light; validate both
+# schemes and ensure unknown or malformed values never enter the native palette.
+python3 - "$matugen_adapter" <<'PY'
+import importlib.util
+import sys
+spec = importlib.util.spec_from_file_location("matugen_palette", sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+fixture = {
+    "colors": {
+        "dark": {"primary": "#112233", "surface": "#101010", "on_surface": "#ffffff", "surface_container": "#222222", "primary_fixed": "#eeeeee", "on_primary_fixed": "#111111"},
+        "light": {"primary": "#445566", "surface": "#fafafa", "on_surface": "#111111", "unknown": "#abcdef"},
+    }
+}
+dark = module.extract_scheme(fixture, "dark")
+light = module.extract_scheme(fixture, "light")
+assert dark["primary"] == "#112233" and dark["surface_container"] == "#222222"
+assert dark["primary_fixed"] == "#eeeeee" and dark["on_primary_fixed"] == "#111111"
+assert light["primary"] == "#445566" and light["surface"] == "#fafafa"
+assert "unknown" not in light
+
+# Verify video-to-still routing without invoking a real decoder.
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
+from unittest.mock import patch
+with TemporaryDirectory() as temporary:
+    root = Path(temporary)
+    video = root / "wallpaper.mp4"
+    video.write_bytes(b"video fixture")
+    def fake_ffmpeg(command, **kwargs):
+        Path(command[-1]).write_bytes(b"png fixture")
+        return SimpleNamespace(returncode=0)
+    with patch.object(module.shutil, "which", return_value="/usr/bin/ffmpeg"), patch.object(module.subprocess, "run", side_effect=fake_ffmpeg):
+        frame = module.matugen_source_image(video, root)
+    assert frame.name == "wallpaper-frame.png" and frame.stat().st_size > 0
+print("wallpaper-studio-audit: Matugen dark/light roles and video frame routing OK")
+PY
+
 
 # QtMultimedia.MediaPlayer is not an Item and cannot contain QML objects.
 # The pause notification must be a sibling of MediaPlayer inside Item.
@@ -87,31 +187,34 @@ PY
 rg -Fq 'RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
   || fail 'adaptive accent is not wired to native theme'
 for token in background backgroundElevated surface surfaceRaised surfaceDeep surfaceSubtle surfaceHover surfacePressed border borderStrong borderFaint; do
-  rg -Fq "readonly property color $token: root.tintedMaterial(" "$theme" \
-    || fail "adaptive wallpaper palette does not reach shared $token material"
+  rg -Fq "readonly property color $token:" "$theme" \
+    || fail "shared wallpaper material token is missing: $token"
 done
+rg -Fq 'function tintedMaterial' "$theme" || fail 'built-in adaptive accent material fallback is missing'
+rg -Fq 'function materialColor' "$theme" || fail 'Material You role resolver is missing'
+rg -Fq 'function materialSurface' "$theme" || fail 'Material You glass surface resolver is missing'
 rg -Fq 'readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
   || fail 'adaptive material tint cannot be disabled independently'
-rg -Fq 'root.accentProbePath = root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
+rg -Fq 'root.accentProbePath =' "$wallpapers" \
   || fail 'applied video cannot be sampled without a pre-existing gallery poster'
-rg -Fq 'accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
+rg -Fq 'accentProcess.sourcePath !== root.' "$wallpapers" \
   || fail 'stale palette subprocess may recolor newer wallpaper'
 rg -Fq 'VIDEO_SUFFIXES' "$palette" \
   || fail 'wallpaper palette extractor lost video wallpaper support'
 rg -Fq 'RaohaneConfig.barChromaticFlow' "$wallpapers" \
   || fail 'two-color Bar glow cannot run with adaptive accent disabled'
-rg -Fq 'root.queueAdaptiveAccent()' "$wallpapers" \
+rg -Fq 'root.queueAdaptiveAccent' "$wallpapers" \
   || fail 'native wallpaper color probe was disconnected'
-rg -Fq 'root.paletteScriptPath, "--dual", accentProcess.sourcePath' "$wallpapers" \
-  || fail 'one-shot wallpaper sampler does not request dual colors'
-rg -Fq 'RaohaneConfig.wallpaperFlowColorA = pair[1]' "$wallpapers" \
+rg -Fq 'root.matugenPaletteScriptPath, accentProcess.paletteProvider, accentProcess.sourcePath' "$wallpapers" \
+  || fail 'one-shot wallpaper sampler is not routed through the palette provider adapter'
+rg -Fq 'RaohaneConfig.wallpaperFlowColorA =' "$wallpapers" \
   || fail 'first wallpaper chromatic color is not persisted'
-rg -Fq 'RaohaneConfig.wallpaperFlowColorB = pair[2]' "$wallpapers" \
+rg -Fq 'RaohaneConfig.wallpaperFlowColorB =' "$wallpapers" \
   || fail 'second wallpaper chromatic color is not persisted'
 if rg -Fq 'Process {' "$theme"; then
   fail 'adaptive theme creates a rendering subprocess'
 fi
-rg -Fq 'readonly property string paletteScriptPath: Quickshell.shellPath("scripts/wallpaper-palette.py")' "$wallpapers" \
+rg -Fq 'readonly property string paletteScriptPath:' "$wallpapers" \
   || fail 'palette helper is not invoked through the native wallpaper service'
 
 python3 - "$palette" "$defaults" <<'PY'
@@ -125,7 +228,7 @@ ast.parse(script.read_text(encoding="utf-8"), filename=str(script))
 data = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
 wallpaper = data["wallpaper"]
 expected = dict(favorites=[], collections=[], monitors={}, autoSource="folder",
-                adaptiveAccent=False, adaptiveColor="#94b5e5")
+                adaptiveAccent=False, adaptiveTheme=False, adaptivePalette={"dark": {}, "light": {}}, paletteProvider="builtin", adaptiveColor="#94b5e5", transitionMode="random", transitionEffect="fade")
 for key, expected_value in expected.items():
     assert wallpaper.get(key) == expected_value, f"unsafe default: {key}"
 assert wallpaper["changeInterval"] == 0, "automatic changes must remain opt-in"

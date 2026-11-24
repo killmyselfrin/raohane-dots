@@ -58,6 +58,7 @@ Variants {
         property string currentPath: ""
         property string previousPath: ""
         property real transitionProgress: 1.0
+        property string activeTransitionType: "fade"
 
         readonly property bool currentIsVideo: RaohaneWallpapers.isVideo(currentPath)
         readonly property bool previewingVideo: currentIsVideo
@@ -70,8 +71,15 @@ Variants {
         readonly property int transitionDuration: RaohaneMotion.panelMotionEnabled
             ? Math.round(RaohaneConfig.wallpaperTransitionDuration * RaohaneTheme.motionScale) : 0
 
+        function chooseTransitionType(): string {
+            if (RaohaneConfig.wallpaperTransitionMode === "custom")
+                return RaohaneConfig.wallpaperTransitionEffect
+            const choices = ["fade", "wipe", "circle", "dissolve"]
+            return choices[Math.floor(Math.random() * choices.length)]
+        }
+
         function switchToRequestedPath(): void {
-            // Finish the current dissolve, then consume the latest request.
+            // Finish the current transition, then consume the latest request.
             // Rapid selections do not promote a half-visible frame to the back layer.
             if (transitionAnimation.running)
                 return
@@ -87,6 +95,7 @@ Variants {
             transitionAnimation.stop()
             previousPath = currentPath
             currentPath = requestedPath
+            activeTransitionType = chooseTransitionType()
 
             if (transitionDuration <= 0 || previousPath.length === 0 || currentPath.length === 0) {
                 previousPath = ""
@@ -168,18 +177,14 @@ Variants {
                 opacity: 1.0
             }
 
-            Image {
+            RaohaneWallpaperTransitionEffect {
                 id: currentImage
                 anchors.fill: parent
                 visible: backgroundWindow.currentPath.length > 0 && !backgroundWindow.currentIsVideo
                 source: backgroundWindow.currentPath.length > 0 && !backgroundWindow.currentIsVideo
-                    ? root.fileUrl(backgroundWindow.currentPath)
-                    : ""
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                cache: true
-                smooth: true
-                opacity: backgroundWindow.transitionProgress
+                    ? root.fileUrl(backgroundWindow.currentPath) : ""
+                effectType: backgroundWindow.activeTransitionType
+                progress: backgroundWindow.transitionProgress
             }
 
             Loader {
