@@ -22,13 +22,13 @@ for path in "$config" "$wallpapers" "$selector" "$background" "$theme" "$palette
   [[ -f "$path" ]] || fail "missing $path"
 done
 
-for key in wallpaperFavorites wallpaperCollections wallpaperMonitors wallpaperAutoSource wallpaperAdaptiveAccent wallpaperAdaptiveColor; do
+for key in wallpaperFavorites wallpaperCollections wallpaperMonitors wallpaperAutoSource wallpaperAdaptiveAccent wallpaperAdaptiveTheme wallpaperAdaptivePalette wallpaperAdaptiveColor; do
   rg -q "property (var|string|bool) $key:" "$config" || fail "missing native property $key"
 done
-for fn in sanitizeWallpaperPaths sanitizeWallpaperCollections sanitizeWallpaperMonitors wallpaperPathForScreen setWallpaperForScreen; do
+for fn in sanitizeWallpaperPaths sanitizeWallpaperCollections sanitizeWallpaperMonitors sanitizeWallpaperPalette wallpaperPathForScreen setWallpaperForScreen; do
   rg -Fq "function $fn(" "$config" || fail "missing sanitizer/API $fn"
 done
-for name in favorites collections monitors autoSource adaptiveAccent adaptiveColor; do
+for name in favorites collections monitors autoSource adaptiveAccent adaptiveTheme adaptivePalette adaptiveColor; do
   rg -Fq "$name: " "$config" || fail "wallpaper preferences not serialized: $name"
   rg -Fq "assignIfPresent(wallpaper, \"$name\"" "$config" || fail "wallpaper preferences not restored: $name"
 done
@@ -107,6 +107,38 @@ rg -Fq '"--dry-run"' "$matugen_adapter" || fail 'Matugen invocation must not run
 rg -Fq '"matugen", "image"' "$matugen_adapter" || fail 'Matugen image generation command is missing'
 rg -Fq 'builtin_pair' "$matugen_adapter" || fail 'built-in palette fallback is missing'
 rg -Fq 'Matugen · Material You' "$studio" || fail 'Matugen provider is not selectable in Wallpaper Studio'
+rg -Fq 'property bool wallpaperAdaptiveTheme: false' "$config" || fail 'full Material You theme toggle is missing'
+rg -Fq 'property var wallpaperAdaptivePalette: ({})' "$config" || fail 'Material You palette cache is missing'
+rg -Fq 'onWallpaperAdaptiveThemeChanged: scheduleSave()' "$config" || fail 'full palette toggle is not autosaved'
+rg -Fq 'onWallpaperAdaptivePaletteChanged: scheduleSave()' "$config" || fail 'Material You roles are not autosaved'
+rg -Fq 'Apply full Material You palette' "$studio" || fail 'full Material You theme toggle is missing from Wallpaper Studio'
+rg -Fq 'wallpaperAdaptiveThemeActive' "$theme" || fail 'RaohaneTheme does not expose full dynamic palette mode'
+for role in background surface_container surface_container_low surface_container_high surface_container_highest on_surface on_surface_variant primary secondary tertiary outline outline_variant error; do
+  rg -Fq "\\"$role\\"" "$theme" || fail "RaohaneTheme does not map Material role: $role"
+done
+
+# Matugen v4 JSON is nested under colors.dark / colors.light; validate both
+# schemes and ensure unknown or malformed values never enter the native palette.
+python3 - "$matugen_adapter" <<'PY'
+import importlib.util
+import sys
+spec = importlib.util.spec_from_file_location("matugen_palette", sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+fixture = {
+    "colors": {
+        "dark": {"primary": "#112233", "surface": "#101010", "on_surface": "#ffffff", "surface_container": "#222222"},
+        "light": {"primary": "#445566", "surface": "#fafafa", "on_surface": "#111111", "unknown": "#abcdef"},
+    }
+}
+dark = module.extract_scheme(fixture, "dark")
+light = module.extract_scheme(fixture, "light")
+assert dark["primary"] == "#112233" and dark["surface_container"] == "#222222"
+assert light["primary"] == "#445566" and light["surface"] == "#fafafa"
+assert "unknown" not in light
+print("wallpaper-studio-audit: Matugen dark/light role parsing OK")
+PY
+
 
 # QtMultimedia.MediaPlayer is not an Item and cannot contain QML objects.
 # The pause notification must be a sibling of MediaPlayer inside Item.
