@@ -462,6 +462,14 @@ Item {
                     font.weight: Font.DemiBold
                 }
 
+                Rectangle {
+                    visible: root.showDate
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: 18
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderStrong
+                }
+
                 Text {
                     visible: root.showDate
                     Layout.alignment: Qt.AlignHCenter
