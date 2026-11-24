@@ -12,9 +12,11 @@ import re
 import subprocess
 import sys
 import tempfile
+import shutil
 from pathlib import Path
 
 HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
+VIDEO_SUFFIXES = {".mp4", ".webm", ".mkv", ".mov", ".avi", ".m4v"}
 ROLES = (
     "primary", "on_primary", "primary_container", "on_primary_container",
     "secondary", "on_secondary", "secondary_container", "on_secondary_container",
@@ -55,6 +57,32 @@ def extract_scheme(payload, scheme):
             if valid_hex(value):
                 result[role] = value.lower()
     return result
+
+
+def matugen_source_image(image: Path, temporary: Path):
+    """Convert a video wallpaper to one bounded still frame for Matugen."""
+    if image.suffix.lower() not in VIDEO_SUFFIXES:
+        return image
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("ffmpeg is required for Matugen video wallpaper palettes")
+    output = temporary / "wallpaper-frame.png"
+    for second in ("5", "1", "0"):
+        command = [
+            ffmpeg, "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+            "-ss", second, "-i", str(image), "-map", "0:v:0",
+            "-frames:v", "1", "-an", "-sn",
+            "-vf", "scale=min(1280\\\\,iw):-2", str(output),
+        ]
+        try:
+            result = subprocess.run(
+                command, capture_output=True, timeout=6, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if result.returncode == 0 and output.is_file() and 0 < output.stat().st_size < 20_000_000:
+            return output
+    raise RuntimeError("could not extract a representative frame from the video wallpaper")
 
 
 def matugen_palette(image: Path):
