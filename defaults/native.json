@@ -9,6 +9,8 @@
     "changeInterval": 0,
     "hideWhenFullscreen": true,
     "transitionDuration": 650,
+    "transitionMode": "random",
+    "transitionEffect": "fade",
     "dim": 0.06,
     "lockDim": 0.28,
     "favorites": [],
