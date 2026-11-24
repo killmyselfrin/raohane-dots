@@ -388,6 +388,7 @@ Item {
         VerticalButton {
             icon: RaohaneNetwork.materialSymbol
             emphasized: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
+            capsuleTile: RaohaneConfig.barStylePreset === "capsule"
             onTriggered: root.requestControlCenter()
         }
     }
@@ -405,7 +406,8 @@ Item {
                 icon: RaohaneBluetooth.connected
                     ? "bluetooth_connected"
                     : (RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
-                emphasized: RaohaneBluetooth.connected
+                emphasized: RaohaneBluetooth.enabled
+                capsuleTile: RaohaneConfig.barStylePreset === "capsule"
                 onTriggered: RaohaneBluetooth.toggle()
             }
         }
@@ -430,7 +432,7 @@ Item {
             property date now: new Date()
 
             implicitWidth: 38
-            implicitHeight: root.showDate ? 48 : 36
+            implicitHeight: root.showDate ? (RaohaneConfig.barClockShowSeconds ? 70 : 58) : (RaohaneConfig.barClockShowSeconds ? 50 : 36)
 
             Timer {
                 interval: 1000
@@ -463,7 +465,7 @@ Item {
                 Text {
                     visible: root.showDate
                     Layout.alignment: Qt.AlignHCenter
-                    text: Qt.formatDate(verticalClock.now, "dd")
+                    text: Qt.formatDate(verticalClock.now, "dd MMM")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 7
                 }
@@ -479,6 +481,7 @@ Item {
                 : (RaohaneAudio.volume > 0.66 ? "volume_up"
                     : RaohaneAudio.volume > 0.05 ? "volume_down" : "volume_mute")
             emphasized: !RaohaneAudio.muted && RaohaneAudio.volume > 0
+            capsuleTile: RaohaneConfig.barStylePreset === "capsule"
             onTriggered: RaohaneAudio.toggleMute()
         }
     }
@@ -489,6 +492,7 @@ Item {
         VerticalButton {
             icon: "tune"
             emphasized: RaohaneState.controlCenterOpen
+            capsuleTile: RaohaneConfig.barStylePreset === "capsule"
             onTriggered: root.requestControlCenter()
         }
     }
@@ -498,6 +502,7 @@ Item {
 
         VerticalButton {
             icon: "power_settings_new"
+            capsuleTile: RaohaneConfig.barStylePreset === "capsule"
             onTriggered: RaohaneState.setPrimaryOpen("session", true)
         }
     }
@@ -526,13 +531,18 @@ Item {
         id: button
 
         property int badgeCount: 0
+        property bool capsuleTile: false
         signal triggered()
 
         implicitWidth: 36
         implicitHeight: 36
-        buttonSize: 36
+        buttonSize: capsuleTile ? 34 : 36
         iconSize: 16
-        transparentIdle: true
+        surfaceRadius: capsuleTile ? 11 : 11
+        idleColor: capsuleTile ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface
+        activeColor: capsuleTile ? RaohaneTheme.accent : RaohaneTheme.accentSoft
+        emphasizedIconColor: capsuleTile ? RaohaneTheme.text : RaohaneTheme.accent
+        transparentIdle: !capsuleTile
         onClicked: button.triggered()
 
         Rectangle {
