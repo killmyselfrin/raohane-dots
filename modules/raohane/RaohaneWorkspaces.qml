@@ -109,6 +109,7 @@ Item {
         readonly property var workspaceObject: root.workspaceForId(workspaceId)
         readonly property bool selected: root.activeWorkspaceId === workspaceId
         readonly property bool haloStyle: !verticalMode && RaohaneConfig.barStylePreset === "halo"
+        readonly property bool capsuleStyle: verticalMode && RaohaneConfig.barStylePreset === "capsule"
         readonly property var windows: workspaceObject?.toplevels?.values ?? []
         readonly property bool occupied: windows.length > 0
         readonly property bool urgent: workspaceObject?.urgent ?? false
@@ -134,12 +135,12 @@ Item {
             return ids.join(", ")
         }
 
-        implicitWidth: root.workspaceStyle === "minimal" ? 18 : (verticalMode ? 30 : 26)
-        implicitHeight: root.workspaceStyle === "minimal" ? 22 : 26
+        implicitWidth: capsuleStyle ? 30 : root.workspaceStyle === "minimal" ? 18 : (verticalMode ? 30 : 26)
+        implicitHeight: capsuleStyle ? 38 : root.workspaceStyle === "minimal" ? 22 : 26
         Layout.alignment: Qt.AlignCenter
         Layout.preferredWidth: implicitWidth
         Layout.preferredHeight: implicitHeight
-        surfaceRadius: haloStyle ? 13 : RaohaneTheme.radiusSmall
+        surfaceRadius: haloStyle ? 13 : capsuleStyle ? 19 : RaohaneTheme.radiusSmall
         raised: false
         active: selected
         // In Halo, desktops are round status dots, with a soft highlight
@@ -151,7 +152,7 @@ Item {
         activeColor: haloStyle
             ? Qt.rgba(RaohaneTheme.accent.r, RaohaneTheme.accent.g,
                 RaohaneTheme.accent.b, 0.27)
-            : RaohaneTheme.accentSoft
+            : capsuleStyle ? "transparent" : RaohaneTheme.accentSoft
         hovered: workspaceMouse.containsMouse
         pressed: workspaceMouse.pressed
         interactive: true
@@ -243,8 +244,11 @@ Item {
         Rectangle {
             visible: root.workspaceStyle === "dots" || root.workspaceStyle === "minimal"
             anchors.centerIn: parent
-            width: workspaceButton.selected ? (root.workspaceStyle === "minimal" ? 12 : 10) : 6
-            height: root.workspaceStyle === "minimal" ? 3 : 6
+            width: workspaceButton.capsuleStyle ? 12
+                : workspaceButton.selected ? (root.workspaceStyle === "minimal" ? 12 : 10) : 6
+            height: workspaceButton.capsuleStyle
+                ? (workspaceButton.selected ? 28 : 8)
+                : root.workspaceStyle === "minimal" ? 3 : 6
             radius: height / 2
             color: workspaceButton.urgent ? RaohaneTheme.critical
                 : workspaceButton.selected ? RaohaneTheme.accent
@@ -253,7 +257,8 @@ Item {
             opacity: workspaceButton.selected || workspaceButton.urgent ? 1
                 : workspaceButton.occupied ? 0.72 : 0.34
 
-            Behavior on width { enabled: RaohaneMotion.transformMotionEnabled; NumberAnimation { duration: RaohaneMotion.micro } }
+            Behavior on width { enabled: RaohaneMotion.transformMotionEnabled; SpringAnimation { spring: 3.2; damping: 0.28 } }
+            Behavior on height { enabled: RaohaneMotion.transformMotionEnabled; SpringAnimation { spring: 3.2; damping: 0.28 } }
             Behavior on color { ColorAnimation { duration: RaohaneMotion.micro } }
             Behavior on opacity { NumberAnimation { duration: RaohaneMotion.micro } }
         }
