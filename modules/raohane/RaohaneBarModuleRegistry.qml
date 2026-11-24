@@ -51,7 +51,7 @@ QtObject {
             role: "system",
             preferredZone: "right",
             horizontal: true,
-            vertical: false
+            vertical: true
         },
         "system": {
             icon: "wifi",
