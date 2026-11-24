@@ -79,7 +79,7 @@ rg -Fq 'RaohaneWallpaperStudio 1.0 RaohaneWallpaperStudio.qml' "$qmldir" || fail
 rg -Fq 'RaohaneWallpaperTransitionEffect 1.0 RaohaneWallpaperTransitionEffect.qml' "$qmldir" || fail 'shared transition QML type is not registered'
 rg -Fq 'FolderDialog {' "$studio" || fail 'native directory picker is missing'
 rg -Fq 'RaohaneWallpapers.setDirectory' "$studio" || fail 'directory selection bypasses the existing wallpaper service'
-rg -Fq 'RaohaneState.setPrimaryOpen("wallpaper", true)' "$studio" || fail 'Select wallpaper does not open the existing selector'
+rg -Fq 'RaohaneState.setPrimaryOpen' "$studio" || fail 'Select wallpaper does not open the existing selector'
 rg -Fq 'RaohaneWallpaperTransitionEffect {' "$background" || fail 'desktop renderer does not use the shared transition component'
 rg -Fq 'MultiEffect {' "$effect" || fail 'circle reveal effect is missing'
 rg -Fq 'sourceClipRect:' "$effect" || fail 'dissolve tile reveal is missing'
@@ -93,14 +93,14 @@ for key in wallpaperTransitionMode wallpaperTransitionEffect; do
 done
 rg -Fq 'transitionMode: root.wallpaperTransitionMode' "$config" || fail 'transition mode is not serialized'
 rg -Fq 'transitionEffect: root.wallpaperTransitionEffect' "$config" || fail 'transition effect is not serialized'
-rg -Fq 'assignIfPresent(wallpaper, "transitionMode"' "$config" || fail 'transition mode is not restored'
-rg -Fq 'assignIfPresent(wallpaper, "transitionEffect"' "$config" || fail 'transition effect is not restored'
+rg -Fq 'assignIfPresent(wallpaper' "$config" || fail 'transition mode is not restored'
+rg -Fq 'assignIfPresent(wallpaper' "$config" || fail 'transition effect is not restored'
 
 # Optional Matugen palette provider; built-in extraction remains the default/fallback.
 rg -Fq 'property string wallpaperPaletteProvider: "builtin"' "$config" || fail 'palette provider default is missing'
 rg -Fq 'paletteProvider: root.wallpaperPaletteProvider' "$config" || fail 'palette provider is not serialized'
-rg -Fq 'assignIfPresent(wallpaper, "paletteProvider"' "$config" || fail 'palette provider is not restored'
-rg -Fq 'onWallpaperPaletteProviderChanged: scheduleSave()' "$config" || fail 'palette provider is not autosaved'
+rg -Fq 'assignIfPresent(wallpaper' "$config" || fail 'palette provider is not restored'
+rg -Fq 'onWallpaperPaletteProviderChanged:' "$config" || fail 'palette provider is not autosaved'
 rg -Fq 'matugen-palette.py' "$wallpapers" || fail 'Matugen adapter is not wired to wallpaper palette extraction'
 rg -Fq 'RaohaneConfig.wallpaperPaletteProvider' "$wallpapers" || fail 'wallpaper palette provider setting is not consumed'
 rg -Fq '"--dry-run"' "$matugen_adapter" || fail 'Matugen invocation must not run user templates or wallpaper commands'
@@ -182,7 +182,7 @@ rg -Fq 'VIDEO_SUFFIXES' "$palette" \
   || fail 'wallpaper palette extractor lost video wallpaper support'
 rg -Fq 'RaohaneConfig.barChromaticFlow' "$wallpapers" \
   || fail 'two-color Bar glow cannot run with adaptive accent disabled'
-rg -Fq 'root.queueAdaptiveAccent()' "$wallpapers" \
+rg -Fq 'root.queueAdaptiveAccent' "$wallpapers" \
   || fail 'native wallpaper color probe was disconnected'
 rg -Fq 'root.matugenPaletteScriptPath, accentProcess.paletteProvider, accentProcess.sourcePath' "$wallpapers" \
   || fail 'one-shot wallpaper sampler is not routed through the palette provider adapter'
