@@ -376,7 +376,7 @@ Item {
 
             RaohaneSurface {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 88
+                Layout.preferredHeight: 132
                 surfaceRadius: 12
                 showSheen: false
                 idleColor: RaohaneTheme.surfaceSubtle
@@ -429,6 +429,56 @@ Item {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: RaohaneConfig.wallpaperPaletteProvider = modelData.id
+                                }
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+                            Text {
+                                text: qsTr("Apply full Material You palette")
+                                color: RaohaneTheme.text
+                                font.pixelSize: 8
+                                font.weight: Font.DemiBold
+                            }
+                            Text {
+                                text: qsTr("Recolor backgrounds, glass, borders and text")
+                                color: RaohaneTheme.textMuted
+                                font.pixelSize: 7
+                            }
+                        }
+                        RaohaneSurface {
+                            Layout.preferredWidth: 46
+                            Layout.preferredHeight: 24
+                            surfaceRadius: 12
+                            active: RaohaneConfig.wallpaperAdaptiveTheme
+                            showSheen: false
+                            activeColor: RaohaneTheme.accent
+                            activeBorderColor: "transparent"
+                            Rectangle {
+                                width: 16
+                                height: 16
+                                radius: 8
+                                y: 4
+                                x: parent.active ? parent.width - width - 4 : 4
+                                color: parent.active ? RaohaneTheme.text : RaohaneTheme.textMuted
+                                Behavior on x {
+                                    enabled: RaohaneMotion.transformMotionEnabled
+                                    NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+                                }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (!RaohaneConfig.wallpaperAdaptiveTheme)
+                                        RaohaneConfig.wallpaperPaletteProvider = "matugen"
+                                    RaohaneConfig.wallpaperAdaptiveTheme = !RaohaneConfig.wallpaperAdaptiveTheme
                                 }
                             }
                         }
