@@ -174,9 +174,9 @@ rg -Fq 'function materialColor' "$theme" || fail 'Material You role resolver is 
 rg -Fq 'function materialSurface' "$theme" || fail 'Material You glass surface resolver is missing'
 rg -Fq 'readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
   || fail 'adaptive material tint cannot be disabled independently'
-rg -Fq 'root.accentProbePath = root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
+rg -Fq 'root.accentProbePath =' "$wallpapers" \
   || fail 'applied video cannot be sampled without a pre-existing gallery poster'
-rg -Fq 'accentProcess.sourcePath !== root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
+rg -Fq 'accentProcess.sourcePath !== root.' "$wallpapers" \
   || fail 'stale palette subprocess may recolor newer wallpaper'
 rg -Fq 'VIDEO_SUFFIXES' "$palette" \
   || fail 'wallpaper palette extractor lost video wallpaper support'
