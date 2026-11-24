@@ -4,5 +4,19 @@
   "Matugen · Material You": "Matugen · Material You",
   "Apply full Material You palette": "Применять полную палитру Material You",
   "Recolor backgrounds, glass, borders and text": "Перекрашивать фон, стеклянные поверхности, границы и текст",
-  "Waiting for Matugen palette · install Matugen or choose another wallpaper": "Ожидание палитры Matugen · установите Matugen или выберите другие обои"
+  "Waiting for Matugen palette · install Matugen or choose another wallpaper": "Ожидание палитры Matugen · установите Matugen или выберите другие обои",
+  "%1 ms": "%1 мс",
+  "A quiet crossfade": "Плавное затухание",
+  "Break into soft pixel blocks": "Растворение на мягкие пиксельные блоки",
+  "Choose how the next wallpaper is revealed": "Выберите эффект появления следующих обоев",
+  "Choose wallpaper directory": "Выберите папку с обоями",
+  "Current wallpaper, library and transition effects": "Текущие обои, библиотека и эффекты перехода",
+  "Custom set": "Свой набор",
+  "Dissolve": "Растворение",
+  "Expand from the center": "Раскрытие из центра",
+  "Fade": "Затухание",
+  "Reveal from left to right": "Появление слева направо",
+  "Transition": "Переход",
+  "Wallpaper preview unavailable": "Предпросмотр обоев недоступен",
+  "Wipe": "Шторка"
 }
