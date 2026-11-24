@@ -114,7 +114,7 @@ rg -Fq 'onWallpaperAdaptivePaletteChanged: scheduleSave()' "$config" || fail 'Ma
 rg -Fq 'Apply full Material You palette' "$studio" || fail 'full Material You theme toggle is missing from Wallpaper Studio'
 rg -Fq 'wallpaperAdaptiveThemeActive' "$theme" || fail 'RaohaneTheme does not expose full dynamic palette mode'
 for role in background surface_container surface_container_low surface_container_high surface_container_highest on_surface on_surface_variant primary secondary tertiary outline outline_variant error; do
-  rg -Fq "\\"$role\\"" "$theme" || fail "RaohaneTheme does not map Material role: $role"
+  rg -Fq "\"$role\"" "$theme" || fail "RaohaneTheme does not map Material role: $role"
 done
 
 # Matugen v4 JSON is nested under colors.dark / colors.light; validate both
