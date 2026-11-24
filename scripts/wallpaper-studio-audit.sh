@@ -169,9 +169,9 @@ for token in background backgroundElevated surface surfaceRaised surfaceDeep sur
   rg -Fq "readonly property color $token:" "$theme" \
     || fail "shared wallpaper material token is missing: $token"
 done
-rg -Fq 'function tintedMaterial(' "$theme" || fail 'built-in adaptive accent material fallback is missing'
-rg -Fq 'function materialColor(' "$theme" || fail 'Material You role resolver is missing'
-rg -Fq 'function materialSurface(' "$theme" || fail 'Material You glass surface resolver is missing'
+rg -Fq 'function tintedMaterial' "$theme" || fail 'built-in adaptive accent material fallback is missing'
+rg -Fq 'function materialColor' "$theme" || fail 'Material You role resolver is missing'
+rg -Fq 'function materialSurface' "$theme" || fail 'Material You glass surface resolver is missing'
 rg -Fq 'readonly property bool adaptivePaletteActive: RaohaneConfig.wallpaperAdaptiveAccent' "$theme" \
   || fail 'adaptive material tint cannot be disabled independently'
 rg -Fq 'root.accentProbePath = root.cleanPath(RaohaneConfig.wallpaperPath)' "$wallpapers" \
