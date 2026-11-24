@@ -127,6 +127,7 @@ Item {
         if (root.vertical) {
             switch (id) {
             case "launcher": return verticalLauncherComponent
+            case "tray": return verticalTrayComponent
             case "workspaces": return verticalWorkspacesComponent
             case "context": return verticalContextComponent
             case "network": return verticalNetworkComponent
@@ -325,6 +326,15 @@ Item {
     }
 
     Component {
+        id: verticalTrayComponent
+
+        RaohaneSysTray {
+            parentWindow: root.parentWindow
+            orientation: "vertical"
+        }
+    }
+
+    Component {
         id: verticalWorkspacesComponent
 
         RaohaneWorkspaces {
@@ -336,13 +346,39 @@ Item {
     Component {
         id: verticalContextComponent
 
-        VerticalButton {
-            icon: RaohaneContext.icon
-            emphasized: RaohaneContext.mode === "recording"
-                || RaohaneContext.mode === "privacy"
-                || RaohaneContext.mode === "media"
-                || RaohaneContext.mode === "event"
-            onTriggered: root.activateContextPrimary()
+        ColumnLayout {
+            spacing: 3
+
+            VerticalButton {
+                icon: RaohaneContext.icon
+                emphasized: RaohaneContext.mode === "recording"
+                    || RaohaneContext.mode === "privacy"
+                    || RaohaneContext.mode === "media"
+                    || RaohaneContext.mode === "event"
+                onTriggered: root.activateContextPrimary()
+            }
+
+            VerticalButton {
+                visible: RaohaneMedia.available
+                icon: "skip_previous"
+                enabled: RaohaneMedia.canGoPrevious
+                onTriggered: RaohaneMedia.previous()
+            }
+
+            VerticalButton {
+                visible: RaohaneMedia.available
+                icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
+                enabled: RaohaneMedia.canTogglePlaying
+                emphasized: RaohaneMedia.isPlaying
+                onTriggered: RaohaneMedia.togglePlaying()
+            }
+
+            VerticalButton {
+                visible: RaohaneMedia.available
+                icon: "skip_next"
+                enabled: RaohaneMedia.canGoNext
+                onTriggered: RaohaneMedia.next()
+            }
         }
     }
 
@@ -419,7 +455,7 @@ Item {
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     text: Qt.formatTime(verticalClock.now, "mm")
-                    color: RaohaneTheme.text
+                    color: RaohaneConfig.barStylePreset === "capsule" ? RaohaneTheme.accent : RaohaneTheme.text
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
                 }
