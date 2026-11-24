@@ -112,12 +112,13 @@ def main():
     if provider == "matugen":
         try:
             palettes = matugen_palette(image)
+            primary = palettes["dark"]["primary"]
+            secondary = palettes["dark"].get("secondary") or palettes["dark"].get("tertiary") or primary
         except (OSError, subprocess.SubprocessError, ValueError, json.JSONDecodeError) as error:
             print(f"[Raohane] Matugen unavailable or failed; using built-in palette: {error}", file=sys.stderr)
-    primary, secondary = builtin_pair(image, script)
-    if palettes.get("dark"):
-        primary = palettes["dark"].get("primary", primary)
-        secondary = palettes["dark"].get("secondary", palettes["dark"].get("tertiary", secondary))
+            primary, secondary = builtin_pair(image, script)
+    else:
+        primary, secondary = builtin_pair(image, script)
     print(json.dumps({
         "provider": provider if palettes else "builtin",
         "primary": primary,
