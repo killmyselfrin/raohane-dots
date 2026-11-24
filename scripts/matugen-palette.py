@@ -11,6 +11,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
@@ -57,11 +58,16 @@ def extract_scheme(payload, scheme):
 
 
 def matugen_palette(image: Path):
-    command = [
-        "matugen", "image", str(image),
-        "--json", "hex", "--dry-run",
-    ]
-    result = subprocess.run(command, capture_output=True, text=True, timeout=45, check=False)
+    # Use an isolated empty config: Matugen must not load, execute, or modify
+    # templates/hooks/wallpaper commands from the user's personal config.
+    with tempfile.TemporaryDirectory(prefix="raohane-matugen-") as temporary:
+        config = Path(temporary) / "config.toml"
+        config.write_text("[config]\\n", encoding="utf-8")
+        command = [
+            "matugen", "image", str(image),
+            "--json", "hex", "--dry-run", "-c", str(config),
+        ]
+        result = subprocess.run(command, capture_output=True, text=True, timeout=45, check=False)
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or f"matugen exited with {result.returncode}")
     output = result.stdout.strip()
