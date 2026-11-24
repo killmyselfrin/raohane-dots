@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+<title id="title">Raohane Wallpaper Studio — Material preview</title>
+<desc id="desc">A conceptual dark glass wallpaper studio interface with a wallpaper hero, collection browser, transition choices and Matugen color palette.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#11151e"/><stop offset=".55" stop-color="#202435"/><stop offset="1" stop-color="#302b42"/></linearGradient>
+  <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#657c9d"/><stop offset=".45" stop-color="#b58ca9"/><stop offset="1" stop-color="#e2bda0"/></linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#303746" stop-opacity=".96"/><stop offset="1" stop-color="#222936" stop-opacity=".96"/></linearGradient>
+  <linearGradient id="thumb1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9e8ea9"/><stop offset="1" stop-color="#35475e"/></linearGradient>
+  <linearGradient id="thumb2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d0a58f"/><stop offset="1" stop-color="#5e667e"/></linearGradient>
+  <linearGradient id="thumb3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7d9b94"/><stop offset="1" stop-color="#293e48"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feGaussianBlur stdDeviation="18"/></filter>
+  <style>
+    .ui{font-family:Inter,ui-sans-serif,system-ui,sans-serif;fill:#f3f0f8}.muted{fill:#aeb5c5}.small{font-size:14px}.label{font-size:12px;letter-spacing:1.5px;fill:#b6b7c8}.heading{font-size:25px;font-weight:650}.panel{fill:url(#glass);stroke:#ffffff;stroke-opacity:.09;stroke-width:1.2}.chip{fill:#41495b;stroke:#ffffff;stroke-opacity:.09}.accent{fill:#c6b8f2}
+  </style>
+</defs>
+<rect width="1440" height="900" rx="28" fill="url(#bg)"/>
+<circle cx="1120" cy="110" r="260" fill="#9e8cc7" opacity=".12" filter="url(#shadow)"/>
+<rect x="24" y="24" width="1392" height="852" rx="26" fill="#151a24" stroke="#ffffff" stroke-opacity=".13"/>
+<!-- rail -->
+<rect x="24" y="24" width="88" height="852" rx="26" fill="#1b202c"/>
+<path d="M88 24h0v852" stroke="#ffffff" stroke-opacity=".08"/>
+<rect x="48" y="48" width="40" height="40" rx="14" fill="#c4b5ec"/>
+<path d="M58 68l10-10 10 10-10 10z" fill="#29253a"/>
+<g fill="#8f98aa">
+ <rect x="54" y="132" width="28" height="28" rx="9"/><rect x="54" y="188" width="28" height="28" rx="9"/><rect x="54" y="244" width="28" height="28" rx="9"/><rect x="54" y="300" width="28" height="28" rx="9"/>
+</g>
+<rect x="46" y="290" width="44" height="48" rx="13" fill="#514968"/>
+<path d="M59 312h18M68 303v18" stroke="#e5dcff" stroke-width="2" stroke-linecap="round"/>
+<circle cx="68" cy="824" r="15" fill="#41495b"/><circle cx="68" cy="824" r="6" fill="#c7b9ed"/>
+<!-- top bar -->
+<text x="144" y="70" class="ui" font-size="15" font-weight="650">RAOHANE <tspan class="muted" font-weight="400">/ PERSONALIZE</tspan></text>
+<text x="1370" y="70" text-anchor="end" class="muted small">WEDNESDAY  ·  09:41</text>
+<text x="144" y="130" class="ui heading">Wallpaper Studio</text>
+<text x="144" y="158" class="muted small">Shape the atmosphere of your desktop.</text>
+<rect x="1160" y="108" width="208" height="42" rx="21" fill="#c6b8f2"/>
+<text x="1264" y="134" text-anchor="middle" font-size="14" font-weight="650" fill="#282337" class="ui">＋  Add wallpaper</text>
+<!-- hero -->
+<rect x="144" y="184" width="822" height="340" rx="22" fill="url(#hero)"/>
+<path d="M144 420 Q300 335 430 400T720 370T966 390V524H144Z" fill="#29364b" opacity=".5"/>
+<path d="M144 455 Q320 365 490 442T790 410T966 440V524H144Z" fill="#202b3b" opacity=".65"/>
+<circle cx="770" cy="280" r="58" fill="#f2d8c7" opacity=".76"/>
+<path d="M144 475 Q300 420 440 468T740 450T966 468V524H144Z" fill="#17212e" opacity=".55"/>
+<rect x="164" y="204" width="118" height="28" rx="14" fill="#171c29" fill-opacity=".52"/>
+<text x="223" y="223" text-anchor="middle" class="ui small">NOW PLAYING</text>
+<text x="174" y="456" class="ui" font-size="25" font-weight="650">Quiet horizon</text>
+<text x="174" y="482" class="ui small" opacity=".9">Anime collection  ·  16:9  ·  4K</text>
+<rect x="814" y="458" width="130" height="44" rx="22" fill="#f1eafa"/>
+<text x="879" y="485" text-anchor="middle" fill="#282337" font-size="13" font-weight="650" class="ui">Change</text>
+<!-- right settings -->
+<rect x="990" y="184" width="378" height="340" rx="22" class="panel"/>
+<text x="1018" y="222" class="ui" font-size="17" font-weight="650">Color intelligence</text>
+<text x="1018" y="247" class="muted small">Wallpaper-derived palette</text>
+<rect x="1018" y="267" width="322" height="58" rx="15" fill="#242a38"/>
+<circle cx="1048" cy="296" r="12" fill="#c6b8f2"/><text x="1072" y="301" class="ui small">Matugen</text>
+<rect x="1274" y="281" width="48" height="28" rx="14" fill="#8c80b8"/><circle cx="1307" cy="295" r="10" fill="#f5f0ff"/>
+<text x="1018" y="356" class="label">PALETTE MODE</text>
+<rect x="1018" y="370" width="154" height="42" rx="13" fill="#4d4565"/><text x="1095" y="396" text-anchor="middle" class="ui small">Full theme</text>
+<rect x="1180" y="370" width="160" height="42" rx="13" class="chip"/><text x="1260" y="396" text-anchor="middle" class="muted small">Accent only</text>
+<g>
+ <rect x="1018" y="432" width="42" height="42" rx="12" fill="#e7d8d2"/><rect x="1068" y="432" width="42" height="42" rx="12" fill="#c6b8f2"/><rect x="1118" y="432" width="42" height="42" rx="12" fill="#9a91b9"/><rect x="1168" y="432" width="42" height="42" rx="12" fill="#69758b"/><rect x="1218" y="432" width="42" height="42" rx="12" fill="#394454"/><rect x="1268" y="432" width="42" height="42" rx="12" fill="#242b38"/>
+</g>
+<text x="1018" y="498" class="muted" font-size="11">Generated locally · safe fallback available</text>
+<!-- collection -->
+<text x="144" y="576" class="ui" font-size="19" font-weight="650">Your collection</text>
+<text x="144" y="600" class="muted small">Recently used wallpapers</text>
+<g>
+ <rect x="144" y="620" width="188" height="118" rx="15" fill="url(#thumb1)" stroke="#c6b8f2" stroke-width="3"/>
+ <circle cx="274" cy="656" r="20" fill="#f1d6c5" opacity=".75"/><path d="M144 700l68-42 55 38 65-30v72H144z" fill="#29384b" opacity=".75"/>
+ <rect x="348" y="620" width="188" height="118" rx="15" fill="url(#thumb2)"/><path d="M348 705l70-48 50 34 68-50v97H348z" fill="#41435b" opacity=".65"/>
+ <rect x="552" y="620" width="188" height="118" rx="15" fill="url(#thumb3)"/><path d="M552 704l58-56 58 44 72-58v104H552z" fill="#233943" opacity=".7"/>
+</g>
+<text x="144" y="765" class="ui small">Quiet horizon</text><text x="348" y="765" class="ui small">Afterglow</text><text x="552" y="765" class="ui small">Moss valley</text>
+<!-- transition panel -->
+<rect x="770" y="554" width="598" height="260" rx="22" class="panel"/>
+<text x="798" y="592" class="ui" font-size="18" font-weight="650">Transition preview</text>
+<text x="798" y="616" class="muted small">Choose how the next wallpaper arrives.</text>
+<g>
+ <rect x="798" y="638" width="126" height="104" rx="14" fill="#39475d" stroke="#c6b8f2" stroke-width="2"/>
+ <rect x="810" y="650" width="102" height="54" rx="8" fill="url(#thumb2)"/><path d="M810 689l38-25 24 18 40-24v46H810z" fill="#38435a"/>
+ <text x="861" y="726" text-anchor="middle" class="ui small">Fade</text>
+ <rect x="940" y="638" width="126" height="104" rx="14" class="chip"/><rect x="952" y="650" width="102" height="54" rx="8" fill="url(#thumb1)"/><path d="M952 704v-54h48v54z" fill="#d2a8b1" opacity=".8"/><text x="1003" y="726" text-anchor="middle" class="ui small">Wipe</text>
+ <rect x="1082" y="638" width="126" height="104" rx="14" class="chip"/><rect x="1094" y="650" width="102" height="54" rx="8" fill="url(#thumb3)"/><circle cx="1145" cy="677" r="25" fill="#d6b1bc" opacity=".8"/><text x="1145" y="726" text-anchor="middle" class="ui small">Circle</text>
+ <rect x="1224" y="638" width="126" height="104" rx="14" class="chip"/><rect x="1236" y="650" width="102" height="54" rx="8" fill="url(#thumb2)"/><path d="M1236 650h102v54H1236z" fill="#9a8bb5" opacity=".45"/><text x="1287" y="726" text-anchor="middle" class="ui small">Dissolve</text>
+</g>
+<text x="798" y="780" class="muted" font-size="12">Duration  ·  700 ms</text>
+<rect x="1122" y="766" width="218" height="7" rx="4" fill="#596174"/><rect x="1122" y="766" width="112" height="7" rx="4" fill="#c6b8f2"/><circle cx="1234" cy="769" r="9" fill="#e9e2f8"/>
+<text x="144" y="840" class="muted" font-size="12">CONCEPT PREVIEW  ·  NOT A LIVE QUICKSHELL SCREENSHOT</text>
+<text x="1368" y="840" text-anchor="end" class="muted" font-size="12">RAOHANE / WALLPAPER STUDIO</text>
+</svg>
