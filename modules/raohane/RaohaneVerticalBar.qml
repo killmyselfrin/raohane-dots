@@ -54,7 +54,8 @@ Scope {
             readonly property bool contentShown: !fullscreenSuppressed && mustShow
             readonly property string surfaceStyle: RaohaneConfig.barSurfaceStyle
             readonly property string groupStyle: RaohaneConfig.barGroupStyle
-            readonly property int barThickness: Math.max(48, Math.min(82, RaohaneConfig.barHeight + 18))
+            readonly property int barThickness: RaohaneConfig.barStylePreset === "capsule"
+                ? 58 : Math.max(48, Math.min(82, RaohaneConfig.barHeight + 18))
             readonly property int edgeOffset: surfaceStyle === "hug" || surfaceStyle === "panel"
                 ? 0
                 : Math.max(0, Math.min(16, Math.round(RaohaneConfig.barEdgeMargin / 3)))
