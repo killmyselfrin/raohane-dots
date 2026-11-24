@@ -119,7 +119,7 @@ rg -Fq 'onWallpaperAdaptiveThemeChanged:' "$config" || fail 'full palette toggle
 rg -Fq 'onWallpaperAdaptivePaletteChanged:' "$config" || fail 'Material You roles are not autosaved'
 rg -Fq 'Apply full Material You palette' "$studio" || fail 'full Material You theme toggle is missing from Wallpaper Studio'
 rg -Fq 'wallpaperAdaptiveThemeActive' "$theme" || fail 'RaohaneTheme does not expose full dynamic palette mode'
-for role in background surface_variant surface_container surface_container_low surface_container_high surface_container_highest on_surface on_surface_variant primary on_primary secondary on_secondary tertiary on_tertiary outline outline_variant error; do
+for role in background on_background surface surface_variant surface_dim surface_bright surface_container_lowest surface_container_low surface_container surface_container_high surface_container_highest on_surface on_surface_variant primary on_primary primary_container on_primary_container primary_fixed primary_fixed_dim on_primary_fixed on_primary_fixed_variant secondary on_secondary secondary_container on_secondary_container secondary_fixed secondary_fixed_dim on_secondary_fixed on_secondary_fixed_variant tertiary on_tertiary tertiary_container on_tertiary_container tertiary_fixed tertiary_fixed_dim on_tertiary_fixed on_tertiary_fixed_variant error on_error error_container on_error_container outline outline_variant inverse_surface inverse_on_surface inverse_primary surface_tint; do
   rg -Fq "\"$role\"" "$theme" || fail "RaohaneTheme does not map Material role: $role"
 done
 
@@ -133,13 +133,14 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 fixture = {
     "colors": {
-        "dark": {"primary": "#112233", "surface": "#101010", "on_surface": "#ffffff", "surface_container": "#222222"},
+        "dark": {"primary": "#112233", "surface": "#101010", "on_surface": "#ffffff", "surface_container": "#222222", "primary_fixed": "#eeeeee", "on_primary_fixed": "#111111"},
         "light": {"primary": "#445566", "surface": "#fafafa", "on_surface": "#111111", "unknown": "#abcdef"},
     }
 }
 dark = module.extract_scheme(fixture, "dark")
 light = module.extract_scheme(fixture, "light")
 assert dark["primary"] == "#112233" and dark["surface_container"] == "#222222"
+assert dark["primary_fixed"] == "#eeeeee" and dark["on_primary_fixed"] == "#111111"
 assert light["primary"] == "#445566" and light["surface"] == "#fafafa"
 assert "unknown" not in light
 
