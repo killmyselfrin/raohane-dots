@@ -42,10 +42,9 @@ Item {
         RaohaneConfig.wallpaperTransitionMode = "custom"
     }
 
-    FileDialog {
+    FolderDialog {
         id: directoryDialog
         title: qsTr("Choose wallpaper directory")
-        fileMode: FileDialog.OpenDirectory
         onAccepted: RaohaneWallpapers.setDirectory(RaohaneWallpapers.cleanPath(selectedFolder))
     }
 
@@ -122,7 +121,7 @@ Item {
                             RowLayout {
                                 anchors.centerIn: parent
                                 spacing: 7
-                                RaohaneIcon { text: "wallpaper"; iconSize: 14; color: RaohaneTheme.onAccent }
+                                RaohaneIcon { text: "wallpaper"; iconSize: 14; color: RaohaneTheme.text }
                                 Text { text: qsTr("Select wallpaper"); color: RaohaneTheme.onAccent; font.pixelSize: 9; font.weight: Font.DemiBold }
                             }
                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.chooseWallpaper() }
