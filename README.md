@@ -71,6 +71,12 @@ See [capture details, wallpaper licenses and credits](assets/screenshots/README.
 </tr>
 </table>
 
+## Wallpaper Studio — visual direction
+
+The preview below is a **design concept**, not a screenshot of the running shell. It illustrates the intended Material-inspired layout: a current-wallpaper hero, collection browser, transition presets, and an optional Matugen palette provider. Runtime behaviour and implementation details are documented in [Wallpaper Studio redesign](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md).
+
+<p align="center"><img src="assets/showcase/wallpaper-studio-material-preview.svg" alt="Conceptual Raohane Wallpaper Studio with wallpaper collections, transition previews and Matugen palette controls" width="100%"></p>
+
 ## Features
 
 | Area | What you can do |
