@@ -62,6 +62,8 @@ def extract_scheme(payload, scheme):
 def matugen_source_image(image: Path, temporary: Path):
     """Convert a video wallpaper to one bounded still frame for Matugen."""
     if image.suffix.lower() not in VIDEO_SUFFIXES:
+        if image.stat().st_size > 200_000_000:
+            raise RuntimeError("wallpaper image exceeds the 200 MB Matugen sampling limit")
         return image
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
