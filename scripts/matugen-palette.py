@@ -93,13 +93,16 @@ def matugen_source_image(image: Path, temporary: Path):
 def matugen_palette(image: Path):
     # Use an isolated empty config: Matugen must not load, execute, or modify
     # templates/hooks/wallpaper commands from the user's personal config.
+    binary = shutil.which("matugen")
+    if not binary:
+        raise FileNotFoundError("matugen executable was not found")
     with tempfile.TemporaryDirectory(prefix="raohane-matugen-") as temporary:
         temporary_path = Path(temporary)
         config = temporary_path / "config.toml"
         config.write_text("[config]\n", encoding="utf-8")
         source_image = matugen_source_image(image, temporary_path)
         command = [
-            "matugen", "image", str(source_image),
+            binary, "image", str(source_image),
             "--json", "hex", "--dry-run", "--source-color-index", "0", "-c", str(config),
         ]
         result = subprocess.run(command, capture_output=True, text=True, timeout=45, check=False)
