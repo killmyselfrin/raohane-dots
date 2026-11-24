@@ -482,6 +482,7 @@ Item {
                                 }
                             }
                         }
+                    }
                     Text {
                         Layout.fillWidth: true
                         visible: RaohaneConfig.wallpaperAdaptiveTheme && !RaohaneTheme.wallpaperAdaptiveThemeActive
@@ -489,7 +490,6 @@ Item {
                         color: RaohaneTheme.warning
                         font.pixelSize: 7
                         wrapMode: Text.WordWrap
-                    }
                     }
                 }
             }
