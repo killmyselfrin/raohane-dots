@@ -93,19 +93,19 @@ for key in wallpaperTransitionMode wallpaperTransitionEffect; do
 done
 rg -Fq 'transitionMode: root.wallpaperTransitionMode' "$config" || fail 'transition mode is not serialized'
 rg -Fq 'transitionEffect: root.wallpaperTransitionEffect' "$config" || fail 'transition effect is not serialized'
-rg -Fq 'assignIfPresent(wallpaper' "$config" || fail 'transition mode is not restored'
-rg -Fq 'assignIfPresent(wallpaper' "$config" || fail 'transition effect is not restored'
+rg -Fq 'wallpaper, "transitionMode"' "$config" || fail 'transition mode is not restored'
+rg -Fq 'wallpaper, "transitionEffect"' "$config" || fail 'transition effect is not restored'
 
 # Optional Matugen palette provider; built-in extraction remains the default/fallback.
 rg -Fq 'property string wallpaperPaletteProvider: "builtin"' "$config" || fail 'palette provider default is missing'
 rg -Fq 'paletteProvider: root.wallpaperPaletteProvider' "$config" || fail 'palette provider is not serialized'
-rg -Fq 'assignIfPresent(wallpaper' "$config" || fail 'palette provider is not restored'
+rg -Fq 'wallpaper, "paletteProvider"' "$config" || fail 'palette provider is not restored'
 rg -Fq 'onWallpaperPaletteProviderChanged:' "$config" || fail 'palette provider is not autosaved'
 rg -Fq 'matugen-palette.py' "$wallpapers" || fail 'Matugen adapter is not wired to wallpaper palette extraction'
 rg -Fq 'RaohaneConfig.wallpaperPaletteProvider' "$wallpapers" || fail 'wallpaper palette provider setting is not consumed'
 rg -Fq '"--dry-run"' "$matugen_adapter" || fail 'Matugen invocation must not run user templates or wallpaper commands'
 rg -Fq 'tempfile.TemporaryDirectory' "$matugen_adapter" || fail 'Matugen must use an isolated temporary config'
-rg -Fq '"-c", str(config)' "$matugen_adapter" || fail 'Matugen must not read the user's config.toml'
+rg -Fq '"-c"' "$matugen_adapter" || fail 'Matugen must not read the user's config.toml'
 rg -Fq '"--source-color-index", "0"' "$matugen_adapter" || fail 'Matugen must choose a source color without an interactive prompt'
 rg -Fq '"matugen", "image"' "$matugen_adapter" || fail 'Matugen image generation command is missing'
 rg -Fq 'builtin_pair' "$matugen_adapter" || fail 'built-in palette fallback is missing'
