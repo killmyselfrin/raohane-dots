@@ -160,11 +160,11 @@ Item {
         hoverScale: 1
         pressedScale: 1
         showSheen: false
-        showInnerRim: selected
+        showInnerRim: selected && !capsuleStyle
         idleBorderColor: urgent ? RaohaneTheme.critical : "transparent"
         hoverBorderColor: urgent ? RaohaneTheme.critical : RaohaneTheme.borderStrong
         pressedBorderColor: urgent ? RaohaneTheme.critical : RaohaneTheme.borderStrong
-        activeBorderColor: urgent ? RaohaneTheme.critical : RaohaneTheme.accentBorder
+        activeBorderColor: urgent ? RaohaneTheme.critical : capsuleStyle ? "transparent" : RaohaneTheme.accentBorder
 
         Rectangle {
             visible: root.workspaceStyle === "numbers" && !workspaceButton.haloStyle
