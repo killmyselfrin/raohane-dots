@@ -89,10 +89,12 @@ def matugen_palette(image: Path):
     # Use an isolated empty config: Matugen must not load, execute, or modify
     # templates/hooks/wallpaper commands from the user's personal config.
     with tempfile.TemporaryDirectory(prefix="raohane-matugen-") as temporary:
-        config = Path(temporary) / "config.toml"
-        config.write_text("[config]\n", encoding="utf-8")
+        temporary_path = Path(temporary)
+        config = temporary_path / "config.toml"
+        config.write_text("[config]\\n", encoding="utf-8")
+        source_image = matugen_source_image(image, temporary_path)
         command = [
-            "matugen", "image", str(image),
+            "matugen", "image", str(source_image),
             "--json", "hex", "--dry-run", "--source-color-index", "0", "-c", str(config),
         ]
         result = subprocess.run(command, capture_output=True, text=True, timeout=45, check=False)
