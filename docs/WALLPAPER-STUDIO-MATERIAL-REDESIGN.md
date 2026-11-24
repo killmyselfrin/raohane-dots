@@ -29,7 +29,10 @@ Wallpaper Studio includes an optional **Matugen · Material You** palette provid
 - The provider supplies the color pair consumed by the existing wallpaper Adaptive Accent and Bar Chromatic Flow features; enable one of those features to see the generated colors applied. The built-in provider remains the default.
 - Raohane invokes `matugen image <wallpaper> --json hex --dry-run --mode dark` through an argument array (no shell interpolation). `--dry-run` prevents Matugen's own templates and wallpaper command from taking over Raohane's wallpaper pipeline.
 - If Matugen is missing, returns an unsupported JSON payload, or fails, the adapter logs a warning and falls back to the existing `wallpaper-palette.py` extractor.
-- The Matugen adapter currently supplies the primary/secondary accent pair to the existing Raohane color consumers. It does not replace the full Raohane theme-token system or overwrite user Matugen configuration/templates.
+- The Matugen adapter exports the Material You dark and light schemes as validated role maps. Enable **Apply full Material You palette** to map primary/secondary/tertiary, backgrounds, surface containers, outlines, text contrast and error roles into RaohaneTheme. Existing Raohane presets remain the fallback for any role not emitted by Matugen.
+- The full-palette toggle is independent of Adaptive Accent: the former recolors the full shell, while the latter remains available as an accent-only mode. The Bar Chromatic Flow colors continue to use the extracted primary/secondary pair.
+- Matugen v4 JSON is read from `colors.dark` and `colors.light`; only known Material roles and six-digit hex colors are accepted into native.json. Invalid or missing roles are ignored, not blindly applied.
+- The adapter does not replace the full Raohane theme-token system or overwrite user Matugen configuration/templates.
 
 ## Validation
 
