@@ -8,6 +8,7 @@ RaohaneSurface {
     property int iconSize: 17
     property bool emphasized: false
     property bool filledWhenActive: true
+    property color emphasizedIconColor: RaohaneTheme.accent
     signal clicked()
 
     implicitWidth: buttonSize
@@ -32,7 +33,7 @@ RaohaneSurface {
         symbolWeight: root.emphasized ? 560 : pointer.pressed ? 540 : pointer.containsMouse || root.activeFocus ? 500 : 430
         grade: root.emphasized ? 40 : pointer.containsMouse || root.activeFocus ? 20 : 0
         color: root.emphasized || pointer.containsMouse || root.activeFocus
-            ? RaohaneTheme.accent
+            ? root.emphasizedIconColor
             : RaohaneTheme.textMuted
         scale: root.transformMotionAllowed && pointer.pressed ? 0.94 : 1
 

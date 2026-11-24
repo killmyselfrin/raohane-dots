@@ -127,6 +127,7 @@ Item {
         if (root.vertical) {
             switch (id) {
             case "launcher": return verticalLauncherComponent
+            case "tray": return verticalTrayComponent
             case "workspaces": return verticalWorkspacesComponent
             case "context": return verticalContextComponent
             case "network": return verticalNetworkComponent
@@ -325,6 +326,15 @@ Item {
     }
 
     Component {
+        id: verticalTrayComponent
+
+        RaohaneSysTray {
+            parentWindow: root.parentWindow
+            orientation: "vertical"
+        }
+    }
+
+    Component {
         id: verticalWorkspacesComponent
 
         RaohaneWorkspaces {
@@ -336,13 +346,39 @@ Item {
     Component {
         id: verticalContextComponent
 
-        VerticalButton {
-            icon: RaohaneContext.icon
-            emphasized: RaohaneContext.mode === "recording"
-                || RaohaneContext.mode === "privacy"
-                || RaohaneContext.mode === "media"
-                || RaohaneContext.mode === "event"
-            onTriggered: root.activateContextPrimary()
+        ColumnLayout {
+            spacing: 3
+
+            VerticalButton {
+                icon: RaohaneContext.icon
+                emphasized: RaohaneContext.mode === "recording"
+                    || RaohaneContext.mode === "privacy"
+                    || RaohaneContext.mode === "media"
+                    || RaohaneContext.mode === "event"
+                onTriggered: root.activateContextPrimary()
+            }
+
+            VerticalButton {
+                visible: RaohaneMedia.available
+                icon: "skip_previous"
+                enabled: RaohaneMedia.canGoPrevious
+                onTriggered: RaohaneMedia.previous()
+            }
+
+            VerticalButton {
+                visible: RaohaneMedia.available
+                icon: RaohaneMedia.isPlaying ? "pause" : "play_arrow"
+                enabled: RaohaneMedia.canTogglePlaying
+                emphasized: RaohaneMedia.isPlaying
+                onTriggered: RaohaneMedia.togglePlaying()
+            }
+
+            VerticalButton {
+                visible: RaohaneMedia.available
+                icon: "skip_next"
+                enabled: RaohaneMedia.canGoNext
+                onTriggered: RaohaneMedia.next()
+            }
         }
     }
 
@@ -352,6 +388,7 @@ Item {
         VerticalButton {
             icon: RaohaneNetwork.materialSymbol
             emphasized: RaohaneNetwork.wifiConnected || RaohaneNetwork.ethernet
+            capsuleTile: RaohaneConfig.barStylePreset === "capsule"
             onTriggered: root.requestControlCenter()
         }
     }
@@ -369,7 +406,8 @@ Item {
                 icon: RaohaneBluetooth.connected
                     ? "bluetooth_connected"
                     : (RaohaneBluetooth.enabled ? "bluetooth" : "bluetooth_disabled")
-                emphasized: RaohaneBluetooth.connected
+                emphasized: RaohaneBluetooth.enabled
+                capsuleTile: RaohaneConfig.barStylePreset === "capsule"
                 onTriggered: RaohaneBluetooth.toggle()
             }
         }
@@ -394,7 +432,7 @@ Item {
             property date now: new Date()
 
             implicitWidth: 38
-            implicitHeight: root.showDate ? 48 : 36
+            implicitHeight: root.showDate ? (RaohaneConfig.barClockShowSeconds ? 70 : 58) : (RaohaneConfig.barClockShowSeconds ? 50 : 36)
 
             Timer {
                 interval: 1000
@@ -419,15 +457,23 @@ Item {
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     text: Qt.formatTime(verticalClock.now, "mm")
-                    color: RaohaneTheme.text
+                    color: RaohaneConfig.barStylePreset === "capsule" ? RaohaneTheme.accent : RaohaneTheme.text
                     font.pixelSize: 10
                     font.weight: Font.DemiBold
+                }
+
+                Rectangle {
+                    visible: root.showDate
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: 18
+                    Layout.preferredHeight: 1
+                    color: RaohaneTheme.borderStrong
                 }
 
                 Text {
                     visible: root.showDate
                     Layout.alignment: Qt.AlignHCenter
-                    text: Qt.formatDate(verticalClock.now, "dd")
+                    text: Qt.formatDate(verticalClock.now, "dd MMM")
                     color: RaohaneTheme.textMuted
                     font.pixelSize: 7
                 }
@@ -443,6 +489,7 @@ Item {
                 : (RaohaneAudio.volume > 0.66 ? "volume_up"
                     : RaohaneAudio.volume > 0.05 ? "volume_down" : "volume_mute")
             emphasized: !RaohaneAudio.muted && RaohaneAudio.volume > 0
+            capsuleTile: RaohaneConfig.barStylePreset === "capsule"
             onTriggered: RaohaneAudio.toggleMute()
         }
     }
@@ -453,6 +500,7 @@ Item {
         VerticalButton {
             icon: "tune"
             emphasized: RaohaneState.controlCenterOpen
+            capsuleTile: RaohaneConfig.barStylePreset === "capsule"
             onTriggered: root.requestControlCenter()
         }
     }
@@ -462,6 +510,7 @@ Item {
 
         VerticalButton {
             icon: "power_settings_new"
+            capsuleTile: RaohaneConfig.barStylePreset === "capsule"
             onTriggered: RaohaneState.setPrimaryOpen("session", true)
         }
     }
@@ -490,13 +539,18 @@ Item {
         id: button
 
         property int badgeCount: 0
+        property bool capsuleTile: false
         signal triggered()
 
         implicitWidth: 36
         implicitHeight: 36
-        buttonSize: 36
+        buttonSize: capsuleTile ? 34 : 36
         iconSize: 16
-        transparentIdle: true
+        surfaceRadius: capsuleTile ? 11 : 11
+        idleColor: capsuleTile ? RaohaneTheme.surfaceRaised : RaohaneTheme.surface
+        activeColor: capsuleTile ? RaohaneTheme.accent : RaohaneTheme.accentSoft
+        emphasizedIconColor: capsuleTile ? RaohaneTheme.text : RaohaneTheme.accent
+        transparentIdle: !capsuleTile
         onClicked: button.triggered()
 
         Rectangle {

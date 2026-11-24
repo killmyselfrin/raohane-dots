@@ -8,15 +8,19 @@ Item {
     id: root
 
     property var parentWindow: null
+    property string orientation: "horizontal"
+    readonly property bool vertical: orientation === "vertical"
 
     visible: SystemTray.items.values.length > 0
-    implicitWidth: trayRow.implicitWidth
-    implicitHeight: 30
+    implicitWidth: trayGrid.implicitWidth
+    implicitHeight: root.vertical ? trayGrid.implicitHeight : 30
 
-    RowLayout {
-        id: trayRow
+    GridLayout {
+        id: trayGrid
         anchors.centerIn: parent
-        spacing: RaohaneTheme.spacingTiny
+        columns: root.vertical ? 1 : Math.max(1, SystemTray.items.values.length)
+        rowSpacing: RaohaneTheme.spacingTiny
+        columnSpacing: RaohaneTheme.spacingTiny
 
         Repeater {
             model: SystemTray.items

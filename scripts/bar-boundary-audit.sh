@@ -87,10 +87,33 @@ rg -Fq 'id: "cinematic", label: qsTr("Cinematic")' "$bar_appearance" \
   || fail 'Cinematic preset missing from Bar Studio'
 rg -Fq 'RaohaneConfig.barStylePreset === "cinematic"' "$bar" \
   || fail 'Cinematic visual treatment is not active in native bar'
-rg -Fq '"cinematic", "halo", "orbit", "ribbon", "ink", "islands"' "$config" \
+rg -Fq '"cinematic", "halo", "capsule", "orbit", "ribbon", "ink", "islands"' "$config" \
   || fail 'Cinematic and Halo presets cannot be loaded from saved settings'
 rg -Fq 'RaohaneTheme.accentBorder' "$bar" \
   || fail 'Cinematic center island lost accent treatment'
+
+# Capsule is an opt-in vertical composition of the existing native Bar.
+# It must keep the shared module registry, MPRIS service and reduced-motion policy.
+rg -Fq 'id: "capsule", label: qsTr("Capsule")' "$bar_appearance" \\
+  || fail 'Capsule preset missing from Bar Studio'
+rg -Fq 'RaohaneConfig.barStylePreset === "capsule"' "$vertical" \\
+  || fail 'Capsule rail geometry is not active in the native vertical bar'
+rg -Fq 'RaohaneConfig.barStylePreset === "capsule"' modules/raohane/RaohaneWorkspaces.qml \\
+  || fail 'Capsule workspace morphing is not scoped to the preset'
+rg -Fq 'SpringAnimation { spring: 3.2; damping: 0.28 }' modules/raohane/RaohaneWorkspaces.qml \\
+  || fail 'Capsule workspace indicator lost spring motion'
+rg -Fq 'enabled: RaohaneMotion.transformMotionEnabled' modules/raohane/RaohaneWorkspaces.qml \\
+  || fail 'Capsule workspace motion bypasses the global motion policy'
+rg -Fq 'vertical: true' "$module_registry" \\
+  || fail 'vertical system-tray module support missing'
+rg -Fq 'orientation: "vertical"' modules/raohane/RaohaneBarModule.qml \\
+  || fail 'vertical system-tray host missing'
+for action in 'RaohaneMedia.previous()' 'RaohaneMedia.togglePlaying()' 'RaohaneMedia.next()'; do
+  rg -Fq "$action" modules/raohane/RaohaneBarModule.qml \\
+    || fail "Capsule MPRIS transport action missing: $action"
+done
+rg -Fq 'capsuleTile: RaohaneConfig.barStylePreset === "capsule"' modules/raohane/RaohaneBarModule.qml \\
+  || fail 'Capsule quick-tile styling is missing'
 
 # Halo stays an opt-in, single-surface variant of the existing horizontal Bar.
 # It must not fork module rendering, change the vertical Bar, or erase the
@@ -99,7 +122,7 @@ rg -Fq 'id: "halo", label: qsTr("Halo")' "$bar_appearance" \
   || fail 'Halo capsule is missing from Bar Studio'
 rg -Fq 'RaohaneConfig.barStylePreset === "halo"' "$bar" \
   || fail 'Halo is not selectable on the real horizontal bar'
-rg -Fq '"cinematic", "halo", "orbit", "ribbon", "ink", "islands"' "$config" \
+rg -Fq '"cinematic", "halo", "capsule", "orbit", "ribbon", "ink", "islands"' "$config" \
   || fail 'Halo preset is not restorable from native preferences'
 rg -Fq 'surface: "float", group: "transparent", height: 44, radius: 22' "$bar_appearance" \
   || fail 'Halo lost its slender transparent capsule dimensions'
