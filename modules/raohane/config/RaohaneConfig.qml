@@ -8,7 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property int schemaVersion: 17
+    readonly property int schemaVersion: 18
     readonly property string configDirectory: RaohanePaths.configDirectory
     readonly property string filePath: RaohanePaths.nativeConfigFile
 
@@ -32,6 +32,8 @@ Singleton {
     property string wallpaperAutoSource: "folder"
     property bool wallpaperAdaptiveAccent: false
     property string wallpaperPaletteProvider: "builtin"
+    property bool wallpaperAdaptiveTheme: false
+    property var wallpaperAdaptivePalette: ({})
     property string wallpaperAdaptiveColor: "#94b5e5"
     // Cached output of the one-shot wallpaper palette probe.
     property string wallpaperFlowColorA: "#9067b3"
@@ -593,6 +595,35 @@ Singleton {
         return result
     }
 
+    function sanitizeWallpaperPalette(value): var {
+        const result = { dark: {}, light: {} }
+        const roles = [
+            "primary", "on_primary", "primary_container", "on_primary_container",
+            "secondary", "on_secondary", "secondary_container", "on_secondary_container",
+            "tertiary", "on_tertiary", "tertiary_container", "on_tertiary_container",
+            "error", "on_error", "error_container", "on_error_container",
+            "background", "on_background", "surface", "on_surface",
+            "surface_variant", "on_surface_variant", "surface_dim", "surface_bright",
+            "surface_container_lowest", "surface_container_low", "surface_container",
+            "surface_container_high", "surface_container_highest",
+            "outline", "outline_variant", "inverse_surface", "inverse_on_surface",
+            "inverse_primary", "scrim", "shadow", "surface_tint"
+        ]
+        if (!value || typeof value !== "object" || Array.isArray(value))
+            return result
+        for (const mode of ["dark", "light"]) {
+            const source = value[mode]
+            if (!source || typeof source !== "object" || Array.isArray(source))
+                continue
+            for (const role of roles) {
+                const color = String(source[role] ?? "")
+                if (/^#[0-9a-fA-F]{6}$/.test(color))
+                    result[mode][role] = color.toLowerCase()
+            }
+        }
+        return result
+    }
+
     function wallpaperPathForScreen(screenName): string {
         const key = String(screenName ?? "")
         const saved = root.wallpaperMonitors
@@ -627,6 +658,8 @@ Singleton {
                 autoSource: root.wallpaperAutoSource,
                 adaptiveAccent: root.wallpaperAdaptiveAccent,
                 paletteProvider: root.wallpaperPaletteProvider,
+                adaptiveTheme: root.wallpaperAdaptiveTheme,
+                adaptivePalette: root.sanitizeWallpaperPalette(root.wallpaperAdaptivePalette),
                 adaptiveColor: root.wallpaperAdaptiveColor,
                 flowColorA: root.wallpaperFlowColorA,
                 flowColorB: root.wallpaperFlowColorB,
@@ -809,6 +842,8 @@ Singleton {
         root.assignIfPresent(wallpaper, "autoSource", value => root.wallpaperAutoSource = value === "favorites" ? "favorites" : "folder")
         root.assignIfPresent(wallpaper, "adaptiveAccent", value => root.wallpaperAdaptiveAccent = Boolean(value))
         root.assignIfPresent(wallpaper, "paletteProvider", value => root.wallpaperPaletteProvider = value === "matugen" ? "matugen" : "builtin")
+        root.assignIfPresent(wallpaper, "adaptiveTheme", value => root.wallpaperAdaptiveTheme = Boolean(value))
+        root.assignIfPresent(wallpaper, "adaptivePalette", value => root.wallpaperAdaptivePalette = root.sanitizeWallpaperPalette(value))
         root.assignIfPresent(wallpaper, "adaptiveColor", value => {
             const hex = String(value ?? "")
             root.wallpaperAdaptiveColor = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : "#94b5e5"
@@ -1022,6 +1057,8 @@ Singleton {
     onWallpaperAutoSourceChanged: scheduleSave()
     onWallpaperAdaptiveAccentChanged: scheduleSave()
     onWallpaperPaletteProviderChanged: scheduleSave()
+    onWallpaperAdaptiveThemeChanged: scheduleSave()
+    onWallpaperAdaptivePaletteChanged: scheduleSave()
     onWallpaperAdaptiveColorChanged: scheduleSave()
     onWallpaperFlowColorAChanged: scheduleSave()
     onWallpaperFlowColorBChanged: scheduleSave()
