@@ -1,122 +1,132 @@
+<!--
+  Raohane project README
+  Screenshots in assets/screenshots are unretouched Quickshell captures.
+  The Wallpaper Studio SVG is a concept illustration, not a runtime screenshot.
+-->
+
 <div align="center">
 
-<img src="assets/icons/raohane-emblem.png" alt="Raohane emblem" width="108">
+<img src="assets/icons/raohane-emblem.png" alt="Raohane emblem" width="92">
 
 # Raohane
 
-**Your desktop, your atmosphere.**
+### Your desktop. Your atmosphere.
 
-A thoughtfully customizable desktop shell for **Hyprland**, built with **Quickshell and Qt/QML**.
-Soft graphite. Lavender light. A quieter place to work, create and stay focused.
+A customizable desktop shell for **Hyprland**, built with **Quickshell, Qt and QML**.
 
-[Explore the gallery](#gallery) · [Discover features](#features) · [Get started](#installation) · [Read the docs](#documentation) · [Website source](https://github.com/killmyselfrin/raohane-site)
+Soft graphite surfaces, restrained accents, adaptive color and thoughtful motion —  
+a cohesive desktop environment shaped around the way you work.
 
-**English** · [Русский](README.ru.md)
+<p>
+  <a href="#gallery">Gallery</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
+
+[English](README.md) · [Русский](README.ru.md)
 
 [![Raohane audit](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml/badge.svg?branch=main)](https://github.com/killmyselfrin/raohane-dots/actions/workflows/raohane-audit.yml)
 [![GPLv3](https://img.shields.io/badge/license-GPLv3-b9b3f3)](LICENSE)
-![1.3.0 development](https://img.shields.io/badge/1.3.0-development-191d27)
+![Development](https://img.shields.io/badge/status-active%20development-7c789b)
+![Version](https://img.shields.io/badge/version-1.3.0--dev-252a36)
 
-<a href="assets/screenshots/desktop.png"><img src="assets/screenshots/desktop.png" alt="Raohane desktop with Orbit bar, desktop clock and record-style media widget" width="100%"></a>
+<a href="assets/screenshots/desktop.png">
+  <img src="assets/screenshots/desktop.png" alt="Raohane desktop with Orbit bar, desktop clock, media card and system widget" width="100%">
+</a>
 
-<sub>Actual Quickshell render, captured with Sway headless and software rendering. Hyprland hardware behaviour is not represented in this screenshot. [Capture conditions & credits](assets/screenshots/README.md).</sub>
+<sub>Real, unretouched Quickshell capture · 1920 × 1080 · diagnostic Sway session with software rendering.</sub>
 
 </div>
 
-## A desktop that feels like yours
+---
 
-<table>
-<tr>
-<td width="33%" valign="top">
-<strong>01 / Make space</strong><br>
-<sub>Shape the Bar and Dock, arrange desktop widgets, and make the layout work across different screen sizes.</sub>
-</td>
-<td width="33%" valign="top">
-<strong>02 / Set the atmosphere</strong><br>
-<sub>Choose wallpaper collections, optional adaptive accents and a consistent, restrained material system.</sub>
-</td>
-<td width="33%" valign="top">
-<strong>03 / Stay in flow</strong><br>
-<sub>Reach music, workspaces, quick controls and everyday tools when needed—without a permanently crowded desktop.</sub>
-</td>
-</tr>
-</table>
+## What is Raohane?
+
+Raohane is a standalone desktop shell for **Hyprland**. It brings the everyday surfaces of a desktop into one consistent system: a configurable Bar, Dock, launcher, Control Center, wallpaper library, media surfaces, desktop widgets and a searchable Settings workspace.
+
+The project is built around three principles:
+
+- **One visual language.** Shared surfaces, typography, spacing, colors and motion across the shell.
+- **Useful customization.** Configure layouts, modules, widgets, themes and wallpapers without maintaining a pile of unrelated tools.
+- **Predictable runtime.** Prefer native Quickshell services, bounded background work and explicit fallbacks over duplicate daemons and unnecessary polling.
+
+Raohane is under active development. It is not currently presented as a fully validated stable release.
 
 ## Gallery
 
-These are **unedited captures of the running Quickshell interface**, not generated interface concepts.
-They were taken at **1920 × 1080** in a Sway headless diagnostic session using software rendering.
-Hyprland, compositor blur, GPU performance, hardware controls and long-session behaviour require separate validation.
-See [capture details, wallpaper licenses and credits](assets/screenshots/README.md).
+These images are **captures of the actual running Quickshell interface**, not generated mockups. They were captured on 11 November 2026 from source commit `a038d025024a5aeee9a70a55de183ed469478ac5`.
 
 <table>
 <tr>
 <td width="50%" valign="top">
-<a href="assets/screenshots/welcome.png"><img src="assets/screenshots/welcome.png" alt="Raohane welcome and first-run setup" width="100%"></a><br>
-<strong>A calmer first launch</strong><br>
-<sub>A five-step setup for appearance, wallpaper and the Bar.</sub>
+<a href="assets/screenshots/welcome.png"><img src="assets/screenshots/welcome.png" alt="Raohane first-run Welcome wizard" width="100%"></a>
+
+**Welcome**
+
+<sub>First-run setup and appearance onboarding.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="assets/screenshots/settings.png"><img src="assets/screenshots/settings.png" alt="Raohane appearance settings" width="100%"></a><br>
-<strong>Everything in its place</strong><br>
-<sub>Theme choices, wallpaper browsing and coherent controls.</sub>
+<a href="assets/screenshots/settings.png"><img src="assets/screenshots/settings.png" alt="Raohane Settings with theme library and wallpaper categories" width="100%"></a>
+
+**Settings**
+
+<sub>Theme library and wallpaper browsing entry points.</sub>
 </td>
 </tr>
 <tr>
 <td colspan="2">
-<a href="assets/screenshots/control-center.png"><img src="assets/screenshots/control-center.png" alt="Raohane Control Center" width="100%"></a><br>
-<strong>Everyday controls, together</strong><br>
-<sub>Audio, connectivity and session actions; hardware availability reflects the diagnostic environment.</sub>
+<a href="assets/screenshots/control-center.png"><img src="assets/screenshots/control-center.png" alt="Raohane Control Center showing quick controls" width="100%"></a>
+
+**Control Center**
+
+<sub>Quick controls and system surfaces. Device availability reflects the isolated capture environment.</sub>
 </td>
 </tr>
 </table>
 
-## Wallpaper Studio — visual direction
+<details>
+<summary><strong>Screenshot conditions and limitations</strong></summary>
 
-The preview below is a **design concept**, not a screenshot of the running shell. It illustrates the intended Material-inspired layout: a current-wallpaper hero, collection browser, transition presets, and an optional Matugen palette provider. Runtime behaviour and implementation details are documented in [Wallpaper Studio redesign](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md).
+The screenshots are direct `grim` captures at 1920 × 1080 logical pixels, scale 1, from Quickshell 0.3.2 / Qt 6.11.2 running in a headless Sway + pixman diagnostic environment with `QT_QUICK_BACKEND=software`. No GPU was exposed to the container, so Hyprland could not initialize its rendering backend.
 
-<p align="center"><img src="assets/showcase/wallpaper-studio-material-preview.svg" alt="Conceptual Raohane Wallpaper Studio with wallpaper collections, transition previews and Matugen palette controls" width="100%"></p>
+They demonstrate the rendered interface, but **do not demonstrate Hyprland hardware rendering, compositor blur, GPU performance, real hardware controls, multi-monitor behavior or long-session stability**. Those require validation on a real target system.
+
+The forest desktop wallpaper is “Path” by Risto Saukonpää from KDE Plasma Workspace Wallpapers (LGPLv3). Other thumbnail artwork retains its original credits. Full capture notes and artwork provenance: [assets/screenshots/README.md](assets/screenshots/README.md).
+
+</details>
+
+### Wallpaper Studio — design preview
+
+<p align="center">
+  <img src="assets/showcase/wallpaper-studio-material-preview.svg" alt="Concept illustration of Raohane Wallpaper Studio with wallpaper hero, collection, transitions and Matugen palette" width="100%">
+</p>
+
+<sub>This is a **design concept**, not a screenshot of the running application. It illustrates the intended Material-inspired layout and palette controls.</sub>
 
 ## Features
 
-| Area | What you can do |
+| Area | Capabilities |
 | --- | --- |
-| **Bar & Dock** | Compose horizontal or vertical bars with configurable module ordering, workspaces, Context Island, auto-hide, clock styles and Dock. Choose from ten Bar looks. |
-| **Wallpaper Studio 2.0** | Browse offline collections, save favorites and folders, assign wallpapers per monitor, preview video, opt into adaptive colors and schedule rotation. |
-| **Theme & motion** | Customize the graphite-and-lavender Raohane look or select alternative themes. Motion policies respect reduced-motion and Gaming scenarios. |
-| **Widget Studio** | Arrange desktop clock, media and system widgets, with Classic, Minimal and Aurora visual treatments. |
-| **Launcher & Overview** | Search apps and actions, switch workspaces, and find running windows. |
-| **Control Center & Scenes** | Access network, Bluetooth, audio, brightness, notifications and Balanced/Gaming/Focus/Work modes. |
-| **Media** | MPRIS playback, synchronized or plain lyrics, record-style media card, album-art Now Playing capsule and fullscreen overlay. |
-| **Utilities** | Screenshots, recording, OCR, on-demand screen translation, clipboard history, on-screen keyboard, Task Manager and session controls. |
-| **System integration** | Hyprland, Wayland, PipeWire and native system-service adapters, without a separate shell runtime dependency. |
+| **Bar & Dock** | Horizontal and vertical layouts, configurable module order, workspace indicators, auto-hide, clock styles, Context Island and multiple visual presets. |
+| **Wallpaper Studio** | Wallpaper library, favorites, saved folder collections, per-monitor overrides, video previews, slideshow scheduling and adaptive colors. |
+| **Themes & appearance** | Shared Raohane theme system, built-in presets, user theme import/export, configurable visual density and motion preferences. |
+| **Dynamic color** | Built-in wallpaper palette extraction, optional Matugen provider, accent-only coloring and full Material You role mapping. |
+| **Wallpaper transitions** | Random or custom transition selection; Fade, Wipe, Circle and Dissolve for still wallpapers. |
+| **Widget Studio** | Desktop clock, media/context and system widgets; Classic, Minimal and Aurora visual faces; editable desktop placement. |
+| **Launcher & Overview** | Keyboard-oriented app/action search, workspace navigation and running-window overview. |
+| **Control Center** | Network, Bluetooth, audio, microphone, brightness, notifications and quick system actions. |
+| **Media** | MPRIS playback controls, album art, lyrics, media capsule and fullscreen overlay. |
+| **Utilities** | Screenshots, screen recording, OCR/translation, clipboard history, on-screen keyboard, Task Manager and session controls. |
+| **Scenes** | Balanced, Gaming, Focus and Work behavior profiles. |
 
-**Current source version:** `1.3.0-dev` ([VERSION](VERSION) · [CHANGELOG](CHANGELOG.md)).
-Raohane is in **active development**, not a certified stable release. Passing CI validates source and integration boundaries, **not** long-session reliability, multi-monitor setups or GPU/compositor behaviour. Follow the [roadmap](docs/ROADMAP.md) and [release checklist](docs/RELEASE-VALIDATION.md).
-
-## Wallpaper colors and transitions
-
-Open `raohane wallpaper` and turn **Adaptive on** to let the shared widget,
-Bar and panel surfaces follow the dominant wallpaper hue. Neutral wallpapers
-stay neutral; surfaces retain light/dark tonal depth and text remains readable.
-The selected theme is preserved when adaptive colors are turned off.
-
-Confirmed wallpaper changes smoothly interpolate the shared palette. Still-image
-transitions wait for decoding and dissolve over the previous image without a
-mid-transition dark flash. Style Studio's motion scale and Game Mode control
-these animations; a wallpaper transition duration of `0` disables them and
-survives restart. Video wallpapers use a one-frame palette sample, not continuous
-color extraction; seamless video-to-video blending is not provided.
-
-The palette is shared across the shell and follows the **global wallpaper**;
-per-monitor backgrounds do not create separate widget palettes. Live Hyprland
-GPU and multi-monitor validation of these transitions remains pending.
+Feature availability depends on installed optional packages and the current desktop session. See the relevant documentation before relying on hardware-specific behavior.
 
 ## Installation
 
 ### Arch Linux and derivatives
 
-Install from an existing Hyprland session:
+Raohane targets an existing **Hyprland** session. Clone the repository and run the guided installer:
 
 ```bash
 git clone https://github.com/killmyselfrin/raohane-dots.git
@@ -124,23 +134,27 @@ cd raohane-dots
 bash install.sh
 ```
 
-The guided installer checks dependencies, explains missing packages, asks permission for system changes, sets up the Raohane runtime and Hyprland integration, and can install the optional SDDM login theme. The visual onboarding opens on first launch.
+The installer checks dependencies, explains required changes and requests permission before system-level actions. Review the package plan before proceeding.
 
-After reviewing the package changes, an unattended installer is available:
+For an unattended installation:
 
 ```bash
 bash install.sh --yes
 ```
 
-Dependencies: [required packages](install/arch/required.txt) · [optional features](install/arch/features.txt). GPU drivers are **not** automatically replaced. The developer/upgrade backend is `install-raohane.sh`.
+The unattended mode accepts the installer's default choices. GPU drivers are not automatically replaced.
 
-### NixOS and Home Manager
+Dependencies are split into:
+- [Required runtime packages](install/arch/required.txt)
+- [Optional feature packages](install/arch/features.txt)
 
-The flake exports a package, a NixOS module, and a Home Manager module. Follow [Nix installation](docs/NIX.md).
+### NixOS / Home Manager
+
+The flake exports a package, a NixOS module and a Home Manager module. See the [Nix installation guide](docs/NIX.md) and the [module definitions](nix/).
 
 ## Update
 
-From the checkout used to install Raohane:
+Run these commands from the checkout used to install Raohane:
 
 ```bash
 git pull --ff-only
@@ -148,11 +162,11 @@ git pull --ff-only
 raohane restart
 ```
 
-Pulling repository changes alone does not replace the installed runtime under `~/.config/quickshell/raohane`. Re-run the guided installer when dependencies change.
+Pulling source changes alone does not replace the installed runtime under `~/.config/quickshell/raohane`. Re-run the installer when runtime dependencies or installation files change.
 
 ## Commands
 
-| Command | Action |
+| Command | Purpose |
 | --- | --- |
 | `raohane launcher` | Open the application launcher |
 | `raohane control` | Open Control Center |
@@ -160,112 +174,88 @@ Pulling repository changes alone does not replace the installed runtime under `~
 | `raohane media` | Open the media overlay |
 | `raohane desktop` | Open desktop controls |
 | `raohane wallpaper` | Open the wallpaper selector |
-| `raohane session` | Open power and session controls |
+| `raohane session` | Open session and power controls |
 | `raohane translate` | Start screen translation |
-| `raohane doctor all` | Inspect installation and runtime |
-| `raohane doctor performance` | Read-only process CPU, RSS, threads, and service restarts |
-| `raohane validate smoke` | Inspect current-session IPC and significant QML errors |
+| `raohane doctor all` | Inspect installation and runtime dependencies |
+| `raohane doctor performance` | Inspect process CPU, RSS, threads and service restarts |
+| `raohane validate smoke` | Check current-session IPC and significant QML errors |
 
-Launcher search modes: app names · `/` built-in/contextual actions · `>` commands · `=` calculations · `:` clipboard history.
+Launcher search supports app names, `/` for actions, `>` for commands, `=` for calculations and `:` for clipboard history.
 
-## Configuration
+## Appearance and configuration
 
-Settings are stored at `~/.config/raohane/native.json`. Scene state and application rules are tracked separately under XDG state paths, so temporary scene policies don't overwrite base preferences. User autostart commands belong in `~/.config/raohane/autostart.conf`.
+The native settings file is:
 
-The default **Raohane** theme combines dark charcoal glass with lavender accents. Built-in alternatives include **Paper, Rose Glass, Sage Glass, Slate, Sand, Ink,** and **Midnight**. Use Settings or `raohane theme` to select, import, and export themes. See [theme format](docs/THEMES.md).
-
-### Wallpaper collections
-
-The bundled collection works offline. To download the optional mixed anime set:
-
-```bash
-python3 scripts/import-anime-wallpapers.py \
-  --output "$HOME/.local/share/raohane/wallpapers/anime" \
-  --register-config "$HOME/.config/raohane/native.json"
+```text
+~/.config/raohane/native.json
 ```
 
-Run this from the checkout after the initial installation. The importer uses
-pinned URLs and checksums; Python Pillow is required for image validation.
-[Collection sources, licenses and usage](assets/wallpapers/README.md).
+User themes are stored separately in:
 
-## Troubleshooting
-
-```bash
-raohane doctor all
-raohane doctor performance
-raohane status
-raohane logs
-raohane validate smoke
+```text
+~/.config/raohane/themes.json
 ```
 
-To observe a clean foreground startup:
+The Settings interface is the recommended way to change everyday preferences. The theme CLI can list, import, export and remove user presets:
 
 ```bash
-raohane stop
-raohane run
+raohane theme list
+raohane theme import ~/Downloads/my-theme.json
+raohane theme export my-theme ~/Downloads/my-theme.json
+raohane theme remove my-theme
 ```
 
-For performance or disappearing-panel reports, run `raohane doctor performance` while the issue occurs and compare with a healthy-session snapshot. Include the installed version, GPU/compositor details, `raohane validate smoke`, recent logs, and exact reproduction steps. The read-only process snapshot reports lifetime-average CPU, RSS, threads and service restart counts; it does not measure frame time. Hardware/runtime issues should be tested in a real Hyprland session.
+See [Theme format](docs/THEMES.md) for the JSON schema and validation rules.
 
-Raohane installs updates **manually by default**; automatic installation can be explicitly enabled in Settings → About. Existing explicit automatic-update preferences remain respected.
+### Wallpaper colors and Matugen
 
-If Shelly or another package manager reports that polkit is missing on the system bus, check `systemctl status polkit`, `busctl --system status org.freedesktop.PolicyKit1`, and `pkexec whoami`. The system-wide `polkit` daemon is a required dependency; Raohane also provides its own graphical authorization agent via Quickshell. Do not start a second polkit agent unless the built-in one is unavailable. See [Shelly's polkit troubleshooting guide](https://www.seafoam-labs.org/shelly-alpm/docs/polkit/).
+Wallpaper Studio supports the built-in palette extractor and an optional **Matugen** provider. Matugen is not required to run Raohane.
 
-## Documentation
+- The built-in provider remains the fallback when Matugen is not installed or returns unusable output.
+- Matugen is invoked in a bounded, non-interactive dry-run using a temporary isolated configuration; the user's Matugen templates and hooks are not loaded.
+- The extracted palette can drive Adaptive Accent / Bar Chromatic Flow. The full Material You option maps validated Material roles into the shared Raohane theme.
+- Video wallpapers use a bounded still-frame sample; there is no continuous video color analysis daemon.
 
-- [Initial setup validation](docs/WELCOME-SETUP-VALIDATION.md)
-- [Bar, Welcome and wallpaper validation](docs/BAR-WELCOME-PACK-VALIDATION.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Release validation](docs/RELEASE-VALIDATION.md)
-- [Roadmap](docs/ROADMAP.md)
-- [Widget Studio 2.0 testing and rollback](docs/WIDGET-STUDIO-2-VALIDATION.md)
-- [Widget face library — styles, controls and runtime checks](docs/WIDGET-FACE-LIBRARY.md)
-- [Cinematic wallpaper + floating bar validation](docs/CINEMATIC-DESKTOP-VALIDATION.md)
-- [Wallpaper Studio 2.0 — features and live tests](docs/WALLPAPER-STUDIO-2-VALIDATION.md)
-- [Wallpaper Studio — Material layout and shared transitions](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md)
-- [Optional Matugen palette provider and safe fallback](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md#optional-matugen-palette-provider)
-- [Halo Bar — appearance, native modules and smoke tests](docs/HALO-BAR-VALIDATION.md)
-- [Theme format](docs/THEMES.md)
-- [NixOS / Home Manager](docs/NIX.md)
-- [Contributing](CONTRIBUTING.md)
-- [Localization](translations/l10n/README.md)
-- [Changelog](CHANGELOG.md)
+Install Matugen separately using the [upstream instructions](https://github.com/InioX/matugen). Implementation notes and limitations are documented in [Wallpaper Studio redesign](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md).
 
-## Development
+## Project status and validation
 
-Contributions, bug reports and feedback are welcome. Review [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](docs/ROADMAP.md), and [release validation](docs/RELEASE-VALIDATION.md) before proposing compositor-facing changes.
+**Current source version:** `1.3.0-dev` ([VERSION](VERSION)).
 
-<details>
-<summary><strong>Codex Cloud integration history and remaining release work</strong></summary>
+Raohane is actively developed. Automated audits validate source boundaries, configuration contracts, localization and selected integration invariants. They do **not** prove that every feature works correctly on every Hyprland/GPU combination.
 
-### Codex Cloud changes in main
+Before treating a build as release-ready, validate it on real hardware: installation and upgrade, horizontal/vertical Bar, focus and shortcuts, multi-monitor layouts, fullscreen/game behavior, audio/network devices, wallpaper/video playback, PAM/Polkit, suspend/resume and long-session resource usage.
 
-The current `main` includes the following reconciled Codex Cloud contributions:
-
-- **Screen translation (#93):** background OCR/translation transaction state is resident in `RaohaneScreenTranslation`; the full-screen presentation is on-demand, and IPC/shortcut entrypoints stay active while it is unloaded.
-- **Now Playing island (#145):** bounded album-art decoding, a separate play/pause action and an overlay shortcut, adapted for the current Halo/compact Bar layouts.
-- **Motion and visual contracts (#127):** Quick Controls busy indicators respect reduced-motion and Gaming policies; neutral Nocturne design guidance remains the product baseline.
-- **Desktop & Spaces preview (#39):** on-demand Settings wallpaper and workspace grid preview, native shortcuts to wallpaper/Overview/widgets, and geometry-aware navigation to controls.
-- **Settings navigation (#47):** ranked multiword search with Russian е/ё normalization, a scrollable result list, keyboard-accessible sidebar, and motion-aware page transitions across every Settings page.
-- **Bar Studio controls (#100; overlapping #99):** independent workspace count, numbers/dots/minimal indicators, 24-hour/12-hour time, optional seconds, date formatting and synchronized native previews. These settings persist through the v15 native configuration and are indexed by Settings search.
-
-These are code integrations, **not proof of live Hyprland acceptance**. Static checks and source review do not replace compositor testing. The original draft PRs may remain open as historical review records even when selected changes have been ported.
-
-The former Bar proposals [#99](https://github.com/killmyselfrin/raohane-dots/pull/99) and [#100](https://github.com/killmyselfrin/raohane-dots/pull/100) overlap; current `main` uses the consolidated Bar Studio behavior rather than installing both competing Settings panels. The historical #99 alternative indicator and module-settings UI is **not merged wholesale**. The separate [1.3 release candidate (#48)](https://github.com/killmyselfrin/raohane-dots/pull/48) still needs live Hyprland acceptance and must not be promoted as a stable release just because source changes were reconciled.
-
-</details>
-
-The active Quickshell implementation is under `modules/raohane/`. Verify source and runtime boundaries with:
+Useful checks:
 
 ```bash
 bash scripts/raohane-audit.sh
 bash scripts/runtime-payload-audit.sh
+raohane doctor all
+raohane validate smoke
 ```
 
-**Static validation does not replace running the shell.** Check behavior, QML logs, screenshots, session actions, and long-session resource usage on target Hyprland hardware before declaring release readiness.
+The full live release procedure is in [Release validation](docs/RELEASE-VALIDATION.md). Known open stabilization work is tracked in the [roadmap](docs/ROADMAP.md).
 
-## License
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Release validation](docs/RELEASE-VALIDATION.md)
+- [Theme format and user presets](docs/THEMES.md)
+- [Wallpaper Studio 2.0](docs/WALLPAPER-STUDIO-2-VALIDATION.md)
+- [Wallpaper Studio Material redesign and Matugen](docs/WALLPAPER-STUDIO-MATERIAL-REDESIGN.md)
+- [Bar, Welcome and wallpaper collection](docs/BAR-WELCOME-PACK-VALIDATION.md)
+- [Halo Bar and Chromatic Flow](docs/HALO-BAR-VALIDATION.md)
+- [Desktop Widget Face Library](docs/WIDGET-FACE-LIBRARY.md)
+- [NixOS / Home Manager](docs/NIX.md)
+- [Contributing](CONTRIBUTING.md)
+- [Localization](translations/l10n/README.md)
+- [Changelog](CHANGELOG.md)
+- [Screenshot capture notes and artwork credits](assets/screenshots/README.md)
+
+## Credits and license
 
 Raohane is developed and maintained by [@killmyselfrin](https://github.com/killmyselfrin).
 
-Raohane is released under [GNU GPLv3](LICENSE). Retained/adapted code, translations, data, and assets preserve applicable attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md). Screenshot credits and capture details are listed in [assets/screenshots](assets/screenshots/README.md). Older concept artwork remains separately labeled in [assets/showcase](assets/showcase/README.md).
+Released under the [GNU General Public License v3.0](LICENSE). Retained or adapted code, translations and assets preserve their applicable licenses and attribution; see [NOTICE-UPSTREAM.md](NOTICE-UPSTREAM.md), [wallpaper credits](assets/wallpapers/README.md) and [screenshot notes](assets/screenshots/README.md).
